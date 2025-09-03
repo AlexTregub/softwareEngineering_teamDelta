@@ -1,23 +1,30 @@
-
-let img;
-
-// Load the image and create a p5.Image object.
-function preload() {
-  img = loadImage('/Entities/Ants/Ant.png');
-}
+let ant1;
 
 function setup() {
-  createCanvas(windowWidth, windowHight);
+  createCanvas(640, 480);
+  background(204);
+  // Call handleImage() once the image loads or
+  // call handleError() if an error occurs.
 
-  // Draw the image.
-  image(img, 0, 0);
-
-  describe('Image of the underside of a white umbrella and a gridded ceiling.');
+  
 }
 
-function draw() {
-  background(220);
-  ellipse(200, 200, 50, 50);
+function draw(){
 }
 
+function mousePressed(){
+  ant1 = loadImage('Images/Ant_tn.png', handleImage, handleError);
+}
 
+// Display the image.
+function handleImage(img) {
+  imageMode(CENTER);
+  image(img, mouseX, mouseY, 30, 15);
+  
+  describe('ant');
+}
+
+// Log the error.
+function handleError(event) {
+  console.error('Oops!', event);
+}
