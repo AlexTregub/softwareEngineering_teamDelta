@@ -16,7 +16,7 @@ class Grid {
     this.x = x;
     this.y = y;
     this.gridSize = gridSize;
-    this.materials = {'grass':500,'dirt':250}; // Material Rarity
+    this.materials = {'grass':50,'dirt':250}; // Material Rarity
     this.materialImages = {
       'grass': () => image(grassImg, this.x, this.y),
       'dirt': () => image(dirtImg, this.x, this.y)
