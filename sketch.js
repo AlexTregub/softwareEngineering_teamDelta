@@ -73,10 +73,9 @@ function setup() {
 }
 
 
-
 function draw() {
   if(!initialize){
-    loadMap()
+    loadMap();
     initialize = true;
   }
 
