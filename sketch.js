@@ -1,69 +1,69 @@
 let initialize = false;
 let canvasX = 400;
 let canvasY = 400;
+let gridList = {};
+
+let grassImg;
+let dirtImg;
+function preload(){
+  grassImg = loadImage('Images/grass.jpg');
+  dirtImg = loadImage('Images/dirt.png');
+}
+
 
 class Grid {
-  constructor(x,y){
+  constructor(x,y,gridSize){
     this.x = x;
     this.y = y;
-    this.gridSize = 20;
-    this.material = {'grass':500,'dirt':200,'apple':20,'berry':20};
-
+    this.gridSize = gridSize;
+    this.materials = {'grass':500,'dirt':250}; // Material Rarity
+    this.materialImages = {
+      'grass': () => image(grassImg, this.x, this.y),
+      'dirt': () => image(dirtImg, this.x, this.y)
+    };
   }
 
-  // Place random materials on the map
-
   setMaterial(material){
-    let materialImage = {
-      'grass':500,'dirt':200,'apple':20,'berry':20
-    };
-
-
+    if(this.materialImages[material]){
+      this.materialImages[material]();
+    }
   }
 
   getMaterial(){
     let totalRarity = 0;
-
     for (let rarity in this.materials){
-      totalRarity += materials[rarity];
+      totalRarity += this.materials[rarity];
     }
 
     let randomValue = random() * totalRarity;
-    for(let rarity in this.materials){
-      randomValue -= materials[rarity];
+    for(let materialType in this.materials){
+      randomValue -= this.materials[materialType];
       if(randomValue <= 0){
-        return rarity;
+        return materialType;
       }
     }
-
     return 'grass';
   }
+
+
   
   draw(){
-    square(this.x,this.y,this.gridSize);
+    let randomMaterial = this.getMaterial();
+    this.setMaterial(randomMaterial);
+    // square(this.x,this.y,this.gridSize);
   }
 }
 
-function mouseClicked(){
-  fill(255);
-  square(mouseX,mouseY,50);
-}
-
-function preload(){
-  grassImg = loadImage('/assets/laDefense.jpg');
-}
-
+// Logic needs checked to prevent overlapping
 function loadMap() {
-  let gridSize = canvasX/20; // How much grids you want
-  let gridDiameter = 20; // Size of the grids
+  let gridCount = 20;
+  let gridSize = canvasX/gridCount;
 
   for(let i = 0; i < gridSize; ++i){
     for(let j = 0; j < gridSize; ++j){
-      let object = new Grid(i*gridDiameter,j*gridDiameter);
-      let randomMaterial = object.getMaterial();
-
-      object.setMaterial(randomMaterial);
+      let object = new Grid(i*gridSize,j*gridSize,gridSize);
       object.draw();
+      gridList[object] = (object.x,object.y); // ??? Use to refrence back to a specific grid
     }
   }
 }
@@ -72,10 +72,12 @@ function setup() {
   createCanvas(canvasX, canvasY);
 }
 
+
+
 function draw() {
   if(!initialize){
     loadMap()
-    initialize = false;
+    initialize = true;
   }
 
 }
