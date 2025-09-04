@@ -1,6 +1,6 @@
 let initialize = false;
-let canvasX = 400;
-let canvasY = 400;
+let canvasX = 800;
+let canvasY = 800;
 let gridList = {};
 
 let grassImg;
@@ -16,10 +16,10 @@ class Grid {
     this.x = x;
     this.y = y;
     this.gridSize = gridSize;
-    this.materials = {'grass':50,'dirt':250}; // Material Rarity
+    this.materials = {'grass':10,'dirt':300}; // Material Rarity
     this.materialImages = {
-      'grass': () => image(grassImg, this.x, this.y),
-      'dirt': () => image(dirtImg, this.x, this.y)
+      'grass': () => image(grassImg, this.x, this.y,this.gridSize, this.gridSize),
+      'dirt': () => image(dirtImg, this.x, this.y, this.gridSize, this.gridSize)
     };
   }
 
@@ -72,13 +72,10 @@ function setup() {
   createCanvas(canvasX, canvasY);
 }
 
-
-
 function draw() {
   if(!initialize){
-    loadMap()
+    loadMap();
     initialize = true;
   }
-
 }
 
