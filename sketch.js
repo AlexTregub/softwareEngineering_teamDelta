@@ -11,62 +11,103 @@ function preload(){
 }
 
 
-class Grid {
-  constructor(x,y,gridSize){
-    this.x = x;
-    this.y = y;
-    this.gridSize = gridSize;
-    this.materials = {'grass':10,'dirt':300}; // Material Rarity
-    this.materialImages = {
-      'grass': () => image(grassImg, this.x, this.y,this.gridSize, this.gridSize),
-      'dirt': () => image(dirtImg, this.x, this.y, this.gridSize, this.gridSize)
-    };
-  }
+////// TERRAIN
+class Terrain {
+  constructor(tileCountX, tileCountY, tileSize) {
+    // Config...
+    this._xCount = tileCountX;
+    this._yCount = tileCountY;
+    this._tileSize = tileSize;
 
-  setMaterial(material){
-    if(this.materialImages[material]){
-      this.materialImages[material]();
-    }
-  }
-
-  getMaterial(){
-    let totalRarity = 0;
-    for (let rarity in this.materials){
-      totalRarity += this.materials[rarity];
-    }
-
-    let randomValue = random() * totalRarity;
-    for(let materialType in this.materials){
-      randomValue -= this.materials[materialType];
-      if(randomValue <= 0){
-        return materialType;
+    this._tileStore = [];
+    for (let j = 0; j < this._yCount; ++j) { // ... then Y...
+      for (let i = 0; i < this._xCount; ++i) { // row of X first... ^
+        this._tileStore.push( // Add tile to...
+          new Tile(
+            i*this._tileSize,j*this._tileSize, // x,y position conversion.
+            this._tileSize
+          )
+        );
       }
     }
-    return 'grass';
   }
 
 
-  
-  draw(){
-    let randomMaterial = this.getMaterial();
-    this.setMaterial(randomMaterial);
-    // square(this.x,this.y,this.gridSize);
+
+  //// Utility
+  conv2dpos(posX,posY) { // Converts 2d -> 1d position
+    return posX + tileCountX*posY;
+  }
+
+
+
+  //// Usage
+  render() { // Render all tiles
+    for (let i = 0; i < this._xCount*this._yCount; ++i) {
+      this._tileStore[i].render();
+    }
+  }
+}
+
+class Tile { // Similar to former 'Grid'. Now internally stores material state.
+  constructor(renderX,renderY,tileSize) {
+    // Internal coords
+    this._x = renderX;
+    this._y = renderY;
+
+    this._squareSize = tileSize;
+
+    // Texture Properties
+    this._materialSet = 'grass'; // Used for storage of randomization. Initialized as default value for now
+    this._materialConf = { // All-in-one configuration object. TODO: MAKE EXTERNAL TO AVOID COPIES
+      // FIRST ITEM IS PROBABILITY, SECOND IS RENDER FUNCTION
+      // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS target - prev.
+      // LAST IS DEFAULT aka PROB=1
+      'dirt' : [0.1 , () => image(dirtImg, this._x, this._y, this._squareSize, this._squareSize)],
+      'grass' : [1 , () => image(grassImg, this._x, this._y, this._squareSize,this._squareSize)],
+    };
+  }
+ 
+
+
+  //// Access/usage
+  randomizeMaterial() { // Will select random material for current tile. No return.
+    let selected = random(); // [0-1)
+    for (let checkMat in this._materialConf) {
+      if (this._materialConf[checkMat][0] < selected) {
+        this._materialSet = checkMat;
+        return;
+      }
+    }
+  }
+
+  setMaterial(matName) { // Returns success / fail.
+    if (this._materialConf[matName]) {
+      _materialSet = matName;
+      return true;
+    }
+    return false;
+  }
+
+  render() { // Render, previously draw
+    this._materialConf[this._materialSet][1](); // Call render lambda
+    return;
   }
 }
 
 // Logic needs checked to prevent overlapping
-function loadMap() {
-  let gridCount = 20;
-  let gridSize = canvasX/gridCount;
+// function loadMap() {
+//   let gridCount = 20;
+//   let gridSize = canvasX/gridCount;
 
-  for(let i = 0; i < gridSize; ++i){
-    for(let j = 0; j < gridSize; ++j){
-      let object = new Grid(i*gridSize,j*gridSize,gridSize);
-      object.draw();
-      gridList[object] = (object.x,object.y); // ??? Use to refrence back to a specific grid
-    }
-  }
-}
+//   for(let i = 0; i < gridSize; ++i){
+//     for(let j = 0; j < gridSize; ++j){
+//       let object = new Grid(i*gridSize,j*gridSize,gridSize);
+//       object.draw();
+//       gridList[object] = (object.x,object.y); // ??? Use to refrence back to a specific grid
+//     }
+//   }
+// }
 
 function setup() {
   createCanvas(canvasX, canvasY);
@@ -74,8 +115,12 @@ function setup() {
 
 function draw() {
   if(!initialize){
-    loadMap();
+    // loadMap();
+    let map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
+
     initialize = true;
   }
+
+  map.render(); // Each call will re-render configuration of map
 }
 
