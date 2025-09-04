@@ -3,7 +3,7 @@ let canvasX = 800;
 let canvasY = 800;
 let gridList = {};
 
-let seed = 0;
+let seed;
 let map; // Must be global?
 
 let grassImg;
@@ -131,6 +131,8 @@ function setup() {
 
 function draw() {
   if(!initialize){
+    seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
+
     map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
 
