@@ -3,6 +3,7 @@ let canvasX = 800;
 let canvasY = 800;
 let gridList = {};
 
+let seed = 0;
 let map; // Must be global?
 
 let grassImg;
@@ -85,7 +86,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
       // FIRST ITEM IS PROBABILITY, SECOND IS RENDER FUNCTION
       // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS target - prev.
       // LAST IS DEFAULT aka PROB=1
-      'dirt' : [0.1 , () => image(dirtImg, this._x, this._y, this._squareSize, this._squareSize)],
+      'dirt' : [0.4 , () => image(dirtImg, this._x, this._y, this._squareSize, this._squareSize)],
       'grass' : [1 , () => image(grassImg, this._x, this._y, this._squareSize,this._squareSize)],
     };
   }
@@ -131,7 +132,7 @@ function setup() {
 function draw() {
   if(!initialize){
     map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
-    map.randomize(0); // Randomize with set seed
+    map.randomize(seed); // Randomize with set seed
 
     // Testing setTile:
     // map.setTile(0,0,'dirt');
