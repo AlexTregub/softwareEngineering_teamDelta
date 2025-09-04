@@ -3,6 +3,8 @@ let canvasX = 800;
 let canvasY = 800;
 let gridList = {};
 
+let map; // Must be global?
+
 let grassImg;
 let dirtImg;
 function preload(){
@@ -19,6 +21,7 @@ class Terrain {
     this._yCount = tileCountY;
     this._tileSize = tileSize;
 
+    // Initialize 1d _tileStore
     this._tileStore = [];
     for (let j = 0; j < this._yCount; ++j) { // ... then Y...
       for (let i = 0; i < this._xCount; ++i) { // row of X first... ^
@@ -36,12 +39,31 @@ class Terrain {
 
   //// Utility
   conv2dpos(posX,posY) { // Converts 2d -> 1d position
-    return posX + tileCountX*posY;
+    return posX + this._xCount*posY;
+  }
+
+
+
+  //// Access
+  setTile(posX,posY,material) {
+    return this._tileStore[this.conv2dpos(posX,posY)].setMaterial(material);
+  }
+
+  getTile(posX,posY) {
+    return this._tileStore[this.conv2dpos(posX,posY)].getMaterial();
   }
 
 
 
   //// Usage
+  randomize(seed) { // Randomize all values via set seed
+    randomSeed(seed); // Set global seed.
+
+    for (let i = 0; i < this._xCount*this._yCount; ++i) {
+      this._tileStore[i].randomizeMaterial(); // Rng calls should use global seed
+    }
+  }
+
   render() { // Render all tiles
     for (let i = 0; i < this._xCount*this._yCount; ++i) {
       this._tileStore[i].render();
@@ -74,16 +96,20 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   randomizeMaterial() { // Will select random material for current tile. No return.
     let selected = random(); // [0-1)
     for (let checkMat in this._materialConf) {
-      if (this._materialConf[checkMat][0] < selected) {
+      if (selected < this._materialConf[checkMat][0]) { // Fixed less-than logic
         this._materialSet = checkMat;
         return;
       }
     }
   }
 
+  getMaterial() {
+    return this._materialSet;
+  }
+  
   setMaterial(matName) { // Returns success / fail.
     if (this._materialConf[matName]) {
-      _materialSet = matName;
+      this._materialSet = matName;
       return true;
     }
     return false;
@@ -95,28 +121,25 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 }
 
-// Logic needs checked to prevent overlapping
-// function loadMap() {
-//   let gridCount = 20;
-//   let gridSize = canvasX/gridCount;
 
-//   for(let i = 0; i < gridSize; ++i){
-//     for(let j = 0; j < gridSize; ++j){
-//       let object = new Grid(i*gridSize,j*gridSize,gridSize);
-//       object.draw();
-//       gridList[object] = (object.x,object.y); // ??? Use to refrence back to a specific grid
-//     }
-//   }
-// }
 
+////// MAIN
 function setup() {
   createCanvas(canvasX, canvasY);
 }
 
 function draw() {
   if(!initialize){
-    // loadMap();
-    let map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
+    map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
+    map.randomize(0); // Randomize with set seed
+
+    // Testing setTile:
+    // map.setTile(0,0,'dirt');
+    // map.setTile(0,1,'dirt');
+    // map.setTile(1,0,'dirt');
+
+    // Testing getTile:
+    // console.log(map.getTile(0,0));
 
     initialize = true;
   }
