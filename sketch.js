@@ -9,7 +9,7 @@ let map;
 let grassImg;
 let dirtImg;
 function preload(){
-  grassImg = loadImage('Images/grass.jpg');
+  grassImg = loadImage('Images/grass.png');
   dirtImg = loadImage('Images/dirt.png');
 }
 
@@ -50,6 +50,10 @@ class Terrain {
   //// Utility
   conv2dpos(posX,posY) { // Converts 2d -> 1d position
     return posX + this._xCount*posY;
+  }
+
+  conv1dpos(arrayPos) { // Converts 1d array access position -> 2d position. X = ...[0], Y = ...[1]
+    return [arrayPos%this._xCount,floor(arrayPos/this._xCount)]; // Return X,Y from array pos
   }
 
 
@@ -117,7 +121,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
       if(left || right || above || below){
         let rand = random();
         if (tile.getMaterial() == "dirt") {
-          if(rand < .4){
+          if(rand < 0.4){
             this._materialSet = "dirt";
             return; 
           }
@@ -162,6 +166,16 @@ function draw() {
     map.randomize(seed); // Randomize with set seed
 
     initialize = true;
+
+    // TESTING CONVERSION FUNCS:
+    // let pos2d = [7,7];
+    // let pos1d = map.conv2dpos(pos2d[0],pos2d[1]);
+    // print(pos2d);
+    // print(pos1d);
+    // pos2d = [0,0];
+    // print(pos2d);
+    // pos2d = map.conv1dpos(pos1d);
+    // print(pos2d);
   }
 
   map.render(); // Each call will re-render configuration of map
