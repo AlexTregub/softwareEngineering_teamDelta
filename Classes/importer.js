@@ -1,0 +1,1 @@
+import {setDefaultBackground} from "./Managers/RenderWindow" ;

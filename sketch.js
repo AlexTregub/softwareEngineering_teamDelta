@@ -1,8 +1,16 @@
+
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(windowWidth,windowHeight);
+  setDefaultBackground();
 }
 
 function draw() {
-  background(220);
-  ellipse(200, 200, 50, 50);
+  
+    
+}
+
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  setDefaultBackground();
 }
