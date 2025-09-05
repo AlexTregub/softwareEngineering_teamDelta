@@ -1,12 +1,12 @@
 ////// TERRAIN
-let seed;
-let map;
+let SEED;
+let MAP;
 
-let grassImg;
-let dirtImg;
+let GRASS_IMG;
+let DIRT_IMG;
 function preload(){
-  grassImg = loadImage('Images/grass.jpg');
-  dirtImg = loadImage('Images/dirt.png');
+  GRASS_IMG = loadImage('Images/grass.jpg');
+  DIRT_IMG = loadImage('Images/dirt.png');
 }
 
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
@@ -14,8 +14,8 @@ function preload(){
 // LAST IS DEFAULT aka PROB=1
 let TERRAIN_MATERIALS = { // All-in-one configuration object.
   'stone' : [0.05, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
-  'dirt' : [0.4 , (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
-  'grass' : [1 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
+  'dirt' : [0.4 , (x,y,squareSize) => image(DIRT_IMG, x, y, squareSize, squareSize)],
+  'grass' : [1 , (x,y,squareSize) => image(GRASS_IMG, x, y, squareSize,squareSize)],
 };
 
 class Terrain {
