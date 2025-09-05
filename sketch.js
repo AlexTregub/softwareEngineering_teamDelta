@@ -4,7 +4,7 @@ let canvasY = 800;
 let gridList = {};
 
 let seed;
-let map; // Must be global?
+let map;
 
 let grassImg;
 let dirtImg;
@@ -15,6 +15,15 @@ function preload(){
 
 
 ////// TERRAIN
+// FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
+// NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS (A_i - A_(i-1)).
+// LAST IS DEFAULT aka PROB=1
+let TERRAIN_MATERIALS = { // All-in-one configuration object.
+  'stone' : [0.05, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
+  'dirt' : [0.4 , (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
+  'grass' : [1 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
+};
+
 class Terrain {
   constructor(tileCountX, tileCountY, tileSize) {
     // Config...
@@ -82,13 +91,6 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
     // Texture Properties
     this._materialSet = 'grass'; // Used for storage of randomization. Initialized as default value for now
-    this._materialConf = { // All-in-one configuration object. TODO: MAKE EXTERNAL TO AVOID COPIES
-      // FIRST ITEM IS PROBABILITY, SECOND IS RENDER FUNCTION
-      // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS target - prev.
-      // LAST IS DEFAULT aka PROB=1
-      'dirt' : [0.4 , () => image(dirtImg, this._x, this._y, this._squareSize, this._squareSize)],
-      'grass' : [1 , () => image(grassImg, this._x, this._y, this._squareSize,this._squareSize)],
-    };
   }
  
 
@@ -96,8 +98,8 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   //// Access/usage
   randomizeMaterial() { // Will select random material for current tile. No return.
     let selected = random(); // [0-1)
-    for (let checkMat in this._materialConf) {
-      if (selected < this._materialConf[checkMat][0]) { // Fixed less-than logic
+    for (let checkMat in TERRAIN_MATERIALS) {
+      if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
         this._materialSet = checkMat;
         return;
       }
@@ -109,7 +111,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
   
   setMaterial(matName) { // Returns success / fail.
-    if (this._materialConf[matName]) {
+    if (TERRAIN_MATERIALS[matName]) {
       this._materialSet = matName;
       return true;
     }
@@ -117,7 +119,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 
   render() { // Render, previously draw
-    this._materialConf[this._materialSet][1](); // Call render lambda
+    TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
     return;
   }
 }
@@ -135,14 +137,6 @@ function draw() {
 
     map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
-
-    // Testing setTile:
-    // map.setTile(0,0,'dirt');
-    // map.setTile(0,1,'dirt');
-    // map.setTile(1,0,'dirt');
-
-    // Testing getTile:
-    // console.log(map.getTile(0,0));
 
     initialize = true;
   }
