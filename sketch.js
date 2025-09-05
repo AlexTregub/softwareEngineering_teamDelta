@@ -1,4 +1,4 @@
-let ant1;
+let antToSpawn = 0
 let ANT_SIZE_X = 20
 let ANT_SIZE_y = 15
 let ANT_SQUARE = 100
@@ -6,18 +6,22 @@ let ant_Index = 0
 let ants = []
 let antPosX = []
 let antPosY = []
-
 function setup() {
-  createCanvas(windowWidth,windowHeight);
-  background(204);
-  // Call handleImage() once the image loads or
+  createCanvas(windowWidth*5,windowHeight*5);
+  background(60,100,60);
+  // Call handle,Image() once the image loads or
   // call handleError() if an error occurs.
-  anti = new ant(50,50,20,20,"Entities/Ants/Ant.png",30,0)
+  for (i=0; i<10; i++){
+    ants[i] = new ant(50,100,20,15,30,0)
+  }
+  
+  
   
 }
 
-function draw(){
 
+function draw(){
+//  image(img,50,50,50,50)
 }
 
 function test(){
@@ -32,15 +36,12 @@ function test(){
 
 function mousePressed(){
   print("Mouse Pressed");
-}
-
-
-// Display the image.
-function handleImage(img) {
-  imageMode(CENTER);
-  image(img, mouseX, mouseY, ANT_SIZE_X, ANT_SIZE_y);
+  ants[antToSpawn].show()
   
-  describe('ant');
+  if (antToSpawn > ant_Index)
+  {
+    antToSpawn = 0
+  }
 }
 
 function antSquare(img){
@@ -61,67 +62,75 @@ function antSquare(img){
 }
 
 class ant{
-  posX;
-  posY;
-  sizeX;
-  sizeY;
+  posX
+  posY
+  sizeX
+  sizeY
+
+  antIndex
 
   // the location the ant will move to
-  pendingPos;
+  pendingPos
 
   // the image url the ant will use
-  img;
+  //img
   
   // the image that will be drawn to the screen
-  sprite;
+  sprite
 
   // the speed that the ant will move in pixels every frame
   // until pos matches PendingPos
-  movementSpeed;
+  movementSpeed
 
   // right now, this seems redundent
-  direction;
+  direction
 
   // the roation of the sprite, -360 <= x <= 360
-  rotation;
+  rotation
 
   // if isMoving, the ant will move to pendingPos and draw a line to
   // it's pending spot
-  isMoving;
+  isMoving
 
-  constructor(x,y,sizex,sizey,imageURL,speed,rotation){
-    this.SetPosX(x);
-    this.SetPosY(y);
-    this.SetSizeX(sizex);
-    this.SetSizeY(sizey);
-    print("ANT CREATED");
-    this.SetImg(imageURL)
-    this.SetMovementSpeed(speed);
-    this.SetRotation(rotation);
+  constructor(x,y,sizex,sizey,speed,rotation){
+    this.SetPosX(x)
+    this.SetPosY(y)
+    this.SetSizeX(sizex)
+    this.SetSizeY(sizey)
+    //this.SetImg(imageURL)
+    this.SetMovementSpeed(speed)
+    this.SetRotation(rotation)
+    this.antIndex = ant_Index
+    ant_Index += 1
+    print("ANT %f CREATED", this.antIndex)
   }
 
   SetPosX(value){
     this.posX = value
+    print("ANT POS X:%f",this.posX)
   }
   SetPosY(value){
     this.posY = value
+    print("ANT POS Y:%f",this.posY)
   }
   SetSizeX(value){
     this.sizeX = value
+    print("ANT SIZE X:%f",this.sizeX)
   }
   SetSizeY(value){
     this.sizeY = value
+    print("ANT SIZE Y:%f",this.sizeY)
   }
   SetImg(value){
-    this.img = value
+//    this.img = value
   }
-  SetSprite(value){
+  SetSprite(){
     imageMode(CENTER);
-    this.sprite = image(value,this.posX,this.posY,this.sizeX,this.sizeY)
-    image(this.sprite)
+    image(img,this.posX,this.posY,this.sizeX,this.sizeY)
   }
   SetMovementSpeed(value){
     this.movementSpeed  = value
+    print("ANT MOVEMENT SPEED:%f",this.movementSpeed)
   }
   SetDirection(value){
     this.direction  = value
@@ -134,6 +143,7 @@ class ant{
     while (this.rotation < -360){
       this.rotation += 360
     }
+    print("ANT ROTATION:%f",this.rotation)
   }
 
   moveToLocation(movementVector){
@@ -141,8 +151,10 @@ class ant{
     this.isMoving = true
   }
 
-  ResolveMoment(){
-    while (isMoving){
+  ResolveMoment()
+  {
+    while (isMoving)
+      {
       // Need to get the angle, the magnitude, and find the value of how
       // far to move using movementspeed
       let pointX = this.posX + this.movementSpeed * cos(this.rotation);
@@ -151,14 +163,33 @@ class ant{
       this.posY = pointY
       this.SetSprite(this.img)
       line(this.posX ,this.posY, this.pendingPos.x,this.pendingPos.y)
-      if (this.posX == this.pendingPos.x && this.posY == this.pendingPos.y){
+      if (this.posX == this.pendingPos.x && this.posY == this.pendingPos.y)
+      {
         this.isMoving = false
       }
     }
   }
+
+  show(){
+  print("Showing Ant %f", this.antIndex)
+  img = loadImage("/Images/Ant_tn.png",this.handleImage,this.handleError)
+  // image(this.img,50,50,50,50)
+  
+  }
+
+    // Log the error.
+  handleError(event_) {
+  console.error('Oops!', event_);
+  }
+
+  // Display the image.
+  handleImage(img) {
+    imageMode(CENTER);
+    image(img, this.posX, this.posY, this.sizeX, this.sizeY);
+    
+    describe('ant');
+  }
+    
 }
 
-// Log the error.
-function handleError(event) {
-  console.error('Oops!', event);
-}
+
