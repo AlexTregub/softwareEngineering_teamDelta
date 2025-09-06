@@ -211,12 +211,16 @@ class ant{
       // Need to get the angle, the magnitude, and find the value of how
       // far to move using movementspeed
       this.SetRotation = this.getAngle(this.posX,this.pendingPosX,this.posY,this.pendingPosY)
-      line(this.posX ,this.posY, this.pendingPosX,this.pendingPosY)
-      angleMode(RADIANS);
       let origin = createVector(this.posX,this.posY)
-      let dest = createVector(this.pendingPosX,this.pendingPosY)
+      let destx = createVector(this.pendingPosX,0)
+      let desty = createVector(0,this.pendingPosY)
+      let newPos = createVector(this.pendingPosX,this.pendingPosY)
+      newPos.lerp(origin,newPos,0.1)
+      drawArrow(origin, newPos, 'red');
 
-      drawArrow(origin, dest, 'black');
+      this.posX = newPos.x
+      this.posY = newPos.y
+      this.show()
       
 //      if (this.posX == this.pendingPosX && this.posY == this.pendingPosY)
 //      {
@@ -270,15 +274,12 @@ function windowResized() {
 
 // Draws an arrow between two vectors.
 function drawArrow(base, vec, myColor) {
+  angleMode(DEGREES)
   push();
   stroke(myColor);
   strokeWeight(3);
   fill(myColor);
-  translate(base.x, base.y);
-  line(0, 0, vec.x, vec.y);
+  line(base.x, base.y, vec.x, vec.y);
   rotate(vec.heading());
-  let arrowSize = 7;
-  translate(vec.mag() - arrowSize, 0);
-  triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
   pop();
 }
