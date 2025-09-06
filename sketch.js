@@ -114,11 +114,9 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     for (let tile of tileStore) {
       let size = this._squareSize;
       let left = (tile._x == this._x - size && tile._y == this._y); //  if theres a tile to the left
-      let right = (tile._x == this._x + size && tile._y == this._y);  // if theres a tile to the right
       let above = (tile._x == this._x && tile._y == this._y - size);  // if theres a tile above
-      let below = (tile._x == this._x && tile._y == this._y + size);    // if theres a tile below
 
-      if(left || right || above || below){
+      if(left|| above){
         let rand = random();
         if (tile.getMaterial() == "dirt") {
           if(rand < 0.4){
