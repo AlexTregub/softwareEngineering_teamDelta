@@ -176,6 +176,11 @@ function draw(){
     makePath(end); //Builds and paints path once completed
   }
 
+  if(!pathFound && openList.length == 0){
+    noLoop();
+    return;
+  }
+
   fill(20, 255, 200);
   rect(start.j * width, start.i * height, width, height);
   fill(255, 20, 200);
