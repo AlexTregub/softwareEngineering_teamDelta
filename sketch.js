@@ -4,6 +4,7 @@ let antSize
 let antsToCreate = 1
 let ants = []
 let antImg1
+let bg
 
 /*
 NOTES TO CONSIDER
@@ -18,6 +19,7 @@ Pop() Ends a drawing group
 
 function preload(){
   antSize = createVector(30,35)
+  bg = [60,100,60]
 }
 
 function setup() {
@@ -32,7 +34,7 @@ function setup() {
 }
 
 function setDefaultBackground(){
-  background(60,100,60);
+  background(bg);
 }
 
 function draw(){
@@ -50,11 +52,9 @@ function test(){
 function mousePressed(){
   print("Mouse Pressed");
   ants[antToSpawn].moveToLocation(mouseX,mouseY)
-  ants[antToSpawn].show()
   antToSpawn += 1
   if (antToSpawn >= ant_Index)
   {
-    ants.splice(antToSpawn,1)
     antToSpawn = 0
   }
 }
@@ -105,7 +105,7 @@ class ant{
     this.antIndex = ant_Index
     ant_Index += 1
     this.isMoving = false
-    this.timeUntilSkitter = random(0,500)
+    this.timeUntilSkitter = random(5,20)
     print("ANT %f CREATED", this.antIndex)
     this.pendingPosX = this.GetPosX()
     this.pendingPosY = this.GetPosY()
@@ -116,7 +116,7 @@ class ant{
     this.timeUntilSkitter = value
   }
   rndTimeUntilSkitter(){
-    this.timeUntilSkitter = random(0,500)
+    this.timeUntilSkitter = random(5,20)
   }
   getTimeUntilSkitter(){
     return this.timeUntilSkitter
@@ -168,6 +168,7 @@ class ant{
 
   SetSprite(){
     imageMode(CENTER);
+    noStroke();
     image(img,this.posX,this.posY,this.sizeX,this.sizeY)
   }
 
@@ -212,21 +213,23 @@ class ant{
       // far to move using movementspeed
       this.SetRotation = this.getAngle(this.posX,this.pendingPosX,this.posY,this.pendingPosY)
       let origin = createVector(this.posX,this.posY)
-      let destx = createVector(this.pendingPosX,0)
-      let desty = createVector(0,this.pendingPosY)
       let newPos = createVector(this.pendingPosX,this.pendingPosY)
       newPos.lerp(origin,newPos,0.1)
-      drawArrow(origin, newPos, 'red');
+      
+      //Fills in the space the ant just was. sloppy but will work for now
+      fill(bg)
+      noStroke()
+      rectMode(RADIUS)
+      rect(this.posX,this.posY,this.sizeX+5,this.sizeY+5)
+      
 
       this.posX = newPos.x
       this.posY = newPos.y
       this.show()
-      
-//      if (this.posX == this.pendingPosX && this.posY == this.pendingPosY)
-//      {
-        this.isMoving = false
-        print(`Ant %f is at X:${this.posX} Y:${this.posY}`, this.antIndex)
-//      }
+
+      this.isMoving = false
+      print(`Ant %f is at X:${this.posX} Y:${this.posY}`, this.antIndex)
+
     }
   }
 
@@ -257,6 +260,7 @@ class ant{
       print("ANT %f SKITTER TIME",this.antIndex)
       this.rndTimeUntilSkitter()
       this.isMoving = true
+      this.moveToLocation(this.posX + random(-5,5),this.posY + random(-5,5))
     }
 
     this.ResolveMoment()
@@ -264,22 +268,7 @@ class ant{
     
 }
 
-
-
-
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   setDefaultBackground();
-}
-
-// Draws an arrow between two vectors.
-function drawArrow(base, vec, myColor) {
-  angleMode(DEGREES)
-  push();
-  stroke(myColor);
-  strokeWeight(3);
-  fill(myColor);
-  line(base.x, base.y, vec.x, vec.y);
-  rotate(vec.heading());
-  pop();
 }
