@@ -1,23 +1,34 @@
 let antToSpawn = 0
-let ANT_SIZE_X = 20
-let ANT_SIZE_y = 15
-let ANT_SQUARE = 100
 let ant_Index = 0
+let antSize
+let antsToCreate = 1
 let ants = []
-let antPosX = []
-let antPosY = []
 let antImg1
 
+/*
+NOTES TO CONSIDER
+PUSH() Starts a drawing group
+Pop() Ends a drawing group
+
+
+
+
+*/
+
+
+function preload(){
+  antSize = createVector(30,35)
+}
 
 function setup() {
   createCanvas(windowWidth*5,windowHeight*5);
   setDefaultBackground()
-  // Call handle,Image() once the image loads or
-  // call handleError() if an error occurs.
-  for (i=0; i<10; i++){
-    ants[i] = new ant(50 + (i *10),100 + (i *10),20,15,30,0)
+  for (i=0; i<antsToCreate; i++){
+    sizeR = random(0,5)
+    ants[i] = new ant((random(0,500)),(random(0,500)),antSize.x+ sizeR,antSize.y + sizeR,30,0)
   }
   antImg1 = loadImage("/Images/Ant_tn.png")
+  ants[0].show()
 }
 
 function setDefaultBackground(){
@@ -25,6 +36,7 @@ function setDefaultBackground(){
 }
 
 function draw(){
+  ants[0].update()
 }
 
 
@@ -42,6 +54,7 @@ function mousePressed(){
   antToSpawn += 1
   if (antToSpawn >= ant_Index)
   {
+    ants.splice(antToSpawn,1)
     antToSpawn = 0
   }
 }
@@ -55,7 +68,8 @@ class ant{
   antIndex
 
   // the location the ant will move to
-  pendingPos
+  pendingPosX
+  pendingPosY
 
   // the image url the ant will use
   //img
@@ -77,6 +91,9 @@ class ant{
   // it's pending spot
   isMoving
 
+  // The ant will randomly move every few seconds. for fun.
+  timeUntilSkitter
+
   constructor(posX,posY,sizex,sizey,speed,rotation){
     this.SetPosX(posX)
     this.SetPosY(posY)
@@ -88,9 +105,22 @@ class ant{
     this.antIndex = ant_Index
     ant_Index += 1
     this.isMoving = false
+    this.timeUntilSkitter = random(0,500)
     print("ANT %f CREATED", this.antIndex)
+    this.pendingPosX = this.GetPosX()
+    this.pendingPosY = this.GetPosY()
   }
 
+  //GETTER, SETTERS, RANDOMS
+  setTimeUntilSkitter(value){
+    this.timeUntilSkitter = value
+  }
+  rndTimeUntilSkitter(){
+    this.timeUntilSkitter = random(0,500)
+  }
+  getTimeUntilSkitter(){
+    return this.timeUntilSkitter
+  }
 
   SetPosX(value){
     this.posX = value
@@ -165,8 +195,13 @@ class ant{
   }
 
   moveToLocation(X,Y){
-    this.pendingPos = createVector(X,Y)
+    this.pendingPosX = X
+    this.pendingPosY = Y
     this.isMoving = true
+  }
+
+  getAngle(x1,x2,y1,y2){
+    return atan2(x1-x2,y1-y2)
   }
 
   ResolveMoment()
@@ -175,16 +210,19 @@ class ant{
       {
       // Need to get the angle, the magnitude, and find the value of how
       // far to move using movementspeed
-      print("Ant %f is moving to X:1 Y:2", this.antIndex)
-      let pointX = this.posX + this.movementSpeed * cos(this.rotation);
-      let pointY = this.posY - this.movementSpeed * sin(this.rotation);
-      this.posX = pointX
-      this.posY = pointY
-      line(this.posX ,this.posY, this.pendingPos.x,this.pendingPos.y)
-      if (this.posX == this.pendingPos.x && this.posY == this.pendingPos.y)
-      {
+      this.SetRotation = this.getAngle(this.posX,this.pendingPosX,this.posY,this.pendingPosY)
+      line(this.posX ,this.posY, this.pendingPosX,this.pendingPosY)
+      angleMode(RADIANS);
+      let origin = createVector(this.posX,this.posY)
+      let dest = createVector(this.pendingPosX,this.pendingPosY)
+
+      drawArrow(origin, dest, 'black');
+      
+//      if (this.posX == this.pendingPosX && this.posY == this.pendingPosY)
+//      {
         this.isMoving = false
-      }
+        print(`Ant %f is at X:${this.posX} Y:${this.posY}`, this.antIndex)
+//      }
     }
   }
 
@@ -207,6 +245,18 @@ class ant{
     
     describe('ant');
   }
+
+  update(){
+    this.timeUntilSkitter -= 1
+
+    if (this.timeUntilSkitter < 0){
+      print("ANT %f SKITTER TIME",this.antIndex)
+      this.rndTimeUntilSkitter()
+      this.isMoving = true
+    }
+
+    this.ResolveMoment()
+  }
     
 }
 
@@ -216,4 +266,19 @@ class ant{
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   setDefaultBackground();
+}
+
+// Draws an arrow between two vectors.
+function drawArrow(base, vec, myColor) {
+  push();
+  stroke(myColor);
+  strokeWeight(3);
+  fill(myColor);
+  translate(base.x, base.y);
+  line(0, 0, vec.x, vec.y);
+  rotate(vec.heading());
+  let arrowSize = 7;
+  translate(vec.mag() - arrowSize, 0);
+  triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
+  pop();
 }
