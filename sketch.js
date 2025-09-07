@@ -70,7 +70,7 @@ class Terrain {
     randomSeed(seed); // Set global seed.
 
     for (let i = 0; i < this._xCount*this._yCount; ++i) {
-      this._tileStore[i].randomizeMaterial(this); // Rng calls should use global seed
+      this._tileStore[i].randomizeMaterial(); // Rng calls should use global seed
     }
   }
 
@@ -94,52 +94,16 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
  
 
-  
 
   //// Access/usage
-  // Will select random material for current tile. No return.
-  // Higher chance for dirty to appear near other dirt blocks
-  randomizeMaterial(tile) { 
+  randomizeMaterial() { // Will select random material for current tile. No return.
     let selected = random(); // [0-1)
     for (let checkMat in TERRAIN_MATERIALS) {
       if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
         this._materialSet = checkMat;
-        break;
+        return;
       }
     }
-
-
-    let gridX = this._x/this._squareSize
-    let gridY = this._y/this._squareSize
-
-    if(gridX > 0){
-      let leftTile = tile.getTile(gridX-1,gridY);
-      if(leftTile == 'dirt'){
-        if(random() < 0.4){
-          this._materialSet = "dirt";
-        }
-      }
-      else if(leftTile == 'stone'){
-        if(random() < 0.3){
-          this._materialSet = "stone";
-        }
-      }
-    }
-
-    if(gridY > 0){
-      let aboveTile = tile.getTile(gridX,gridY-1);
-      if(aboveTile == 'dirt'){
-        if(random() < 0.4){
-          this._materialSet = "dirt";
-        }
-      }
-      else if(aboveTile == 'stone'){
-        if(random() < 0.3){
-          this._materialSet = "stone";
-        }
-      }
-    }
-
   }
 
   getMaterial() {
@@ -169,7 +133,7 @@ function setup() {
 
 function draw() {
   if(!initialize){
-    seed = hour()*minute()*floor(second())/10; // Have seed change every 10 seconds.
+    seed = hour()*minute()*floor(second())/10; // Have seed change every 10 sec.
 
     map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
@@ -179,4 +143,3 @@ function draw() {
 
   map.render(); // Each call will re-render configuration of map
 }
-
