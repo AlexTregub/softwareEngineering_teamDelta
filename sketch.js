@@ -169,7 +169,7 @@ function setup() {
 
 function draw() {
   if(!initialize){
-    seed = hour()*minute()*floor(second()); // Have seed change every 10 sec.
+    seed = hour()*minute()*floor(second())/10; // Have seed change every 10 sec.
 
     map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
