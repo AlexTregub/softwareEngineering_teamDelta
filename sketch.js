@@ -8,9 +8,12 @@ let map;
 
 let grassImg;
 let dirtImg;
+let bg;
+
 function preload(){
   grassImg = loadImage('Images/grass.jpg');
   dirtImg = loadImage('Images/dirt.png');
+  Ants_Preloader()
 }
 
 
@@ -129,6 +132,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 ////// MAIN
 function setup() {
   createCanvas(canvasX, canvasY);
+  Ants_Spawn(1)
 }
 
 function draw() {
@@ -142,5 +146,22 @@ function draw() {
   }
 
   map.render(); // Each call will re-render configuration of map
+  Ants_Update();
 }
+
+// MOUSE FUNCTIONS
+function mousePressed() {
+  ants[0].debug_resolveMovement()
+  Ants_moveAsGroup(10)
+}
+
+
+function windowResized() {
+  resizeCanvas(canvasX, canvasY);
+}
+
+function setDefaultBackground() {
+  background(bg);
+}
+
 
