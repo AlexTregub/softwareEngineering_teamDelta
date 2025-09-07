@@ -1,7 +1,7 @@
 let antToSpawn = 0
 let ant_Index = 0
 let antSize
-let antsToCreate = 1
+let antsToCreate = 5
 let ants = []
 let antImg1
 let bg
@@ -10,10 +10,17 @@ let bg
 NOTES TO CONSIDER
 PUSH() Starts a drawing group
 Pop() Ends a drawing group
+look into createFrameBuffer() to solve transparancy issues
+Im having to draw a green rect to remove old sprites, NOT IDEAL.
+I think createFrameBuffer() is a better approach, but ill need
+to pretty much rewrite all of the rendering code.
+*/
 
+/*
+Once transparency issues are resolved, merge with dev branch and 
+get this working with the grid and map. 
 
-
-
+Next major step will be getting the ants to move in a smooth way
 */
 
 
@@ -38,7 +45,9 @@ function setDefaultBackground(){
 }
 
 function draw(){
-  ants[0].update()
+  for (let i = 0; i < ant_Index; i++){
+    ants[i].update()
+  }
 }
 
 
@@ -64,7 +73,6 @@ class ant{
   posY
   sizeX
   sizeY
-
   antIndex
 
   // the location the ant will move to
@@ -94,6 +102,10 @@ class ant{
   // The ant will randomly move every few seconds. for fun.
   timeUntilSkitter
 
+  // testing a framebuffer to see if I can properly draw and remove an image
+  pg
+  framebuffer
+
   constructor(posX,posY,sizex,sizey,speed,rotation){
     this.SetPosX(posX)
     this.SetPosY(posY)
@@ -105,10 +117,14 @@ class ant{
     this.antIndex = ant_Index
     ant_Index += 1
     this.isMoving = false
+    this.pg = createGraphics(this.sizeX,this.sizeY,WEBGL);
+    let options = { width: this.sizeX, height: this.sizeY }
+    this.framebuffer = this.pg.createFramebuffer(options);
     this.timeUntilSkitter = random(5,20)
-    print("ANT %f CREATED", this.antIndex)
     this.pendingPosX = this.GetPosX()
     this.pendingPosY = this.GetPosY()
+
+     print("ANT %f CREATED", this.antIndex)
   }
 
   //GETTER, SETTERS, RANDOMS
@@ -122,36 +138,39 @@ class ant{
     return this.timeUntilSkitter
   }
 
+  // Sets and returns top left point relative to sprite
   SetPosX(value){
     this.posX = value
     print("ANT POS X:%f",this.posX)
   }
-  GetPosX(){
-    return this.posX 
-  }
-
-
   SetPosY(value){
     this.posY = value
     print("ANT POS Y:%f",this.posY)
+  }
+  GetPosX(){
+    return this.posX 
   }
   GetPosY(){
     return this.posY 
   }
 
+  // Gets the mid point relative to sprite
+  // Use this if you need an effect to be centered on the sprite
+  GetCenter(){
+    return createVector(this.posX + (this.sizeX / 2),
+                        this.posY + (this.sizeY / 2))
+  }
 
   SetSizeX(value){
     this.sizeX = value
     print("ANT SIZE X:%f",this.sizeX)
   }
-  GetSizeX(){
-    return this.sizeX
-  }
-
-
   SetSizeY(value){
     this.sizeY = value
     print("ANT SIZE Y:%f",this.sizeY)
+  }
+  GetSizeX(){
+    return this.sizeX
   }
   GetSizeY(){
     return this.sizeY
@@ -215,29 +234,30 @@ class ant{
       let origin = createVector(this.posX,this.posY)
       let newPos = createVector(this.pendingPosX,this.pendingPosY)
       newPos.lerp(origin,newPos,0.1)
-      
-      //Fills in the space the ant just was. sloppy but will work for now
-      fill(bg)
-      noStroke()
-      rectMode(RADIUS)
-      rect(this.posX,this.posY,this.sizeX+5,this.sizeY+5)
-      
+      this.fillOldImage()
 
       this.posX = newPos.x
       this.posY = newPos.y
       this.show()
 
       this.isMoving = false
-      print(`Ant %f is at X:${this.posX} Y:${this.posY}`, this.antIndex)
+      //print(`Ant %f is at X:${this.posX} Y:${this.posY}`, this.antIndex)
 
     }
   }
 
   show(){
+    /*
+    this.framebuffer.begin();
+    this.pg.clear();
+    this.pg.lights();
+    this.pg.noStroke();
+    this.pg.torus(5, 2.5)
+    this.pg.image(antImg1,this.posX,this.posY,this.sizeX,this.sizeY)
+    this.framebuffer.end();
+    image(this.pg,0,0)
+    */
     image(antImg1,this.posX,this.posY,this.sizeX,this.sizeY)
-  //img = loadImage("/Images/Ant_tn.png",this.handleImage,this.handleError)
-  // image(this.img,50,50,50,50)
-  
   }
 
     // Log the error.
@@ -253,18 +273,28 @@ class ant{
     describe('ant');
   }
 
+  // Fills in the space the ant just was. This is to avoid overlapping 
+  // ant sprites, think windows XP dragging crashing windows
+  fillOldImage() {
+    fill(bg)
+    ellipseMode(RADIUS)
+    noStroke()
+    ellipse(this.GetCenter().x,this.GetCenter().y,this.GetSizeX()-7)
+  }
+
   update(){
     this.timeUntilSkitter -= 1
-
     if (this.timeUntilSkitter < 0){
-      print("ANT %f SKITTER TIME",this.antIndex)
       this.rndTimeUntilSkitter()
       this.isMoving = true
       this.moveToLocation(this.posX + random(-5,5),this.posY + random(-5,5))
     }
 
     this.ResolveMoment()
+        
   }
+
+
     
 }
 
