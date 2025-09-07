@@ -70,7 +70,7 @@ class Terrain {
     randomSeed(seed); // Set global seed.
 
     for (let i = 0; i < this._xCount*this._yCount; ++i) {
-      this._tileStore[i].randomizeMaterial(); // Rng calls should use global seed
+      this._tileStore[i].randomizeMaterial(this._tileStore); // Rng calls should use global seed
     }
   }
 
@@ -94,15 +94,37 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
  
 
+  
 
   //// Access/usage
-  randomizeMaterial() { // Will select random material for current tile. No return.
+  // Will select random material for current tile. No return.
+  // Higher chance for dirty to appear near other dirt blocks
+  randomizeMaterial(tileStore) { 
     let selected = random(); // [0-1)
     for (let checkMat in TERRAIN_MATERIALS) {
       if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
         this._materialSet = checkMat;
-        return;
+        break;
       }
+    }
+
+    
+    for (let tile of tileStore) {
+      let size = this._squareSize;
+      let left = (tile._x == this._x - size && tile._y == this._y); //  if theres a tile to the left
+      let above = (tile._x == this._x && tile._y == this._y - size);  // if theres a tile above
+
+      if(left|| above){
+        let rand = random();
+        if (tile.getMaterial() == "dirt") {
+          if(rand < 0.4){
+            this._materialSet = "dirt";
+            return; 
+          }
+        }
+      }
+
+
     }
   }
 
