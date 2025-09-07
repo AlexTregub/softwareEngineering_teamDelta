@@ -9,7 +9,7 @@ let map;
 let grassImg;
 let dirtImg;
 function preload(){
-  grassImg = loadImage('Images/grass.jpg');
+  grassImg = loadImage('Images/grass.png');
   dirtImg = loadImage('Images/dirt.png');
 }
 
