@@ -127,12 +127,10 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 }
 
-
-
 ////// MAIN
 function setup() {
   createCanvas(canvasX, canvasY);
-  Ants_Spawn(1)
+  Ants_Spawn(50)
 }
 
 function draw() {
