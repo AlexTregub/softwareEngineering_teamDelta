@@ -37,7 +37,6 @@ function setup() {
     ants[i] = new ant((random(0,500)),(random(0,500)),antSize.x+ sizeR,antSize.y + sizeR,30,0)
   }
   antImg1 = loadImage("/Images/Ant_tn.png")
-  ants[0].show()
 }
 
 function setDefaultBackground(){
@@ -79,18 +78,12 @@ class ant{
   pendingPosX
   pendingPosY
 
-  // the image url the ant will use
+  // the image url the ant will use **Currently not in use**
   //img
-  
-  // the image that will be drawn to the screen
-  sprite
 
   // the speed that the ant will move in pixels every frame
   // until pos matches PendingPos
   movementSpeed
-
-  // right now, this seems redundent
-  direction
 
   // the roation of the sprite, -360 <= x <= 360
   rotation
@@ -101,10 +94,6 @@ class ant{
 
   // The ant will randomly move every few seconds. for fun.
   timeUntilSkitter
-
-  // testing a framebuffer to see if I can properly draw and remove an image
-  pg
-  framebuffer
 
   constructor(posX,posY,sizex,sizey,speed,rotation){
     this.SetPosX(posX)
@@ -117,9 +106,6 @@ class ant{
     this.antIndex = ant_Index
     ant_Index += 1
     this.isMoving = false
-    this.pg = createGraphics(this.sizeX,this.sizeY,WEBGL);
-    let options = { width: this.sizeX, height: this.sizeY }
-    this.framebuffer = this.pg.createFramebuffer(options);
     this.timeUntilSkitter = random(5,20)
     this.pendingPosX = this.GetPosX()
     this.pendingPosY = this.GetPosY()
@@ -176,7 +162,7 @@ class ant{
     return this.sizeY
   }
 
-
+  // Sets/Gets the image of the sprite to rendered to screen
   SetImg(value){
     this.img = value
   }
@@ -184,24 +170,11 @@ class ant{
     return this.img
   }
 
-
-  SetSprite(){
-    imageMode(CENTER);
-    noStroke();
-    image(img,this.posX,this.posY,this.sizeX,this.sizeY)
-  }
-
-
+  // Sets the image of the sprite to rendered to screen
   SetMovementSpeed(value){
     this.movementSpeed  = value
     print("ANT MOVEMENT SPEED:%f",this.movementSpeed)
   }
-
-
-  SetDirection(value){
-    this.direction  = value
-  }
-
 
   SetRotation(value){
     this.rotation  = value
@@ -224,12 +197,17 @@ class ant{
     return atan2(x1-x2,y1-y2)
   }
 
+  // if isMoving is true, the ant will calculate a vector to a given pos
+  // The ant will draw a ellipse over it's old sprite,
+  // then will jump to that location and render itself.
+  // PLANS --------------------------------------------
+  // Ants jumping to the location they want to go is not the desired behavior
+  // the code needs to have the ant move the amount dictated by movement speed
+  // and know the movement is resolved, stop moving and resume skittering.
   ResolveMoment()
   {
     while (this.isMoving == true)
       {
-      // Need to get the angle, the magnitude, and find the value of how
-      // far to move using movementspeed
       this.SetRotation = this.getAngle(this.posX,this.pendingPosX,this.posY,this.pendingPosY)
       let origin = createVector(this.posX,this.posY)
       let newPos = createVector(this.pendingPosX,this.pendingPosY)
@@ -238,7 +216,7 @@ class ant{
 
       this.posX = newPos.x
       this.posY = newPos.y
-      this.show()
+      this.render()
 
       this.isMoving = false
       //print(`Ant %f is at X:${this.posX} Y:${this.posY}`, this.antIndex)
@@ -246,17 +224,7 @@ class ant{
     }
   }
 
-  show(){
-    /*
-    this.framebuffer.begin();
-    this.pg.clear();
-    this.pg.lights();
-    this.pg.noStroke();
-    this.pg.torus(5, 2.5)
-    this.pg.image(antImg1,this.posX,this.posY,this.sizeX,this.sizeY)
-    this.framebuffer.end();
-    image(this.pg,0,0)
-    */
+  render(){
     image(antImg1,this.posX,this.posY,this.sizeX,this.sizeY)
   }
 
@@ -276,14 +244,18 @@ class ant{
   // Fills in the space the ant just was. This is to avoid overlapping 
   // ant sprites, think windows XP dragging crashing windows
   fillOldImage() {
-    fill(bg)
-    ellipseMode(RADIUS)
-    noStroke()
-    ellipse(this.GetCenter().x,this.GetCenter().y,this.GetSizeX()-7)
+    push();
+    fill(bg);
+    ellipseMode(RADIUS);
+    noStroke();
+    ellipse(this.GetCenter().x,this.GetCenter().y,this.GetSizeX()-7);
+    pop();
   }
 
   update(){
-    this.timeUntilSkitter -= 1
+    if (this.isMoving == false) {
+      this.timeUntilSkitter -= 1
+    }
     if (this.timeUntilSkitter < 0){
       this.rndTimeUntilSkitter()
       this.isMoving = true
