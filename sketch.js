@@ -11,6 +11,8 @@ let dirtImg;
 function preload(){
   grassImg = loadImage('Images/grass.jpg');
   dirtImg = loadImage('Images/dirt.png');
+
+    preloadSounds();
 }
 
 
@@ -124,7 +126,16 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 }
 
+// Play sound based on terrain type
+function mousePressed() {
+    let tileX = floor(mouseX / map._tileSize);
+    let tileY = floor(mouseY / map._tileSize);
 
+  if (tileX >= 0 && tileX < map._xCount && tileY >= 0 && tileY < map._yCount) {
+    let material = map.getTile(tileX, tileY);
+    playTerrainSound(material);
+  }
+}
 
 ////// MAIN
 function setup() {
