@@ -9,7 +9,7 @@ let map;
 let grassImg;
 let dirtImg;
 function preload(){
-  grassImg = loadImage('Images/grass.jpg');
+  grassImg = loadImage('Images/grass.png');
   dirtImg = loadImage('Images/dirt.png');
 }
 
@@ -94,7 +94,6 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
  
 
-  
 
   //// Access/usage
   // Will select random material for current tile. No return.
@@ -169,7 +168,7 @@ function setup() {
 
 function draw() {
   if(!initialize){
-    seed = hour()*minute()*floor(second())/10; // Have seed change every 10 seconds.
+    seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
 
     map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
