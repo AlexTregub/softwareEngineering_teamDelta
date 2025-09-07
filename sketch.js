@@ -1,10 +1,10 @@
-let antToSpawn = 0
-let ant_Index = 0
-let antSize
-let antsToCreate = 5
-let ants = []
-let antImg1
-let bg
+let antToSpawn = 0;
+let ant_Index = 0;
+let antSize;
+let ants = [];
+let antImg1;
+let bg;
+let worldSize;
 
 /*
 NOTES TO CONSIDER
@@ -23,40 +23,70 @@ get this working with the grid and map.
 Next major step will be getting the ants to move in a smooth way
 */
 
-
+// INIT
 function preload(){
-  antSize = createVector(30,35)
+  antSize = createVector(20,20)
   bg = [60,100,60]
+  antImg1 = loadImage("/Images/Ant_tn.png")
+  worldSize = createVector(windowWidth*5,windowHeight*5)
 }
 
 function setup() {
-  createCanvas(windowWidth*5,windowHeight*5);
+  createCanvas(worldSize.x,worldSize.y);
   setDefaultBackground()
-  for (i=0; i<antsToCreate; i++){
-    sizeR = random(0,5)
-    ants[i] = new ant((random(0,500)),(random(0,500)),antSize.x+ sizeR,antSize.y + sizeR,30,0)
-  }
-  antImg1 = loadImage("/Images/Ant_tn.png")
-}
-
-function setDefaultBackground(){
-  background(bg);
+  Ants_Spawn(150)
 }
 
 function draw(){
-  for (let i = 0; i < ant_Index; i++){
+  Ants_Update();
+}
+
+
+// ANT UTILITY
+
+// Spawns a set number of ants
+function Ants_Spawn(numToSpawn) {
+  for (let i = 0; i < numToSpawn; i++){
+    sizeR = random(0,15)
+    ants[i] = new ant((random(0,500)),(random(0,500)),antSize.x+ sizeR,antSize.y + sizeR,30,0)
     ants[i].update()
   }
 }
 
-
-function test(){
-  for (let i = 0; i < ant_Index; i++){
-    ants[i] = antPosX[i]
-    antPosX[i] = antPosX[i] + 5
+// updates and rerenders all ants
+function Ants_Update(){
+  for (let i = 0; i < ant_Index; i++) {
+    ants[i].update()
   }
 }
 
+// TEST, moves all ants a bit in passed direction
+function Ants_moveAsGroup(direction, movement) {
+  switch(direction){
+    case "RIGHT":
+      for (let i = 0; i < ant_Index; i++) {
+      ants[i].moveToLocation(ants[i].GetPosX() + movement, ants[i].GetPosY())
+      }
+    case "LEFT":
+      for (let i = 0; i < ant_Index; i++) {
+      ants[i].moveToLocation(ants[i].GetPosX() - movement, ants[i].GetPosY())
+      }
+    case "UP":
+      for (let i = 0; i < ant_Index; i++) {
+      ants[i].moveToLocation(ants[i].GetPosX(), ants[i].GetPosY() + movement)
+      }
+    case "DOWN":
+      for (let i = 0; i < ant_Index; i++) {
+      ants[i].moveToLocation(ants[i].GetPosX(), ants[i].GetPosY() - movement)
+      }
+  }
+}
+
+function Controls(){
+  
+}
+
+// MOUSE FUNCTIONS
 function mousePressed(){
   print("Mouse Pressed");
   ants[antToSpawn].moveToLocation(mouseX,mouseY)
@@ -67,6 +97,17 @@ function mousePressed(){
   }
 }
 
+function windowResized() {
+  resizeCanvas(worldSize.x, worldSize.y);
+  setDefaultBackground();
+}
+
+function setDefaultBackground(){
+  background(bg);
+}
+
+
+// CLASSES
 class ant{
   posX
   posY
@@ -270,7 +311,4 @@ class ant{
     
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  setDefaultBackground();
-}
+
