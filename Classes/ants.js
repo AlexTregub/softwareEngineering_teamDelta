@@ -282,8 +282,6 @@ class ant{
     }
 
     if (antDebug) {
-      
-      
       push()
       fill (bg)
       noStroke()
@@ -322,12 +320,14 @@ class ant{
   // Fills in the space the ant just was. This is to avoid overlapping 
   // ant sprites, think windows XP dragging crashing windows
   fillOldImage() {
-    push();
-    fill(bg);
-    ellipseMode(RADIUS);
-    noStroke();
-    ellipse(this.GetCenter().x,this.GetCenter().y,this.GetSizeX()-7);
-    pop();
+    if (antDebug) {
+      push();
+      fill(bg);
+      ellipseMode(RADIUS);
+      noStroke();
+      ellipse(this.GetCenter().x,this.GetCenter().y,this.GetSizeX()-7);
+      pop();
+    }
   }
 
   //resolves actions updated each frame. By definition, the is framerate dependent, which is typically bad.
@@ -342,5 +342,6 @@ class ant{
     }
 
     this.ResolveMoment()
+    this.render()
   }
 }
