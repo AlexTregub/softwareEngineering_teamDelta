@@ -146,20 +146,3 @@ function draw() {
   map.render(); // Each call will re-render configuration of map
   Ants_Update();
 }
-
-// MOUSE FUNCTIONS
-function mousePressed() {
-  ants[0].debug_resolveMovement()
-  Ants_moveAsGroup(10)
-}
-
-
-function windowResized() {
-  resizeCanvas(canvasX, canvasY);
-}
-
-function setDefaultBackground() {
-  background(bg);
-}
-
-
