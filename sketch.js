@@ -1,10 +1,11 @@
-let initialize = false;
-let canvasX = 800;
-let canvasY = 800;
-let gridList = {};
+// let initialize = false;
+let CANVAS_X = 800;
+let CANVAS_Y = 800;
+let TILE_SIZE = 50;
+// let gridList = {};
 
-let seed;
-let map;
+let SEED;
+let MAP;
 
 let grassImg;
 let dirtImg;
@@ -129,20 +130,23 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
 ////// MAIN
 function setup() {
-  createCanvas(canvasX, canvasY);
+  createCanvas(CANVAS_X, CANVAS_Y);
+
+  SEED = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
+
+  MAP = new Terrain(round(CANVAS_X/TILE_SIZE),round(CANVAS_Y/TILE_SIZE),TILE_SIZE); // Hardcoded. In the future, make automatic.
+  MAP.randomize(SEED); // Randomize with set seed
+
+  MAP.render();
+
   Ants_Spawn(50)
 }
 
 function draw() {
-  if(!initialize){
-    seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
+  // if(!initialize){
+  //   initialize = true; // REDUNDANT
+  // }
 
-    map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
-    map.randomize(seed); // Randomize with set seed
-
-    initialize = true;
-  }
-
-  map.render(); // Each call will re-render configuration of map
+  // MAP.render(); // Each call will re-render configuration of map
   Ants_Update();
 }
