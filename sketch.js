@@ -29,10 +29,13 @@ let TERRAIN_MATERIALS = { // All-in-one configuration object.
 };
 
 class Terrain {
-  constructor(tileCountX, tileCountY, tileSize) {
+  constructor(canvasX, canvasY, tileSize) {
     // Config...
-    this._xCount = tileCountX;
-    this._yCount = tileCountY;
+    this._canvasX = canvasX;
+    this._canvasY = canvasY;
+
+    this._xCount = round(this._canvasX/tileSize);
+    this._yCount = round(this._canvasY/tileSize);
     this._tileSize = tileSize;
 
     // Initialize 1d _tileStore
@@ -134,7 +137,7 @@ function setup() {
 
   SEED = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
 
-  MAP = new Terrain(round(CANVAS_X/TILE_SIZE),round(CANVAS_Y/TILE_SIZE),TILE_SIZE); // Hardcoded. In the future, make automatic.
+  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE); // Moved conversion to Terrain/Coordinate classes
   MAP.randomize(SEED); // Randomize with set seed
 
   MAP.render();
