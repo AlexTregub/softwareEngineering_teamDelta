@@ -11,9 +11,9 @@ let dirtImg;
 // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS (A_i - A_(i-1)).
 // LAST IS DEFAULT aka PROB=1
 let TERRAIN_MATERIALS = { // All-in-one configuration object.
-  'stone' : [0.05, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
-  'dirt' : [0.4 , (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
-  'grass' : [1 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
+  'stone' : [0.3, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
+  'dirt' : [0.5, (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
+  'grass' : [0.7 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
 };
 
 function terrainPreloader(){
@@ -106,9 +106,13 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
   //// Access/usage
   randomizeMaterial() { // Will select random material for current tile. No return.
-    let selected = random(); // [0-1)
-    for (let checkMat in TERRAIN_MATERIALS) {
-      if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
+    let noiseScale = 0.1
+    let noiseX = noiseScale * this._x;
+    let noiseY = noiseScale * this._y;   
+
+    let noiseValue = noise(noiseX,noiseY);
+    for (let checkMat in TERRAIN_MATERIALS) {          
+      if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
         this._materialSet = checkMat;
         return;
       }
