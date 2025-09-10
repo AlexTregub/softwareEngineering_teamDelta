@@ -151,6 +151,9 @@ class ant{
       pop();
     }
   }
+  makePath(){
+    
+  }
   setAntMove() {
     switch (this.AntMove) {
     case "RIGHT":
