@@ -11,8 +11,8 @@ let dirtImg;
 // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS (A_i - A_(i-1)).
 // LAST IS DEFAULT aka PROB=1
 let TERRAIN_MATERIALS = { // All-in-one configuration object.
-  'stone' : [0.4, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
-  'dirt' : [0.5, (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
+  'stone' : [0.01, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
+  'dirt' : [0.3, (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
   'grass' : [1 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
 };
 
@@ -25,7 +25,7 @@ function terrainInit() {
   if(!initialize){
     seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
 
-    map = new Terrain(1000,1000,10); // Hardcoded. In the future, make automatic.
+    map = new Terrain(100,100,30); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
 
     initialize = true;
