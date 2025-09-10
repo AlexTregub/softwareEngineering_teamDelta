@@ -12,11 +12,12 @@ let dirtImg;
 let bg;
 
 function preload(){
-  terrainPreloader()
+  grassImg = loadImage('Images/grass.jpg');
+  dirtImg = loadImage('Images/dirt.png');
   Ants_Preloader()
 }
 
-/// MOVE CHANGES...
+
 ////// TERRAIN
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
 // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS (A_i - A_(i-1)).
@@ -130,7 +131,6 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 }
 
-
 ////// MAIN
 function setup() {
   createCanvas(CANVAS_X, CANVAS_Y);
@@ -146,14 +146,10 @@ function setup() {
 }
 
 function draw() {
-
-  terrainInit();
-
   // if(!initialize){
   //   initialize = true; // REDUNDANT
   // }
 
   // MAP.render(); // Each call will re-render configuration of map
-
   Ants_Update();
 }

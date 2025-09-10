@@ -1,3 +1,14 @@
+/*
+NOTES TO CONSIDER
+PUSH() Starts a drawing group
+Pop() Ends a drawing group
+look into createFrameBuffer() to solve transparancy issues
+Im having to draw a green rect to remove old sprites, NOT IDEAL.
+I think createFrameBuffer() is a better approach, but ill need
+to pretty much rewrite all of the rendering code.
+*/
+
+
 // Static Vars.
 let antToSpawn = 0;
 let ant_Index = 0;
@@ -5,13 +16,12 @@ let antSize;
 let ants = [];
 let antImg1;
 let antDebug = false;
-let antbg;
 
 // Call this during preload
 function Ants_Preloader(){
   antSize = createVector(20,20)
-  antbg = [60,100,60]
-  antImg1 = loadImage("Images/Ant_tn.png")
+  bg = [60,100,60]
+  antImg1 = loadImage("/Images/Ant_tn.png")
 }
 
 // ANT UTILITY
@@ -39,7 +49,7 @@ function Ants_moveAsGroup(movement) {
     let y_ = 10
 
     push()
-    fill (antbg)
+    fill (bg)
     noStroke()
     rect(x_,y_-10,50,15)
     pop()
@@ -273,7 +283,7 @@ class ant{
 
     if (antDebug) {
       push()
-      fill (antbg)
+      fill (bg)
       noStroke()
       rect(40,40,250,(10*numOfTextLines)+5)
       pop()
@@ -312,7 +322,7 @@ class ant{
   fillOldImage() {
     if (antDebug) {
       push();
-      fill(antbg);
+      fill(bg);
       ellipseMode(RADIUS);
       noStroke();
       ellipse(this.GetCenter().x,this.GetCenter().y,this.GetSizeX()-7);
