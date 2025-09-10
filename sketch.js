@@ -15,4 +15,6 @@ function setup() {
 function draw() {
   terrainInit();
   Ants_Update();
+  
+  
 }
