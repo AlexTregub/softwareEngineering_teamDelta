@@ -6,6 +6,15 @@ function preload(){
   Ants_Preloader()
 }
 
+function mousePressed() {
+  for (let i = 0; i < ants.length; i++) {
+    if (ants[i].isMouseOver(mouseX, mouseY)) {
+      ants[i].moveToLocation(mouseX + 50, mouseY + 50);
+      return; // Stop after first match
+    }
+  }
+}
+
 ////// MAIN
 function setup() {
   createCanvas(canvasX, canvasY);

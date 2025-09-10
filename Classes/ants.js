@@ -133,6 +133,24 @@ class ant{
     if (antDebug) print("ANT %f CREATED", this.antIndex)
   }
 
+  isMouseOver(mx, my) {
+    return (
+      mx >= this.posX &&
+      mx <= this.posX + this.sizeX &&
+      my >= this.posY &&
+      my <= this.posY + this.sizeY
+    );
+  }
+  highlight(){
+    if(isMouseOver(mouseX, mouseY)){
+      push();
+      noFill();
+      stroke(255,255,0);
+      strokeWeight(2);
+      rect(this.posX, this.posY, this.sizeX, this.sizeY);
+      pop();
+    }
+  }
   setAntMove() {
     switch (this.AntMove) {
     case "RIGHT":
@@ -225,7 +243,6 @@ class ant{
     }
     if (antDebug) print("ANT ROTATION:%f",this.rotation)
   }
-
   moveToLocation(X,Y){
     this.pendingPosX = X
     this.pendingPosY = Y
@@ -335,5 +352,7 @@ class ant{
 
     this.ResolveMoment()
     this.render()
+
+    this.highlight()
   }
 }

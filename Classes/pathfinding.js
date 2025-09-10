@@ -31,8 +31,8 @@ Position = mouseX/tileSize, mouseY/tileSize. So a mouse at 600,400
 when the size is 25 would be at tile (24, 16) (*which is translated
 using the conv2dpos function). Then you can clickand set the path
 to that location. Eventually have a system to save paths to avoid
-recalculating. Maybe have a status check variable in case a tile
-is changed between path usage.
+recalculating (Reusing old paths). Maybe have a status check
+variable in case a tile is changed between path usage.
 The speed to travel a tile should be the weight * speed * bonus
 multiplier. DO NOT JUST MEASURE BY WEIGHT. NOT ALL ANTS ARE
 CREATED EQUAL
