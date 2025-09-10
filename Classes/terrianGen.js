@@ -11,9 +11,9 @@ let dirtImg;
 // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS (A_i - A_(i-1)).
 // LAST IS DEFAULT aka PROB=1
 let TERRAIN_MATERIALS = { // All-in-one configuration object.
-  'stone' : [0.3, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
+  'stone' : [0.4, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
   'dirt' : [0.5, (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
-  'grass' : [0.7 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
+  'grass' : [1 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
 };
 
 function terrainPreloader(){
@@ -102,6 +102,8 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     this._materialSet = 'grass'; // Used for storage of randomization. Initialized as default value for now
   }
  
+
+
 
 
   //// Access/usage
