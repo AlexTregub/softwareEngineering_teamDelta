@@ -18,7 +18,7 @@ function getPath(start, end){
 }
 
 function checkPoint(posX,posY){ //Makes sure a certain square is not a barrier
-  if (getTile(posX, posY) == 'dirt'){ //Change later depending on map setup
+  if (getTile(posX, posY) == 'badness'){ //Change later depending on map setup
     return false;
   }
   return true;
