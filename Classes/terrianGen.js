@@ -25,7 +25,7 @@ function terrainInit() {
   if(!initialize){
     seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
 
-    map = new Terrain(100,100,30); // Hardcoded. In the future, make automatic.
+    map = new Terrain(32,32,25); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
 
     initialize = true;
