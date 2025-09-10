@@ -11,7 +11,7 @@ let antbg;
 function Ants_Preloader(){
   antSize = createVector(20,20)
   antbg = [60,100,60]
-  antImg1 = loadImage("Images/Ant_tn.png")
+  antImg1 = loadImage('Images/Ant_tn.png')
 }
 
 // ANT UTILITY
