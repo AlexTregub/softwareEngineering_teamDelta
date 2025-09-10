@@ -11,6 +11,32 @@ let start;
 let end;
 let pathFound = false;
 
+function getPath(start, end){
+  if(checkPoint(start) && checkPoint(end)){ //Ensures start and end are valid
+
+  }
+}
+
+function checkPoint(posX,posY){ //Makes sure a certain square is not a barrier
+  if (getTile(posX, posY) == 'dirt'){ //Change later depending on map setup
+    return false;
+  }
+  return true;
+}
+/* 
+Assume that every path must be made from a point-and-click system.
+Make similar to Civilization, where the path constantly updates
+to treat the current mouse position as the end. Estimated Tile
+Position = mouseX/tileSize, mouseY/tileSize. So a mouse at 600,400
+when the size is 25 would be at tile (24, 16) (*which is translated
+using the conv2dpos function). Then you can clickand set the path
+to that location. Eventually have a system to save paths to avoid
+recalculating. Maybe have a status check variable in case a tile
+is changed between path usage.
+The speed to travel a tile should be the weight * speed * bonus
+multiplier. DO NOT JUST MEASURE BY WEIGHT. NOT ALL ANTS ARE
+CREATED EQUAL
+*/
 class Tile{
   constructor(i,j){
     this.i = i;
