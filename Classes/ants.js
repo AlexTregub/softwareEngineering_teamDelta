@@ -142,7 +142,7 @@ class ant{
     );
   }
   highlight(){
-    if(isMouseOver(mouseX, mouseY)){
+    if(this.isMouseOver(mouseX, mouseY)){
       push();
       noFill();
       stroke(255,255,0);
