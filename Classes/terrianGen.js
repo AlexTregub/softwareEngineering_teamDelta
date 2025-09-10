@@ -17,15 +17,15 @@ let TERRAIN_MATERIALS = { // All-in-one configuration object.
 };
 
 function terrainPreloader(){
-  grassImg = loadImage('Images/grass.png');
-  dirtImg = loadImage('Images/dirt.png');
+  grassImg = loadImage('Images/32x32 Tiles/GrassTile.png');
+  dirtImg = loadImage('Images/32x32 Tiles/DirtTile.png');
 }
 
 function terrainInit() {
   if(!initialize){
     seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
 
-    map = new Terrain(8,8,100); // Hardcoded. In the future, make automatic.
+    map = new Terrain(1000,1000,10); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
 
     initialize = true;
