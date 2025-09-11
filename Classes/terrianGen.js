@@ -5,6 +5,9 @@ let seed;
 let map;
 let grassImg;
 let dirtImg;
+let xCount = 32;
+let yCount = 32;
+let tileSize = 35; // Adds up to canvas dimensions
 
 ////// TERRAIN
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
@@ -25,7 +28,7 @@ function terrainInit() {
   if(!initialize){
     seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
 
-    map = new Terrain(32,32,25); // Hardcoded. In the future, make automatic.
+    map = new Terrain(xCount,yCount,tileSize); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
 
     initialize = true;
