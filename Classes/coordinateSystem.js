@@ -23,6 +23,10 @@ Cannot use arbitrary center. In odd, is in middle of existing tile, in even, is 
 
 Define center tile: 
     floor(gCX/2)*tS - (tS/2), ... => cX,cY 
+
+Working formula: (Based on (0,0) position)
+x = (pX - [floor(gCX/2)*tS - tS/2])/tS ; y = ...
+pX = (x*tS) + [floor(gCX/2)*tS - tS/2]
 */
 
 class CoordinateSystem {
@@ -36,17 +40,31 @@ class CoordinateSystem {
         this._cY = canvasSpanY;
     }
 
-    convCanvas(pX,pY) {
+    convCanvasToPos(posPair) { // [pX,pY]
         return [
-            (pX - ((floor(this._gCX/2)*this._tS + this._tS/2)/2))/this._tS,
-            (pY - ((floor(this._gCY/2)*this._tS + this._tS/2)/2))/this._tS
+            (posPair[0] - ((floor(this._gCX/2)*this._tS - this._tS/2)))/this._tS,
+            (posPair[1] - ((floor(this._gCY/2)*this._tS - this._tS/2)))/this._tS
         ];
     }
 
-    convPos(x,y) {
+    convPosToCanvas(posPair) { // [x,y]
         return [
-            (x*this._tS) + ((floor(this._gCX/2)*this._tS + this._tS/2)/2),
-            (y*this._tS) + ((floor(this._gCY/2)*this._tS + this._tS/2)/2)
+            (posPair[0]*this._tS) + ((floor(this._gCX/2)*this._tS - this._tS/2)),
+            (posPair[1]*this._tS) + ((floor(this._gCY/2)*this._tS - this._tS/2))
         ];
+    }
+
+    convCanvasToTile(posPair) { // Rounds position... pX,pY -> X',Y'
+        return this.roundPos(this.convCanvasToPos(posPair));
+    }
+
+    roundPos(posPair) {
+        // Fix -0 
+        posPair[0] = round(posPair[0]);
+        if (posPair[0] == -0) { posPair[0] = 0; }
+        posPair[1] = round(posPair[1]);
+        if (posPair[1] == -0) { posPair[1] = 0; }
+
+        return posPair;
     }
 }
