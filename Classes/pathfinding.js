@@ -32,11 +32,12 @@ class pathNode{
   constructor(i,j){
     this.i = i;
     this.j = j;
-    this.f = 0;
-    this.g = 0;
-    this.h = 0; 
+    this.f = 0; //Total Cost
+    this.g = 0; //Cost from start
+    this.h = 0; // Heuristic
     this.neighbors = []; //N,E,S,W Non-wall tiles
     this.wall = false;
+    //this.weight = 1; Eventually
     this.prev = undefined; //To backtrack to start
   }
 
