@@ -114,6 +114,9 @@ class ant{
   // Stores the last direction this ant moved. TESTING
   AntMove
 
+  // Store path if it's being told to move
+  path
+
   constructor(posX,posY,sizex,sizey,speed,rotation){
     this.SetPosX(posX)
     this.SetPosY(posY)
@@ -151,8 +154,9 @@ class ant{
       pop();
     }
   }
-  makePath(){
-    
+  setPath(path){
+    this.path = path;
+    //Add stuff to move on path
   }
   setAntMove() {
     switch (this.AntMove) {
