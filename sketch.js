@@ -21,8 +21,8 @@ function mousePressed() {
         this.startTile = map._tileStore[map.conv2dpos(antTileX, antTileY)];
       }
       if(recordingPath){
-        endTileX = floor(mouseX / map._tileSize);
-        endTileT = floor(mouseY / map._tileSize);
+        let endTileX = floor(mouseX / map._tileSize);
+        let endTileY = floor(mouseY / map._tileSize);
         this.endTile = map._tileStore[map.conv2dpos(endTileX, endTileY)];
         getPath(startTile, endTile);
         recordingPath = false;
