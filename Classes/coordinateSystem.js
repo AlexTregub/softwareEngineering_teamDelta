@@ -20,6 +20,9 @@ aka:
 pX = x*tS + (cX/2) ; pY = y*tS + (cY/2)
 
 Cannot use arbitrary center. In odd, is in middle of existing tile, in even, is in 'ghost tile' - in intersection of border
+
+Define center tile: 
+    floor(gCX/2)*tS - (tS/2), ... => cX,cY 
 */
 
 class CoordinateSystem {
@@ -35,15 +38,15 @@ class CoordinateSystem {
 
     convCanvas(pX,pY) {
         return [
-            (pX - (this._cX/2))/this._tS,
-            (pY - (this._cY/2))/this._tS
+            (pX - ((floor(this._gCX/2)*this._tS + this._tS/2)/2))/this._tS,
+            (pY - ((floor(this._gCY/2)*this._tS + this._tS/2)/2))/this._tS
         ];
     }
 
     convPos(x,y) {
         return [
-            (x*this._tS) + (this._cX/2),
-            (y*this._tS) + (this._cX/2)
+            (x*this._tS) + ((floor(this._gCX/2)*this._tS + this._tS/2)/2),
+            (y*this._tS) + ((floor(this._gCY/2)*this._tS + this._tS/2)/2)
         ];
     }
 }

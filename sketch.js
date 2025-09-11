@@ -1,5 +1,5 @@
-let CANVAS_X = 200; // Default 800
-let CANVAS_Y = 200; // Default 800
+let CANVAS_X = 300; // Default 800
+let CANVAS_Y = 300; // Default 800
 let TILE_SIZE = 100; //  Default 32
 
 let SEED;
@@ -24,7 +24,7 @@ function setup() {
   MAP.render();
   //// 
 
-  Ants_Spawn(50);
+  // Ants_Spawn(50);
 
   //// TESTING:
   CS = new CoordinateSystem(round(CANVAS_X/TILE_SIZE),round(CANVAS_Y/TILE_SIZE),CANVAS_X,CANVAS_Y,TILE_SIZE);
