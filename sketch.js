@@ -1,5 +1,7 @@
 let canvasX = 800;
 let canvasY = 800;
+let recordingPath = false;
+let selectedAnt = null;
 
 function preload(){
   terrainPreloader()
@@ -9,7 +11,15 @@ function preload(){
 function mousePressed() {
   for (let i = 0; i < ants.length; i++) {
     if (ants[i].isMouseOver(mouseX, mouseY)) { //Eventually make it open some interface menu
-      ants[i].moveToLocation(mouseX + 50, mouseY + 50);
+      if(!recordingPath){
+        recordingPath = true;
+        selectedAnt = ants[i];
+        let antTileX = floor(selectedAnt.getCenter().x / map._tileSize);
+        let antTileY = floor(selectedAnt.getCenter().y / map._tileSize);
+        let startTile = map._tileStore[map.conv2dpos(antTileX, antTileY)];
+      }
+      
+
       /*
       Once an ant is clicked, makePath in the ants class is called
       and repeatedly draws lines to the corresponding grid tile
@@ -30,4 +40,7 @@ function setup() {
 function draw() {
   terrainInit();
   Ants_Update();
+  if(recordingPath){
+
+  }
 }
