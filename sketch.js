@@ -18,19 +18,8 @@ function mousePressed() {
         selectedAnt = ants[i];
         let antTileX = floor(selectedAnt.getCenter().x / map._tileSize);
         let antTileY = floor(selectedAnt.getCenter().y / map._tileSize);
-        this.startTile = map._tileStore[map.conv2dpos(antTileX, antTileY)];
+        startTile = map._tileStore[map.conv2dpos(antTileX, antTileY)];
       }
-      if(recordingPath){
-        let endTileX = floor(mouseX / map._tileSize);
-        let endTileY = floor(mouseY / map._tileSize);
-        this.endTile = map._tileStore[map.conv2dpos(endTileX, endTileY)];
-        getPath(startTile, endTile);
-        recordingPath = false;
-        selectedAnt = null;
-        startTile = null;
-      }
-      
-
       /*
       Eventually...
       Once an ant is clicked, makePath in the ants class is called
@@ -40,6 +29,20 @@ function mousePressed() {
       */
       return; // Stop after first match
     }
+  }
+  if(recordingPath){
+    let endTileX = floor(mouseX / map._tileSize);
+    let endTileY = floor(mouseY / map._tileSize);
+    endTile = map._tileStore[map.conv2dpos(endTileX, endTileY)];
+    //getPath(startTile, endTile);
+
+    if(selectedAnt && endTile){
+      selectedAnt.moveToLocation(endTile.x, endTile.y);
+    }
+
+    recordingPath = false;
+    selectedAnt = null;
+    startTile = null;
   }
 }
 
