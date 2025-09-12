@@ -20,7 +20,10 @@ function Ants_Preloader(){
 function Ants_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++){
     sizeR = random(0,15)
-    ants[i] = new ant((random(0,500)),(random(0,500)),antSize.x+ sizeR,antSize.y + sizeR,30,0)
+    // Create a new ant and assign it a species
+    ants[i] = new AntWrapper(
+      new ant((random(0,500)), (random(0,500)), antSize.x + sizeR, antSize.y + sizeR, 30, 0), assignSpecies()
+    );
     ants[i].update()
   }
 }
@@ -336,4 +339,32 @@ class ant{
     this.ResolveMoment()
     this.render()
   }
+}
+
+class AntWrapper{
+  constructor(antObject, species){
+    this.antObject = antObject; // The original instance of an ant
+    this.species = species;     // The species of the ant
+  }
+
+  update(){
+    this.antObject.update();
+    // FOR UI TESTING
+    this.makeSpeciesUi();
+  }
+
+  makeSpeciesUi(){
+    push();
+    fill(225);
+    textSize(12);
+    textAlign(CENTER);
+    text(this.species, this.antObject.GetCenter().x, this.antObject.GetCenter().y - 10);
+    pop();
+  }
+}
+
+// Assigns a random species to an ant
+function assignSpecies() {
+  const speciesList = ["Builder", "Scout", "Queen", "Warrior?"];
+  return speciesList[Math.floor(random(0, speciesList.length))]; // Just does random for now
 }
