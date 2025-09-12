@@ -24,13 +24,17 @@ Cannot use arbitrary center. In odd, is in middle of existing tile, in even, is 
 Define center tile: 
     floor(gCX/2)*tS - (tS/2), ... => cX,cY 
 
-Working formula: (Based on (0,0) position)
+Working formula: (Based on (0,0) position on BACKING CANVAS)
 x = (pX - [floor(gCX/2)*tS - tS/2])/tS ; y = ...
-pX = (x*tS) + [floor(gCX/2)*tS - tS/2]
+pX = (x*tS) + [floor(gCX/2)*tS - tS/2]; pY = ...
+
+View canvas formula?:
+x = (pX + cOX - [floor(gCX/2)*tS - tS/2])/tS
+pX = (x*tS) + [floor(gCX/2)*tS - tS/2] - cOX; pY = ...
 */
 
 class CoordinateSystem {
-    constructor(gridCountX,gridCountY,canvasSpanX,canvasSpanY,tileSize) {
+    constructor(gridCountX,gridCountY,canvasSpanX,canvasSpanY,tileSize,canvasOffsetX,canvasOffsetY) {
         this._tS = tileSize;
 
         this._gCX = gridCountX;
@@ -38,19 +42,22 @@ class CoordinateSystem {
 
         this._cX = canvasSpanX;
         this._cY = canvasSpanY;
+
+        this._cOX = canvasOffsetX;
+        this._cOY = canvasOffsetY;
     }
 
     convCanvasToPos(posPair) { // [pX,pY]
         return [
-            (posPair[0] - ((floor(this._gCX/2)*this._tS - this._tS/2)))/this._tS,
-            (posPair[1] - ((floor(this._gCY/2)*this._tS - this._tS/2)))/this._tS
+            (posPair[0] + this._cOX - ((floor(this._gCX/2)*this._tS - this._tS/2)))/this._tS,
+            (posPair[1] + this._cOY - ((floor(this._gCY/2)*this._tS - this._tS/2)))/this._tS
         ];
     }
 
     convPosToCanvas(posPair) { // [x,y]
         return [
-            (posPair[0]*this._tS) + ((floor(this._gCX/2)*this._tS - this._tS/2)),
-            (posPair[1]*this._tS) + ((floor(this._gCY/2)*this._tS - this._tS/2))
+            (posPair[0]*this._tS) + ((floor(this._gCX/2)*this._tS - this._tS/2)) - this._cOX,
+            (posPair[1]*this._tS) + ((floor(this._gCY/2)*this._tS - this._tS/2)) - this._cOY
         ];
     }
 

@@ -27,7 +27,7 @@ function setup() {
   // Ants_Spawn(50);
 
   //// TESTING:
-  CS = new CoordinateSystem(round(CANVAS_X/TILE_SIZE),round(CANVAS_Y/TILE_SIZE),CANVAS_X,CANVAS_Y,TILE_SIZE);
+  CS = new CoordinateSystem(round(CANVAS_X/TILE_SIZE),round(CANVAS_Y/TILE_SIZE),CANVAS_X,CANVAS_Y,TILE_SIZE,150,150);
 }
 
 function draw() {
@@ -38,4 +38,5 @@ function draw() {
   temp2 = CS.convPosToCanvas([temp[0],temp[1]]);
   temp3 = CS.convCanvasToTile([mouseX,mouseY]);
   print(temp3[0],temp3[1], " || ",temp[0],temp[1]," || ",temp2[0],temp2[1],);
+  // print(CS.convPosToCanvas([-1,-1]));
 }
