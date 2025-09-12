@@ -7,7 +7,7 @@ let MAP;
 let COORDSY;
 
 function preload(){
-  terrainPreload();
+  terrainPreloader();
   Ants_Preloader();
 }
 
