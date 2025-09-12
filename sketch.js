@@ -67,7 +67,6 @@ function setup() {
 
   Ants_Spawn(50);
 }
-
 function draw() {
   MAP.render();
   Ants_Update();
