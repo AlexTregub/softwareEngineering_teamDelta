@@ -9,7 +9,6 @@ let COORDSY;
 let recordingPath
 
 function preload(){
-
   terrainPreloader()
   Ants_Preloader()
 }
