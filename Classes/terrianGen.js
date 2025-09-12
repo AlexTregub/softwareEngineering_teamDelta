@@ -11,10 +11,10 @@ let TERRAIN_MATERIALS = { // All-in-one configuration object.
   'grass' : [1 , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
 };
 
-///// PRELOAD HANDLER -> CALLED IN PRELOAD OF MAIN
-function terrainPreload(){
-  GRASS_IMAGE = loadImage('Images/32x32 Tiles/GrassTile.png');
-  DIRT_IMAGE = loadImage('Images/32x32 Tiles/DirtTile.png');
+
+function terrainPreloader(){
+  GRASS_IMAGE = loadImage('Images/16x16 Tiles/grass.png');
+  DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
 }
 
 class Terrain {
@@ -129,7 +129,9 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 
   render() { // Render, previously draw
+    noSmooth(); // prevents pixels from getting blurry as the image is scaled up
     TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
+    smooth();
     return;
   }
 }
