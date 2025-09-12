@@ -65,6 +65,10 @@ class Terrain {
     return this._tileStore[this.conv2dpos(posX,posY)].getMaterial();
   }
 
+  getCoordinateSystem() { // Return coordinate system, Backing canvas equivalent to View canvas
+    return new CoordinateSystem(this._xCount,this._yCount,this._tileSize,0,0);
+  }
+
 
 
   //// Usage

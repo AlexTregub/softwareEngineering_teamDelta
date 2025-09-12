@@ -63,6 +63,7 @@ class CoordinateSystem {
 
 
     //// Backing Canvas Conversions (reference equations, useful for converting positions off of pixel grid to coords)
+    // Convert BACKING canvas position to Grid coordinates
     convBackingCanvasToPos(posPair) { // From backing canvas pixels -> grid position (defines grid)
         return [
             posPair[0]/this._tS - floor(this._gCX/2) + 1/2 ,
@@ -70,6 +71,7 @@ class CoordinateSystem {
         ];
     }
 
+    // Convert Grid coordinates to BACKING canvas
     convPosToBackingCanvas(posPair) { // From grid position -> backing canvas pixels
         return [
             (posPair[0] - 1/2 + floor(this._gCX/2))*this._tS ,
@@ -80,15 +82,17 @@ class CoordinateSystem {
 
 
     //// Viewing Canvas Conversions
-    setViewCornerBC(posPair) { // Sets corner of viewing canvas from 
+    setViewCornerBC(posPair) { // Sets corner of viewing canvas (top left) on Backing Canvas
         this._cOX = posPair[0];
         this._cOY = posPair[1];
     }
 
+    // Convert VIEWING canvas position to Grid coordinates
     convCanvasToPos(posPair) { // Converting from viewing canvas -> grid position
         return this.convBackingCanvasToPos([posPair[0]+this._cOX,posPair[1]+this._cOY]); // Adds viewing offset to get Backing Canvas position 
     }
 
+    // Convert Grid coordinates to VIEWING canvas
     convPosToCanvas(posPair) { // Converting from grid position to viewing canvas, does not check if out of bounds
         let backingCanvasPixels = this.convPosToBackingCanvas(posPair);
         return [backingCanvasPixels[0] - this._cOX, backingCanvasPixels[1] - this._cOY]; // Removes offset from backing canvas to get viewing canvas position
