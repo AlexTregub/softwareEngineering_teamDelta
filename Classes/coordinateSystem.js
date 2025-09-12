@@ -24,24 +24,26 @@ Cannot use arbitrary center. In odd, is in middle of existing tile, in even, is 
 Define center tile: 
     floor(gCX/2)*tS - (tS/2), ... => cX,cY 
 
-Working formula: (Based on (0,0) position on BACKING CANVAS)
+WORKING formula: (Based on (0,0) position on BACKING CANVAS)
 x = (pX - [floor(gCX/2)*tS - tS/2])/tS ; y = ...
 pX = (x*tS) + [floor(gCX/2)*tS - tS/2]; pY = ...
 
-View canvas formula?:
-x = (pX + cOX - [floor(gCX/2)*tS - tS/2])/tS
-pX = (x*tS) + [floor(gCX/2)*tS - tS/2] - cOX; pY = ...
+Optimized formula:
+x = pX/tS - floor(gCX/2) + 1/2 ; y = ...
+pX = (x - 1/2 + floor(gCX/2))*tS
+
+
+View canvas formula:
+x = ((pX + cOX) - [floor(gCX/2)*tS - tS/2])/tS ; y = ...
+pX = ((x*tS) + [floor(gCX/2)*tS - tS/2]) - cOX; pY = ...
 */
 
 class CoordinateSystem {
-    constructor(gridCountX,gridCountY,canvasSpanX,canvasSpanY,tileSize,canvasOffsetX,canvasOffsetY) {
+    constructor(gridCountX,gridCountY,tileSize,canvasOffsetX,canvasOffsetY) {
         this._tS = tileSize;
 
         this._gCX = gridCountX;
         this._gCY = gridCountY;
-
-        this._cX = canvasSpanX;
-        this._cY = canvasSpanY;
 
         this._cOX = canvasOffsetX;
         this._cOY = canvasOffsetY;
@@ -63,16 +65,16 @@ class CoordinateSystem {
     //// Backing Canvas Conversions (reference equations, useful for converting positions off of pixel grid to coords)
     convBackingCanvasToPos(posPair) { // From backing canvas pixels -> grid position (defines grid)
         return [
-            (posPair[0] - ( floor(this._gCX/2)*this._tS - this._tS/2 ))/this._tS , // = x
-            (posPair[1] - ( floor(this._gCY/2)*this._tS - this._tS/2 ))/this._tS , // = y
+            posPair[0]/this._tS - floor(this._gCX/2) + 1/2 ,
+            posPair[1]/this._tS - floor(this._gCY/2) + 1/2 ,
         ];
     }
 
     convPosToBackingCanvas(posPair) { // From grid position -> backing canvas pixels
         return [
-            posPair[0]*this._tS + ( floor(this._gCX/2)*this._tS - this._tS/2 ) , // = pBX
-            posPair[1]*this._tS + ( floor(this._gCY/2)*this._tS - this._tS/2 ) , // = pBY
-        ]
+            (posPair[0] - 1/2 + floor(this._gCX/2))*this._tS ,
+            (posPair[1] - 1/2 + floor(this._gCY/2))*this._tS ,
+        ];
     }
 
 
@@ -91,23 +93,4 @@ class CoordinateSystem {
         let backingCanvasPixels = this.convPosToBackingCanvas(posPair);
         return [backingCanvasPixels[0] - this._cOX, backingCanvasPixels[1] - this._cOY]; // Removes offset from backing canvas to get viewing canvas position
     }
-
-
-    // convCanvasToPos(posPair) { // [pX,pY]
-    //     return [
-    //         (posPair[0] + this._cOX - ((floor(this._gCX/2)*this._tS - this._tS/2)))/this._tS,
-    //         (posPair[1] + this._cOY - ((floor(this._gCY/2)*this._tS - this._tS/2)))/this._tS
-    //     ];
-    // }
-
-    // convPosToCanvas(posPair) { // [x,y]
-    //     return [
-    //         (posPair[0]*this._tS) + ((floor(this._gCX/2)*this._tS - this._tS/2)) - this._cOX,
-    //         (posPair[1]*this._tS) + ((floor(this._gCY/2)*this._tS - this._tS/2)) - this._cOY
-    //     ];
-    // }
-
-    // convCanvasToTile(posPair) { // Rounds position... pX,pY -> X',Y'
-    //     return this.roundPos(this.convCanvasToPos(posPair));
-    // }   
 }

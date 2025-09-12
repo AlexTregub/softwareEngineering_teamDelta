@@ -27,7 +27,7 @@ function setup() {
   // Ants_Spawn(50);
 
   //// TESTING:
-  CS = new CoordinateSystem(round(CANVAS_X/TILE_SIZE),round(CANVAS_Y/TILE_SIZE),CANVAS_X,CANVAS_Y,TILE_SIZE,150,150);
+  CS = new CoordinateSystem(round(CANVAS_X/TILE_SIZE),round(CANVAS_Y/TILE_SIZE),TILE_SIZE,150,150);
 }
 
 function draw() {
