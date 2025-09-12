@@ -9,8 +9,9 @@ let COORDSY;
 let recordingPath
 
 function preload(){
-  terrainPreloader();
-  Ants_Preloader();
+
+  terrainPreloader()
+  Ants_Preloader()
 }
 /*
 function mousePressed() {
