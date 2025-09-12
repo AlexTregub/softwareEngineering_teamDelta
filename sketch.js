@@ -52,6 +52,8 @@ function mousePressed() {
 
 ////// MAIN
 function setup() {
+  CANVAS_X = windowWidth
+  CANVAS_Y = windowHeight
   createCanvas(CANVAS_X, CANVAS_Y);
 
   //// Configure Terrain + Coordinate System - keep in setup.

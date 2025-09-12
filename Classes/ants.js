@@ -16,6 +16,7 @@ function Ants_Preloader(){
   gregImg = loadImage("Images/Ants/greg.jpg")
 }
 
+
 // ANT UTILITY
 
 // Spawns a set number of ants
