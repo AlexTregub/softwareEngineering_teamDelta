@@ -345,6 +345,7 @@ class AntWrapper{
   constructor(antObject, species){
     this.antObject = antObject; // The original instance of an ant
     this.species = species;     // The species of the ant
+    this.collectAmount = this.setCollectAmm(); // Giving the collect amount
   }
 
   update(){
@@ -360,6 +361,22 @@ class AntWrapper{
     textAlign(CENTER);
     text(this.species, this.antObject.GetCenter().x, this.antObject.GetCenter().y - 10);
     pop();
+  }
+
+  // Setting the collect amount for the species (maybe make random later with set min/max?)
+  setCollectAmm(species) {
+    switch (species) {
+      case "Builder":
+        return 10; 
+      case "Scout":
+        return 30;
+      case "Queen":
+        return 20; 
+      case "Warrior":
+        return 15; 
+      default:
+        return 20; 
+    }
   }
 }
 
