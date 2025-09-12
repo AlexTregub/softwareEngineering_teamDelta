@@ -6,7 +6,7 @@ let ants = [];
 let antImg1;
 let antDebug = false;
 let antbg;
-let hasDeLosier = false;
+let hasDeLozier = false;
 
 // Call this during preload
 function Ants_Preloader(){
@@ -378,7 +378,7 @@ class AntWrapper{
     //this.healthAmount = this.setHealthAmm();   // And the health
 
     //Doing the images here for now cuz I'm lazy
-    if (species === "DeLosier") {
+    if (species === "DeLozier") {
       this.antObject.SetImg(gregImg); // Set the image to greg.jpg
     }
   }
@@ -409,7 +409,7 @@ class AntWrapper{
         return 40; 
       case "Warrior":
         return 15;
-      case "DeLosier":
+      case "DeLozier":
         return 1; 
       default:
         return 20; 
@@ -426,7 +426,7 @@ class AntWrapper{
         return 20; 
       case "Warrior":
         return 50;
-      case "DeLosier":
+      case "DeLozier":
         return 100000; 
       default:
         return 20; 
@@ -444,7 +444,7 @@ class AntWrapper{
         return 100; 
       case "Warrior":
         return 120;
-      case "DeLosier":
+      case "DeLozier":
         return 100000; 
       default:
         return 100; 
@@ -455,14 +455,14 @@ class AntWrapper{
 // Assigns a random species to an ant
 function assignSpecies() {
   const speciesList = ["Builder", "Scout", "Farmer", "Warrior"];
-  // Add DeLosier to the species list only if it hasn't been created yet
-  if (!hasDeLosier) {
-    speciesList.push("DeLosier");
+  // Add DeLozier to the species list only if it hasn't been created yet
+  if (!hasDeLozier) {
+    speciesList.push("DeLozier");
   }
   const chosenSpecies = speciesList[Math.floor(random(0, speciesList.length))];
-  // If DeLosier is chosen, set the flag to true
-  if (chosenSpecies === "DeLosier") {
-    hasDeLosier = true;
+  // If DeLozier is chosen, set the flag to true
+  if (chosenSpecies === "DeLozier") {
+    hasDeLozier = true;
   }
   return chosenSpecies;
 }
