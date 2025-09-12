@@ -114,6 +114,9 @@ class ant{
   // Stores the last direction this ant moved. TESTING
   AntMove
 
+  // Store path if it's being told to move
+  path
+
   constructor(posX,posY,sizex,sizey,speed,rotation){
     this.SetPosX(posX)
     this.SetPosY(posY)
@@ -133,6 +136,28 @@ class ant{
     if (antDebug) print("ANT %f CREATED", this.antIndex)
   }
 
+  isMouseOver(mx, my) {
+    return (
+      mx >= this.posX &&
+      mx <= this.posX + this.sizeX &&
+      my >= this.posY &&
+      my <= this.posY + this.sizeY
+    );
+  }
+  highlight(){
+    if(this.isMouseOver(mouseX, mouseY)){
+      push();
+      noFill();
+      stroke(255,255,0);
+      strokeWeight(2);
+      rect(this.posX, this.posY, this.sizeX, this.sizeY);
+      pop();
+    }
+  }
+  setPath(path){
+    this.path = path;
+    //Add stuff to move on path
+  }
   setAntMove() {
     switch (this.AntMove) {
     case "RIGHT":
@@ -225,7 +250,6 @@ class ant{
     }
     if (antDebug) print("ANT ROTATION:%f",this.rotation)
   }
-
   moveToLocation(X,Y){
     this.pendingPosX = X
     this.pendingPosY = Y
@@ -335,5 +359,7 @@ class ant{
 
     this.ResolveMoment()
     this.render()
+
+    this.highlight()
   }
 }
