@@ -102,3 +102,26 @@ class stats {
     }
 
 }
+
+// generic stat that will be used to populate all stats
+class stat {
+    statValue
+    getStatValue() {
+        return this.statValue
+    }
+    setStatValue(value) {
+        this.statValue = value
+        if (this.statValue < 0) this.statValue = 0
+    }
+    changeStatValue(value) {
+        
+    }
+
+    //TODO
+    //statUpperLimit, prevents the stat from going too high
+    //statLowerLimit, prevents the stat from foing too low
+    //statName, will be store the name of the state
+
+    //Toying with the idea of makeing a dictionary of stats as opposed to a stats class.
+
+}
