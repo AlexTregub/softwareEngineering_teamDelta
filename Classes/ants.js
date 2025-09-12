@@ -6,12 +6,14 @@ let ants = [];
 let antImg1;
 let antDebug = false;
 let antbg;
+let hasDeLosier = false;
 
 // Call this during preload
 function Ants_Preloader(){
   antSize = createVector(20,20)
   antbg = [60,100,60]
   antImg1 = loadImage("Images/Ants/gray_ant.png")
+  gregImg = loadImage("Images/Ants/greg.jpg")
 }
 
 // ANT UTILITY
@@ -20,7 +22,10 @@ function Ants_Preloader(){
 function Ants_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++){
     sizeR = random(0,15)
-    ants[i] = new ant((random(0,500)),(random(0,500)),antSize.x+ sizeR,antSize.y + sizeR,30,0)
+    // Create a new ant and assign it a species
+    ants[i] = new AntWrapper(
+      new ant((random(0,500)), (random(0,500)), antSize.x + sizeR, antSize.y + sizeR, 30, 0), assignSpecies()
+    );
     ants[i].update()
   }
 }
@@ -362,4 +367,102 @@ class ant{
 
     this.highlight()
   }
+}
+
+class AntWrapper{
+  constructor(antObject, species){
+    this.antObject = antObject; // The original instance of an ant
+    this.species = species;     // The species of the ant
+    this.collectAmount = this.setCollectAmm(); // Giving the collect amount
+    this.damageAmount = this.setDamageAmm();   // Giving the damage amount
+    this.healthAmount = this.setHealthAmm();   // And the health
+
+    //Doing the images here for now cuz I'm lazy
+    if (species === "DeLosier") {
+      this.antObject.SetImg(gregImg); // Set the image to greg.jpg
+    }
+  }
+
+  update(){
+    this.antObject.update();
+    // FOR UI TESTING
+    this.makeSpeciesTestUi();
+  }
+
+  makeSpeciesTestUi(){
+    push();
+    fill(225);
+    textSize(12);
+    textAlign(CENTER);
+    text(this.species, this.antObject.GetCenter().x, this.antObject.GetCenter().y - 10);
+    pop();
+  }
+
+  // Setting the collect amount for the species (maybe make random later with set min/max?)
+  setCollectAmm(species) {
+    switch (species) {
+      case "Builder":
+        return 25; 
+      case "Scout":
+        return 50;
+      case "Farmer":
+        return 40; 
+      case "Warrior":
+        return 15;
+      case "DeLosier":
+        return 1; 
+      default:
+        return 20; 
+    }
+  }
+  // Doing the same with damage
+  setDamageAmm(species) {
+    switch (species) {
+      case "Builder":
+        return 15; 
+      case "Scout":
+        return 10;
+      case "Farmer":
+        return 20; 
+      case "Warrior":
+        return 50;
+      case "DeLosier":
+        return 100000; 
+      default:
+        return 20; 
+    }
+  }
+
+  // Doing the same with health
+  setDamageAmm(species) {
+    switch (species) {
+      case "Builder":
+        return 100; 
+      case "Scout":
+        return 80;
+      case "Farmer":
+        return 100; 
+      case "Warrior":
+        return 120;
+      case "DeLosier":
+        return 100000; 
+      default:
+        return 100; 
+    }
+  }
+}
+
+// Assigns a random species to an ant
+function assignSpecies() {
+  const speciesList = ["Builder", "Scout", "Farmer", "Warrior"];
+  // Add DeLosier to the species list only if it hasn't been created yet
+  if (!hasDeLosier) {
+    speciesList.push("DeLosier");
+  }
+  const chosenSpecies = speciesList[Math.floor(random(0, speciesList.length))];
+  // If DeLosier is chosen, set the flag to true
+  if (chosenSpecies === "DeLosier") {
+    hasDeLosier = true;
+  }
+  return chosenSpecies;
 }
