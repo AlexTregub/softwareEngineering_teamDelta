@@ -1,10 +1,5 @@
-
-let gridList = {};
-let initialize = false;
-let seed;
-let map;
-let grassImg;
-let dirtImg;
+let GRASS_IMAGE;
+let DIRT_IMAGE;
 
 ////// TERRAIN
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
@@ -12,32 +7,25 @@ let dirtImg;
 // LAST IS DEFAULT aka PROB=1
 let TERRAIN_MATERIALS = { // All-in-one configuration object.
   'stone' : [0.01, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
-  'dirt' : [0.3, (x,y,squareSize) => image(dirtImg, x, y, squareSize, squareSize)],
-  'grass' : [1 , (x,y,squareSize) => image(grassImg, x, y, squareSize,squareSize)],
+  'dirt' : [0.3, (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+  'grass' : [1 , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
 };
 
+
 function terrainPreloader(){
-  grassImg = loadImage('Images/16x16 Tiles/grass.png');
-  dirtImg = loadImage('Images/16x16 Tiles/dirt.png');
-}
-
-function terrainInit() {
-  if(!initialize){
-    seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
-
-    map = new Terrain(100,100,32); // Hardcoded. In the future, make automatic.
-    map.randomize(seed); // Randomize with set seed
-
-    initialize = true;
-  }
-  map.render(); // Each call will re-render configuration of map
+  GRASS_IMAGE = loadImage('Images/16x16 Tiles/grass.png');
+  DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
 }
 
 class Terrain {
-  constructor(tileCountX, tileCountY, tileSize) {
-    // Config...
-    this._xCount = tileCountX;
-    this._yCount = tileCountY;
+  constructor(canvasX, canvasY, tileSize) {
+    //// Config...
+    this._canvasX = canvasX;
+    this._canvasY = canvasY;
+
+    // May result in partial-filling of canvas...
+    this._xCount = round(this._canvasX/tileSize);
+    this._yCount = round(this._canvasY/tileSize);
     this._tileSize = tileSize;
 
     // Initialize 1d _tileStore
@@ -61,6 +49,11 @@ class Terrain {
     return posX + this._xCount*posY;
   }
 
+  // Imported from commit f7c2e00 on AF branch
+  conv1dpos(arrayPos) { // Converts 1d array access position -> 2d position. X = ...[0], Y = ...[1]
+    return [arrayPos%this._xCount,floor(arrayPos/this._xCount)]; // Return X,Y from array pos
+  }
+
 
 
   //// Access
@@ -70,6 +63,10 @@ class Terrain {
 
   getTile(posX,posY) {
     return this._tileStore[this.conv2dpos(posX,posY)].getMaterial();
+  }
+
+  getCoordinateSystem() { // Return coordinate system, Backing canvas equivalent to View canvas
+    return new CoordinateSystem(this._xCount,this._yCount,this._tileSize,0,0);
   }
 
 
@@ -102,8 +99,6 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     this._materialSet = 'grass'; // Used for storage of randomization. Initialized as default value for now
   }
  
-
-
 
 
   //// Access/usage
