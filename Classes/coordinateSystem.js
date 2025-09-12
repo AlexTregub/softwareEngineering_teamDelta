@@ -47,25 +47,8 @@ class CoordinateSystem {
         this._cOY = canvasOffsetY;
     }
 
-    convCanvasToPos(posPair) { // [pX,pY]
-        return [
-            (posPair[0] + this._cOX - ((floor(this._gCX/2)*this._tS - this._tS/2)))/this._tS,
-            (posPair[1] + this._cOY - ((floor(this._gCY/2)*this._tS - this._tS/2)))/this._tS
-        ];
-    }
-
-    convPosToCanvas(posPair) { // [x,y]
-        return [
-            (posPair[0]*this._tS) + ((floor(this._gCX/2)*this._tS - this._tS/2)) - this._cOX,
-            (posPair[1]*this._tS) + ((floor(this._gCY/2)*this._tS - this._tS/2)) - this._cOY
-        ];
-    }
-
-    convCanvasToTile(posPair) { // Rounds position... pX,pY -> X',Y'
-        return this.roundPos(this.convCanvasToPos(posPair));
-    }
-
-    roundPos(posPair) {
+    //// Util
+    roundToTilePos(posPair) {
         // Fix -0 
         posPair[0] = round(posPair[0]);
         if (posPair[0] == -0) { posPair[0] = 0; }
@@ -74,4 +57,57 @@ class CoordinateSystem {
 
         return posPair;
     }
+
+
+
+    //// Backing Canvas Conversions (reference equations, useful for converting positions off of pixel grid to coords)
+    convBackingCanvasToPos(posPair) { // From backing canvas pixels -> grid position (defines grid)
+        return [
+            (posPair[0] - ( floor(this._gCX/2)*this._tS - this._tS/2 ))/this._tS , // = x
+            (posPair[1] - ( floor(this._gCY/2)*this._tS - this._tS/2 ))/this._tS , // = y
+        ];
+    }
+
+    convPosToBackingCanvas(posPair) { // From grid position -> backing canvas pixels
+        return [
+            posPair[0]*this._tS + ( floor(this._gCX/2)*this._tS - this._tS/2 ) , // = pBX
+            posPair[1]*this._tS + ( floor(this._gCY/2)*this._tS - this._tS/2 ) , // = pBY
+        ]
+    }
+
+
+
+    //// Viewing Canvas Conversions
+    setViewCornerBC(posPair) { // Sets corner of viewing canvas from 
+        this._cOX = posPair[0];
+        this._cOY = posPair[1];
+    }
+
+    convCanvasToPos(posPair) { // Converting from viewing canvas -> grid position
+        return this.convBackingCanvasToPos([posPair[0]+this._cOX,posPair[1]+this._cOY]); // Adds viewing offset to get Backing Canvas position 
+    }
+
+    convPosToCanvas(posPair) { // Converting from grid position to viewing canvas, does not check if out of bounds
+        let backingCanvasPixels = this.convPosToBackingCanvas(posPair);
+        return [backingCanvasPixels[0] - this._cOX, backingCanvasPixels[1] - this._cOY]; // Removes offset from backing canvas to get viewing canvas position
+    }
+
+
+    // convCanvasToPos(posPair) { // [pX,pY]
+    //     return [
+    //         (posPair[0] + this._cOX - ((floor(this._gCX/2)*this._tS - this._tS/2)))/this._tS,
+    //         (posPair[1] + this._cOY - ((floor(this._gCY/2)*this._tS - this._tS/2)))/this._tS
+    //     ];
+    // }
+
+    // convPosToCanvas(posPair) { // [x,y]
+    //     return [
+    //         (posPair[0]*this._tS) + ((floor(this._gCX/2)*this._tS - this._tS/2)) - this._cOX,
+    //         (posPair[1]*this._tS) + ((floor(this._gCY/2)*this._tS - this._tS/2)) - this._cOY
+    //     ];
+    // }
+
+    // convCanvasToTile(posPair) { // Rounds position... pX,pY -> X',Y'
+    //     return this.roundPos(this.convCanvasToPos(posPair));
+    // }   
 }

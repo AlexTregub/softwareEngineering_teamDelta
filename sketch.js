@@ -34,9 +34,12 @@ function draw() {
   Ants_Update();
 
   //// TESTING:
-  temp = CS.convCanvasToPos([mouseX,mouseY]);
-  temp2 = CS.convPosToCanvas([temp[0],temp[1]]);
-  temp3 = CS.convCanvasToTile([mouseX,mouseY]);
-  print(temp3[0],temp3[1], " || ",temp[0],temp[1]," || ",temp2[0],temp2[1],);
+  temp = CS.convBackingCanvasToPos([mouseX,mouseY]);
+  temp1 = CS.convPosToBackingCanvas(temp);
+  // temp2 = CS.convCanvasToPos([mouseX,mouseY]);
+  // temp3 = CS.convPosToCanvas(temp2);
+  temp4 = CS.convPosToCanvas(temp);
+  // print(temp1,temp,temp2,temp3,temp4);
+  print(temp1,temp,temp4);
   // print(CS.convPosToCanvas([-1,-1]));
 }
