@@ -375,7 +375,7 @@ class AntWrapper{
     this.species = species;     // The species of the ant
     this.collectAmount = this.setCollectAmm(); // Giving the collect amount
     this.damageAmount = this.setDamageAmm();   // Giving the damage amount
-    this.healthAmount = this.setHealthAmm();   // And the health
+    //this.healthAmount = this.setHealthAmm();   // And the health
 
     //Doing the images here for now cuz I'm lazy
     if (species === "DeLosier") {
