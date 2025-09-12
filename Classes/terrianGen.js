@@ -17,15 +17,15 @@ let TERRAIN_MATERIALS = { // All-in-one configuration object.
 };
 
 function terrainPreloader(){
-  grassImg = loadImage('Images/32x32 Tiles/GrassTile.png');
-  dirtImg = loadImage('Images/32x32 Tiles/DirtTile.png');
+  grassImg = loadImage('Images/16x16 Tiles/grass.png');
+  dirtImg = loadImage('Images/16x16 Tiles/dirt.png');
 }
 
 function terrainInit() {
   if(!initialize){
     seed = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
 
-    map = new Terrain(100,100,30); // Hardcoded. In the future, make automatic.
+    map = new Terrain(100,100,32); // Hardcoded. In the future, make automatic.
     map.randomize(seed); // Randomize with set seed
 
     initialize = true;
@@ -134,7 +134,9 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 
   render() { // Render, previously draw
+    noSmooth(); // prevents pixels from getting blurry as the image is scaled up
     TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
+    smooth();
     return;
   }
 }

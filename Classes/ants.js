@@ -11,7 +11,7 @@ let antbg;
 function Ants_Preloader(){
   antSize = createVector(20,20)
   antbg = [60,100,60]
-  antImg1 = loadImage("Images/Ant_tn.png")
+  antImg1 = loadImage("Images/Ants/gray_ant.png")
 }
 
 // ANT UTILITY
@@ -290,7 +290,9 @@ class ant{
   // draws sprite to the screen 
   render(){
     push();
+    noSmooth(); // prevents pixels from becoming blurry when the image is upscaled 
     image(antImg1,this.posX,this.posY,this.sizeX,this.sizeY)
+    smooth();
     pop();
   }
 
