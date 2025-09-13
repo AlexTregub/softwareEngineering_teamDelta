@@ -145,6 +145,13 @@ class ant {
       strokeWeight(2);
       rect(pos.x, pos.y, size.x, size.y);
       pop();
+    } else if (this.isBoxHovered) {
+      push();
+      noFill();
+      stroke(color(0, 255, 0));
+      strokeWeight(2);
+      rect(pos.x, pos.y, size.x, size.y);
+      pop();
     }
   }
 
