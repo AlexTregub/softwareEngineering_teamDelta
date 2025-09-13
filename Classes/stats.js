@@ -7,7 +7,7 @@ function test_stats() {
 
 
 class stats {
-    constructor(pos, size, movementSpeed = 0.05, pendingPos = null){
+    constructor(pos, size, movementSpeed = 0.05, pendingPos = null, strength = 10, health = 100, gatherSpeed = 1){
       this.createExpMap()
       // Check if pos is a vector (has x and y properties)
       if (!pos || typeof pos.x !== "number" || typeof pos.y !== "number") {
@@ -20,9 +20,11 @@ class stats {
       this.position = new stat("Position", pos)
       this.size = new stat("Size", createVector(size.x, size.y))
       this.movementSpeed = new stat("Movement Speed", movementSpeed, 0, 100)
-      // Add Pending Position stat
       if (pendingPos === null) pendingPos = createVector(pos.x, pos.y);
       this.pendingPos = new stat("Pending Position", pendingPos)
+      this.strength = new stat("Strength", strength, 0, 1000)
+      this.health = new stat("Health", health, 0, 10000)
+      this.gatherSpeed = new stat("Gather Speed", gatherSpeed, 0, 100)
     }
     // Getter and setter for position
     get position() { return this._position; }

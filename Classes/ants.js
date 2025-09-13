@@ -66,6 +66,7 @@ class ant {
     this._timeUntilSkitter = this._skitterTimer;
     this._path = null;
     this._isSelected = false;
+    this.isBoxHovered = false; // Add to constructor
   }
 
   // Getters and setters
@@ -240,21 +241,6 @@ class ant {
     this.highlight();
   }
 
-  moveFarAfterRandomTime() {
-    if (!this._isMoving) {
-      if (typeof this._farMoveTimer === "undefined") {
-        this._farMoveTimer = Math.floor(random(120, 300));
-      }
-      this._farMoveTimer--;
-
-      if (this._farMoveTimer <= 0) {
-        const dx = random(-200, 200);
-        const dy = random(-200, 200);
-        this.moveToLocation(this.posX + dx, this.posY + dy);
-        this._farMoveTimer = undefined;
-      }
-    }
-  }
 }
 
 function moveSelectedAntToTile(mx, my, tileSize) {
