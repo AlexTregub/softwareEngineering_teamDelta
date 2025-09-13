@@ -7,6 +7,11 @@ let selectedEntities = [];
 function deselectAllEntities() {
   selectedEntities.forEach(entity => entity.isSelected = false);
   selectedEntities = [];
+  // Also clear single selected ant if it exists
+  if (typeof selectedAnt !== "undefined" && selectedAnt) {
+    selectedAnt.isSelected = false;
+    selectedAnt = null;
+  }
 }
 
 // Abstract: checks if entity center is inside box
@@ -47,7 +52,7 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
     }
     deselectAllEntities();
     return;
-  } else if (selectedEntities.length === 1 && mousePressed === RIGHT) {
+  } else if (mousePressed == RIGHT) {
     deselectAllEntities();
     return;
   }
@@ -62,6 +67,7 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
       break;
     }
   }
+
   // If no entity was clicked and one is selected, move it to the tile
   if (!entityWasClicked && selectedEntity && moveSelectedEntityToTile) {
     moveSelectedEntityToTile(mouseX, mouseY, TILE_SIZE);

@@ -70,6 +70,14 @@ function mouseReleased() {
   }
 }
 
+function keyPressed() {
+  if (keyCode === ESCAPE) {
+    if (typeof deselectAllEntities === 'function') {
+      deselectAllEntities();
+    }
+  }
+}
+
 ////// MAIN
 function setup() {
   CANVAS_X = windowWidth
