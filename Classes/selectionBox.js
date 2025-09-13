@@ -4,6 +4,16 @@ let selectionEnd = null;
 let selectedAnts = [];
 
 function handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE) {
+  // Move all multi-selected ants to clicked location
+  if (selectedAnts.length > 1) {
+    for (let antObj of selectedAnts) {
+      antObj.moveToLocation(mouseX, mouseY);
+      antObj.isSelected = false;
+    }
+    selectedAnts = [];
+    return;
+  }
+
   // Check if an ant was clicked for single selection
   let antWasClicked = false;
   for (let i = 0; i < ants.length; i++) {
