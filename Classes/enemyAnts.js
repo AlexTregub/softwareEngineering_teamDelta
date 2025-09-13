@@ -12,17 +12,17 @@ vector from the enemy- vision ray- from the enemy ants
 */
 
 // Static Vars.
-let antToSpawn = 0;
-let ant_Index = 0;
-let antSize;
+let eAntToSpawn = 0;
+let eAnt_Index = 0;
+let eAntSize;
 
 
 function eAnts_Preloader(){
     eAntSize = createVector(20,20)
-    antbg = [120, 60, 60]
+    eAntbg = [120, 60, 60]
     eAntImg = loadImage("Images/Ants/enemyAnt.png")
 }
 
 function eAnts_Spawn(numToSpawn){
-    
+
 }
