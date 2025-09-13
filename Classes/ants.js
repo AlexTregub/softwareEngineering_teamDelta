@@ -4,7 +4,6 @@ let ant_Index = 0;
 let antSize;
 let ants = [];
 let antImg1;
-let antDebug = false;
 let antbg;
 let hasDeLozier = false;
 
@@ -23,6 +22,7 @@ function Ants_Preloader(){
 function Ants_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++){
     sizeR = random(0,15)
+
     // Create a new ant and assign it a species
     ants[i] = new AntWrapper(
       new ant((random(0,500)), (random(0,500)), antSize.x + sizeR, antSize.y + sizeR, 30, 0), assignSpecies()
@@ -32,58 +32,9 @@ function Ants_Spawn(numToSpawn) {
 }
 
 // updates and rerenders all ants
-function Ants_Update(){
-  for (let i = 0; i < ant_Index; i++) {
-    ants[i].update()
-  }
-}
+function Ants_Update(){ for (let i = 0; i < ant_Index; i++) { ants[i].update() }}
 
-// TEST, moves all ants a bit in passed direction
-function Ants_moveAsGroup(movement) {
-  if (antDebug){
-    let x_ = 10
-    let y_ = 10
-
-    push()
-    fill (antbg)
-    noStroke()
-    rect(x_,y_-10,50,15)
-    pop()
-
-    for (let i = 0; i < ant_Index; i++) {
-      switch(ants[i].AntMove){
-        case "RIGHT":
-          text("RIGHT",x_,y_)
-          ants[i].moveToLocation(ants[i].GetPosX() + movement, ants[i].GetPosY())
-          break;
-        case "LEFT":
-          text("LEFT",x_,y_)
-          ants[i].moveToLocation(ants[i].GetPosX() - movement, ants[i].GetPosY())
-          break;
-        case "UP":
-          text("UP",x_,y_)
-          ants[i].moveToLocation(ants[i].GetPosX(), ants[i].GetPosY() - movement)
-          break;
-        case "DOWN":
-          text("DOWN",x_,y_)
-          ants[i].moveToLocation(ants[i].GetPosX(), ants[i].GetPosY() + movement)
-          break;
-        default:
-          text("DEFAULT",x_,y_)
-      }
-      ants[i].setAntMove()
-    }
-  }
-}
-
-function Ant_Click_Control(){
-  ants[antToSpawn].moveToLocation(mouseX,mouseY)
-  antToSpawn += 1
-  if (antToSpawn >= ant_Index)
-  {
-    antToSpawn = 0
-  }
-}
+function Ant_Click_Control(){ ants[antToSpawn].moveToLocation(mouseX,mouseY); antToSpawn += 1; if (antToSpawn >= ant_Index) { antToSpawn = 0 } }
 
 // CLASSES
 class ant{
@@ -91,44 +42,23 @@ class ant{
   posY
   sizeX
   sizeY
+  pendingPosX // the location the ant will move to
+  pendingPosY // the location the ant will move to
+  antIndex // Key for ant dict. which is currently an array.
+  movementSpeed // the speed that the ant will move in pixels every frame until pos matches PendingPos
+  rotation // the roation of the sprite, -360 <= x <= 360
+  isMoving // if isMoving, the ant will move to pendingPos and draw a line to it's pending spot
+  timeUntilSkitter // The ant will randomly move every few seconds. for fun.
+  skitterTimer //SKITTER
+  img
+  AntMove // Stores the last direction this ant moved. TESTING
+  path // Store path if it's being told to move
 
-  // the location the ant will move to
-  pendingPosX
-  pendingPosY
-
-  // the image url the ant will use **Currently not in use**
-  //img
-
-  // Key for ant dict. which is currently an array.
-  antIndex
-
-  // the speed that the ant will move in pixels every frame
-  // until pos matches PendingPos
-  movementSpeed
-
-  // the roation of the sprite, -360 <= x <= 360
-  rotation
-
-  // if isMoving, the ant will move to pendingPos and draw a line to
-  // it's pending spot
-  isMoving
-
-  // The ant will randomly move every few seconds. for fun.
-  timeUntilSkitter
-  skitterTimer
-
-  // Stores the last direction this ant moved. TESTING
-  AntMove
-
-  // Store path if it's being told to move
-  path
-
-  constructor(posX,posY,sizex,sizey,speed,rotation){
+  constructor(posX=0,posY=0,sizex=50,sizey=50,speed=0,rotation=0){
     this.SetPosX(posX)
     this.SetPosY(posY)
     this.SetSizeX(sizex)
     this.SetSizeY(sizey)
-    //this.SetImg(imageURL)
     this.SetMovementSpeed(speed)
     this.SetRotation(rotation)
     this.skitterTimer = random(30,200)
@@ -138,8 +68,6 @@ class ant{
     this.timeUntilSkitter = this.skitterTimer
     this.pendingPosX = this.GetPosX()
     this.pendingPosY = this.GetPosY()
-    this.AntMove = "RIGHT"
-    if (antDebug) print("ANT %f CREATED", this.antIndex)
   }
 
   isMouseOver(mx, my) {
@@ -150,6 +78,7 @@ class ant{
       my <= this.posY + this.sizeY
     );
   }
+
   highlight(){
     if(this.isMouseOver(mouseX, mouseY)){
       push();
@@ -160,91 +89,47 @@ class ant{
       pop();
     }
   }
-  setPath(path){
+
+  setPath(path) { 
     this.path = path;
     //Add stuff to move on path
   }
+
   setAntMove() {
     switch (this.AntMove) {
-    case "RIGHT":
-      this.AntMove = "DOWN"
-      break;
-    case "LEFT":
-      this.AntMove = "UP"
-      break;
-    case "UP":
-      this.AntMove = "RIGHT"
-      break;
-    case "DOWN":
-      this.AntMove = "LEFT"
-      break;
-    default:
-      text("DEFAULT",x_,y_)
-    }
+      case "RIGHT": this.AntMove = "DOWN"; break;
+      case "LEFT": this.AntMove = "UP"; break;
+      case "UP": this.AntMove = "RIGHT"; break;
+      case "DOWN": this.AntMove = "LEFT";  break;
+      default: text("DEFAULT",x_,y_) }
   }
 
   //GETTER, SETTERS, RANDOMS
-  setTimeUntilSkitter(value){
-    this.timeUntilSkitter = value
-  }
-  rndTimeUntilSkitter(){
-    this.timeUntilSkitter = this.skitterTimer
-  }
-  getTimeUntilSkitter(){
-    return this.timeUntilSkitter
-  }
+  setTimeUntilSkitter(value){ this.timeUntilSkitter = value }
+  rndTimeUntilSkitter(){ this.timeUntilSkitter = this.skitterTimer }
+  getTimeUntilSkitter(){ return this.timeUntilSkitter }
 
   // Sets and returns top left point relative to sprite
-  SetPosX(value){
-    this.posX = value
-    if (antDebug) print("ANT POS X:%f",this.posX)
-  }
-  SetPosY(value){
-    this.posY = value
-    if (antDebug) print("ANT POS Y:%f",this.posY)
-  }
-  GetPosX(){
-    return this.posX 
-  }
-  GetPosY(){
-    return this.posY 
-  }
+  SetPosX(value){ this.posX = value }
+  SetPosY(value){ this.posY = value }
+  GetPosX(){ return this.posX }
+  GetPosY(){ return this.posY  }
 
   // Gets the mid point relative to sprite
   // Use this if you need an effect to be centered on the sprite
-  GetCenter(){
-    return createVector(this.posX + (this.sizeX / 2),
-                        this.posY + (this.sizeY / 2))
-  }
+  GetCenter(){ return createVector(this.posX + (this.sizeX / 2), this.posY + (this.sizeY / 2))  }
 
-  SetSizeX(value){
-    this.sizeX = value
-    if (antDebug) print("ANT SIZE X:%f",this.sizeX)
-  }
-  SetSizeY(value){
-    this.sizeY = value
-    if (antDebug) print("ANT SIZE Y:%f",this.sizeY)
-  }
-  GetSizeX(){
-    return this.sizeX
-  }
-  GetSizeY(){
-    return this.sizeY
-  }
+  SetSizeX(value){ this.sizeX = value }
+  GetSizeX(){ return this.sizeX }
 
-  // Sets/Gets the image of the sprite to rendered to screen
-  SetImg(value){
-    this.img = value
-  }
-  GetImg(){
-    return this.img
-  }
+  SetSizeY(value){ this.sizeY = value }
+  GetSizeY(){ return this.sizeY }
+
+  SetImg(value){ this.Img = value }
+  GetImg(){ return this.Img }
 
   // Sets the image of the sprite to rendered to screen
-  SetMovementSpeed(value){
-    this.movementSpeed  = value
-    if (antDebug) print("ANT MOVEMENT SPEED:%f",this.movementSpeed)
-  }
+  SetMovementSpeed(value){ this.movementSpeed  = value }
 
   SetRotation(value){
     this.rotation  = value
@@ -254,69 +139,30 @@ class ant{
     while (this.rotation < -360){
       this.rotation += 360
     }
-    if (antDebug) print("ANT ROTATION:%f",this.rotation)
-  }
-  moveToLocation(X,Y){
-    this.pendingPosX = X
-    this.pendingPosY = Y
-    this.isMoving = true
   }
 
-  getAngle(x1,x2,y1,y2){
-    return atan2(x1-x2,y1-y2)
-  }
+  //Tries to return the tangant line for the path is currently moving too
+  getAngle(x1,x2,y1,y2){ return atan2(x1-x2,y1-y2) }
 
-  // if isMoving is true, the ant will calculate a vector to a given pos
-  // The ant will draw a ellipse over it's old sprite,
-  // then will jump to that location and render itself.
-  // PLANS --------------------------------------------
-  // Ants jumping to the location they want to go is not the desired behavior
-  // the code needs to have the ant move the amount dictated by movement speed
-  // and know the movement is resolved, stop moving and resume skittering.
-  ResolveMoment()
-  {
-    while (this.isMoving == true)
-      {
+  moveToLocation(X,Y){ this.pendingPosX = X; this.pendingPosY = Y;  this.isMoving = true }
+
+  ResolveMoment()  {
+    while (this.isMoving == true) {
       this.SetRotation = this.getAngle(this.posX,this.pendingPosX,this.posY,this.pendingPosY)
       let origin = createVector(this.posX,this.posY)
       let newPos = createVector(this.pendingPosX,this.pendingPosY)
       newPos.lerp(origin,newPos,0.1)
-      this.fillOldImage()
 
       this.posX = newPos.x
       this.posY = newPos.y
       this.render()
 
       this.isMoving = false
-      //print(`Ant %f is at X:${this.posX} Y:${this.posY}`, this.antIndex)
-
-    }
-  }
-
-  debug_resolveMovement() {
-    let debugYPos = 50
-    let numOfTextLines = 4
-    function incrementDebug(value){
-      debugYPos += value
-      return debugYPos
-    }
-
-    if (antDebug) {
-      push()
-      fill (antbg)
-      noStroke()
-      rect(40,40,250,(10*numOfTextLines)+5)
-      pop()
-      text(`Pos X:${this.posX}`,50,debugYPos)
-      text(`Pos Y:${this.posY}`,50,incrementDebug(10))
-      text(`Pending Pos X:${this.pendingPosX}`,50,incrementDebug(10))
-      text(`Pending Pos Y:${this.pendingPosY}`,50,incrementDebug(10))
     }
   }
 
   // the following probably should be split out into a parent class, 
   // inheritance is questionable in p5.js so build a wrapper, return the class, and build on that.
-
   // draws sprite to the screen 
   render(){
     push();
@@ -326,46 +172,17 @@ class ant{
     pop();
   }
 
-    // Log the error.
-  handleError(event_) {
-    console.error('Oops!', event_);
-  }
-
-  // Display the image.
-  handleImage(img) {
-    imageMode(CENTER);
-    //image(img, this.posX, this.posY, this.sizeX, this.sizeY);
-    
-    describe('Little black ant');
-  }
-
-  // Fills in the space the ant just was. This is to avoid overlapping 
-  // ant sprites, think windows XP dragging crashing windows
-  fillOldImage() {
-    if (antDebug) {
-      push();
-      fill(antbg);
-      ellipseMode(RADIUS);
-      noStroke();
-      ellipse(this.GetCenter().x,this.GetCenter().y,this.GetSizeX()-7);
-      pop();
-    }
-  }
-
   //resolves actions updated each frame. By definition, the is framerate dependent, which is typically bad.
   update(){
-    if (this.isMoving == false) {
-      this.timeUntilSkitter -= 1
-    }
+    if (this.isMoving == false) { this.timeUntilSkitter -= 1 }
     if (this.timeUntilSkitter < 0){
       this.rndTimeUntilSkitter()
       this.isMoving = true
-      this.moveToLocation(this.posX + random(-5,5),this.posY + random(-5,5))
+      this.moveToLocation(this.posX + random(-5,5),this.posY + random(-5,5)) 
     }
-
+  
     this.ResolveMoment()
     this.render()
-
     this.highlight()
   }
 }
@@ -402,53 +219,35 @@ class AntWrapper{
   // Setting the collect amount for the species (maybe make random later with set min/max?)
   setCollectAmm(species) {
     switch (species) {
-      case "Builder":
-        return 25; 
-      case "Scout":
-        return 50;
-      case "Farmer":
-        return 40; 
-      case "Warrior":
-        return 15;
-      case "DeLozier":
-        return 1; 
-      default:
-        return 20; 
+      case "Builder": return 25; 
+      case "Scout": return 50;
+      case "Farmer": return 40; 
+      case "Warrior": return 15;
+      case "DeLozier": return 1; 
+      default: return 20; 
     }
   }
   // Doing the same with damage
   setDamageAmm(species) {
     switch (species) {
-      case "Builder":
-        return 15; 
-      case "Scout":
-        return 10;
-      case "Farmer":
-        return 20; 
-      case "Warrior":
-        return 50;
-      case "DeLozier":
-        return 100000; 
-      default:
-        return 20; 
+      case "Builder": return 15; 
+      case "Scout": return 10;
+      case "Farmer": return 20; 
+      case "Warrior": return 50;
+      case "DeLozier": return 100000; 
+      default: return 20; 
     }
   }
 
   // Doing the same with health
   setDamageAmm(species) {
     switch (species) {
-      case "Builder":
-        return 100; 
-      case "Scout":
-        return 80;
-      case "Farmer":
-        return 100; 
-      case "Warrior":
-        return 120;
-      case "DeLozier":
-        return 100000; 
-      default:
-        return 100; 
+      case "Builder": return 100; 
+      case "Scout": return 80;
+      case "Farmer": return 100; 
+      case "Warrior": return 120;
+      case "DeLozier": return 100000; 
+      default: return 100; 
     }
   }
 }
@@ -457,13 +256,10 @@ class AntWrapper{
 function assignSpecies() {
   const speciesList = ["Builder", "Scout", "Farmer", "Warrior"];
   // Add DeLozier to the species list only if it hasn't been created yet
-  if (!hasDeLozier) {
-    speciesList.push("DeLozier");
-  }
+  if (!hasDeLozier) { speciesList.push("DeLozier"); }
   const chosenSpecies = speciesList[Math.floor(random(0, speciesList.length))];
+
   // If DeLozier is chosen, set the flag to true
-  if (chosenSpecies === "DeLozier") {
-    hasDeLozier = true;
-  }
+  if (chosenSpecies === "DeLozier") { hasDeLozier = true; }
   return chosenSpecies;
 }

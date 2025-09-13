@@ -6,23 +6,24 @@ function test_stats() {
 
 
 class stats {
+    constructor(pos, size){
+      this.createExpMap()
+      position = new stat("Position", createVector(pos.x,pos.y))
+      size = new stat("Position", createVector(size.x,size.y))
+    }
+    position
+    size
+
+
     // tracks the exp gained from all entites in the world
     // maps work like dicts, but the key doesn't need to be a string or int
     exp = new Map()
-
-    constructor(){
-        this.createExpMap()
-    }
     
     // returns the total EXP value from all properties
     expTotal
-    getExpTotal(){
-        this.setExpTotal()
-        return this.expTotal;
-    }
-    setExpTotal(){
-        this.expTotal = expLifetime.getStatValue + expGather + expHunt
-    }
+    getExpTotal(){ this.setExpTotal(); return this.expTotal; }
+    setExpTotal(){ this.expTotal = 0; for (const value of this.exp) for (const keys of Object.keys(value)){ this.expTotal += value[keys] }}
+    printExpTotal(){ console.log(`Total EXP: ${this.expTotal}`)}
 
     // Mappings
     createExpMap(){
@@ -35,19 +36,9 @@ class stats {
         this.exp.set("Ranged",new stat("Ranged EXP"))  //exp gained from ants that spits and that successfully connects with an valid object
         this.exp.set("Scouting",new stat("Scouting EXP")) // exp gained from an ant scouting tasks
     }
-    test_Map(map) {
-        for (const [key, value] of map) {
-            console.log(`${key}: ${value}`);
-        }
-    }
-    test_Exp() {
-        for (const [key, value] of this.exp) {
-            console.log(`KEY: ${key}`)
-            for (const keys of Object.keys(value)){
-                console.log(`${keys}: ${value[keys]}`)
-            }
-        }
-    }
+
+    test_Map(map) { for (const [key, value] of map) { console.log(`${key}: ${value}`); } }
+    test_Exp() { for (const [key, value] of this.exp) {console.log(`KEY: ${key}`); for (const keys of Object.keys(value)){ console.log(`${keys}: ${value[keys]}`) }}}
 }
 
 // generic stat that will be used to populate all stats
@@ -91,5 +82,18 @@ class stat {
     test_enforceStatLimit() {
         if (this.statValue < this.statLowerLimit) console.error(this.statValue, this.statLowerLimit)
         if (this.statValue > this.statUpperLimit) console.error(this.statValue, this.statUpperLimit)
+    }
+
+    printStatToDebug() {
+      for (const key in Object.keys(this)){
+        for (const value in Object.values(this)){
+          console.log(`${key}:${value}`)
+        }
+      }
+
+    }
+
+    printStatUnderObject(pos,textSize) {
+      
     }
 }
