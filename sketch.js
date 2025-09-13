@@ -51,8 +51,8 @@ function mousePressed() {
   }
 } */
 
+  // MOUSE INTERACTIONS
 function mousePressed() {
-  // Delegate to selectionBox.js
   if (typeof handleMousePressed === 'function') {
     handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, mouseButton);
   }
@@ -70,6 +70,7 @@ function mouseReleased() {
   }
 }
 
+// KEYBOARD INTERACTIONS
 function keyPressed() {
   if (keyCode === ESCAPE) {
     if (typeof deselectAllEntities === 'function') {
