@@ -52,19 +52,15 @@ function mousePressed() {
 } */
 
 function mousePressed() {
-  // First, check if an ant was clicked
-  let antWasClicked = false;
-  for (let i = 0; i < ants.length; i++) {
-    if (ants[i].antObject.isMouseOver(mouseX, mouseY)) {
-      Ant_Click_Control();
-      antWasClicked = true;
-      break;
-    }
-  }
-  // If no ant was clicked and one is selected, move it to the tile
-  if (!antWasClicked && selectedAnt) {
-    moveSelectedAntToTile(mouseX, mouseY, TILE_SIZE);
-  }
+  handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
+}
+
+function mouseDragged() {
+  handleMouseDragged(mouseX, mouseY);
+}
+
+function mouseReleased() {
+  handleMouseReleased(ants);
 }
 
 ////// MAIN
@@ -89,7 +85,7 @@ function setup() {
 function draw() {
   MAP.render();
   Ants_Update();
-  
+  drawSelectionBox();
   if(recordingPath){
 
   }
