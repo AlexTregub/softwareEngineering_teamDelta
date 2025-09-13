@@ -52,47 +52,21 @@ function mousePressed() {
 } */
 
 function mousePressed() {
-  // Move group if selected
-  if (selectedAnts.length > 0) {
-    ant.moveGroupInCircle(selectedAnts, mouseX, mouseY);
-    selectedAnts = [];
-    return;
-  }
-
-  // Move single ant if selected
-  if (selectedAnt) {
-    selectedAnt.moveToLocation(mouseX, mouseY);
-    selectedAnt.isSelected = false;
-    selectedAnt = null;
-    return;
-  }
-
-  // Select single ant
-  let antWasClicked = false;
-  selectedAnt = ant.selectAntUnderMouse(ants, mouseX, mouseY);
-  if (selectedAnt) {
-    antWasClicked = true;
-  }
-  if (!antWasClicked) {
-    // Start box selection
-    isSelecting = true;
-    selectionStart = createVector(mouseX, mouseY);
-    selectionEnd = selectionStart.copy();
+  // Delegate to selectionBox.js
+  if (typeof handleMousePressed === 'function') {
+    handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, mouseButton);
   }
 }
 
 function mouseDragged() {
-  if (isSelecting) {
+  if (typeof handleMouseDragged === 'function') {
     handleMouseDragged(mouseX, mouseY, ants);
   }
 }
 
 function mouseReleased() {
-  if (isSelecting) {
+  if (typeof handleMouseReleased === 'function') {
     handleMouseReleased(ants);
-    isSelecting = false;
-    selectionStart = null;
-    selectionEnd = null;
   }
 }
 
@@ -118,7 +92,9 @@ function setup() {
 function draw() {
   MAP.render();
   Ants_Update();
-  drawSelectionBox();
+  if (typeof drawSelectionBox === 'function') {
+    drawSelectionBox();
+  }
   if(recordingPath){
 
   }

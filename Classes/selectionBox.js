@@ -1,46 +1,81 @@
 let isSelecting = false;
 let selectionStart = null;
 let selectionEnd = null;
-let selectedAnts = [];
+let selectedEntities = [];
 
-function handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE) {
-  // Spread out multi-selected ants around the clicked location
-  if (selectedAnts.length > 1) {
-    const radius = 40; // Distance from center
-    const angleStep = (2 * Math.PI) / selectedAnts.length;
-    for (let i = 0; i < selectedAnts.length; i++) {
+// Deselect all entities
+function deselectAllEntities() {
+  selectedEntities.forEach(entity => entity.isSelected = false);
+  selectedEntities = [];
+}
+
+// Abstract: checks if entity center is inside box
+function isEntityInBox(entity, x1, x2, y1, y2) {
+  const pos = entity.getPosition ? entity.getPosition() : entity.sprite.pos;
+  const size = entity.getSize ? entity.getSize() : entity.sprite.size;
+  const cx = pos.x + size.x / 2;
+  const cy = pos.y + size.y / 2;
+  return (cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2);
+}
+
+// Abstract: checks if entity is under mouse
+function isEntityUnderMouse(entity, mx, my) {
+  if (entity.isMouseOver) return entity.isMouseOver(mx, my);
+  const pos = entity.getPosition ? entity.getPosition() : entity.sprite.pos;
+  const size = entity.getSize ? entity.getSize() : entity.sprite.size;
+  return (
+    mx >= pos.x &&
+    mx <= pos.x + size.x &&
+    my >= pos.y &&
+    my <= pos.y + size.y
+  );
+}
+
+// Handles mouse press for selection box and group movement
+function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, selectedEntity, moveSelectedEntityToTile, TILE_SIZE, mousePressed) {
+  // Spread out multi-selected entities around the clicked location
+  if (selectedEntities.length > 1 && mousePressed === LEFT) {
+    const radius = 40;
+    const angleStep = (2 * Math.PI) / selectedEntities.length;
+    for (let i = 0; i < selectedEntities.length; i++) {
       const angle = i * angleStep;
       const offsetX = Math.cos(angle) * radius;
       const offsetY = Math.sin(angle) * radius;
-      selectedAnts[i].moveToLocation(mouseX + offsetX, mouseY + offsetY);
-      selectedAnts[i].isSelected = false;
+      if (selectedEntities[i].moveToLocation)
+        selectedEntities[i].moveToLocation(mouseX + offsetX, mouseY + offsetY);
+      selectedEntities[i].isSelected = false;
     }
-    selectedAnts = [];
+    deselectAllEntities();
+    return;
+  } else if (selectedEntities.length === 1 && mousePressed === RIGHT) {
+    deselectAllEntities();
     return;
   }
 
-  // Check if an ant was clicked for single selection
-  let antWasClicked = false;
-  for (let i = 0; i < ants.length; i++) {
-    if (ants[i].antObject.isMouseOver(mouseX, mouseY)) {
-      Ant_Click_Control();
-      antWasClicked = true;
+  // Check if an entity was clicked for single selection
+  let entityWasClicked = false;
+  for (let i = 0; i < entities.length; i++) {
+    let entity = entities[i].antObject ? entities[i].antObject : entities[i];
+    if (isEntityUnderMouse(entity, mouseX, mouseY)) {
+      selectEntityCallback();
+      entityWasClicked = true;
       break;
     }
   }
-  // If no ant was clicked and one is selected, move it to the tile
-  if (!antWasClicked && selectedAnt) {
-    moveSelectedAntToTile(mouseX, mouseY, TILE_SIZE);
+  // If no entity was clicked and one is selected, move it to the tile
+  if (!entityWasClicked && selectedEntity && moveSelectedEntityToTile) {
+    moveSelectedEntityToTile(mouseX, mouseY, TILE_SIZE);
   }
-  // If no ant was clicked, start box selection
-  if (!antWasClicked && !selectedAnt) {
+  // If no entity was clicked, start box selection
+  if (!entityWasClicked && !selectedEntity) {
     isSelecting = true;
     selectionStart = createVector(mouseX, mouseY);
     selectionEnd = selectionStart.copy();
   }
 }
 
-function handleMouseDragged(mouseX, mouseY, ants) {
+// Handles mouse drag for updating selection box
+function handleMouseDragged(mouseX, mouseY, entities) {
   if (isSelecting) {
     selectionEnd = createVector(mouseX, mouseY);
 
@@ -49,34 +84,27 @@ function handleMouseDragged(mouseX, mouseY, ants) {
     let y1 = Math.min(selectionStart.y, selectionEnd.y);
     let y2 = Math.max(selectionStart.y, selectionEnd.y);
 
-    for (let i = 0; i < ants.length; i++) {
-      let antObj = ants[i].antObject;
-      let pos = antObj.sprite.pos;
-      let size = antObj.sprite.size;
-      let cx = pos.x + size.x / 2;
-      let cy = pos.y + size.y / 2;
-      antObj.isBoxHovered = (cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2);
+    for (let i = 0; i < entities.length; i++) {
+      let entity = entities[i].antObject ? entities[i].antObject : entities[i];
+      entity.isBoxHovered = isEntityInBox(entity, x1, x2, y1, y2);
     }
   }
 }
 
-function handleMouseReleased(ants) {
+// Handles mouse release for selecting entities in box
+function handleMouseReleased(entities) {
   if (isSelecting) {
-    selectedAnts = [];
+    selectedEntities = [];
     let x1 = Math.min(selectionStart.x, selectionEnd.x);
     let x2 = Math.max(selectionStart.x, selectionEnd.x);
     let y1 = Math.min(selectionStart.y, selectionEnd.y);
     let y2 = Math.max(selectionStart.y, selectionEnd.y);
 
-    for (let i = 0; i < ants.length; i++) {
-      let antObj = ants[i].antObject;
-      let pos = antObj.sprite.pos;
-      let size = antObj.sprite.size;
-      let cx = pos.x + size.x / 2;
-      let cy = pos.y + size.y / 2;
-      antObj.isSelected = (cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2);
-      antObj.isBoxHovered = false; // Clear yellow highlight
-      if (antObj.isSelected) selectedAnts.push(antObj);
+    for (let i = 0; i < entities.length; i++) {
+      let entity = entities[i].antObject ? entities[i].antObject : entities[i];
+      entity.isSelected = isEntityInBox(entity, x1, x2, y1, y2);
+      entity.isBoxHovered = false;
+      if (entity.isSelected) selectedEntities.push(entity);
     }
     isSelecting = false;
     selectionStart = null;
@@ -84,6 +112,7 @@ function handleMouseReleased(ants) {
   }
 }
 
+// Draws the selection box
 function drawSelectionBox() {
   if (isSelecting && selectionStart && selectionEnd) {
     push();
@@ -102,6 +131,7 @@ if (typeof module !== "undefined" && module.exports) {
     handleMouseDragged,
     handleMouseReleased,
     drawSelectionBox,
-    selectedAnts
+    selectedEntities
   };
 }
+
