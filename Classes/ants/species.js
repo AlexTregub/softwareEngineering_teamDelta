@@ -35,7 +35,7 @@ class Species extends ant {
       case "Spitter":
         return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 30 };
       case "DeLozier":
-        return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 50 };
+        return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
       default:
         return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 20 };
     }
