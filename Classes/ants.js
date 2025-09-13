@@ -201,7 +201,6 @@ class ant {
     this.ResolveMoment()
     this.render()
     this.highlight()
-    this.moveFarAfterRandomTime()
   }
 
   // Example: move a larger distance after a random period of time
