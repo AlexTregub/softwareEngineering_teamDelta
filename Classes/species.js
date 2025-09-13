@@ -32,6 +32,8 @@ class Species extends ant {
         return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 15 };
       case "Warrior":
         return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 25 };
+      case "Spitter":
+        return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 30 };
       case "DeLozier":
         return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 50 };
       default:
@@ -106,7 +108,7 @@ class Species extends ant {
 
 // Assigns a random species to an ant
 function assignSpecies() {
-  const speciesList = ["Builder", "Scout", "Farmer", "Warrior"];
+  const speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
   // Add DeLozier to the species list only if it hasn't been created yet
   if (!hasDeLozier) { speciesList.push("DeLozier"); }
   const chosenSpecies = speciesList[Math.floor(random(0, speciesList.length))];
