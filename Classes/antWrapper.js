@@ -12,7 +12,6 @@ class AntWrapper {
 
   update() {
     this.antObject.update();
-    this.makeSpeciesTestUi();
   }
 
   makeSpeciesTestUi() {
@@ -26,7 +25,6 @@ class AntWrapper {
     fill(255); // White text
     textSize(12);
     textAlign(CENTER, CENTER);
-    text(this.species, center.x, center.y - 10);
     pop();
   }
 }

@@ -52,15 +52,48 @@ function mousePressed() {
 } */
 
 function mousePressed() {
-  handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
+  // Move group if selected
+  if (selectedAnts.length > 0) {
+    ant.moveGroupInCircle(selectedAnts, mouseX, mouseY);
+    selectedAnts = [];
+    return;
+  }
+
+  // Move single ant if selected
+  if (selectedAnt) {
+    selectedAnt.moveToLocation(mouseX, mouseY);
+    selectedAnt.isSelected = false;
+    selectedAnt = null;
+    return;
+  }
+
+  // Select single ant
+  let antWasClicked = false;
+  selectedAnt = ant.selectAntUnderMouse(ants, mouseX, mouseY);
+  if (selectedAnt) {
+    antWasClicked = true;
+  }
+  if (!antWasClicked) {
+    // Start box selection
+    isSelecting = true;
+    selectionStart = createVector(mouseX, mouseY);
+    selectionEnd = selectionStart.copy();
+  }
 }
 
 function mouseDragged() {
-  handleMouseDragged(mouseX, mouseY);
+  if (isSelecting) {
+    handleMouseDragged(mouseX, mouseY, ants);
+  }
 }
 
 function mouseReleased() {
-  handleMouseReleased(ants);
+  if (isSelecting) {
+    handleMouseReleased(ants);
+    isSelecting = false;
+    selectionStart = null;
+    selectionEnd = null;
+  }
 }
 
 ////// MAIN

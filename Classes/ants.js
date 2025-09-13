@@ -21,29 +21,47 @@ function Ants_Preloader(){
 
 // Spawns a set number of ants
 function Ants_Spawn(numToSpawn) {
-  for (let i = 0; i < numToSpawn; i++){
-    sizeR = random(0,15)
-
-    // Create a new ant and assign it a species
-    ants[i] = new AntWrapper(
-      new ant((random(0,500)), (random(0,500)), antSize.x + sizeR, antSize.y + sizeR, 30, 0), assignSpecies()
-    );
-    ants[i].update()
+  for (let i = 0; i < numToSpawn; i++) {
+    sizeR = random(0,15);
+    let baseAnt = new ant(random(0,500), random(0,500), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
+    let speciesName = assignSpecies();
+    // Use Species class for ants with a species
+    ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
+    ants[i].update();
   }
 }
 
 // updates and rerenders all ants
-function Ants_Update(){ for (let i = 0; i < ant_Index; i++) { ants[i].update() }}
+function Ants_Update() {
+  for (let i = 0; i < ant_Index; i++) {
+    if (ants[i] && typeof ants[i].update === "function") {
+      ants[i].update();
+    }
+  }
+}
 
 function Ant_Click_Control() {
-  selectedAnt = null; // Reset selection
+  // If an ant is already selected, move it to the clicked location and deselect
+  if (selectedAnt) {
+    selectedAnt.moveToLocation(mouseX, mouseY);
+    selectedAnt.isSelected = false;
+    selectedAnt = null;
+    return;
+  }
+
+  // Otherwise, select the ant under the mouse
+  selectedAnt = null;
   for (let i = 0; i < ant_Index; i++) {
-    ants[i].antObject.isSelected = false;
+    if (!ants[i]) continue;
+    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+    antObj.isSelected = false; // Deselect all ants
   }
   for (let i = 0; i < ant_Index; i++) {
-    if (ants[i].antObject.isMouseOver(mouseX, mouseY)) {
-      ants[i].antObject.isSelected = true;
-      selectedAnt = ants[i].antObject;
+    if (!ants[i]) continue;
+    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+    if (antObj.isMouseOver(mouseX, mouseY)) {
+      antObj.isSelected = true; // Highlight blue
+      selectedAnt = antObj;
       break;
     }
   }
@@ -234,13 +252,40 @@ class ant {
     if (this._timeUntilSkitter < 0){
       this.rndTimeUntilSkitter();
       this._isMoving = true;
-      this.moveToLocation(this.posX + random(-5,5), this.posY + random(-5,5));
+      this.moveToLocation(this.posX + random(-25,25), this.posY + random(-25,25));
     }
     this.ResolveMoment();
     this.render();
     this.highlight();
   }
 
+  static moveGroupInCircle(antArray, x, y, radius = 40) {
+    const angleStep = (2 * Math.PI) / antArray.length;
+    for (let i = 0; i < antArray.length; i++) {
+      const angle = i * angleStep;
+      const offsetX = Math.cos(angle) * radius;
+      const offsetY = Math.sin(angle) * radius;
+      antArray[i].moveToLocation(x + offsetX, y + offsetY);
+      antArray[i].isSelected = false;
+    }
+  }
+
+  static selectAntUnderMouse(ants, mx, my) {
+    let selected = null;
+    for (let i = 0; i < ants.length; i++) {
+      let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+      antObj.isSelected = false;
+    }
+    for (let i = 0; i < ants.length; i++) {
+      let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+      if (antObj.isMouseOver(mx, my)) {
+        antObj.isSelected = true;
+        selected = antObj;
+        break;
+      }
+    }
+    return selected;
+  }
 }
 
 function moveSelectedAntToTile(mx, my, tileSize) {
