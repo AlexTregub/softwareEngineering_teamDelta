@@ -37,55 +37,52 @@ function Ants_Update(){ for (let i = 0; i < ant_Index; i++) { ants[i].update() }
 function Ant_Click_Control(){ ants[antToSpawn].moveToLocation(mouseX,mouseY); antToSpawn += 1; if (antToSpawn >= ant_Index) { antToSpawn = 0 } }
 
 // CLASSES
-class ant{
-  posX
-  posY
-  sizeX
-  sizeY
+class ant {
+  stats // Instance of stats class
   pendingPosX // the location the ant will move to
   pendingPosY // the location the ant will move to
   antIndex // Key for ant dict. which is currently an array.
-  movementSpeed // the speed that the ant will move in pixels every frame until pos matches PendingPos
-  rotation // the roation of the sprite, -360 <= x <= 360
-  isMoving // if isMoving, the ant will move to pendingPos and draw a line to it's pending spot
+  rotation // the rotation of the sprite, -360 <= x <= 360
+  isMoving // if isMoving, the ant will move to pendingPos and draw a line to its pending spot
   timeUntilSkitter // The ant will randomly move every few seconds. for fun.
   skitterTimer //SKITTER
   img
   AntMove // Stores the last direction this ant moved. TESTING
   path // Store path if it's being told to move
 
-  constructor(posX=0,posY=0,sizex=50,sizey=50,speed=0,rotation=0){
-    this.SetPosX(posX)
-    this.SetPosY(posY)
-    this.SetSizeX(sizex)
-    this.SetSizeY(sizey)
-    this.SetMovementSpeed(speed)
-    this.SetRotation(rotation)
-    this.skitterTimer = random(30,200)
-    this.antIndex = ant_Index
-    ant_Index += 1
-    this.isMoving = false
-    this.timeUntilSkitter = this.skitterTimer
-    this.pendingPosX = this.GetPosX()
-    this.pendingPosY = this.GetPosY()
+  constructor(posX=0, posY=0, sizex=50, sizey=50, movementSpeed=1, rotation=0) {
+    // Use stats class for position, size, and movementSpeed
+    this.stats = new stats({x: posX, y: posY}, {x: sizex, y: sizey}, movementSpeed);
+    this.SetRotation(rotation);
+    this.skitterTimer = random(30,200);
+    this.antIndex = ant_Index;
+    ant_Index += 1;
+    this.isMoving = false;
+    this.timeUntilSkitter = this.skitterTimer;
+    this.pendingPosX = this.GetPosX();
+    this.pendingPosY = this.GetPosY();
   }
 
   isMouseOver(mx, my) {
+    const pos = this.stats.position.statValue;
+    const size = this.stats.size.statValue;
     return (
-      mx >= this.posX &&
-      mx <= this.posX + this.sizeX &&
-      my >= this.posY &&
-      my <= this.posY + this.sizeY
+      mx >= pos.x &&
+      mx <= pos.x + size.x &&
+      my >= pos.y &&
+      my <= pos.y + size.y
     );
   }
 
-  highlight(){
-    if(this.isMouseOver(mouseX, mouseY)){
+  highlight() {
+    const pos = this.stats.position.statValue;
+    const size = this.stats.size.statValue;
+    if (this.isMouseOver(mouseX, mouseY)) {
       push();
       noFill();
       stroke(255,255,0);
       strokeWeight(2);
-      rect(this.posX, this.posY, this.sizeX, this.sizeY);
+      rect(pos.x, pos.y, size.x, size.y);
       pop();
     }
   }
@@ -101,7 +98,8 @@ class ant{
       case "LEFT": this.AntMove = "UP"; break;
       case "UP": this.AntMove = "RIGHT"; break;
       case "DOWN": this.AntMove = "LEFT";  break;
-      default: text("DEFAULT",x_,y_) }
+      default: text("DEFAULT",x_,y_);
+    }
   }
 
   //GETTER, SETTERS, RANDOMS
@@ -110,26 +108,33 @@ class ant{
   getTimeUntilSkitter(){ return this.timeUntilSkitter }
 
   // Sets and returns top left point relative to sprite
-  SetPosX(value){ this.posX = value }
-  SetPosY(value){ this.posY = value }
-  GetPosX(){ return this.posX }
-  GetPosY(){ return this.posY  }
+  SetPosX(value){ this.stats.position.statValue.x = value }
+  SetPosY(value){ this.stats.position.statValue.y = value }
+  GetPosX(){ return this.stats.position.statValue.x }
+  GetPosY(){ return this.stats.position.statValue.y }
 
   // Gets the mid point relative to sprite
   // Use this if you need an effect to be centered on the sprite
-  GetCenter(){ return createVector(this.posX + (this.sizeX / 2), this.posY + (this.sizeY / 2))  }
+  GetCenter(){ 
+    const pos = this.stats.position.statValue;
+    const size = this.stats.size.statValue;
+    return createVector(pos.x + (size.x / 2), pos.y + (size.y / 2));
+  }
 
-  SetSizeX(value){ this.sizeX = value }
-  GetSizeX(){ return this.sizeX }
+  SetSizeX(value){ this.stats.size.statValue.x = value }
+  GetSizeX(){ return this.stats.size.statValue.x }
 
-  SetSizeY(value){ this.sizeY = value }
-  GetSizeY(){ return this.sizeY }
+  SetSizeY(value){ this.stats.size.statValue.y = value }
+  GetSizeY(){ return this.stats.size.statValue.y }
 
   SetImg(value){ this.Img = value }
   GetImg(){ return this.Img }
 
   // Sets the image of the sprite to rendered to screen
-  SetMovementSpeed(value){ this.movementSpeed  = value }
+
+  // Movement speed now comes from stats
+  SetMovementSpeed(value){ this.stats.movementSpeed.statValue = value }
+  GetMovementSpeed(){ return this.stats.movementSpeed.statValue }
 
   SetRotation(value){
     this.rotation  = value
@@ -141,33 +146,45 @@ class ant{
     }
   }
 
-  //Tries to return the tangant line for the path is currently moving too
+  //Tries to return the tangent line for the path is currently moving to
   getAngle(x1,x2,y1,y2){ return atan2(x1-x2,y1-y2) }
 
   moveToLocation(X,Y){ this.pendingPosX = X; this.pendingPosY = Y;  this.isMoving = true }
 
-  ResolveMoment()  {
-    while (this.isMoving == true) {
-      this.SetRotation = this.getAngle(this.posX,this.pendingPosX,this.posY,this.pendingPosY)
-      let origin = createVector(this.posX,this.posY)
-      let newPos = createVector(this.pendingPosX,this.pendingPosY)
-      newPos.lerp(origin,newPos,0.1)
+  ResolveMoment() {
+    if (this.isMoving) {
+      const current = createVector(this.GetPosX(), this.GetPosY());
+      const target = createVector(this.pendingPosX, this.pendingPosY);
 
-      this.posX = newPos.x
-      this.posY = newPos.y
-      this.render()
+      const direction = p5.Vector.sub(target, current);
+      const distance = direction.mag();
 
-      this.isMoving = false
+      if (distance > 1) {
+        direction.normalize();
+        // movementSpeed is now pixels per second
+        const speedPerMs = this.GetMovementSpeed() / 1000; // convert to pixels/ms
+        const step = Math.min(speedPerMs * deltaTime, distance); // deltaTime is ms since last frame
+        current.x += direction.x * step;
+        current.y += direction.y * step;
+        this.SetPosX(current.x);
+        this.SetPosY(current.y);
+      } else {
+        this.SetPosX(target.x);
+        this.SetPosY(target.y);
+        this.isMoving = false;
+      }
+
+      this.render();
     }
   }
 
-  // the following probably should be split out into a parent class, 
-  // inheritance is questionable in p5.js so build a wrapper, return the class, and build on that.
   // draws sprite to the screen 
   render(){
+    const pos = this.stats.position.statValue;
+    const size = this.stats.size.statValue;
     push();
     noSmooth(); // prevents pixels from becoming blurry when the image is upscaled 
-    image(antImg1,this.posX,this.posY,this.sizeX,this.sizeY)
+    image(antImg1, pos.x, pos.y, size.x, size.y)
     smooth();
     pop();
   }
@@ -178,12 +195,30 @@ class ant{
     if (this.timeUntilSkitter < 0){
       this.rndTimeUntilSkitter()
       this.isMoving = true
-      this.moveToLocation(this.posX + random(-5,5),this.posY + random(-5,5)) 
+      this.moveToLocation(this.GetPosX() + random(-5,5),this.GetPosY() + random(-5,5)) 
     }
   
     this.ResolveMoment()
     this.render()
     this.highlight()
+    this.moveFarAfterRandomTime()
+  }
+
+  // Example: move a larger distance after a random period of time
+  moveFarAfterRandomTime() {
+    if (!this.isMoving) {
+      if (typeof this._farMoveTimer === "undefined") {
+        this._farMoveTimer = Math.floor(random(120, 300));
+      }
+      this._farMoveTimer--;
+
+      if (this._farMoveTimer <= 0) {
+        const dx = random(-200, 200);
+        const dy = random(-200, 200);
+        this.moveToLocation(this.GetPosX() + dx, this.GetPosY() + dy);
+        this._farMoveTimer = undefined;
+      }
+    }
   }
 }
 

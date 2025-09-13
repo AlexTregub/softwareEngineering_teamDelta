@@ -7,18 +7,19 @@ function test_stats() {
 
 
 class stats {
-    constructor(pos, size){
+    constructor(pos, size, movementSpeed = 0.05){
       this.createExpMap()
       // Check if pos is a vector (has x and y properties)
       if (!pos || typeof pos.x !== "number" || typeof pos.y !== "number") {
         throw new Error("stats constructor: 'pos' must be a vector with x and y properties.");
       }
       if (!size || typeof size.x !== "number" || typeof size.y !== "number") {
-        throw new Error("stats constructor: 'pos' must be a vector with x and y properties.");
+        throw new Error("stats constructor: 'size' must be a vector with x and y properties.");
       }
 
       this.position = new stat("Position", pos)
       this.size = new stat("Size", createVector(size.x,size.y))
+      this.movementSpeed = new stat("Movement Speed", movementSpeed, 0, 100)
     }
     // Getter and setter for position
     get position() { return this._position; }
@@ -27,6 +28,10 @@ class stats {
     // Getter and setter for size
     get size() { return this._size; }
     set size(value) { this._size = value; }
+
+    // Getter and setter for movementSpeed
+    get movementSpeed() { return this._movementSpeed; }
+    set movementSpeed(value) { this._movementSpeed = value; }
 
     // EXP
     // EXP is experience points, which will be used to level up ants and other entities
