@@ -1,6 +1,7 @@
 function test_stats() {
-    _stats = new stats
-    _stats.test_Exp()
+    _stats = new stats(createVector(50,0),createVector(150,0))
+ //   _stats.test_Exp()
+    _stats.size.printStatToDebug()
     expTotalFromAllEntities = new stat("Total World EXP")
 }
 
@@ -8,14 +9,29 @@ function test_stats() {
 class stats {
     constructor(pos, size){
       this.createExpMap()
-      position = new stat("Position", createVector(pos.x,pos.y))
-      size = new stat("Position", createVector(size.x,size.y))
+      // Check if pos is a vector (has x and y properties)
+      if (!pos || typeof pos.x !== "number" || typeof pos.y !== "number") {
+        throw new Error("stats constructor: 'pos' must be a vector with x and y properties.");
+      }
+      if (!size || typeof size.x !== "number" || typeof size.y !== "number") {
+        throw new Error("stats constructor: 'pos' must be a vector with x and y properties.");
+      }
+
+      this.position = new stat("Position", pos)
+      this.size = new stat("Size", createVector(size.x,size.y))
     }
-    position
-    size
+    // Getter and setter for position
+    get position() { return this._position; }
+    set position(value) { this._position = value; }
 
+    // Getter and setter for size
+    get size() { return this._size; }
+    set size(value) { this._size = value; }
 
-    // tracks the exp gained from all entites in the world
+    // EXP
+    // EXP is experience points, which will be used to level up ants and other entities
+    // Each ant will have its own exp map, which will track the exp gained from various activities
+    // The stats class will have a global exp map, which will track the exp gained from all entities in the world
     // maps work like dicts, but the key doesn't need to be a string or int
     exp = new Map()
     
@@ -43,57 +59,82 @@ class stats {
 
 // generic stat that will be used to populate all stats
 class stat {
-    //TODO
-    //Toying with the idea of makeing a dictionary of stats as opposed to a stats class.
-
     constructor(statName="NONAME",statValue=0,statLowerLimit=0,statUpperLimit=500){
-        this.setStatName(statName)
-        this.setStatValue(statValue)
-        this.setStatLowerLimit(statLowerLimit)
-        this.setStatUpperLimit(statUpperLimit)
+        this.statName = statName;
+        this.statValue = statValue;
+        this.statLowerLimit = statLowerLimit;
+        this.statUpperLimit = statUpperLimit;
+        this.enforceStatLimit();
     }
 
-    // will be store the name of the state
-    statName
-    getStatName() { return this.statName }
-    setStatName(value) { this.statName = value  }
+    // statName property
+    get statName() { return this._statName; }
+    set statName(value) { this._statName = value; }
 
-    // stores the value of the stat
-    statValue
-    getStatValue() { return this.statValue }
-    setStatValue(value) { this.statValue = value; this.enforceStatLimit() }
+    // statValue property
+    get statValue() { return this._statValue; }
+    set statValue(value) { 
+        this._statValue = value; 
+        this.enforceStatLimit();
+    }
 
-    // prevents the stat from going too high
-    statUpperLimit
-    getStatUpperLimit() { return this.statUpperLimit }
-    setStatUpperLimit(value) { this.statUpperLimit = value }
+    // statUpperLimit property
+    get statUpperLimit() { return this._statUpperLimit; }
+    set statUpperLimit(value) { this._statUpperLimit = value; }
 
-    // prevents the stat from from too low
-    statLowerLimit
-    getStatLowerLimit() { return this.statLowerLimit }
-    setStatLowerLimit(value) { this.statLowerLimit = value }
+    // statLowerLimit property
+    get statLowerLimit() { return this._statLowerLimit; }
+    set statLowerLimit(value) { this._statLowerLimit = value; }
 
     // checks that the limits are properly enforced, throws an error 
     enforceStatLimit() {
-        if (this.statValue < this.statLowerLimit) this.statValue = this.statLowerLimit
-        if (this.statValue > this.statUpperLimit) this.statValue = this.statUpperLimit
-        this.test_enforceStatLimit()
+        if (this.statValue < this.statLowerLimit) this.statValue = this.statLowerLimit;
+        if (this.statValue > this.statUpperLimit) this.statValue = this.statUpperLimit;
+        this.test_enforceStatLimit();
     }
     test_enforceStatLimit() {
-        if (this.statValue < this.statLowerLimit) console.error(this.statValue, this.statLowerLimit)
-        if (this.statValue > this.statUpperLimit) console.error(this.statValue, this.statUpperLimit)
+        if (this.statValue < this.statLowerLimit) console.error(this.statValue, this.statLowerLimit);
+        if (this.statValue > this.statUpperLimit) console.error(this.statValue, this.statUpperLimit);
     }
 
     printStatToDebug() {
-      for (const key in Object.keys(this)){
-        for (const value in Object.values(this)){
-          console.log(`${key}:${value}`)
+        for (const key of Object.keys(this)) {
+            let value = this[key];
+            // If value is a vector, format as (x, y)
+            if (value && typeof value === "object" && "x" in value && "y" in value) {
+                value = `(${value.x}, ${value.y})`;
+            }
+            console.log(`${key}: ${value}`);
         }
-      }
-
     }
 
-    printStatUnderObject(pos,textSize) {
-      
+    printStatUnderObject(pos, spriteSize, textSize) {
+        // pos: {x, y} - position of the object
+        // spriteSize: {x, y} - size of the object
+        // textSize: number - font size for the text
+
+        // Format statValue if it's a vector
+        let valueToPrint = this.statValue;
+        if (valueToPrint && typeof valueToPrint === "object" && "x" in valueToPrint && "y" in valueToPrint) {
+            valueToPrint = `(${valueToPrint.x}, ${valueToPrint.y})`;
+        }
+
+        if (typeof text !== "undefined" && typeof fill !== "undefined") {
+            fill(255); // Set text color to white
+            textSize(textSize);
+            textAlign(CENTER, TOP);
+            text(
+                `${this.statName}: ${valueToPrint}`,
+                pos.x + spriteSize.x / 2,
+                pos.y + spriteSize.y + 5 // 5 pixels below the object
+            );
+        } else {
+            // Fallback: log to console if rendering context is unavailable
+            console.log(`Print at (${pos.x}, ${pos.y + spriteSize.y + 5}): ${this.statName}: ${valueToPrint}`);
+        }
     }
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = { stats, stat };
 }
