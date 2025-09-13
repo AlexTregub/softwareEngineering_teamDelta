@@ -81,14 +81,6 @@ class Species extends ant {
         this.posY = target.y;
         this.isMoving = false;
         this.sprite.setPosition(target);
-
-        // Move to next waypoint if available
-        if (this.waypoints.length > 0) {
-          this.waypoints.shift(); // Remove the reached waypoint
-          if (this.waypoints.length > 0) {
-            this.moveToLocation(this.waypoints[0].x, this.waypoints[0].y);
-          }
-        }
       }
 
       this.render();
@@ -109,14 +101,6 @@ class Species extends ant {
       movementSpeed: this.stats.movementSpeed.statValue,
       exp: expSummary
     };
-  }
-
-  addWaypoint(x, y) {
-    this.waypoints.push(createVector(x, y));
-    // If not currently moving, start moving to the first waypoint
-    if (!this.isMoving && this.waypoints.length > 0) {
-      this.moveToLocation(this.waypoints[0].x, this.waypoints[0].y);
-    }
   }
 }
 
