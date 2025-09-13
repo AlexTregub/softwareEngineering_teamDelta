@@ -1,4 +1,3 @@
-let grid = new Array(rows);
 let openList = [];
 let closedList = [];
 let width = 0;
@@ -6,6 +5,12 @@ let height = 0;
 let start;
 let end;
 let pathFound = false;
+let rows = 0
+let grid
+
+function pathfindingPreload(){
+  grid = new Array(rows);
+}
 
 function checkPoint(posX,posY){ //Makes sure a certain square is not a barrier
   let material = map.getTile()

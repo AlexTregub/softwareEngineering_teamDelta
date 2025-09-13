@@ -9,8 +9,9 @@ let COORDSY;
 let recordingPath
 
 function preload(){
-  terrainPreloader();
-  Ants_Preloader();
+  test_stats();
+  terrainPreloader()
+  Ants_Preloader()
 }
 /*
 function mousePressed() {
@@ -50,6 +51,51 @@ function mousePressed() {
   }
 } */
 
+function mousePressed() {
+  // Move group if selected
+  if (selectedAnts.length > 0) {
+    ant.moveGroupInCircle(selectedAnts, mouseX, mouseY);
+    selectedAnts = [];
+    return;
+  }
+
+  // Move single ant if selected
+  if (selectedAnt) {
+    selectedAnt.moveToLocation(mouseX, mouseY);
+    selectedAnt.isSelected = false;
+    selectedAnt = null;
+    return;
+  }
+
+  // Select single ant
+  let antWasClicked = false;
+  selectedAnt = ant.selectAntUnderMouse(ants, mouseX, mouseY);
+  if (selectedAnt) {
+    antWasClicked = true;
+  }
+  if (!antWasClicked) {
+    // Start box selection
+    isSelecting = true;
+    selectionStart = createVector(mouseX, mouseY);
+    selectionEnd = selectionStart.copy();
+  }
+}
+
+function mouseDragged() {
+  if (isSelecting) {
+    handleMouseDragged(mouseX, mouseY, ants);
+  }
+}
+
+function mouseReleased() {
+  if (isSelecting) {
+    handleMouseReleased(ants);
+    isSelecting = false;
+    selectionStart = null;
+    selectionEnd = null;
+  }
+}
+
 ////// MAIN
 function setup() {
   CANVAS_X = windowWidth
@@ -72,7 +118,7 @@ function setup() {
 function draw() {
   MAP.render();
   Ants_Update();
-  
+  drawSelectionBox();
   if(recordingPath){
 
   }
