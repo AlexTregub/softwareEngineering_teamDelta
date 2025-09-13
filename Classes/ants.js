@@ -6,6 +6,7 @@ let ants = [];
 let antImg1;
 let antbg;
 let hasDeLozier = false;
+let selectedAnt = null;
 
 // Call this during preload
 function Ants_Preloader(){
@@ -34,7 +35,19 @@ function Ants_Spawn(numToSpawn) {
 // updates and rerenders all ants
 function Ants_Update(){ for (let i = 0; i < ant_Index; i++) { ants[i].update() }}
 
-function Ant_Click_Control(){ ants[antToSpawn].moveToLocation(mouseX,mouseY); antToSpawn += 1; if (antToSpawn >= ant_Index) { antToSpawn = 0 } }
+function Ant_Click_Control() {
+  selectedAnt = null; // Reset selection
+  for (let i = 0; i < ant_Index; i++) {
+    ants[i].antObject.isSelected = false;
+  }
+  for (let i = 0; i < ant_Index; i++) {
+    if (ants[i].antObject.isMouseOver(mouseX, mouseY)) {
+      ants[i].antObject.isSelected = true;
+      selectedAnt = ants[i].antObject;
+      break;
+    }
+  }
+}
 
 // CLASSES
 class ant {
@@ -49,7 +62,7 @@ class ant {
   img
   AntMove // Stores the last direction this ant moved. TESTING
   path // Store path if it's being told to move
-
+  isSelected = false; 
   constructor(posX=0, posY=0, sizex=50, sizey=50, movementSpeed=1, rotation=0) {
     // Use stats class for position, size, and movementSpeed
     this.stats = new stats({x: posX, y: posY}, {x: sizex, y: sizey}, movementSpeed);
@@ -77,10 +90,10 @@ class ant {
   highlight() {
     const pos = this.stats.position.statValue;
     const size = this.stats.size.statValue;
-    if (this.isMouseOver(mouseX, mouseY)) {
+    if (this.isMouseOver(mouseX, mouseY) || this.isSelected) {
       push();
       noFill();
-      stroke(255,255,0);
+      stroke(this.isSelected ? color(0, 0, 255) : color(255, 255, 0)); // Blue if selected, yellow if hovered
       strokeWeight(2);
       rect(pos.x, pos.y, size.x, size.y);
       pop();
@@ -183,8 +196,17 @@ class ant {
     const pos = this.stats.position.statValue;
     const size = this.stats.size.statValue;
     push();
-    noSmooth(); // prevents pixels from becoming blurry when the image is upscaled 
-    image(antImg1, pos.x, pos.y, size.x, size.y)
+    noSmooth();
+    image(antImg1, pos.x, pos.y, size.x, size.y);
+    // Draw movement line if ant is moving
+    if (this.isMoving) {
+      stroke(255); // White color
+      strokeWeight(2);
+      line(
+        pos.x + size.x / 2, pos.y + size.y / 2, // start at ant center
+        this.pendingPosX + size.x / 2, this.pendingPosY + size.y / 2 // end at target center
+      );
+    }
     smooth();
     pop();
   }
@@ -296,4 +318,18 @@ function assignSpecies() {
   // If DeLozier is chosen, set the flag to true
   if (chosenSpecies === "DeLozier") { hasDeLozier = true; }
   return chosenSpecies;
+}
+
+function moveSelectedAntToTile(mx, my, tileSize) {
+  if (selectedAnt) {
+    // Calculate tile coordinates
+    const tileX = Math.floor(mx / tileSize);
+    const tileY = Math.floor(my / tileSize);
+    // Calculate pixel position for the top-left of the tile
+    const targetX = tileX * tileSize;
+    const targetY = tileY * tileSize;
+    selectedAnt.moveToLocation(targetX, targetY);
+    selectedAnt.isSelected = false; // Deselect the ant
+    selectedAnt = null;             // Clear the selection
+  }
 }
