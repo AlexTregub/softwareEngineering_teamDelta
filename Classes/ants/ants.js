@@ -260,6 +260,9 @@ class ant {
     this.highlight();
   }
 
+  //Resource Collision Detection
+  
+
   // --- Static Utility Methods ---
   static moveGroupInCircle(antArray, x, y, radius = 40) {
     const angleStep = (2 * Math.PI) / antArray.length;
@@ -288,6 +291,8 @@ class ant {
     }
     return selected;
   }
+
+
 }
 
 // --- Move Selected Ant to Tile ---

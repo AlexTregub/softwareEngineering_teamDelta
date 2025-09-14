@@ -8,11 +8,15 @@ let COORDSY;
 
 let recordingPath
 
+
+
 function preload(){
   test_stats();
   terrainPreloader()
   Ants_Preloader()
+  resourcePreLoad();
 }
+
 /*
 function mousePressed() {
   if(!recordingPath){
@@ -98,13 +102,22 @@ function setup() {
 
   Ants_Spawn(50);
 }
+
+
+
+
 function draw() {
   MAP.render();
   Ants_Update();
+  resourceList.drawAll();
+
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
   if(recordingPath){
 
   }
+
+
+
 }
