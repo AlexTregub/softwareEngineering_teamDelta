@@ -1,5 +1,4 @@
 /jsconfig.json
 /Ignore
 /.vscode
-test/selectionBox.test.js
-test/stats.test.js
+/test
