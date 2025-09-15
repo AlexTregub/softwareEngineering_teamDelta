@@ -9,8 +9,9 @@ let COORDSY;
 let recordingPath
 
 function preload(){
-  terrainPreloader();
-  Ants_Preloader();
+  test_stats();
+  terrainPreloader()
+  Ants_Preloader()
 }
 /*
 function mousePressed() {
@@ -50,8 +51,38 @@ function mousePressed() {
   }
 } */
 
+  // MOUSE INTERACTIONS
+function mousePressed() {
+  if (typeof handleMousePressed === 'function') {
+    handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, mouseButton);
+  }
+}
+
+function mouseDragged() {
+  if (typeof handleMouseDragged === 'function') {
+    handleMouseDragged(mouseX, mouseY, ants);
+  }
+}
+
+function mouseReleased() {
+  if (typeof handleMouseReleased === 'function') {
+    handleMouseReleased(ants);
+  }
+}
+
+// KEYBOARD INTERACTIONS
+function keyPressed() {
+  if (keyCode === ESCAPE) {
+    if (typeof deselectAllEntities === 'function') {
+      deselectAllEntities();
+    }
+  }
+}
+
 ////// MAIN
 function setup() {
+  CANVAS_X = windowWidth
+  CANVAS_Y = windowHeight
   createCanvas(CANVAS_X, CANVAS_Y);
 
   //// Configure Terrain + Coordinate System - keep in setup.
@@ -70,7 +101,9 @@ function setup() {
 function draw() {
   MAP.render();
   Ants_Update();
-  
+  if (typeof drawSelectionBox === 'function') {
+    drawSelectionBox();
+  }
   if(recordingPath){
 
   }
