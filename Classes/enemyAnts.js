@@ -15,6 +15,8 @@ vector from the enemy- vision ray- from the enemy ants
 let eAntToSpawn = 0;
 let eAnt_Index = 0;
 let eAntSize;
+let eAnts = [];
+let antDebug = false;
 
 
 function eAnts_Preloader(){
@@ -23,6 +25,54 @@ function eAnts_Preloader(){
     eAntImg = loadImage("Images/Ants/enemyAnt.png")
 }
 
-function eAnts_Spawn(numToSpawn){
+function eAnts_Spawn(eNumToSpawn){
+    for(let i =0; i <eNumToSpawn; ++i){
+
+    }
+}
+
+//enemy ant class
+class eAnt{
+    posX
+    posY
+    sizeX
+    sizeY
+
+    pendingPosX
+    pendingPosY
+
+    eAntIndex 
+
+    speed
+
+    rotation
+
+    isMoving
+
+    timeUnitlSkitter
+    skitterTimer
+
+    eAntMove
+
+    path
+
+    constructor(posX, posY, sizeX, sizeY, speed, rotation){
+        this.setPosX(posX)
+        this.setPosY(posY)
+        this.setSizeX(sizeX)
+        this.setSizeY(sizeY)
+        this.setMovementSpeed(speed)
+        this.setRotation(rotation)
+        this.skitterTimer = random(30,200)
+        this.eAntIndex = eAnt_Index
+        eAnt_Index +=1
+        this.isMoving = false
+        this.timeUnitlSkitter = this.skitterTimer
+        this.pendingPosX = this.getPosX()
+        this.pendingPosY = this.getPosY()
+        this.AntMove
+
+
+    }
 
 }
