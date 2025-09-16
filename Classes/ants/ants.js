@@ -7,12 +7,21 @@ let antImg1;
 let antbg;
 let hasDeLozier = false;
 let selectedAnt = null;
+let speciesImages = {};
 
 // --- Preload Images ---
 function Ants_Preloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
   antImg1 = loadImage("Images/Ants/gray_ant.png");
+  speciesImages = {
+    Builder: loadImage('Images/Ants/blue_ant.png'),
+    Scout: loadImage('Images/Ants/gray_ant.png'),
+    Farmer: loadImage('Images/Ants/brown_ant.png'),
+    Warrior: loadImage('Images/Ants/blue_ant.png'),
+    Spitter: loadImage('Images/Ants/gray_ant.png'),
+    DeLozier: loadImage('Images/Ants/greg.jpg')
+  };
   gregImg = loadImage("Images/Ants/greg.jpg");
 }
 
@@ -22,7 +31,7 @@ function Ants_Spawn(numToSpawn) {
     let sizeR = random(0, 15);
     let baseAnt = new ant(random(0, 500), random(0, 500), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
     let speciesName = assignSpecies();
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
+    ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();
   }
 }

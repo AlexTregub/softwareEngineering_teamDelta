@@ -1,5 +1,8 @@
+const _speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
+const _specialSpeciesList = ["DeLozier"]
+const _allSpecies = [..._speciesList, ..._specialSpeciesList];
 class Species extends ant {
-  constructor(antObject, speciesName) {
+  constructor(antObject, speciesName, speciesImage) {
     const speciesStats = Species.getSpeciesStats(speciesName);
     super(
       antObject.posX,
@@ -8,17 +11,18 @@ class Species extends ant {
       antObject.sizeY,
       speciesStats.movementSpeed ?? antObject.movementSpeed,
       antObject.rotation,
-      antObject.sprite.img
+      speciesImage // Pass the image here!
     );
+    this.img = speciesImage
     this.speciesName = speciesName;
-    this.exp = antObject.stats.exp;
+    this.exp = antObject.stats.exp
+    
 
     // Overwrite stats with species-specific values
     this.stats.strength.statValue = speciesStats.strength;
     this.stats.health.statValue = speciesStats.health;
     this.stats.gatherSpeed.statValue = speciesStats.gatherSpeed;
     this.stats.movementSpeed.statValue = speciesStats.movementSpeed;
-
     this.waypoints = []; // Array of {x, y} locations
   }
 
@@ -108,13 +112,14 @@ class Species extends ant {
 
 // Assigns a random species to an ant
 function assignSpecies() {
-  const speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
   // Add DeLozier to the species list only if it hasn't been created yet
-  if (!hasDeLozier) { speciesList.push("DeLozier"); }
+  if (!hasDeLozier) { speciesList = _specialSpeciesList; }
+  else speciesList = _speciesList
   const chosenSpecies = speciesList[Math.floor(random(0, speciesList.length))];
 
   // If DeLozier is chosen, set the flag to true
   if (chosenSpecies === "DeLozier") { hasDeLozier = true; }
+  
   return chosenSpecies;
 }
 
