@@ -12,6 +12,7 @@ function preload(){
   test_stats();
   terrainPreloader()
   Ants_Preloader()
+  Resources_Preloader();
   eAnts_Preloader()
 }
 /*
@@ -98,11 +99,13 @@ function setup() {
   //// 
 
   Ants_Spawn(50);
+  Resources_Spawn(20);
   eAnts_Spawn(20);
 }
 function draw() {
   MAP.render();
   Ants_Update();
+  Resources_Update();
   eAnts_Update();
 
   /*pos.add(vel);
