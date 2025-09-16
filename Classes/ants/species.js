@@ -1,7 +1,22 @@
-const _speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
-const _specialSpeciesList = ["DeLozier"]
-const _allSpecies = [..._speciesList, ..._specialSpeciesList];
+// Species class that extends the ant class and includes species-specific stats and behaviors
+// Each species has stats like strength, health, gatherSpeed, and movementSpeed
+// Species also have unique images and can display their species name above them
+const _speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"]; // List of all species except special ones
+const _specialSpeciesList = ["DeLozier"]; // Special species that can only be spawned once
+const _allSpecies = [..._speciesList, ..._specialSpeciesList]; // Combine both lists
+
+//example usage:
+// let mySpecies = new Species(myAntObject, "Scout", speciesImages["Scout"]);
+// mySpecies.update(); // Call this in the main update loop to render the species name
+
 class Species extends ant {
+  // Static debug flag (global)
+  static DEBUG = false; // Set to true to enable debug logging for all Species instances
+
+  // speciesName must be one of the predefined species names
+  // speciesImage is the image associated with the species
+  // antObject is an instance of the ant class
+
   constructor(antObject, speciesName, speciesImage) {
     const speciesStats = Species.getSpeciesStats(speciesName);
     super(
@@ -11,12 +26,24 @@ class Species extends ant {
       antObject.sizeY,
       speciesStats.movementSpeed ?? antObject.movementSpeed,
       antObject.rotation,
-      speciesImage // Pass the image here!
+      speciesImage
     );
-    this.img = speciesImage
+    this.img = speciesImage;
     this.speciesName = speciesName;
-    this.exp = antObject.stats.exp
-    
+    this.exp = antObject.stats.exp;
+
+    // Local debug flag (per instance) - can be toggled independently of the static DEBUG flag
+    // Set to true to enable debug logging for this specific Species instance
+    this.localDebug = false;
+
+    // Debug: Log species creation and stats if either flag is enabled
+    if (Species.DEBUG || this.localDebug) {
+      console.debug(`[Species] Created: ${speciesName}`, {
+        pos: { x: this.posX, y: this.posY },
+        size: { x: this.sizeX, y: this.sizeY },
+        stats: speciesStats
+      });
+    }
 
     // Overwrite stats with species-specific values
     this.stats.strength.statValue = speciesStats.strength;
@@ -26,6 +53,8 @@ class Species extends ant {
     this.waypoints = []; // Array of {x, y} locations
   }
 
+  // Static method to get species-specific stats
+  // Example usage: Species.getSpeciesStats("Scout");
   static getSpeciesStats(speciesName) {
     switch (speciesName) {
       case "Builder":
@@ -45,12 +74,18 @@ class Species extends ant {
     }
   }
 
+  get localDebug() { return this._localDebug; }
+  set localDebug(value) { this._localDebug = value; }
+  get stats() { return this._stats; }
+
+
   // Example: Override update to show species name
   update() {
-    super.update();
-    const center = this.center;
-    const tagWidth = 70;
-    const tagHeight = 18;
+    if (Species.DEBUG || this.localDebug) {
+      console.debug(`[Species] Update: ${this.speciesName} at (${this.posX}, ${this.posY})`);
+    }
+    super.update(); // Call the parent update method to handle movement and rendering
+    const center = this.center; // Center of the ant sprite
     push();
     rectMode(CENTER);
     fill(0, 0, 0, 180); // Semi-transparent black background
@@ -63,34 +98,10 @@ class Species extends ant {
   }
 
   ResolveMoment() {
-    if (this.isMoving) {
-      const current = createVector(this.posX, this.posY);
-      const target = createVector(
-        this.stats.pendingPos.statValue.x,
-        this.stats.pendingPos.statValue.y
-      );
-
-      const direction = p5.Vector.sub(target, current);
-      const distance = direction.mag();
-
-      if (distance > 1) {
-        direction.normalize();
-        const speedPerMs = this.stats.movementSpeed.statValue / 1000;
-        const step = Math.min(speedPerMs * deltaTime, distance);
-        current.x += direction.x * step;
-        current.y += direction.y * step;
-        this.posX = current.x;
-        this.posY = current.y;
-        this.sprite.setPosition(current);
-      } else {
-        this.posX = target.x;
-        this.posY = target.y;
-        this.isMoving = false;
-        this.sprite.setPosition(target);
-      }
-
-      this.render();
+    if (this.isMoving && (Species.DEBUG || this.localDebug)) {
+      console.debug(`[Species] ResolveMoment: ${this.speciesName} moving from (${this.posX}, ${this.posY}) to (${this.stats.pendingPos.statValue.x}, ${this.stats.pendingPos.statValue.y})`);
     }
+    super.ResolveMoment?.();
   }
 
   getStatsSummary() {

@@ -97,7 +97,8 @@ function setup() {
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
   //// 
 
-  Ants_Spawn(50);
+  Ants_Spawn(1);
+  ants[0].localDebug = true; // Enable local debug for the first ant
   Resources_Spawn(20);
 }
 function draw() {
