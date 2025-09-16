@@ -1,10 +1,16 @@
+// --- IGNORE ---
 function test_stats() {
-    _stats = new stats(createVector(50,0),createVector(150,0))
+    let _stats = new stats(createVector(50,0),createVector(150,0))
  //   _stats.test_Exp()
-    _stats.size.printStatToDebug()
-    expTotalFromAllEntities = new stat("Total World EXP")
+    let expTotalFromAllEntities = new stat("Total World EXP")
+    _stats.printAllStats()
 }
 
+// Stats class to hold all stats for an entity
+// Each stat is an instance of the 'stat' class defined below
+// Example usage:
+// let myStats = new stats(createVector(50, 0), createVector(150, 0));
+// myStats.printAllStats();
 
 class stats {
     constructor(pos, size, movementSpeed = 0.05, pendingPos = null, strength = 10, health = 100, gatherSpeed = 1){
@@ -69,9 +75,50 @@ class stats {
 
     test_Map(map) { for (const [key, value] of map) { console.log(`${key}: ${value}`); } }
     test_Exp() { for (const [key, value] of this.exp) {console.log(`KEY: ${key}`); for (const keys of Object.keys(value)){ console.log(`${keys}: ${value[keys]}`) }}}
+
+    // Print all direct stat objects
+    printDirectStats() {
+        for (const key of Object.keys(this)) { // Loop through all direct properties
+            const value = this[key];
+            if (value instanceof stat) { // Check if the property is an instance of stat
+                let statVal = value.statValue;
+                if (statVal && typeof statVal === 'object' && 'x' in statVal && 'y' in statVal) { // If value is a vector, format as (x, y)
+                    statVal = `(${statVal.x}, ${statVal.y})`;
+                }
+                console.log(`${value.statName}: ${statVal} [${value.statLowerLimit}, ${value.statUpperLimit}]`);
+            }
+        }
+    }
+
+    // Print all stats in the EXP map
+    printExpStats() {
+        if (this.exp instanceof Map) { // Ensure exp is a Map
+            console.log(`  EXP Map:`);
+            for (const [mapKey, mapValue] of this.exp) { // Loop through each entry in the map
+                if (mapValue instanceof stat) {
+                    let statVal = mapValue.statValue;
+                    if (statVal && typeof statVal === 'object' && 'x' in statVal && 'y' in statVal) { // If value is a vector, format as (x, y)
+                        statVal = `(${statVal.x}, ${statVal.y})`;
+                    }
+                    console.log(`    ${mapValue.statName}: ${statVal} [${mapValue.statLowerLimit}, ${mapValue.statUpperLimit}]`);
+                }
+            }
+        }
+    }
+    // Print all stats 
+    printAllStats() {
+    console.log('--- Stats Debug ---');
+    this.printDirectStats();
+    this.printExpStats();
+    console.log('------------------');
+}
 }
 
 // generic stat that will be used to populate all stats
+// example usage:
+// let healthStat = new stat("Health", 100, 0, 1000);
+// healthStat.printStatToDebug();
+// healthStat.printStatUnderObject(createVector(50, 50), createVector(20, 20), 12);
 class stat {
     constructor(statName="NONAME",statValue=0,statLowerLimit=0,statUpperLimit=500){
         this.statName = statName;
@@ -111,7 +158,8 @@ class stat {
         if (this.statValue > this.statUpperLimit) console.error(this.statValue, this.statUpperLimit);
     }
 
-    printStatToDebug() {
+    printStatToDebug() { // Print all properties of this stat object to the console
+        console.log('--- Stat Debug ---');
         for (const key of Object.keys(this)) {
             let value = this[key];
             // If value is a vector, format as (x, y)
@@ -120,6 +168,7 @@ class stat {
             }
             console.log(`${key}: ${value}`);
         }
+        console.log('------------------');
     }
 
     printStatUnderObject(pos, spriteSize, textSize) {
