@@ -16,6 +16,7 @@ function preload(){
 
   testGridUtil();
   eAnts_Preloader()
+  testGridResize();
 }
 /*
 function mousePressed() {
