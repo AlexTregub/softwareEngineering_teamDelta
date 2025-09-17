@@ -66,6 +66,7 @@ function setup() {
   //// 
 
   Ants_Spawn(50);
+  eAnts_Spawn(25)
 }
 
 function draw() {

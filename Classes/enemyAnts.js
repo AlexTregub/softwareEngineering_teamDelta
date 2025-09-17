@@ -26,9 +26,18 @@ function eAnts_Preloader(){
 }
 
 function eAnts_Spawn(eNumToSpawn){
-    for(let i =0; i <eNumToSpawn; ++i){
-
+    for(let i =0; i <eNumToSpawn; ++i){ 
+        spawnRand = random(0,15) 
+        //might add a wrapper for species if new specied are added 
+        eAnts[i] = new eAnt((random(0,500)), (random(0,500)), eAntSize.x + spawnRand, eAntSize.y + spawnRand, 30, 0) 
+        eAnts[i].update() 
     }
+}
+
+function eAnts_Update(){ 
+    for (let i =0; i < eAnt_Index; i++){ 
+        eAnts[i].update() 
+    } 
 }
 
 //enemy ant class
@@ -70,9 +79,22 @@ class eAnt{
         this.timeUnitlSkitter = this.skitterTimer
         this.pendingPosX = this.getPosX()
         this.pendingPosY = this.getPosY()
-        this.AntMove
-
-
+        this.AntMove = "RiGHT" 
+        if (antDebug) print("ANT %f CREATED", this.eAntIndex)  
     }
 
+    rndTimeUntilSkitter(){ 
+        this.timeUntilSkitter = this.skitterTimer 
+    }
+
+    render(){ 
+        push(); 
+        noSmooth(); 
+        image(eAntImg,this.posX,this.posY,this.sizeX,this.sizeY) 
+        smooth(); 
+        pop(); 
+    }
+
+    
 }
+
