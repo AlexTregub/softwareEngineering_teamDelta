@@ -13,6 +13,8 @@ function preload(){
   terrainPreloader()
   Ants_Preloader()
   Resources_Preloader();
+
+  testGridUtil();
   eAnts_Preloader()
 }
 /*
