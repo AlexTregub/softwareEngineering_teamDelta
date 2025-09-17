@@ -75,13 +75,13 @@ class Grid {
     print() {
         let line = "";
         for (let i = 0; i < this._sizeArr; ++i) {
-            if (i % this._sizeX == 0) {
+            line += (String(this._arr[i]) + ',');
+
+            if (i % this._sizeX == this._sizeX-1) {
                 print(line);
                 line = "";
                 continue;
             }
-
-            line += (String(this._arr[i]) + ',');
         }
     }
 
@@ -156,7 +156,7 @@ function testGridResize() {
     }
     testObj.print();
 
-    testObj.resize([6,11],[1,0]);
+    testObj.resize([8,11],[3,0]);
 
     testObj.print();
 }
