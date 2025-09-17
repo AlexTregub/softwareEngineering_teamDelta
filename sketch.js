@@ -15,6 +15,7 @@ function preload(){
   Resources_Preloader();
 
   testGridUtil();
+  testGridResize();
 }
 /*
 function mousePressed() {
