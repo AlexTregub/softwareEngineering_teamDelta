@@ -14,43 +14,6 @@ function preload(){
   Ants_Preloader()
   Resources_Preloader();
 }
-/*
-function mousePressed() {
-  if(!recordingPath){
-    for (let i = 0; i < ants.length; i++) {
-      if (ants[i].isMouseOver(mouseX, mouseY)) { //Eventually make it open some interface menu
-        recordingPath = true;
-        selectedAnt = ants[i];
-        let antTileX = floor(selectedAnt.GetCenter().x / map._tileSize);
-        let antTileY = floor(selectedAnt.GetCenter().y / map._tileSize);
-        startTile = map._tileStore[map.conv2dpos(antTileX, antTileY)];
-        return;
-      }
-      /*
-      Eventually...
-      Once an ant is clicked, makePath in the ants class is called
-      and repeatedly draws lines to the corresponding grid tile
-      repeatedly until a valid destination is clicked. Then it calls
-      a movement function and the ant moves there.
-      */
-   /* }
-  }
-  if(recordingPath){
-    let endTileX = floor(mouseX / map._tileSize);
-    let endTileY = floor(mouseY / map._tileSize);
-    endTile = map._tileStore[map.conv2dpos(endTileX, endTileY)];
-    getPath(startTile, endTile);
-
-    /*if(selectedAnt && endTile){
-      selectedAnt.moveToLocation(endTile._x, endTile._y); //Moves ant directly to tile
-    }*/
-/*
-    recordingPath = false;
-    selectedAnt = null;
-    startTile = null;
-    return;
-  }
-} */
 
   // MOUSE INTERACTIONS
 function mousePressed() {
@@ -97,7 +60,7 @@ function setup() {
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
   //// 
 
-  Ants_Spawn(1);
+  Ants_Spawn(10);
   ants[0].localDebug = true; // Enable local debug for the first ant
   Resources_Spawn(20);
 }

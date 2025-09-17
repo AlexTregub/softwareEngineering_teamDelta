@@ -85,7 +85,6 @@ class ant {
     );
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
     this._skitterTimer = random(30, 200);
-    this._antIndex = ant_Index++;
     this._isMoving = false;
     this._timeUntilSkitter = this._skitterTimer;
     this._path = null;
@@ -98,8 +97,6 @@ class ant {
   set stats(value) { this._stats = value; }
   get sprite() { return this._sprite; }
   set sprite(value) { this._sprite = value; }
-  get antIndex() { return this._antIndex; }
-  set antIndex(value) { this._antIndex = value; }
   get isMoving() { return this._isMoving; }
   set isMoving(value) { this._isMoving = value; }
   get timeUntilSkitter() { return this._timeUntilSkitter; }
