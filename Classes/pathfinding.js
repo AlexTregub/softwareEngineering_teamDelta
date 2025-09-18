@@ -1,147 +1,273 @@
-let openList = [];
-let closedList = [];
-let width = 0;
-let height = 0;
-let start;
-let end;
-let pathFound = false;
-let rows = 0
-let grid
+let start, end;
+let path = [];
+let currentStart, currentEnd;
 
-function pathfindingPreload(){
-  grid = new Array(rows);
+let openSetStart, openSetEnd;
+let openMapStart, openMapEnd;
+
+let meetingNode = null;
+
+class PathMap{
+  constructor(terrain){
+    this._terrain = terrain; //Requires terrain(for weight, objects, etc.)
+    this._grid = new Grid( //Makes Grid for easy tile storage/access
+      terrain._xCount, //Size of terrain to match
+      terrain._yCount,
+      [0,0],
+      [0,0]
+    );
+    for(let y = 0; y < terrain._yCount; y++){
+      for(let x = 0; x < terrain._xCount; x++){
+        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
+        this._grid.setArrPos([x, y], node); //Stores tile in grid
+      }
+    }
+  }
+  
+  getGrid(){
+    return this._grid;
+  }
 }
 
-function checkPoint(posX,posY){ //Makes sure a certain square is not a barrier
-  let material = map.getTile()
-  if (getTile(posX, posY) == 'badness'){ //Change later depending on map setup
-    return false;
+class Node{
+  constructor(terrainTile, x, y){
+    this._terrainTile = terrainTile;
+    this._x = x;
+    this._y = y;
+
+    this.id = `${x}-${y}`;
+    this.neighbors = [];
+    this.assignWall();
+    this.weight = this._terrainTile.getWeight();
+    this.reset();
   }
-  return true;
-}
-/* 
-Assume that every path must be made from a point-and-click system.
-Make similar to Civilization, where the path constantly updates
-to treat the current mouse position as the end. Estimated Tile
-Position = mouseX/tileSize, mouseY/tileSize. So a mouse at 600,400
-when the size is 25 would be at tile (24, 16) (*which is translated
-using the conv2dpos function). Then you can clickand set the path
-to that location. Eventually have a system to save paths to avoid
-recalculating (Reusing old paths). Maybe have a status check
-variable in case a tile is changed between path usage.
-The speed to travel a tile should be the weight * speed * bonus
-multiplier. DO NOT JUST MEASURE BY WEIGHT. NOT ALL ANTS ARE
-CREATED EQUAL
-*/
-class pathNode{
-  constructor(i,j){
-    this.i = i;
-    this.j = j;
-    this.f = 0; //Total Cost
-    this.g = 0; //Cost from start
-    this.h = 0; // Heuristic
-    this.neighbors = []; //N,E,S,W Non-wall tiles
-    this.wall = false;
-    //this.weight = 1; Eventually
-    this.prev = undefined; //To backtrack to start
+  reset(){
+    this.f = 0;
+    this.g = 0;
+    this.h = 0;
+    this.previousStart = null;
+    this.previousEnd = null;
   }
 
-  setNeighbors(tileOfInterest){
-    let i = this.i;
-    let j = this.j;
-    if(i > 0){
-      this.neighbors.push(grid[i-1][j]);
+  assignWall(){
+    if(this._terrainTile.getWeight() === 100){ //Calls from terrainTile just to avoid possible flip
+      this.wall = true;
     }
-    if(i < rows-1){
-      this.neighbors.push(grid[i+1][j]);
+    else{
+      this.wall = false;
     }
-    if(j > 0){
-      this.neighbors.push(grid[i][j-1]);
-    }
-    if(j < columns-1){
-      this.neighbors.push(grid[i][j+1]);
+  }
+
+  setNeighbors(grid){
+    for(let x = -1; x <= 1; x++){
+      for(let y = -1; y <= 1; y++){
+        if (x == 0 && y == 0) continue;
+        let nx = this._x + x;
+        let ny = this._y + y;
+        if (nx >= 0 && nx < columns && ny >= 0 && ny < rows){
+          this.neighbors.push(grid[nx][ny]);
+        }
+      }
     }
   }
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }
 
 function distanceFinder(start, end){
-  return abs(start.i - end.i) + abs(start.j - end.j); //Manhattan distance formula
+  dx = abs(start._x - end._x);
+  dy = abs(start._y - end._y);
+  return dx + dy + (Math.SQRT2 - 2) * min(dx,dy); //All 8 directions
 }
+
+/*function mousePressed() {
+  let i = floor(mouseX / tWidth);
+  let j = floor(mouseY / tHeight);
+  if (i >= 0 && i < columns && j >= 0 && j < rows) {
+    let target = grid[i][j];
+    if (target.wall) return;
+    end = target;
+    resetSearch();
+  }
+}*/
 
 function makePath(endNode){
-  let path = [];
+  const pathStart = [];
   let temp = endNode;
-
-  while (temp.prev){
-    path.push(temp); //Adds path tile to path
-    temp = temp.prev;
+  while(temp){
+    pathStart.push(temp);
+    temp = temp.previousStart;
   }
+  pathStart.reverse();
 
-  path.push(temp);
+  const pathEnd = [];
+  temp = endNode.previousEnd;
+  while (temp){
+    pathEnd.push(temp); //Adds path tile to path
+    temp = temp.previousEnd;
+  }
+  return pathStart.concat(pathEnd);
+}
 
-  for (let i = 0; i < path.length; i++){
-    fill(0, 0, 255);
-    noStroke();
-    rect(path[i].j * width, path[i].i * height, width, height); //Paints path blue
+function expandNeighbors(current, openSet, openMap, closedSet, target, fromStart) {
+  for (let neighbor of current.neighbors) {
+    if (closedSet.has(neighbor.id) || neighbor.wall) continue;
+
+    let tempG = current.g + neighbor.weight * distanceFinder(current, neighbor);
+
+    let newPath = false;
+    if (!openMap.has(neighbor.id)) {
+      newPath = true;
+    } else if (tempG < neighbor.g) {
+      newPath = true;
+    }
+
+    if (newPath) {
+      neighbor.g = tempG;
+      neighbor.h = distanceFinder(neighbor, target);
+      neighbor.f = neighbor.g + neighbor.h;
+
+      if (fromStart) neighbor.previousStart = current;
+      else neighbor.previousEnd = current;
+
+      if (!openMap.has(neighbor.id)) {
+        openSet.push(neighbor);
+        openMap.set(neighbor.id, neighbor);
+      }
+    }
   }
 }
 
-function getPath(startTile, endTile){
-  if(!checkPoint(startTile) || !checkPoint(endTile)){ //Ensures start and end are valid
-    return;
+function resetSearch(pathMap){
+  let grid = pathMap.getGrid();
+  const sizeX = grid._sizeX;
+  const sizeY = grid._sizeY;
+  for(let x = 0; x < sizeX; x++){
+    for(let y = 0; y < sizeY; y++){
+      const spot = grid.getArrPos([x,y]);
+      spot.reset();
+    }
   }
-  if(openList.length > 0){
-    let lowestIndex = 0;
-    for(let i = 0; i < openList.length; i++){
-      if(openList[i].f < openList[lowestIndex].f){
-        lowestIndex = i;
-        //Changes lowest traversal time index if next is shorter
+  openSetStart = new BinaryHeap();
+  openSetEnd = new BinaryHeap();
+  openMapStart = new Map();
+  openMapEnd = new Map();
+  closedSetStart = new Set();
+  closedSetEnd = new Set();
+
+  start.g = 0;
+  start.f = distanceFinder(start, end);
+  end.g = 0;
+  end.f = distanceFinder(end, start);
+  openSetStart.push(start);
+  openMapStart.set(start.id,start);
+  openSetEnd.push(end);
+  openMapEnd.set(end.id,end);
+  path = [];
+  meetingNode = null;
+  loop();
+}
+
+class BinaryHeap {
+  constructor() {
+    this.items = [];
+  }
+
+  push(element) {
+    this.items.push(element);
+    this.bubbleUp(this.items.length - 1);
+  }
+
+  pop() {
+    const min = this.items[0];
+    const end = this.items.pop();
+    if (this.items.length > 0) {
+      this.items[0] = end;
+      this.sinkDown(0);
+    }
+    return min;
+  }
+
+  bubbleUp(n) {
+    const element = this.items[n];
+    while (n > 0) {
+      let parentN = Math.floor((n - 1) / 2);
+      let parent = this.items[parentN];
+      if (element.f >= parent.f) break;
+      this.items[parentN] = element;
+      this.items[n] = parent;
+      n = parentN;
+    }
+  }
+
+  sinkDown(n) {
+    const length = this.items.length;
+    const element = this.items[n];
+
+    while (true) {
+      let leftN = 2 * n + 1;
+      let rightN = 2 * n + 2;
+      let swap = null;
+
+      if (leftN < length) {
+        let left = this.items[leftN];
+        if (left.f < element.f) swap = leftN;
       }
-    }
-    let current = openList[lowestIndex]; //Prioritizes shortest
 
-    if(current == end){
-      pathFound = true;
-      noLoop();
-    }
-    openList.splice(lowestIndex, 1); //Moves once checked
-    closedList.push(current); 
-
-    for(let neighbor of current.neighbors){
-      if(!closedList.includes(neighbor)){
-        if(!neighbor.wall){ //If not explored and traversible
-          let possibleG = current.g+1; //+1 tiles moved
-          let changePath = false;
-          
-          if(openList.includes(neighbor)){
-            if(possibleG < neighbor.g){
-              neighbor.g = possibleG;
-              changePath = true;
-              //If neighbor not checked and is faster, change path
-            }
-          }
-          else{
-            neighbor.g = possibleG;
-            changePath = true;
-            openList.push(neighbor);
-            //If neighbor untouched, change path
-          }
-          if(changePath){
-            neighbor.h = distanceFinder(neighbor, end);
-            neighbor.f = neighbor.g + neighbor.h;
-            neighbor.prev = current;
-            //If path changed, recalculate distances
-          }
+      if (rightN < length) {
+        let right = this.items[rightN];
+        if ((swap === null && right.f < element.f) ||
+            (swap !== null && right.f < this.items[swap].f)) {
+          swap = rightN;
         }
       }
+
+      if (swap === null) break;
+      this.items[n] = this.items[swap];
+      this.items[swap] = element;
+      n = swap;
     }
   }
-  if(pathFound){
-    makePath(end); //Builds and paints path once completed
+
+  isEmpty() {
+    return this.items.length === 0;
   }
-  if(!pathFound && openList.length == 0){
+}
+
+function draw(){
+  background(255);
+  if(!openSetStart.isEmpty() && !openSetEnd.isEmpty()){
+    currentStart = openSetStart.pop();
+    openMapStart.delete(currentStart.id);
+    closedSetStart.add(currentStart.id);
+
+    currentEnd = openSetEnd.pop();
+    openMapEnd.delete(currentEnd.id);
+    closedSetEnd.add(currentEnd.id);
+
+    if(closedSetEnd.has(currentStart.id)){
+      meetingNode = currentStart;
+      noLoop();
+    }
+    if(closedSetStart.has(currentEnd.id)){
+      meetingNode = currentEnd;
+      noLoop();
+    }
+    expandNeighbors(currentStart, openSetStart, openMapStart, closedSetStart, end, true);
+    expandNeighbors(currentEnd, openSetEnd, openMapEnd, closedSetEnd, start, false);
+  }
+  else{
     noLoop();
     return;
+  }
+  if(meetingNode){
+    path = makePath(meetingNode);
+    stroke(0, 0, 255);
+    strokeWeight(tWidth / 2);
+    noFill();
+    beginShape();
+    for(let p of path){
+      vertex(p.i*tWidth + tWidth/2, p.j*tHeight + tHeight/2)
+    }
+    endShape();
   }
 }
