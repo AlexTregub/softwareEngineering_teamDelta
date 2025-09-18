@@ -80,22 +80,77 @@ class Node{
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }
 
+class BinaryHeap { //Allows for an easy way to access the lowest-travel distance Node
+  constructor() {
+    this.items = []; //Empty tree
+  }
+
+  push(element) {
+    this.items.push(element); //Adds element to the end of the array
+    this.bubbleUp(this.items.length - 1); //Checks if it needs to be moved up the tree (lower than a parent)
+  }
+
+  pop() {
+    const min = this.items[0]; //Lowest element
+    const end = this.items.pop(); //Takes the last element and moves it to the top to properly handle old top
+    if (this.items.length > 0) { //If more than one element
+      this.items[0] = end; //Assigns the root as the bottom value
+      this.sinkDown(0); //Moves it down if a child is less than
+    }
+    return min; //Return the old 
+  }
+
+  bubbleUp(n) {
+    const element = this.items[n]; //Takes the value of index x
+    while (n > 0) { //While there is a parent to compare to...
+      let parentN = Math.floor((n - 1) / 2); //Gets the index value of the parent
+      let parent = this.items[parentN]; //Gets the value at the paren'ts index
+      if (element.f >= parent.f) break; //If the child is well-placed, end the sort
+      this.items[parentN] = element; //Else swap the values
+      this.items[n] = parent;
+      n = parentN; //Move up the list
+    }
+  }
+
+  sinkDown(n) {
+    const length = this.items.length; //Length of tree
+    const element = this.items[n]; //Gets element of interest
+
+    while (true) {
+      let leftN = 2 * n + 1; //Gets the index values of the children
+      let rightN = 2 * n + 2;
+      let swap = null;
+
+      if (leftN < length) { //If left child exists
+        let left = this.items[leftN]; 
+        if (left.f < element.f) swap = leftN; //Swaps values if the child is less than
+      }
+
+      if (rightN < length) { //If right child exists
+        let right = this.items[rightN];
+        if ((swap === null && right.f < element.f) || //If swap is null and right child is less than
+            (swap !== null && right.f < this.items[swap].f)) { //Or null exists but right child is less than that of the to-be-swapped value (grandchild is less than a parent, etc.)
+          swap = rightN; //Change what swap is set to.
+        }
+      }
+
+      if (swap === null) break;
+      this.items[n] = this.items[swap]; //Swaps the child and parent function
+      this.items[swap] = element;
+      n = swap;
+    } //Repeats until all parents are lower than all children
+  }
+
+  isEmpty() {
+    return this.items.length === 0;
+  }
+}
+
 function distanceFinder(start, end){
   let dx = abs(start._x - end._x);
   let dy = abs(start._y - end._y);
   return dx + dy + (Math.SQRT2 - 2) * min(dx,dy); //All 8 directions
 }
-
-/*function mousePressed() {
-  let i = floor(mouseX / tWidth);
-  let j = floor(mouseY / tHeight);
-  if (i >= 0 && i < columns && j >= 0 && j < rows) {
-    let target = grid[i][j];
-    if (target.wall) return;
-    end = target;
-    resetSearch();
-  }
-}*/
 
 function makePath(endNode){
   const pathStart = []; //Starts from endNode (middle), travels both ways until at starts, and stitches together
@@ -178,72 +233,6 @@ function resetSearch(pathMap){
   openMapEnd.set(end.id,end);
   path = []; //Clears path
   meetingNode = null;
-}
-
-class BinaryHeap { //Allows for an easy way to access the lowest-travel distance Node
-  constructor() {
-    this.items = []; //Empty tree
-  }
-
-  push(element) {
-    this.items.push(element); //Adds element to the end of the array
-    this.bubbleUp(this.items.length - 1); //Checks if it needs to be moved up the tree (lower than a parent)
-  }
-
-  pop() {
-    const min = this.items[0]; //Lowest element
-    const end = this.items.pop(); //Takes the last element and moves it to the top to properly handle old top
-    if (this.items.length > 0) { //If more than one element
-      this.items[0] = end; //Assigns the root as the bottom value
-      this.sinkDown(0); //Moves it down if a child is less than
-    }
-    return min; //Return the old 
-  }
-
-  bubbleUp(n) {
-    const element = this.items[n]; //Takes the value of index x
-    while (n > 0) { //While there is a parent to compare to...
-      let parentN = Math.floor((n - 1) / 2); //Gets the index value of the parent
-      let parent = this.items[parentN]; //Gets the value at the paren'ts index
-      if (element.f >= parent.f) break; //If the child is well-placed, end the sort
-      this.items[parentN] = element; //Else swap the values
-      this.items[n] = parent;
-      n = parentN; //Move up the list
-    }
-  }
-
-  sinkDown(n) {
-    const length = this.items.length; //Length of tree
-    const element = this.items[n]; //Gets element of interest
-
-    while (true) {
-      let leftN = 2 * n + 1; //Gets the index values of the children
-      let rightN = 2 * n + 2;
-      let swap = null;
-
-      if (leftN < length) { //If left child exists
-        let left = this.items[leftN]; 
-        if (left.f < element.f) swap = leftN; //Swaps values if the child is less than
-      }
-
-      if (rightN < length) { //If right child exists
-        let right = this.items[rightN];
-        if ((swap === null && right.f < element.f) || //If swap is null and right child is less than
-            (swap !== null && right.f < this.items[swap].f)) { //Or null exists but right child is less than that of the to-be-swapped value (grandchild is less than a parent, etc.)
-          swap = rightN; //Change what swap is set to.
-        }
-      }
-
-      if (swap === null) break;
-      this.items[n] = this.items[swap]; //Swaps the child and parent function
-      this.items[swap] = element;
-      n = swap;
-    } //Repeats until all parents are lower than all children
-  }
-
-  isEmpty() {
-    return this.items.length === 0;
-  }
 }
 
 function findPath(start, end, pathMap){
