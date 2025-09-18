@@ -97,11 +97,15 @@ function setup() {
   //// 
 
   Ants_Spawn(50);
-  eAnts_Spawn(25)
+  //eAnts_Spawn(25);
+  //eAnts_Preloader();
 }
 function draw() {
   MAP.render();
-  Ants_Update();
+  //eAnts_Preloader();
+  //Ants_Update();
+  Ants_Preloader();
+  //eAnts_Update();
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
