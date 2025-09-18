@@ -14,8 +14,9 @@ function preload(){
   Ants_Preloader()
   Resources_Preloader();
 
-  testGridUtil();
-  testGridResize();
+  // So far working...
+  // testGridUtil();
+  // testGridResize();
 }
 /*
 function mousePressed() {
