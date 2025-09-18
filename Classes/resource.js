@@ -7,9 +7,13 @@ function resourcePreLoad(){
   apple = loadImage('Images/Resources/apple.png');
   cherry = loadImage('Images/Resources/cherry.png');
   resourceList = new resourcesArray(); 
-  resourceManager = new Resource(5,10,resourceList); 
+  resourceManager = new Resource(1,50,resourceList); // (Interval,Capacity,List)
 }
 
+
+function setKey(x,y){
+  return `${x},${y}`;
+}
 
 // Plan on using to detect ants collision
 class resourcesArray {
@@ -22,8 +26,9 @@ class resourcesArray {
   }
 
   drawAll() {
-    for (let r of this.resources) {
-      r.draw();
+    let keys = Object.keys(this.resources);
+    for(let k of keys){
+      this.resources[k].draw();
     }
   }
 }
@@ -35,7 +40,6 @@ class Resource {
     this.interval = interval;
     this.resources = resources;
 
-    // 
     this.assets = {
       apple: { 
         weight: 0.5, 
@@ -74,7 +78,7 @@ class Resource {
   // Asset selected based on rarity, drawn and appened to list of resources
   spawn() {
     let list = this.resources.getResourceList();
-    if (list.length >= this.maxAmount) return;
+  if (Object.keys(list).length >= this.maxAmount) return; 
 
     let keys = Object.keys(this.assets);
     let total = keys.reduce((sum, k) => sum + this.assets[k].weight, 0);
@@ -89,7 +93,8 @@ class Resource {
       }
     }
 
-    list.push(this.assets[chosenKey].make());
+    let chosen = this.assets[chosenKey].make();
+    list.push(chosen);
   }
 }
 

@@ -20,8 +20,15 @@ function Ants_Preloader() {
 function Ants_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
-    let baseAnt = new ant(random(0, 500), random(0, 500), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
     let speciesName = assignSpecies();
+    let baseAnt = new ant(
+      random(0, 500), random(0, 500), 
+      antSize.x + sizeR, 
+      antSize.y + sizeR, 
+      30, 0,
+      antImg1,
+      speciesName
+      );
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
     ants[i].update();
   }
@@ -64,9 +71,11 @@ function Ant_Click_Control() {
   }
 }
 
+
+
 // --- Ant Class ---
 class ant {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1) {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1,speciesName) {
     const initialPos = createVector(posX, posY);
     this._stats = new stats(
       initialPos,
@@ -74,6 +83,7 @@ class ant {
       movementSpeed,
       initialPos.copy()
     );
+    this.speciesName = speciesName;
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
     this._skitterTimer = random(30, 200);
     this._antIndex = ant_Index++;
@@ -82,6 +92,7 @@ class ant {
     this._path = null;
     this._isSelected = false;
     this.isBoxHovered = false;
+    this.Resources = []; // Resource the ants is carrying
   }
 
   // --- Getters/Setters ---
@@ -210,11 +221,15 @@ class ant {
   }
   get rotation() { return this._sprite.rotation; }
 
+  // In Range Of Resource
+
+
   // --- Move Logic ---
   moveToLocation(X, Y) {
     this._stats.pendingPos.statValue.x = X;
     this._stats.pendingPos.statValue.y = Y;
-    this._isMoving = true;
+    this._isMoving = true
+
   }
 
   ResolveMoment() {
@@ -248,6 +263,24 @@ class ant {
     }
   }
 
+  resourceCheck(){
+    let fruits = resourceList.getResourceList();
+    let keys = Object.keys(fruits);
+
+    for(let k of keys){
+      let x = fruits[k].x;
+      let y = fruits[k].y;
+      
+      let xDifference = abs(Math.floor(x - this.posX));
+      let yDifference = abs(Math.floor(y - this.posY));
+      let range = 25;
+      if(xDifference <= range && yDifference <= range){
+        this.Resources.push(fruits[k]);
+        delete fruits[k];
+      }   
+    }
+  }
+
   update() {
     if (!this._isMoving) this._timeUntilSkitter -= 1;
     if (this._timeUntilSkitter < 0) {
@@ -258,9 +291,9 @@ class ant {
     this.ResolveMoment();
     this.render();
     this.highlight();
+    this.resourceCheck();
   }
 
-  //Resource Collision Detection
   
 
   // --- Static Utility Methods ---
