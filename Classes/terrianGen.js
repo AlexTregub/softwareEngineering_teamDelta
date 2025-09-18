@@ -100,6 +100,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
     // Texture Properties
     this._materialSet = 'grass'; // Used for storage of randomization. Initialized as default value for now
+    this._weight = 1;
   }
  
 
@@ -114,6 +115,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     for (let checkMat in TERRAIN_MATERIALS) {          
       if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
         this._materialSet = checkMat;
+        this.setMaterial();
         return;
       }
     }
@@ -129,6 +131,22 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
       return true;
     }
     return false;
+  }
+
+  getWeight(){
+    return this._weight;
+  }
+
+  assignWeight(){ //Sets weight depending on the material
+    if(this._materialSet == 'grass'){
+      this._weight = 1;
+    }
+    else if(this.materialSet == 'dirt'){
+      this._weight = 3;
+    }
+    else if(this.materialSet == 'stone'){
+      this._weight = 10;
+    }
   }
 
   render() { // Render, previously draw
