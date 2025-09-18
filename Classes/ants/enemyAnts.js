@@ -18,7 +18,7 @@ function eAnts_Preloader() {
 function eAnts_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
-    let eBaseAnt = new ant(random(0, 500), random(0, 500), eAntSize.x + sizeR, eAntSize.y + sizeR, 30, 0);
+    let eBaseAnt = new eAnt(random(0, 500), random(0, 500), eAntSize.x + sizeR, eAntSize.y + sizeR, 30, 0);
     eAnts[i] = eBaseAnt
     eAnts[i].eUpdate();
   }
@@ -29,34 +29,6 @@ function eAnts_Update() {
   for (let i = 0; i < eAnt_Index; i++) {
     if (eAnts[i] && typeof eAnts[i].eUpdate === "function") {
       eAnts[i].eUpdate();
-    }
-  }
-}
-
-// --- Single Ant Selection/Movement ---
-function eAnt_Click_Control() {
-  // Move selected ant if one is already selected
-  if (selectedeAnt) {
-    selectedeAnt.moveToLocation(mouseX, mouseY);
-    selectedeAnt.isSelected = false;
-    selectedeAnt = null;
-    return;
-  }
-
-  // Otherwise, select the ant under the mouse
-  selectedeAnt = null;
-  for (let i = 0; i < eAnt_Index; i++) {
-    if (!eAnts[i]) continue;
-    let antObj = eAnts[i].antObject ? eAnts[i].antObject : eAnts[i];
-    antObj.isSelected = false;
-  }
-  for (let i = 0; i < eAnt_Index; i++) {
-    if (!eAnts[i]) continue;
-    let antObj = eAnts[i].antObject ? eAnts[i].antObject : eAnts[i];
-    if (antObj.isMouseOver(mouseX, mouseY)) {
-      antObj.isSelected = true;
-      selectedeAnt = antObj;
-      break;
     }
   }
 }
@@ -72,13 +44,12 @@ class eAnt {
       initialPos.copy()
     );
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
-    this._skitterTimer = random(30, 200);
+    //this._skitterTimer = random(30, 200);
     this._antIndex = eAnt_Index++;
     this._isMoving = false;
-    this._timeUntilSkitter = this._skitterTimer;
-    this._path = null;
-    this._isSelected = false;
-    this.isBoxHovered = false;
+    //this._timeUntilSkitter = this._skitterTimer;
+    //this._isSelected = false;
+    //this.isBoxHovered = false;
   }
 
   // --- Getters/Setters ---
@@ -90,14 +61,14 @@ class eAnt {
   set antIndex(value) { this._antIndex = value; }
   get isMoving() { return this._isMoving; }
   set isMoving(value) { this._isMoving = value; }
-  get timeUntilSkitter() { return this._timeUntilSkitter; }
-  set timeUntilSkitter(value) { this._timeUntilSkitter = value; }
-  get skitterTimer() { return this._skitterTimer; }
-  set skitterTimer(value) { this._skitterTimer = value; }
-  get path() { return this._path; }
-  set path(value) { this._path = value; }
-  get isSelected() { return this._isSelected; }
-  set isSelected(value) { this._isSelected = value; }
+  //get timeUntilSkitter() { return this._timeUntilSkitter; }
+  //set timeUntilSkitter(value) { this._timeUntilSkitter = value; }
+  //get skitterTimer() { return this._skitterTimer; }
+  //set skitterTimer(value) { this._skitterTimer = value; }
+  //get path() { return this._path; }
+  //set path(value) { this._path = value; }
+  //get isSelected() { return this._isSelected; }
+  //set isSelected(value) { this._isSelected = value; }
 
   // --- Sprite2D Helpers ---
   setSpriteImage(img) { this._sprite.setImage(img); }
@@ -124,52 +95,14 @@ class eAnt {
     }
   }
 
-  // --- Highlighting ---
-  highlight() {
-    const pos = this._sprite.pos;
-    const size = this._sprite.size;
-    if (this._isSelected) {
-      push();
-      noFill();
-      stroke(color(0, 0, 255)); // Blue for selected
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
-    } else if (this.isMouseOver(mouseX, mouseY)) {
-      push();
-      noFill();
-      stroke(color(255, 255, 0)); // Yellow for hover
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
-    } else if (this.isBoxHovered) {
-      push();
-      noFill();
-      stroke(color(0, 255, 0));
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
-    }
-  }
 
-  // --- Mouse Over Detection ---
-  isMouseOver(mx, my) {
-    const pos = this._sprite.pos;
-    const size = this._sprite.size;
-    return (
-      mx >= pos.x &&
-      mx <= pos.x + size.x &&
-      my >= pos.y &&
-      my <= pos.y + size.y
-    );
-  }
+ 
 
-  setPath(path) { this._path = path; }
 
   // --- Skitter Logic ---
-  setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
-  rndTimeUntilSkitter() { this._timeUntilSkitter = this._skitterTimer; }
-  getTimeUntilSkitter() { return this._timeUntilSkitter; }
+  //setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
+  //rndTimeUntilSkitter() { this._timeUntilSkitter = this._skitterTimer; }
+  //getTimeUntilSkitter() { return this._timeUntilSkitter; }
 
   // --- Position and Size ---
   set posX(value) {
@@ -207,12 +140,6 @@ class eAnt {
   }
   get rotation() { return this._sprite.rotation; }
 
-  // --- Move Logic ---
-  moveToLocation(X, Y) {
-    this._stats.pendingPos.statValue.x = X;
-    this._stats.pendingPos.statValue.y = Y;
-    this._isMoving = true;
-  }
 
   ResolveMoment() {
     if (this._isMoving) {
@@ -254,7 +181,6 @@ class eAnt {
     }
     this.ResolveMoment();
     this.render();
-    this.highlight();
   }
 
   // --- Static Utility Methods ---
@@ -269,34 +195,7 @@ class eAnt {
     }
   }
 
-  static selectAntUnderMouse(eAnts, mx, my) {
-    let selected = null;
-    for (let i = 0; i < eAnts.length; i++) {
-      let antObj = eAnts[i].antObject ? eAnts[i].antObject : eAnts[i];
-      antObj.isSelected = false;
-    }
-    for (let i = 0; i < eAnts.length; i++) {
-      let antObj = eAnts[i].antObject ? eAnts[i].antObject : eAnts[i];
-      if (antObj.isMouseOver(mx, my)) {
-        antObj.isSelected = true;
-        selected = antObj;
-        break;
-      }
-    }
-    return selected;
-  }
+
 }
 
-// --- Move Selected Ant to Tile ---
-function moveSelectedAntToTile(mx, my, tileSize) {
-  if (selectedeAnt) {
-    const tileX = Math.floor(mx / tileSize);
-    const tileY = Math.floor(my / tileSize);
-    const targetX = tileX * tileSize;
-    const targetY = tileY * tileSize;
-    selectedeAnt.moveToLocation(targetX, targetY);
-    selectedeAnt.isSelected = false;
-    selectedeAnt = null;
-  }
-}
 

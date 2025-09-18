@@ -12,6 +12,7 @@ function preload(){
   test_stats();
   terrainPreloader()
   Ants_Preloader()
+  eAnts_Preloader()
 }
 /*
 function mousePressed() {
@@ -97,15 +98,12 @@ function setup() {
   //// 
 
   Ants_Spawn(50);
-  //eAnts_Spawn(25);
-  //eAnts_Preloader();
+  eAnts_Spawn(10);
 }
 function draw() {
   MAP.render();
-  //eAnts_Preloader();
-  //Ants_Update();
-  Ants_Preloader();
-  //eAnts_Update();
+  Ants_Update();
+  eAnts_Update();
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
