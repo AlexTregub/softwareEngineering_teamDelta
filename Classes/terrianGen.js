@@ -145,7 +145,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
       this._weight = 3;
     }
     else if(this.materialSet == 'stone'){
-      this._weight = 10;
+      this._weight = 100;
     }
   }
 
