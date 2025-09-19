@@ -217,7 +217,7 @@ class Grid {
 
     setSpanCorner(topLeftPos) {
         this._spanEnabled = true;
-        this._spanTopLeft = newPos;
+        this._spanTopLeft = topLeftPos;
 
         this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]+this._sizeY]; // Automatically set spanBotRight 
     }
