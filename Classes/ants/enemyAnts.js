@@ -10,7 +10,7 @@ let eAntbg;
 function eAnts_Preloader() {
   eAntSize = createVector(20, 20);
   eAntbg = [120, 60, 60];
-  eAntImg = loadImage("Images/Ants/enemyAnt.png");
+  eAntImg = loadImage("Images/Ants/enemyAnts.png");
 }
 
 
@@ -33,6 +33,11 @@ function eAnts_Update() {
   }
 }
 
+/*function AntMovement(){
+  pos = createVector(posX, posY);
+  vel = createVector(0,-1);
+}*/
+
 // --- Ant Class ---
 class eAnt {
   constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = eAntImg) {
@@ -44,10 +49,10 @@ class eAnt {
       initialPos.copy()
     );
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
-    //this._skitterTimer = random(30, 200);
+    this._skitterTimer = random(30, 200);
     this._antIndex = eAnt_Index++;
     this._isMoving = false;
-    //this._timeUntilSkitter = this._skitterTimer;
+    this._timeUntilSkitter = this._skitterTimer;
     //this._isSelected = false;
     //this.isBoxHovered = false;
   }
@@ -61,14 +66,16 @@ class eAnt {
   set antIndex(value) { this._antIndex = value; }
   get isMoving() { return this._isMoving; }
   set isMoving(value) { this._isMoving = value; }
-  //get timeUntilSkitter() { return this._timeUntilSkitter; }
-  //set timeUntilSkitter(value) { this._timeUntilSkitter = value; }
-  //get skitterTimer() { return this._skitterTimer; }
-  //set skitterTimer(value) { this._skitterTimer = value; }
-  //get path() { return this._path; }
-  //set path(value) { this._path = value; }
-  //get isSelected() { return this._isSelected; }
-  //set isSelected(value) { this._isSelected = value; }
+
+//-----------------------------------------------------------------------------
+  get timeUntilSkitter() { return this._timeUntilSkitter; }
+  set timeUntilSkitter(value) { this._timeUntilSkitter = value; }
+  get skitterTimer() { return this._skitterTimer; }
+  set skitterTimer(value) { this._skitterTimer = value; }
+  get path() { return this._path; }
+  set path(value) { this._path = value; }
+//-----------------------------------------------------------------------------
+
 
   // --- Sprite2D Helpers ---
   setSpriteImage(img) { this._sprite.setImage(img); }
@@ -98,11 +105,13 @@ class eAnt {
 
  
 
-
+//---------------------------------------------------------------------
   // --- Skitter Logic ---
-  //setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
-  //rndTimeUntilSkitter() { this._timeUntilSkitter = this._skitterTimer; }
-  //getTimeUntilSkitter() { return this._timeUntilSkitter; }
+  setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
+  rndTimeUntilSkitter() { this._timeUntilSkitter = this._skitterTimer; }
+  getTimeUntilSkitter() { return this._timeUntilSkitter; }
+//---------------------------------------------------------------------
+
 
   // --- Position and Size ---
   set posX(value) {
@@ -139,6 +148,12 @@ class eAnt {
     while (this._sprite.rotation < -360) this._sprite.rotation += 360;
   }
   get rotation() { return this._sprite.rotation; }
+
+  moveToLocation(X, Y) {
+    this._stats.pendingPos.statValue.x = X;
+    this._stats.pendingPos.statValue.y = Y;
+    this._isMoving = true;
+  }
 
 
   ResolveMoment() {
@@ -184,7 +199,7 @@ class eAnt {
   }
 
   // --- Static Utility Methods ---
-  static moveGroupInCircle(antArray, x, y, radius = 40) {
+  /*static moveGroupInCircle(antArray, x, y, radius = 40) {
     const angleStep = (2 * Math.PI) / antArray.length;
     for (let i = 0; i < antArray.length; i++) {
       const angle = i * angleStep;
@@ -193,7 +208,7 @@ class eAnt {
       antArray[i].moveToLocation(x + offsetX, y + offsetY);
       antArray[i].isSelected = false;
     }
-  }
+  }*/
 
 
 }
