@@ -1,6 +1,6 @@
 ///// Grid - initial design following idea
 ///// NONE constant is now defined outside. 
-///// Treat _ as private, no_ as public.
+///// Treat _ as private, else as public.
 let GRID_ID = 0;
 
 class Grid {
