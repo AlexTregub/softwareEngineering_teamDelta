@@ -304,9 +304,15 @@ function moveSelectedAntToTile(mx, my, tileSize) {
   if (selectedAnt) {
     const tileX = Math.floor(mx / tileSize);
     const tileY = Math.floor(my / tileSize);
-    const targetX = tileX * tileSize;
-    const targetY = tileY * tileSize;
-    selectedAnt.moveToLocation(targetX, targetY);
+    const grid = GRIDMAP.getGrid();
+    const antX = Math.floor(selectedAnt.posX/tileSize);
+    const antY = Math.floor(selectedAnt.posY/tileSize);
+    const startTile = grid.getArrPos([antX, antY]);
+    const endTile = grid.getArrPos([tileX, tileY]);
+    if(startTile && endTile){
+      const newPath = findPath(startTile, endTile, GRIDMAP);
+      selectedAnt.setPath(newPath);
+    }
     selectedAnt.isSelected = false;
     selectedAnt = null;
   }
