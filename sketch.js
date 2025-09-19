@@ -14,7 +14,10 @@ let gameState = "MENU"; // "MENU", "PLAYING", "OPTIONS"
 let menuButtons = [];
 let fadeAlpha = 0;      // Going to attempt fade-in/
 let isFading = false;
-
+// Title animation stuff
+let titleY = -100;        // start above the screen
+let titleTargetY = CANVAS_Y / 2 - 150;
+let titleSpeed = 9;      // pixels per frame
 
 function preload(){
   test_stats();
@@ -211,11 +214,16 @@ function startGameFade() {
 }
 
 function drawMenu() {
-
   textAlign(CENTER, CENTER);
 
+  // Animate the title dropping in
+  if (titleY < titleTargetY) {
+    titleY += titleSpeed;
+    if (titleY > titleTargetY) titleY = titleTargetY; // clamp to final pos
+  }
+
   // Draw title
-  outlinedText("ANTS!", CANVAS_X / 2, CANVAS_Y / 2 - 150, font, 48, color(255), color(0));
+  outlinedText("ANTS!", CANVAS_X / 2, titleY, font, 48, color(255), color(0));
 
   // Draw buttons
   menuButtons.forEach(btn => {
