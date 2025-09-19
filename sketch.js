@@ -1,6 +1,7 @@
 let CANVAS_X = 800; // Default 800
 let CANVAS_Y = 800; // Default 800
-let TILE_SIZE = 32; //  Default 32
+const TILE_SIZE = 32; //  Default 32
+const NONE = '\0'; 
 
 let SEED;
 let MAP;
@@ -13,6 +14,10 @@ function preload(){
   terrainPreloader()
   Ants_Preloader()
   Resources_Preloader();
+
+  // So far working...
+  // testGridUtil();
+  // testGridResizeAndConsequences();
 }
 /*
 function mousePressed() {
