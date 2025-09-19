@@ -8,8 +8,13 @@ let MAP;
 let GRIDMAP;
 let COORDSY
 
-
+let font;
 let recordingPath
+let gameState = "MENU"; // "MENU", "PLAYING", "OPTIONS"
+let menuButtons = [];
+let fadeAlpha = 0;      // Going to attempt fade-in/
+let isFading = false;
+
 
 function preload(){
   test_stats();
@@ -21,6 +26,7 @@ function preload(){
   // testGridUtil();
   eAnts_Preloader()
   // testGridResizeAndConsequences();
+  font = loadFont("../Images/Assets/Terraria.TTF");
 }
 /*
 function mousePressed() {
@@ -60,21 +66,41 @@ function mousePressed() {
   }
 } */
 
-  // MOUSE INTERACTIONS
+// MOUSE INTERACTIONS
 function mousePressed() {
-  if (typeof handleMousePressed === 'function') {
-    handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, mouseButton);
+  if (gameState === "PLAYING") {  // only allow ant interactions in game
+    if (typeof handleMousePressed === 'function') {
+      handleMousePressed(
+        ants,
+        mouseX,
+        mouseY,
+        Ant_Click_Control,
+        selectedAnt,
+        moveSelectedAntToTile,
+        TILE_SIZE,
+        mouseButton
+      );
+    }
+  }
+
+  // menu buttons
+  if (gameState === "MENU") {
+    menuButtons.forEach(btn => {
+      const hovering = mouseX > btn.x - btn.w / 2 && mouseX < btn.x + btn.w / 2 &&
+                       mouseY > btn.y - btn.h / 2 && mouseY < btn.y + btn.h / 2;
+      if (hovering) btn.action();
+    });
   }
 }
 
 function mouseDragged() {
-  if (typeof handleMouseDragged === 'function') {
+  if (gameState === "PLAYING" && typeof handleMouseDragged === 'function') {
     handleMouseDragged(mouseX, mouseY, ants);
   }
 }
 
 function mouseReleased() {
-  if (typeof handleMouseReleased === 'function') {
+  if (gameState === "PLAYING" && typeof handleMouseReleased === 'function') {
     handleMouseReleased(ants);
   }
 }
@@ -90,26 +116,24 @@ function keyPressed() {
 
 ////// MAIN
 function setup() {
-  CANVAS_X = windowWidth
-  CANVAS_Y = windowHeight
+  CANVAS_X = windowWidth;
+  CANVAS_Y = windowHeight;
   createCanvas(CANVAS_X, CANVAS_Y);
 
-  //// Configure Terrain + Coordinate System - keep in setup.
-  // Terrain init SHOULD be handled transparently, as MAP object access may be needed
-  SEED = hour()*minute()*floor(second()/10); // Have seed change every 10 sec.
+  SEED = hour()*minute()*floor(second()/10);
 
-  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE); // Moved conversion to Terrain/Coordinate classes
-  MAP.randomize(SEED); // Randomize with set seed
+  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
+  MAP.randomize(SEED);
+  COORDSY = MAP.getCoordinateSystem();
+  COORDSY.setViewCornerBC(0,0);
 
-  GRIDMAP = new PathMap(MAP);
-  COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
-  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-  //// 
+  setupMenu();  // <-- ADD THIS LINE
 
   Ants_Spawn(50);
   Resources_Spawn(20);
   eAnts_Spawn(20);
 }
+
 function draw() {
   MAP.render();
   Ants_Update();
@@ -156,5 +180,119 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     fill(0, 255, 0, 80); // transparent green
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
+  }
+}
+function setupMenu() {
+  menuButtons = [
+    { 
+      label: "Start Game", 
+      x: CANVAS_X / 2, 
+      y: CANVAS_Y / 2 - 40, 
+      w: 220, 
+      h: 50, 
+      action: () => { 
+        isFading = true; // start fade
+      } 
+    },
+    { 
+      label: "Options",    
+      x: CANVAS_X / 2, 
+      y: CANVAS_Y / 2 + 40, 
+      w: 220, 
+      h: 50, 
+      action: () => { gameState = "OPTIONS"; } 
+    },
+  ];
+}
+
+function startGameFade() {
+  isFading = true;
+  fadeAlpha = 0;
+}
+
+function drawMenu() {
+
+  textAlign(CENTER, CENTER);
+
+  // Draw title
+  outlinedText("ANTS!", CANVAS_X / 2, CANVAS_Y / 2 - 150, font, 48, color(255), color(0));
+
+  // Draw buttons
+  menuButtons.forEach(btn => {
+    const hovering = mouseX > btn.x - btn.w / 2 && mouseX < btn.x + btn.w / 2 &&
+                     mouseY > btn.y - btn.h / 2 && mouseY < btn.y + btn.h / 2;
+
+    push();
+    rectMode(CENTER);
+    stroke(255);
+    strokeWeight(3);
+    fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
+    rect(btn.x, btn.y, btn.w, btn.h, 10);
+    pop();
+
+    // Button label with outlinedText
+    outlinedText(btn.label, btn.x, btn.y, font, 24, color(0), color(255));
+  });
+}
+
+
+// Draw loop
+function setupMenu() {
+  menuButtons = [
+    { 
+      label: "Start Game", 
+      x: CANVAS_X / 2, 
+      y: CANVAS_Y / 2 - 40, 
+      w: 220, 
+      h: 50, 
+      action: () => { isFading = true; fadeAlpha = 0; } 
+    }/*,
+    { 
+      label: "Options",    
+      x: CANVAS_X / 2, 
+      y: CANVAS_Y / 2 + 40, 
+      w: 220, 
+      h: 50, 
+      action: () => { gameState = "OPTIONS"; } 
+    },
+    */
+  ];
+}
+
+function draw() {
+  if (gameState === "MENU") {
+    // render menu background and colony
+    MAP.render();
+    Ants_Update();
+    Resources_Update();
+
+    drawMenu();
+
+    // fade to white
+    if (isFading) {
+      fadeAlpha += 5; // speed of fade-in
+      fill(255, fadeAlpha);
+      rect(0, 0, CANVAS_X, CANVAS_Y);
+
+      if (fadeAlpha >= 255) {
+        gameState = "PLAYING"; // switch to game
+        isFading = false;
+      }
+    }
+
+    return; // stop here until game starts
+  }
+
+  // --- GAMEPLAY ---
+  MAP.render();
+  Ants_Update();
+  Resources_Update();
+  if (typeof drawSelectionBox === 'function') drawSelectionBox();
+
+  // fade out white so game appears smoothly
+  if (fadeAlpha > 0) {
+    fadeAlpha -= 10; // speed of fade-out
+    fill(255, fadeAlpha);
+    rect(0, 0, CANVAS_X, CANVAS_Y);
   }
 }
