@@ -17,7 +17,7 @@ function preload(){
 
   // So far working...
   // testGridUtil();
-  // testGridResize();
+  // testGridResizeAndConsequences();
 }
 /*
 function mousePressed() {
