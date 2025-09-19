@@ -2,7 +2,7 @@ let GRASS_IMAGE;
 let DIRT_IMAGE;
 let xCount = 32;
 let yCount = 32;
-let tileSize = 35; // Adds up to canvas dimensions
+let tileSize = 32; // Adds up to canvas dimensions
 
 ////// TERRAIN
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
