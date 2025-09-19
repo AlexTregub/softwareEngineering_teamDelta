@@ -1,11 +1,12 @@
 let CANVAS_X = 800; // Default 800
 let CANVAS_Y = 800; // Default 800
-let TILE_SIZE = 32; //  Default 32
+const TILE_SIZE = 32; //  Default 32
+const NONE = '\0'; 
 
 let SEED;
 let MAP;
 let GRIDMAP;
-let COORDSY;
+let COORDSY
 
 
 let recordingPath
