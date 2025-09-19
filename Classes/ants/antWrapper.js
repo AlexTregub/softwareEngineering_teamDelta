@@ -16,19 +16,46 @@ class AntWrapper {
 
   makeSpeciesTestUi() {
     const center = this.antObject.center;
-    const tagWidth = 60;
-    const tagHeight = 18;
+  
     push();
     rectMode(CENTER);
-    fill(0, 0, 0, 150); // Semi-transparent background
-    noStroke();
-    fill(255); // White text
-    textSize(12);
-    textAlign(CENTER, CENTER);
+  
+    // 20px below the ant (tweak as needed)
+    const labelY = center.y + this.antObject.size / 2 + 20;
+  
+    outlinedText(
+      this.species,         // text
+      center.x,             // x
+      labelY,               // y
+      font,                 // font
+      14,                   // size
+      color(0),           // fill
+      color(0)              // outline
+    );
+  
     pop();
   }
 }
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = AntWrapper;
+}
+
+function outlinedText(txt, x, y, font, size, fillCol, outlineCol) {
+  push();
+  textFont(font);
+  textSize(size);
+  textAlign(CENTER, CENTER);
+  noStroke();
+
+  fill(outlineCol);
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      if (dx || dy) text(txt, x + dx, y + dy);
+    }
+  }
+
+  fill(fillCol);
+  text(txt, x, y);
+  pop();
 }
