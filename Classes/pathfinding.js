@@ -1,4 +1,3 @@
-let start, end;
 let path = [];
 let currentStart, currentEnd;
 
@@ -203,7 +202,7 @@ function expandNeighbors(current, openSet, openMap, closedSet, target, fromStart
   }
 }
 
-function resetSearch(pathMap){
+function resetSearch(start, end, pathMap){
   let grid = pathMap.getGrid(); //Gets grid
   const sizeX = grid._sizeX;
   const sizeY = grid._sizeY;
@@ -236,7 +235,7 @@ function resetSearch(pathMap){
 }
 
 function findPath(start, end, pathMap){
-  resetSearch(pathMap); //Resets map
+  resetSearch(start, end, pathMap); //Resets map
 
   // NOTE: RESET IS IMPORTANT BECAUSE F G H ARE TIED TO THE TILES, NOT THE ANTS. IF AN ANT TRAVELLED ON A UNRESET TILE IT WOULD MESS WITH OTHER PATHS
 
