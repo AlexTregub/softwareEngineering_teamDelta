@@ -99,7 +99,7 @@ function setup() {
   MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE); // Moved conversion to Terrain/Coordinate classes
   MAP.randomize(SEED); // Randomize with set seed
 
-  //GRIDMAP = new PathMap(terrain);
+  GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
   //// 
