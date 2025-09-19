@@ -1,6 +1,6 @@
 let CANVAS_X = 800; // Default 800
 let CANVAS_Y = 800; // Default 800
-const TILE_SIZE = 32; //  Default 32
+const TILE_SIZE = 35; //  Default 35
 const NONE = '\0'; 
 
 let SEED;
@@ -126,7 +126,35 @@ function draw() {
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
+  drawDebugGrid(tileSize, GRIDMAP.width, GRIDMAP.height);
   if(recordingPath){
 
+  }
+}
+function drawDebugGrid(tileSize, gridWidth, gridHeight) {
+  stroke(100, 100, 100, 100); // light gray grid lines
+  strokeWeight(1);
+  noFill();
+
+  for (let x = 0; x < gridWidth; x++) {
+    for (let y = 0; y < gridHeight; y++) {
+      rect(x * tileSize, y * tileSize, tileSize, tileSize);
+    }
+  }
+
+  // Highlight tile under mouse
+  const tileX = Math.floor(mouseX / tileSize);
+  const tileY = Math.floor(mouseY / tileSize);
+  fill(255, 255, 0, 50); // transparent yellow
+  noStroke();
+  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+
+  // Highlight selected ant's current tile
+  if (selectedAnt) {
+    const antTileX = Math.floor(selectedAnt.posX / tileSize);
+    const antTileY = Math.floor(selectedAnt.posY / tileSize);
+    fill(0, 255, 0, 80); // transparent green
+    noStroke();
+    rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
 }
