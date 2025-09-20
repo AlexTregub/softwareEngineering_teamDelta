@@ -44,12 +44,26 @@ class Resource {
       apple: { 
         weight: 0.5, 
         make: () => {
-          let x = random(0, CANVAS_X-20);
-          let y = random(0, CANVAS_Y-20);
+          let x = random(0, CANVAS_X - 20);
+          let y = random(0, CANVAS_Y - 20);
+          let w = 20, h = 20;
+
           return {
             type: "apple",
-            x, y, w: 20, h: 20,
-            draw: () => image(apple, x, y, 20, 20)
+            x, y, w, h,
+            draw: () => {
+              image(apple, x, y, w, h);
+
+              // hover detection
+              if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+                push();
+                noFill();
+                stroke(255); // white outline
+                strokeWeight(2);
+                rect(x, y, w, h);
+                pop();
+              }
+            }
           };
         }
       },
@@ -57,17 +71,29 @@ class Resource {
       cherry: { 
         weight: 0.8, 
         make: () => {
-          let x = random(0, CANVAS_X-20);
-          let y = random(0, CANVAS_Y-20);
+          let x = random(0, CANVAS_X - 20);
+          let y = random(0, CANVAS_Y - 20);
+          let w = 20, h = 20;
+
           return {
             type: "cherry",
-            x, y, w: 20, h: 20,
-            draw: () => image(cherry, x, y, 20, 20)
+            x, y, w, h,
+            draw: () => {
+              image(cherry, x, y, w, h);
+
+              // hover detection
+              if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+                push();
+                noFill();
+                stroke(255); // white outline
+                strokeWeight(2);
+                rect(x, y, w, h);
+                pop();
+              }
+            }
           };
         }
       },
-
-
     };
 
     // spawn every {interval} seconds
@@ -97,4 +123,3 @@ class Resource {
     list.push(chosen);
   }
 }
-
