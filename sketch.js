@@ -125,9 +125,16 @@ function setup() {
   COORDSY.setViewCornerBC(0,0);
 
   setupMenu();  // <-- ADD THIS LINE
+  setupTests(); // Call test functions
 
   Ants_Spawn(50);
   Resources_Spawn(20);
+}
+
+function setupTests() {
+  // Any test functions can be called here
+  // e.g. antSMtest();
+  antSMtest(); // Test Ant State Machine
 }
 
 function draw() {
