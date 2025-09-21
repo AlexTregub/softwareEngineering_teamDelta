@@ -49,16 +49,24 @@ class Species extends ant {
   update() {
     super.update();
     const center = this.center;
-    const tagWidth = 70;
-    const tagHeight = 18;
+  
     push();
     rectMode(CENTER);
-    fill(0, 0, 0, 180); // Semi-transparent black background
-    noStroke();
-    fill(255); // White text
-    textSize(13);
-    textAlign(CENTER, CENTER);
-    text(this.speciesName, center.x, center.y - 20);
+  
+    // put the text a bit *below* the ant sprite
+    const labelY = center.y + this.sizeY / 2 + 15;
+  
+    // call your outlinedText helper
+    outlinedText(
+      this.speciesName,
+      center.x,
+      labelY,
+      font,        // <- your preloaded Terraria.TTF font
+      13,          // font size
+      color(255),  // inside (fill) color
+      color(0)     // outline color
+    );
+  
     pop();
   }
 
