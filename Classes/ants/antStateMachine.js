@@ -6,15 +6,15 @@ class AntStateMachine {
   constructor() {
     // Primary activity states
     this.primaryState = "IDLE";
-    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING"];
+    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING"];
     
     // Combat modifier states
-    this.combatModifier = null;
-    this.combatStates = ["IN_COMBAT", "ATTACKING", "DEFENDING", "SPITTING"];
+    this.combatModifier = "OUT_OF_COMBAT";
+    this.combatStates = ["OUT_OF_COMBAT","IN_COMBAT", "ATTACKING", "DEFENDING", "SPITTING"];
     
     // Terrain modifier states
-    this.terrainModifier = null;
-    this.terrainStates = ["IN_WATER", "IN_MUD"];
+    this.terrainModifier = "DEFAULT";
+    this.terrainStates = ["DEFAULT","IN_WATER", "IN_MUD", "ON_SLIPPERY", "ON_ROUGH"];
     
     // State change callbacks
     this.onStateChange = null;
@@ -96,28 +96,66 @@ class AntStateMachine {
   canPerformAction(action) {
     switch (action.toLowerCase()) {
       case "move":
-        return this.combatModifier !== "ATTACKING" && this.combatModifier !== "SPITTING";
+        // Can't move while attacking, spitting, building, mating, or on slippery terrain
+        return this.combatModifier !== "ATTACKING" && 
+               this.combatModifier !== "SPITTING" &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "MATING" &&
+               this.terrainModifier !== "ON_SLIPPERY";
       
       case "gather":
-        return this.combatModifier !== "ATTACKING" && 
-               this.combatModifier !== "SPITTING" && 
-               this.primaryState !== "FOLLOWING";
+        // Can't gather while in combat, following, building, socializing, or mating
+        return this.combatModifier === "OUT_OF_COMBAT" && 
+               this.primaryState !== "FOLLOWING" &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "SOCIALIZING" &&
+               this.primaryState !== "MATING";
       
       case "attack":
-        return this.combatModifier === "IN_COMBAT" || 
-               this.combatModifier === "ATTACKING";
+        // Can only attack when in combat states, not while building or mating
+        return (this.combatModifier === "IN_COMBAT" || 
+                this.combatModifier === "ATTACKING") &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "MATING";
       
       case "defend":
-        return this.combatModifier === "IN_COMBAT" || 
-               this.combatModifier === "DEFENDING";
+        // Can defend when in combat, not while building or mating
+        return (this.combatModifier === "IN_COMBAT" || 
+                this.combatModifier === "DEFENDING") &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "MATING";
       
       case "spit":
-        return this.combatModifier === "IN_COMBAT" || 
-               this.combatModifier === "SPITTING";
+        // Can spit when in combat, not while building or mating
+        return (this.combatModifier === "IN_COMBAT" || 
+                this.combatModifier === "SPITTING") &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "MATING";
       
       case "follow":
+        // Can't follow while attacking, spitting, building, or mating
         return this.combatModifier !== "ATTACKING" && 
-               this.combatModifier !== "SPITTING";
+               this.combatModifier !== "SPITTING" &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "MATING";
+      
+      case "build":
+        // Can only build when out of combat and not engaged in other activities
+        return this.combatModifier === "OUT_OF_COMBAT" &&
+               this.primaryState !== "MATING" &&
+               this.primaryState !== "SOCIALIZING";
+      
+      case "socialize":
+        // Can socialize when out of combat, not while building or mating
+        return this.combatModifier === "OUT_OF_COMBAT" &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "MATING";
+      
+      case "mate":
+        // Can only mate when out of combat and not engaged in other activities
+        return this.combatModifier === "OUT_OF_COMBAT" &&
+               this.primaryState !== "BUILDING" &&
+               this.primaryState !== "SOCIALIZING";
       
       default:
         return true;
@@ -126,15 +164,26 @@ class AntStateMachine {
 
   // Check current states
   isPrimaryState(state) { return this.primaryState === state; }
-  isInCombat() { return this.combatModifier !== null; }
+  isInCombat() { return this.combatModifier !== "OUT_OF_COMBAT" && this.combatModifier !== null; }
+  isOutOfCombat() { return this.combatModifier === "OUT_OF_COMBAT"; }
   isOnTerrain(terrain) { return this.terrainModifier === terrain; }
   isInState(fullState) {  return this.getFullState() === fullState; }
 
   // State queries
-  isIdle() { return this.primaryState === "IDLE" && !this.isInCombat(); }
+  isIdle() { return this.primaryState === "IDLE" && this.isOutOfCombat(); }
   isMoving() { return this.primaryState === "MOVING"; }
   isGathering() { return this.primaryState === "GATHERING"; }
   isFollowing() { return this.primaryState === "FOLLOWING"; }
+  isBuilding() { return this.primaryState === "BUILDING"; }
+  isSocializing() { return this.primaryState === "SOCIALIZING"; }
+  isMating() { return this.primaryState === "MATING"; }
+  
+  // Terrain queries
+  isOnDefaultTerrain() { return this.terrainModifier === "DEFAULT"; }
+  isInWater() { return this.terrainModifier === "IN_WATER"; }
+  isInMud() { return this.terrainModifier === "IN_MUD"; }
+  isOnSlipperyTerrain() { return this.terrainModifier === "ON_SLIPPERY"; }
+  isOnRoughTerrain() { return this.terrainModifier === "ON_ROUGH"; }
 
   // Clear all modifiers (return to primary state only)
   clearModifiers() {
@@ -148,8 +197,8 @@ class AntStateMachine {
   reset() {
     const oldState = this.getFullState();
     this.primaryState = "IDLE";
-    this.combatModifier = null;
-    this.terrainModifier = null;
+    this.combatModifier = "OUT_OF_COMBAT";
+    this.terrainModifier = "DEFAULT";
     this._notifyStateChange(oldState, this.getFullState());
   }
 
@@ -180,9 +229,17 @@ class AntStateMachine {
       primary: this.primaryState,
       combat: this.combatModifier,
       terrain: this.terrainModifier,
-      canMove: this.canPerformAction("move"),
-      canGather: this.canPerformAction("gather"),
-      canAttack: this.canPerformAction("attack")
+      actions: {
+        canMove: this.canPerformAction("move"),
+        canGather: this.canPerformAction("gather"),
+        canAttack: this.canPerformAction("attack"),
+        canDefend: this.canPerformAction("defend"),
+        canSpit: this.canPerformAction("spit"),
+        canFollow: this.canPerformAction("follow"),
+        canBuild: this.canPerformAction("build"),
+        canSocialize: this.canPerformAction("socialize"),
+        canMate: this.canPerformAction("mate")
+      }
     };
   }
 }

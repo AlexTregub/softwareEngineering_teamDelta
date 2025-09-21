@@ -67,9 +67,9 @@ const testSuite = new TestSuite();
 testSuite.test('Basic Initialization', () => {
   const sm = new AntStateMachine();
   testSuite.assertEqual(sm.primaryState, 'IDLE', 'Should start in IDLE state');
-  testSuite.assertEqual(sm.combatModifier, null, 'Should have no combat modifier');
-  testSuite.assertEqual(sm.terrainModifier, null, 'Should have no terrain modifier');
-  testSuite.assertEqual(sm.getFullState(), 'IDLE', 'Full state should be IDLE');
+  testSuite.assertEqual(sm.combatModifier, 'OUT_OF_COMBAT', 'Should start with OUT_OF_COMBAT modifier');
+  testSuite.assertEqual(sm.terrainModifier, 'DEFAULT', 'Should start with DEFAULT terrain modifier');
+  testSuite.assertEqual(sm.getFullState(), 'IDLE_OUT_OF_COMBAT_DEFAULT', 'Full state should include all modifiers');
 });
 
 // Test 2: Valid Primary State Transitions
@@ -206,23 +206,26 @@ testSuite.test('Action Permissions - Gathering', () => {
   const sm = new AntStateMachine();
   
   // Gathering should be allowed in peaceful states
-  sm.setState('IDLE', null, null);
+  sm.setState('IDLE', 'OUT_OF_COMBAT', 'DEFAULT');
   testSuite.assertTrue(sm.canPerformAction('gather'), 'Should allow gathering when idle');
   
-  sm.setState('GATHERING', null, 'IN_WATER');
+  sm.setState('GATHERING', 'OUT_OF_COMBAT', 'IN_WATER');
   testSuite.assertTrue(sm.canPerformAction('gather'), 'Should allow gathering in water');
   
-  sm.setState('MOVING', 'DEFENDING', null);
-  testSuite.assertTrue(sm.canPerformAction('gather'), 'Should allow gathering while defending');
+  sm.setState('MOVING', 'OUT_OF_COMBAT', 'DEFAULT');
+  testSuite.assertTrue(sm.canPerformAction('gather'), 'Should allow gathering while moving and out of combat');
   
-  // Gathering should be restricted during aggressive actions
-  sm.setState('IDLE', 'ATTACKING', null);
+  // Gathering should be restricted during combat actions
+  sm.setState('IDLE', 'DEFENDING', 'DEFAULT');
+  testSuite.assertFalse(sm.canPerformAction('gather'), 'Should not allow gathering while defending');
+  
+  sm.setState('IDLE', 'ATTACKING', 'DEFAULT');
   testSuite.assertFalse(sm.canPerformAction('gather'), 'Should not allow gathering while attacking');
   
-  sm.setState('GATHERING', 'SPITTING', null);
+  sm.setState('GATHERING', 'SPITTING', 'DEFAULT');
   testSuite.assertFalse(sm.canPerformAction('gather'), 'Should not allow gathering while spitting');
   
-  sm.setState('FOLLOWING', null, null);
+  sm.setState('FOLLOWING', 'OUT_OF_COMBAT', 'DEFAULT');
   testSuite.assertFalse(sm.canPerformAction('gather'), 'Should not allow gathering while following');
 });
 
@@ -256,13 +259,13 @@ testSuite.test('State Query Methods', () => {
   const sm = new AntStateMachine();
   
   // Test idle state
-  sm.setState('IDLE', null, null);
-  testSuite.assertTrue(sm.isIdle(), 'Should be idle when in IDLE state with no modifiers');
+  sm.setState('IDLE', 'OUT_OF_COMBAT', 'DEFAULT');
+  testSuite.assertTrue(sm.isIdle(), 'Should be idle when in IDLE state with OUT_OF_COMBAT');
   testSuite.assertTrue(sm.isPrimaryState('IDLE'), 'Should be in IDLE primary state');
-  testSuite.assertFalse(sm.isInCombat(), 'Should not be in combat');
+  testSuite.assertTrue(sm.isOutOfCombat(), 'Should be out of combat');
   
   // Test non-idle state
-  sm.setState('IDLE', 'IN_COMBAT', null);
+  sm.setState('IDLE', 'IN_COMBAT', 'DEFAULT');
   testSuite.assertFalse(sm.isIdle(), 'Should not be idle when in combat');
   testSuite.assertTrue(sm.isInCombat(), 'Should be in combat');
   
@@ -296,16 +299,16 @@ testSuite.test('State Reset and Clear Operations', () => {
   // Clear modifiers
   sm.clearModifiers();
   testSuite.assertEqual(sm.getFullState(), 'GATHERING', 'Should only have primary state after clearing modifiers');
-  testSuite.assertEqual(sm.combatModifier, null, 'Combat modifier should be null');
-  testSuite.assertEqual(sm.terrainModifier, null, 'Terrain modifier should be null');
+  testSuite.assertEqual(sm.combatModifier, null, 'Combat modifier should be null after clearing');
+  testSuite.assertEqual(sm.terrainModifier, null, 'Terrain modifier should be null after clearing');
   
   // Reset completely
   sm.setState('FOLLOWING', 'SPITTING', 'IN_WATER');
   sm.reset();
-  testSuite.assertEqual(sm.getFullState(), 'IDLE', 'Should be IDLE after reset');
+  testSuite.assertEqual(sm.getFullState(), 'IDLE_OUT_OF_COMBAT_DEFAULT', 'Should be IDLE_OUT_OF_COMBAT_DEFAULT after reset');
   testSuite.assertEqual(sm.primaryState, 'IDLE', 'Primary state should be IDLE');
-  testSuite.assertEqual(sm.combatModifier, null, 'Combat modifier should be null after reset');
-  testSuite.assertEqual(sm.terrainModifier, null, 'Terrain modifier should be null after reset');
+  testSuite.assertEqual(sm.combatModifier, 'OUT_OF_COMBAT', 'Combat modifier should be OUT_OF_COMBAT after reset');
+  testSuite.assertEqual(sm.terrainModifier, 'DEFAULT', 'Terrain modifier should be DEFAULT after reset');
 });
 
 // Test 15: State Change Callbacks
@@ -326,8 +329,8 @@ testSuite.test('State Change Callbacks', () => {
   sm.setPrimaryState('MOVING');
   
   testSuite.assertTrue(callbackCalled, 'Callback should be called on state change');
-  testSuite.assertEqual(oldStateReceived, 'IDLE', 'Should receive correct old state');
-  testSuite.assertEqual(newStateReceived, 'MOVING', 'Should receive correct new state');
+  testSuite.assertEqual(oldStateReceived, 'IDLE_OUT_OF_COMBAT_DEFAULT', 'Should receive correct old state');
+  testSuite.assertEqual(newStateReceived, 'MOVING_OUT_OF_COMBAT_DEFAULT', 'Should receive correct new state');
   
   // Reset callback tracking
   callbackCalled = false;
@@ -358,9 +361,10 @@ testSuite.test('Edge Cases and Error Handling', () => {
   const summary = sm.getStateSummary();
   testSuite.assertEqual(typeof summary, 'object', 'State summary should be an object');
   testSuite.assertTrue('fullState' in summary, 'Summary should include fullState');
-  testSuite.assertTrue('canMove' in summary, 'Summary should include canMove');
-  testSuite.assertTrue('canGather' in summary, 'Summary should include canGather');
-  testSuite.assertTrue('canAttack' in summary, 'Summary should include canAttack');
+  testSuite.assertTrue('actions' in summary, 'Summary should include actions object');
+  testSuite.assertTrue('canMove' in summary.actions, 'Summary actions should include canMove');
+  testSuite.assertTrue('canGather' in summary.actions, 'Summary actions should include canGather');
+  testSuite.assertTrue('canAttack' in summary.actions, 'Summary actions should include canAttack');
 });
 
 // Test 17: All State Combinations Test
