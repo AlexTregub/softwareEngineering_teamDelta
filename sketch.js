@@ -75,9 +75,6 @@ function setup() {
 
   MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
   MAP.randomize(SEED);
-  COORDSY = MAP.getCoordinateSystem();
-  COORDSY.setViewCornerBC(0,0);
-  
   GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
@@ -90,34 +87,6 @@ function setup() {
   Resources_Spawn(20);
 }
 
-function draw() {
-  MAP.render();
-  
-  // Debug: Check game state
-  if (frameCount % 60 === 0) { // Log once per second
-    console.log(`Game state: ${gameState}, isInGame: ${isInGame()}`);
-  }
-  
-  if (isInGame()) {
-    Ants_Update(); // This now handles both player and enemy ants
-    Resources_Update();
-  }
-
-  /*pos.add(vel);
-
-  if (pos.y < 0){
-    pos.y = CANVAS_Y;
-  }*/
-
-
-  if (typeof drawSelectionBox === 'function') {
-    drawSelectionBox();
-  }
-  drawDebugGrid(tileSize, GRIDMAP.width, GRIDMAP.height);
-  if(recordingPath){
-
-  }
-}
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   strokeWeight(1);
@@ -141,7 +110,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     const antTileX = Math.floor(selectedAnt.posX / tileSize);
     const antTileY = Math.floor(selectedAnt.posY / tileSize);
     fill(0, 255, 0, 80); // transparent green
-    noStroke();
+  drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
 }
@@ -149,7 +118,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
 function draw() {
   // Update menu state and handle transitions
   updateMenu();
-  
+
   // Render menu if active, otherwise render game
   if (renderMenu()) {
     return; // Menu rendered, stop here
@@ -157,9 +126,21 @@ function draw() {
 
   // --- GAMEPLAY RENDERING ---
   MAP.render();
-  Ants_Update();
-  Resources_Update();
-  if (typeof drawSelectionBox === 'function') drawSelectionBox();
+
+  // Debug: Check game state
+  if (frameCount % 60 === 0) { // Log once per second
+    console.log(`Game state: ${gameState}, isInGame: ${isInGame()}`);
+  }
+
+  if (isInGame()) {
+    Ants_Update(); // This now handles both player and enemy ants
+    Resources_Update();
+  }
+
+  if (typeof drawSelectionBox === 'function') {
+    drawSelectionBox();
+  }
+
   drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
 
   // Draw fade overlay if transitioning

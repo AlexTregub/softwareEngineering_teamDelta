@@ -21,7 +21,7 @@ function Ants_Preloader() {
     Warrior: loadImage('Images/Ants/blue_ant.png'),
     Spitter: loadImage('Images/Ants/gray_ant.png'),
     DeLozier: loadImage('Images/Ants/greg.jpg'),
-    Enemy: loadImage('images/Ants/enemyAnts.png') // Fixed case for enemy ants
+    Enemy: loadImage('Images/Ants/enemyAnts.png') // Fixed case for enemy ants
   };
   gregImg = loadImage("Images/Ants/greg.jpg");
 }
@@ -84,7 +84,7 @@ function Ants_Update() {
 }
 
 // --- Single Ant Selection/Movement ---
-function Ant_Click_Control() {
+function antClickControl() {
   // Move selected ant if one is already selected
   if (selectedAnt) {
     selectedAnt.moveToLocation(mouseX, mouseY);

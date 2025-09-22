@@ -125,8 +125,9 @@ class Species extends ant {
 // Assigns a random species to an ant
 function assignSpecies() {
   // Add DeLozier to the species list only if it hasn't been created yet
+  let speciesList;
   if (!hasDeLozier) { speciesList = _specialSpeciesList; }
-  else speciesList = _speciesList
+  else speciesList = _speciesList;
   const chosenSpecies = speciesList[Math.floor(random(0, speciesList.length))];
 
   // If DeLozier is chosen, set the flag to true
