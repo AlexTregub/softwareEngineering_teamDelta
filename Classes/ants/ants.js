@@ -258,11 +258,19 @@ class ant {
   }
 
   update() {
-    if (!this._isMoving) this._timeUntilSkitter -= 1;
-    if (this._timeUntilSkitter < 0) {
+    if(!this.isMoving && this._path && this.path.length > 0){//If a path exists and not skittering
+      const nextNode = this._path.shift(); //Sets next tile to be travelled as next path tile
+      const targetX = nextNode._x * tileSize; //Translates tile coordinate to translatable distance
+      const targetY = nextNode._y * tileSize;
+      this.moveToLocation(targetX, targetY); //Moves ant
+    }
+    else if (!this._isMoving && (!this._path || this._path.length === 0)){//Sets back to skittering when not pathfinding
+      this._timeUntilSkitter -= 1;
+      if (this._timeUntilSkitter < 0) {
       this.rndTimeUntilSkitter();
       this._isMoving = true;
       this.moveToLocation(this.posX + random(-25, 25), this.posY + random(-25, 25));
+      }
     }
     this.ResolveMoment();
     this.render();
@@ -303,11 +311,17 @@ class ant {
 function moveSelectedAntToTile(mx, my, tileSize) {
   if (selectedAnt) {
     const tileX = Math.floor(mx / tileSize);
-    const tileY = Math.floor(my / tileSize);
-    const targetX = tileX * tileSize;
-    const targetY = tileY * tileSize;
-    selectedAnt.moveToLocation(targetX, targetY);
+    const tileY = Math.floor(my / tileSize); //Gets coordinates clicked tiles
+    const grid = GRIDMAP.getGrid();
+    const antX = Math.floor(selectedAnt.posX/tileSize);
+    const antY = Math.floor(selectedAnt.posY/tileSize); //Gets current ant tile relative to where it started
+    const startTile = grid.getArrPos([antX, antY]); //Converts ant start to pos suitable for pathfinding
+    const endTile = grid.getArrPos([tileX, tileY]); //Converts clicked tile to pos suitable for pathfinding
+    if(startTile && endTile){
+      const newPath = findPath(startTile, endTile, GRIDMAP); //Only makes path if everything exists
+      selectedAnt.setPath(newPath);
+    }
     selectedAnt.isSelected = false;
-    selectedAnt = null;
+    selectedAnt = null; //Resets pathfinding/selection info
   }
 }
