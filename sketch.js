@@ -23,7 +23,7 @@ function preload(){
   Ants_Preloader()
   Resources_Preloader();
 
-  font = loadFont("../Images/Assets/Terraria.TTF");
+  font = loadFont("images/Assets/Terraria.TTF");
 }
 /*
 function mousePressed() {
