@@ -5,7 +5,13 @@ This testing suite ensures the selection box functionality remains stable when m
 
 ## Test Files
 
-### 1. `test/selectionBox.test.js`
+### 1. **Node.js Compatible Tests** ⭐ *Recommended*
+- `test/AntStateMachine.test.js` - Comprehensive state machine testing
+- `test/selectionBox.node.test.js` - Selection box logic testing
+
+### 2. **Browser-based Tests** (Legacy)
+- `test/selectionBox.test.js` - Mock-based unit tests for browser
+- `test/selectionBox.integration.test.js` - Integration tests with real game entities
 **Mock-based unit tests** that test selection logic in isolation.
 
 **Tests Include:**
@@ -30,7 +36,26 @@ This testing suite ensures the selection box functionality remains stable when m
 
 ## How to Run Tests
 
-### Enable Dev Console First
+### 🚀 **Node.js Testing (Recommended)**
+
+**Install Node.js** (if not already installed) and run:
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test suites
+npm run test:statemachine    # Ant State Machine tests
+npm run test:selection      # Selection Box tests
+
+# Individual test files
+node test/AntStateMachine.test.js
+node test/selectionBox.node.test.js
+```
+
+### 🌐 **Browser Testing**
+
+**Enable Dev Console First**
 **Press `` ` `` to toggle the dev console on/off**
 - When enabled: Green "DEV CONSOLE ON" indicator appears in top-right
 - When disabled: Test hotkeys are ignored
