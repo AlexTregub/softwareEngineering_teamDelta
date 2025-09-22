@@ -174,6 +174,8 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     fill(0, 255, 0, 80); // transparent green
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
+  }
+}
 
 function setupMenu() {
   menuButtons = [
