@@ -3,6 +3,7 @@ let antToSpawn = 0;
 let ant_Index = 0;
 let antSize;
 let ants = [];
+let globalResource = [];
 let antImg1;
 let antbg;
 let hasDeLozier = false;
@@ -257,17 +258,22 @@ class ant {
         this._sprite.setPosition(current);
       } else {
 
-        // Target Reach
+        // Target Reached
 
         this.posX = target.x;
         this.posY = target.y;
         this._isMoving = false;
         this._sprite.setPosition(target);
 
-        if(this.isDroppingOff || this.maxWeight){
-          console.log("Dropped Off")
+        // Stores Resource and Reset State Upon Dropoff
+        if(this.isDroppingOff || this.isMaxWeight ){
+          for(let r of this.Resources){
+            globalResource.push(r);
+          }
+
+          this.Resources = [];
           this.isDroppingOff = false;
-          this.maxWeight = false;
+          this.isMaxWeight  = false;
         }
       }
 
@@ -287,13 +293,17 @@ class ant {
       let xDifference = abs(Math.floor(x - this.posX));
       let yDifference = abs(Math.floor(y - this.posY));
       let range = 25;
-      let maxWeight = 5;
+      let maxWeight = 2; // Change to member variable??
+
       if(xDifference <= range && yDifference <= range){
-        this.Resources.push(fruits[k]);
-        delete fruits[k];
+        let fruit = fruits[k];
+        if(this.Resources.length < maxWeight){
+            this.Resources.push(fruit);
+            delete fruits[k];
+        }
         if(this.Resources.length >= maxWeight){
-            let dropPointX = 0;
-            let dropPointY = 0;
+          let dropPointX = 0;
+          let dropPointY = 0;
           this.dropOff(dropPointX,dropPointY);
         }
       }   

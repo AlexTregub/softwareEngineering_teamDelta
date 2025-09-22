@@ -5,9 +5,10 @@ let TILE_SIZE = 32; //  Default 32
 let SEED;
 let MAP;
 let COORDSY;
-
 let recordingPath
 
+//
+let gameState = "PLAYING";
 
 
 function preload(){
@@ -15,6 +16,7 @@ function preload(){
   terrainPreloader()
   Ants_Preloader()
   resourcePreLoad();
+  font = loadFont("../Images/Assets/Terraria.TTF");
 }
 
 /*
@@ -103,6 +105,16 @@ function setup() {
   Ants_Spawn(50);
 }
 
+function drawUI() {
+  push(); 
+  textFont(font); 
+  textSize(24);
+  fill(255);  // white text
+  textAlign(LEFT, TOP);
+  text("Food: " + globalResource.length, 10, 10);
+  pop();
+}
+
 
 
 
@@ -116,6 +128,10 @@ function draw() {
   }
   if(recordingPath){
 
+  }
+
+  if(gameState == "PLAYING"){
+    drawUI();
   }
 
 
