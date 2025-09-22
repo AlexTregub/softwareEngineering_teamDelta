@@ -2,7 +2,7 @@ let GRASS_IMAGE;
 let DIRT_IMAGE;
 let xCount = 32;
 let yCount = 32;
-let tileSize = 35; // Adds up to canvas dimensions
+let tileSize = 32; // Adds up to canvas dimensions
 
 ////// TERRAIN
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
@@ -100,6 +100,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
     // Texture Properties
     this._materialSet = 'grass'; // Used for storage of randomization. Initialized as default value for now
+    this._weight = 1;
   }
  
 
@@ -114,6 +115,8 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     for (let checkMat in TERRAIN_MATERIALS) {          
       if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
         this._materialSet = checkMat;
+        this.setMaterial();
+        this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
         return;
       }
     }
@@ -129,6 +132,22 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
       return true;
     }
     return false;
+  }
+
+  getWeight(){
+    return this._weight;
+  }
+
+  assignWeight(){ //Sets weight depending on the material
+    if(this._materialSet == 'grass'){
+      this._weight = 1;
+    }
+    else if(this._materialSet == 'dirt'){
+      this._weight = 3;
+    }
+    else if(this._materialSet == 'stone'){
+      this._weight = 100;
+    }
   }
 
   render() { // Render, previously draw
