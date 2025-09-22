@@ -9,6 +9,7 @@ This comprehensive testing suite ensures all game systems remain stable when mak
 - `test/AntStateMachine.test.js` - Comprehensive state machine testing (17 tests)
 - `test/selectionBox.node.test.js` - Selection box logic testing (10 tests)
 - `test/ant.test.js` - Comprehensive ant class testing (36 tests)
+- `test/sprite2d.test.js` - Sprite2D rendering class testing (17 tests)
 
 ### 2. **Browser-based Tests** (Legacy)
 - `test/selectionBox.test.js` - Mock-based unit tests for browser
@@ -46,6 +47,26 @@ This comprehensive testing suite ensures all game systems remain stable when mak
 - Debug state reporting and force idle functionality
 - Static utility methods for group operations
 
+### 🖼️ `test/sprite2d.test.js` - **NEW Sprite2D Rendering Tests**
+**Complete testing of the Sprite2D rendering class**
+
+**Tests Include:**
+- ✅ Constructor and initialization (4 tests)
+- ✅ Setter methods for all properties (6 tests)
+- ✅ Render method execution and parameter validation (2 tests)
+- ✅ Vector copying and memory management (2 tests)
+- ✅ Edge cases and error handling (1 test)
+- ✅ Integration and lifecycle testing (2 tests)
+
+**Key Features Tested:**
+- Constructor with default and custom parameters
+- Vector copying vs referencing for position and size
+- Image, position, size, and rotation setters
+- Render method with proper p5.js function calls
+- Coordinate transformation and rotation handling
+- Memory efficiency and object independence
+- Compatibility with both p5.Vector and plain objects
+
 ### 🧠 `test/AntStateMachine.test.js`
 **Comprehensive state machine testing**
 
@@ -81,26 +102,29 @@ This comprehensive testing suite ensures all game systems remain stable when mak
 **Install Node.js** (if not already installed) and run:
 
 ```bash
-# Run all tests (63 total tests)
+# Run all tests (80 total tests)
 npm test
 
 # Run specific test suites
 npm run test:statemachine    # Ant State Machine tests (17 tests)
 npm run test:selection      # Selection Box tests (10 tests)
 npm run test:ant            # Ant Class tests (36 tests)
+npm run test:sprite2d       # Sprite2D tests (17 tests)
 
 # Run individual test files
 node test/AntStateMachine.test.js
 node test/selectionBox.node.test.js
 node test/ant.test.js
+node test/sprite2d.test.js
 ```
 
 ## Test Statistics
 
-- **Total Tests**: 63 tests across 3 test suites
+- **Total Tests**: 80 tests across 4 test suites
 - **AntStateMachine**: 17 tests (100% pass rate)
 - **SelectionBox**: 10 tests (100% pass rate)
 - **Ant Class**: 36 tests (100% pass rate)
+- **Sprite2D**: 17 tests (100% pass rate)
 - **Code Coverage**: Comprehensive coverage of core game systems
 
 ## What's Tested
@@ -112,6 +136,7 @@ node test/ant.test.js
 - **Command System**: Queued commands and execution
 - **Combat System**: Enemy detection and faction management
 - **Terrain System**: Movement speed modifiers and terrain detection
+- **Rendering System**: Sprite positioning, rotation, and image management
 
 ### 🔧 **Integration Points**
 - State machine callbacks and transitions
