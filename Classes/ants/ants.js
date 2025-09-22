@@ -267,6 +267,7 @@ class ant {
         if(this.isDroppingOff || this.maxWeight){
           console.log("Dropped Off")
           this.isDroppingOff = false;
+          this.maxWeight = false;
         }
       }
 
