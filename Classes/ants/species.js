@@ -48,34 +48,38 @@ class Species extends ant {
   // Example: Override update to show species name
   update() {
     super.update();
-    const center = this.center;
-  
-    push();
-    rectMode(CENTER);
-  
-    // put the text a bit *below* the ant sprite
-    const labelY = center.y + this.sizeY / 2 + 15;
-  
-    // call your outlinedText helper
-    outlinedText(
-      this.speciesName,
-      center.x,
-      labelY,
-      font,        // <- your preloaded Terraria.TTF font
-      13,          // font size
-      color(255),  // inside (fill) color
-      color(0)     // outline color
-    );
-  
-    pop();
+    
+    // Species labels always enabled
+    if (typeof outlinedText !== 'undefined') {
+      const center = this.center;
+    
+      push();
+      rectMode(CENTER);
+    
+      // put the text a bit *below* the ant sprite
+      const labelY = center.y + this.sizeY / 2 + 15;
+    
+      // call your outlinedText helper
+      outlinedText(
+        this.speciesName,
+        center.x,
+        labelY,
+        font,        // <- your preloaded Terraria.TTF font
+        13,          // font size
+        color(255),  // inside (fill) color
+        color(0)     // outline color
+      );
+    
+      pop();
+    }
   }
 
   ResolveMoment() {
-    if (this.isMoving) {
+    if (this._isMoving) {
       const current = createVector(this.posX, this.posY);
       const target = createVector(
-        this.stats.pendingPos.statValue.x,
-        this.stats.pendingPos.statValue.y
+        this._stats.pendingPos.statValue.x,
+        this._stats.pendingPos.statValue.y
       );
 
       const direction = p5.Vector.sub(target, current);
@@ -83,18 +87,32 @@ class Species extends ant {
 
       if (distance > 1) {
         direction.normalize();
-        const speedPerMs = this.stats.movementSpeed.statValue / 1000;
+        const speedPerMs = this.movementSpeed / 1000;
         const step = Math.min(speedPerMs * deltaTime, distance);
         current.x += direction.x * step;
         current.y += direction.y * step;
         this.posX = current.x;
         this.posY = current.y;
-        this.sprite.setPosition(current);
+        this._sprite.setPosition(current);
       } else {
+
+        // Target Reach
+
         this.posX = target.x;
         this.posY = target.y;
-        this.isMoving = false;
-        this.sprite.setPosition(target);
+        this._isMoving = false;
+        this._sprite.setPosition(target);
+
+        // Stores Resource and Reset State Upon Dropoff
+        if(this.isDroppingOff || this.isMaxWeight ){
+          for(let r of this.Resources){
+            globalResource.push(r);
+          }
+
+          this.Resources = [];
+          this.isDroppingOff = false;
+          this.isMaxWeight  = false;
+        }
       }
 
       this.render();
