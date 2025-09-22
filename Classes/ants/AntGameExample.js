@@ -97,7 +97,7 @@ function handleKeyCommands() {
 
 // Example debug display
 function displayAntDebugInfo() {
-  if (selectedAnt) {
+  if (selectedAnt && typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
     const summary = selectedAnt.getStateSummary();
     
     // Display state information

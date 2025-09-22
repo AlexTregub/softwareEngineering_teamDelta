@@ -168,13 +168,15 @@ class ant {
       strokeWeight(2);
       rect(pos.x, pos.y, size.x, size.y);
       
-      // Show state information for selected ant
-      fill(255);
-      textAlign(LEFT);
-      textSize(10);
-      text(`State: ${this.getCurrentState()}`, pos.x, pos.y - 30);
-      text(`Faction: ${this._faction}`, pos.x, pos.y - 20);
-      text(`Speed: ${this.getEffectiveMovementSpeed().toFixed(1)}`, pos.x, pos.y - 10);
+      // Show state information for selected ant (only when dev console enabled)
+      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+        fill(255);
+        textAlign(LEFT);
+        textSize(10);
+        text(`State: ${this.getCurrentState()}`, pos.x, pos.y - 30);
+        text(`Faction: ${this._faction}`, pos.x, pos.y - 20);
+        text(`Speed: ${this.getEffectiveMovementSpeed().toFixed(1)}`, pos.x, pos.y - 10);
+      }
       
       pop();
     } else if (this.isMouseOver(mouseX, mouseY)) {
