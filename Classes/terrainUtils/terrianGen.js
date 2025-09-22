@@ -122,6 +122,16 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     }
   }
 
+  randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
+    let selected = random(); // [0-1)
+    for (let checkMat in TERRAIN_MATERIALS) {
+      if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
+        this._materialSet = checkMat;
+        return;
+      }
+    }
+  }
+
   getMaterial() {
     return this._materialSet;
   }
