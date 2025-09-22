@@ -54,72 +54,23 @@ function mouseReleased() {
   }
 }
 
-// DEV CONSOLE STATE
-let devConsoleEnabled = false;
-
-// DEBUG LOGGING HELPER
-function debugLog(message, ...args) {
-  if (devConsoleEnabled) {
-    console.log(message, ...args);
-  }
-}
+// Debug functionality moved to debug/testing.js
 
 // KEYBOARD INTERACTIONS
 function keyPressed() {
+  // Handle all debug-related keys (command line, dev console, test hotkeys)
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug key was handled, don't process further
+  }
+  
   if (keyCode === ESCAPE) {
     if (typeof deselectAllEntities === 'function') {
       deselectAllEntities();
     }
   }
-  
-  // Toggle dev console with ` key (backtick)
-  if (key === '`') {
-    devConsoleEnabled = !devConsoleEnabled;
-    if (devConsoleEnabled) {
-      console.log("🛠️  DEV CONSOLE ENABLED");
-      console.log("📋 Available commands:");
-      console.log("   T - Run Selection Box Tests");
-      console.log("   P - Run Performance Tests");
-      console.log("   I - Run Integration Tests");
-      console.log("   ` - Toggle Dev Console");
-    } else {
-      console.log("🛠️  DEV CONSOLE DISABLED");
-    }
-  }
-  
-  // Test hotkeys (only work when dev console is enabled)
-  if (devConsoleEnabled) {
-    if (key === 't' || key === 'T') {
-      console.log("🧪 Running Selection Box Tests...");
-      if (typeof runSelectionBoxTests === 'function') {
-        runSelectionBoxTests();
-      } else {
-        console.log("❌ Test functions not loaded");
-      }
-    }
-    
-    if (key === 'p' || key === 'P') {
-      console.log("⚡ Running Performance Tests...");
-      if (typeof testSelectionPerformance === 'function') {
-        testSelectionPerformance();
-      } else {
-        console.log("❌ Performance test function not loaded");
-      }
-    }
-    
-    if (key === 'i' || key === 'I') {
-      console.log("🔗 Running Integration Tests...");
-      if (typeof testRealSelectionBoxIntegration === 'function') {
-        testRealSelectionBoxIntegration();
-        testSelectionScenarios();
-      } else {
-        console.log("❌ Integration test functions not loaded");
-      }
-    }
-  } else if ((key === 't' || key === 'T') || (key === 'p' || key === 'P') || (key === 'i' || key === 'I')) {
-    console.log("🛠️  Dev console is disabled. Press ` to enable testing commands.");
-  }
 }
+
+// Command line functionality has been moved to debug/commandLine.js
 
 ////// MAIN
 function setup() {
@@ -161,7 +112,14 @@ function draw() {
   drawDebugGrid(tileSize, GRIDMAP.width, GRIDMAP.height);
   
   // Draw dev console indicator
-  drawDevConsoleIndicator();
+  if (typeof drawDevConsoleIndicator === 'function') {
+    drawDevConsoleIndicator();
+  }
+  
+  // Draw command line interface
+  if (typeof drawCommandLine === 'function') {
+    drawCommandLine();
+  }
   
   if(recordingPath){
 
@@ -212,38 +170,19 @@ function draw() {
   drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
 
   // Draw dev console indicator
-  drawDevConsoleIndicator();
+  if (typeof drawDevConsoleIndicator === 'function') {
+    drawDevConsoleIndicator();
+  }
+  
+  // Draw command line interface
+  if (typeof drawCommandLine === 'function') {
+    drawCommandLine();
+  }
 
   // Draw fade overlay if transitioning
   drawFadeOverlay();
 }
 
-function drawDevConsoleIndicator() {
-  if (devConsoleEnabled) {
-    // Draw dev console indicator in top-right corner
-    push();
-    fill(0, 255, 0, 200); // Semi-transparent green
-    stroke(0, 255, 0);
-    strokeWeight(2);
-    
-    // Background box
-    let boxWidth = 120;
-    let boxHeight = 25;
-    rect(width - boxWidth - 10, 10, boxWidth, boxHeight);
-    
-    // Text
-    fill(0);
-    noStroke();
-    textAlign(CENTER, CENTER);
-    textSize(12);
-    text("DEV CONSOLE ON", width - boxWidth/2 - 10, 22);
-    
-    // Small help text
-    fill(255, 255, 255, 180);
-    textAlign(RIGHT);
-    textSize(10);
-    text("Press ` to toggle", width - 15, 45);
-    
-    pop();
-  }
-}
+// Dev console indicator moved to debug/testing.js
+
+// Command line drawing moved to debug/commandLine.js
