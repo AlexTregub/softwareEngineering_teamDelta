@@ -84,7 +84,7 @@ class Resource {
         if (!this._isCarried && this.isMouseOver(mouseX, mouseY)) {
         const pos = this._sprite.pos;
         const size = this._sprite.size;
-        highlight(this, color(255, 255, 255))
+        highlight(this, color(255, 255, 255));
         }
     }
     

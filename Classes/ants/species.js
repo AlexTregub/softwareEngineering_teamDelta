@@ -1,6 +1,6 @@
 const _speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
-const _specialSpeciesList = ["DeLozier"]
-const _enemySpeciesList = ["Enemy"]
+const _specialSpeciesList = ["DeLozier"];
+const _enemySpeciesList = ["Enemy"];
 const _allSpecies = [..._speciesList, ..._specialSpeciesList, ..._enemySpeciesList];
 class Species extends ant {
   constructor(antObject, speciesName, speciesImage, faction = "player") {

@@ -17,27 +17,13 @@ function preload(){
   Ants_Preloader()
   Resources_Preloader();
 
-  // So far working...
-  // testGridUtil();
-  // testGridResizeAndConsequences();
-  font = loadFont("../Images/Assets/Terraria.TTF");
+  font = loadFont("Images/Assets/Terraria.TTF");
 }
 
 // MOUSE INTERACTIONS
 function mousePressed() {
-  if (isInGame()) {  // only allow ant interactions in game
-    if (typeof handleMousePressed === 'function') {
-      handleMousePressed(
-        ants,
-        mouseX,
-        mouseY,
-        Ant_Click_Control,
-        selectedAnt,
-        moveSelectedAntToTile,
-        TILE_SIZE,
-        mouseButton
-      );
-    }
+  if (isInGame() && typeof handleMousePressed === 'function') {
+    handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, mouseButton);
   }
 
   // Handle menu button clicks
@@ -75,6 +61,9 @@ function setup() {
 
   MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
   MAP.randomize(SEED);
+  COORDSY = MAP.getCoordinateSystem();
+  COORDSY.setViewCornerBC(0,0);
+  
   GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
@@ -140,7 +129,6 @@ function draw() {
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
-
   drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
 
   // Draw fade overlay if transitioning

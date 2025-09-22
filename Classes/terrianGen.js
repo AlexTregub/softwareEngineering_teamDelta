@@ -115,7 +115,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     for (let checkMat in TERRAIN_MATERIALS) {          
       if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
         this._materialSet = checkMat;
-        this.setMaterial(checkMat);
+        this.setMaterial();
         this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
         return;
       }
