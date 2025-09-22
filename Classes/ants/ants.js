@@ -92,6 +92,10 @@ class ant {
     this._path = null;
     this._isSelected = false;
     this.isBoxHovered = false;
+
+    // Resource
+    this.isDroppingOff = false;
+    this.isMaxWeight = false // Ants capacity max
     this.Resources = []; // Resource the ants is carrying
   }
 
@@ -229,7 +233,6 @@ class ant {
     this._stats.pendingPos.statValue.x = X;
     this._stats.pendingPos.statValue.y = Y;
     this._isMoving = true
-
   }
 
   ResolveMoment() {
@@ -253,16 +256,25 @@ class ant {
         this.posY = current.y;
         this._sprite.setPosition(current);
       } else {
+
+        // Target Reach
+
         this.posX = target.x;
         this.posY = target.y;
         this._isMoving = false;
         this._sprite.setPosition(target);
+
+        if(this.isDroppingOff || this.maxWeight){
+          console.log("Dropped Off")
+          this.isDroppingOff = false;
+        }
       }
 
       this.render();
     }
   }
 
+  // Ants Collect NearBy Fruits/Resources 
   resourceCheck(){
     let fruits = resourceList.getResourceList();
     let keys = Object.keys(fruits);
@@ -274,12 +286,25 @@ class ant {
       let xDifference = abs(Math.floor(x - this.posX));
       let yDifference = abs(Math.floor(y - this.posY));
       let range = 25;
+      let maxWeight = 5;
       if(xDifference <= range && yDifference <= range){
         this.Resources.push(fruits[k]);
         delete fruits[k];
+        if(this.Resources.length >= maxWeight){
+            let dropPointX = 0;
+            let dropPointY = 0;
+          this.dropOff(dropPointX,dropPointY);
+        }
       }   
     }
   }
+
+  dropOff(X,Y){
+    this.isDroppingOff = true;
+    this.isMaxWeight = true;
+    this.moveToLocation(X,Y);
+  }
+
 
   update() {
     if (!this._isMoving) this._timeUntilSkitter -= 1;

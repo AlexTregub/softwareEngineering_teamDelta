@@ -79,10 +79,17 @@ class Species extends ant {
         this.posY = current.y;
         this.sprite.setPosition(current);
       } else {
+
         this.posX = target.x;
         this.posY = target.y;
         this.isMoving = false;
         this.sprite.setPosition(target);
+
+        if(this.isDroppingOff || this.maxWeight){
+          console.log("Dropped Off")
+          this.isDroppingOff = false;
+          this.maxWeight = false;
+        }
       }
 
       this.render();
