@@ -141,3 +141,113 @@ if (typeof module !== "undefined" && module.exports) {
   };
 }
 
+// --- Abstract Highlighting Functions ---
+
+// Highlight an entity with a specific color and style
+function highlightEntity(entity, highlightType = "selected", customColor = null) {
+  const pos = entity.getPosition ? entity.getPosition() : entity.sprite?.pos || { x: entity.posX, y: entity.posY };
+  const size = entity.getSize ? entity.getSize() : entity.sprite?.size || { x: entity.sizeX, y: entity.sizeY };
+  
+  if (!pos || !size) return; // Safety check
+  
+  push();
+  noFill();
+  strokeWeight(2);
+  
+  // Define highlight colors and styles
+  switch (highlightType) {
+    case "selected":
+      stroke(customColor || color(0, 0, 255)); // Blue for selected
+      break;
+    case "hover":
+      stroke(customColor || color(255, 255, 0)); // Yellow for hover
+      break;
+    case "boxHovered":
+      stroke(customColor || color(0, 255, 0)); // Green for box selection
+      break;
+    case "combat":
+      stroke(customColor || color(255, 0, 0)); // Red for combat
+      strokeWeight(1);
+      rect(pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
+      pop();
+      return;
+    case "custom":
+      stroke(customColor || color(255, 255, 255)); // White default
+      break;
+    default:
+      stroke(color(255, 255, 255)); // White fallback
+  }
+  
+  rect(pos.x, pos.y, size.x, size.y);
+  pop();
+}
+
+// Render state indicators for an entity
+function renderStateIndicators(entity) {
+  const pos = entity.getPosition ? entity.getPosition() : entity.sprite?.pos || { x: entity.posX, y: entity.posY };
+  const size = entity.getSize ? entity.getSize() : entity.sprite?.size || { x: entity.sizeX, y: entity.sizeY };
+  
+  if (!pos || !size || !entity._stateMachine) return; // Safety check
+  
+  push();
+  
+  // Building state indicator
+  if (entity._stateMachine.isBuilding && entity._stateMachine.isBuilding()) {
+    fill(139, 69, 19); // Brown
+    noStroke();
+    ellipse(pos.x + size.x - 5, pos.y + 5, 6, 6);
+  }
+  
+  // Gathering state indicator
+  if (entity._stateMachine.isGathering && entity._stateMachine.isGathering()) {
+    fill(0, 255, 0); // Green
+    noStroke();
+    ellipse(pos.x + size.x - 5, pos.y + 5, 6, 6);
+  }
+  
+  // Following state indicator
+  if (entity._stateMachine.isFollowing && entity._stateMachine.isFollowing()) {
+    fill(255, 255, 0); // Yellow
+    noStroke();
+    ellipse(pos.x + size.x - 5, pos.y + 5, 6, 6);
+  }
+  
+  // Terrain effect indicators
+  if (entity._stateMachine.terrainModifier && entity._stateMachine.terrainModifier !== "DEFAULT") {
+    let terrainColor;
+    switch (entity._stateMachine.terrainModifier) {
+      case "IN_WATER": terrainColor = color(0, 100, 255); break;
+      case "IN_MUD": terrainColor = color(101, 67, 33); break;
+      case "ON_SLIPPERY": terrainColor = color(200, 200, 255); break;
+      case "ON_ROUGH": terrainColor = color(100, 100, 100); break;
+      default: terrainColor = color(255);
+    }
+    
+    fill(terrainColor);
+    noStroke();
+    rect(pos.x, pos.y + size.y - 3, size.x, 3);
+  }
+  
+  pop();
+}
+
+// Render debug information for selected entity
+function renderDebugInfo(entity) {
+  if (typeof devConsoleEnabled === 'undefined' || !devConsoleEnabled) return;
+  
+  const pos = entity.getPosition ? entity.getPosition() : entity.sprite?.pos || { x: entity.posX, y: entity.posY };
+  
+  if (!pos || !entity.getCurrentState) return; // Safety check
+  
+  push();
+  fill(255);
+  textAlign(LEFT);
+  textSize(10);
+  text(`State: ${entity.getCurrentState()}`, pos.x, pos.y - 30);
+  text(`Faction: ${entity._faction || entity.faction || 'unknown'}`, pos.x, pos.y - 20);
+  if (entity.getEffectiveMovementSpeed) {
+    text(`Speed: ${entity.getEffectiveMovementSpeed().toFixed(1)}`, pos.x, pos.y - 10);
+  }
+  pop();
+}
+

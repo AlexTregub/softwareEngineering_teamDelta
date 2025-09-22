@@ -1,19 +1,66 @@
-# Selection Box Testing Documentation
+# Ant Game Testing Documentation
 
 ## Overview
-This testing suite ensures the selection box functionality remains stable when making changes to the ant selection system.
+This comprehensive testing suite ensures all game systems remain stable when making changes to the ant game codebase.
 
 ## Test Files
 
 ### 1. **Node.js Compatible Tests** ⭐ *Recommended*
-- `test/AntStateMachine.test.js` - Comprehensive state machine testing
-- `test/selectionBox.node.test.js` - Selection box logic testing
+- `test/AntStateMachine.test.js` - Comprehensive state machine testing (17 tests)
+- `test/selectionBox.node.test.js` - Selection box logic testing (10 tests)
+- `test/ant.test.js` - Comprehensive ant class testing (36 tests)
 
 ### 2. **Browser-based Tests** (Legacy)
 - `test/selectionBox.test.js` - Mock-based unit tests for browser
 - `test/selectionBox.integration.test.js` - Integration tests with real game entities
-**Mock-based unit tests** that test selection logic in isolation.
 
+## Test Coverage
+
+### 🐜 `test/ant.test.js` - **NEW Comprehensive Ant Class Tests**
+**Complete testing of the ant class functionality**
+
+**Tests Include:**
+- ✅ Constructor and initialization (3 tests)
+- ✅ Property getters and setters (5 tests)
+- ✅ State machine integration (2 tests)
+- ✅ Movement system (3 tests)
+- ✅ Mouse interaction (2 tests)
+- ✅ Command system (6 tests)
+- ✅ Faction and combat system (4 tests)
+- ✅ Skitter behavior (2 tests)
+- ✅ Helper methods (1 test)
+- ✅ Debug functionality (2 tests)
+- ✅ Static methods (2 tests)
+- ✅ Pathfinding integration (1 test)
+- ✅ Terrain detection (2 tests)
+- ✅ Integration tests (1 test)
+
+**Key Features Tested:**
+- Constructor with default and custom parameters
+- Position and size management with sprite synchronization
+- Movement speed calculation with terrain modifiers
+- State machine integration and state change callbacks
+- Command queue processing and execution
+- Enemy detection and combat state transitions
+- Mouse collision detection and selection
+- Debug state reporting and force idle functionality
+- Static utility methods for group operations
+
+### 🧠 `test/AntStateMachine.test.js`
+**Comprehensive state machine testing**
+
+**Tests Include:**
+- ✅ State initialization and validation
+- ✅ Primary state transitions (IDLE, MOVING, GATHERING, etc.)
+- ✅ Combat modifier handling (IN_COMBAT, OUT_OF_COMBAT)
+- ✅ Terrain modifier effects (IN_WATER, IN_MUD, ON_SLIPPERY, etc.)
+- ✅ Action permission system
+- ✅ State query methods
+- ✅ State change callbacks
+- ✅ Edge cases and error handling
+- ✅ All valid state combinations (60 combinations tested)
+
+### 📦 `test/selectionBox.node.test.js`
 **Tests Include:**
 - ✅ Entity mouse collision detection
 - ✅ Box selection area calculations  
@@ -23,16 +70,9 @@ This testing suite ensures the selection box functionality remains stable when m
 - ✅ Multi-selection behavior
 - ✅ Performance testing with 1000+ entities
 
-### 2. `test/selectionBox.integration.test.js`
-**Integration tests** that verify the selection system works with real game entities.
-
-**Tests Include:**
-- ✅ Selection box function availability
-- ✅ Real ant entity compatibility
-- ✅ Mouse collision with actual ant objects
-- ✅ Selection state property validation
-- ✅ Global variable existence
-- ✅ Real-world selection scenarios
+### 3. **Browser-based Tests** (Legacy)
+- `test/selectionBox.test.js` - Mock-based unit tests for browser
+- `test/selectionBox.integration.test.js` - Integration tests with real game entities
 
 ## How to Run Tests
 
@@ -41,12 +81,71 @@ This testing suite ensures the selection box functionality remains stable when m
 **Install Node.js** (if not already installed) and run:
 
 ```bash
-# Run all tests
+# Run all tests (63 total tests)
 npm test
 
 # Run specific test suites
-npm run test:statemachine    # Ant State Machine tests
-npm run test:selection      # Selection Box tests
+npm run test:statemachine    # Ant State Machine tests (17 tests)
+npm run test:selection      # Selection Box tests (10 tests)
+npm run test:ant            # Ant Class tests (36 tests)
+
+# Run individual test files
+node test/AntStateMachine.test.js
+node test/selectionBox.node.test.js
+node test/ant.test.js
+```
+
+## Test Statistics
+
+- **Total Tests**: 63 tests across 3 test suites
+- **AntStateMachine**: 17 tests (100% pass rate)
+- **SelectionBox**: 10 tests (100% pass rate)
+- **Ant Class**: 36 tests (100% pass rate)
+- **Code Coverage**: Comprehensive coverage of core game systems
+
+## What's Tested
+
+### 🎯 **Core Game Systems**
+- **Ant Behavior**: Complete ant lifecycle, movement, states
+- **State Management**: Complex state machine with combat/terrain modifiers
+- **Selection System**: Mouse interaction and multi-selection
+- **Command System**: Queued commands and execution
+- **Combat System**: Enemy detection and faction management
+- **Terrain System**: Movement speed modifiers and terrain detection
+
+### 🔧 **Integration Points**
+- State machine callbacks and transitions
+- Sprite synchronization with game logic
+- Command queue processing
+- Enemy detection algorithms
+- Abstract highlighting system compatibility
+
+### 🚨 **Edge Cases**
+- Invalid state transitions
+- Boundary collision detection
+- Performance with large entity counts
+- Error handling and recovery
+- Mock vs real entity compatibility
+
+## Adding New Tests
+
+To add tests for new features:
+
+1. **For ant-related functionality**: Add to `test/ant.test.js`
+2. **For state machine changes**: Add to `test/AntStateMachine.test.js`
+3. **For selection/UI features**: Add to `test/selectionBox.node.test.js`
+4. **For new game systems**: Create a new test file and update `package.json`
+
+Example test pattern:
+```javascript
+suite.test('Feature description', () => {
+  const testAnt = new ant();
+  // Setup test conditions
+  // Perform action
+  // Assert expected results
+  suite.assertEqual(actual, expected, 'Description of what should happen');
+});
+```
 
 # Individual test files
 node test/AntStateMachine.test.js

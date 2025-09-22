@@ -158,104 +158,25 @@ class ant {
 
   // --- Highlighting ---
   highlight() {
-    const pos = this._sprite.pos;
-    const size = this._sprite.size;
-    
+    // Use abstract highlighting functions from selectionBox.js
     if (this._isSelected) {
-      push();
-      noFill();
-      stroke(color(0, 0, 255)); // Blue for selected
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      
-      // Show state information for selected ant (only when dev console enabled)
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-        fill(255);
-        textAlign(LEFT);
-        textSize(10);
-        text(`State: ${this.getCurrentState()}`, pos.x, pos.y - 30);
-        text(`Faction: ${this._faction}`, pos.x, pos.y - 20);
-        text(`Speed: ${this.getEffectiveMovementSpeed().toFixed(1)}`, pos.x, pos.y - 10);
-      }
-      
-      pop();
+      highlightEntity(this, "selected");
+      renderDebugInfo(this);
     } else if (this.isMouseOver(mouseX, mouseY)) {
-      push();
-      noFill();
-      stroke(color(255, 255, 0)); // Yellow for hover
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
+      highlightEntity(this, "hover");
     } else if (this.isBoxHovered) {
-      push();
-      noFill();
-      stroke(color(0, 255, 0));
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
+      highlightEntity(this, "boxHovered");
     }
     
     // Show combat state with red outline
     if (this._stateMachine.isInCombat()) {
-      push();
-      noFill();
-      stroke(color(255, 0, 0)); // Red for combat
-      strokeWeight(1);
-      rect(pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
-      pop();
+      highlightEntity(this, "combat");
     }
     
     // Show state-dependent visual indicators
-    this.renderStateIndicators();
+    renderStateIndicators(this);
   }
   
-  // Render small indicators for different states
-  renderStateIndicators() {
-    const pos = this._sprite.pos;
-    const size = this._sprite.size;
-    
-    push();
-    
-    // Building state indicator
-    if (this._stateMachine.isBuilding()) {
-      fill(139, 69, 19); // Brown
-      noStroke();
-      ellipse(pos.x + size.x - 5, pos.y + 5, 6, 6);
-    }
-    
-    // Gathering state indicator
-    if (this._stateMachine.isGathering()) {
-      fill(0, 255, 0); // Green
-      noStroke();
-      ellipse(pos.x + size.x - 5, pos.y + 5, 6, 6);
-    }
-    
-    // Following state indicator
-    if (this._stateMachine.isFollowing()) {
-      fill(255, 255, 0); // Yellow
-      noStroke();
-      ellipse(pos.x + size.x - 5, pos.y + 5, 6, 6);
-    }
-    
-    // Terrain effect indicators
-    if (this._stateMachine.terrainModifier !== "DEFAULT") {
-      let terrainColor;
-      switch (this._stateMachine.terrainModifier) {
-        case "IN_WATER": terrainColor = color(0, 100, 255); break;
-        case "IN_MUD": terrainColor = color(101, 67, 33); break;
-        case "ON_SLIPPERY": terrainColor = color(200, 200, 255); break;
-        case "ON_ROUGH": terrainColor = color(100, 100, 100); break;
-        default: terrainColor = color(255);
-      }
-      
-      fill(terrainColor);
-      noStroke();
-      rect(pos.x, pos.y + size.y - 3, size.x, 3);
-    }
-    
-    pop();
-  }
-
   // --- Mouse Over Detection ---
   isMouseOver(mx, my) {
     const pos = this._sprite.pos;
@@ -289,6 +210,15 @@ class ant {
     this._sprite.pos.y = value;
   }
   get posY() { return this._stats.position.statValue.y; }
+
+  // Helper methods for abstract highlighting functions
+  getPosition() {
+    return this._sprite.pos;
+  }
+  
+  getSize() {
+    return this._sprite.size;
+  }
 
   get center() {
     const pos = this._stats.position.statValue;
@@ -366,6 +296,10 @@ class ant {
     }
   }
 
+  // --- Update Loop ---
+  // checks and updates ant state each frame
+  // if moving, updates position towards target
+  // if idle, may skitter randomly
   ResolveMoment() {
     if (this._isMoving) {
       const current = createVector(this.posX, this.posY);

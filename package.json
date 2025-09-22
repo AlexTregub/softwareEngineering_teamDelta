@@ -5,9 +5,10 @@
   "main": "sketch.js",
   "scripts": {
     "test": "npm run test:all",
-    "test:all": "npm run test:statemachine && npm run test:selection",
+    "test:all": "npm run test:statemachine && npm run test:selection && npm run test:ant",
     "test:statemachine": "node test/AntStateMachine.test.js",
     "test:selection": "node test/selectionBox.node.test.js",
+    "test:ant": "node test/ant.test.js",
     "test:watch": "npm run test -- --watch",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"
