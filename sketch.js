@@ -185,6 +185,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
 }
+
 function setupMenu() {
   menuButtons = [
     { 
