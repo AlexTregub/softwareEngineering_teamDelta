@@ -92,7 +92,7 @@ function setup() {
   setupTests(); // Call test functions from AntStateMachine branch
  
   Ants_Spawn(10);
-  Resources_Spawn(20);
+  // Resources_Spawn(20);
 }
 
 // Global Currency Counter

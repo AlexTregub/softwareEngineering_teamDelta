@@ -384,6 +384,7 @@ class ant {
       this.render();
     }
   }
+  }
 
   // Ants Collect NearBy Fruits/Resources 
   resourceCheck(){
