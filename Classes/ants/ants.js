@@ -456,7 +456,7 @@ class ant {
   // State change callback handler
   _onStateChange(oldState, newState) {
     // Handle any special logic when states change
-    if (this._antIndex < 3) { // Only log for first few ants to avoid spam
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && this._antIndex < 3) { // Only log for first few ants to avoid spam when dev console enabled
       console.log(`Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
     }
     
@@ -651,17 +651,21 @@ function moveSelectedAntToTile(mx, my, tileSize) {
 
 // --- Debug Functions ---
 function debugAllAnts() {
-  console.log("=== Ant State Debug ===");
-  for (let i = 0; i < Math.min(ant_Index, 5); i++) { // Only debug first 5 ants
-    if (ants[i]) {
-      const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-      console.log(`Ant ${i}:`, antObj.debugState());
+  if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    console.log("=== Ant State Debug ===");
+    for (let i = 0; i < Math.min(ant_Index, 5); i++) { // Only debug first 5 ants
+      if (ants[i]) {
+        const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+        console.log(`Ant ${i}:`, antObj.debugState());
+      }
     }
   }
 }
 
 function forceAllAntsIdle() {
-  console.log("Forcing all ants to idle state...");
+  if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    console.log("Forcing all ants to idle state...");
+  }
   for (let i = 0; i < ant_Index; i++) {
     if (ants[i]) {
       const antObj = ants[i].antObject ? ants[i].antObject : ants[i];

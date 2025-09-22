@@ -216,10 +216,12 @@ class AntStateMachine {
 
   // Debug: Print current state
   printState() {
-    console.log(`AntStateMachine State: ${this.getFullState()}`);
-    console.log(`  Primary: ${this.primaryState}`);
-    console.log(`  Combat: ${this.combatModifier || "None"}`);
-    console.log(`  Terrain: ${this.terrainModifier || "None"}`);
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      console.log(`AntStateMachine State: ${this.getFullState()}`);
+      console.log(`  Primary: ${this.primaryState}`);
+      console.log(`  Combat: ${this.combatModifier || "None"}`);
+      console.log(`  Terrain: ${this.terrainModifier || "None"}`);
+    }
   }
 
   // Get state summary for debugging
@@ -253,21 +255,27 @@ function antSMtest() {
     antSM.setCombatModifier("IN_COMBAT");
     antSM.setTerrainModifier("IN_MUD");
     
-    console.log(antSM.getFullState()); // "MOVING_IN_COMBAT_IN_MUD"
-    
-    // Check capabilities
-    console.log(antSM.canPerformAction("move")); // true
-    console.log(antSM.canPerformAction("attack")); // true
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      console.log(antSM.getFullState()); // "MOVING_IN_COMBAT_IN_MUD"
+      
+      // Check capabilities
+      console.log(antSM.canPerformAction("move")); // true
+      console.log(antSM.canPerformAction("attack")); // true
+    }
     
     // Set callback for state changes
     antSM.setStateChangeCallback((oldState, newState) => {
-      console.log(`Ant state changed from ${oldState} to ${newState}`);
+      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+        console.log(`Ant state changed from ${oldState} to ${newState}`);
+      }
     });
     
     // Reset to idle
     antSM.reset(); // "Ant state changed from MOVING_IN_COMBAT_IN_MUD to IDLE"
-    antSM.printState();
-    console.log(antSM.getStateSummary());
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      antSM.printState();
+      console.log(antSM.getStateSummary());
+    }
 }
 
 // Export for use in other files
