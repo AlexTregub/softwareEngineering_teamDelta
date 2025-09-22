@@ -585,6 +585,40 @@ function moveSelectedAntToTile(mx, my, tileSize) {
     selectedAnt = null; //Resets pathfinding/selection info
   }
 }
+function moveSelectedAntsToTile(mx, my, tileSize) {
+  if (selectedEntities.length === 0) return;
+
+  const tileX = Math.floor(mx / tileSize);
+  const tileY = Math.floor(my / tileSize);
+  const grid = GRIDMAP.getGrid();
+
+  const radius = 2; // in tiles
+  const angleStep = (2 * Math.PI) / selectedEntities.length;
+
+  for (let i = 0; i < selectedEntities.length; i++) {
+    const ant = selectedEntities[i];
+
+    // assign each ant its own destination tile around the click
+    const angle = i * angleStep;
+    const offsetTileX = tileX + Math.round(Math.cos(angle) * radius);
+    const offsetTileY = tileY + Math.round(Math.sin(angle) * radius);
+
+    const antCenterX = ant.posX + ant.sizeX / 2;
+    const antCenterY = ant.posY + ant.sizeY / 2;
+    const antX = Math.floor(antCenterX / tileSize);
+    const antY = Math.floor(antCenterY / tileSize);
+
+    const startTile = grid.getArrPos([antX, antY]);
+    const endTile = grid.getArrPos([offsetTileX, offsetTileY]);
+
+    if (startTile && endTile) {
+      const newPath = findPath(startTile, endTile, GRIDMAP);
+      ant.setPath(newPath);
+    }
+    ant.isSelected = false;
+  }
+  selectedEntities = [];
+}
 
 // --- Debug Functions ---
 function debugAllAnts() {

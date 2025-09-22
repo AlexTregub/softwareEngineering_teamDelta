@@ -40,16 +40,7 @@ function isEntityUnderMouse(entity, mx, my) {
 function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, selectedEntity, moveSelectedEntityToTile, TILE_SIZE, mousePressed) {
   // Spread out multi-selected entities around the clicked location
   if (selectedEntities.length > 1 && mousePressed === LEFT) {
-    const radius = 40;
-    const angleStep = (2 * Math.PI) / selectedEntities.length;
-    for (let i = 0; i < selectedEntities.length; i++) {
-      const angle = i * angleStep;
-      const offsetX = Math.cos(angle) * radius;
-      const offsetY = Math.sin(angle) * radius;
-      if (selectedEntities[i].moveToLocation)
-        selectedEntities[i].moveToLocation(mouseX + offsetX, mouseY + offsetY);
-      selectedEntities[i].isSelected = false;
-    }
+    moveSelectedAntsToTile(mouseX, mouseY, TILE_SIZE);
     deselectAllEntities();
     return;
   } else if (mousePressed == RIGHT) {
