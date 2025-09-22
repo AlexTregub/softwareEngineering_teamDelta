@@ -4,8 +4,8 @@ let resourceList;
 let resourceManager;
 
 function resourcePreLoad(){
-  apple = loadImage('Images/Resources/apple.png');
-  cherry = loadImage('Images/Resources/cherry.png');
+  greenLeaf = loadImage('Images/Resources/leaf.png');
+  mapleLeaf = loadImage('Images/Resources/mapleLeaf.png');
   resourceList = new resourcesArray(); 
   resourceManager = new Resource(1,50,resourceList); // (Interval,Capacity,List)
 }
@@ -41,7 +41,7 @@ class Resource {
     this.resources = resources;
 
     this.assets = {
-      apple: { 
+      greenLeaf: { 
         weight: 0.5, 
         make: () => {
           let x = random(0, CANVAS_X - 20);
@@ -49,10 +49,10 @@ class Resource {
           let w = 20, h = 20;
 
           return {
-            type: "apple",
+            type: "greenLeaf",
             x, y, w, h,
             draw: () => {
-              image(apple, x, y, w, h);
+              image(greenLeaf, x, y, w, h);
 
               // hover detection
               if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
@@ -68,7 +68,7 @@ class Resource {
         }
       },
 
-      cherry: { 
+      mapleLeaf: { 
         weight: 0.8, 
         make: () => {
           let x = random(0, CANVAS_X - 20);
@@ -76,10 +76,10 @@ class Resource {
           let w = 20, h = 20;
 
           return {
-            type: "cherry",
+            type: "mappleLeaf",
             x, y, w, h,
             draw: () => {
-              image(cherry, x, y, w, h);
+              image(mapleLeaf, x, y, w, h);
 
               // hover detection
               if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
