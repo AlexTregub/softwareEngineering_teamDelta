@@ -129,18 +129,22 @@ suite.test('Click vs drag detection is implemented', () => {
 // Test 5: Multi-Selection Movement
 suite.test('Multi-selection movement is implemented', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./Classes/selectionBox.js', 'utf8');
+  const selectionContent = fs.readFileSync('./Classes/selectionBox.js', 'utf8');
+  const antsContent = fs.readFileSync('./Classes/ants/ants.js', 'utf8');
   
-  // Should handle multiple selected entities
-  suite.assertTrue(content.includes('selectedEntities.length > 1'), 'Should detect multi-selection');
+  // Should handle multiple selected entities in selection box
+  suite.assertTrue(selectionContent.includes('selectedEntities.length > 1'), 'Should detect multi-selection');
   
-  // Should spread ants in circle
-  suite.assertTrue(content.includes('angleStep'), 'Should calculate angle steps for spreading');
-  suite.assertTrue(content.includes('Math.cos'), 'Should use cosine for circle positioning');
-  suite.assertTrue(content.includes('Math.sin'), 'Should use sine for circle positioning');
+  // Should call moveSelectedAntsToTile function
+  suite.assertTrue(selectionContent.includes('moveSelectedAntsToTile'), 'Should call multi-ant movement function');
   
-  // Should call moveToLocation on each ant
-  suite.assertTrue(content.includes('moveToLocation'), 'Should move individual ants');
+  // Should spread ants in circle (in ants.js)
+  suite.assertTrue(antsContent.includes('angleStep'), 'Should calculate angle steps for spreading');
+  suite.assertTrue(antsContent.includes('Math.cos'), 'Should use cosine for circle positioning');
+  suite.assertTrue(antsContent.includes('Math.sin'), 'Should use sine for circle positioning');
+  
+  // Should call setPath on each ant (in ants.js)
+  suite.assertTrue(antsContent.includes('setPath'), 'Should set path for individual ants');
 });
 
 // Test 6: State Cleanup
