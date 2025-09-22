@@ -17,7 +17,7 @@ class Chunk {
         // Set chunk-seed (arbitrary, ideally shouldnt have collision)
         randomSeed(
             // sign(x)((seed^x)/y) for chunkPos x,y .
-            Math.sign(this.tileData.getObjPos()[0])*pow(seed,abs(this.tileData.getObjPos()[0]))/tileData.getObjPos()[1]
+            Math.sign(this.tileData.getObjPos()[0])*pow(seed,abs(this.tileData.getObjPos()[0])+0.5)/(this.tileData.getObjPos()[1]+0.5)
         );
 
         let width = this.tileData.getSize()[0]; // ASSUMED SQUARE
@@ -32,22 +32,22 @@ class Chunk {
             let countDirt = 0;
 
             // Get 4 neighbors, without OOB
-            if (iPos[0]+1 < width && iPos[0] >= 0) {
+            if (iPos[0]+1 < width && iPos[0]+1 >= 0) {
                 if (this.tileData.getArrPos([iPos[0]+1,iPos[1]]).getMaterial() == 'dirt') {
                     ++countDirt;
                 }
             }
-            if (iPos[0]-1 < width && iPos[0] >= 0) {
+            if (iPos[0]-1 < width && iPos[0]-1 >= 0) {
                 if (this.tileData.getArrPos([iPos[0]-1,iPos[1]]).getMaterial() == 'dirt') {
                     ++countDirt;
                 }
             }
-            if (iPos[1]+1 < width && iPos[1] >= 0) {
+            if (iPos[1]+1 < width && iPos[1]+1 >= 0) {
                 if (this.tileData.getArrPos([iPos[0],iPos[1]+1]).getMaterial() == 'dirt') {
                     ++countDirt;
                 }
             }
-            if (iPos[1]-1 < width && iPos[1] >= 0) {
+            if (iPos[1]-1 < width && iPos[1]-1 >= 0) {
                 if (this.tileData.getArrPos([iPos[0],iPos[1]-1]).getMaterial() == 'dirt') {
                     ++countDirt;
                 }
@@ -60,10 +60,12 @@ class Chunk {
     }
 
     render(coordSys) { // Render through coordinate system
+        // let temp = coordSys;
+        // coordSys.setViewCornerBC([0,0]);
         let len = this.tileData.getSize()[0]*this.tileData.getSize()[1];
         
         for (let i = 0; i < len; ++i) {
-            this.tileData.rawArray[i].render(coordSys);
+            this.tileData.rawArray[i].render2(coordSys);
         }
     }
 }

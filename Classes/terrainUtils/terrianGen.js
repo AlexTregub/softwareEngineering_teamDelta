@@ -10,7 +10,7 @@ let tileSize = 32; // Adds up to canvas dimensions
 // LAST IS DEFAULT aka PROB=1
 let TERRAIN_MATERIALS = { // All-in-one configuration object.
   'stone' : [0.01, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
-  'dirt' : [0.3, (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+  'dirt' : [0.15, (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
   'grass' : [1 , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
 };
 
@@ -167,7 +167,8 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     return;
   }
 
-  render(coordSys) {
+  render2(coordSys) {
+    // coordSys.setViewCornerBC([0,0]);
     let pixelPos = coordSys.convPosToCanvas([this._x,this._y]);
 
     noSmooth();
