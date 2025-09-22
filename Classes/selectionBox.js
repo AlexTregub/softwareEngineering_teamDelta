@@ -240,6 +240,7 @@ function renderDebugInfo(entity) {
   if (!pos || !entity.getCurrentState) return; // Safety check
   
   push();
+  noStroke();
   fill(255);
   textAlign(LEFT);
   textSize(10);

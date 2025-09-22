@@ -43,10 +43,11 @@ if (typeof module !== "undefined" && module.exports) {
 
 function outlinedText(txt, x, y, font, size, fillCol, outlineCol) {
   push();
+  noStroke();
   textFont(font);
   textSize(size);
   textAlign(CENTER, CENTER);
-  noStroke();
+  
 
   fill(outlineCol);
   for (let dx = -1; dx <= 1; dx++) {
