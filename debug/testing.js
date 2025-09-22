@@ -122,6 +122,10 @@ function handleDebugConsoleKeys(keyCode, key) {
   // Handle command line input when active
   if (isCommandLineActive()) {
     handleCommandLineInput();
+    // Also handle scrolling when command line is active
+    if (typeof handleCommandLineScroll === 'function') {
+      handleCommandLineScroll();
+    }
     return true; // Key handled
   }
   

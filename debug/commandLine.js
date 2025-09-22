@@ -6,19 +6,42 @@ let commandLineActive = false;
 let commandInput = "";
 let commandHistory = [];
 let commandHistoryIndex = -1;
+let consoleOutput = []; // Store console output for display
+let scrollOffset = 0; // For scrolling through output
+
+// Console capture system
+let originalConsoleLog = console.log;
+console.log = function(...args) {
+  // Call original console.log
+  originalConsoleLog.apply(console, args);
+  
+  // Capture output for command line display
+  if (commandLineActive) {
+    let message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ');
+    consoleOutput.unshift(message);
+    if (consoleOutput.length > 100) consoleOutput.pop(); // Limit to 100 lines
+  }
+};
 
 // COMMAND LINE INPUT HANDLER
 function handleCommandLineInput() {
   if (keyCode === ENTER) {
     // Execute command
     if (commandInput.trim() !== "") {
+      // Add command to history first
+      commandHistory.unshift(`> ${commandInput.trim()}`);
+      consoleOutput.unshift(`> ${commandInput.trim()}`); // Also show in output
+      
       executeCommand(commandInput.trim());
-      commandHistory.unshift(commandInput.trim()); // Add to history
-      if (commandHistory.length > 20) commandHistory.pop(); // Limit history
+      
+      if (commandHistory.length > 50) commandHistory.pop(); // Increase history limit
     }
-    commandLineActive = false;
+    // DON'T close command line - keep it open!
     commandInput = "";
     commandHistoryIndex = -1;
+    scrollOffset = 0; // Reset scroll to show latest output
   } else if (keyCode === ESCAPE) {
     // Cancel command input
     commandLineActive = false;
@@ -28,17 +51,19 @@ function handleCommandLineInput() {
   } else if (keyCode === BACKSPACE) {
     // Remove last character
     commandInput = commandInput.slice(0, -1);
-  } else if (keyCode === UP_ARROW) {
-    // Navigate command history up
-    if (commandHistory.length > 0 && commandHistoryIndex < commandHistory.length - 1) {
+  } else if (keyCode === UP_ARROW && !keyIsPressed) {
+    // Navigate command history up (filter for actual commands, not output)
+    let commands = commandHistory.filter(item => item.startsWith('> '));
+    if (commands.length > 0 && commandHistoryIndex < commands.length - 1) {
       commandHistoryIndex++;
-      commandInput = commandHistory[commandHistoryIndex];
+      commandInput = commands[commandHistoryIndex].substring(2); // Remove "> " prefix
     }
-  } else if (keyCode === DOWN_ARROW) {
+  } else if (keyCode === DOWN_ARROW && !keyIsPressed) {
     // Navigate command history down
+    let commands = commandHistory.filter(item => item.startsWith('> '));
     if (commandHistoryIndex > 0) {
       commandHistoryIndex--;
-      commandInput = commandHistory[commandHistoryIndex];
+      commandInput = commands[commandHistoryIndex].substring(2); // Remove "> " prefix
     } else if (commandHistoryIndex === 0) {
       commandHistoryIndex = -1;
       commandInput = "";
@@ -46,6 +71,17 @@ function handleCommandLineInput() {
   } else if (key && key.length === 1) {
     // Add typed character
     commandInput += key;
+  }
+}
+
+// Add scroll handling for the output area
+function handleCommandLineScroll() {
+  if (commandLineActive && keyIsDown(SHIFT)) {
+    if (keyCode === UP_ARROW) {
+      scrollOffset = Math.min(scrollOffset + 1, Math.max(0, consoleOutput.length - 10));
+    } else if (keyCode === DOWN_ARROW) {
+      scrollOffset = Math.max(scrollOffset - 1, 0);
+    }
   }
 }
 
@@ -322,13 +358,14 @@ function drawCommandLine() {
     noStroke();
     rect(0, 0, width, height);
     
-    // Command line box
+    // Calculate command line area dimensions
     let boxHeight = 40;
-    let boxY = height - boxHeight - 20;
+    let historyHeight = 200; // Height for command history area
+    let boxY = 20; // Position at top
     let boxX = 20;
     let boxWidth = width - 40;
     
-    // Command line background
+    // Draw main command input box (at the top)
     fill(50, 50, 50, 220);
     stroke(100, 100, 100);
     strokeWeight(2);
@@ -356,13 +393,98 @@ function drawCommandLine() {
       line(cursorX, boxY + 8, cursorX, boxY + boxHeight - 8);
     }
     
-    // Help text
+    // Help text below command input
     fill(200, 200, 200, 180);
     noStroke();
     textAlign(LEFT);
     textSize(11);
-    text("Type command and press Enter, or Escape to cancel. Up/Down for history.", boxX, boxY - 5);
-    text("Type 'help' for available commands.", boxX, boxY - 18);
+    let helpY = boxY + boxHeight + 5;
+    text("Type command and press Enter, or Escape to cancel. Up/Down for command history.", boxX, helpY);
+    text("Shift+Up/Down to scroll output. Type 'help' for available commands.", boxX, helpY + 15);
+    
+    // Draw console output background (below input)
+    let outputY = boxY + boxHeight + 35; // Position below input and help text
+    fill(30, 30, 30, 200);
+    stroke(80, 80, 80);
+    strokeWeight(1);
+    rect(boxX, outputY, boxWidth, historyHeight, 5);
+    
+    // Draw console output (scrollable)
+    fill(180, 180, 180);
+    noStroke();
+    textAlign(LEFT, TOP);
+    
+    let lineHeight = 14;
+    let startY = outputY + 10;
+    let maxLines = Math.floor((historyHeight - 20) / lineHeight);
+    
+    // Show header with scroll info
+    fill(220, 220, 220);
+    textSize(11);
+    let scrollInfo = scrollOffset > 0 ? ` (scrolled +${scrollOffset})` : "";
+    text(`Console Output${scrollInfo}:`, boxX + 10, startY);
+    startY += 20;
+    
+    // Display console output with scrolling
+    fill(160, 160, 160);
+    textSize(9);
+    
+    let outputToShow = consoleOutput.slice(scrollOffset, scrollOffset + maxLines);
+    for (let i = 0; i < outputToShow.length; i++) {
+      let outputLineY = startY + (i * lineHeight);
+      if (outputLineY < outputY + historyHeight - 10) {
+        let line = outputToShow[i];
+        
+        // Color code different types of output
+        if (line.startsWith('> ')) {
+          fill(100, 255, 100); // Green for commands
+        } else if (line.includes('❌')) {
+          fill(255, 100, 100); // Red for errors
+        } else if (line.includes('✅')) {
+          fill(100, 255, 100); // Green for success
+        } else if (line.includes('🛠️') || line.includes('💻')) {
+          fill(255, 255, 100); // Yellow for system messages
+        } else {
+          fill(200, 200, 200); // Default gray
+        }
+        
+        // Wrap long lines
+        let maxWidth = boxWidth - 30;
+        if (textWidth(line) > maxWidth) {
+          let words = line.split(' ');
+          let currentLine = '';
+          for (let word of words) {
+            if (textWidth(currentLine + word + ' ') > maxWidth) {
+              text(currentLine, boxX + 15, outputLineY);
+              outputLineY += lineHeight;
+              currentLine = word + ' ';
+            } else {
+              currentLine += word + ' ';
+            }
+          }
+          if (currentLine.trim()) {
+            text(currentLine, boxX + 15, outputLineY);
+          }
+        } else {
+          text(line, boxX + 15, outputLineY);
+        }
+      }
+    }
+    
+    // If no output, show placeholder
+    if (consoleOutput.length === 0) {
+      fill(120, 120, 120);
+      textAlign(CENTER, CENTER);
+      text("No console output yet. Try typing 'help'", boxX + boxWidth/2, outputY + historyHeight/2);
+    }
+    
+    // Show scroll indicator if there's more content
+    if (consoleOutput.length > maxLines) {
+      fill(255, 255, 100, 150);
+      textAlign(RIGHT);
+      textSize(9);
+      text(`${scrollOffset + outputToShow.length}/${consoleOutput.length} lines`, boxX + boxWidth - 10, outputY + historyHeight - 5);
+    }
     
     pop();
   }
