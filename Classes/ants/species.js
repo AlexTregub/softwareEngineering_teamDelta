@@ -48,26 +48,30 @@ class Species extends ant {
   // Example: Override update to show species name
   update() {
     super.update();
-    const center = this.center;
-  
-    push();
-    rectMode(CENTER);
-  
-    // put the text a bit *below* the ant sprite
-    const labelY = center.y + this.sizeY / 2 + 15;
-  
-    // call your outlinedText helper
-    outlinedText(
-      this.speciesName,
-      center.x,
-      labelY,
-      font,        // <- your preloaded Terraria.TTF font
-      13,          // font size
-      color(255),  // inside (fill) color
-      color(0)     // outline color
-    );
-  
-    pop();
+    
+    // Species labels always enabled
+    if (typeof outlinedText !== 'undefined') {
+      const center = this.center;
+    
+      push();
+      rectMode(CENTER);
+    
+      // put the text a bit *below* the ant sprite
+      const labelY = center.y + this.sizeY / 2 + 15;
+    
+      // call your outlinedText helper
+      outlinedText(
+        this.speciesName,
+        center.x,
+        labelY,
+        font,        // <- your preloaded Terraria.TTF font
+        13,          // font size
+        color(255),  // inside (fill) color
+        color(0)     // outline color
+      );
+    
+      pop();
+    }
   }
 
   ResolveMoment() {
