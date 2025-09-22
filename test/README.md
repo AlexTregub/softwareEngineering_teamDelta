@@ -10,6 +10,7 @@ This comprehensive testing suite ensures all game systems remain stable when mak
 - `test/selectionBox.node.test.js` - Selection box logic testing (10 tests)
 - `test/ant.test.js` - Comprehensive ant class testing (36 tests)
 - `test/sprite2d.test.js` - Sprite2D rendering class testing (17 tests)
+- `test/antStructure.test.js` - **NEW** Ant creation compatibility testing (3 tests)
 
 ### 2. **Browser-based Tests** (Legacy)
 - `test/selectionBox.test.js` - Mock-based unit tests for browser
@@ -66,6 +67,27 @@ This comprehensive testing suite ensures all game systems remain stable when mak
 - Coordinate transformation and rotation handling
 - Memory efficiency and object independence
 - Compatibility with both p5.Vector and plain objects
+
+### 🔧 `test/antStructure.test.js` - **NEW Ant Creation Compatibility Tests**
+**Ensures consistency between different ant creation methods**
+
+**Purpose:** 
+This test prevents issues like the selection box bug we just fixed, where changes to ant creation logic broke compatibility with other game systems.
+
+**Tests Include:**
+- ✅ **Structure Compatibility**: Verifies both original `Ants_Spawn()` and debug command ant creation produce objects with identical structure
+- ✅ **Selection Box Integration**: Tests that selection box functions (`isEntityUnderMouse`, `isEntityInBox`) work with ants created by both methods
+- ✅ **Object Hierarchy Consistency**: Ensures both methods create the same class inheritance chain (AntWrapper → Species → ant)
+- ✅ **Property Accessibility**: Validates that required properties (antObject, species, sprite) are accessible on both object types
+
+**Key Protections:**
+- Catches when refactoring breaks selection box compatibility
+- Prevents ant creation methods from producing incompatible object structures  
+- Ensures debug tools create ants that work with all game systems
+- Validates Species class inheritance and AntWrapper functionality
+
+**When This Test Would Have Caught Our Bug:**
+Our recent fix addressed a case where the debug spawn command created `AntWrapper(ant)` instead of `AntWrapper(Species)`, breaking selection box compatibility. This test would have immediately detected that structural difference.
 
 ### 🧠 `test/AntStateMachine.test.js`
 **Comprehensive state machine testing**
