@@ -122,11 +122,7 @@ function handleDebugConsoleKeys(keyCode, key) {
   // Handle command line input when active
   if (isCommandLineActive()) {
     handleCommandLineInput();
-    // Also handle scrolling when command line is active
-    if (typeof handleCommandLineScroll === 'function') {
-      handleCommandLineScroll();
-    }
-    return true; // Key handled
+    return true; // Key handled by command line
   }
   
   // Toggle dev console with ` key (backtick)
@@ -136,7 +132,7 @@ function handleDebugConsoleKeys(keyCode, key) {
   }
   
   // Open command line with Enter key (only when dev console is enabled)
-  if (devConsoleEnabled && keyCode === ENTER && !isCommandLineActive()) {
+  if (devConsoleEnabled && keyCode === 13 && !isCommandLineActive()) { // 13 is ENTER
     openCommandLine();
     return true;
   }

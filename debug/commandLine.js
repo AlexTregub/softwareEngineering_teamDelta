@@ -5,6 +5,7 @@
 let commandLineActive = false;
 let commandInput = "";
 let commandHistory = [];
+let actualCommands = []; // Store actual command inputs separately from output
 let commandHistoryIndex = -1;
 let consoleOutput = []; // Store console output for display
 let scrollOffset = 0; // For scrolling through output
@@ -27,43 +28,57 @@ console.log = function(...args) {
 
 // COMMAND LINE INPUT HANDLER
 function handleCommandLineInput() {
-  if (keyCode === ENTER) {
+  // Only process if command line is active
+  if (!commandLineActive) {
+    return;
+  }
+  
+  // Handle scroll first (when Shift is pressed)
+  if (keyIsDown && keyIsDown(16)) { // 16 is SHIFT keyCode
+    handleCommandLineScroll();
+    return; // Don't process other keys when scrolling
+  }
+  
+  if (keyCode === 13) { // ENTER
     // Execute command
     if (commandInput.trim() !== "") {
-      // Add command to history first
+      // Add to actual commands list for history navigation
+      actualCommands.unshift(commandInput.trim());
+      if (actualCommands.length > 50) actualCommands.pop();
+      
+      // Add command to history and output
       commandHistory.unshift(`> ${commandInput.trim()}`);
-      consoleOutput.unshift(`> ${commandInput.trim()}`); // Also show in output
+      consoleOutput.unshift(`> ${commandInput.trim()}`);
       
       executeCommand(commandInput.trim());
       
-      if (commandHistory.length > 50) commandHistory.pop(); // Increase history limit
+      if (commandHistory.length > 100) commandHistory.pop();
+      if (consoleOutput.length > 100) consoleOutput.pop();
     }
-    // DON'T close command line - keep it open!
+    // Reset input and scroll
     commandInput = "";
     commandHistoryIndex = -1;
     scrollOffset = 0; // Reset scroll to show latest output
-  } else if (keyCode === ESCAPE) {
+  } else if (keyCode === 27) { // ESCAPE
     // Cancel command input
     commandLineActive = false;
     commandInput = "";
     commandHistoryIndex = -1;
     console.log("💻 Command line cancelled.");
-  } else if (keyCode === BACKSPACE) {
+  } else if (keyCode === 8) { // BACKSPACE
     // Remove last character
     commandInput = commandInput.slice(0, -1);
-  } else if (keyCode === UP_ARROW && !keyIsPressed) {
-    // Navigate command history up (filter for actual commands, not output)
-    let commands = commandHistory.filter(item => item.startsWith('> '));
-    if (commands.length > 0 && commandHistoryIndex < commands.length - 1) {
+  } else if (keyCode === 38) { // UP_ARROW
+    // Navigate command history up
+    if (actualCommands.length > 0 && commandHistoryIndex < actualCommands.length - 1) {
       commandHistoryIndex++;
-      commandInput = commands[commandHistoryIndex].substring(2); // Remove "> " prefix
+      commandInput = actualCommands[commandHistoryIndex];
     }
-  } else if (keyCode === DOWN_ARROW && !keyIsPressed) {
+  } else if (keyCode === 40) { // DOWN_ARROW
     // Navigate command history down
-    let commands = commandHistory.filter(item => item.startsWith('> '));
     if (commandHistoryIndex > 0) {
       commandHistoryIndex--;
-      commandInput = commands[commandHistoryIndex].substring(2); // Remove "> " prefix
+      commandInput = actualCommands[commandHistoryIndex];
     } else if (commandHistoryIndex === 0) {
       commandHistoryIndex = -1;
       commandInput = "";
@@ -76,11 +91,19 @@ function handleCommandLineInput() {
 
 // Add scroll handling for the output area
 function handleCommandLineScroll() {
-  if (commandLineActive && keyIsDown(SHIFT)) {
-    if (keyCode === UP_ARROW) {
+  if (commandLineActive) {
+    if (keyCode === 38) { // UP_ARROW
+      // Scroll up (show older messages)
       scrollOffset = Math.min(scrollOffset + 1, Math.max(0, consoleOutput.length - 10));
-    } else if (keyCode === DOWN_ARROW) {
+    } else if (keyCode === 40) { // DOWN_ARROW
+      // Scroll down (show newer messages)
       scrollOffset = Math.max(scrollOffset - 1, 0);
+    } else if (keyCode === 33) { // PAGE_UP
+      // Page up
+      scrollOffset = Math.min(scrollOffset + 10, Math.max(0, consoleOutput.length - 10));
+    } else if (keyCode === 34) { // PAGE_DOWN
+      // Page down
+      scrollOffset = Math.max(scrollOffset - 10, 0);
     }
   }
 }
@@ -103,7 +126,8 @@ function executeCommand(command) {
       break;
       
     case 'clear':
-      console.clear();
+      consoleOutput = []; // Clear command line output
+      scrollOffset = 0;   // Reset scroll
       console.log("💻 Console cleared.");
       break;
       
@@ -415,7 +439,7 @@ function drawCommandLine() {
     textSize(11);
     let helpY = boxY + boxHeight + 5;
     text("Type command and press Enter, or Escape to cancel. Up/Down for command history.", boxX, helpY);
-    text("Shift+Up/Down to scroll output. Type 'help' for available commands.", boxX, helpY + 15);
+    text("Hold Shift + Up/Down/PageUp/PageDown to scroll output. Type 'help' for available commands.", boxX, helpY + 15);
     
     // Draw console output background (below input)
     let outputY = boxY + boxHeight + 35; // Position below input and help text
