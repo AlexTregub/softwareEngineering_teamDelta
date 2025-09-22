@@ -1,4 +1,4 @@
-////// COORDINATES
+////// COORDINATES //
 // Defining why we use this: 
 // - Initially will be configured by Terrain, grabable by other objects
 // -- Need to consider: real terrain size vs. canvas; 
