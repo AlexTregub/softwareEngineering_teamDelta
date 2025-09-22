@@ -3,6 +3,7 @@ let antToSpawn = 0;
 let ant_Index = 0;
 let antSize;
 let ants = [];
+let globalResource = [];
 let antImg1;
 let antbg;
 let hasDeLozier = false;
@@ -31,8 +32,16 @@ function Ants_Preloader() {
 function Ants_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
-    let baseAnt = new ant(random(0, 500), random(0, 500), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
     let speciesName = assignSpecies();
+    let baseAnt = new ant(
+      random(0, 500), random(0, 500), 
+      antSize.x + sizeR, 
+      antSize.y + sizeR, 
+      30, 0,
+      antImg1,
+      speciesName
+      );
+    ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();
   }
@@ -75,9 +84,11 @@ function Ant_Click_Control() {
   }
 }
 
+
+
 // --- Ant Class ---
 class ant {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1) {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1,speciesName) {
     const initialPos = createVector(posX, posY);
     this._stats = new stats(
       initialPos,
@@ -85,6 +96,7 @@ class ant {
       movementSpeed,
       initialPos.copy()
     );
+    this.speciesName = speciesName;
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
     this._skitterTimer = random(30, 200);
     this._antIndex = ant_Index++;
@@ -93,6 +105,13 @@ class ant {
     this._path = null;
     this._isSelected = false;
     this.isBoxHovered = false;
+
+
+    // Resource
+    this.isDroppingOff = false;
+    this.isMaxWeight = false // Ants capacity max
+    this.Resources = []; // Resource the ants is carrying
+
     
     // Initialize state machine
     this._stateMachine = new AntStateMachine();
@@ -263,8 +282,12 @@ class ant {
   }
   get rotation() { return this._sprite.rotation; }
 
+  // In Range Of Resource
+
+
   // --- Move Logic ---
   moveToLocation(X, Y) {
+
     // Only allow movement if state machine permits it
     if (this._stateMachine.canPerformAction("move")) {
       this._stats.pendingPos.statValue.x = X;
@@ -294,6 +317,7 @@ class ant {
     if (this._stateMachine.terrainModifier !== currentTerrain) {
       this._stateMachine.setTerrainModifier(currentTerrain);
     }
+
   }
 
   // --- Update Loop ---
@@ -326,10 +350,25 @@ class ant {
           this._sprite.setPosition(current);
         }
       } else {
+
+        // Target Reached
+
         this.posX = target.x;
         this.posY = target.y;
         this._isMoving = false;
         this._sprite.setPosition(target);
+
+
+        // Stores Resource and Reset State Upon Dropoff
+        if(this.isDroppingOff || this.isMaxWeight ){
+          for(let r of this.Resources){
+            globalResource.push(r);
+          }
+
+          this.Resources = [];
+          this.isDroppingOff = false;
+          this.isMaxWeight  = false;
+
         
         // Set state back to IDLE when movement is complete, but only if no other activities are ongoing
         if (this._stateMachine.isPrimaryState("MOVING")) {
@@ -345,6 +384,42 @@ class ant {
       this.render();
     }
   }
+
+  // Ants Collect NearBy Fruits/Resources 
+  resourceCheck(){
+    let fruits = resourceList.getResourceList();
+    let keys = Object.keys(fruits);
+
+    for(let k of keys){
+      let x = fruits[k].x;
+      let y = fruits[k].y;
+      
+      let xDifference = abs(Math.floor(x - this.posX));
+      let yDifference = abs(Math.floor(y - this.posY));
+      let range = 25;
+      let maxWeight = 2; // Change to member variable??
+
+      if(xDifference <= range && yDifference <= range){
+        let fruit = fruits[k];
+        if(this.Resources.length < maxWeight){
+            this.Resources.push(fruit);
+            delete fruits[k];
+        }
+        if(this.Resources.length >= maxWeight){
+          let dropPointX = 0;
+          let dropPointY = 0;
+          this.dropOff(dropPointX,dropPointY);
+        }
+      }   
+    }
+  }
+
+  dropOff(X,Y){
+    this.isDroppingOff = true;
+    this.isMaxWeight = true;
+    this.moveToLocation(X,Y);
+  }
+
 
   update() {
     // Update terrain state based on current position
@@ -387,6 +462,7 @@ class ant {
     
     this.render();
     this.highlight();
+    this.resourceCheck();
   }
   
   // State change callback handler
@@ -403,7 +479,7 @@ class ant {
     }
   }
 
-  // --- Command System ---
+  // --- Command System --- // Static Utility Methods
   addCommand(command) {
     this._commandQueue.push(command);
   }
@@ -538,6 +614,7 @@ class ant {
       isIdle: this._stateMachine.isIdle()
     };
   }
+
   static moveGroupInCircle(antArray, x, y, radius = 40) {
     const angleStep = (2 * Math.PI) / antArray.length;
     for (let i = 0; i < antArray.length; i++) {
@@ -565,6 +642,8 @@ class ant {
     }
     return selected;
   }
+
+
 }
 
 // --- Move Selected Ant to Tile ---

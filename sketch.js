@@ -16,8 +16,7 @@ function preload(){
   test_stats();
   terrainPreloader()
   Ants_Preloader()
-  Resources_Preloader();
-
+  resourcePreLoad();
   font = loadFont("Images/Assets/Terraria.TTF");
 }
 
@@ -91,9 +90,20 @@ function setup() {
   
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
-
+ 
   Ants_Spawn(10);
   Resources_Spawn(20);
+}
+
+// Global Currency Counter
+function drawUI() {
+  push(); 
+  textFont(font); 
+  textSize(24);
+  fill(255);  // white text
+  textAlign(LEFT, TOP);
+  text("Food: " + globalResource.length, 10, 10);
+  pop();
 }
 
 function setupTests() {
@@ -105,7 +115,6 @@ function setupTests() {
 function draw() {
   MAP.render();
   Ants_Update();
-  Resources_Update();
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
@@ -165,7 +174,7 @@ function draw() {
   // --- GAMEPLAY RENDERING ---
   MAP.render();
   Ants_Update();
-  Resources_Update();
+  resourceList.drawAll();
   if (typeof drawSelectionBox === 'function') drawSelectionBox();
   drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
 
