@@ -16,8 +16,8 @@ let TERRAIN_MATERIALS = { // All-in-one configuration object.
 
 
 function terrainPreloader(){
-  GRASS_IMAGE = loadImage('Images/16x16 Tiles/grass.png');
-  DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
+  GRASS_IMAGE = loadImage('images/16x16 Tiles/grass.png');
+  DIRT_IMAGE = loadImage('images/16x16 Tiles/dirt.png');
 }
 
 class Terrain {
