@@ -392,8 +392,9 @@ class ant {
   // State change callback handler
   _onStateChange(oldState, newState) {
     // Handle any special logic when states change
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && this._antIndex < 3) { // Only log for first few ants to avoid spam when dev console enabled
-      console.log(`Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
+    // Only log state changes for selected ants when dev console is enabled
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && this._isSelected) {
+      console.log(`Selected Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
     }
     
     // Reset skitter timer when entering idle state
