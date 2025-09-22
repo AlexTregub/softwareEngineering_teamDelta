@@ -7,12 +7,21 @@ let antImg1;
 let antbg;
 let hasDeLozier = false;
 let selectedAnt = null;
+let speciesImages = {};
 
 // --- Preload Images ---
 function Ants_Preloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
   antImg1 = loadImage("Images/Ants/gray_ant.png");
+  speciesImages = {
+    Builder: loadImage('Images/Ants/blue_ant.png'),
+    Scout: loadImage('Images/Ants/gray_ant.png'),
+    Farmer: loadImage('Images/Ants/brown_ant.png'),
+    Warrior: loadImage('Images/Ants/blue_ant.png'),
+    Spitter: loadImage('Images/Ants/gray_ant.png'),
+    DeLozier: loadImage('Images/Ants/greg.jpg')
+  };
   gregImg = loadImage("Images/Ants/greg.jpg");
 }
 
@@ -22,7 +31,7 @@ function Ants_Spawn(numToSpawn) {
     let sizeR = random(0, 15);
     let baseAnt = new ant(random(0, 500), random(0, 500), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
     let speciesName = assignSpecies();
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
+    ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();
   }
 }
@@ -249,11 +258,19 @@ class ant {
   }
 
   update() {
-    if (!this._isMoving) this._timeUntilSkitter -= 1;
-    if (this._timeUntilSkitter < 0) {
+    if(!this.isMoving && this._path && this.path.length > 0){//If a path exists and not skittering
+      const nextNode = this._path.shift(); //Sets next tile to be travelled as next path tile
+      const targetX = nextNode._x * tileSize; //Translates tile coordinate to translatable distance
+      const targetY = nextNode._y * tileSize;
+      this.moveToLocation(targetX, targetY); //Moves ant
+    }
+    else if (!this._isMoving && (!this._path || this._path.length === 0)){//Sets back to skittering when not pathfinding
+      this._timeUntilSkitter -= 1;
+      if (this._timeUntilSkitter < 0) {
       this.rndTimeUntilSkitter();
       this._isMoving = true;
       this.moveToLocation(this.posX + random(-25, 25), this.posY + random(-25, 25));
+      }
     }
     this.ResolveMoment();
     this.render();
@@ -294,11 +311,51 @@ class ant {
 function moveSelectedAntToTile(mx, my, tileSize) {
   if (selectedAnt) {
     const tileX = Math.floor(mx / tileSize);
-    const tileY = Math.floor(my / tileSize);
-    const targetX = tileX * tileSize;
-    const targetY = tileY * tileSize;
-    selectedAnt.moveToLocation(targetX, targetY);
+    const tileY = Math.floor(my / tileSize); //Gets coordinates clicked tiles
+    const grid = GRIDMAP.getGrid();
+    const antX = Math.floor(selectedAnt.posX/tileSize);
+    const antY = Math.floor(selectedAnt.posY/tileSize); //Gets current ant tile relative to where it started
+    const startTile = grid.getArrPos([antX, antY]); //Converts ant start to pos suitable for pathfinding
+    const endTile = grid.getArrPos([tileX, tileY]); //Converts clicked tile to pos suitable for pathfinding
+    if(startTile && endTile){
+      const newPath = findPath(startTile, endTile, GRIDMAP); //Only makes path if everything exists
+      selectedAnt.setPath(newPath);
+    }
     selectedAnt.isSelected = false;
-    selectedAnt = null;
+    selectedAnt = null; //Resets pathfinding/selection info
   }
+}
+function moveSelectedAntsToTile(mx, my, tileSize) {
+  if (selectedEntities.length === 0) return;
+
+  const tileX = Math.floor(mx / tileSize);
+  const tileY = Math.floor(my / tileSize);
+  const grid = GRIDMAP.getGrid();
+
+  const radius = 2; // in tiles
+  const angleStep = (2 * Math.PI) / selectedEntities.length;
+
+  for (let i = 0; i < selectedEntities.length; i++) {
+    const ant = selectedEntities[i];
+
+    // assign each ant its own destination tile around the click
+    const angle = i * angleStep;
+    const offsetTileX = tileX + Math.round(Math.cos(angle) * radius);
+    const offsetTileY = tileY + Math.round(Math.sin(angle) * radius);
+
+    const antCenterX = ant.posX + ant.sizeX / 2;
+    const antCenterY = ant.posY + ant.sizeY / 2;
+    const antX = Math.floor(antCenterX / tileSize);
+    const antY = Math.floor(antCenterY / tileSize);
+
+    const startTile = grid.getArrPos([antX, antY]);
+    const endTile = grid.getArrPos([offsetTileX, offsetTileY]);
+
+    if (startTile && endTile) {
+      const newPath = findPath(startTile, endTile, GRIDMAP);
+      ant.setPath(newPath);
+    }
+    ant.isSelected = false;
+  }
+  selectedEntities = [];
 }
