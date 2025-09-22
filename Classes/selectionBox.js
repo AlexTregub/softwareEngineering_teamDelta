@@ -131,12 +131,26 @@ function drawSelectionBox() {
   }
 }
 
+// Generic highlight function for entities
+function highlight(entity, strokeColor, strokeWeightValue = 2) {
+  const pos = entity.sprite ? entity.sprite.pos : entity._sprite.pos;
+  const size = entity.sprite ? entity.sprite.size : entity._sprite.size;
+  
+  push();
+  noFill();
+  stroke(strokeColor);
+  strokeWeight(strokeWeightValue);
+  rect(pos.x, pos.y, size.x, size.y);
+  pop();
+}
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     handleMousePressed,
     handleMouseDragged,
     handleMouseReleased,
     drawSelectionBox,
+    highlight,
     selectedEntities
   };
 }

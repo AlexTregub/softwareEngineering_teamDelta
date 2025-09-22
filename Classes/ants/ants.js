@@ -181,42 +181,19 @@ class ant {
 
   // --- Highlighting ---
   highlight() {
-    const pos = this._sprite.pos;
-    const size = this._sprite.size;
-    
     // Player ant highlights
     if (this._faction === "player") {
       if (this._isSelected) {
-        push();
-        noFill();
-        stroke(color(0, 0, 255)); // Blue for selected
-        strokeWeight(2);
-        rect(pos.x, pos.y, size.x, size.y);
-        pop();
+        highlight(this, color(0, 0, 255)); // Blue for selected
       } else if (this.isMouseOver(mouseX, mouseY)) {
-        push();
-        noFill();
-        stroke(color(255, 255, 0)); // Yellow for hover
-        strokeWeight(2);
-        rect(pos.x, pos.y, size.x, size.y);
-        pop();
+        highlight(this, color(255, 255, 0)); // Yellow for hover
       } else if (this.isBoxHovered) {
-        push();
-        noFill();
-        stroke(color(0, 255, 0));
-        strokeWeight(2);
-        rect(pos.x, pos.y, size.x, size.y);
-        pop();
+        highlight(this, color(0, 255, 0)); // Green for box hover
       }
     }
     // Enemy ant highlights - only on mouseover
     else if (this._faction === "enemy" && this.isMouseOver(mouseX, mouseY)) {
-      push();
-      noFill();
-      stroke(color(255, 0, 0)); // Red for enemy on hover
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
+      highlight(this, color(255, 0, 0)); // Red for enemy on hover
     }
   }
 

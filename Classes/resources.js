@@ -84,12 +84,7 @@ class Resource {
         if (!this._isCarried && this.isMouseOver(mouseX, mouseY)) {
         const pos = this._sprite.pos;
         const size = this._sprite.size;
-        push();
-        noFill();
-        stroke(color(255, 255, 255)); // White for hover
-        strokeWeight(2);
-        rect(pos.x, pos.y, size.x, size.y);
-        pop();
+        highlight(this, color(255, 255, 255))
         }
     }
     
