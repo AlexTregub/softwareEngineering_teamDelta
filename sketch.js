@@ -50,7 +50,7 @@ function mouseDragged() {
 
 function mouseReleased() {
   if (isInGame() && typeof handleMouseReleased === 'function') {
-    handleMouseReleased(ants);
+    handleMouseReleased(ants, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
   }
 }
 
@@ -92,7 +92,7 @@ function setup() {
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
 
-  Ants_Spawn(50);
+  Ants_Spawn(10);
   Resources_Spawn(20);
 }
 

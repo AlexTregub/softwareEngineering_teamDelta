@@ -68,12 +68,8 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
     }
   }
 
-  // If no entity was clicked and one is selected, move it to the tile
-  if (!entityWasClicked && selectedEntity && moveSelectedEntityToTile) {
-    moveSelectedEntityToTile(mouseX, mouseY, TILE_SIZE);
-  }
-  // If no entity was clicked, start box selection
-  if (!entityWasClicked && !selectedEntity) {
+  // If no entity was clicked, start box selection (regardless of whether an entity is selected)
+  if (!entityWasClicked) {
     isSelecting = true;
     selectionStart = createVector(mouseX, mouseY);
     selectionEnd = selectionStart.copy();
@@ -98,7 +94,7 @@ function handleMouseDragged(mouseX, mouseY, entities) {
 }
 
 // Handles mouse release for selecting entities in box
-function handleMouseReleased(entities) {
+function handleMouseReleased(entities, selectedEntity, moveSelectedEntityToTile, tileSize) {
   if (isSelecting) {
     selectedEntities = [];
     let x1 = Math.min(selectionStart.x, selectionEnd.x);
@@ -106,12 +102,23 @@ function handleMouseReleased(entities) {
     let y1 = Math.min(selectionStart.y, selectionEnd.y);
     let y2 = Math.max(selectionStart.y, selectionEnd.y);
 
-    for (let i = 0; i < entities.length; i++) {
-      let entity = entities[i].antObject ? entities[i].antObject : entities[i];
-      entity.isSelected = isEntityInBox(entity, x1, x2, y1, y2);
-      entity.isBoxHovered = false;
-      if (entity.isSelected) selectedEntities.push(entity);
+    // Check if this was a small drag (click) vs a real selection box
+    const dragDistance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    const isClick = dragDistance < 5; // Less than 5 pixels is considered a click
+
+    // If it was a click and we have a selected ant, move it
+    if (isClick && selectedEntity && typeof moveSelectedEntityToTile === 'function') {
+      moveSelectedEntityToTile(selectionStart.x, selectionStart.y, tileSize);
+    } else {
+      // Otherwise, do box selection
+      for (let i = 0; i < entities.length; i++) {
+        let entity = entities[i].antObject ? entities[i].antObject : entities[i];
+        entity.isSelected = isEntityInBox(entity, x1, x2, y1, y2);
+        entity.isBoxHovered = false;
+        if (entity.isSelected) selectedEntities.push(entity);
+      }
     }
+    
     isSelecting = false;
     selectionStart = null;
     selectionEnd = null;
@@ -250,5 +257,19 @@ function renderDebugInfo(entity) {
     text(`Speed: ${entity.getEffectiveMovementSpeed().toFixed(1)}`, pos.x, pos.y - 10);
   }
   pop();
+}
+
+// Export for Node.js testing
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    handleMousePressed,
+    handleMouseDragged,
+    handleMouseReleased,
+    drawSelectionBox,
+    deselectAllEntities,
+    isEntityInBox,
+    isEntityUnderMouse,
+    renderDebugInfo
+  };
 }
 
