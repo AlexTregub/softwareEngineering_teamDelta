@@ -60,14 +60,14 @@ function Ant_Click_Control() {
   // Otherwise, select the ant under the mouse
   selectedAnt = null;
   for (let i = 0; i < ant_Index; i++) {
-    if (!ants[i]) continue;
+    if (!ants[i]) continue; // Safety check for null/undefined ants
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    antObj.isSelected = false;
+    if (antObj) antObj.isSelected = false; // Safety check
   }
   for (let i = 0; i < ant_Index; i++) {
-    if (!ants[i]) continue;
+    if (!ants[i]) continue; // Safety check for null/undefined ants
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    if (antObj.isMouseOver(mouseX, mouseY)) {
+    if (antObj && typeof antObj.isMouseOver === 'function' && antObj.isMouseOver(mouseX, mouseY)) {
       antObj.isSelected = true;
       selectedAnt = antObj;
       break;

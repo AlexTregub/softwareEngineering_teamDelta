@@ -192,28 +192,38 @@ function handleSpawnCommand(args) {
   
   // Spawn ants using the same method as the original Ants_Spawn function
   for (let i = 0; i < count; i++) {
-    // Create the base ant (this increments ant_Index)
-    let sizeR = random(0, 15);
-    let baseAnt = new ant(random(0, width-50), random(0, height-50), 20 + sizeR, 20 + sizeR, 30, 0);
-    let speciesName = assignSpecies();
-    
-    // Create Species object which extends ant but doesn't increment ant_Index again
-    // We need to temporarily decrement ant_Index to avoid double counting
-    let tempIndex = ant_Index;
-    ant_Index--;  // Temporarily decrement
-    let speciesAnt = new Species(baseAnt, speciesName, speciesImages[speciesName]);
-    ant_Index = tempIndex;  // Restore to the correct value
-    
-    // ant constructor incremented ant_Index, so the new ant goes at ant_Index - 1
-    let newAntIndex = ant_Index - 1;
-    ants[newAntIndex] = new AntWrapper(speciesAnt, speciesName);
-    
-    // Set faction if specified
-    if (faction !== 'neutral') {
-      const antObj = ants[newAntIndex].antObject ? ants[newAntIndex].antObject : ants[newAntIndex];
-      if (antObj) {
-        antObj.faction = faction;
+    try {
+      // Create the base ant (this increments ant_Index)
+      let sizeR = random(0, 15);
+      let baseAnt = new ant(random(0, width-50), random(0, height-50), 20 + sizeR, 20 + sizeR, 30, 0);
+      let speciesName = assignSpecies();
+      
+      // Create Species object which extends ant but doesn't increment ant_Index again
+      // We need to temporarily decrement ant_Index to avoid double counting
+      let tempIndex = ant_Index;
+      ant_Index--;  // Temporarily decrement
+      let speciesAnt = new Species(baseAnt, speciesName, speciesImages[speciesName]);
+      ant_Index = tempIndex;  // Restore to the correct value
+      
+      // ant constructor incremented ant_Index, so the new ant goes at ant_Index - 1
+      let newAntIndex = ant_Index - 1;
+      ants[newAntIndex] = new AntWrapper(speciesAnt, speciesName);
+      
+      // Ensure the ant wrapper is properly constructed
+      if (!ants[newAntIndex] || !ants[newAntIndex].antObject) {
+        console.log(`❌ Failed to create ant ${i + 1}`);
+        continue;
       }
+      
+      // Set faction if specified
+      if (faction !== 'neutral') {
+        const antObj = ants[newAntIndex].antObject ? ants[newAntIndex].antObject : ants[newAntIndex];
+        if (antObj) {
+          antObj.faction = faction;
+        }
+      }
+    } catch (error) {
+      console.log(`❌ Error creating ant ${i + 1}: ${error.message}`);
     }
   }
   

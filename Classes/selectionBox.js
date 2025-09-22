@@ -25,9 +25,20 @@ function isEntityInBox(entity, x1, x2, y1, y2) {
 
 // Abstract: checks if entity is under mouse
 function isEntityUnderMouse(entity, mx, my) {
-  if (entity.isMouseOver) return entity.isMouseOver(mx, my);
-  const pos = entity.getPosition ? entity.getPosition() : entity.sprite.pos;
-  const size = entity.getSize ? entity.getSize() : entity.sprite.size;
+  // Safety check: ensure entity exists
+  if (!entity) return false;
+  
+  if (entity.isMouseOver && typeof entity.isMouseOver === 'function') {
+    return entity.isMouseOver(mx, my);
+  }
+  
+  // Fallback to manual calculation
+  const pos = entity.getPosition ? entity.getPosition() : (entity.sprite ? entity.sprite.pos : { x: entity.posX || 0, y: entity.posY || 0 });
+  const size = entity.getSize ? entity.getSize() : (entity.sprite ? entity.sprite.size : { x: entity.sizeX || 32, y: entity.sizeY || 32 });
+  
+  // Safety check: ensure pos and size exist
+  if (!pos || !size) return false;
+  
   return (
     mx >= pos.x &&
     mx <= pos.x + size.x &&
@@ -51,9 +62,19 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
   // Check if an entity was clicked for single selection
   let entityWasClicked = false;
   for (let i = 0; i < entities.length; i++) {
+    // Safety check: ensure entity exists and is valid
+    if (!entities[i]) continue;
+    
     let entity = entities[i].antObject ? entities[i].antObject : entities[i];
+    
+    // Safety check: ensure entity has required methods
+    if (!entity || typeof entity.isMouseOver !== 'function') continue;
+    
     if (isEntityUnderMouse(entity, mouseX, mouseY)) {
-      selectEntityCallback();
+      // Safety check: ensure callback exists before calling
+      if (typeof selectEntityCallback === 'function') {
+        selectEntityCallback();
+      }
       entityWasClicked = true;
       break;
     }
@@ -78,7 +99,14 @@ function handleMouseDragged(mouseX, mouseY, entities) {
     let y2 = Math.max(selectionStart.y, selectionEnd.y);
 
     for (let i = 0; i < entities.length; i++) {
+      // Safety check: ensure entity exists
+      if (!entities[i]) continue;
+      
       let entity = entities[i].antObject ? entities[i].antObject : entities[i];
+      
+      // Safety check: ensure entity is valid
+      if (!entity) continue;
+      
       entity.isBoxHovered = isEntityInBox(entity, x1, x2, y1, y2);
     }
   }
@@ -103,7 +131,14 @@ function handleMouseReleased(entities, selectedEntity, moveSelectedEntityToTile,
     } else {
       // Otherwise, do box selection
       for (let i = 0; i < entities.length; i++) {
+        // Safety check: ensure entity exists
+        if (!entities[i]) continue;
+        
         let entity = entities[i].antObject ? entities[i].antObject : entities[i];
+        
+        // Safety check: ensure entity is valid
+        if (!entity) continue;
+        
         entity.isSelected = isEntityInBox(entity, x1, x2, y1, y2);
         entity.isBoxHovered = false;
         if (entity.isSelected) selectedEntities.push(entity);
