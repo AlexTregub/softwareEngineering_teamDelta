@@ -18,7 +18,7 @@ function preload(){
   Ants_Preloader()
   Resources_Preloader();
 
-  font = loadFont("images/Assets/Terraria.TTF");
+  font = loadFont("Images/Assets/Terraria.TTF");
 }
 
 // MOUSE INTERACTIONS
