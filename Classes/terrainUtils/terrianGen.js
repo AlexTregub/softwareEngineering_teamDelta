@@ -166,4 +166,12 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     smooth();
     return;
   }
+
+  render(coordSys) {
+    let pixelPos = coordSys.convPosToCanvas([this._x,this._y]);
+
+    noSmooth();
+    TERRAIN_MATERIALS[this._materialSet][1](pixelPos[0],pixelPos[1],this._squareSize);
+    smooth();
+  }
 }
