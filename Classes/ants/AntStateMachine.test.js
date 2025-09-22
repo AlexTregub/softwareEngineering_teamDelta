@@ -1,9 +1,6 @@
 // Test Suite for AntStateMachine
 // Run with: node AntStateMachine.test.js
 
-// Import the AntStateMachine class
-const AntStateMachine = require('./AntStateMachine.js');
-
 class TestSuite {
   constructor() {
     this.tests = [];
