@@ -1,8 +1,9 @@
 const _speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
 const _specialSpeciesList = ["DeLozier"]
-const _allSpecies = [..._speciesList, ..._specialSpeciesList];
+const _enemySpeciesList = ["Enemy"]
+const _allSpecies = [..._speciesList, ..._specialSpeciesList, ..._enemySpeciesList];
 class Species extends ant {
-  constructor(antObject, speciesName, speciesImage) {
+  constructor(antObject, speciesName, speciesImage, faction = "player") {
     const speciesStats = Species.getSpeciesStats(speciesName);
     super(
       antObject.posX,
@@ -11,7 +12,8 @@ class Species extends ant {
       antObject.sizeY,
       speciesStats.movementSpeed ?? antObject.movementSpeed,
       antObject.rotation,
-      speciesImage // Pass the image here!
+      speciesImage, // Pass the image here!
+      faction // Pass the faction
     );
     this.img = speciesImage
     this.speciesName = speciesName;
@@ -40,6 +42,8 @@ class Species extends ant {
         return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 30 };
       case "DeLozier":
         return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+      case "Enemy":
+        return { strength: 25, health: 100, gatherSpeed: 0, movementSpeed: 20 };
       default:
         return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 20 };
     }

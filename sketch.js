@@ -19,7 +19,6 @@ function preload(){
 
   // So far working...
   // testGridUtil();
-  eAnts_Preloader()
   // testGridResizeAndConsequences();
   font = loadFont("../Images/Assets/Terraria.TTF");
 }
@@ -85,16 +84,24 @@ function setup() {
   //// 
   initializeMenu();  // Initialize the menu system
 
-  Ants_Spawn(50);
+  // Spawn some ants
+  Ants_Spawn(15);
+  Ants_SpawnEnemies(20);
   Resources_Spawn(20);
-  eAnts_Spawn(20);
 }
 
 function draw() {
   MAP.render();
-  Ants_Update();
-  Resources_Update();
-  eAnts_Update();
+  
+  // Debug: Check game state
+  if (frameCount % 60 === 0) { // Log once per second
+    console.log(`Game state: ${gameState}, isInGame: ${isInGame()}`);
+  }
+  
+  if (isInGame()) {
+    Ants_Update(); // This now handles both player and enemy ants
+    Resources_Update();
+  }
 
   /*pos.add(vel);
 

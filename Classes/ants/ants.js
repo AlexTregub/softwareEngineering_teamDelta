@@ -20,7 +20,8 @@ function Ants_Preloader() {
     Farmer: loadImage('Images/Ants/brown_ant.png'),
     Warrior: loadImage('Images/Ants/blue_ant.png'),
     Spitter: loadImage('Images/Ants/gray_ant.png'),
-    DeLozier: loadImage('Images/Ants/greg.jpg')
+    DeLozier: loadImage('Images/Ants/greg.jpg'),
+    Enemy: loadImage('images/Ants/enemyAnts.png') // Fixed case for enemy ants
   };
   gregImg = loadImage("Images/Ants/greg.jpg");
 }
@@ -31,18 +32,55 @@ function Ants_Spawn(numToSpawn) {
     let sizeR = random(0, 15);
     let baseAnt = new ant(random(0, 500), random(0, 500), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
     let speciesName = assignSpecies();
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
+    ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName], "player"), speciesName);
     ants[i].update();
+  }
+}
+
+// --- Spawn Enemy Ants ---
+function Ants_SpawnEnemies(numToSpawn) {
+  console.log(`Spawning ${numToSpawn} enemy ants using existing ant system`);
+  
+  for (let i = 0; i < numToSpawn; i++) {
+    let sizeR = random(0, 15);
+    let baseAnt = new ant(random(0, 500), random(0, 500), antSize.x + sizeR, antSize.y + sizeR, 30, 0, speciesImages["Enemy"], "enemy");
+    let enemyAnt = new AntWrapper(new Species(baseAnt, "Enemy", speciesImages["Enemy"], "enemy"), "Enemy");
+    enemyAnt.update();
+    
+    // Add to the main ants array
+    ants[ant_Index - 1] = enemyAnt; // ant_Index was incremented in the ant constructor
+    console.log(`Created enemy ant ${i} at position (${baseAnt.posX}, ${baseAnt.posY})`);
   }
 }
 
 // --- Update All Ants ---
 function Ants_Update() {
+  let playerCount = 0;
+  let enemyCount = 0;
+  
   for (let i = 0; i < ant_Index; i++) {
     if (ants[i] && typeof ants[i].update === "function") {
       ants[i].update();
+      
+      // Count factions
+      let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+      if (antObj.faction === "player") {
+        playerCount++;
+      } else if (antObj.faction === "enemy") {
+        enemyCount++;
+      }
     }
   }
+  
+  // Display faction counts
+  push();
+  textAlign(CENTER, TOP); // Center the text horizontally
+  fill(0, 0, 255);
+  textSize(16);
+  text(`Player Ants: ${playerCount}`, width/2 - 80, 30);
+  fill(255, 0, 0);
+  text(`Enemy Ants: ${enemyCount}`, width/2 + 80, 30);
+  pop();
 }
 
 // --- Single Ant Selection/Movement ---
@@ -65,7 +103,9 @@ function Ant_Click_Control() {
   for (let i = 0; i < ant_Index; i++) {
     if (!ants[i]) continue;
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    if (antObj.isMouseOver(mouseX, mouseY)) {
+    
+    // Only allow selection of player faction ants
+    if (antObj.faction === "player" && antObj.isMouseOver(mouseX, mouseY)) {
       antObj.isSelected = true;
       selectedAnt = antObj;
       break;
@@ -75,7 +115,7 @@ function Ant_Click_Control() {
 
 // --- Ant Class ---
 class ant {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1) {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1, faction = "player") {
     const initialPos = createVector(posX, posY);
     this._stats = new stats(
       initialPos,
@@ -91,6 +131,7 @@ class ant {
     this._path = null;
     this._isSelected = false;
     this.isBoxHovered = false;
+    this._faction = faction; // "player" or "enemy"
   }
 
   // --- Getters/Setters ---
@@ -110,6 +151,8 @@ class ant {
   set path(value) { this._path = value; }
   get isSelected() { return this._isSelected; }
   set isSelected(value) { this._isSelected = value; }
+  get faction() { return this._faction; }
+  set faction(value) { this._faction = value; }
 
   // --- Sprite2D Helpers ---
   setSpriteImage(img) { this._sprite.setImage(img); }
@@ -140,24 +183,37 @@ class ant {
   highlight() {
     const pos = this._sprite.pos;
     const size = this._sprite.size;
-    if (this._isSelected) {
+    
+    // Player ant highlights
+    if (this._faction === "player") {
+      if (this._isSelected) {
+        push();
+        noFill();
+        stroke(color(0, 0, 255)); // Blue for selected
+        strokeWeight(2);
+        rect(pos.x, pos.y, size.x, size.y);
+        pop();
+      } else if (this.isMouseOver(mouseX, mouseY)) {
+        push();
+        noFill();
+        stroke(color(255, 255, 0)); // Yellow for hover
+        strokeWeight(2);
+        rect(pos.x, pos.y, size.x, size.y);
+        pop();
+      } else if (this.isBoxHovered) {
+        push();
+        noFill();
+        stroke(color(0, 255, 0));
+        strokeWeight(2);
+        rect(pos.x, pos.y, size.x, size.y);
+        pop();
+      }
+    }
+    // Enemy ant highlights - only on mouseover
+    else if (this._faction === "enemy" && this.isMouseOver(mouseX, mouseY)) {
       push();
       noFill();
-      stroke(color(0, 0, 255)); // Blue for selected
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
-    } else if (this.isMouseOver(mouseX, mouseY)) {
-      push();
-      noFill();
-      stroke(color(255, 255, 0)); // Yellow for hover
-      strokeWeight(2);
-      rect(pos.x, pos.y, size.x, size.y);
-      pop();
-    } else if (this.isBoxHovered) {
-      push();
-      noFill();
-      stroke(color(0, 255, 0));
+      stroke(color(255, 0, 0)); // Red for enemy on hover
       strokeWeight(2);
       rect(pos.x, pos.y, size.x, size.y);
       pop();

@@ -10,27 +10,43 @@ let eAntbg;
 function eAnts_Preloader() {
   eAntSize = createVector(20, 20);
   eAntbg = [120, 60, 60];
-  eAntImg = loadImage("Images/Ants/enemyAnts.png");
+  eAntImg = loadImage("images/Ants/enemyAnts.png");  // Fixed case
 }
 
 
 // --- Spawn Ants ---
 function eAnts_Spawn(numToSpawn) {
+  console.log(`eAnts_Spawn called with ${numToSpawn} ants. Current eAnt_Index: ${eAnt_Index}`);
+  
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
+    let currentIndex = eAnt_Index; // Save current index before constructor increments it
     let eBaseAnt = new eAnt(random(0, 500), random(0, 500), eAntSize.x + sizeR, eAntSize.y + sizeR, 30, 0);
-    eAnts[i] = eBaseAnt
-    eAnts[i].eUpdate();
+    eAnts[currentIndex] = eBaseAnt;  // Use the saved index
+    console.log(`Created eAnt ${currentIndex} at position (${eBaseAnt.posX}, ${eBaseAnt.posY})`);
   }
+  console.log(`Spawned ${numToSpawn} enemy ants. New eAnt_Index: ${eAnt_Index}`);
 }
 
 // --- Update All Ants ---
 function eAnts_Update() {
+  console.log(`eAnts_Update called. eAnt_Index: ${eAnt_Index}, eAnts array length: ${eAnts.length}`);
+  
   for (let i = 0; i < eAnt_Index; i++) {
     if (eAnts[i] && typeof eAnts[i].eUpdate === "function") {
+      console.log(`Updating eAnt ${i}`);
       eAnts[i].eUpdate();
+    } else {
+      console.log(`eAnt ${i} is null or missing eUpdate method`);
     }
   }
+  
+  // Debug display - show enemy ant count
+  push();
+  fill(255, 0, 0);
+  textSize(16);
+  text(`Enemy Ants: ${eAnt_Index}`, 10, 30);
+  pop();
 }
 
 /*function AntMovement(){
@@ -66,6 +82,10 @@ class eAnt {
   set antIndex(value) { this._antIndex = value; }
   get isMoving() { return this._isMoving; }
   set isMoving(value) { this._isMoving = value; }
+  
+  // Position getters for easy access
+  get posX() { return this._stats.pos.x; }
+  get posY() { return this._stats.pos.y; }
 
 //-----------------------------------------------------------------------------
   get timeUntilSkitter() { return this._timeUntilSkitter; }
@@ -108,7 +128,7 @@ class eAnt {
 //---------------------------------------------------------------------
   // --- Skitter Logic ---
   setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
-  rndTimeUntilSkitter() { this._timeUntilSkitter = this._skitterTimer; }
+  rndTimeUntilSkitter() { this._timeUntilSkitter = random(30, 200); }  // Fixed to generate new random value
   getTimeUntilSkitter() { return this._timeUntilSkitter; }
 //---------------------------------------------------------------------
 
@@ -187,6 +207,44 @@ class eAnt {
     }
   }
 
+  // --- Movement Speed ---
+  set movementSpeed(value) { this._stats.movementSpeed.statValue = value; }
+  get movementSpeed() { return this._stats.movementSpeed.statValue; }
+
+  // --- Move Logic ---
+  moveToLocation(X, Y) {
+    this._stats.pendingPos.statValue.x = X;
+    this._stats.pendingPos.statValue.y = Y;
+    this._isMoving = true;
+  }
+
+  ResolveMoment() {
+    if (this._isMoving) {
+      const current = this._stats.position.statValue;
+      const target = this._stats.pendingPos.statValue;
+      const direction = createVector(target.x - current.x, target.y - current.y);
+      const distance = direction.mag();
+
+      if (distance > 1) {
+        direction.normalize();
+        const speedPerMs = this.movementSpeed / 1000;
+        const step = Math.min(speedPerMs * deltaTime, distance);
+        current.x += direction.x * step;
+        current.y += direction.y * step;
+        this.posX = current.x;
+        this.posY = current.y;
+        this._sprite.setPosition(current);
+      } else {
+        this.posX = target.x;
+        this.posY = target.y;
+        this._isMoving = false;
+        this._sprite.setPosition(target);
+      }
+
+      this.render();
+    }
+  }
+
   eUpdate() {
     if (!this._isMoving) this._timeUntilSkitter -= 1;
     if (this._timeUntilSkitter < 0) {
@@ -196,6 +254,13 @@ class eAnt {
     }
     this.ResolveMoment();
     this.render();
+    
+    // Visual indicator that enemy ant is different (red tint)
+    push();
+    fill(255, 0, 0, 50); // Red overlay
+    noStroke();
+    rect(this.posX, this.posY, this._sprite.size.x, this._sprite.size.y);
+    pop();
   }
 
   // --- Static Utility Methods ---
