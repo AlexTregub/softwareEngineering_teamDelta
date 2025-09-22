@@ -134,7 +134,6 @@ function renderMenu() {
     // Render menu background and colony
     MAP.render();
     Ants_Update();
-    drawUI();
 
     // Draw the menu UI
     drawMenu();

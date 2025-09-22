@@ -190,6 +190,8 @@ function draw() {
 
   // Draw fade overlay if transitioning
   drawFadeOverlay();
+      drawUI();
+
 }
 
 // Dev console indicator moved to debug/testing.js
