@@ -16,7 +16,8 @@ function preload(){
   test_stats();
   terrainPreloader()
   Ants_Preloader()
-  resourcePreLoad();
+  Resources_Preloader();
+
   font = loadFont("Images/Assets/Terraria.TTF");
 }
 
@@ -49,27 +50,18 @@ function mouseDragged() {
 
 function mouseReleased() {
   if (isInGame() && typeof handleMouseReleased === 'function') {
-    handleMouseReleased(ants, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
+    handleMouseReleased(ants);
   }
 }
 
-// Debug functionality moved to debug/testing.js
-
 // KEYBOARD INTERACTIONS
 function keyPressed() {
-  // Handle all debug-related keys (command line, dev console, test hotkeys)
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
-    return; // Debug key was handled, don't process further
-  }
-  
   if (keyCode === ESCAPE) {
     if (typeof deselectAllEntities === 'function') {
       deselectAllEntities();
     }
   }
 }
-
-// Command line functionality has been moved to debug/commandLine.js
 
 ////// MAIN
 function setup() {
@@ -87,49 +79,21 @@ function setup() {
   GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-  
+  //// 
   initializeMenu();  // Initialize the menu system
-  setupTests(); // Call test functions from AntStateMachine branch
- 
-  Ants_Spawn(10);
-  // Resources_Spawn(20);
-}
 
-// Global Currency Counter
-function drawUI() {
-  push(); 
-  textFont(font); 
-  textSize(24);
-  fill(255);  // white text
-  textAlign(LEFT, TOP);
-  text("Food: " + globalResource.length, 10, 10);
-  pop();
-}
-
-function setupTests() {
-  // Any test functions can be called here
-  // e.g. antSMtest();
-  antSMtest(); // Test Ant State Machine
+  Ants_Spawn(50);
+  Resources_Spawn(20);
 }
 
 function draw() {
   MAP.render();
   Ants_Update();
+  Resources_Update();
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
   drawDebugGrid(tileSize, GRIDMAP.width, GRIDMAP.height);
-  
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-  
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
-  
   if(recordingPath){
 
   }
@@ -174,24 +138,10 @@ function draw() {
   // --- GAMEPLAY RENDERING ---
   MAP.render();
   Ants_Update();
-  resourceList.drawAll();
+  Resources_Update();
   if (typeof drawSelectionBox === 'function') drawSelectionBox();
   drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
-
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-  
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
 
   // Draw fade overlay if transitioning
   drawFadeOverlay();
 }
-
-// Dev console indicator moved to debug/testing.js
-
-// Command line drawing moved to debug/commandLine.js

@@ -53,11 +53,7 @@ class stats {
     expTotal
     getExpTotal(){ this.setExpTotal(); return this.expTotal; }
     setExpTotal(){ this.expTotal = 0; for (const value of this.exp) for (const keys of Object.keys(value)){ this.expTotal += value[keys] }}
-    printExpTotal(){ 
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-        console.log(`Total EXP: ${this.expTotal}`);
-      }
-    }
+    printExpTotal(){ console.log(`Total EXP: ${this.expTotal}`)}
 
     // Mappings
     createExpMap(){
@@ -71,21 +67,8 @@ class stats {
         this.exp.set("Scouting",new stat("Scouting EXP")) // exp gained from an ant scouting tasks
     }
 
-    test_Map(map) { 
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-        for (const [key, value] of map) { console.log(`${key}: ${value}`); }
-      }
-    }
-    test_Exp() { 
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-        for (const [key, value] of this.exp) {
-          console.log(`KEY: ${key}`); 
-          for (const keys of Object.keys(value)){ 
-            console.log(`${keys}: ${value[keys]}`) 
-          }
-        }
-      }
-    }
+    test_Map(map) { for (const [key, value] of map) { console.log(`${key}: ${value}`); } }
+    test_Exp() { for (const [key, value] of this.exp) {console.log(`KEY: ${key}`); for (const keys of Object.keys(value)){ console.log(`${keys}: ${value[keys]}`) }}}
 }
 
 // generic stat that will be used to populate all stats
@@ -124,22 +107,18 @@ class stat {
         this.test_enforceStatLimit();
     }
     test_enforceStatLimit() {
-        if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-            if (this.statValue < this.statLowerLimit) console.error(this.statValue, this.statLowerLimit);
-            if (this.statValue > this.statUpperLimit) console.error(this.statValue, this.statUpperLimit);
-        }
+        if (this.statValue < this.statLowerLimit) console.error(this.statValue, this.statLowerLimit);
+        if (this.statValue > this.statUpperLimit) console.error(this.statValue, this.statUpperLimit);
     }
 
     printStatToDebug() {
-        if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-            for (const key of Object.keys(this)) {
-                let value = this[key];
-                // If value is a vector, format as (x, y)
-                if (value && typeof value === "object" && "x" in value && "y" in value) {
-                    value = `(${value.x}, ${value.y})`;
-                }
-                console.log(`${key}: ${value}`);
+        for (const key of Object.keys(this)) {
+            let value = this[key];
+            // If value is a vector, format as (x, y)
+            if (value && typeof value === "object" && "x" in value && "y" in value) {
+                value = `(${value.x}, ${value.y})`;
             }
+            console.log(`${key}: ${value}`);
         }
     }
 
@@ -165,9 +144,7 @@ class stat {
             );
         } else {
             // Fallback: log to console if rendering context is unavailable
-            if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-                console.log(`Print at (${pos.x}, ${pos.y + spriteSize.y + 5}): ${this.statName}: ${valueToPrint}`);
-            }
+            console.log(`Print at (${pos.x}, ${pos.y + spriteSize.y + 5}): ${this.statName}: ${valueToPrint}`);
         }
     }
 }
