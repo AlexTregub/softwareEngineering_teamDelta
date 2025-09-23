@@ -161,4 +161,90 @@ npm run test:sprite2d      # Individual test files
 - **Import paths**: Use `../../` to reach project root from category folders
 - **Test structure**: Follow existing patterns for consistency
 
+---
+
+## 🚀 **First-Time Setup & Getting Started**
+
+### **Prerequisites**
+- **Node.js** (v14 or higher) - [Download here](https://nodejs.org/)
+- **Git** - [Download here](https://git-scm.com/)
+- **VS Code** (recommended) - [Download here](https://code.visualstudio.com/)
+
+### **Initial Setup**
+```bash
+# 1. Clone the repository
+git clone https://github.com/AlexTregub/softwareEngineering_teamDelta.git
+cd softwareEngineering_teamDelta
+
+# 2. Install dependencies
+npm install
+
+# 3. Verify installation by running tests
+npm test
+```
+
+### **First Run Verification**
+After setup, you should see output like:
+```
+🚀 STARTING COMPREHENSIVE TEST SUITE
+============================================================
+🧪 RUNNING UNIT TESTS
+============================================================
+📋 Ant Class ✅ PASSED (50ms) - 36 tests passed
+📋 Ant State Machine ✅ PASSED (50ms) - 17 tests passed
+...
+📊 Test Results: 12/15 passed, 129/129 assertions passed
+```
+
+### **Development Workflow**
+```bash
+# Run tests while developing
+npm test                    # Full test suite
+npm run test:unit          # Just unit tests (faster)
+npm run test:quick         # Quick validation
+
+# Start development server
+npm run dev                # Opens game in browser
+# Then navigate to: http://localhost:8000
+
+# Run browser-specific tests
+# Start server first, then open: http://localhost:8000/test/browser/
+```
+
+### **Common First-Time Issues & Solutions**
+
+#### ❌ **"npm: command not found"**
+**Solution**: Install Node.js from https://nodejs.org/
+
+#### ❌ **Test failures on first run**
+**Expected**: Some tests may fail initially - this is normal!
+**Action**: Check the test output for specific recommendations
+
+#### ❌ **"Module not found" errors**
+**Solution**: Run `npm install` in the project root directory
+
+#### ❌ **Port already in use**
+**Solution**: Change port in package.json or stop other local servers
+
+### **Project Structure Overview**
+```
+softwareEngineering_teamDelta/
+├── index.html              # Main game entry point
+├── sketch.js               # Game main loop (p5.js)
+├── Classes/                # Game logic classes
+│   ├── ants/              # Ant behavior system
+│   ├── entities/          # Game entities (sprites, stats)
+│   └── ...
+├── test/                  # Comprehensive test suite ⭐
+├── Images/                # Game assets
+├── libraries/            # External libraries (p5.js)
+└── scripts/              # Utility scripts
+```
+
+### **Next Steps After Setup**
+1. **Explore the game**: Open `index.html` in a browser
+2. **Run tests**: Use `npm test` to see current project health
+3. **Check documentation**: Look at `test/README.md` files in each category
+4. **Start coding**: Add new features and tests as needed!
+
 The test suite is now professionally organized with comprehensive reporting! 🎉

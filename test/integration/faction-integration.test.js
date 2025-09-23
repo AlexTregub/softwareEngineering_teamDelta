@@ -77,7 +77,7 @@ function setupFactions() {
     redAnt = new MockAnt(redFaction);
     blueAnt = new MockAnt(blueFaction);
     greenAnt = new MockAnt(greenFaction);
-  });
+  };
 
   describe('Basic Faction Functionality', () => {
     test('should create factions with correct properties', () => {
@@ -294,7 +294,7 @@ function setupFactions() {
       expect(registry.getFactionNames()).toContain("Test2");
     });
   });
-});
+
 
 describe('Edge Cases and Error Handling', () => {
   test('should handle null faction references safely', () => {
