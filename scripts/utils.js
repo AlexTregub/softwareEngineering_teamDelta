@@ -107,6 +107,46 @@ class ScriptManager {
       });
     });
   }
+
+  static checkNamingConventions() {
+    return window.checkNamingConventions();
+  }
+
+  static fixNamingConventions() {
+    console.log('🔧 Checking for naming convention issues...');
+    
+    const status = window.scriptLoader.getStatus();
+    const conflicts = window.scriptLoader.checkNamingConflicts();
+    
+    if (conflicts.length > 0) {
+      console.log(`⚠️ Found ${conflicts.length} potential naming conflicts:`);
+      conflicts.forEach((conflict, index) => {
+        console.log(`${index + 1}. ${conflict.camelCase} ↔ ${conflict.PascalCase}`);
+        console.log(`   ${conflict.warning}`);
+      });
+      
+      console.log('\n💡 Recommendations:');
+      console.log('- Choose one naming convention for your team (camelCase recommended)');
+      console.log('- Rename conflicting files to match your chosen convention');
+      console.log('- Update script paths in config.js accordingly');
+    } else {
+      console.log('✅ No naming conflicts detected');
+    }
+    
+    // Show convention breakdown
+    const conventions = status.namingConventions;
+    const totalFiles = Object.values(conventions).reduce((sum, files) => sum + files.length, 0);
+    
+    console.log('\n📊 Current naming convention usage:');
+    Object.entries(conventions).forEach(([convention, files]) => {
+      if (files.length > 0) {
+        const percentage = ((files.length / totalFiles) * 100).toFixed(1);
+        console.log(`${convention}: ${files.length} files (${percentage}%)`);
+      }
+    });
+    
+    return { conflicts, conventions };
+  }
 }
 
 // Make utilities globally available
@@ -118,9 +158,12 @@ window.removeScript = (group, script) => ScriptManager.removeScript(group, scrip
 window.listScripts = (env) => ScriptManager.listScripts(env);
 window.analyzeLoading = () => ScriptManager.analyzeLoadTime();
 window.switchEnv = (env) => ScriptManager.switchEnvironment(env);
+window.fixNaming = () => ScriptManager.fixNamingConventions();
 
 console.log('🛠️  Script management utilities loaded. Try:');
 console.log('  - listScripts() - Show all scripts for current environment');
 console.log('  - analyzeLoading() - Show loading status and timing');
 console.log('  - switchEnv("test") - Switch to test environment');
 console.log('  - addScript("debug", "path/to/script.js") - Add new script');
+console.log('  - fixNaming() - Check and fix naming convention issues');
+console.log('  - checkNamingConventions() - Analyze naming patterns');

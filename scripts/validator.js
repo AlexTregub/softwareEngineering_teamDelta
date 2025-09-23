@@ -66,7 +66,35 @@ class LoaderValidator {
       this.warnings.push('💡 Recommend using a local server (python -m http.server)');
     }
     
+    // Check naming conventions
+    this.validateNamingConventions();
+    
     return this.errors.length === 0;
+  }
+
+  // Validate naming conventions and suggest fixes
+  validateNamingConventions() {
+    console.log('📝 Checking naming conventions...');
+    
+    if (typeof window.scriptLoader !== 'undefined') {
+      const conflicts = window.scriptLoader.checkNamingConflicts();
+      const conventions = window.scriptLoader.getStatus().namingConventions;
+      
+      if (conflicts.length > 0) {
+        this.warnings.push(`⚠️  Found ${conflicts.length} naming convention conflicts`);
+        conflicts.forEach(conflict => {
+          this.warnings.push(`   - ${conflict.camelCase} vs ${conflict.PascalCase}`);
+        });
+        this.warnings.push('💡 Run fixNaming() in console for detailed analysis');
+      }
+      
+      // Check for mixed conventions
+      const usedConventions = Object.entries(conventions).filter(([, files]) => files.length > 0);
+      if (usedConventions.length > 2) {
+        this.warnings.push('⚠️  Multiple naming conventions detected - consider standardizing');
+        this.warnings.push('💡 Run checkNamingConventions() to see breakdown');
+      }
+    }
   }
 
   // Generate teammate setup instructions

@@ -102,7 +102,9 @@ const SCRIPT_CONFIG = {
         'test/selectionBox.test.js',
         'test/selectionBox.integration.test.js', 
         'test/menu-button-diagnostics.test.js',
-        'test/vectorTypeTests.test.js'
+        'test/vectorTypeTests.test.js',
+        'test/scriptLoader.namingConventions.test.js',
+        'test/scriptLoader.browserIntegration.test.js'
       ],
       description: 'Automated test suites',
       environments: ['test']

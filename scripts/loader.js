@@ -43,7 +43,7 @@ class ScriptLoader {
 
       // Ant system (depends on foundation)
       ants: [
-        'Classes/ants/species.js',
+        'classes/ants/species.js',
         'Classes/ants/antWrapper.js',
         'Classes/ants/antStateMachine.js',
         'Classes/ants/faction.js',  // If it exists
@@ -118,7 +118,25 @@ class ScriptLoader {
     return scripts[this.environment] || scripts.production;
   }
 
-  // Load a single script with promise
+  // Convert camelCase filename to PascalCase
+  toPascalCase(filename) {
+    // Extract directory and filename
+    const lastSlash = filename.lastIndexOf('/');
+    const directory = lastSlash >= 0 ? filename.substring(0, lastSlash + 1) : '';
+    const file = lastSlash >= 0 ? filename.substring(lastSlash + 1) : filename;
+    
+    // Extract name and extension
+    const lastDot = file.lastIndexOf('.');
+    const name = lastDot >= 0 ? file.substring(0, lastDot) : file;
+    const extension = lastDot >= 0 ? file.substring(lastDot) : '';
+    
+    // Convert to PascalCase (capitalize first letter)
+    const pascalName = name.charAt(0).toUpperCase() + name.slice(1);
+    
+    return directory + pascalName + extension;
+  }
+
+  // Load a single script with promise and fallback to PascalCase
   loadScript(src) {
     // Return existing promise if script is already loading
     if (this.loadingPromises.has(src)) {
@@ -130,7 +148,7 @@ class ScriptLoader {
       return Promise.resolve();
     }
 
-    // Create new loading promise
+    // Create new loading promise with fallback
     const promise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = src;
@@ -144,9 +162,37 @@ class ScriptLoader {
       };
 
       script.onerror = () => {
-        this.loadingPromises.delete(src);
-        console.error(`✗ Failed to load: ${src}`);
-        reject(new Error(`Failed to load script: ${src}`));
+        // First attempt failed, try PascalCase version
+        const pascalSrc = this.toPascalCase(src);
+        
+        if (pascalSrc !== src) {
+          console.warn(`⚠️ Failed to load ${src}, trying PascalCase version: ${pascalSrc}`);
+          
+          const fallbackScript = document.createElement('script');
+          fallbackScript.src = pascalSrc;
+          fallbackScript.async = false;
+          
+          fallbackScript.onload = () => {
+            this.loadedScripts.add(src); // Still track as original name
+            this.loadingPromises.delete(src);
+            console.log(`✓ Loaded (PascalCase fallback): ${pascalSrc}`);
+            resolve();
+          };
+          
+          fallbackScript.onerror = () => {
+            this.loadingPromises.delete(src);
+            console.error(`✗ Failed to load both versions: ${src} and ${pascalSrc}`);
+            reject(new Error(`Failed to load script: ${src} (also tried ${pascalSrc})`));
+          };
+          
+          // Remove the failed script and try the fallback
+          document.head.removeChild(script);
+          document.head.appendChild(fallbackScript);
+        } else {
+          this.loadingPromises.delete(src);
+          console.error(`✗ Failed to load: ${src}`);
+          reject(new Error(`Failed to load script: ${src}`));
+        }
       };
 
       document.head.appendChild(script);
@@ -241,14 +287,64 @@ class ScriptLoader {
     }
   }
 
-  // Get loading status
+  // Get loading status with naming convention analysis
   getStatus() {
     return {
       environment: this.environment,
       loaded: Array.from(this.loadedScripts),
       loading: Array.from(this.loadingPromises.keys()),
-      total: this.getScriptsForEnvironment().length
+      total: this.getScriptsForEnvironment().length,
+      namingConventions: this.analyzeNamingConventions()
     };
+  }
+
+  // Analyze naming conventions in script paths
+  analyzeNamingConventions() {
+    const scripts = this.getScriptsForEnvironment();
+    const analysis = {
+      camelCase: [],
+      PascalCase: [],
+      kebabCase: [],
+      snake_case: [],
+      unclear: []
+    };
+
+    scripts.forEach(script => {
+      const filename = script.split('/').pop().split('.')[0]; // Get filename without extension
+      
+      if (/^[a-z][a-zA-Z0-9]*$/.test(filename)) {
+        analysis.camelCase.push(script);
+      } else if (/^[A-Z][a-zA-Z0-9]*$/.test(filename)) {
+        analysis.PascalCase.push(script);
+      } else if (/^[a-z0-9]+(-[a-z0-9]+)+$/.test(filename)) {
+        analysis.kebabCase.push(script);
+      } else if (/^[a-z0-9]+(_[a-z0-9]+)+$/.test(filename)) {
+        analysis.snake_case.push(script);
+      } else {
+        analysis.unclear.push(script);
+      }
+    });
+
+    return analysis;
+  }
+
+  // Check for potential naming convention conflicts
+  checkNamingConflicts() {
+    const scripts = this.getScriptsForEnvironment();
+    const conflicts = [];
+    
+    scripts.forEach(script => {
+      const pascalVersion = this.toPascalCase(script);
+      if (pascalVersion !== script && scripts.includes(pascalVersion)) {
+        conflicts.push({
+          camelCase: script,
+          PascalCase: pascalVersion,
+          warning: 'Both camelCase and PascalCase versions exist'
+        });
+      }
+    });
+
+    return conflicts;
   }
 }
 
@@ -262,6 +358,37 @@ window.isTest = () => scriptLoader.environment === 'test';
 
 // Convenience function to add custom scripts
 window.loadCustomScript = (src) => scriptLoader.loadScript(src);
+
+// Naming convention utilities
+window.checkNamingConventions = () => {
+  const status = scriptLoader.getStatus();
+  console.log('📝 Naming Convention Analysis:');
+  
+  Object.entries(status.namingConventions).forEach(([convention, files]) => {
+    if (files.length > 0) {
+      console.log(`\n${convention}:`);
+      files.forEach(file => console.log(`  - ${file}`));
+    }
+  });
+  
+  const conflicts = scriptLoader.checkNamingConflicts();
+  if (conflicts.length > 0) {
+    console.log('\n⚠️ Potential Conflicts:');
+    conflicts.forEach(conflict => {
+      console.log(`  ${conflict.camelCase} vs ${conflict.PascalCase}`);
+    });
+  }
+  
+  return status.namingConventions;
+};
+
+// Test PascalCase fallback functionality
+window.testPascalCaseFallback = (filename) => {
+  const pascalVersion = scriptLoader.toPascalCase(filename);
+  console.log(`Original: ${filename}`);
+  console.log(`PascalCase: ${pascalVersion}`);
+  return pascalVersion;
+};
 
 // Log environment info
 console.log('🔧 Environment Detection:');

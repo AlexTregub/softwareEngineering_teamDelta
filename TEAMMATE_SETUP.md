@@ -59,6 +59,15 @@ switchEnv("test")
 
 // Add new script to a group
 addScript("debug", "path/to/newScript.js")
+
+// Check naming convention issues
+checkNamingConventions()
+
+// Fix naming convention problems
+fixNaming()
+
+// Test PascalCase fallback
+testPascalCaseFallback("myScript.js")
 ```
 
 ## 📁 File Structure
@@ -82,6 +91,7 @@ The loader expects this structure:
 ### "Scripts won't load" 
 - ✅ **Solution:** Use local server, not file:// protocol
 - ✅ **Check:** Run `validateSetup()` in console
+- ✅ **Auto-fix:** Script loader tries PascalCase versions automatically
 
 ### "CORS errors"
 - ✅ **Solution:** Start local server: `python -m http.server 8000`
@@ -90,10 +100,12 @@ The loader expects this structure:
 ### "Some files missing"
 - ✅ **Solution:** Make sure you have latest commit from repository
 - ✅ **Check:** `validateSetup()` will list missing files
+- ✅ **Naming:** Run `fixNaming()` to check for camelCase vs PascalCase issues
 
 ### "Loading hangs"
 - ✅ **Solution:** Check browser console for red error messages
 - ✅ **Debug:** Use `analyzeLoading()` to see what failed
+- ✅ **Naming:** Check if files exist with different capitalization
 
 ## 🔄 For Team Leads
 
