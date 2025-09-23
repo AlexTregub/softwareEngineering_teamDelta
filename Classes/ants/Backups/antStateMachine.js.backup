@@ -3,7 +3,7 @@
 // Manages the state of an ant character in a game, including primary activities and modifiers.
 // Supports complex state combinations and provides methods to query and change states.
 class AntStateMachine {
-  constructor(ant = null) {
+  constructor() {
     // Primary activity states
     this.primaryState = "IDLE";
     this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING"];
@@ -18,9 +18,6 @@ class AntStateMachine {
     
     // State change callbacks
     this.onStateChange = null;
-    
-    // Reference to the ant that owns this state machine (for faction integration)
-    this._ant = ant;
   }
 
   // Set the primary activity state
@@ -96,21 +93,7 @@ class AntStateMachine {
   }
 
   // Check if ant can perform specific actions
-  canPerformAction(action, targetAnt = null) {
-    // Check state-based permissions first
-    const stateAllowed = this._checkStatePermission(action);
-    if (!stateAllowed) return false;
-    
-    // Check faction-based permissions if target is specified
-    if (targetAnt && this._ant && this._ant.faction && targetAnt.faction) {
-      return this._checkFactionPermission(action, targetAnt);
-    }
-    
-    return true;
-  }
-
-  // Private method for original state-based action checking
-  _checkStatePermission(action) {
+  canPerformAction(action) {
     switch (action.toLowerCase()) {
       case "move":
         // Can't move while attacking, spitting, building, mating, or on slippery terrain
@@ -177,63 +160,6 @@ class AntStateMachine {
       default:
         return true;
     }
-  }
-
-  // Private method for faction-based action checking
-  _checkFactionPermission(action, targetAnt) {
-    if (!this._ant || !this._ant.faction || !targetAnt.faction) {
-      return true; // If no factions involved, allow action
-    }
-
-    const relationship = this._ant.faction.getRelationshipState(targetAnt.faction.name);
-    
-    switch (action.toLowerCase()) {
-      case "attack":
-        // Only attack enemies and blood enemies
-        return relationship.name === "ENEMIES" || relationship.name === "BLOOD_ENEMIES";
-      
-      case "socialize":
-      case "trade":
-        // Can socialize and trade with neutral and allied factions
-        return relationship.name === "NEUTRAL" || relationship.name === "ALLIED";
-      
-      case "follow":
-        // Only follow allied or same faction ants
-        return relationship.name === "ALLIED" || this._ant.faction === targetAnt.faction;
-      
-      case "defend":
-        // Can defend against any faction (defensive action)
-        return true;
-      
-      default:
-        return true;
-    }
-  }
-
-  // Check for automatic faction-based behaviors
-  checkAutomaticFactionBehaviors(nearbyAnts) {
-    if (!this._ant || !this._ant.faction) return;
-    
-    nearbyAnts.forEach(otherAnt => {
-      if (!otherAnt.faction || otherAnt === this._ant) return;
-      
-      const relationship = this._ant.faction.getRelationshipState(otherAnt.faction.name);
-      
-      // Auto-attack enemies on sight (if enabled and out of combat)
-      if (relationship.attackOnSight && this.combatModifier === "OUT_OF_COMBAT") {
-        console.log(`${this._ant.faction.name} ant automatically attacks ${otherAnt.faction.name} ant on sight`);
-        this.setCombatModifier("IN_COMBAT");
-        this._ant.faction.modifyRelationship(otherAnt.faction.name, -2, "Auto-combat");
-      }
-      
-      // Auto-assist allies in combat
-      if (relationship.name === "ALLIED" && otherAnt.stateMachine && otherAnt.stateMachine.isInCombat()) {
-        if (this.primaryState === "IDLE" || this.primaryState === "MOVING") {
-          console.log(`${this._ant.faction.name} ant comes to aid of allied ${otherAnt.faction.name} ant`);
-          this.setPrimaryState("FOLLOWING");
-        }
-      }
-    });
   }
 
   // Check current states
@@ -321,7 +247,7 @@ class AntStateMachine {
 }
 
 function antSMtest() {
-    // Create state machine for an ant (no ant reference for basic test)
+    // Create state machine for an ant
     let antSM = new AntStateMachine();
     
     // Set states

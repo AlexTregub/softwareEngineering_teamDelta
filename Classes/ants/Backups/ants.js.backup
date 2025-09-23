@@ -29,7 +29,7 @@ function Ants_Preloader() {
 }
 
 // --- Spawn Ants ---
-function Ants_Spawn(numToSpawn, faction = null) {
+function Ants_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let speciesName = assignSpecies();
@@ -43,12 +43,6 @@ function Ants_Spawn(numToSpawn, faction = null) {
       );
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
-    
-    // Assign faction if provided
-    if (faction) {
-      ants[i].setFaction(faction);
-    }
-    
     ants[i].update();
   }
 }
@@ -119,14 +113,14 @@ class ant {
     this.Resources = []; // Resource the ants is carrying
 
     
-    // Initialize state machine with reference to this ant for faction integration
-    this._stateMachine = new AntStateMachine(this);
+    // Initialize state machine
+    this._stateMachine = new AntStateMachine();
     this._stateMachine.setStateChangeCallback((oldState, newState) => {
       this._onStateChange(oldState, newState);
     });
     
     // Faction and command system
-    this._faction = null; // Will be set to Faction object
+    this._faction = "neutral"; // Default faction
     this._commandQueue = []; // Queue for receiving commands from queen
     this._nearbyEnemies = []; // Track nearby enemy ants
   }
@@ -152,23 +146,7 @@ class ant {
   // State machine and new properties
   get stateMachine() { return this._stateMachine; }
   get faction() { return this._faction; }
-  set faction(value) { 
-    const oldFaction = this._faction;
-    this._faction = value;
-    
-    // Handle faction object management
-    if (value && typeof value === 'object' && value.addAnt) {
-      // Adding to new faction
-      if (value !== oldFaction) {
-        value.addAnt(this);
-      }
-    }
-    
-    // Remove from old faction
-    if (oldFaction && typeof oldFaction === 'object' && oldFaction.removeAnt && oldFaction !== value) {
-      oldFaction.removeAnt(this);
-    }
-  }
+  set faction(value) { this._faction = value; }
   get commandQueue() { return this._commandQueue; }
   get nearbyEnemies() { return this._nearbyEnemies; }
 
@@ -454,12 +432,6 @@ class ant {
     // Check for nearby enemies and enter combat if necessary
     this.checkForEnemies();
     
-    // Check for automatic faction behaviors
-    if (this._faction && this._stateMachine) {
-      const nearbyAnts = this.getNearbyAnts(100); // Within 100 pixel radius
-      this._stateMachine.checkAutomaticFactionBehaviors(nearbyAnts);
-    }
-    
     // Handle pathfinding movement first
     if(!this.isMoving && this._path && this.path.length > 0){//If a path exists and not skittering
       const nextNode = this._path.shift(); //Sets next tile to be travelled as next path tile
@@ -582,19 +554,12 @@ class ant {
       
       const otherAnt = ants[i].antObject ? ants[i].antObject : ants[i];
       
-      // Check if different faction and hostile
-      if (this._faction && otherAnt.faction && 
-          this._faction !== otherAnt.faction) {
+      // Check if different faction
+      if (otherAnt.faction !== this._faction && this._faction !== "neutral" && otherAnt.faction !== "neutral") {
+        const distance = dist(this.posX, this.posY, otherAnt.posX, otherAnt.posY);
         
-        const relationship = this._faction.getRelationshipState(otherAnt.faction.name);
-        const isHostile = relationship.name === "ENEMIES" || relationship.name === "BLOOD_ENEMIES";
-        
-        if (isHostile) {
-          const distance = dist(this.posX, this.posY, otherAnt.posX, otherAnt.posY);
-          
-          if (distance <= detectionRadius) {
-            this._nearbyEnemies.push(otherAnt);
-          }
+        if (distance <= detectionRadius) {
+          this._nearbyEnemies.push(otherAnt);
         }
       }
     }
@@ -605,38 +570,6 @@ class ant {
     } else if (this._nearbyEnemies.length === 0 && this._stateMachine.isInCombat()) {
       this._stateMachine.setCombatModifier("OUT_OF_COMBAT");
     }
-  }
-
-  // Get nearby ants for faction behavior checking
-  getNearbyAnts(radius = 50) {
-    const nearbyAnts = [];
-    
-    for (let i = 0; i < ant_Index; i++) {
-      if (!ants[i] || ants[i] === this) continue;
-      
-      const otherAnt = ants[i].antObject ? ants[i].antObject : ants[i];
-      const distance = dist(this.posX, this.posY, otherAnt.posX, otherAnt.posY);
-      
-      if (distance <= radius) {
-        nearbyAnts.push(otherAnt);
-      }
-    }
-    
-    return nearbyAnts;
-  }
-
-  // Handle faction encounters
-  encounterAnt(otherAnt) {
-    if (!otherAnt || !otherAnt.faction || !this._faction) return null;
-    
-    // Factions learn about each other
-    this._faction.encounterFaction(otherAnt.faction);
-    otherAnt.faction.encounterFaction(this._faction);
-    
-    // Check if automatic behaviors should trigger
-    this._stateMachine.checkAutomaticFactionBehaviors([otherAnt]);
-    
-    return this._faction.getRelationshipState(otherAnt.faction.name);
   }
   
   // --- State Query Methods ---

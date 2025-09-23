@@ -57,6 +57,11 @@ function mouseReleased() {
 
 // KEYBOARD INTERACTIONS
 function keyPressed() {
+  // Handle menu keyboard input first
+  if (typeof handleMenuKeyPressed === 'function') {
+    handleMenuKeyPressed();
+  }
+  
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
@@ -91,7 +96,8 @@ function setup() {
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
  
-  Ants_Spawn(10);
+  // Don't spawn ants immediately - wait for faction selection
+  // Ants_Spawn(10);
   // Resources_Spawn(20);
 }
 

@@ -1,0 +1,26 @@
+// Basic idea
+// factions will have 3 properties
+// Name, self explainatory
+// Color, this will be a shader that turns ants into a shade of the color they choose 
+// relationships with all other know factions they've encountered and store relationship values, and relationship state
+//      Im envision this a dict
+// each ant will have a faction object inside of them
+// faction methods will either modify values of when, return the current relationship with an ecountered ant
+// allow a faction as a whole to change their name
+
+// I want a enum list of relationship states
+// ALLIED 100-80, NEUTRAL 79-20, ENEMIES 19-1, BLOOD_ENEMIES = 0
+
+// there will be a master faction list for all factions that are spawned on the map
+// this will be mostly for debugging.
+// this will be first set at run time, and updated anytime ants are spawned in
+// I want any name of a-zA-Z strings to be a valid entry into the master faction list
+
+// I want the player to be able to name their faction and give them a color at start game.
+// Player faction ants be will be controlable by the queen of of that faction, who is the player.
+// I want other factions to be able to spawn on the map and be able to interact with other factions.
+
+// I want ENEMIES be able to move into a better relationship with other factions, but BLOOD_ENEMIES will never forgive each other and cannot improve relations.
+// ENEMIES will attach other ENEMIES on sight
+// NEUTRAL will only attack other NEUTRAL factions when they are attacked or another NEUTRAL factions gets too close for too long
+// ALLIED will only attack other ALLIED factions when attacked

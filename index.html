@@ -8,29 +8,43 @@
 
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-    <script src="libraries/p5.min.js"></script>
-    <script src="libraries/p5.sound.min.js"></script>
-    <script src="Classes/resource.js"></script>
-    <script src="Classes/ants/ants.js"></script>
-    <script src="Classes/terrianGen.js"></script>
-    <script src="Classes/pathfinding.js"></script>
-    <script src="Classes/coordinateSystem.js"></script>
-    <script src="Classes/entities/sprite2d.js"></script>
-    <script src="Classes/entities/stats.js"></script>
-    <script src="Classes/ants/species.js"></script>
-    <script src="Classes/ants/antWrapper.js"></script>
-    <script src="Classes/ants/antStateMachine.js"></script>
-    <script src="Classes/ants/Queen.js"></script>
-    <script src="Classes/selectionBox.js"></script>
-    <script src="Classes/menu.js"></script>
-    <script src="Classes/grid.js"></script>
-    <script src="debug/commandLine.js"></script>
-    <script src="debug/testing.js"></script>
-    <script src="test/selectionBox.test.js"></script>
-    <script src="test/selectionBox.integration.test.js"></script>
+    
+    <!-- Script Loader System -->
+    <script src="scripts/config.js"></script>
+    <script src="scripts/loader.js"></script>
+    <script>
+      // Initialize loading when DOM is ready
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          await window.scriptLoader.loadAll();
+          console.log('🎮 Game ready to start!');
+        } catch (error) {
+          console.error('💥 Failed to load game scripts:', error);
+          document.body.innerHTML = `
+            <div style="color: red; text-align: center; padding: 50px;">
+              <h2>⚠️ Failed to Load Game</h2>
+              <p>Some game files could not be loaded. Please check the console for details.</p>
+              <button onclick="location.reload()">🔄 Retry</button>
+            </div>
+          `;
+        }
+      });
+
+      // Listen for script loading completion
+      window.addEventListener('scriptsLoaded', (event) => {
+        const { environment, loadTime, scriptCount } = event.detail;
+        console.log(`✨ Game initialized in ${environment} mode (${scriptCount} scripts, ${loadTime}ms)`);
+      });
+    </script>
   </head>
 
   <body>
-    <script src="sketch.js"></script>
+    <div id="loading" style="text-align: center; padding: 50px; font-family: Arial;">
+      <h2>🐜 Loading Ant Game...</h2>
+      <p>Please wait while we load the game files.</p>
+      <div style="width: 200px; height: 20px; background: #ddd; margin: 20px auto; border-radius: 10px;">
+        <div id="progress-bar" style="height: 100%; background: #4CAF50; width: 0%; border-radius: 10px; transition: width 0.3s;"></div>
+      </div>
+    </div>
   </body>
 </html>
