@@ -6,8 +6,8 @@ let leafImg;
 
 // Proload Images
 function Resources_Preloader() {
-    stickImg = loadImage("images/Resources/stick.png") // placeholder image right now
-    leafImg = loadImage("images/Resources/leaf.webp")  // placeholder image right now
+    stickImg = loadImage("Images/Resources/stick.png") // placeholder image right now
+    leafImg = loadImage("Images/Resources/leaf.webp")  // placeholder image right now
 }
 
 // Spawn Resources

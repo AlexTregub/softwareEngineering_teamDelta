@@ -16,16 +16,16 @@ let speciesImages = {};
 function Ants_Preloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
-  antImg1 = loadImage("images/Ants/gray_ant.png");
+  antImg1 = loadImage("Images/Ants/gray_ant.png");
   speciesImages = {
-    Builder: loadImage('images/Ants/blue_ant.png'),
-    Scout: loadImage('images/Ants/gray_ant.png'),
-    Farmer: loadImage('images/Ants/brown_ant.png'),
-    Warrior: loadImage('images/Ants/blue_ant.png'),
-    Spitter: loadImage('images/Ants/gray_ant.png'),
-    DeLozier: loadImage('images/Ants/greg.jpg')
+    Builder: loadImage('Images/Ants/blue_ant.png'),
+    Scout: loadImage('Images/Ants/gray_ant.png'),
+    Farmer: loadImage('Images/Ants/brown_ant.png'),
+    Warrior: loadImage('Images/Ants/blue_ant.png'),
+    Spitter: loadImage('Images/Ants/gray_ant.png'),
+    DeLozier: loadImage('Images/Ants/greg.jpg')
   };
-  gregImg = loadImage("images/Ants/greg.jpg");
+  gregImg = loadImage("Images/Ants/greg.jpg");
 }
 
 // --- Spawn Ants ---
