@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Load Order Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            margin: 20px;
+            line-height: 1.4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #569cd6;
+            margin-bottom: 10px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .test-pass {
+            background-color: #1e3a2e;
+            border-left: 4px solid #4caf50;
+            color: #4caf50;
+        }
+        .test-fail {
+            background-color: #3a1e1e;
+            border-left: 4px solid #f44336;
+            color: #f44336;
+        }
+        .test-warning {
+            background-color: #3a2f1e;
+            border-left: 4px solid #ff9800;
+            color: #ff9800;
+        }
+        .console-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+        .script-status {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #3e3e42;
+        }
+        .script-name {
+            font-family: monospace;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .status-loading { background-color: #ff9800; }
+        .status-loaded { background-color: #4caf50; }
+        .status-error { background-color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Script Load Order Test Suite</h1>
+        <p>This page tests the script loading system and verifies that dependencies are loaded in the correct order.</p>
+        
+        <div class="test-section">
+            <div class="test-header">🚀 Test Controls</div>
+            <button onclick="runLoadOrderTests()">Run Load Order Tests</button>
+            <button onclick="testScriptLoader()">Test Script Loader</button>
+            <button onclick="verifyDependencies()">Verify Dependencies</button>
+            <button onclick="clearConsole()">Clear Console</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">📊 Test Results</div>
+            <div id="testResults">
+                <div class="test-result test-warning">Click "Run Load Order Tests" to start testing</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">📋 Script Loading Status</div>
+            <div id="scriptStatus">
+                <div class="test-result test-warning">Script loader not initialized yet</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🖥️ Console Output</div>
+            <div id="consoleOutput" class="console-output">Console output will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        // Capture console output
+        const originalConsole = {
+            log: console.log,
+            warn: console.warn,
+            error: console.error
+        };
+        
+        let consoleBuffer = [];
+        
+        function captureConsole() {
+            ['log', 'warn', 'error'].forEach(method => {
+                console[method] = function(...args) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const message = `[${timestamp}] ${method.toUpperCase()}: ${args.join(' ')}`;
+                    consoleBuffer.push(message);
+                    updateConsoleOutput();
+                    originalConsole[method].apply(console, args);
+                };
+            });
+        }
+        
+        function updateConsoleOutput() {
+            const output = document.getElementById('consoleOutput');
+            output.textContent = consoleBuffer.join('\n');
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function clearConsole() {
+            consoleBuffer = [];
+            updateConsoleOutput();
+        }
+        
+        // Initialize console capture
+        captureConsole();
+        
+        // Test Results Display
+        function displayTestResult(test, passed, details, error) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+            
+            const icon = passed ? '✅' : '❌';
+            let content = `${icon} ${test}`;
+            
+            if (details) {
+                content += `\n   Details: ${details}`;
+            }
+            if (error) {
+                content += `\n   Error: ${error}`;
+            }
+            
+            resultDiv.textContent = content;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        function clearTestResults() {
+            document.getElementById('testResults').innerHTML = '';
+        }
+        
+        // Load Order Test Implementation
+        function runLoadOrderTests() {
+            clearTestResults();
+            clearConsole();
+            console.log('🚀 Starting Browser-based Script Load Order Tests');
+            
+            // Test 1: Expected script configuration
+            const expectedOrder = [
+                'libraries/p5.min.js',
+                'libraries/p5.sound.min.js',
+                'Classes/resource.js',
+                'Classes/coordinateSystem.js',
+                'Classes/entities/sprite2d.js',
+                'Classes/entities/stats.js',
+                'Classes/terrianGen.js',
+                'Classes/pathfinding.js',
+                'Classes/grid.js',
+                'Classes/ants/ants.js',
+                'Classes/ants/species.js',
+                'Classes/ants/antWrapper.js',
+                'Classes/ants/antStateMachine.js',
+                'Classes/ants/faction.js',
+                'Classes/ants/Queen.js',
+                'Classes/selectionBox.js',
+                'Classes/menu.js',
+                'sketch.js'
+            ];
+            
+            // Test critical dependency pairs
+            const criticalDeps = [
+                ['libraries/p5.min.js', 'Classes/entities/sprite2d.js'],
+                ['Classes/ants/ants.js', 'Classes/ants/species.js'],
+                ['Classes/ants/ants.js', 'Classes/ants/antWrapper.js'],
+                ['Classes/ants/ants.js', 'Classes/ants/Queen.js'],
+                ['Classes/entities/sprite2d.js', 'Classes/menu.js'],
+                ['libraries/p5.min.js', 'sketch.js']
+            ];
+            
+            let allPassed = true;
+            
+            for (const [dependency, dependent] of criticalDeps) {
+                const depIndex = expectedOrder.indexOf(dependency);
+                const dependentIndex = expectedOrder.indexOf(dependent);
+                
+                const passed = depIndex < dependentIndex && depIndex !== -1 && dependentIndex !== -1;
+                if (!passed) allPassed = false;
+                
+                displayTestResult(
+                    `Dependency: ${dependency} → ${dependent}`,
+                    passed,
+                    `${dependency} at index ${depIndex}, ${dependent} at index ${dependentIndex}`
+                );
+            }
+            
+            // Test for duplicates
+            const uniqueScripts = new Set(expectedOrder);
+            const noDuplicates = uniqueScripts.size === expectedOrder.length;
+            if (!noDuplicates) allPassed = false;
+            
+            displayTestResult(
+                'No duplicate scripts',
+                noDuplicates,
+                `${expectedOrder.length} total, ${uniqueScripts.size} unique`
+            );
+            
+            // Test sketch.js loads last
+            const sketchLast = expectedOrder[expectedOrder.length - 1] === 'sketch.js';
+            if (!sketchLast) allPassed = false;
+            
+            displayTestResult(
+                'sketch.js loads last',
+                sketchLast,
+                `Last script: ${expectedOrder[expectedOrder.length - 1]}`
+            );
+            
+            // Summary
+            const summary = allPassed ? 'All load order tests passed!' : 'Some load order tests failed!';
+            displayTestResult('Overall Result', allPassed, summary);
+            
+            console.log(`✨ Load order tests completed. Result: ${allPassed ? 'PASS' : 'FAIL'}`);
+        }
+        
+        // Test Script Loader functionality
+        async function testScriptLoader() {
+            clearConsole();
+            console.log('🔧 Testing Script Loader functionality...');
+            
+            try {
+                // Load the script loader
+                await loadScriptAsync('scripts/loader.js');
+                console.log('✅ Script loader loaded successfully');
+                
+                // Test if ScriptLoader class is available
+                if (typeof ScriptLoader !== 'undefined') {
+                    console.log('✅ ScriptLoader class is available');
+                    
+                    // Create instance and test methods
+                    const loader = new ScriptLoader();
+                    console.log(`✅ ScriptLoader instance created (Environment: ${loader.environment})`);
+                    
+                    // Test configuration
+                    const config = loader.getScriptConfig();
+                    console.log(`✅ Script configuration loaded (${Object.keys(config).length} categories)`);
+                    
+                    // Test environment detection
+                    const scripts = loader.getScriptsForEnvironment();
+                    console.log(`✅ Environment scripts retrieved (${scripts.length} scripts for ${loader.environment})`);
+                    
+                    updateScriptStatus(loader);
+                    
+                } else {
+                    console.error('❌ ScriptLoader class not available after loading');
+                }
+            } catch (error) {
+                console.error('❌ Failed to test script loader:', error.message);
+            }
+        }
+        
+        // Verify Dependencies
+        function verifyDependencies() {
+            clearConsole();
+            console.log('🔗 Verifying script dependencies...');
+            
+            const dependencies = {
+                'p5 library': typeof p5 !== 'undefined',
+                'ant class': typeof ant !== 'undefined',
+                'Species class': typeof Species !== 'undefined',
+                'Faction class': typeof Faction !== 'undefined',
+                'FactionRegistry class': typeof FactionRegistry !== 'undefined',
+                'sprite2d class': typeof sprite2d !== 'undefined',
+                'stats class': typeof stats !== 'undefined'
+            };
+            
+            let allSatisfied = true;
+            
+            for (const [name, available] of Object.entries(dependencies)) {
+                if (available) {
+                    console.log(`✅ ${name} is available`);
+                } else {
+                    console.warn(`⚠️ ${name} is NOT available`);
+                    allSatisfied = false;
+                }
+            }
+            
+            if (allSatisfied) {
+                console.log('🎉 All critical dependencies are satisfied!');
+            } else {
+                console.warn('⚠️ Some dependencies are missing. This may indicate loading order issues.');
+            }
+        }
+        
+        // Update script status display
+        function updateScriptStatus(loader) {
+            const statusDiv = document.getElementById('scriptStatus');
+            const status = loader.getStatus();
+            
+            let html = `
+                <div style="margin-bottom: 10px;">
+                    <strong>Environment:</strong> ${status.environment}<br>
+                    <strong>Total Scripts:</strong> ${status.total}<br>
+                    <strong>Loaded:</strong> ${status.loaded.length}
+                </div>
+            `;
+            
+            // Show script status
+            const scripts = loader.getScriptsForEnvironment();
+            scripts.forEach(script => {
+                const isLoaded = status.loaded.includes(script);
+                const isLoading = status.loading.includes(script);
+                
+                let statusClass = 'status-error';
+                let statusText = 'Error';
+                
+                if (isLoaded) {
+                    statusClass = 'status-loaded';
+                    statusText = 'Loaded';
+                } else if (isLoading) {
+                    statusClass = 'status-loading';
+                    statusText = 'Loading';
+                }
+                
+                html += `
+                    <div class="script-status">
+                        <span class="script-name">${script}</span>
+                        <span>${statusText}</span>
+                        <div class="status-indicator ${statusClass}"></div>
+                    </div>
+                `;
+            });
+            
+            statusDiv.innerHTML = html;
+        }
+        
+        // Utility function to load scripts
+        function loadScriptAsync(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        // Initialize page
+        console.log('🔧 Script Load Order Test Page initialized');
+        console.log('Click the buttons above to run tests');
+    </script>
+</body>
+</html>

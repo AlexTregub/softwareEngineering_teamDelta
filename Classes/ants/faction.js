@@ -8,7 +8,6 @@ const RELATIONSHIP_STATES = {
   ENEMIES: { name: "ENEMIES", min: 1, max: 19, attackOnSight: true },
   BLOOD_ENEMIES: { name: "BLOOD_ENEMIES", min: 0, max: 0, attackOnSight: true }
 };
-window.FactionRelationship = FactionRelationship;
 
 // Master faction registry
 class FactionRegistry {
@@ -214,9 +213,6 @@ class Faction {
   }
 }
 
-// Global faction registry instance
-let globalFactionRegistry = new FactionRegistry();
-
 // Utility functions
 function createFaction(name, color = "#FFFFFF") {
   return new Faction(name, color);
@@ -245,3 +241,6 @@ if (typeof module !== "undefined" && module.exports) {
     globalFactionRegistry
   };
 }
+
+// Global faction registry instance - initialized after all class definitions
+let globalFactionRegistry = new FactionRegistry();

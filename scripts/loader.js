@@ -43,11 +43,11 @@ class ScriptLoader {
 
       // Ant system (depends on foundation)
       ants: [
-        'classes/ants/species.js',
+        'Classes/ants/ants.js',
+        'Classes/ants/species.js',
         'Classes/ants/antWrapper.js',
         'Classes/ants/antStateMachine.js',
-        'Classes/ants/faction.js',  // If it exists
-        'Classes/ants/ants.js',
+        'Classes/ants/faction.js',
         'Classes/ants/Queen.js'
       ],
 
@@ -276,6 +276,14 @@ class ScriptLoader {
       console.log(`🎉 All scripts loaded successfully in ${loadTime}ms`);
       console.log(`📊 Loaded ${scripts.length} scripts in ${this.environment} mode`);
       
+      // Verify dependencies after loading
+      setTimeout(() => {
+        const dependencyIssues = this.verifyDependencies();
+        if (dependencyIssues.length === 0) {
+          console.log('🔗 All script dependencies verified successfully');
+        }
+      }, 100); // Small delay to allow classes to be fully initialized
+      
       // Dispatch event when loading is complete
       window.dispatchEvent(new CustomEvent('scriptsLoaded', {
         detail: { environment: this.environment, loadTime, scriptCount: scripts.length }
@@ -296,6 +304,53 @@ class ScriptLoader {
       total: this.getScriptsForEnvironment().length,
       namingConventions: this.analyzeNamingConventions()
     };
+  }
+
+  // Verify critical dependencies are available at runtime
+  verifyDependencies() {
+    const dependencies = {
+      'Classes/ants/species.js': ['ant'], // Species extends ant class
+      'Classes/ants/antWrapper.js': ['ant'], // AntWrapper uses ant class
+      'Classes/ants/Queen.js': ['ant'], // Queen extends ant class
+      'Classes/ants/faction.js': ['FactionRegistry'], // Faction uses FactionRegistry
+      'Classes/menu.js': ['sprite2d'], // Menu uses sprite2d
+      'sketch.js': ['p5'] // sketch.js uses p5.js
+    };
+    
+    const issues = [];
+    
+    for (const [script, deps] of Object.entries(dependencies)) {
+      if (this.loadedScripts.has(script)) {
+        for (const dep of deps) {
+          try {
+            // Check if the dependency exists in global scope
+            if (typeof window[dep] === 'undefined' && typeof global !== 'undefined' && typeof global[dep] === 'undefined') {
+              // For classes, check if they can be referenced
+              if (dep === 'ant' && typeof ant === 'undefined') {
+                issues.push(`${script} depends on 'ant' class but it's not available`);
+              } else if (dep === 'FactionRegistry' && typeof FactionRegistry === 'undefined') {
+                issues.push(`${script} depends on 'FactionRegistry' class but it's not available`);
+              } else if (dep === 'sprite2d' && typeof sprite2d === 'undefined') {
+                issues.push(`${script} depends on 'sprite2d' class but it's not available`);
+              } else if (dep === 'p5' && typeof p5 === 'undefined') {
+                issues.push(`${script} depends on 'p5' library but it's not available`);
+              }
+            }
+          } catch (error) {
+            issues.push(`${script} dependency check failed for '${dep}': ${error.message}`);
+          }
+        }
+      }
+    }
+    
+    if (issues.length > 0) {
+      console.warn('⚠️ Dependency verification found issues:');
+      issues.forEach(issue => console.warn(`  - ${issue}`));
+    } else {
+      console.log('✅ All critical dependencies verified successfully');
+    }
+    
+    return issues;
   }
 
   // Analyze naming conventions in script paths
