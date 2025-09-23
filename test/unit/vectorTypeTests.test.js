@@ -5,7 +5,7 @@
 let vectorFunctions;
 if (typeof module !== 'undefined' && typeof require !== 'undefined') {
   try {
-    vectorFunctions = require('../TypeTests/vectorTypeTests.js');
+    vectorFunctions = require('../../TypeTests/vectorTypeTests.js');
   } catch (e) {
     console.log('Running in browser environment');
   }

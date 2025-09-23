@@ -1,8 +1,8 @@
 // faction-statemachine.test.js
 // Comprehensive test for faction-state machine integration
 
-const { Faction, createFaction, RELATIONSHIP_STATES } = require('../Classes/ants/faction.js');
-const AntStateMachine = require('../Classes/ants/antStateMachine.js');
+const { Faction, createFaction, RELATIONSHIP_STATES } = require('../../Classes/ants/faction.js');
+const AntStateMachine = require('../../Classes/ants/antStateMachine.js');
 
 console.log("🧪 Running Faction-State Machine Integration Test Suite...\n");
 

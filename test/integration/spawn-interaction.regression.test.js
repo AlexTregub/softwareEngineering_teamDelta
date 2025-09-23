@@ -90,7 +90,7 @@ function assignSpecies() {
 }
 
 // Import the selection box functions
-const selectionBox = require('./selectionBox.mock.js');
+const selectionBox = require('../utils/selectionBox.mock.js');
 const { handleMousePressed, handleMouseDragged, handleMouseReleased } = selectionBox;
 
 // Mock command line spawn function (simplified version)

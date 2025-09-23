@@ -2,8 +2,8 @@
 // Comprehensive tests for faction-state machine integration
 
 // Import dependencies
-const { Faction, FactionRegistry, RELATIONSHIP_STATES, createFaction } = require('../Classes/ants/faction.js');
-const AntStateMachine = require('../Classes/ants/antStateMachine.js');
+const { Faction, FactionRegistry, RELATIONSHIP_STATES, createFaction } = require('../../Classes/ants/faction.js');
+const AntStateMachine = require('../../Classes/ants/antStateMachine.js');
 
 // Mock ant class for testing
 class MockAnt {

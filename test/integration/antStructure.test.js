@@ -35,9 +35,9 @@ global.ants = []; // Add ants array
 global.assignSpecies = () => "Builder";
 
 // Import required classes
-const AntStateMachine = require('../Classes/ants/antStateMachine.js');
-const Sprite2D = require('../Classes/entities/sprite2d.js');
-const { stats, stat } = require('../Classes/entities/stats.js');
+const AntStateMachine = require('../../Classes/ants/antStateMachine.js');
+const Sprite2D = require('../../Classes/entities/sprite2d.js');
+const { stats, stat } = require('../../Classes/entities/stats.js');
 
 // Mock the global dependencies for ant.js
 global.AntStateMachine = AntStateMachine;
@@ -45,11 +45,11 @@ global.Sprite2D = Sprite2D;
 global.stats = stats;
 
 // Import ant class first
-const ant = require('../Classes/ants/ants.js');
+const ant = require('../../Classes/ants/ants.js');
 global.ant = ant; // Make it globally available for Species
 
-const AntWrapper = require('../Classes/ants/antWrapper.js');
-const Species = require('../Classes/ants/species.js');
+const AntWrapper = require('../../Classes/ants/antWrapper.js');
+const Species = require('../../Classes/ants/species.js');
 
 // Import selection box functions safely
 const fs = require('fs');

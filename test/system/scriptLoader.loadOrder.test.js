@@ -333,7 +333,7 @@ class LoadOrderTestSuite {
 if (typeof module !== 'undefined' && module.exports) {
   // Node.js environment
   try {
-    const ScriptLoader = require('../scripts/loader.js');
+    const ScriptLoader = require('../../scripts/loader.js');
     module.exports = { LoadOrderTestSuite, MockScriptElement };
   } catch (error) {
     console.warn('Could not import ScriptLoader in Node.js environment:', error.message);

@@ -9,7 +9,7 @@ function testCommandLineFactionIntegration() {
   console.log("1️⃣ Testing faction object creation and command line compatibility");
   
   // Simulate creating factions (like command line would)
-  const { createFaction } = require('../Classes/ants/faction.js');
+  const { createFaction } = require('../../Classes/ants/faction.js');
   
   const playerFaction = createFaction("player", "#0000FF");
   const enemyFaction = createFaction("enemy", "#FF0000");
@@ -37,7 +37,7 @@ function testAntCreationWithFactions() {
       this._faction = null;
       
       // Initialize state machine with ant reference (like the real ants.js)
-      const AntStateMachine = require('../Classes/ants/antStateMachine.js');
+      const AntStateMachine = require('../../Classes/ants/antStateMachine.js');
       this._stateMachine = new AntStateMachine(this);
       
       // Set faction (triggers faction.addAnt)
@@ -130,7 +130,7 @@ function testCommandLineCompatibility() {
   console.log("\\n5️⃣ Testing command line string compatibility");
   
   // Test that we can still handle string faction names for backward compatibility
-  const { createFaction } = require('../Classes/ants/faction.js');
+  const { createFaction } = require('../../Classes/ants/faction.js');
   
   console.log("\\n📝 Creating factions with string names (command line style):");
   const redFaction = createFaction("red", "#FF0000");
@@ -140,7 +140,7 @@ function testCommandLineCompatibility() {
   console.log(`✅ Blue faction: ${blueFaction.name}`);
   
   // Test faction registry
-  const { getFactionRegistry } = require('../Classes/ants/faction.js');
+  const { getFactionRegistry } = require('../../Classes/ants/faction.js');
   const registry = getFactionRegistry();
   
   console.log(`✅ Total registered factions: ${registry.getFactionCount()}`);
@@ -151,7 +151,7 @@ function testBackwardCompatibility() {
   console.log("\\n6️⃣ Testing backward compatibility with existing systems");
   
   // Test that state machine still works without faction integration
-  const AntStateMachine = require('../Classes/ants/antStateMachine.js');
+  const AntStateMachine = require('../../Classes/ants/antStateMachine.js');
   const basicStateMachine = new AntStateMachine(); // No ant reference
   
   console.log("\\n🔧 Testing state machine without ant reference:");

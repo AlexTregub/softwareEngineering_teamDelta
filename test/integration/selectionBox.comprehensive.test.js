@@ -63,7 +63,7 @@ global.LEFT = 37;
 global.RIGHT = 39;
 
 // Import selection box functions
-const selectionBoxFunctions = require('../Classes/selectionBox.js');
+const selectionBoxFunctions = require('../../Classes/selectionBox.js');
 const {
   handleMousePressed,
   handleMouseDragged,

@@ -2,7 +2,7 @@
 // Run with: node test/AntStateMachine.test.js
 
 // Import AntStateMachine
-const AntStateMachine = require('../Classes/ants/antStateMachine.js');
+const AntStateMachine = require('../../Classes/ants/antStateMachine.js');
 
 class TestSuite {
   constructor() {
