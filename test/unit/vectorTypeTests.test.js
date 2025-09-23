@@ -2,10 +2,28 @@
 // Comprehensive tests for vector type checking functions
 
 // Import the vector type functions if in Node.js environment
-let vectorFunctions;
+let isVector, isVector2D, isVector3D, isP5Vector, getVectorType;
 if (typeof module !== 'undefined' && typeof require !== 'undefined') {
   try {
-    vectorFunctions = require('../../TypeTests/vectorTypeTests.js');
+    // Mock p5.js for Node.js environment
+    if (typeof global !== 'undefined' && typeof global.p5 === 'undefined') {
+      global.p5 = {
+        Vector: class {
+          constructor(x, y, z) {
+            this.x = x || 0;
+            this.y = y || 0;
+            this.z = z;
+          }
+        }
+      };
+    }
+    
+    const vectorFunctions = require('../../TypeTests/vectorTypeTests.js');
+    isVector = vectorFunctions.isVector;
+    isVector2D = vectorFunctions.isVector2D;
+    isVector3D = vectorFunctions.isVector3D;
+    isP5Vector = vectorFunctions.isP5Vector;
+    getVectorType = vectorFunctions.getVectorType;
   } catch (e) {
     console.log('Running in browser environment');
   }

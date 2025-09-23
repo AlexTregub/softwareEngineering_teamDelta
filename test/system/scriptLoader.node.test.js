@@ -47,7 +47,7 @@ function testFileSystemIntegration() {
   console.log("Testing file system integration...");
   
   // Test that we can read the actual loader.js file
-  const loaderPath = path.join(__dirname, '..', 'scripts', 'loader.js');
+  const loaderPath = path.join(__dirname, '..', '..', 'scripts', 'loader.js');
   
   if (!fs.existsSync(loaderPath)) {
     throw new Error(`Loader file not found: ${loaderPath}`);

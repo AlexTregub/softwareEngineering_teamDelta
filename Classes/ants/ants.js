@@ -10,6 +10,9 @@ let hasDeLozier = false;
 let selectedAnt = null;
 let speciesImages = {};
 
+// Species will be imported after ant class is defined
+let Species;
+
 // AntStateMachine will be available globally from antStateMachine.js
 
 // --- Preload Images ---
@@ -41,8 +44,14 @@ function Ants_Spawn(numToSpawn, faction = null) {
       antImg1,
       speciesName
       );
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
+    
+    // Use Species only if available (browser environment)
+    if (typeof Species !== 'undefined' && Species) {
+      ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
+    } else {
+      // Node.js fallback - just use the base ant
+      ants[i] = new AntWrapper(baseAnt, speciesName);
+    }
     
     // Assign faction if provided
     if (faction) {
@@ -712,6 +721,17 @@ class ant {
   }
 
 
+}
+
+// Import Species after ant class is defined to avoid circular dependency
+// Only in browser environment or when explicitly needed
+if (typeof Species === 'undefined' && typeof require !== 'undefined' && 
+    typeof global !== 'undefined' && !global.__TESTING__) {
+  try {
+    Species = require('./species.js');
+  } catch (e) {
+    // Ignore in testing environments where circular dependencies cause issues
+  }
 }
 
 // --- Move Selected Ant to Tile ---

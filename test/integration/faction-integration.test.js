@@ -19,15 +19,59 @@ class MockAnt {
   }
 }
 
-describe('Faction System Integration Tests', () => {
-  let redFaction, blueFaction, greenFaction;
-  let redAnt, blueAnt, greenAnt;
+// Simple test framework
+class FactionTestSuite {
+  constructor() {
+    this.tests = [];
+    this.passed = 0;
+    this.failed = 0;
+  }
 
-  beforeEach(() => {
-    // Create factions
-    redFaction = createFaction("Red", "#FF0000");
-    blueFaction = createFaction("Blue", "#0000FF");
-    greenFaction = createFaction("Green", "#00FF00");
+  test(name, testFunction) {
+    this.tests.push({ name, testFunction });
+  }
+
+  assert(condition, message) {
+    if (!condition) {
+      throw new Error(message);
+    }
+  }
+
+  async run() {
+    console.log('🧪 Running Faction System Integration Tests...\n');
+    
+    for (const test of this.tests) {
+      try {
+        console.log(`📋 ${test.name}`);
+        await test.testFunction();
+        console.log(`✅ PASSED`);
+        this.passed++;
+      } catch (error) {
+        console.error(`❌ FAILED: ${error.message}`);
+        this.failed++;
+      }
+    }
+
+    console.log(`\n📊 Test Results: ${this.passed} passed, ${this.failed} failed`);
+    
+    if (this.failed > 0) {
+      console.log('❌ Some faction integration tests failed!');
+      process.exit(1);
+    } else {
+      console.log('🎉 All faction integration tests passed!');
+      process.exit(0);
+    }
+  }
+}
+
+const suite = new FactionTestSuite();
+
+// Test data setup
+function setupFactions() {
+  // Create factions
+  const redFaction = createFaction("Red", "#FF0000");
+  const blueFaction = createFaction("Blue", "#0000FF");
+  const greenFaction = createFaction("Green", "#00FF00");
 
     // Create ants
     redAnt = new MockAnt(redFaction);

@@ -218,6 +218,9 @@ function createFaction(name, color = "#FFFFFF") {
   return new Faction(name, color);
 }
 
+// Global faction registry instance - initialized before export
+let globalFactionRegistry = new FactionRegistry();
+
 function getFactionRegistry() {
   return globalFactionRegistry;
 }
@@ -241,6 +244,3 @@ if (typeof module !== "undefined" && module.exports) {
     globalFactionRegistry
   };
 }
-
-// Global faction registry instance - initialized after all class definitions
-let globalFactionRegistry = new FactionRegistry();

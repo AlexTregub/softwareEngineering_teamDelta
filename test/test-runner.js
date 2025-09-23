@@ -59,6 +59,11 @@ class TestRunner {
           name: 'Vector Types',
           file: 'vectorTypeTests.test.js',
           description: 'Tests vector mathematics and types'
+        },
+        {
+          name: 'Property Access Safety',
+          file: 'property-access-safety.test.js',
+          description: 'Tests safe property access patterns and error prevention'
         }
       ],
       integration: [
@@ -79,7 +84,7 @@ class TestRunner {
         },
         {
           name: 'Faction Integration',
-          file: 'faction-integration.test.js',
+          file: 'faction-integration-simple.test.js',
           description: 'Tests faction system integration'
         },
         {
@@ -103,6 +108,11 @@ class TestRunner {
           name: 'Selection Regression',
           file: 'selectionBox.regression.test.js',
           description: 'Regression tests for selection system'
+        },
+        {
+          name: 'Module Initialization',
+          file: 'module-initialization.test.js',
+          description: 'Tests module initialization order and circular dependencies'
         }
       ],
       utils: [

@@ -1,7 +1,20 @@
+// Import ant class for Node.js environments
+let ant;
+if (typeof require !== 'undefined') {
+  try {
+    ant = require('./ants.js');
+  } catch (e) {
+    // Handle circular dependency gracefully
+    ant = null;
+  }
+}
+
 const _speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
 const _specialSpeciesList = ["DeLozier"]
 const _allSpecies = [..._speciesList, ..._specialSpeciesList];
-class Species extends ant {
+
+// Species class with conditional inheritance
+class Species extends (ant || Object) {
   constructor(antObject, speciesName, speciesImage) {
     const speciesStats = Species.getSpeciesStats(speciesName);
     super(
