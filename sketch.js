@@ -8,6 +8,10 @@ let COORDSY;
 
 let recordingPath
 
+let cameraX = 0;
+let cameraY = 0;
+let cameraSpeed = 20;
+
 function preload(){
   test_stats();
   terrainPreloader()
@@ -54,13 +58,13 @@ function mousePressed() {
   // MOUSE INTERACTIONS
 function mousePressed() {
   if (typeof handleMousePressed === 'function') {
-    handleMousePressed(ants, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, mouseButton);
+    handleMousePressed(ants, mouseX + cameraX, mouseY + cameraY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, mouseButton);
   }
 }
 
 function mouseDragged() {
   if (typeof handleMouseDragged === 'function') {
-    handleMouseDragged(mouseX, mouseY, ants);
+    handleMouseDragged(mouseX + cameraX, mouseY + cameraY, ants);
   }
 }
 
@@ -77,6 +81,11 @@ function keyPressed() {
       deselectAllEntities();
     }
   }
+
+  if (key === 'a' || keyCode === LEFT_ARROW) cameraX -= cameraSpeed;
+  if (key === 'd' || keyCode === RIGHT_ARROW) cameraX += cameraSpeed;
+  if (key === 'w' || keyCode === UP_ARROW) cameraY -= cameraSpeed;
+  if (key === 's' || keyCode === DOWN_ARROW) cameraY += cameraSpeed;
 }
 
 ////// MAIN
@@ -84,6 +93,14 @@ function setup() {
   CANVAS_X = windowWidth
   CANVAS_Y = windowHeight
   createCanvas(CANVAS_X, CANVAS_Y);
+
+  let c = document.getElementsByTagName('canvas')[0];
+  c.style.position = 'fixed';
+  c.style.left = '0px';
+  c.style.top = '0px';
+
+  document.body.style.overflow = 'hidden';
+
 
   //// Configure Terrain + Coordinate System - keep in setup.
   // Terrain init SHOULD be handled transparently, as MAP object access may be needed
@@ -99,6 +116,8 @@ function setup() {
   Ants_Spawn(50);
 }
 function draw() {
+push();
+   translate(-cameraX, -cameraY); 
   MAP.render();
   Ants_Update();
   if (typeof drawSelectionBox === 'function') {
@@ -107,4 +126,5 @@ function draw() {
   if(recordingPath){
 
   }
+  pop();
 }

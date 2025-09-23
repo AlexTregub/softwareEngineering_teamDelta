@@ -56,7 +56,7 @@ function Ant_Click_Control() {
   for (let i = 0; i < ant_Index; i++) {
     if (!ants[i]) continue;
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    if (antObj.isMouseOver(mouseX, mouseY)) {
+    if (antObj.isMouseOver(mouseX + cameraX, mouseY + cameraY)) {
       antObj.isSelected = true;
       selectedAnt = antObj;
       break;
