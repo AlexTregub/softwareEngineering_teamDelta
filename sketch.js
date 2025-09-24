@@ -10,7 +10,8 @@ let MAP;
 let GRIDMAP;
 let COORDSY;
 let font;
-let recordingPath
+let recordingPath;
+let menuImage;
 
 function preload(){
   test_stats();
@@ -18,6 +19,7 @@ function preload(){
   Ants_Preloader()
   resourcePreLoad();
   font = loadFont("Images/Assets/Terraria.TTF");
+  menuImage = loadImage("Images/Assets/Menu/ant_logo.png");
 }
 
 // MOUSE INTERACTIONS

@@ -12,6 +12,7 @@ let titleY = -100;        // start above the screen
 let titleTargetY;         // Will be set based on canvas size
 let titleSpeed = 9;       // pixels per frame
 
+
 // Menu system initialization
 function initializeMenu() {
   // Set title target position based on canvas size
@@ -23,6 +24,7 @@ function initializeMenu() {
 
 // Setup menu buttons
 function setupMenu() {
+  console.log(menuImage);
   menuButtons = [
     { 
       label: "Start Game", 
@@ -57,14 +59,16 @@ function startGameTransition() {
 function drawMenu() {
   textAlign(CENTER, CENTER);
 
-  // Animate the title dropping in
-  if (titleY < titleTargetY) {
-    titleY += titleSpeed;
-    if (titleY > titleTargetY) titleY = titleTargetY; // clamp to final pos
-  }
+  // Smooth Dropping
+  let easing = 0.07;
+  titleY += (titleTargetY - titleY) * easing;
+
+  // Looks like it's floating
+  let floatOffset = sin(frameCount * 0.03) * 5;
 
   // Draw title
-  outlinedText("ANTS!", CANVAS_X / 2, titleY, font, 48, color(255), color(0));
+  imageMode(CENTER);
+  image(menuImage, CANVAS_X / 2, titleY + floatOffset, 500, 500);
 
   // Draw buttons
   menuButtons.forEach(btn => {
@@ -78,7 +82,6 @@ function drawMenu() {
     rect(btn.x, btn.y, btn.w, btn.h, 10);
     pop();
 
-    // Button label with outlinedText
     outlinedText(btn.label, btn.x, btn.y, font, 24, color(0), color(255));
   });
 }
