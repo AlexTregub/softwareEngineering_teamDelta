@@ -133,7 +133,7 @@ function renderMenu() {
   if (gameState === "MENU") {
     // Render menu background and colony
     MAP.render();
-    Ants_Update();
+    AntsUpdate();
 
     // Draw the menu UI
     drawMenu();

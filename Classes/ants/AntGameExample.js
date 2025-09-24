@@ -180,8 +180,8 @@ function draw() {
   playerQueen.update();
   enemyQueen.update();
   
-  // Update ants (your existing Ants_Update function already calls ant.update())
-  Ants_Update();
+  // Update ants (your existing AntsUpdate function already calls ant.update())
+  AntsUpdate();
   
   // Additional AI updates
   for (let i = 0; i < ant_Index; i++) {

@@ -6,7 +6,7 @@ class AntWrapper {
 
     // Set species-specific image if needed
     if (species === "DeLozier") {
-      this.antObject.setSpriteImage(gregImg);
+      this.antObject.setSpriteImage(speciesImages["DeLozier"]);
     }
   }
 

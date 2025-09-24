@@ -4,19 +4,22 @@ let ant_Index = 0;
 let antSize;
 let ants = [];
 let globalResource = [];
-let antImg1;
+let antBaseSprite;
 let antbg;
 let hasDeLozier = false;
 let selectedAnt = null;
 let speciesImages = {};
 
+// Global ant manager instance - will be initialized when AntManager is available
+let antManager = null;
+
 // AntStateMachine will be available globally from antStateMachine.js
 
-// --- Preload Images ---
+// --- Preload Images and manager ---
 function Ants_Preloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
-  antImg1 = loadImage("Images/Ants/gray_ant.png");
+  antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   speciesImages = {
     Builder: loadImage('Images/Ants/blue_ant.png'),
     Scout: loadImage('Images/Ants/gray_ant.png'),
@@ -25,11 +28,24 @@ function Ants_Preloader() {
     Spitter: loadImage('Images/Ants/gray_ant.png'),
     DeLozier: loadImage('Images/Ants/greg.jpg')
   };
-  gregImg = loadImage("Images/Ants/greg.jpg");
+  initializeAntManager();
+}
+
+/**
+ * @fileoverview AntManager class for handling ant selection, movement, and interaction logic
+ * Provides centralized management of ant selection state and related operations.
+ */
+function initializeAntManager() {
+  if (typeof AntManager !== 'undefined' && !antManager) {
+    antManager = new AntManager();
+    console.log('AntManager initialized successfully');
+  } else if (typeof AntManager === 'undefined') {
+    console.error('AntManager class not available - functions will fall back to basic implementations');
+  }
 }
 
 // --- Spawn Ants ---
-function Ants_Spawn(numToSpawn) {
+function AntsSpawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let speciesName = assignSpecies();
@@ -38,7 +54,7 @@ function Ants_Spawn(numToSpawn) {
       antSize.x + sizeR, 
       antSize.y + sizeR, 
       30, 0,
-      antImg1,
+      antBaseSprite,
       speciesName
       );
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
@@ -47,7 +63,7 @@ function Ants_Spawn(numToSpawn) {
 }
 
 // --- Update All Ants ---
-function Ants_Update() {
+function AntsUpdate() {
   for (let i = 0; i < ant_Index; i++) {
     if (ants[i] && typeof ants[i].update === "function") {
       ants[i].update();
@@ -55,50 +71,14 @@ function Ants_Update() {
   }
 }
 
-// --- Single Ant Selection/Movement ---
-function AntClickControl() {
-  // Move selected ant if one is already selected
-  if (selectedAnt) {
-    selectedAnt.moveToLocation(mouseX, mouseY);
-    selectedAnt.isSelected = false;
-    selectedAnt = null;
-    return;
-  }
+// Import AntManager from managers folder
+// Note: In browser environment, this will be loaded via script tag
+// In Node.js environment, this will be loaded via require()
 
-  // Otherwise, select the ant under the mouse
-  for (let i = 0; i < ant_Index; i++) {
-    SelectAnt (getAntObj(i))
-  }
-}
-
-// moves the selected ant to a target location, 
-function MoveAnt(resetSection){
-  if (resetSection == true || resetSection == false){ 
-    selectedAnt.moveToLocation(mouseX, mouseY);
-    selectedAnt.isSelected = resetSection;
-    if (resetSection == false) selectedAnt = null;
-  } else {
-    console.error(`$`)
-  }
-}
-
-// toggles the ant's selected state to true, set the selectedAnt to the current ant object
-function SelectAnt(antCurrent = null){
-  if (antCurrent instanceof ant == false) return;
-  if (antCurrent && typeof antCurrent.isMouseOver === 'function' && antCurrent.isMouseOver(mouseX, mouseY)) {
-    antCurrent.isSelected = true;
-    selectedAnt = antCurrent;
-  }
-}
-
-
-// -- Utilities functions --
-
-// checks if ant exists, returns the antObj. 
-function getAntObj(antCurrent) {
-    if (!ants[antCurrent]) return null; // Safety check for null/undefined ants
-    let antObj = ants[antCurrent].antObject ? ants[antCurrent].antObject : ants[antCurrent];
-    return antObj; // Safety check
+// Initialize AntManager when available (after script loads)
+function initializeAntManager() {
+  if (typeof AntManager !== 'undefined' && !antManager) { antManager = new AntManager(); }
+  else {incorrectLoadOrderWarning("AntManager")}
 }
 
 // Will check if all ants, either in the wrapper or a base ant,
@@ -115,7 +95,7 @@ function antLoopPropertyCheck(property) {
 
 // --- Ant Class ---
 class ant {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1,speciesName) {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite,speciesName) {
     const initialPos = createVector(posX, posY);
     this._stats = new stats(
       initialPos,
@@ -676,6 +656,8 @@ class ant {
 
 // --- Move Selected Ant to Tile ---
 function moveSelectedAntToTile(mx, my, tileSize) {
+  initializeAntManager();
+  const selectedAnt = antManager ? antManager.getSelectedAnt() : null;
   if (selectedAnt) {
     const tileX = Math.floor(mx / tileSize);
     const tileY = Math.floor(my / tileSize); //Gets coordinates clicked tiles
@@ -689,7 +671,9 @@ function moveSelectedAntToTile(mx, my, tileSize) {
       selectedAnt.setPath(newPath);
     }
     selectedAnt.isSelected = false;
-    selectedAnt = null; //Resets pathfinding/selection info
+    if (antManager) {
+      antManager.clearSelection(); //Resets pathfinding/selection info
+    }
   }
 }
 function moveSelectedAntsToTile(mx, my, tileSize) {
@@ -753,12 +737,24 @@ function forceAllAntsIdle() {
 }
 
 // -- DEPRECATED --
-
-function Ant_Click_Control() {
-  deprecatedWarning(AntClickControl)
-}
+// Ensures compatibility with previous functions
+function Ant_Click_Control() { deprecatedWarning(AntClickControl); }
+function Ants_Update() { deprecatedWarning(AntsUpdate); }
+function Ants_Spawn(numToSpawn) { deprecatedWarning(AntsSpawn(numToSpawn)); }
+function AntClickControl() { deprecatedWarning(antManager.AntClickControl()); }
+function MoveAnt(resetSection) { deprecatedWarning(antManager.MoveAnt(resetSection)); }
+function SelectAnt(antCurrent = null) { deprecatedWarning(antManager.SelectAnt(antCurrent)); }
+function getAntObj(antCurrent) { return deprecatedWarning(antManager.getAntObj(antCurrent)); }
 
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = ant;
+  // Import AntManager for Node.js testing
+  const AntManager = require('../managers/AntManager.js');
+  
+  // Initialize antManager for Node.js
+  if (!antManager) { antManager = new AntManager(); }
+  
+  module.exports = ant; // Keep primary export as ant class for backward compatibility
+  module.exports.AntManager = AntManager;
+  module.exports.antManager = antManager;
 }

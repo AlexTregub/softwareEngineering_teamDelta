@@ -28,7 +28,7 @@ function mousePressed() {
         ants,
         mouseX,
         mouseY,
-        Ant_Click_Control,
+        AntClickControl,
         selectedAnt,
         moveSelectedAntToTile,
         TILE_SIZE,
@@ -114,7 +114,7 @@ function setupTests() {
 
 function draw() {
   MAP.render();
-  Ants_Update();
+  AntsUpdate();
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
@@ -173,7 +173,7 @@ function draw() {
 
   // --- GAMEPLAY RENDERING ---
   MAP.render();
-  Ants_Update();
+  AntsUpdate();
   resourceList.drawAll();
   if (typeof drawSelectionBox === 'function') drawSelectionBox();
   drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);

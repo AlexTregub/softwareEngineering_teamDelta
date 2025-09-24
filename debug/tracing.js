@@ -155,6 +155,56 @@ function deprecatedWarning(replacementFunction) {
 }
 
 /**
+ * Issues a warning when dependencies are loaded in the incorrect order.
+ * Automatically identifies the calling function and logs an error message indicating
+ * which dependency type is missing or unavailable. This helps developers identify
+ * script loading order issues during development and debugging.
+ * 
+ * @param {string} typeMissing - The name or type of the missing dependency that should have been loaded
+ * @returns {void} This function only logs an error and does not return a value
+ * 
+ * @example
+ * // Check if AntManager is available before using it
+ * function initializeAntManager() {
+ *   if (typeof AntManager === 'undefined') {
+ *     incorrectLoadOrderWarning('AntManager');
+ *     return false;
+ *   }
+ *   return new AntManager();
+ * }
+ * // Output: "initializeAntManager: Dependency loaded out of order: AntManager"
+ * 
+ * @example
+ * // Check for p5.js library availability
+ * function drawSprite() {
+ *   if (typeof createVector === 'undefined') {
+ *     incorrectLoadOrderWarning('p5.js library');
+ *     return;
+ *   }
+ *   // Continue with drawing...
+ * }
+ * // Output: "drawSprite: Dependency loaded out of order: p5.js library"
+ * 
+ * @example
+ * // Generic class dependency check
+ * function useUtility() {
+ *   if (typeof UtilityClass === 'undefined') {
+ *     incorrectLoadOrderWarning('UtilityClass');
+ *     // Provide fallback behavior or early return
+ *     return null;
+ *   }
+ *   return new UtilityClass();
+ * }
+ * // Output: "useUtility: Dependency loaded out of order: UtilityClass"
+ * 
+ * @see {@link getFunctionName} - Used internally to identify the calling function
+ * @since 1.0.0
+ */
+function incorrectLoadOrderWarning(typeMissing){
+    console.error(`${getFunctionName(2)}: Dependency loaded out of order: ${typeMissing}`)
+}
+
+/**
  * Outputs comprehensive debugging information about a parameter to the console.
  * Provides detailed analysis including type information, function properties,
  * object structure, and call stack context. Useful for debugging parameter
@@ -257,6 +307,7 @@ if (typeof module !== "undefined" && module.exports) {
     getFunctionName,
     IncorrectParamPassed,
     deprecatedWarning,
+    incorrectLoadOrderWarning,
     paramInfo,
     getType,
     functionNameRegX

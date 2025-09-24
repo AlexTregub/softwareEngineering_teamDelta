@@ -15,8 +15,7 @@ global.mouseX = 400;
 global.mouseY = 300;
 
 // Mock images
-global.antImg1 = { width: 32, height: 32 };
-global.gregImg = { width: 32, height: 32 };
+global.antBaseSprite = { width: 32, height: 32 };
 global.speciesImages = {
   "Builder": { width: 32, height: 32 },
   "Scout": { width: 32, height: 32 },

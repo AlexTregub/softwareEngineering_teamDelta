@@ -15,7 +15,7 @@ global.p5 = {
 
 // Mock image loading
 global.loadImage = (path) => ({ path });
-global.antImg1 = { path: "test-image" };
+global.antBaseSprite = { path: "test-image" };
 
 // Mock devConsoleEnabled
 global.devConsoleEnabled = false;
@@ -93,7 +93,7 @@ global.line = () => {};
 
 // Define the ant class directly for testing
 class ant {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1) {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite) {
     const initialPos = createVector(posX, posY);
     this._stats = new stats(
       initialPos,
