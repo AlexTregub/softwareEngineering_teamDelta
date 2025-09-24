@@ -29,21 +29,11 @@ function setupMenu() {
     { 
       label: "Start Game", 
       x: CANVAS_X / 2, 
-      y: CANVAS_Y / 2 - 40, 
+      y: CANVAS_Y / 2 - 10, 
       w: 220, 
-      h: 50, 
+      h: 100, 
       action: () => { 
         startGameTransition();
-      } 
-    },
-    { 
-      label: "Options",    
-      x: CANVAS_X / 2, 
-      y: CANVAS_Y / 2 + 40, 
-      w: 220, 
-      h: 50, 
-      action: () => { 
-        gameState = "OPTIONS"; 
       } 
     }
   ];
@@ -59,32 +49,65 @@ function startGameTransition() {
 function drawMenu() {
   textAlign(CENTER, CENTER);
 
-  // Smooth Dropping
+  // Smooth drop for title
   let easing = 0.07;
   titleY += (titleTargetY - titleY) * easing;
 
-  // Looks like it's floating
+  // Floating effect for title
   let floatOffset = sin(frameCount * 0.03) * 5;
 
   // Draw title
   imageMode(CENTER);
-  image(menuImage, CANVAS_X / 2, titleY + floatOffset, 500, 500);
+  image(menuImage, CANVAS_X / 2, titleY + floatOffset, 600, 600);
 
   // Draw buttons
   menuButtons.forEach(btn => {
     const hovering = isButtonHovered(btn);
 
     push();
-    rectMode(CENTER);
-    stroke(255);
-    strokeWeight(3);
-    fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
-    rect(btn.x, btn.y, btn.w, btn.h, 10);
-    pop();
+    imageMode(CENTER);
 
-    outlinedText(btn.label, btn.x, btn.y, font, 24, color(0), color(255));
+    if (btn.label === "Start Game") {
+      // Initialize currentScale if not exists
+      if (btn.currentScale === undefined) btn.currentScale = 1.0;
+
+      // Hover animations
+      let targetScale = hovering ? 1.1 : 1.0;       
+      btn.currentScale += (targetScale - btn.currentScale) * 0.1; // easing
+
+      let hoverFloat = hovering ? sin(frameCount * 0.1) * 5 : 0;
+
+      // Apply tint if hovering
+      if (hovering) {
+        tint(255, 220);
+      } else {
+        noTint();
+      }
+
+      // Draw play button
+      push();
+      translate(btn.x, btn.y + hoverFloat);
+      scale(btn.currentScale);
+      image(playButton, 0, 0, btn.w, btn.h);
+      pop();
+
+    } else {
+      // Other buttons as rectangles
+      rectMode(CENTER);
+      stroke(255);
+      strokeWeight(3);
+      fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
+      rect(btn.x, btn.y, btn.w, btn.h, 10);
+
+      // Draw label
+      outlinedText(btn.label, btn.x, btn.y, font, 24, color(0), color(255));
+    }
+
+    pop();
   });
 }
+
+
 
 // Check if a button is being hovered
 function isButtonHovered(btn) {

@@ -12,6 +12,7 @@ let COORDSY;
 let font;
 let recordingPath;
 let menuImage;
+let playButton;
 
 function preload(){
   test_stats();
@@ -20,6 +21,7 @@ function preload(){
   resourcePreLoad();
   font = loadFont("Images/Assets/Terraria.TTF");
   menuImage = loadImage("Images/Assets/Menu/ant_logo.png");
+  playButton = loadImage("Images/Assets/Menu/play_button.png");
 }
 
 // MOUSE INTERACTIONS
