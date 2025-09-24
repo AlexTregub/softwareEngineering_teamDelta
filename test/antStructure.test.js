@@ -37,11 +37,13 @@ global.assignSpecies = () => "Builder";
 const AntStateMachine = require('../Classes/ants/antStateMachine.js');
 const Sprite2D = require('../Classes/entities/sprite2d.js');
 const { stats, stat } = require('../Classes/entities/stats.js');
+const ResourceManager = require('../Classes/systems/ResourceManager.js');
 
 // Mock the global dependencies for ant.js
 global.AntStateMachine = AntStateMachine;
 global.Sprite2D = Sprite2D;
 global.stats = stats;
+global.ResourceManager = ResourceManager;
 
 // Import ant class first
 const ant = require('../Classes/ants/ants.js');

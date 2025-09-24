@@ -13,7 +13,6 @@ let font;
 let recordingPath
 
 function preload(){
-  test_stats();
   terrainPreloader()
   Ants_Preloader()
   resourcePreLoad();

@@ -5,7 +5,7 @@
   "main": "sketch.js",
   "scripts": {
     "test": "npm run test:all",
-    "test:all": "npm run test:statemachine && npm run test:selection && npm run test:ant && npm run test:sprite2d && npm run test:structure && npm run test:selection-simple && npm run test:spawn-interaction && npm run test:tracing && npm run test:antmanager",
+    "test:all": "npm run test:statemachine && npm run test:selection && npm run test:ant && npm run test:sprite2d && npm run test:structure && npm run test:selection-simple && npm run test:spawn-interaction && npm run test:tracing && npm run test:antmanager && npm run test:resourcemanager && npm run test:button && npm run test:collisionbox2d",
     "test:statemachine": "node test/AntStateMachine.test.js",
     "test:selection": "node test/selectionBox.node.test.js",
     "test:ant": "node test/ant.test.js",
@@ -17,6 +17,9 @@
     "test:spawn-interaction": "node test/spawn-interaction.regression.test.js",
     "test:tracing": "node test/tracing.test.js",
     "test:antmanager": "node test/antManager.test.js",
+    "test:resourcemanager": "node test/resourceManager.test.js",
+    "test:button": "node test/button.test.js",
+    "test:collisionbox2d": "node test/collisionBox2D.test.js",
     "test:watch": "npm run test -- --watch",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"

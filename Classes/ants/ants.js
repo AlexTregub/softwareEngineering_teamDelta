@@ -113,12 +113,8 @@ class ant {
     this._isSelected = false;
     this.isBoxHovered = false;
 
-
-    // Resource
-    this.isDroppingOff = false;
-    this.isMaxWeight = false // Ants capacity max
-    this.Resources = []; // Resource the ants is carrying
-
+    // Initialize resource management
+    this._resourceManager = new ResourceManager(this, 2, 25);
     
     // Initialize state machine
     this._stateMachine = new AntStateMachine();
@@ -361,15 +357,9 @@ class ant {
         this._sprite.setPosition(target);
 
 
-        // Stores Resource and Reset State Upon Dropoff
-        if(this.isDroppingOff || this.isMaxWeight ){
-          for(let r of this.Resources){
-            globalResource.push(r);
-          }
-
-          this.Resources = [];
-          this.isDroppingOff = false;
-          this.isMaxWeight  = false;
+        // Process resource drop-off if at destination
+        if(this._resourceManager.isDroppingOff){
+          this._resourceManager.processDropOff(globalResource);
 
         
         // Set state back to IDLE when movement is complete, but only if no other activities are ongoing
@@ -388,39 +378,36 @@ class ant {
   }
   }
 
-  // Ants Collect NearBy Fruits/Resources 
+  /**
+   * @deprecated Use _resourceManager.checkForNearbyResources() instead
+   * Kept for backward compatibility
+   */
   resourceCheck(){
-    let fruits = resourceList.getResourceList();
-    let keys = Object.keys(fruits);
-
-    for(let k of keys){
-      let x = fruits[k].x;
-      let y = fruits[k].y;
-      
-      let xDifference = abs(Math.floor(x - this.posX));
-      let yDifference = abs(Math.floor(y - this.posY));
-      let range = 25;
-      let maxWeight = 2; // Change to member variable??
-
-      if(xDifference <= range && yDifference <= range){
-        let fruit = fruits[k];
-        if(this.Resources.length < maxWeight){
-            this.Resources.push(fruit);
-            delete fruits[k];
-        }
-        if(this.Resources.length >= maxWeight){
-          let dropPointX = 0;
-          let dropPointY = 0;
-          this.dropOff(dropPointX,dropPointY);
-        }
-      }   
-    }
+    this._resourceManager.checkForNearbyResources();
   }
 
+  /**
+   * @deprecated Use _resourceManager.startDropOff() instead
+   * Kept for backward compatibility
+   */
   dropOff(X,Y){
-    this.isDroppingOff = true;
-    this.isMaxWeight = true;
-    this.moveToLocation(X,Y);
+    this._resourceManager.startDropOff(X, Y);
+  }
+
+  /**
+   * Gets the current resource load of the ant.
+   * @returns {number} Number of resources currently carried
+   */
+  getCurrentResourceLoad() {
+    return this._resourceManager.getCurrentLoad();
+  }
+
+  /**
+   * Gets resource manager debug information.
+   * @returns {Object} Debug information about resource state
+   */
+  getResourceDebugInfo() {
+    return this._resourceManager.getDebugInfo();
   }
 
 
@@ -465,7 +452,7 @@ class ant {
     
     this.render();
     this.highlight();
-    this.resourceCheck();
+    this._resourceManager.update();
   }
   
   // State change callback handler
@@ -538,7 +525,7 @@ class ant {
       case "FOLLOW":
         if (this._stateMachine.canPerformAction("follow") && command.target) {
           this._stateMachine.setPrimaryState("FOLLOWING");
-          // follows the 
+          // follows the ant in front of it.
         }
         break;
       default:
