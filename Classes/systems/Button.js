@@ -306,6 +306,51 @@ class Button {
   }
 }
 
+// Button factory function with predefined styles
+function createMenuButton(x, y, width, height, caption, style = 'default', clickHandler = null) {
+  const styles = {
+    default: {
+      backgroundColor: '#2196F3',
+      hoverColor: '#1976D2',
+      textColor: 'white',
+      borderColor: '#0D47A1'
+    },
+    success: {
+      backgroundColor: '#4CAF50',
+      hoverColor: '#45a049',
+      textColor: 'white',
+      borderColor: '#2E7D32'
+    },
+    warning: {
+      backgroundColor: '#FF9800',
+      hoverColor: '#F57C00',
+      textColor: 'white',
+      borderColor: '#E65100'
+    },
+    danger: {
+      backgroundColor: '#F44336',
+      hoverColor: '#D32F2F',
+      textColor: 'white',
+      borderColor: '#B71C1C'
+    },
+    purple: {
+      backgroundColor: '#9C27B0',
+      hoverColor: '#7B1FA2',
+      textColor: 'white',
+      borderColor: '#4A148C'
+    }
+  };
+
+  const buttonStyle = {
+    ...styles[style],
+    borderWidth: 2,
+    cornerRadius: 8,
+    onClick: clickHandler || (() => console.log(`${caption} clicked!`))
+  };
+
+  return new Button(x, y, width, height, caption, buttonStyle);
+}
+
 // Export for Node.js compatibility
 if (typeof module !== "undefined" && module.exports) {
   module.exports = Button;

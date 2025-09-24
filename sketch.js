@@ -35,9 +35,6 @@ function mousePressed() {
       );
     }
   }
-
-  // Handle menu button clicks
-  handleMenuClick();
 }
 
 function mouseDragged() {
@@ -188,7 +185,6 @@ function draw() {
   }
 
   // Draw fade overlay if transitioning
-  drawFadeOverlay();
       drawUI();
 
 }
