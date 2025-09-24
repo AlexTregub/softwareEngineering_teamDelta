@@ -267,17 +267,12 @@ class ant {
     
     // Apply terrain modifiers
     switch (this._stateMachine.terrainModifier) {
-      case "IN_WATER":
-        return baseSpeed * 0.5; // 50% speed in water
-      case "IN_MUD":
-        return baseSpeed * 0.3; // 30% speed in mud
-      case "ON_SLIPPERY":
-        return 0; // Can't move on slippery terrain
-      case "ON_ROUGH":
-        return baseSpeed * 0.8; // 80% speed on rough terrain
+      case "IN_WATER": return baseSpeed * 0.5; // 50% speed in water
+      case "IN_MUD":return baseSpeed * 0.3; // 30% speed in mud
+      case "ON_SLIPPERY":return 0; // Can't move on slippery terrain
+      case "ON_ROUGH": return baseSpeed * 0.8; // 80% speed on rough terrain
       case "DEFAULT":
-      default:
-        return baseSpeed; // Normal speed
+      default:return baseSpeed; // Normal speed
     }
   }
 
@@ -477,10 +472,11 @@ class ant {
   _onStateChange(oldState, newState) {
     // Handle any special logic when states change
     // Only log state changes for selected ants when dev console is enabled
+    /*
     if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && this._isSelected) {
       console.log(`Selected Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
     }
-    
+    */
     // Reset skitter timer when entering idle state
     if (this._stateMachine.isIdle()) {
       this.rndTimeUntilSkitter();
@@ -542,7 +538,7 @@ class ant {
       case "FOLLOW":
         if (this._stateMachine.canPerformAction("follow") && command.target) {
           this._stateMachine.setPrimaryState("FOLLOWING");
-          // Add following logic here
+          // follows the 
         }
         break;
       default:
