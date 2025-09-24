@@ -138,7 +138,7 @@ class ant {
       strokeWeight(2);
       rect(pos.x, pos.y, size.x, size.y);
       pop();
-    } else if (this.isMouseOver(mouseX, mouseY)) {
+    } else if (this.isMouseOver(mouseX+cameraX, mouseY+cameraY)) {
       push();
       noFill();
       stroke(color(255, 255, 0)); // Yellow for hover
