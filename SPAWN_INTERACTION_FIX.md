@@ -42,7 +42,7 @@ After spawning ants using the command line interface, the click and drag functio
 
 ### 3. Enhanced Ant Selection (`Classes/ants/ants.js`)
 
-**In `Ant_Click_Control`:**
+**In `AntClickControl`:**
 - Added safety checks for null/undefined ants
 - Verified `isMouseOver` method exists before calling
 - Protected against null `antObj` references

@@ -133,8 +133,8 @@ function mockSpawnCommand(count, type = 'ant', faction = 'neutral') {
   return actualSpawned;
 }
 
-// Mock Ant_Click_Control function
-function Ant_Click_Control() {
+// Mock AntClickControl function
+function AntClickControl() {
   // Move selected ant if one is already selected
   if (selectedAnt) {
     selectedAnt.moveToLocation(mockMouseX, mockMouseY);
@@ -284,7 +284,7 @@ testSuite.test('Single ant selection after spawning', () => {
   // Simulate clicking on first ant
   mockMouseX = 116;
   mockMouseY = 116;
-  Ant_Click_Control();
+  AntClickControl();
   
   testSuite.assertTrue(ants[0].antObject.isSelected, 'First ant should be selected');
   testSuite.assertFalse(ants[1].antObject.isSelected, 'Second ant should not be selected');
@@ -347,7 +347,7 @@ testSuite.test('Click and drag sequence after spawning', () => {
   
   try {
     // Simulate mouse press
-    handleMousePressed(ants, 200, 200, Ant_Click_Control, selectedAnt, () => {}, 32, 'LEFT');
+    handleMousePressed(ants, 200, 200, AntClickControl, selectedAnt, () => {}, 32, 'LEFT');
     
     // Simulate drag
     handleMouseDragged(250, 250, ants);
@@ -356,7 +356,7 @@ testSuite.test('Click and drag sequence after spawning', () => {
     handleMouseReleased(ants, selectedAnt, () => {}, 32);
     
     // Simulate another interaction
-    handleMousePressed(ants, 100, 100, Ant_Click_Control, selectedAnt, () => {}, 32, 'LEFT');
+    handleMousePressed(ants, 100, 100, AntClickControl, selectedAnt, () => {}, 32, 'LEFT');
     handleMouseReleased(ants, selectedAnt, () => {}, 32);
     
   } catch (error) {
@@ -392,7 +392,7 @@ testSuite.test('Multiple spawn cycles', () => {
   // Test interaction still works
   let interactionError = false;
   try {
-    handleMousePressed(ants, 150, 150, Ant_Click_Control, selectedAnt, () => {}, 32, 'LEFT');
+    handleMousePressed(ants, 150, 150, AntClickControl, selectedAnt, () => {}, 32, 'LEFT');
   } catch (error) {
     interactionError = true;
   }
@@ -421,7 +421,7 @@ testSuite.test('Faction-based spawning and selection', () => {
   
   mockMouseX = 116;
   mockMouseY = 116;
-  Ant_Click_Control();
+  AntClickControl();
   
   testSuite.assertTrue(ants[0].antObject.isSelected, 'Factioned ant should be selectable');
 });

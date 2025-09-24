@@ -41,7 +41,6 @@ function Ants_Spawn(numToSpawn) {
       antImg1,
       speciesName
       );
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();
   }
@@ -57,7 +56,7 @@ function Ants_Update() {
 }
 
 // --- Single Ant Selection/Movement ---
-function Ant_Click_Control() {
+function AntClickControl() {
   // Move selected ant if one is already selected
   if (selectedAnt) {
     selectedAnt.moveToLocation(mouseX, mouseY);
@@ -67,21 +66,49 @@ function Ant_Click_Control() {
   }
 
   // Otherwise, select the ant under the mouse
-  selectedAnt = null;
+  for (let i = 0; i < ant_Index; i++) {
+    SelectAnt (getAntObj(i))
+  }
+}
+
+// moves the selected ant to a target location, 
+function MoveAnt(resetSection){
+  if (resetSection == true || resetSection == false){ 
+    selectedAnt.moveToLocation(mouseX, mouseY);
+    selectedAnt.isSelected = resetSection;
+    if (resetSection == false) selectedAnt = null;
+  } else {
+    console.error(`$`)
+  }
+}
+
+// toggles the ant's selected state to true, set the selectedAnt to the current ant object
+function SelectAnt(antCurrent = null){
+  if (antCurrent instanceof ant == false) return;
+  if (antCurrent && typeof antCurrent.isMouseOver === 'function' && antCurrent.isMouseOver(mouseX, mouseY)) {
+    antCurrent.isSelected = true;
+    selectedAnt = antCurrent;
+  }
+}
+
+
+// -- Utilities functions --
+
+// checks if ant exists, returns the antObj. 
+function getAntObj(antCurrent) {
+    if (!ants[antCurrent]) return null; // Safety check for null/undefined ants
+    let antObj = ants[antCurrent].antObject ? ants[antCurrent].antObject : ants[antCurrent];
+    return antObj; // Safety check
+}
+
+// Will check if all ants, either in the wrapper or a base ant,
+//  has a property and what it is set to.
+function antLoopPropertyCheck(property) {
   for (let i = 0; i < ant_Index; i++) {
     if (!ants[i]) continue; // Safety check for null/undefined ants
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    if (antObj) antObj.isSelected = false; // Safety check
-  }
-  for (let i = 0; i < ant_Index; i++) {
-    if (!ants[i]) continue; // Safety check for null/undefined ants
-    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    if (antObj && typeof antObj.isMouseOver === 'function' && antObj.isMouseOver(mouseX, mouseY)) {
-      antObj.isSelected = true;
-      selectedAnt = antObj;
-      break;
-    }
-  }
+    return antObj[property]; // Safety check
+  } IncorrectParamPassed("Boolean", property)
 }
 
 
@@ -723,6 +750,12 @@ function forceAllAntsIdle() {
       antObj.forceIdle();
     }
   }
+}
+
+// -- DEPRECATED --
+
+function Ant_Click_Control() {
+  deprecatedWarning(AntClickControl)
 }
 
 // Export for Node.js testing
