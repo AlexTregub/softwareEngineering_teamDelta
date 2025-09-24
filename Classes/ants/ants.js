@@ -2,6 +2,8 @@
 let antToSpawn = 0;
 let ant_Index = 0;
 let antSize;
+let queenSize;
+
 let ants = [];
 let globalResource = [];
 let antImg1;
@@ -15,6 +17,7 @@ let speciesImages = {};
 // --- Preload Images ---
 function Ants_Preloader() {
   antSize = createVector(20, 20);
+  queenSize = createVector(30,30);
   antbg = [60, 100, 60];
   antImg1 = loadImage("Images/Ants/gray_ant.png");
   speciesImages = {
@@ -26,6 +29,8 @@ function Ants_Preloader() {
     DeLozier: loadImage('Images/Ants/greg.jpg')
   };
   gregImg = loadImage("Images/Ants/greg.jpg");
+  queenImg =  loadImage('Images/Ants/gray_ant_queen.png');
+
 }
 
 // --- Spawn Ants ---
@@ -45,6 +50,21 @@ function Ants_Spawn(numToSpawn) {
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();
   }
+
+
+  // Queen testing
+
+  let properties = new ant(
+    200, 200, 
+    queenSize.x, 
+    queenSize.y, 
+    30, 0,
+    queenImg,
+    "Queen"
+  );
+  let wrapper = new AntWrapper(new Species(properties,"Queen",queenImg),"Queen")
+  let Queen = new queenWrapper(wrapper,"player");
+  // Queen.update();
 }
 
 // --- Update All Ants ---
