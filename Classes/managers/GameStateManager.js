@@ -6,6 +6,8 @@ class GameStateManager {
     this.fadeAlpha = 0;
     this.isFading = false;
     this.stateChangeCallbacks = [];
+    this.isFading = false;
+    this.fadeDirection = "out";
     
     // Valid game states
     this.STATES = {
@@ -72,9 +74,10 @@ class GameStateManager {
     return this.isFading;
   }
 
-  startFadeTransition() {
+  startFadeTransition(direction = "out") {
     this.isFading = true;
-    this.fadeAlpha = 0;
+    this.fadeAlpha = direction === "out" ? 0 : 255;
+    this.fadeDirection = direction;
   }
 
   stopFadeTransition() {
@@ -82,15 +85,26 @@ class GameStateManager {
   }
 
   updateFade(increment = 5) {
-    if (this.isFading) {
+    if (!this.isFading) return false;
+  
+    if (this.fadeDirection === "out") {
       this.fadeAlpha += increment;
       if (this.fadeAlpha >= 255) {
         this.fadeAlpha = 255;
-        return true; // Fade complete
+        return true; // fade-out complete
+      }
+    } else { // fadeDirection === "in"
+      this.fadeAlpha -= increment;
+      if (this.fadeAlpha <= 0) {
+        this.fadeAlpha = 0;
+        this.isFading = false;
+        return true; // fade-in complete
       }
     }
+  
     return false;
   }
+  
 
   // State change callback system
   onStateChange(callback) {

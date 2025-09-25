@@ -42,8 +42,13 @@ function mousePressed() {
   }
 
   // Handle menu button clicks
-  handleMenuClick();
+  if (isInMenu() || isInOptions()) {
+    if (typeof handleMenuClick === 'function') {
+      handleMenuClick();
+    }
+  }
 }
+
 
 function mouseDragged() {
   if (isInGame() && typeof handleMouseDragged === 'function') {
@@ -117,27 +122,48 @@ function setupTests() {
 }
 
 function draw() {
-  MAP.render();
-  Ants_Update();
-  if (typeof drawSelectionBox === 'function') {
-    drawSelectionBox();
-  }
-  drawDebugGrid(tileSize, GRIDMAP.width, GRIDMAP.height);
-  
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-  
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
-  
-  if(recordingPath){
+  background(0);
 
+  // --- UPDATE MENU STATE ---
+  updateMenu();
+
+  // --- MENU / OPTIONS ---
+  if (renderMenu()) {
+    return; // menu rendered, stop here
+  }
+
+  // --- PLAYING ---
+  if (GameState.isInGame()) {
+    MAP.render();
+    Ants_Update();
+    resourceList.drawAll();
+
+    if (typeof drawSelectionBox === 'function') drawSelectionBox();
+    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+
+    if (typeof drawDevConsoleIndicator === 'function') {
+      drawDevConsoleIndicator();
+    }
+  
+    if (typeof drawCommandLine === 'function') {
+      drawCommandLine();
+    }
+
+    drawUI();
+  }
+
+  // --- FADE OVERLAY (works in both menu + game) ---
+  if (GameState.isFadingTransition()) {
+    const fadeAlpha = GameState.getFadeAlpha();
+    if (fadeAlpha > 0) {
+      fill(255, fadeAlpha);
+      rect(0, 0, CANVAS_X, CANVAS_Y);
+    }
+    GameState.updateFade(10);
   }
 }
+
+
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   strokeWeight(1);
@@ -164,38 +190,6 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
-}
-
-function draw() {
-  // Update menu state and handle transitions
-  updateMenu();
-  
-  // Render menu if active, otherwise render game
-  if (renderMenu()) {
-    return; // Menu rendered, stop here
-  }
-
-  // --- GAMEPLAY RENDERING ---
-  MAP.render();
-  Ants_Update();
-  resourceList.drawAll();
-  if (typeof drawSelectionBox === 'function') drawSelectionBox();
-  drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
-
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-  
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
-
-  // Draw fade overlay if transitioning
-  drawFadeOverlay();
-      drawUI();
-
 }
 
 // Dev console indicator moved to debug/testing.js

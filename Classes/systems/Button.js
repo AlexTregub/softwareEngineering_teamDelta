@@ -47,6 +47,9 @@ class Button {
     this.cornerRadius = options.cornerRadius || 5;
     this.fontFamily = options.fontFamily || 'Arial';
     this.fontSize = options.fontSize || 16;
+    this.scale = 1;        // current scale (used for smooth animation)
+    this.targetScale = 1;  // what scale we want (1 = normal, >1 = hovered)
+    this.scaleSpeed = 0.1; // how fast it eases
     
     // Interaction
     this.onClick = options.onClick || null;
@@ -54,8 +57,21 @@ class Button {
     
     // State tracking
     this.isHovered = false;
+    // Smooth hover scaling
+    if (this.isHovered) {
+    this.targetScale = 1.1; // grow 10% on hover
+    } else {
+    this.targetScale = 1;   // go back to normal
+    }
+
+    // Ease current scale toward target scale
+    this.scale += (this.targetScale - this.scale) * this.scaleSpeed;
+        
     this.isPressed = false;
     this.wasClicked = false;
+
+    // Adding image support
+    this.img = options.image || null;
   }
 
   // Getter properties for accessing bounds
@@ -63,7 +79,7 @@ class Button {
   get y() { return this.bounds.y; }
   get width() { return this.bounds.width; }
   get height() { return this.bounds.height; }
-
+  
   /**
    * Updates the button state based on mouse interaction.
    * Should be called each frame before render.
@@ -114,48 +130,56 @@ class Button {
    * Uses p5.js drawing functions for rendering.
    */
   render() {
-    if (typeof push === 'undefined') {
-      console.warn('Button: p5.js drawing functions not available');
-      return;
-    }
-
     push();
-    
-    // Determine current color based on state
-    let currentBgColor = this.backgroundColor;
-    if (!this.enabled) {
-      currentBgColor = '#cccccc'; // Gray for disabled
-    } else if (this.isPressed) {
-      currentBgColor = this.darkenColor(this.hoverColor, 0.2);
-    } else if (this.isHovered) {
-      currentBgColor = this.hoverColor;
-    }
-
-    // Draw button background
-    fill(currentBgColor);
-    stroke(this.borderColor);
-    strokeWeight(this.borderWidth);
-    
-    if (this.cornerRadius > 0) {
-      rect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.cornerRadius);
-    } else {
-      rect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height);
-    }
-
-    // Draw button text
-    fill(this.enabled ? this.textColor : '#666666');
-    noStroke();
+    imageMode(CENTER);
+    rectMode(CENTER);
     textAlign(CENTER, CENTER);
-    textFont(this.fontFamily);
-    textSize(this.fontSize);
-    
+  
     const center = this.bounds.getCenter();
-    const textX = center.x;
-    const textY = center.y;
-    text(this.caption, textX, textY);
-    
+    const hovering = this.isHovered;
+  
+    // --- init scale if missing ---
+    if (this.currentScale === undefined) this.currentScale = 1.0;
+  
+    // --- target scale ---
+    let targetScale = hovering ? 1.1 : 1.0;
+    this.currentScale += (targetScale - this.currentScale) * 0.1; // easing
+  
+    // --- float offset if hovered ---
+    let hoverFloat = hovering ? sin(frameCount * 0.1) * 1 : 0;
+  
+    // --- visual tint ---
+    if (hovering) tint(255, 220);
+    else noTint();
+  
+    if (this.img) {
+      // --- draw image button ---
+      push();
+      translate(center.x, center.y + hoverFloat);
+      scale(this.currentScale);
+      image(this.img, 0, 0, this.width, this.height);
+      pop();
+    } else {
+      // --- draw rectangle button ---
+      push();
+      translate(center.x, center.y + hoverFloat);
+      scale(this.currentScale);
+      fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
+      stroke(255);
+      strokeWeight(3);
+      rect(0, 0, this.width, this.height, this.cornerRadius);
+  
+      fill(this.textColor);
+      noStroke();
+      textFont(this.fontFamily);
+      textSize(this.fontSize);
+      text(this.caption, 0, 0);
+      pop();
+    }
+  
     pop();
   }
+  
 
   /**
    * Sets the button's background color.
@@ -307,7 +331,7 @@ class Button {
 }
 
 // Button factory function with predefined styles
-function createMenuButton(x, y, width, height, caption, style = 'default', clickHandler = null) {
+function createMenuButton(x, y, width, height, caption, style = 'default', clickHandler = null, image = null) {
   const styles = {
     default: {
       backgroundColor: '#2196F3',
@@ -345,7 +369,8 @@ function createMenuButton(x, y, width, height, caption, style = 'default', click
     ...styles[style],
     borderWidth: 2,
     cornerRadius: 8,
-    onClick: clickHandler || (() => console.log(`${caption} clicked!`))
+    onClick: clickHandler || (() => console.log(`${caption} clicked!`)),
+    image: image
   };
 
   return new Button(x, y, width, height, caption, buttonStyle);
@@ -354,4 +379,18 @@ function createMenuButton(x, y, width, height, caption, style = 'default', click
 // Export for Node.js compatibility
 if (typeof module !== "undefined" && module.exports) {
   module.exports = Button;
+}
+
+let activeButtons = [];
+
+function setActiveButtons(buttonList) {
+  activeButtons = buttonList || [];
+}
+
+function handleButtonsClick() {
+  activeButtons.forEach(btn => {
+    if (btn.isHovered && typeof btn.action === 'function') {
+      btn.action();
+    }
+  });
 }

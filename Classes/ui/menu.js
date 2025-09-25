@@ -5,9 +5,9 @@ let titleY = -100, titleTargetY, titleSpeed = 9;
 // Button configurations for each menu state
 const MENU_CONFIGS = {
   MENU: [
-    { x: -100, y: -100, w: 200, h: 50, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: -100, y: -40,  w: 200, h: 50, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
-    { x: -100, y: 20,   w: 200, h: 50, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
+    { x: -113, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
+    { x: -100, y: 0,  w: 200, h: 50, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
+    { x: -100, y: 70,   w: 200, h: 50, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
     { x: -110, y: 120,  w: 100, h: 40, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
     { x: 10,   y: 120,  w: 100, h: 40, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
   ],
@@ -34,31 +34,52 @@ function initializeMenu() {
 
 // Load buttons for current state
 function loadButtons() {
-  const centerX = CANVAS_X / 2, centerY = CANVAS_Y / 2;
-  const currentState = GameState.getState();
-  menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).map(btn => 
-    createMenuButton(centerX + btn.x, centerY + btn.y, btn.w, btn.h, btn.text, btn.style, btn.action)
-  );
+    const centerX = CANVAS_X / 2, centerY = CANVAS_Y / 2;
+    const currentState = GameState.getState();
+
+    menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).map(btn => {
+        const img = (btn.text === "Start Game") ? playButton : null;
+
+        return createMenuButton(
+            centerX + btn.x,
+            centerY + btn.y,
+            btn.w,
+            btn.h,
+            btn.text,
+            btn.style,
+            btn.action,
+            img 
+        );
+    });
+
+    // Register buttons for click handling
+    setActiveButtons(menuButtons);
 }
+
 
 // Start game with fade transition
 function startGameTransition() {
-  GameState.startGame();
+    // Only start fade out, do NOT switch state yet
+    GameState.startFadeTransition("out");
 }
 
 // Main menu render function
 function drawMenu() {
-  textAlign(CENTER, CENTER);
+    textAlign(CENTER, CENTER);
   
-  // Animate title
-  if (titleY < titleTargetY) {
-    titleY += titleSpeed;
-    if (titleY > titleTargetY) titleY = titleTargetY;
-  }
+    // --- Title drop animation ---
+    let easing = 0.07;
+    titleY += (titleTargetY - titleY) * easing;
+    let floatOffset = sin(frameCount * 0.03) * 5;
   
-  // Draw title and buttons
-  const titleText = GameState.isInOptions() ? "OPTIONS" : "ANTS!";
-  outlinedText(titleText, CANVAS_X / 2, titleY, font, 48, color(255), color(0));
+    // Draw logo instead of plain text
+    imageMode(CENTER);
+    if (menuImage) {
+      image(menuImage, CANVAS_X / 2, (titleY - 50) + floatOffset, 600, 600);
+    } else {
+      // fallback outlined text if image fails
+      outlinedText("ANTS!", CANVAS_X / 2, titleY + floatOffset, font, 48, color(255), color(0));
+    }
   
   menuButtons.forEach(btn => {
     btn.update(mouseX, mouseY, mouseIsPressed);
@@ -68,19 +89,21 @@ function drawMenu() {
 
 // Update menu transitions
 function updateMenu() {
-  if (GameState.isInMenu() && GameState.isFadingTransition()) {
-    if (GameState.updateFade(5)) {
-      // Fade complete, transition to playing
-      GameState.setState("PLAYING");
-    }
-  } else if (GameState.isInGame()) {
-    // Handle fade-out when returning from game
-    const currentAlpha = GameState.getFadeAlpha();
-    if (currentAlpha > 0) {
-      GameState.setFadeAlpha(currentAlpha - 10);
+    if (GameState.isFadingTransition()) {
+      const fadeComplete = GameState.updateFade(10);
+  
+      if (fadeComplete) {
+        if (GameState.fadeDirection === "out") {
+          // Fade-out done → switch state to PLAYING
+          GameState.setState("PLAYING", true); // skip callbacks if needed
+          GameState.startFadeTransition("in"); // start fade-in
+        } else {
+          // Fade-in done → stop fading
+          GameState.stopFadeTransition();
+        }
+      }
     }
   }
-}
 
 // Render complete menu system
 function renderMenu() {
