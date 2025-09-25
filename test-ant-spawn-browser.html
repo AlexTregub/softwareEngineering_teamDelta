@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ant Spawn Test</title>
+    <script src="libraries/p5.min.js"></script>
+</head>
+<body>
+    <script>
+        // Mock some globals that might be needed
+        let selectedEntities = [];
+        let isSelecting = false;
+        let selectionStart = null;
+        let selectionEnd = null;
+        let ant_Index = 0;
+        let ants = [];
+        let hasDeLozier = false;
+        let antSize, antImg1, gregImg, speciesImages;
+        let resourceList = { getResourceList: () => [] };
+        let font;
+
+        function preload() {
+            // Load required images
+            antImg1 = loadImage("Images/Ants/gray_ant.png");
+            gregImg = loadImage("Images/Ants/greg.jpg");
+            speciesImages = {
+                Builder: loadImage('Images/Ants/blue_ant.png'),
+                Scout: loadImage('Images/Ants/gray_ant.png'),
+                Farmer: loadImage('Images/Ants/brown_ant.png'),
+                Warrior: loadImage('Images/Ants/blue_ant.png'),
+                Spitter: loadImage('Images/Ants/gray_ant.png'),
+                DeLozier: loadImage('Images/Ants/greg.jpg')
+            };
+        }
+
+        function setup() {
+            createCanvas(800, 600);
+            
+            // Initialize antSize
+            antSize = createVector(20, 20);
+            
+            // Test ant spawning
+            console.log("Testing ant spawning...");
+            try {
+                Ants_Spawn(5);
+                console.log("✅ Ant spawning successful! Created", ants.length, "ants");
+                
+                // Log ant details
+                ants.forEach((ant, i) => {
+                    console.log(`Ant ${i}:`, {
+                        species: ant.species,
+                        hasSprite: !!ant.sprite,
+                        hasAntObject: !!ant.antObject
+                    });
+                });
+                
+            } catch (error) {
+                console.error("❌ Ant spawning failed:", error);
+            }
+        }
+
+        function draw() {
+            background(120, 150, 120);
+            
+            // Update and draw ants
+            Ants_Update();
+            
+            // Display ant count
+            fill(255);
+            textSize(16);
+            text(`Ants: ${ants.length}`, 10, 30);
+            text("Click to spawn more ants", 10, 50);
+        }
+
+        function mousePressed() {
+            // Spawn more ants on click
+            try {
+                Ants_Spawn(1);
+                console.log("Spawned ant, total:", ants.length);
+            } catch (error) {
+                console.error("Failed to spawn ant:", error);
+            }
+        }
+    </script>
+    
+    <!-- Load ant-related scripts -->
+    <script src="Classes/entities/sprite2d.js"></script>
+    <script src="Classes/entities/stats.js"></script>
+    <script src="Classes/ants/antStateMachine.js"></script>
+    <script src="Classes/ants/species.js"></script>
+    <script src="Classes/ants/antWrapper.js"></script>
+    <script src="Classes/ants/ants.js"></script>
+</body>
+</html>
