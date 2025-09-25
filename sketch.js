@@ -13,6 +13,10 @@ let font;
 let recordingPath;
 let menuImage;
 let playButton;
+let optionButton;
+let exitButton;
+let infoButton;
+let debugButton;
 
 function preload(){
   test_stats();
@@ -22,6 +26,10 @@ function preload(){
   font = loadFont("Images/Assets/Terraria.TTF");
   menuImage = loadImage("Images/Assets/Menu/ant_logo.png");
   playButton = loadImage("Images/Assets/Menu/play_button.png");
+  optionButton = loadImage("Images/Assets/Menu/options_button.png");
+  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
+  infoButton = loadImage("Images/Assets/Menu/info_button.png");
+  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
 }
 
 // MOUSE INTERACTIONS

@@ -6,10 +6,10 @@ let titleY = -100, titleTargetY, titleSpeed = 9;
 const MENU_CONFIGS = {
   MENU: [
     { x: -113, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: -100, y: 0,  w: 200, h: 50, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
-    { x: -100, y: 70,   w: 200, h: 50, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
-    { x: -110, y: 120,  w: 100, h: 40, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
-    { x: 10,   y: 120,  w: 100, h: 40, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
+    { x: -113, y: -10,  w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
+    { x: -113, y: 70,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
+    { x: -149, y: 150,  w: 140, h: 70, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
+    { x: 12,   y: 148,  w: 140, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
     { x: -100, y: -100, w: 200, h: 50, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
@@ -38,9 +38,29 @@ function loadButtons() {
     const currentState = GameState.getState();
 
     menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).map(btn => {
-        const img = (btn.text === "Start Game") ? playButton : null;
+      let img = null;
+      switch (btn.text) {
+        case "Start Game":
+          img = playButton;
+          break;
+        case "Options":
+          img = optionButton;
+          break;
+        case "Exit Game":
+          img = exitButton;
+          break;
+        case "Credits":
+          img = infoButton;
+          break;
+        case "Debug":
+          img = debugButton;
+          break;
+        default:
+          img = null;
+        
+      }
 
-        return createMenuButton(
+      return createMenuButton(
             centerX + btn.x,
             centerY + btn.y,
             btn.w,
@@ -49,8 +69,8 @@ function loadButtons() {
             btn.style,
             btn.action,
             img 
-        );
-    });
+      );
+  });
 
     // Register buttons for click handling
     setActiveButtons(menuButtons);
