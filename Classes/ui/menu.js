@@ -8,14 +8,14 @@ const MENU_CONFIGS = {
     { x: -113, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
     { x: -113, y: -10,  w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
     { x: -113, y: 70,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
-    { x: -149, y: 150,  w: 140, h: 70, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
-    { x: 12,   y: 148,  w: 140, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
+    { x: -156, y: 150,  w: 145, h: 70, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
+    { x: 9,   y: 148,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
-    { x: -100, y: -100, w: 200, h: 50, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
-    { x: -100, y: -40,  w: 200, h: 50, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
-    { x: -100, y: 20,   w: 200, h: 50, text: "Controls",      style: 'default', action: () => console.log("Controls") },
-    { x: -100, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
+    { x: -113, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
+    { x: -113, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
+    { x: -113, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => console.log("Controls") },
+    { x: 9,   y: 148,  w: 145, h: 70, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ]
 };
 
@@ -51,6 +51,18 @@ function loadButtons() {
           break;
         case "Credits":
           img = infoButton;
+          break;
+        case "Audio Settings":
+          img = audioButton;
+          break;
+        case "Video Settings":
+          img = videoButton;
+          break;
+        case "Controls":
+          img = controlButton;
+          break;
+        case "Back to Menu":
+          img = backButton;
           break;
         case "Debug":
           img = debugButton;
@@ -95,7 +107,7 @@ function drawMenu() {
     // Draw logo instead of plain text
     imageMode(CENTER);
     if (menuImage) {
-      image(menuImage, CANVAS_X / 2, (titleY - 50) + floatOffset, 600, 600);
+      image(menuImage, CANVAS_X / 2, (titleY - 50) + floatOffset, 700, 700);
     } else {
       // fallback outlined text if image fails
       outlinedText("ANTS!", CANVAS_X / 2, titleY + floatOffset, font, 48, color(255), color(0));
