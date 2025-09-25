@@ -2,14 +2,14 @@
 const CHUNK_SIZE=8; // size in Tiles
 
 class Chunk {
-    constructor(chunkPos,spanTLPos,size=CHUNK_SIZE,tileSize=TILE_SIZE) {
+    constructor(chunkPos,spanTLPos,size=CHUNK_SIZE,tileSize=TILE_SIZE) { // spanTLPos should be a known rounded value. We will automatically offset items as needed. 
         this.tileData = new Grid(size,size,spanTLPos,chunkPos); // Public, can access through chunk.tileData.*
 
         // Fill grid with Tile:
         let len = size*size;
         for (let i = 0; i < len; ++i) {
             let gridPos = this.tileData.convArrToRelPos(this.tileData.convToSquare(i)); // i -> square -> span
-            this.tileData.rawArray[i] = new Tile(gridPos[0],gridPos[1],tileSize); // Now storing GRID position, instead of PIXEL position. Raw access for efficiency
+            this.tileData.rawArray[i] = new Tile(gridPos[0]-0.5,gridPos[1]-0.5,tileSize); // Now storing GRID-RENDER position TL render corner (offset), instead of PIXEL position. Raw access for efficiency
         }
     }
 
