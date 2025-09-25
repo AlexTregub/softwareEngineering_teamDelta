@@ -12,6 +12,11 @@ function deselectAllEntities() {
     selectedAnt.isSelected = false;
     selectedAnt = null;
   }
+  // Clear antManager selection as well
+  if (typeof antManager !== "undefined" && antManager.selectedAnt) {
+    antManager.selectedAnt.isSelected = false;
+    antManager.selectedAnt = null;
+  }
 }
 
 // Abstract: checks if entity center is inside box
@@ -80,11 +85,17 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
     }
   }
 
-  // If no entity was clicked, start box selection (regardless of whether an entity is selected)
+  // If no entity was clicked, check if we should move selected ant or start box selection
   if (!entityWasClicked) {
-    isSelecting = true;
-    selectionStart = createVector(mouseX, mouseY);
-    selectionEnd = selectionStart.copy();
+    // If there's a selected ant, move it to the clicked location
+    if (typeof antManager !== 'undefined' && antManager.selectedAnt) {
+      antManager.moveSelectedAnt(false); // Move but keep selected
+    } else {
+      // No selected ant, start box selection
+      isSelecting = true;
+      selectionStart = createVector(mouseX, mouseY);
+      selectionEnd = selectionStart.copy();
+    }
   }
 }
 

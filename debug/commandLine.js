@@ -366,8 +366,7 @@ function handleTeleportCommand(args) {
     return;
   }
   
-  selectedAnt.posX = x;
-  selectedAnt.posY = y;
+  selectedAnt.setPosition(x, y);
   console.log(`🚀 Teleported selected ant to (${x}, ${y})`);
 }
 

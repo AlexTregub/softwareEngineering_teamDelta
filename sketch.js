@@ -22,14 +22,48 @@ function preload(){
 // MOUSE INTERACTIONS
 function mousePressed() {
   if (isInGame()) {  // only allow ant interactions in game
+    // Right-click to deselect
+    if (mouseButton === RIGHT) {
+      if (typeof antManager !== 'undefined' && antManager.selectedAnt) {
+        antManager.selectedAnt.setSelected(false);
+        antManager.selectedAnt = null;
+      }
+      return; // Don't process other mouse logic
+    }
+    
     if (typeof handleMousePressed === 'function') {
+      // Create ant selection callback
+      const antSelectCallback = () => {
+        if (typeof antManager !== 'undefined' && antManager.selectAnt) {
+          antManager.selectAnt();
+        }
+      };
+      
+      // Create ant movement callback that uses tile-based movement
+      const antMoveCallback = (mx, my, tileSize) => {
+        if (typeof antManager !== 'undefined' && antManager.moveSelectedAnt) {
+          // Convert pixel coordinates to tile coordinates
+          const tileX = Math.floor(mx / tileSize);
+          const tileY = Math.floor(my / tileSize);
+          
+          // Convert back to pixel coordinates at tile center
+          const tileCenterX = tileX * tileSize + tileSize / 2;
+          const tileCenterY = tileY * tileSize + tileSize / 2;
+          
+          // Set the global mouse position to the tile center for the antManager method
+          mouseX = tileCenterX;
+          mouseY = tileCenterY;
+          antManager.moveSelectedAnt(false); // false = keep ant selected
+        }
+      };
+      
       handleMousePressed(
         ants,
         mouseX,
         mouseY,
-        AntClickControl,
+        antSelectCallback,
         selectedAnt,
-        moveSelectedAntToTile,
+        antMoveCallback,
         TILE_SIZE,
         mouseButton
       );
@@ -45,7 +79,25 @@ function mouseDragged() {
 
 function mouseReleased() {
   if (isInGame() && typeof handleMouseReleased === 'function') {
-    handleMouseReleased(ants, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
+    // Create ant movement callback that uses tile-based movement
+    const antMoveCallback = (mx, my, tileSize) => {
+      if (typeof antManager !== 'undefined' && antManager.moveSelectedAnt) {
+        // Convert pixel coordinates to tile coordinates
+        const tileX = Math.floor(mx / tileSize);
+        const tileY = Math.floor(my / tileSize);
+        
+        // Convert back to pixel coordinates at tile center
+        const tileCenterX = tileX * tileSize + tileSize / 2;
+        const tileCenterY = tileY * tileSize + tileSize / 2;
+        
+        // Set the global mouse position to the tile center for the antManager method
+        mouseX = tileCenterX;
+        mouseY = tileCenterY;
+        antManager.moveSelectedAnt(false); // false = keep ant selected
+      }
+    };
+    
+    handleMouseReleased(ants, selectedAnt, antMoveCallback, TILE_SIZE);
   }
 }
 
@@ -86,8 +138,7 @@ function setup() {
   
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
- 
-  Ants_Spawn(10);
+  AntsSpawn(10);
   // Resources_Spawn(20);
 }
 
@@ -144,14 +195,32 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   // Highlight tile under mouse
   const tileX = Math.floor(mouseX / tileSize);
   const tileY = Math.floor(mouseY / tileSize);
+  
+  // Fill the tile with transparent yellow
   fill(255, 255, 0, 50); // transparent yellow
   noStroke();
   rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+  
+  // Add a border to make the tile more visible
+  noFill();
+  stroke(255, 255, 0, 150); // more opaque yellow border
+  strokeWeight(2);
+  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+  
+  // Show tile center dot to indicate where ant will move
+  if (selectedAnt) {
+    fill(255, 0, 0, 200); // red dot for movement target
+    noStroke();
+    const tileCenterX = tileX * tileSize + tileSize / 2;
+    const tileCenterY = tileY * tileSize + tileSize / 2;
+    ellipse(tileCenterX, tileCenterY, 6, 6);
+  }
 
   // Highlight selected ant's current tile
   if (selectedAnt) {
-    const antTileX = Math.floor(selectedAnt.posX / tileSize);
-    const antTileY = Math.floor(selectedAnt.posY / tileSize);
+    const pos = selectedAnt.getPosition();
+    const antTileX = Math.floor(pos.x / tileSize);
+    const antTileY = Math.floor(pos.y / tileSize);
     fill(0, 255, 0, 80); // transparent green
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);

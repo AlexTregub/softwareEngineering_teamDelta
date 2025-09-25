@@ -244,6 +244,12 @@ class AntStateMachine {
       }
     };
   }
+
+  // Update method for game loop integration
+  update() {
+    // Currently a no-op - state machine updates happen through explicit state changes
+    // This method exists to satisfy the interface expected by ant.js
+  }
 }
 
 function antSMtest() {

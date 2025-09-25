@@ -72,6 +72,32 @@ class RenderController {
     };
   }
 
+  // --- Public API ---
+
+  /**
+   * Update render controller - called every frame
+   */
+  update() {
+    // Update visual effects
+    this.updateEffects();
+    
+    // Update animations (bob, pulse, etc.)
+    this._updateAnimations();
+  }
+
+  /**
+   * Update animation offsets for smooth visual effects
+   */
+  _updateAnimations() {
+    // Update bob and pulse offsets for smooth animation
+    this._bobOffset += 0.1;
+    this._pulseOffset += 0.08;
+    
+    // Keep offsets in reasonable range
+    if (this._bobOffset > Math.PI * 4) this._bobOffset -= Math.PI * 4;
+    if (this._pulseOffset > Math.PI * 4) this._pulseOffset -= Math.PI * 4;
+  }
+
   // --- Helper Methods ---
 
   /**

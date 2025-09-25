@@ -7,7 +7,7 @@ function resourcePreLoad(){
   greenLeaf = loadImage('Images/Resources/leaf.png');
   mapleLeaf = loadImage('Images/Resources/mapleLeaf.png');
   resourceList = new resourcesArray(); 
-  resourceManager = new Resource(1,50,resourceList); // (Interval,Capacity,List)
+  resourceManager = new ResourceSpawner(1,50,resourceList); // (Interval,Capacity,List)
 }
 
 
@@ -33,8 +33,8 @@ class resourcesArray {
   }
 }
 
-// Resource(Time Betwee Each Spawn, Max Amount, class resourcesArray)
-class Resource {
+// ResourceSpawner(Time Between Each Spawn, Max Amount, class resourcesArray)
+class ResourceSpawner {
   constructor(interval, maxAmount, resources) {
     this.maxAmount = maxAmount;
     this.interval = interval;

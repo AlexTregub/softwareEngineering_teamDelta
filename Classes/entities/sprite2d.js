@@ -10,12 +10,26 @@ class Sprite2D {
   setPosition(pos) { this.pos = pos.copy ? pos.copy() : createVector(pos.x, pos.y); }
   setSize(size) { this.size = size.copy ? size.copy() : createVector(size.x, size.y); }
   setRotation(rotation) { this.rotation = rotation; }
+  
+  // Additional methods expected by Entity
+  getImage() { return this.img; }
+  hasImage() { return this.img != null; }
+  setOpacity(alpha) { this.alpha = alpha; }
+  getOpacity() { return this.alpha || 255; }
 
   render() {
+    if (!this.img) return; // Don't render if no image
+    
     push();
     translate(this.pos.x + this.size.x / 2, this.pos.y + this.size.y / 2);
     rotate(radians(this.rotation));
     imageMode(CENTER);
+    
+    // Apply opacity if set
+    if (this.alpha !== undefined && this.alpha < 255) {
+      tint(255, this.alpha);
+    }
+    
     image(this.img, 0, 0, this.size.x, this.size.y);
     pop();
   }

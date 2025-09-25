@@ -35,6 +35,31 @@ class MovementController {
       return false;
     }
 
+    // Try to use pathfinding if available
+    if (typeof findPath === 'function' && typeof pathMap !== 'undefined' && pathMap) {
+      try {
+        // Convert entity position to grid coordinates
+        const tileSize = window.tileSize || 32;
+        const pos = this._entity.getPosition();
+        const startX = Math.floor(pos.x / tileSize);
+        const startY = Math.floor(pos.y / tileSize);
+        const endX = Math.floor(x / tileSize);
+        const endY = Math.floor(y / tileSize);
+
+        // Find path using pathfinding system
+        const calculatedPath = findPath([startX, startY], [endX, endY], pathMap);
+        
+        if (calculatedPath && calculatedPath.length > 0) {
+          // Set the path and start following it
+          this.setPath(calculatedPath);
+          return true;
+        }
+      } catch (error) {
+        console.warn("Pathfinding failed, using direct movement:", error);
+      }
+    }
+
+    // Fallback to direct movement
     this._targetPosition = { x, y };
     this._isMoving = true;
     this._stuckCounter = 0;
@@ -263,22 +288,7 @@ class MovementController {
    * @returns {Object} - Position {x, y}
    */
   getCurrentPosition() {
-    // Try different ways to get position from entity
-    if (this._entity.posX !== undefined && this._entity.posY !== undefined) {
-      return { x: this._entity.posX, y: this._entity.posY };
-    }
-    
-    if (this._entity._stats && this._entity._stats.position) {
-      const pos = this._entity._stats.position.statValue;
-      return { x: pos.x, y: pos.y };
-    }
-
-    if (this._entity.getPosition && typeof this._entity.getPosition === 'function') {
-      return this._entity.getPosition();
-    }
-
-    console.warn("Could not determine entity position");
-    return { x: 0, y: 0 };
+    return this._entity.getPosition();
   }
 
   /**
@@ -286,13 +296,12 @@ class MovementController {
    * @param {Object} position - New position {x, y}
    */
   setEntityPosition(position) {
-    // Update entity position through multiple interfaces
-    if (this._entity.posX !== undefined && this._entity.posY !== undefined) {
-      this._entity.posX = position.x;
-      this._entity.posY = position.y;
-    }
-
-    if (this._entity._stats && this._entity._stats.position) {
+    this._entity.setPosition(position.x, position.y);
+    
+    // Update stats system if available and properly structured
+    if (this._entity._stats && 
+        this._entity._stats.position && 
+        this._entity._stats.position.statValue) {
       this._entity._stats.position.statValue.x = position.x;
       this._entity._stats.position.statValue.y = position.y;
     }

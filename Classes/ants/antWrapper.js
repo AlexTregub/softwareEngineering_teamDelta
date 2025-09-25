@@ -1,12 +1,12 @@
 class AntWrapper {
   constructor(antObject, species) {
-    this.antObject = antObject; // Instance of ant class
+    this.antObject = antObject; // Instance of ant class (Entity-based)
     this.species = species;
     // Optionally: this.healthAmount = this.setHealthAmm(species);
 
     // Set species-specific image if needed
     if (species === "DeLozier") {
-      this.antObject.setSpriteImage(speciesImages["DeLozier"]);
+      this.antObject.setImage(speciesImages["DeLozier"]);
     }
   }
 
@@ -15,13 +15,14 @@ class AntWrapper {
   }
 
   makeSpeciesTestUi() {
-    const center = this.antObject.center;
+    const center = this.antObject.getCenter();
   
     push();
     rectMode(CENTER);
   
     // 20px below the ant (tweak as needed)
-    const labelY = center.y + this.antObject.size / 2 + 20;
+    const size = this.antObject.getSize();
+    const labelY = center.y + size.y / 2 + 20;
   
     outlinedText(
       this.species,         // text

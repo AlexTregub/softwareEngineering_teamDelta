@@ -1,29 +1,52 @@
 const _speciesList = ["Builder", "Scout", "Farmer", "Warrior", "Spitter"];
 const _specialSpeciesList = ["DeLozier"]
 const _allSpecies = [..._speciesList, ..._specialSpeciesList];
+
 class Species extends ant {
   constructor(antObject, speciesName, speciesImage) {
     const speciesStats = Species.getSpeciesStats(speciesName);
-    super(
-      antObject.posX,
-      antObject.posY,
-      antObject.sizeX,
-      antObject.sizeY,
-      speciesStats.movementSpeed ?? antObject.movementSpeed,
-      antObject.rotation,
-      speciesImage // Pass the image here!
-    );
-    this.img = speciesImage
-    this.speciesName = speciesName;
-    this.exp = antObject.stats.exp
+    const pos = antObject.getPosition();
+    const size = antObject.getSize();
     
-
-    // Overwrite stats with species-specific values
-    this.stats.strength.statValue = speciesStats.strength;
-    this.stats.health.statValue = speciesStats.health;
-    this.stats.gatherSpeed.statValue = speciesStats.gatherSpeed;
-    this.stats.movementSpeed.statValue = speciesStats.movementSpeed;
+    super(
+      pos.x,
+      pos.y,
+      size.x,
+      size.y,
+      speciesStats.movementSpeed ?? 30,
+      0,
+      speciesImage, // Pass the image here!
+      speciesName
+    );
+    
+    this.img = speciesImage;
+    this.speciesName = speciesName;
+    this.exp = antObject.stats?.exp || 0;
+    
+    // Apply species-specific stats
+    this._applySpeciesStats(speciesStats);
     this.waypoints = []; // Array of {x, y} locations
+  }
+  
+  _applySpeciesStats(speciesStats) {
+    // Update health system
+    this._maxHealth = speciesStats.health;
+    this._health = speciesStats.health;
+    this._damage = speciesStats.strength;
+    
+    // Update stats if available
+    if (this.stats) {
+      this.stats.strength.statValue = speciesStats.strength;
+      this.stats.health.statValue = speciesStats.health;
+      this.stats.gatherSpeed.statValue = speciesStats.gatherSpeed;
+      this.stats.movementSpeed.statValue = speciesStats.movementSpeed;
+    }
+    
+    // Update movement controller if available
+    const movementController = this.getController('movement');
+    if (movementController) {
+      movementController.movementSpeed = speciesStats.movementSpeed;
+    }
   }
 
   static getSpeciesStats(speciesName) {
@@ -51,13 +74,14 @@ class Species extends ant {
     
     // Species labels always enabled
     if (typeof outlinedText !== 'undefined') {
-      const center = this.center;
+      const center = this.getCenter();
     
       push();
       rectMode(CENTER);
     
       // put the text a bit *below* the ant sprite
-      const labelY = center.y + this.sizeY / 2 + 15;
+      const size = this.getSize();
+      const labelY = center.y + size.y / 2 + 15;
     
       // call your outlinedText helper
       outlinedText(
@@ -76,7 +100,8 @@ class Species extends ant {
 
   ResolveMoment() {
     if (this._isMoving) {
-      const current = createVector(this.posX, this.posY);
+      const pos = this.getPosition();
+      const current = createVector(pos.x, pos.y);
       const target = createVector(
         this._stats.pendingPos.statValue.x,
         this._stats.pendingPos.statValue.y
@@ -91,17 +116,15 @@ class Species extends ant {
         const step = Math.min(speedPerMs * deltaTime, distance);
         current.x += direction.x * step;
         current.y += direction.y * step;
-        this.posX = current.x;
-        this.posY = current.y;
-        this._sprite.setPosition(current);
+        this.setPosition(current.x, current.y);
+        this.setImage(current);
       } else {
 
         // Target Reach
 
-        this.posX = target.x;
-        this.posY = target.y;
+        this.setPosition(target.x, target.y);
         this._isMoving = false;
-        this._sprite.setPosition(target);
+        this.setImage(target);
 
         // Stores Resource and Reset State Upon Dropoff
         if(this.isDroppingOff || this.isMaxWeight ){
@@ -136,15 +159,18 @@ class Species extends ant {
   }
 }
 
+// --- Species Management Functions ---
+
 // Assigns a random species to an ant
 function assignSpecies() {
   // Add DeLozier to the species list only if it hasn't been created yet
-  if (!hasDeLozier) { speciesList = _specialSpeciesList; }
-  else speciesList = _speciesList
+  const speciesList = !hasDeLozier ? _specialSpeciesList : _speciesList;
   const chosenSpecies = speciesList[Math.floor(random(0, speciesList.length))];
 
   // If DeLozier is chosen, set the flag to true
-  if (chosenSpecies === "DeLozier") { hasDeLozier = true; }
+  if (chosenSpecies === "DeLozier") { 
+    hasDeLozier = true; 
+  }
   
   return chosenSpecies;
 }
