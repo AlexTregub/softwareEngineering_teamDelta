@@ -10,13 +10,18 @@ let MAP;
 let GRIDMAP;
 let COORDSY;
 let font;
-let recordingPath
+let recordingPath;
+let menuImage;
+let playButton;
 
 function preload(){
+  test_stats();
   terrainPreloader()
   Ants_Preloader()
   resourcePreLoad();
   font = loadFont("Images/Assets/Terraria.TTF");
+  menuImage = loadImage("Images/Assets/Menu/ant_logo.png");
+  playButton = loadImage("Images/Assets/Menu/play_button.png");
 }
 
 // MOUSE INTERACTIONS
@@ -27,7 +32,7 @@ function mousePressed() {
         ants,
         mouseX,
         mouseY,
-        AntClickControl,
+        Ant_Click_Control,
         selectedAnt,
         moveSelectedAntToTile,
         TILE_SIZE,
@@ -35,6 +40,9 @@ function mousePressed() {
       );
     }
   }
+
+  // Handle menu button clicks
+  handleMenuClick();
 }
 
 function mouseDragged() {
@@ -110,7 +118,7 @@ function setupTests() {
 
 function draw() {
   MAP.render();
-  AntsUpdate();
+  Ants_Update();
   if (typeof drawSelectionBox === 'function') {
     drawSelectionBox();
   }
@@ -169,7 +177,7 @@ function draw() {
 
   // --- GAMEPLAY RENDERING ---
   MAP.render();
-  AntsUpdate();
+  Ants_Update();
   resourceList.drawAll();
   if (typeof drawSelectionBox === 'function') drawSelectionBox();
   drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
@@ -185,6 +193,7 @@ function draw() {
   }
 
   // Draw fade overlay if transitioning
+  drawFadeOverlay();
       drawUI();
 
 }
