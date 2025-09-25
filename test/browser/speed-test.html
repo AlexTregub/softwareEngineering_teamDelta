@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Movement Speed Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .error { color: red; font-weight: bold; }
+        .success { color: green; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Movement Speed Configuration Test</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            results.appendChild(div);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Wait for scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                try {
+                    log('🔄 Testing movement speed configuration...', 'info');
+                    
+                    // Test 1: Create MovementController directly
+                    const mockEntity = {
+                        posX: 100, posY: 100, movementSpeed: 30,
+                        _stateMachine: { 
+                            canPerformAction: () => true,
+                            setPrimaryState: () => {}
+                        }
+                    };
+                    
+                    const controller = new MovementController(mockEntity);
+                    log('✅ MovementController created', 'success');
+                    
+                    // Test getter
+                    const defaultSpeed = controller.movementSpeed;
+                    log(`✅ Default speed getter works: ${defaultSpeed}`, 'success');
+                    
+                    // Test setter
+                    controller.movementSpeed = 45;
+                    const newSpeed = controller.movementSpeed;
+                    
+                    if (newSpeed === 45) {
+                        log('✅ Movement speed setter works correctly', 'success');
+                    } else {
+                        log(`❌ Speed setter failed: expected 45, got ${newSpeed}`, 'error');
+                    }
+                    
+                    // Test 2: Create ant with custom speed
+                    if (typeof ant !== 'undefined') {
+                        const testAnt = new ant(100, 100, 20, 20, 45, 0);
+                        
+                        if (testAnt._movementController) {
+                            const antSpeed = testAnt._movementController.movementSpeed;
+                            
+                            if (antSpeed === 45) {
+                                log('✅ Ant movement speed configured correctly', 'success');
+                            } else {
+                                log(`❌ Ant speed configuration failed: expected 45, got ${antSpeed}`, 'error');
+                            }
+                        } else {
+                            log('⚠️ Ant created without MovementController', 'warning');
+                        }
+                    } else {
+                        log('⚠️ Ant class not available', 'warning');
+                    }
+                    
+                    log('✅ Movement speed test completed', 'success');
+                    
+                } catch (error) {
+                    log(`❌ Test error: ${error.message}`, 'error');
+                    log(`Stack: ${error.stack}`, 'error');
+                }
+            }, 200);
+        });
+    </script>
+
+    <!-- Load required scripts -->
+    <script src="libraries/p5.min.js"></script>
+    <script src="Classes/entities/sprite2d.js"></script>
+    <script src="Classes/entities/stats.js"></script>
+    <script src="Classes/ants/antStateMachine.js"></script>
+    <script src="Classes/systems/ResourceManager.js"></script>
+    <script src="Classes/managers/GameStateManager.js"></script>
+    <script src="Classes/systems/MovementController.js"></script>
+    <script src="Classes/systems/TaskManager.js"></script>
+    <script src="Classes/systems/RenderController.js"></script>
+    <script src="Classes/ants/ants.js"></script>
+</body>
+</html>

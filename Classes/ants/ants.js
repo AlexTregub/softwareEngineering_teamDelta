@@ -105,11 +105,7 @@ class ant {
     );
     this.speciesName = speciesName;
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
-    this._skitterTimer = random(30, 200);
     this._antIndex = ant_Index++;
-    this._isMoving = false;
-    this._timeUntilSkitter = this._skitterTimer;
-    this._path = null;
     this._isSelected = false;
     this.isBoxHovered = false;
 
@@ -122,10 +118,33 @@ class ant {
       this._onStateChange(oldState, newState);
     });
     
-    // Faction and command system
+    // Initialize new controller systems (only if classes are available)
+    try {
+      this._movementController = typeof MovementController !== 'undefined' ? new MovementController(this) : null;
+      this._taskManager = typeof TaskManager !== 'undefined' ? new TaskManager(this) : null;
+      this._renderController = typeof RenderController !== 'undefined' ? new RenderController(this) : null;
+      
+      // Set movement speed in controller
+      if (this._movementController) {
+        this._movementController.movementSpeed = movementSpeed;
+      }
+    } catch (error) {
+      // Controllers not available (e.g., in Node.js test environment)
+      this._movementController = null;
+      this._taskManager = null;
+      this._renderController = null;
+    }
+    
+    // Faction and enemy tracking
     this._faction = "neutral"; // Default faction
-    this._commandQueue = []; // Queue for receiving commands from queen
     this._nearbyEnemies = []; // Track nearby enemy ants
+    
+    // Legacy compatibility properties (deprecated)
+    this._isMoving = false;
+    this._timeUntilSkitter = 0;
+    this._skitterTimer = 0;
+    this._path = null;
+    this._commandQueue = [];
   }
 
   // --- Getters/Setters ---
@@ -135,22 +154,57 @@ class ant {
   set sprite(value) { this._sprite = value; }
   get antIndex() { return this._antIndex; }
   set antIndex(value) { this._antIndex = value; }
-  get isMoving() { return this._isMoving; }
-  set isMoving(value) { this._isMoving = value; }
+  
+  // Controller getters
+  get movementController() { return this._movementController; }
+  get taskManager() { return this._taskManager; }
+  get renderController() { return this._renderController; }
+  
+  // Movement properties (now delegated to MovementController)
+  get isMoving() { return this._movementController ? this._movementController.getIsMoving() : this._isMoving; }
+  set isMoving(value) { 
+    if (this._movementController) {
+      if (!value) this._movementController.stop();
+    } else {
+      this._isMoving = value;
+    }
+  }
+  
+  // Path properties (delegated to MovementController)
+  get path() { return this._movementController ? this._movementController.getPath() : this._path; }
+  set path(value) { 
+    if (this._movementController) {
+      this._movementController.setPath(value);
+    } else {
+      this._path = value;
+    }
+  }
+  
+  // Selection and visual properties
+  get isSelected() { return this._isSelected; }
+  set isSelected(value) { 
+    this._isSelected = value;
+    // Update render controller highlighting
+    if (this._renderController) {
+      if (value) {
+        this._renderController.highlightSelected();
+      } else {
+        this._renderController.clearHighlight();
+      }
+    }
+  }
+  
+  // Legacy getters/setters for compatibility
   get timeUntilSkitter() { return this._timeUntilSkitter; }
   set timeUntilSkitter(value) { this._timeUntilSkitter = value; }
   get skitterTimer() { return this._skitterTimer; }
   set skitterTimer(value) { this._skitterTimer = value; }
-  get path() { return this._path; }
-  set path(value) { this._path = value; }
-  get isSelected() { return this._isSelected; }
-  set isSelected(value) { this._isSelected = value; }
+  get commandQueue() { return this._commandQueue; }
   
-  // State machine and new properties
+  // State machine and properties
   get stateMachine() { return this._stateMachine; }
   get faction() { return this._faction; }
   set faction(value) { this._faction = value; }
-  get commandQueue() { return this._commandQueue; }
   get nearbyEnemies() { return this._nearbyEnemies; }
 
   // --- Sprite2D Helpers ---
@@ -161,42 +215,68 @@ class ant {
 
   // --- Rendering ---
   render() {
-    noSmooth();
-    this._sprite.render();
-    smooth();
+    if (this._renderController) {
+      // Update highlighting based on current state
+      if (this._isSelected) {
+        this._renderController.highlightSelected();
+      } else if (this.isMouseOver(mouseX, mouseY)) {
+        this._renderController.highlightHover();
+      } else if (this.isBoxHovered) {
+        this._renderController.highlightBoxHover();
+      } else if (this._stateMachine.isInCombat()) {
+        this._renderController.highlightCombat();
+      } else {
+        this._renderController.clearHighlight();
+      }
+      
+      // Use new render controller
+      this._renderController.render();
+    } else {
+      // Fallback to legacy rendering
+      noSmooth();
+      this._sprite.render();
+      smooth();
 
-    if (this._isMoving) {
-      const pos = this._sprite.pos;
-      const size = this._sprite.size;
-      const pendingPos = this._stats.pendingPos.statValue;
-      stroke(255);
-      strokeWeight(2);
-      line(
-        pos.x + size.x / 2, pos.y + size.y / 2,
-        pendingPos.x + size.x / 2, pendingPos.y + size.y / 2
-      );
+      if (this._isMoving) {
+        const pos = this._sprite.pos;
+        const size = this._sprite.size;
+        const pendingPos = this._stats.pendingPos.statValue;
+        stroke(255);
+        strokeWeight(2);
+        line(
+          pos.x + size.x / 2, pos.y + size.y / 2,
+          pendingPos.x + size.x / 2, pendingPos.y + size.y / 2
+        );
+      }
+      
+      // Legacy highlighting
+      this.legacyHighlight();
     }
   }
 
-  // --- Highlighting ---
-  highlight() {
-    // Use abstract highlighting functions from selectionBox.js
-    if (this._isSelected) {
-      highlightEntity(this, "selected");
-      renderDebugInfo(this);
-    } else if (this.isMouseOver(mouseX, mouseY)) {
-      highlightEntity(this, "hover");
-    } else if (this.isBoxHovered) {
-      highlightEntity(this, "boxHovered");
+  // --- Legacy Highlighting (fallback) ---
+  legacyHighlight() {
+    // Use abstract highlighting functions from selectionBox.js if available
+    if (typeof highlightEntity === 'function') {
+      if (this._isSelected) {
+        highlightEntity(this, "selected");
+        if (typeof renderDebugInfo === 'function') renderDebugInfo(this);
+      } else if (this.isMouseOver(mouseX, mouseY)) {
+        highlightEntity(this, "hover");
+      } else if (this.isBoxHovered) {
+        highlightEntity(this, "boxHovered");
+      }
+      
+      // Show combat state with red outline
+      if (this._stateMachine.isInCombat()) {
+        highlightEntity(this, "combat");
+      }
+      
+      // Show state-dependent visual indicators
+      if (typeof renderStateIndicators === 'function') {
+        renderStateIndicators(this);
+      }
     }
-    
-    // Show combat state with red outline
-    if (this._stateMachine.isInCombat()) {
-      highlightEntity(this, "combat");
-    }
-    
-    // Show state-dependent visual indicators
-    renderStateIndicators(this);
   }
   
   // --- Mouse Over Detection ---
@@ -211,7 +291,13 @@ class ant {
     );
   }
 
-  setPath(path) { this._path = path; }
+  setPath(path) { 
+    if (this._movementController) {
+      this._movementController.setPath(path);
+    } else {
+      this._path = path;
+    }
+  }
 
   // --- Skitter Logic ---
   setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
@@ -285,13 +371,19 @@ class ant {
 
   // --- Move Logic ---
   moveToLocation(X, Y) {
-
-    // Only allow movement if state machine permits it
-    if (this._stateMachine.canPerformAction("move")) {
-      this._stats.pendingPos.statValue.x = X;
-      this._stats.pendingPos.statValue.y = Y;
-      this._isMoving = true;
-      this._stateMachine.setPrimaryState("MOVING");
+    // Use MovementController if available
+    if (this._movementController) {
+      return this._movementController.moveToLocation(X, Y);
+    } else {
+      // Fallback to legacy movement logic
+      if (this._stateMachine.canPerformAction("move")) {
+        this._stats.pendingPos.statValue.x = X;
+        this._stats.pendingPos.statValue.y = Y;
+        this._isMoving = true;
+        this._stateMachine.setPrimaryState("MOVING");
+        return true;
+      }
+      return false;
     }
   }
   
@@ -323,6 +415,12 @@ class ant {
   // if moving, updates position towards target
   // if idle, may skitter randomly
   ResolveMoment() {
+    // Use MovementController if available, otherwise use legacy logic
+    if (this._movementController) {
+      return; // MovementController handles this in its update
+    }
+    
+    // Legacy movement resolution logic
     if (this._isMoving) {
       const current = createVector(this.posX, this.posY);
       const target = createVector(
@@ -415,31 +513,30 @@ class ant {
     // Update terrain state based on current position
     this.updateTerrainState();
     
-    // Process any pending commands from queen
-    this.processCommandQueue();
+    // Update controllers
+    if (this._movementController) {
+      this._movementController.update();
+    }
+    
+    if (this._taskManager) {
+      this._taskManager.update();
+    }
     
     // Check for nearby enemies and enter combat if necessary
     this.checkForEnemies();
     
-    // Handle pathfinding movement first
-    if(!this.isMoving && this._path && this.path.length > 0){//If a path exists and not skittering
-      const nextNode = this._path.shift(); //Sets next tile to be travelled as next path tile
-      const targetX = nextNode._x * tileSize; //Translates tile coordinate to translatable distance
-      const targetY = nextNode._y * tileSize;
-      this.moveToLocation(targetX, targetY); //Moves ant
+    // Legacy pathfinding and movement logic (fallback)
+    if (!this._movementController) {
+      this.legacyMovementUpdate();
     }
-    else if (!this._isMoving && (!this._path || this._path.length === 0)){//Sets back to skittering when not pathfinding
-      this._timeUntilSkitter -= 1;
-      if (this._timeUntilSkitter < 0) {
-      this.rndTimeUntilSkitter();
-      this._isMoving = true;
-      this.moveToLocation(this.posX + random(-25, 25), this.posY + random(-25, 25));
-      }
-    }
-    this.ResolveMoment();
     
-    // Only skitter if not moving and in idle state
-    if (!this._isMoving && this._stateMachine.isPrimaryState("IDLE") && this._stateMachine.isOutOfCombat()) {
+    // Legacy command processing (fallback)
+    if (!this._taskManager) {
+      this.processCommandQueue();
+    }
+    
+    // Legacy skitter logic (fallback)
+    if (!this._movementController && !this._isMoving && this._stateMachine.isPrimaryState("IDLE") && this._stateMachine.isOutOfCombat()) {
       this._timeUntilSkitter -= 1;
       if (this._timeUntilSkitter < 0) {
         this.rndTimeUntilSkitter();
@@ -450,9 +547,33 @@ class ant {
       }
     }
     
+    // Legacy movement resolution (fallback)
+    if (!this._movementController) {
+      this.ResolveMoment();
+    }
+    
+    // Always render and update resource manager
     this.render();
-    this.highlight();
     this._resourceManager.update();
+  }
+
+  // Legacy movement update logic (fallback when MovementController not available)
+  legacyMovementUpdate() {
+    // Handle pathfinding movement first
+    if(!this.isMoving && this._path && this.path.length > 0){
+      const nextNode = this._path.shift();
+      const targetX = nextNode._x * tileSize;
+      const targetY = nextNode._y * tileSize;
+      this.moveToLocation(targetX, targetY);
+    }
+    else if (!this._isMoving && (!this._path || this._path.length === 0)){
+      this._timeUntilSkitter -= 1;
+      if (this._timeUntilSkitter < 0) {
+      this.rndTimeUntilSkitter();
+      this._isMoving = true;
+      this.moveToLocation(this.posX + random(-25, 25), this.posY + random(-25, 25));
+      }
+    }
   }
   
   // State change callback handler
@@ -472,10 +593,31 @@ class ant {
 
   // --- Command System --- // Static Utility Methods
   addCommand(command) {
-    this._commandQueue.push(command);
+    // Use TaskManager if available, otherwise use legacy logic
+    if (this._taskManager) {
+      // Convert command to task format and add to TaskManager
+      const task = {
+        id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: command.type,
+        priority: command.priority || 1,
+        data: command,
+        timeout: command.timeout || 10000
+      };
+      this._taskManager.addTask(task);
+    } else {
+      // Legacy command queue
+      this._commandQueue.push(command);
+    }
   }
   
   processCommandQueue() {
+    // Use TaskManager if available, otherwise use legacy logic
+    if (this._taskManager) {
+      // TaskManager handles command processing in its update method
+      return;
+    }
+    
+    // Legacy command processing logic
     while (this._commandQueue.length > 0) {
       const command = this._commandQueue.shift();
       this.executeCommand(command);
