@@ -34,9 +34,12 @@ class Button {
      * @param {boolean} [options.enabled=true] - Whether button is clickable
      */
     constructor(x, y, width, height, caption, options = {}) {
-      // Position and dimensions using CollisionBox2D
       this.bounds = new CollisionBox2D(x, y, width, height);
       this.caption = caption;
+    
+      // image support - AC
+      this.image = options.image || null;
+      this.hoverScale = options.hoverScale || 1.05;
       
       // Style options with defaults
       this.backgroundColor = options.backgroundColor || '#4CAF50';
@@ -114,46 +117,33 @@ class Button {
      * Uses p5.js drawing functions for rendering.
      */
     render() {
-      if (typeof push === 'undefined') {
-        console.warn('Button: p5.js drawing functions not available');
-        return;
-      }
-  
       push();
-      
-      // Determine current color based on state
-      let currentBgColor = this.backgroundColor;
-      if (!this.enabled) {
-        currentBgColor = '#cccccc'; // Gray for disabled
-      } else if (this.isPressed) {
-        currentBgColor = this.darkenColor(this.hoverColor, 0.2);
-      } else if (this.isHovered) {
-        currentBgColor = this.hoverColor;
-      }
-  
-      // Draw button background
-      fill(currentBgColor);
-      stroke(this.borderColor);
-      strokeWeight(this.borderWidth);
-      
-      if (this.cornerRadius > 0) {
-        rect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.cornerRadius);
-      } else {
-        rect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height);
-      }
-  
-      // Draw button text
-      fill(this.enabled ? this.textColor : '#666666');
-      noStroke();
-      textAlign(CENTER, CENTER);
-      textFont(this.fontFamily);
-      textSize(this.fontSize);
-      
+      imageMode(CENTER);
+    
       const center = this.bounds.getCenter();
-      const textX = center.x;
-      const textY = center.y;
-      text(this.caption, textX, textY);
-      
+      let drawW = this.bounds.width;
+      let drawH = this.bounds.height;
+    
+      // hover scale effect
+      if (this.isHovered && this.image) {
+        drawW *= this.hoverScale;
+        drawH *= this.hoverScale;
+      }
+    
+      if (this.image) {
+        image(this.image, center.x, center.y, drawW, drawH);
+      } else {
+        // fallback: normal rect + caption
+        fill(this.isHovered ? this.hoverColor : this.backgroundColor);
+        rect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.cornerRadius);
+        fill(this.textColor);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textFont(this.fontFamily);
+        textSize(this.fontSize);
+        text(this.caption, center.x, center.y);
+      }
+    
       pop();
     }
   
