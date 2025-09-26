@@ -2,6 +2,42 @@
  * AntUtilities - Static utility methods for ant operations and group management
  */
 class AntUtilities {
+  /**
+   * Move a single ant to tile coordinates
+   * @param {Object} ant - Ant object
+   * @param {number} tileX - Target tile X coordinate
+   * @param {number} tileY - Target tile Y coordinate
+   * @param {number} tileSize - Size of each tile
+   * @param {Object} pathMap - Pathfinding map object
+   */
+  static moveAntToTile(ant, tileX, tileY, tileSize = 32, pathMap = null) {
+    if (!ant) return;
+    // Use pathfinding if available
+    if (pathMap && typeof findPath === 'function') {
+      try {
+        const antPos = ant.getPosition();
+        const antTileX = Math.floor(antPos.x / tileSize);
+        const antTileY = Math.floor(antPos.y / tileSize);
+        const grid = pathMap.getGrid();
+        const startTile = grid?.getArrPos([antTileX, antTileY]);
+        const endTile = grid?.getArrPos([tileX, tileY]);
+        if (startTile && endTile) {
+          const path = findPath(startTile, endTile, pathMap);
+          if (path && ant.setPath) {
+            ant.setPath(path);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn("Pathfinding failed for ant:", error);
+        // Fallback to direct movement
+        this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
+        return;
+      }
+    }
+    // Direct movement fallback
+    this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
+  }
   
   // --- Group Movement ---
 
@@ -71,31 +107,33 @@ class AntUtilities {
    * @param {number} spacing - Spacing between ants
    * @param {number} maxCols - Maximum columns in grid
    */
-  static moveGroupInGrid(antArray, centerX, centerY, spacing = 40, maxCols = null) {
+  /**
+   * Move a group of ants in a grid formation using tile-based movement and pathfinding
+   * @param {Array} antArray - Array of ant objects
+   * @param {number} centerTileX - Grid center tile X coordinate
+   * @param {number} centerTileY - Grid center tile Y coordinate
+   * @param {number} tileSpacing - Spacing between ants in tiles
+   * @param {number} maxCols - Maximum columns in grid
+   * @param {number} tileSize - Size of each tile
+   * @param {Object} pathMap - Pathfinding map object
+   */
+  static moveGroupInGrid(antArray, centerTileX, centerTileY, tileSpacing = 1, maxCols = null, tileSize = 32, pathMap = null) {
     if (!antArray || antArray.length === 0) return;
-    
-    // Calculate optimal grid dimensions
     const count = antArray.length;
     const cols = maxCols || Math.ceil(Math.sqrt(count));
     const rows = Math.ceil(count / cols);
-    
-    // Calculate grid start position (top-left)
-    const gridWidth = (cols - 1) * spacing;
-    const gridHeight = (rows - 1) * spacing;
-    const startX = centerX - gridWidth / 2;
-    const startY = centerY - gridHeight / 2;
-    
+    // Calculate grid start tile (top-left)
+    const gridWidth = (cols - 1) * tileSpacing;
+    const gridHeight = (rows - 1) * tileSpacing;
+    const startTileX = centerTileX - Math.floor(gridWidth / 2);
+    const startTileY = centerTileY - Math.floor(gridHeight / 2);
     for (let i = 0; i < count; i++) {
       const ant = antArray[i];
       const col = i % cols;
       const row = Math.floor(i / cols);
-      
-      const x = startX + col * spacing;
-      const y = startY + row * spacing;
-      
-      if (ant.moveToLocation) {
-        ant.moveToLocation(x, y);
-      }
+      const tileX = startTileX + col * tileSpacing;
+      const tileY = startTileY + row * tileSpacing;
+      this.moveAntToTile(ant, tileX, tileY, tileSize, pathMap);
     }
   }
 

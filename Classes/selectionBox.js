@@ -1,3 +1,5 @@
+// DEPRECATED: This file is no longer used. All selection logic has been migrated to SelectionBoxController.js and MouseInputController.js.
+// Do not import or use any functions from this file. It is retained only for legacy reference.
 let isSelecting = false;
 let selectionStart = null;
 let selectionEnd = null;

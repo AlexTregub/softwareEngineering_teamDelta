@@ -51,9 +51,8 @@ this._movementController._movementSpeed = movementSpeed;
 ✅ **Controller classes are available**  
 ✅ **Ant initializes with controllers**  
 ✅ **Movement controller delegation**  
-✅ **Task manager delegation** (now fixed)  
+✅ **Task manager delegation**
 ✅ **Render controller delegation**  
-✅ **Backwards compatibility**  
 ✅ **Controller configuration**  
 ✅ **Update method integration**  
 ✅ **Multiple ant independence**  

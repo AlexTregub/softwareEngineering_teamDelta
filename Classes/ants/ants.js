@@ -116,24 +116,26 @@ class ant extends Entity {
   get _terrainController() { return this.getController('terrain'); }
   get _interactionController() { return this.getController('interaction'); }
   
-  // --- Legacy Property Compatibility ---
-  get posX() { return this.getPosition().x; }
-  set posX(value) { this.setPosition(value, this.posY); }
-  get posY() { return this.getPosition().y; }
-  set posY(value) { this.setPosition(this.posX, value); }
-  get center() { return this.getCenter(); }
-  
   // --- Property/Method Compatibility ---
   get isMoving() { return this._delegate('movement', 'getIsMoving') || false; }
-  get isSelected() { return this._delegate('selection', 'isSelected') || false; }
-  set isSelected(value) { this._delegate('selection', 'setSelected', value); }
+  get isSelected() {
+    const result = this._delegate('selection', 'isSelected') || false;
+    // Debug: log when selection state is queried
+    // console.log(`[ant] get isSelected for antIndex ${this._antIndex}:`, result);
+    return result;
+  }
+  set isSelected(value) {
+    // Debug: log when selection state is set
+    console.log(`[ant] set isSelected for antIndex ${this._antIndex}:`, value);
+    this._delegate('selection', 'setSelected', value);
+  }
   
   // --- Command/Task Compatibility ---
   addCommand(command) { return this._delegate('taskManager', 'addTask', command); }
   
   // --- State Machine Integration ---
   _onStateChange(oldState, newState) {
-    console.log(`Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
+    //console.log(`Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
   }
   
   getCurrentState() { return this._stateMachine?.getCurrentState() || "IDLE"; }
@@ -298,6 +300,14 @@ function AntsSpawn(numToSpawn) {
     );
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();
+    
+    // Register ant with TileInteractionManager for efficient mouse detection
+    if (typeof tileInteractionManager !== 'undefined' && tileInteractionManager) {
+      const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+      if (antObj) {
+        tileInteractionManager.addObject(antObj, 'ant');
+      }
+    }
   }
 }
 
@@ -305,10 +315,30 @@ function AntsSpawn(numToSpawn) {
 function AntsUpdate() {
   for (let i = 0; i < ant_Index; i++) {
     if (ants[i] && typeof ants[i].update === "function") {
+      const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+      
+      // Store previous position for TileInteractionManager updates
+      let prevPos = null;
+      if (typeof tileInteractionManager !== 'undefined' && tileInteractionManager && antObj) {
+        const currentPos = antObj.getPosition ? antObj.getPosition() : (antObj.sprite ? antObj.sprite.pos : null);
+        if (currentPos) {
+          prevPos = { x: currentPos.x, y: currentPos.y };
+        }
+      }
+      
       ants[i].update();
+      
+      // Update TileInteractionManager with new position if ant moved
+      if (typeof tileInteractionManager !== 'undefined' && tileInteractionManager && antObj && prevPos) {
+        const newPos = antObj.getPosition ? antObj.getPosition() : (antObj.sprite ? antObj.sprite.pos : null);
+        if (newPos && (newPos.x !== prevPos.x || newPos.y !== prevPos.y)) {
+          tileInteractionManager.updateObjectPosition(antObj, newPos.x, newPos.y);
+        }
+      }
+      
       // Also render the ant if it has a render method
-      if (ants[i].antObject && typeof ants[i].antObject.render === "function") {
-        ants[i].antObject.render();
+      if (antObj && typeof antObj.render === "function") {
+        antObj.render();
       }
     }
   }

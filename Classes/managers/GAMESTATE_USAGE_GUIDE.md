@@ -85,16 +85,6 @@ GameState.onStateChange((newState, oldState) => {
 GameState.removeStateChangeCallback(myCallback);
 ```
 
-### Legacy Compatibility
-The old menu functions still work for backward compatibility:
-```javascript
-getGameState()    // Now uses GameState.getState()
-setGameState()    // Now uses GameState.setState()
-isInMenu()        // Now uses GameState.isInMenu()
-isInGame()        // Now uses GameState.isInGame()
-isInOptions()     // Now uses GameState.isInOptions()
-```
-
 ### Debug Information
 ```javascript
 // Get comprehensive debug info

@@ -1,3 +1,4 @@
+// DEPRECATED: This test file checks legacy selectionBox.js logic. The codebase now uses SelectionBoxController and MouseInputController. Update or remove these tests as needed.
 // Integration tests for selection box with real game entities
 // This file tests the actual selection box functions with real ants
 

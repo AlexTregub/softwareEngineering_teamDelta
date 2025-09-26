@@ -1,6 +1,10 @@
+
 let CANVAS_X = 800; // Default 800
 let CANVAS_Y = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
+// --- CONTROLLER-BASED INPUT SYSTEM ---
+let mouseController;
+let selectionBoxController;
 
 const NONE = '\0'; 
 
@@ -10,116 +14,57 @@ let MAP;
 let GRIDMAP;
 let COORDSY;
 let font;
-let recordingPath
+let recordingPath;
+
+// Efficient tile-based interaction system
+let tileInteractionManager;
+
 
 function preload(){
-  terrainPreloader()
-  Ants_Preloader()
+  terrainPreloader();
+  Ants_Preloader();
   resourcePreLoad();
   font = loadFont("Images/Assets/Terraria.TTF");
 }
 
-// MOUSE INTERACTIONS
+
+// --- CONTROLLER-BASED MOUSE INTERACTIONS ---
 function mousePressed() {
-  if (isInGame()) {  // only allow ant interactions in game
-    // Right-click to deselect
-    if (mouseButton === RIGHT) {
-      if (typeof antManager !== 'undefined' && antManager.selectedAnt) {
-        antManager.selectedAnt.setSelected(false);
-        antManager.selectedAnt = null;
-      }
-      return; // Don't process other mouse logic
-    }
-    
-    if (typeof handleMousePressed === 'function') {
-      // Create ant selection callback
-      const antSelectCallback = () => {
-        if (typeof antManager !== 'undefined' && antManager.selectAnt) {
-          antManager.selectAnt();
-        }
-      };
-      
-      // Create ant movement callback that uses tile-based movement
-      const antMoveCallback = (mx, my, tileSize) => {
-        if (typeof antManager !== 'undefined' && antManager.moveSelectedAnt) {
-          // Convert pixel coordinates to tile coordinates
-          const tileX = Math.floor(mx / tileSize);
-          const tileY = Math.floor(my / tileSize);
-          
-          // Convert back to pixel coordinates at tile center
-          const tileCenterX = tileX * tileSize + tileSize / 2;
-          const tileCenterY = tileY * tileSize + tileSize / 2;
-          
-          // Set the global mouse position to the tile center for the antManager method
-          mouseX = tileCenterX;
-          mouseY = tileCenterY;
-          antManager.moveSelectedAnt(false); // false = keep ant selected
-        }
-      };
-      
-      handleMousePressed(
-        ants,
-        mouseX,
-        mouseY,
-        antSelectCallback,
-        selectedAnt,
-        antMoveCallback,
-        TILE_SIZE,
-        mouseButton
-      );
-    }
+  if (GameState.isInGame() && mouseController) {
+    mouseController.handleMousePressed(mouseX, mouseY, mouseButton);
   }
 }
 
 function mouseDragged() {
-  if (isInGame() && typeof handleMouseDragged === 'function') {
-    handleMouseDragged(mouseX, mouseY, ants);
+  if (GameState.isInGame() && mouseController) {
+    mouseController.handleMouseDragged(mouseX, mouseY);
   }
 }
 
 function mouseReleased() {
-  if (isInGame() && typeof handleMouseReleased === 'function') {
-    // Create ant movement callback that uses tile-based movement
-    const antMoveCallback = (mx, my, tileSize) => {
-      if (typeof antManager !== 'undefined' && antManager.moveSelectedAnt) {
-        // Convert pixel coordinates to tile coordinates
-        const tileX = Math.floor(mx / tileSize);
-        const tileY = Math.floor(my / tileSize);
-        
-        // Convert back to pixel coordinates at tile center
-        const tileCenterX = tileX * tileSize + tileSize / 2;
-        const tileCenterY = tileY * tileSize + tileSize / 2;
-        
-        // Set the global mouse position to the tile center for the antManager method
-        mouseX = tileCenterX;
-        mouseY = tileCenterY;
-        antManager.moveSelectedAnt(false); // false = keep ant selected
-      }
-    };
-    
-    handleMouseReleased(ants, selectedAnt, antMoveCallback, TILE_SIZE);
+  if (GameState.isInGame() && mouseController) {
+    mouseController.handleMouseReleased(mouseX, mouseY, mouseButton);
   }
 }
 
 // Debug functionality moved to debug/testing.js
 
 // KEYBOARD INTERACTIONS
+
 function keyPressed() {
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
   }
-  
-  if (keyCode === ESCAPE) {
-    if (typeof deselectAllEntities === 'function') {
-      deselectAllEntities();
-    }
+  if (keyCode === ESCAPE && selectionBoxController) {
+    selectionBoxController.deselectAll();
   }
 }
 
 // Command line functionality has been moved to debug/commandLine.js
 
 ////// MAIN
+
 function setup() {
   CANVAS_X = windowWidth;
   CANVAS_Y = windowHeight;
@@ -131,14 +76,21 @@ function setup() {
   MAP.randomize(SEED);
   COORDSY = MAP.getCoordinateSystem();
   COORDSY.setViewCornerBC(0,0);
-  
+
   GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-  
+
+  // Initialize TileInteractionManager for efficient mouse input handling
+  tileInteractionManager = new TileInteractionManager(CANVAS_X, CANVAS_Y, TILE_SIZE);
+
+  // --- Initialize Controllers ---
+  mouseController = new MouseInputController();
+  AntsSpawn(10);
+  selectionBoxController = SelectionBoxController.getInstance(mouseController, ants);
+
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
-  AntsSpawn(10);
   // Resources_Spawn(20);
 }
 
@@ -156,29 +108,37 @@ function drawUI() {
 function setupTests() {
   // Any test functions can be called here
   // e.g. antSMtest();
-  antSMtest(); // Test Ant State Machine
+  //antSMtest(); // Test Ant State Machine
 }
 
+
 function draw() {
+  // Update menu state and handle transitions
+  updateMenu();
+  resourceList.drawAll();
+  
+  // Render menu if active, otherwise render game
+  if (renderMenu()) return; // Menu rendered, stop here
+
   MAP.render();
   AntsUpdate();
-  if (typeof drawSelectionBox === 'function') {
-    drawSelectionBox();
+  // Use new controller-based selection box drawing
+  if (selectionBoxController) {
+    selectionBoxController.draw();
   }
-  drawDebugGrid(tileSize, GRIDMAP.width, GRIDMAP.height);
-  
+
   // Draw dev console indicator
   if (typeof drawDevConsoleIndicator === 'function') {
     drawDevConsoleIndicator();
   }
-  
+
   // Draw command line interface
   if (typeof drawCommandLine === 'function') {
     drawCommandLine();
   }
-  
-  if(recordingPath){
 
+  if(recordingPath){
+    // (Recording logic here if needed)
   }
 }
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
@@ -225,39 +185,6 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
+
+  drawUI();
 }
-
-function draw() {
-  // Update menu state and handle transitions
-  updateMenu();
-  
-  // Render menu if active, otherwise render game
-  if (renderMenu()) {
-    return; // Menu rendered, stop here
-  }
-
-  // --- GAMEPLAY RENDERING ---
-  MAP.render();
-  AntsUpdate();
-  resourceList.drawAll();
-  if (typeof drawSelectionBox === 'function') drawSelectionBox();
-  drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
-
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-  
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
-
-  // Draw fade overlay if transitioning
-      drawUI();
-
-}
-
-// Dev console indicator moved to debug/testing.js
-
-// Command line drawing moved to debug/commandLine.js

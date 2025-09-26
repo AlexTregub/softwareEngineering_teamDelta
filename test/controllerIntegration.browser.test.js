@@ -95,20 +95,6 @@ function runControllerIntegrationTest() {
     testAnt.isSelected = false;
   });
   
-  // Test 6: Test backwards compatibility (legacy methods still work)
-  test('Backwards compatibility', () => {
-    const testAnt = new ant(500, 500, 20, 20, 30, 0);
-    
-    // Legacy properties should still be accessible
-    if (typeof testAnt.posX === 'undefined') throw new Error('posX property missing');
-    if (typeof testAnt.posY === 'undefined') throw new Error('posY property missing');
-    if (typeof testAnt.moveToLocation !== 'function') throw new Error('moveToLocation method missing');
-    
-    // Legacy command queue should still work
-    testAnt.addCommand({ type: 'GATHER' });
-    // Should not throw error
-  });
-  
   // Test 7: Test controller configuration
   test('Controller configuration', () => {
     const testAnt = new ant(600, 600, 20, 20, 45, 0); // Different speed

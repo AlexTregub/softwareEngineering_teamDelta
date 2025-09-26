@@ -1,3 +1,4 @@
+// DEPRECATED: This test file checks legacy selectionBox.js logic. The codebase now uses SelectionBoxController and MouseInputController. Update or remove these tests as needed.
 // Simple Selection Box Validation Tests
 // Tests the key functionality that keeps breaking
 // Run with: node test/selectionBox.simple.test.js

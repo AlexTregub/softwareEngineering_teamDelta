@@ -39,7 +39,7 @@ class SelectionController {
   setSelected(selected) {
     const wasSelected = this._isSelected;
     this._isSelected = selected;
-    
+    console.log(`[SelectionController] setSelected called: wasSelected=${wasSelected}, newSelected=${selected}`);
     if (wasSelected !== selected) {
       this._onSelectionChange(wasSelected, selected);
     }
@@ -50,6 +50,8 @@ class SelectionController {
    * @returns {boolean} True if selected
    */
   isSelected() {
+    // Debug: log when queried
+    console.log(`[SelectionController] isSelected called, returning: ${this._isSelected}`);
     return this._isSelected;
   }
 

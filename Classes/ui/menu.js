@@ -16,6 +16,10 @@ const MENU_CONFIGS = {
     { x: -100, y: -40,  w: 200, h: 50, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
     { x: -100, y: 20,   w: 200, h: 50, text: "Controls",      style: 'default', action: () => console.log("Controls") },
     { x: -100, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
+  ],
+  DEBUG: [
+    { x: -100, y: -100, w: 200, h: 50, text: "Check Mouse Over", style: 'warning', action: () => console.log("Audio Settings") },
+    { x: -100, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ]
 };
 
@@ -84,7 +88,7 @@ function updateMenu() {
 
 // Render complete menu system
 function renderMenu() {
-  if (GameState.isAnyState("MENU", "OPTIONS")) {
+  if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
     MAP.render();
     AntsUpdate();
     drawMenu();
@@ -99,10 +103,3 @@ function renderMenu() {
   return false;
 }
 
-// Legacy utility functions (now using GameStateManager)
-const getGameState = () => GameState.getState();
-const setGameState = (state) => GameState.setState(state);
-const resetMenu = () => { GameState.reset(); titleY = -100; loadButtons(); };
-const isInMenu = () => GameState.isInMenu();
-const isInGame = () => GameState.isInGame();
-const isInOptions = () => GameState.isInOptions();

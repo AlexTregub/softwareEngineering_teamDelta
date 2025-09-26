@@ -2,6 +2,16 @@
  * InteractionController - Handles mouse interactions, click detection, and input events
  */
 class InteractionController {
+  // Debug flag for mouse over logging
+  static debugMouseOver = false;
+
+  /**
+   * Enable or disable debug logging for mouse over detection.
+   * @param {boolean} enabled
+   */
+  static setDebugMouseOver(enabled) {
+    InteractionController.debugMouseOver = !!enabled;
+  }
   constructor(entity) {
     this._entity = entity;
     this._isMouseOver = false;
@@ -23,16 +33,23 @@ class InteractionController {
    */
   update(mouseX, mouseY) {
     if (!this._interactionEnabled) return;
-    
+
     // Update mouse over state
     const wasMouseOver = this._isMouseOver;
     this._isMouseOver = this._checkMouseOver(mouseX, mouseY);
-    
+
+    // Debug logging
+    if (InteractionController.debugMouseOver) {
+      if (wasMouseOver !== this._isMouseOver) {
+        console.log(`[InteractionController] Entity:`, this._entity, `MouseOver changed:`, wasMouseOver, '->', this._isMouseOver, `at (${mouseX}, ${mouseY})`);
+      }
+    }
+
     // Handle hover state changes
     if (wasMouseOver !== this._isMouseOver) {
       this._onHoverChange(wasMouseOver, this._isMouseOver);
     }
-    
+
     // Update last mouse position
     this._lastMousePosition.x = mouseX;
     this._lastMousePosition.y = mouseY;
