@@ -44,14 +44,8 @@ class SelectionBoxController {
     if (!clicked) {
       // Use canonical movement system from ants.js
       if (this.selectedEntities && this.selectedEntities.length > 0) {
-        if (this.selectedEntities.length === 1) {
-          // Single selection: use moveSelectedAntToTile
-          // Assumes TILE_SIZE is globally available
-          moveSelectedAntToTile(x, y, TILE_SIZE);
-        } else {
-          // Multi-selection: use moveSelectedAntsToTile
-          moveSelectedAntsToTile(x, y, TILE_SIZE);
-        }
+        // Always use group movement abstraction for any selection size
+        moveSelectedEntitiesToTile(x, y, TILE_SIZE);
       }
       // Deselect all if clicking on empty space
       this.deselectAll();

@@ -136,8 +136,8 @@ suite.test('Multi-selection movement is implemented', () => {
   // Should handle multiple selected entities in selection box
   suite.assertTrue(selectionContent.includes('selectedEntities.length > 1'), 'Should detect multi-selection');
   
-  // Should call moveSelectedAntsToTile function
-  suite.assertTrue(selectionContent.includes('moveSelectedAntsToTile'), 'Should call multi-ant movement function');
+  // Should call moveSelectedEntitiesToTile function
+  suite.assertTrue(selectionContent.includes('moveSelectedEntitiesToTile'), 'Should call multi-entity movement function');
   
   // Should spread ants in circle (in ants.js)
   suite.assertTrue(antsContent.includes('angleStep'), 'Should calculate angle steps for spreading');

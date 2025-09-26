@@ -1,3 +1,8 @@
+// Expose movement functions globally for browser usage
+if (typeof window !== 'undefined') {
+  window.moveSelectedEntityToTile = moveSelectedEntityToTile;
+  window.moveSelectedEntitiesToTile = moveSelectedEntitiesToTile;
+}
 /**
  * AntUtilities - Static utility methods for ant operations and group management
  */
@@ -11,32 +16,8 @@ class AntUtilities {
    * @param {Object} pathMap - Pathfinding map object
    */
   static moveAntToTile(ant, tileX, tileY, tileSize = 32, pathMap = null) {
-    if (!ant) return;
-    // Use pathfinding if available
-    if (pathMap && typeof findPath === 'function') {
-      try {
-        const antPos = ant.getPosition();
-        const antTileX = Math.floor(antPos.x / tileSize);
-        const antTileY = Math.floor(antPos.y / tileSize);
-        const grid = pathMap.getGrid();
-        const startTile = grid?.getArrPos([antTileX, antTileY]);
-        const endTile = grid?.getArrPos([tileX, tileY]);
-        if (startTile && endTile) {
-          const path = findPath(startTile, endTile, pathMap);
-          if (path && ant.setPath) {
-            ant.setPath(path);
-            return;
-          }
-        }
-      } catch (error) {
-        console.warn("Pathfinding failed for ant:", error);
-        // Fallback to direct movement
-        //this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
-        return;
-      }
-    }
-    // Direct movement fallback
-    //this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
+    // Use the generic movement controller for all entity movement
+    MovementController.moveEntityToTile(ant, tileX, tileY, tileSize, pathMap);
   }
   
   // --- Group Movement ---
@@ -460,7 +441,8 @@ function antLoopPropertyCheck(property) {
 }
 
 // --- Move Selected Ant to Tile ---
-function moveSelectedAntToTile(mx, my, tileSize) {
+// --- Generic moveSelectedEntityToTile ---
+function moveSelectedEntityToTile(mx, my, tileSize) {
   // Use SelectionBoxController's selectedEntities for single selection
   const controller = typeof SelectionBoxController !== 'undefined' ? SelectionBoxController.getInstance() : null;
   const selectedEntities = controller ? controller.getSelectedEntities() : [];
@@ -468,19 +450,18 @@ function moveSelectedAntToTile(mx, my, tileSize) {
   if (!selectedEntities || selectedEntities.length !== 1) {
     return;
   }
-  let selectedAnt = selectedEntities[0];
+  let selectedEntity = selectedEntities[0];
   // Unwrap if this is a wrapper object
-  if (selectedAnt && selectedAnt.antObject) selectedAnt = selectedAnt.antObject;
+  if (selectedEntity && selectedEntity.antObject) selectedEntity = selectedEntity.antObject;
 
   const tileX = Math.floor(mx / tileSize);
   const tileY = Math.floor(my / tileSize);
-  if (AntUtilities && typeof AntUtilities.moveAntToTile === 'function') {
-    AntUtilities.moveAntToTile(selectedAnt, tileX, tileY, tileSize, GRIDMAP);
-  }
-  selectedAnt.isSelected = false;
+  MovementController.moveEntityToTile(selectedEntity, tileX, tileY, tileSize, GRIDMAP);
+  selectedEntity.isSelected = false;
   if (controller) controller.deselectAll();
 }
-function moveSelectedAntsToTile(mx, my, tileSize) {
+
+function moveSelectedEntitiesToTile(mx, my, tileSize) {
   // Use SelectionBoxController's selectedEntities
   const controller = typeof SelectionBoxController !== 'undefined' ? SelectionBoxController.getInstance() : null;
   const selectedEntities = controller ? controller.getSelectedEntities() : [];
@@ -496,38 +477,38 @@ function moveSelectedAntsToTile(mx, my, tileSize) {
   const angleStep = (2 * Math.PI) / selectedEntities.length;
 
   for (let i = 0; i < selectedEntities.length; i++) {
-    let ant = selectedEntities[i];
+    let entity = selectedEntities[i];
     // Unwrap if this is a wrapper object
-    if (ant && ant.antObject) ant = ant.antObject;
+    if (entity && entity.antObject) entity = entity.antObject;
 
-    // assign each ant its own destination tile around the click
+    // assign each entity its own destination tile around the click
     const angle = i * angleStep;
     const offsetTileX = tileX + Math.round(Math.cos(angle) * radius);
     const offsetTileY = tileY + Math.round(Math.sin(angle) * radius);
 
     // Use robust property access
-    let antCenterX, antCenterY;
-    if (typeof ant.getPosition === 'function' && typeof ant.getSize === 'function') {
-      const pos = ant.getPosition();
-      const size = ant.getSize();
-      antCenterX = pos.x + size.x / 2;
-      antCenterY = pos.y + size.y / 2;
+    let entityCenterX, entityCenterY;
+    if (typeof entity.getPosition === 'function' && typeof entity.getSize === 'function') {
+      const pos = entity.getPosition();
+      const size = entity.getSize();
+      entityCenterX = pos.x + size.x / 2;
+      entityCenterY = pos.y + size.y / 2;
     } else {
       continue;
     }
-    const antX = Math.floor(antCenterX / tileSize);
-    const antY = Math.floor(antCenterY / tileSize);
+    const entityX = Math.floor(entityCenterX / tileSize);
+    const entityY = Math.floor(entityCenterY / tileSize);
 
-    const startTile = grid.getArrPos([antX, antY]);
+    const startTile = grid.getArrPos([entityX, entityY]);
     const endTile = grid.getArrPos([offsetTileX, offsetTileY]);
 
     if (startTile && endTile) {
       const newPath = findPath(startTile, endTile, GRIDMAP);
-      if (typeof ant.setPath === 'function') {
-        ant.setPath(newPath);
+      if (typeof entity.setPath === 'function') {
+        entity.setPath(newPath);
       }
     }
-    ant.isSelected = false;
+    entity.isSelected = false;
   }
   // Deselect all after issuing movement
   if (controller) controller.deselectAll();

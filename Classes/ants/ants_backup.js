@@ -775,66 +775,36 @@ class ant {
 }
 
 // --- Move Selected Ant to Tile (delegated to AntUtilities) ---
-function moveSelectedAntToTile(mx, my, tileSize) {
+function moveSelectedEntityToTile(mx, my, tileSize) {
   initializeAntManager();
-  const selectedAnt = antManager ? antManager.getSelectedAnt() : null;
-  
-  if (selectedAnt) {
+  const selectedEntity = antManager ? antManager.getSelectedAnt() : null;
+  if (selectedEntity) {
     const tileX = Math.floor(mx / tileSize);
     const tileY = Math.floor(my / tileSize);
-    
-    if (typeof AntUtilities !== 'undefined') {
-      // Use AntUtilities for improved pathfinding and formation
-      const pathMap = typeof GRIDMAP !== 'undefined' ? GRIDMAP : null;
-      AntUtilities.moveSelectedAntsToTile([selectedAnt], tileX, tileY, tileSize, pathMap);
-    } else {
-      // Fallback to legacy implementation
-      const grid = GRIDMAP.getGrid();
-      const antX = Math.floor(selectedAnt.posX/tileSize);
-      const antY = Math.floor(selectedAnt.posY/tileSize);
-      const startTile = grid.getArrPos([antX, antY]);
-      const endTile = grid.getArrPos([tileX, tileY]);
-      
-      if(startTile && endTile){
-        const newPath = findPath(startTile, endTile, GRIDMAP);
-        selectedAnt.setPath(newPath);
-      }
-      selectedAnt.isSelected = false;
+    if (typeof MovementController !== 'undefined') {
+      MovementController.moveEntityToTile(selectedEntity, tileX, tileY, tileSize, GRIDMAP);
     }
-    
+    selectedEntity.isSelected = false;
     if (antManager) {
       antManager.clearSelection();
     }
   }
 }
 
-function moveSelectedAntsToTile(mx, my, tileSize) {
+function moveSelectedEntitiesToTile(mx, my, tileSize) {
   if (typeof selectedEntities === 'undefined' || selectedEntities.length === 0) return;
-
   const tileX = Math.floor(mx / tileSize);
   const tileY = Math.floor(my / tileSize);
-  
-  if (typeof AntUtilities !== 'undefined') {
-    // Use AntUtilities for improved pathfinding and formation
-    const pathMap = typeof GRIDMAP !== 'undefined' ? GRIDMAP : null;
-    AntUtilities.moveSelectedAntsToTile(selectedEntities, tileX, tileY, tileSize, pathMap);
-  } else {
-    // Fallback implementation - basic formation movement
-    const grid = GRIDMAP.getGrid();
-    const radius = 2; // in tiles
-    const angleStep = (2 * Math.PI) / selectedEntities.length;
-    
-    for (let i = 0; i < selectedEntities.length; i++) {
-      const ant = selectedEntities[i];
-      const angle = i * angleStep;
-      const offsetTileX = tileX + Math.round(Math.cos(angle) * radius);
-      const offsetTileY = tileY + Math.round(Math.sin(angle) * radius);
-      
-      if (ant.moveToLocation) {
-        ant.moveToLocation(offsetTileX * tileSize, offsetTileY * tileSize);
-      }
-      ant.isSelected = false;
+  for (let i = 0; i < selectedEntities.length; i++) {
+    let entity = selectedEntities[i];
+    if (entity && entity.antObject) entity = entity.antObject;
+    if (typeof MovementController !== 'undefined') {
+      MovementController.moveEntityToTile(entity, tileX, tileY, tileSize, GRIDMAP);
+      entity.isSelected = false;
     }
+  }
+  if (antManager) {
+    antManager.clearSelection();
   }
 }
 

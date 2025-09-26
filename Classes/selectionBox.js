@@ -58,7 +58,7 @@ function isEntityUnderMouse(entity, mx, my) {
 function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, selectedEntity, moveSelectedEntityToTile, TILE_SIZE, mousePressed) {
   // Spread out multi-selected entities around the clicked location
   if (selectedEntities.length > 1 && mousePressed === LEFT) {
-    moveSelectedAntsToTile(mouseX, mouseY, TILE_SIZE);
+    moveSelectedEntitiesToTile(mouseX, mouseY, TILE_SIZE);
     deselectAllEntities();
     return;
   } else if (mousePressed == RIGHT) {

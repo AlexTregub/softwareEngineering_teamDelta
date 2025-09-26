@@ -41,8 +41,13 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
     }
   }
 
-  // If no entity was clicked, start box selection
+  // If no entity was clicked, start box selection or move group
   if (!entityWasClicked) {
+    if (selectedEntities.length > 1 && mousePressed === 0) { // 0 = LEFT
+      moveSelectedEntitiesToTile(mouseX, mouseY, TILE_SIZE);
+      deselectAllEntities();
+      return;
+    }
     isSelecting = true;
     selectionStart = { x: mouseX, y: mouseY, copy: function() { return { x: this.x, y: this.y }; } };
     selectionEnd = selectionStart.copy();
