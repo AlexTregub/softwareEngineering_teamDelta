@@ -18,7 +18,6 @@ eg: (tiles//backing grid?) - -0.5 offsets configured by Chunk. (only for renderi
 ...........(-0.5,-0.5)___________________
 ______________________(-0.5,-0.5)........
 ______________________...........(7.5,7.5)
-
 */
 
 class gridTerrain {
