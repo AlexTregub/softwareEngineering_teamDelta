@@ -1,4 +1,7 @@
 // DEPRECATED: This file is no longer used. All selection logic has been migrated to SelectionBoxController.js and MouseInputController.js.
+
+const { getFunctionName } = require("../debug/tracing");
+
 // Do not import or use any functions from this file. It is retained only for legacy reference.
 let isSelecting = false;
 let selectionStart = null;
@@ -195,7 +198,6 @@ function highlightEntity(entity, highlightType = "selected", customColor = null)
   const size = entity.getSize ? entity.getSize() : entity.sprite?.size || { x: entity.sizeX, y: entity.sizeY };
   
   if (!pos || !size) return; // Safety check
-  
   push();
   noFill();
   strokeWeight(2);

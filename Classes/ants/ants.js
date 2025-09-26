@@ -223,10 +223,30 @@ class ant extends Entity {
   // --- Render Override ---
   render() {
     if (!this.isActive) return;
-    
+
+    if (this._renderController) {
+      // Update highlighting based on current state
+      if (this.isSelected) {
+        this._renderController.highlightSelected();
+      } else if (this.isMouseOver(mouseX, mouseY)) {
+        this._renderController.highlightHover();
+      } else if (this.isBoxHovered) {
+        this._renderController.highlightBoxHover();
+      } else if (this._stateMachine.isInCombat()) {
+        this._renderController.highlightCombat();
+      } else {
+        this._renderController.clearHighlight();
+      }
+    }
+
     // Use Entity rendering (handles sprite automatically)
     super.render();
-    
+
+    // --- Selection Box Rendering ---
+    const pos = this.getPosition();
+    const size = this.getSize();
+    let borderColor = null;
+
     // Add ant-specific rendering
     this._renderHealthBar();
     this._renderResourceIndicator();

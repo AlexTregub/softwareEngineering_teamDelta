@@ -24,17 +24,17 @@ class RenderController {
     // Visual effect types
     this.HIGHLIGHT_TYPES = {
       SELECTED: {
-        color: [255, 255, 0], // Yellow
+        color: [0, 255, 0], // Green
         strokeWeight: 3,
         style: "outline"
       },
       HOVER: {
-        color: [255, 255, 255, 150], // White with transparency
+        color: [255, 255, 0, 200], // White with transparency
         strokeWeight: 2,
         style: "outline"
       },
       BOX_HOVERED: {
-        color: [0, 255, 255, 100], // Cyan with transparency
+        color: [0, 255, 50, 100], // Green with transparence
         strokeWeight: 2,
         style: "outline"
       },
