@@ -205,23 +205,21 @@ function handleSpawnCommand(args) {
       let speciesAnt = new Species(baseAnt, speciesName, speciesImages[speciesName]);
       ant_Index = tempIndex;  // Restore to the correct value
       
-      // ant constructor incremented ant_Index, so the new ant goes at ant_Index - 1
-      let newAntIndex = ant_Index - 1;
-      ants[newAntIndex] = new AntWrapper(speciesAnt, speciesName);
-      
-      // Ensure the ant wrapper is properly constructed
-      if (!ants[newAntIndex] || !ants[newAntIndex].antObject) {
-        console.log(`❌ Failed to create ant ${i + 1}`);
-        continue;
-      }
-      
-      // Set faction if specified
-      if (faction !== 'neutral') {
-        const antObj = ants[newAntIndex].antObject ? ants[newAntIndex].antObject : ants[newAntIndex];
-        if (antObj) {
-          antObj.faction = faction;
+        // Always push new ants to the end of the array
+        let antWrapper = new AntWrapper(speciesAnt, speciesName);
+        ants.push(antWrapper);
+        // Ensure the ant wrapper is properly constructed
+        if (!antWrapper || !antWrapper.antObject) {
+          console.log(`❌ Failed to create ant ${i + 1}`);
+          continue;
         }
-      }
+        // Set faction if specified
+        if (faction !== 'neutral') {
+          const antObj = antWrapper.antObject ? antWrapper.antObject : antWrapper;
+          if (antObj) {
+            antObj.faction = faction;
+          }
+        }
     } catch (error) {
       console.log(`❌ Error creating ant ${i + 1}: ${error.message}`);
     }
@@ -229,6 +227,10 @@ function handleSpawnCommand(args) {
   
   const actualSpawned = ant_Index - startingCount;
   console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${ant_Index}`);
+  // Ensure SelectionBoxController sees new ants
+  if (typeof selectionBoxController !== 'undefined' && selectionBoxController) {
+    selectionBoxController.entities = ants;
+  }
 }
 
 function handleDebugCommand(args) {

@@ -318,12 +318,12 @@ function AntsSpawn(numToSpawn) {
       antBaseSprite,
       speciesName
     );
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
-    ants[i].update();
-    
+    let antWrapper = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
+    ants.push(antWrapper);
+    antWrapper.update();
     // Register ant with TileInteractionManager for efficient mouse detection
     if (typeof tileInteractionManager !== 'undefined' && tileInteractionManager) {
-      const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+      const antObj = antWrapper.antObject ? antWrapper.antObject : antWrapper;
       if (antObj) {
         tileInteractionManager.addObject(antObj, 'ant');
       }
