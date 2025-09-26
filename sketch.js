@@ -112,34 +112,25 @@ function setupTests() {
 
 
 function draw() {
-  // Update menu state and handle transitions
-  updateMenu();
-  resourceList.drawAll();
+  updateMenu(); // Update menu state and handle transitions
   
   // Render menu if active, otherwise render game
-  if (renderMenu()) return; // Menu rendered, stop here
+  if (renderMenu()) return;
+
   MAP.render();
-  AntsUpdate();
   drawDebugGrid(TILE_SIZE, Math.floor(CANVAS_X / TILE_SIZE), Math.floor(CANVAS_Y / TILE_SIZE));
-  // Use new controller-based selection box drawing
-  if (selectionBoxController) {
-    selectionBoxController.draw();
-  }
+  AntsUpdate();
+  resourceList.drawAll();
 
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
+  if (selectionBoxController) { selectionBoxController.draw(); }
+  if (typeof drawDevConsoleIndicator === 'function') { drawDevConsoleIndicator(); }
+  if (typeof drawCommandLine === 'function') { drawCommandLine(); }
 
   if(recordingPath){
     // (Recording logic here if needed)
   }
 }
+
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   strokeWeight(1);
