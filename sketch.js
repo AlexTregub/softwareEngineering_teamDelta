@@ -71,7 +71,7 @@ function setup() {
 
   SEED = hour()*minute()*floor(second()/10);
 
-  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
+  MAP = new Terrain(CANVAS_X + 300,CANVAS_Y + 300,TILE_SIZE);
   MAP.randomize(SEED);
   COORDSY = MAP.getCoordinateSystem();
   COORDSY.setViewCornerBC(0,0);
@@ -118,7 +118,7 @@ function draw() {
   if (renderMenu()) return;
 
   MAP.render();
-  drawDebugGrid(TILE_SIZE, Math.floor(CANVAS_X / TILE_SIZE), Math.floor(CANVAS_Y / TILE_SIZE));
+  drawDebugGrid(TILE_SIZE, Math.floor((CANVAS_X + 300) / TILE_SIZE), Math.floor((CANVAS_Y + 300) / TILE_SIZE));
   AntsUpdate();
   resourceList.drawAll();
 
