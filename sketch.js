@@ -112,28 +112,6 @@ function setupTests() {
   antSMtest(); // Test Ant State Machine
 }
 
-function draw() {
-  MAP.render();
-  Ants_Update();
-  if (typeof drawSelectionBox === 'function') {
-    drawSelectionBox();
-  }
-  drawDebugGrid(tileSize, GRIDMAP.width, GRIDMAP.height);
-  
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-  
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
-  
-  if(recordingPath){
-
-  }
-}
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   strokeWeight(1);
@@ -167,33 +145,25 @@ function draw() {
   updateMenu();
   
   // Render menu if active, otherwise render game
-  if (renderMenu()) {
-    return; // Menu rendered, stop here
-  }
+  if (renderMenu()) { return; }
 
   // --- GAMEPLAY RENDERING ---
   MAP.render();
   Ants_Update();
   resourceList.drawAll();
   if (typeof drawSelectionBox === 'function') drawSelectionBox();
-  drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+  drawDebugGrid(
+    TILE_SIZE,
+    Math.floor(CANVAS_X / TILE_SIZE),
+    Math.floor(CANVAS_Y / TILE_SIZE)
+  );
 
   // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') {
-    drawDevConsoleIndicator();
-  }
-  
-  // Draw command line interface
-  if (typeof drawCommandLine === 'function') {
-    drawCommandLine();
-  }
+  if (typeof drawDevConsoleIndicator === 'function') { drawDevConsoleIndicator(); }
+  if (typeof drawCommandLine === 'function') { drawCommandLine(); }
 
   // Draw fade overlay if transitioning
   drawFadeOverlay();
-      drawUI();
+  drawUI();
 
 }
-
-// Dev console indicator moved to debug/testing.js
-
-// Command line drawing moved to debug/commandLine.js
