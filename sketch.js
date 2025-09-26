@@ -67,6 +67,8 @@ function keyPressed() {
       deselectAllEntities();
     }
   }
+
+
 }
 
 // Command line functionality has been moved to debug/commandLine.js
@@ -92,6 +94,7 @@ function setup() {
   setupTests(); // Call test functions from AntStateMachine branch
  
   Ants_Spawn(10);
+  spawnQueen();
   // Resources_Spawn(20);
 }
 
@@ -165,6 +168,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
 function draw() {
   // Update menu state and handle transitions
   updateMenu();
+
   
   // Render menu if active, otherwise render game
   if (renderMenu()) {

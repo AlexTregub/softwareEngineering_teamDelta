@@ -40,6 +40,8 @@ class Species extends ant {
         return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 30 };
       case "DeLozier":
         return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+      case "Queen":
+        return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
       default:
         return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 20 };
     }
@@ -84,6 +86,20 @@ class Species extends ant {
 
       const direction = p5.Vector.sub(target, current);
       const distance = direction.mag();
+
+
+      // Needs method to flip the picture, logic setted up
+      // push()
+      // let flipLeft = (target.x < current.x) ? true:false;
+      // if(flipLeft && this.speciesName == "Queen"){
+      //   scale(-1, 1)
+      // }
+      // else if(!flipLeft && this.speciesName == "Queen"){
+      //   // this._sprite.mirrorX(1); // face left
+      // }
+      // image(this.img, -this.sizex, this.sizeY)
+      // pop();
+
 
       if (distance > 1) {
         direction.normalize();

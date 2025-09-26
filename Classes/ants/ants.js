@@ -51,9 +51,10 @@ function Ants_Spawn(numToSpawn) {
     ants[i].update();
   }
 
+}
 
+function spawnQueen(){
   // Queen testing
-
   let properties = new ant(
     200, 200, 
     queenSize.x, 
@@ -62,9 +63,9 @@ function Ants_Spawn(numToSpawn) {
     queenImg,
     "Queen"
   );
-  let wrapper = new AntWrapper(new Species(properties,"Queen",queenImg),"Queen")
-  let Queen = new queenWrapper(wrapper,"player");
-  // Queen.update();
+  let antWrap = new AntWrapper(new Species(properties,"Queen",queenImg),"Queen")
+  let Queen = new QueenWrapper(antWrap);
+  ants.push(Queen)
 }
 
 // --- Update All Ants ---
@@ -117,7 +118,8 @@ class ant {
       initialPos.copy()
     );
     this.speciesName = speciesName;
-    this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
+    this.img = img;
+    this._sprite = new Sprite2D(this.img, initialPos, createVector(sizex, sizey), rotation);
     this._skitterTimer = random(30, 200);
     this._antIndex = ant_Index++;
     this._isMoving = false;
@@ -125,6 +127,7 @@ class ant {
     this._path = null;
     this._isSelected = false;
     this.isBoxHovered = false;
+    this.maxWeight = 4;
 
 
     // Resource
@@ -306,7 +309,7 @@ class ant {
 
 
   // --- Move Logic ---
-  moveToLocation(X, Y) {
+  moveToLocation(X, Y){
 
     // Only allow movement if state machine permits it
     if (this._stateMachine.canPerformAction("move")) {
@@ -354,6 +357,20 @@ class ant {
 
       const direction = p5.Vector.sub(target, current);
       const distance = direction.mag();
+
+      // Needs method to flip the picture, logic setted up
+      push()
+      let flipLeft = (target.x < current.x) ? true:false;
+      if(flipLeft && this.speciesName == "Queen"){
+        scale(-1, 1)
+      }
+      else if(!flipLeft && this.speciesName == "Queen"){
+        // this._sprite.mirrorX(1); // face left
+      }
+      image(this.img, -this.sizex, this.sizeY)
+      pop();
+
+
 
       if (distance > 1) {
         direction.normalize();
@@ -418,15 +435,15 @@ class ant {
       let xDifference = abs(Math.floor(x - this.posX));
       let yDifference = abs(Math.floor(y - this.posY));
       let range = 25;
-      let maxWeight = 2; // Change to member variable??
+      // let maxWeight = 2; // Change to member variable??
 
       if(xDifference <= range && yDifference <= range){
         let fruit = fruits[k];
-        if(this.Resources.length < maxWeight){
+        if(this.Resources.length < this.maxWeight){
             this.Resources.push(fruit);
             delete fruits[k];
         }
-        if(this.Resources.length >= maxWeight){
+        if(this.Resources.length >= this.maxWeight){
           let dropPointX = 0;
           let dropPointY = 0;
           this.dropOff(dropPointX,dropPointY);
