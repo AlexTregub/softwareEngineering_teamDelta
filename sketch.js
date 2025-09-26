@@ -1,4 +1,3 @@
-
 let CANVAS_X = 800; // Default 800
 let CANVAS_Y = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
@@ -119,9 +118,9 @@ function draw() {
   
   // Render menu if active, otherwise render game
   if (renderMenu()) return; // Menu rendered, stop here
-
   MAP.render();
   AntsUpdate();
+  drawDebugGrid(TILE_SIZE, Math.floor(CANVAS_X / TILE_SIZE), Math.floor(CANVAS_Y / TILE_SIZE));
   // Use new controller-based selection box drawing
   if (selectionBoxController) {
     selectionBoxController.draw();
