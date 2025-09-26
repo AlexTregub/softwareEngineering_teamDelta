@@ -64,19 +64,19 @@ class Species extends ant {
   static getSpeciesStats(speciesName) {
     switch (speciesName) {
       case "Builder":
-        return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 20 };
+        return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 60 };
       case "Scout":
         return { strength: 10, health: 80, gatherSpeed: 10, movementSpeed: 80 };
       case "Farmer":
-        return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 15 };
+        return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 60 };
       case "Warrior":
-        return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 25 };
+        return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
       case "Spitter":
-        return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 30 };
+        return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
       case "DeLozier":
         return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
       default:
-        return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 20 };
+        return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
     }
   }
 

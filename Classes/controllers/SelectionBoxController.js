@@ -42,14 +42,15 @@ class SelectionBoxController {
       }
     }
     if (!clicked) {
-      // Move all selected ants to the clicked location
+      // Use canonical movement system from ants.js
       if (this.selectedEntities && this.selectedEntities.length > 0) {
-        for (const entity of this.selectedEntities) {
-          if (typeof entity.moveToLocation === 'function') {
-            entity.moveToLocation(x, y);
-          } else if (entity.antObject && typeof entity.antObject.moveToLocation === 'function') {
-            entity.antObject.moveToLocation(x, y);
-          }
+        if (this.selectedEntities.length === 1) {
+          // Single selection: use moveSelectedAntToTile
+          // Assumes TILE_SIZE is globally available
+          moveSelectedAntToTile(x, y, TILE_SIZE);
+        } else {
+          // Multi-selection: use moveSelectedAntsToTile
+          moveSelectedAntsToTile(x, y, TILE_SIZE);
         }
       }
       // Deselect all if clicking on empty space
@@ -133,16 +134,12 @@ class SelectionBoxController {
     const cx = pos.x + size.x / 2;
     const cy = pos.y + size.y / 2;
     const inside = (cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2);
-    console.log('[SelectionBoxController] isEntityInBox:', {
-      entity, pos, size, cx, cy, x1, x2, y1, y2, inside
-    });
     return inside;
   }
   static isEntityUnderMouse(entity, mx, my) {
     let result = false;
     if (entity && typeof entity.isMouseOver === 'function') {
       result = entity.isMouseOver(mx, my);
-      console.log('[SelectionBoxController] isEntityUnderMouse: entity', entity, 'mx', mx, 'my', my, '->', result);
     } else {
       const pos = entity.getPosition ? entity.getPosition() : entity.sprite?.pos || { x: entity.posX, y: entity.posY };
       const size = entity.getSize ? entity.getSize() : entity.sprite?.size || { x: entity.sizeX, y: entity.sizeY };
@@ -152,7 +149,6 @@ class SelectionBoxController {
         my >= pos.y &&
         my <= pos.y + size.y
       );
-      console.log('[SelectionBoxController] isEntityUnderMouse (fallback): entity', entity, 'mx', mx, 'my', my, '->', result);
     }
     return result;
   }

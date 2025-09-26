@@ -31,12 +31,12 @@ class AntUtilities {
       } catch (error) {
         console.warn("Pathfinding failed for ant:", error);
         // Fallback to direct movement
-        this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
+        //this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
         return;
       }
     }
     // Direct movement fallback
-    this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
+    //this.moveAntDirectly(ant, tileX * tileSize, tileY * tileSize);
   }
   
   // --- Group Movement ---
@@ -299,11 +299,11 @@ class AntUtilities {
         } catch (error) {
           console.warn("Pathfinding failed for ant:", error);
           // Fallback to direct movement
-          this.moveAntDirectly(ant, offsetTileX * tileSize, offsetTileY * tileSize);
+          //this.moveAntDirectly(ant, offsetTileX * tileSize, offsetTileY * tileSize);
         }
       } else {
         // Direct movement fallback
-        this.moveAntDirectly(ant, offsetTileX * tileSize, offsetTileY * tileSize);
+        //this.moveAntDirectly(ant, offsetTileX * tileSize, offsetTileY * tileSize);
       }
       
       // Deselect ant after movement command
@@ -446,6 +446,91 @@ class AntUtilities {
       idleCount: totalAnts - movingCount - combatCount
     };
   }
+}
+
+
+
+function antLoopPropertyCheck(property) {
+  for (let i = 0; i < ant_Index; i++) {
+    if (!ants[i]) continue;
+    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+    return antObj[property];
+  } 
+  IncorrectParamPassed("Boolean", property);
+}
+
+// --- Move Selected Ant to Tile ---
+function moveSelectedAntToTile(mx, my, tileSize) {
+  // Use SelectionBoxController's selectedEntities for single selection
+  const controller = typeof SelectionBoxController !== 'undefined' ? SelectionBoxController.getInstance() : null;
+  const selectedEntities = controller ? controller.getSelectedEntities() : [];
+
+  if (!selectedEntities || selectedEntities.length !== 1) {
+    return;
+  }
+  let selectedAnt = selectedEntities[0];
+  // Unwrap if this is a wrapper object
+  if (selectedAnt && selectedAnt.antObject) selectedAnt = selectedAnt.antObject;
+
+  const tileX = Math.floor(mx / tileSize);
+  const tileY = Math.floor(my / tileSize);
+  if (AntUtilities && typeof AntUtilities.moveAntToTile === 'function') {
+    AntUtilities.moveAntToTile(selectedAnt, tileX, tileY, tileSize, GRIDMAP);
+  }
+  selectedAnt.isSelected = false;
+  if (controller) controller.deselectAll();
+}
+function moveSelectedAntsToTile(mx, my, tileSize) {
+  // Use SelectionBoxController's selectedEntities
+  const controller = typeof SelectionBoxController !== 'undefined' ? SelectionBoxController.getInstance() : null;
+  const selectedEntities = controller ? controller.getSelectedEntities() : [];
+  if (!selectedEntities || selectedEntities.length === 0) {
+    return;
+  }
+
+  const tileX = Math.floor(mx / tileSize);
+  const tileY = Math.floor(my / tileSize);
+  const grid = GRIDMAP.getGrid();
+
+  const radius = 2; // in tiles
+  const angleStep = (2 * Math.PI) / selectedEntities.length;
+
+  for (let i = 0; i < selectedEntities.length; i++) {
+    let ant = selectedEntities[i];
+    // Unwrap if this is a wrapper object
+    if (ant && ant.antObject) ant = ant.antObject;
+
+    // assign each ant its own destination tile around the click
+    const angle = i * angleStep;
+    const offsetTileX = tileX + Math.round(Math.cos(angle) * radius);
+    const offsetTileY = tileY + Math.round(Math.sin(angle) * radius);
+
+    // Use robust property access
+    let antCenterX, antCenterY;
+    if (typeof ant.getPosition === 'function' && typeof ant.getSize === 'function') {
+      const pos = ant.getPosition();
+      const size = ant.getSize();
+      antCenterX = pos.x + size.x / 2;
+      antCenterY = pos.y + size.y / 2;
+    } else {
+      continue;
+    }
+    const antX = Math.floor(antCenterX / tileSize);
+    const antY = Math.floor(antCenterY / tileSize);
+
+    const startTile = grid.getArrPos([antX, antY]);
+    const endTile = grid.getArrPos([offsetTileX, offsetTileY]);
+
+    if (startTile && endTile) {
+      const newPath = findPath(startTile, endTile, GRIDMAP);
+      if (typeof ant.setPath === 'function') {
+        ant.setPath(newPath);
+      }
+    }
+    ant.isSelected = false;
+  }
+  // Deselect all after issuing movement
+  if (controller) controller.deselectAll();
 }
 
 // Export for Node.js testing

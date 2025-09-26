@@ -32,7 +32,7 @@ function Ants_Preloader() {
 function initializeAntManager() {
   if (typeof AntManager !== 'undefined' && !antManager) {
     antManager = new AntManager();
-    console.log('AntManager initialized successfully');
+  // AntManager initialized successfully
   } else if (typeof AntManager === 'undefined') {
     console.error('AntManager class not available - functions will fall back to basic implementations');
   }
@@ -121,12 +121,12 @@ class ant extends Entity {
   get isSelected() {
     const result = this._delegate('selection', 'isSelected') || false;
     // Debug: log when selection state is queried
-    // console.log(`[ant] get isSelected for antIndex ${this._antIndex}:`, result);
+  //
     return result;
   }
   set isSelected(value) {
     // Debug: log when selection state is set
-    console.log(`[ant] set isSelected for antIndex ${this._antIndex}:`, value);
+
     this._delegate('selection', 'setSelected', value);
   }
   
@@ -135,7 +135,7 @@ class ant extends Entity {
   
   // --- State Machine Integration ---
   _onStateChange(oldState, newState) {
-    //console.log(`Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
+  //
   }
   
   getCurrentState() { return this._stateMachine?.getCurrentState() || "IDLE"; }
@@ -165,7 +165,7 @@ class ant extends Entity {
   die() {
     this.isActive = false;
     this.setState("DEAD");
-    console.log(`Ant ${this._antIndex} has died`);
+
   }
   
   // --- Resource Methods ---
@@ -344,14 +344,6 @@ function AntsUpdate() {
   }
 }
 
-function antLoopPropertyCheck(property) {
-  for (let i = 0; i < ant_Index; i++) {
-    if (!ants[i]) continue;
-    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    return antObj[property];
-  } 
-  IncorrectParamPassed("Boolean", property);
-}
 
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
