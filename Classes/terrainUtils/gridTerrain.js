@@ -22,7 +22,7 @@ ______________________...........(7.5,7.5)
 */
 
 class gridTerrain {
-    constructor(gridSizeX,gridSizeY,seed,gridSpanTLCorner,backingCanvasTLCorner,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE) {
+    constructor(gridSizeX,gridSizeY,seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE) {
         this._gridSizeX = gridSizeX;
         this._gridSizeY = gridSizeY;
         
