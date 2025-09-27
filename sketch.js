@@ -178,3 +178,4 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
 
   drawUI();
 }
+
