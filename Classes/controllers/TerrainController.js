@@ -89,13 +89,13 @@ class TerrainController {
     let terrainType = "DEFAULT";
     
     // Integration with terrain system (if available)
-    if (typeof GRIDMAP !== 'undefined' && GRIDMAP) {
+    if (typeof g_gridMap !== 'undefined' && g_gridMap) {
       try {
         const tileSize = window.tileSize || 32;
         const tileX = Math.floor(pos.x / tileSize);
         const tileY = Math.floor(pos.y / tileSize);
         
-        const grid = GRIDMAP.getGrid();
+        const grid = g_gridMap.getGrid();
         const tile = grid?.getArrPos([tileX, tileY]);
         
         if (tile && tile._terrainTile) {

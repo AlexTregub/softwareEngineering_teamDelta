@@ -14,7 +14,7 @@ let JobImages = {};
 let antManager = null;
 
 // --- Preload Images and manager ---
-function Ants_Preloader() {
+function AntsPreloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
@@ -322,10 +322,10 @@ function AntsSpawn(numToSpawn) {
     ants.push(antWrapper);
     antWrapper.update();
     // Register ant with TileInteractionManager for efficient mouse detection
-    if (typeof tileInteractionManager !== 'undefined' && tileInteractionManager) {
+    if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
       const antObj = antWrapper.antObject ? antWrapper.antObject : antWrapper;
       if (antObj) {
-        tileInteractionManager.addObject(antObj, 'ant');
+        g_tileInteractionManager.addObject(antObj, 'ant');
       }
     }
   }
@@ -339,7 +339,7 @@ function AntsUpdate() {
       
       // Store previous position for TileInteractionManager updates
       let prevPos = null;
-      if (typeof tileInteractionManager !== 'undefined' && tileInteractionManager && antObj) {
+      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && antObj) {
         const currentPos = antObj.getPosition ? antObj.getPosition() : (antObj.sprite ? antObj.sprite.pos : null);
         if (currentPos) {
           prevPos = { x: currentPos.x, y: currentPos.y };
@@ -349,10 +349,10 @@ function AntsUpdate() {
       ants[i].update();
       
       // Update TileInteractionManager with new position if ant moved
-      if (typeof tileInteractionManager !== 'undefined' && tileInteractionManager && antObj && prevPos) {
+      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && antObj && prevPos) {
         const newPos = antObj.getPosition ? antObj.getPosition() : (antObj.sprite ? antObj.sprite.pos : null);
         if (newPos && (newPos.x !== prevPos.x || newPos.y !== prevPos.y)) {
-          tileInteractionManager.updateObjectPosition(antObj, newPos.x, newPos.y);
+          g_tileInteractionManager.updateObjectPosition(antObj, newPos.x, newPos.y);
         }
       }
       

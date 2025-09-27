@@ -2,10 +2,10 @@
  * CircleNoFill Utility
  * --------------------
  * Draws a circle with no fill and a custom stroke color.
- * @arg {Vector3} color    - An object with x, y, z properties representing RGB values (e.g., {x:255, y:0, z:0} for red).
- * @arg {Vector2} pos      - An object with x, y properties representing the center position of the circle.
- * @arg {Number}  diameter - The diameter of the circle in pixels.
- * @arg {Number}  strokeW  - The stroke weight in pixels.
+ * @arg {Vector3} color    - An vector3 with x, y, z properties representing RGB values (e.g., {x:255, y:0, z:0} for red).
+ * @arg {Vector2} pos      - An vector2 with x, y properties representing the center position of the circle.
+ * @arg {Number} diameter - The diameter of the circle in pixels.
+ * @arg {Number} strokeW  - The stroke weight in pixels.
  *   
  * Example:
  *   CircleNoFill({x:0, y:120, z:255}, {x:100, y:100}, 50);

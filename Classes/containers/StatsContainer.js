@@ -44,8 +44,8 @@ class StatsContainer {
 
     // EXP
     // EXP is experience points, which will be used to level up ants and other entities
-    // Each ant will have its own exp map, which will track the exp gained from various activities
-    // The StatsContainer class will have a global exp map, which will track the exp gained from all entities in the world
+    // Each ant will have its own exp g_map, which will track the exp gained from various activities
+    // The StatsContainer class will have a global exp g_map, which will track the exp gained from all entities in the world
     // maps work like dicts, but the key doesn't need to be a string or int
     exp = new Map()
     
@@ -71,9 +71,9 @@ class StatsContainer {
         this.exp.set("Scouting",new stat("Scouting EXP")) // exp gained from an ant scouting tasks
     }
 
-    test_Map(map) { 
+    test_Map(g_map) { 
       if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-        for (const [key, value] of map) { console.log(`${key}: ${value}`); }
+        for (const [key, value] of g_map) { console.log(`${key}: ${value}`); }
       }
     }
     test_Exp() { 
@@ -146,7 +146,7 @@ class stat {
     printStatUnderObject(pos, spriteSize, textSize) {
         // pos: {x, y} - position of the object
         // spriteSize: {x, y} - size of the object
-        // textSize: number - font size for the text
+        // textSize: number - g_menuFont size for the text
 
         // Format statValue if it's a vector
         let valueToPrint = this.statValue;

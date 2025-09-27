@@ -1,16 +1,16 @@
 class SelectionBoxController {
   static instance = null;
-  static getInstance(mouseController, entities) {
+  static getInstance(g_mouseController, entities) {
     if (!SelectionBoxController.instance) {
-      SelectionBoxController.instance = new SelectionBoxController(mouseController, entities);
+      SelectionBoxController.instance = new SelectionBoxController(g_mouseController, entities);
     }
     return SelectionBoxController.instance;
   }
-  constructor(mouseController, entities) {
+  constructor(g_mouseController, entities) {
     if (SelectionBoxController.instance) {
       return SelectionBoxController.instance;
     }
-  this.mouse = mouseController;
+  this.mouse = g_mouseController;
   this.entities = entities;
   this.isSelecting = false;
   this.selectionStart = null;

@@ -192,7 +192,7 @@ class ResourceManager {
       isDroppingOff: this.isDroppingOff,
       isAtMaxCapacity: this.isAtMaxCapacity,
       collectionRange: this.collectionRange,
-      resourceTypes: this.resources.map(r => r.type || 'unknown')
+      resourceTypes: this.resources.g_map(r => r.type || 'unknown')
     };
   }
 

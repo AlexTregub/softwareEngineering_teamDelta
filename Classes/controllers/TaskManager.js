@@ -598,9 +598,9 @@ class TaskManager {
         elapsed: this._currentTask.startedAt ? Date.now() - this._currentTask.startedAt : 0
       } : null,
       queueLength: this._taskQueue.length,
-      queueTypes: this._taskQueue.map(task => task.type),
+      queueTypes: this._taskQueue.g_map(task => task.type),
       historyLength: this._taskHistory.length,
-      recentHistory: this._taskHistory.slice(0, 3).map(task => ({
+      recentHistory: this._taskHistory.slice(0, 3).g_map(task => ({
         type: task.type,
         status: task.finalStatus
       }))

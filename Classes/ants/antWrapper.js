@@ -64,7 +64,7 @@ class AntWrapper {
       this.Job,         // text
       center.x,             // x
       labelY,               // y
-      font,                 // font
+      g_menuFont,                 // g_menuFont
       14,                   // size
       color(0),           // fill
       color(0)              // outline
@@ -78,10 +78,10 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = AntWrapper;
 }
 
-function outlinedText(txt, x, y, font, size, fillCol, outlineCol) {
+function outlinedText(txt, x, y, g_menuFont, size, fillCol, outlineCol) {
   push();
   noStroke();
-  textFont(font);
+  textFont(g_menuFont);
   textSize(size);
   textAlign(CENTER, CENTER);
   

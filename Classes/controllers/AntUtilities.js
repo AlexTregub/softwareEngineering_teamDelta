@@ -13,7 +13,7 @@ class AntUtilities {
    * @param {number} tileX - Target tile X coordinate
    * @param {number} tileY - Target tile Y coordinate
    * @param {number} tileSize - Size of each tile
-   * @param {Object} pathMap - Pathfinding map object
+   * @param {Object} pathMap - Pathfinding g_map object
    */
   static moveAntToTile(ant, tileX, tileY, tileSize = 32, pathMap = null) {
     // Use the generic movement controller for all entity movement
@@ -96,7 +96,7 @@ class AntUtilities {
    * @param {number} tileSpacing - Spacing between ants in tiles
    * @param {number} maxCols - Maximum columns in grid
    * @param {number} tileSize - Size of each tile
-   * @param {Object} pathMap - Pathfinding map object
+   * @param {Object} pathMap - Pathfinding g_map object
    */
   static moveGroupInGrid(antArray, centerTileX, centerTileY, tileSpacing = 1, maxCols = null, tileSize = 32, pathMap = null) {
     if (!antArray || antArray.length === 0) return;
@@ -244,7 +244,7 @@ class AntUtilities {
    * @param {number} tileX - Target tile X coordinate
    * @param {number} tileY - Target tile Y coordinate
    * @param {number} tileSize - Size of each tile
-   * @param {Object} pathMap - Pathfinding map object
+   * @param {Object} pathMap - Pathfinding g_map object
    */
   static moveSelectedAntsToTile(selectedAnts, tileX, tileY, tileSize = 32, pathMap = null) {
     if (!selectedAnts || selectedAnts.length === 0) return;
@@ -456,7 +456,7 @@ function moveSelectedEntityToTile(mx, my, tileSize) {
 
   const tileX = Math.floor(mx / tileSize);
   const tileY = Math.floor(my / tileSize);
-  MovementController.moveEntityToTile(selectedEntity, tileX, tileY, tileSize, GRIDMAP);
+  MovementController.moveEntityToTile(selectedEntity, tileX, tileY, tileSize, g_gridMap);
   selectedEntity.isSelected = false;
   if (controller) controller.deselectAll();
 }
@@ -471,7 +471,7 @@ function moveSelectedEntitiesToTile(mx, my, tileSize) {
 
   const tileX = Math.floor(mx / tileSize);
   const tileY = Math.floor(my / tileSize);
-  const grid = GRIDMAP.getGrid();
+  const grid = g_gridMap.getGrid();
 
   const radius = 2; // in tiles
   const angleStep = (2 * Math.PI) / selectedEntities.length;
@@ -503,7 +503,7 @@ function moveSelectedEntitiesToTile(mx, my, tileSize) {
     const endTile = grid.getArrPos([offsetTileX, offsetTileY]);
 
     if (startTile && endTile) {
-      const newPath = findPath(startTile, endTile, GRIDMAP);
+      const newPath = findPath(startTile, endTile, g_gridMap);
       if (typeof entity.setPath === 'function') {
         entity.setPath(newPath);
       }

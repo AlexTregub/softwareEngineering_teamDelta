@@ -92,7 +92,7 @@ class Job extends ant {
         this.JobName,
         center.x,
         labelY,
-        font,
+        g_menuFont,
         13,
         color(255),
         color(0)

@@ -18,7 +18,7 @@ console.log = function(...args) {
   
   // Capture output for command line display
   if (commandLineActive) {
-    let message = args.map(arg => 
+    let message = args.g_map(arg => 
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ');
     consoleOutput.unshift(message);
@@ -228,8 +228,8 @@ function handleSpawnCommand(args) {
   const actualSpawned = ant_Index - startingCount;
   console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${ant_Index}`);
   // Ensure SelectionBoxController sees new ants
-  if (typeof selectionBoxController !== 'undefined' && selectionBoxController) {
-    selectionBoxController.entities = ants;
+  if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+    g_selectionBoxController.entities = ants;
   }
 }
 

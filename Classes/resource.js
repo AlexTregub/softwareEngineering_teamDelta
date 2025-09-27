@@ -44,8 +44,8 @@ class ResourceSpawner {
       greenLeaf: { 
         weight: 0.5, 
         make: () => {
-          let x = random(0, CANVAS_X - 20);
-          let y = random(0, CANVAS_Y - 20);
+          let x = random(0, g_canvasX - 20);
+          let y = random(0, g_canvasY - 20);
           let w = 20, h = 20;
 
           return {
@@ -71,8 +71,8 @@ class ResourceSpawner {
       mapleLeaf: { 
         weight: 0.8, 
         make: () => {
-          let x = random(0, CANVAS_X - 20);
-          let y = random(0, CANVAS_Y - 20);
+          let x = random(0, g_canvasX - 20);
+          let y = random(0, g_canvasY - 20);
           let w = 20, h = 20;
 
           return {

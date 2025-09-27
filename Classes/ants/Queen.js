@@ -76,7 +76,7 @@ class Queen {
 
   // Get status of all ants under command
   getAntStatus() {
-    return this.ants.map(ant => ({
+    return this.ants.g_map(ant => ({
       antIndex: ant.antIndex,
       state: ant.getCurrentState(),
       position: ant.getPosition(),

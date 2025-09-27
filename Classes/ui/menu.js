@@ -25,7 +25,7 @@ const MENU_CONFIGS = {
 
 // Initialize menu system
 function initializeMenu() {
-  titleTargetY = CANVAS_Y / 2 - 150;
+  titleTargetY = g_canvasY / 2 - 150;
   loadButtons();
   
   // Register callback to reload buttons when state changes
@@ -38,9 +38,9 @@ function initializeMenu() {
 
 // Load buttons for current state
 function loadButtons() {
-  const centerX = CANVAS_X / 2, centerY = CANVAS_Y / 2;
+  const centerX = g_canvasX / 2, centerY = g_canvasY / 2;
   const currentState = GameState.getState();
-  menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).map(btn => 
+  menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).g_map(btn => 
     createMenuButton(centerX + btn.x, centerY + btn.y, btn.w, btn.h, btn.text, btn.style, btn.action)
   );
 }
@@ -62,7 +62,7 @@ function drawMenu() {
   
   // Draw title and buttons
   const titleText = GameState.isInOptions() ? "OPTIONS" : "ANTS!";
-  outlinedText(titleText, CANVAS_X / 2, titleY, font, 48, color(255), color(0));
+  outlinedText(titleText, g_canvasX / 2, titleY, g_menuFont, 48, color(255), color(0));
   
   menuButtons.forEach(btn => {
     btn.update(mouseX, mouseY, mouseIsPressed);
@@ -89,14 +89,14 @@ function updateMenu() {
 // Render complete menu system
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
-    MAP.render();
+    g_map.render();
     AntsUpdate();
     drawMenu();
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {
       fill(255, fadeAlpha);
-      rect(0, 0, CANVAS_X, CANVAS_Y);
+      rect(0, 0, g_canvasX, g_canvasY);
     }
     return true;
   }

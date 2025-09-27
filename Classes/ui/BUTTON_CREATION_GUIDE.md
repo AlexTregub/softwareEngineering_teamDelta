@@ -96,8 +96,8 @@ Button positioning uses offset coordinates from the screen center:
 
 ```javascript
 // Screen center coordinates are calculated as:
-const centerX = CANVAS_X / 2;  // Horizontal center
-const centerY = CANVAS_Y / 2;  // Vertical center
+const centerX = g_canvasX / 2;  // Horizontal center
+const centerY = g_canvasY / 2;  // Vertical center
 
 // Your button's final position will be:
 // Final X = centerX + your_x_offset
@@ -199,8 +199,8 @@ function loadButtonsForState(state) {
 ```javascript
 // Setup credits menu buttons
 function setupCreditsMenuButtons() {
-  const centerX = CANVAS_X / 2;
-  const centerY = CANVAS_Y / 2;
+  const centerX = g_canvasX / 2;
+  const centerY = g_canvasY / 2;
   
   const buttonConfigs = [
     { x: -100, y: -50, w: 200, h: 50, text: "Team Info",     style: 'default', action: () => showTeamInfo() },
@@ -208,7 +208,7 @@ function setupCreditsMenuButtons() {
     { x: -100, y: 70,  w: 200, h: 50, text: "Back to Menu",  style: 'danger',  action: () => switchToMainMenu() }
   ];
 
-  menuButtons = buttonConfigs.map(btn => 
+  menuButtons = buttonConfigs.g_map(btn => 
     createMenuButton(centerX + btn.x, centerY + btn.y, btn.w, btn.h, btn.text, btn.style, btn.action)
   );
 }
@@ -234,7 +234,7 @@ const getTitleText = () => {
   }
 };
 
-outlinedText(getTitleText(), CANVAS_X / 2, titleY, font, 48, color(255), color(0));
+outlinedText(getTitleText(), g_canvasX / 2, titleY, g_menuFont, 48, color(255), color(0));
 ```
 
 ## Common Examples
