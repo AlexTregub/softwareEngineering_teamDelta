@@ -8,7 +8,7 @@ let antBaseSprite;
 let antbg;
 let hasDeLozier = false;
 let selectedAnt = null;
-let speciesImages = {};
+let JobImages = {};
 
 // Global ant manager instance - will be initialized when AntManager is available
 let antManager = null;
@@ -18,7 +18,7 @@ function Ants_Preloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
-  speciesImages = {
+  JobImages = {
     Builder: loadImage('Images/Ants/blue_ant.png'),
     Scout: loadImage('Images/Ants/gray_ant.png'),
     Farmer: loadImage('Images/Ants/brown_ant.png'),
@@ -43,7 +43,7 @@ function initializeAntManager() {
 // --- Entity-based Ant Class ---
 // Inherits all controller functionality from Entity base class
 class ant extends Entity {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite, speciesName = "Scout") {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite, JobName = "Scout") {
     // Initialize Entity with ant-specific options
     super(posX, posY, sizex, sizey, {
       type: "Ant",
@@ -54,13 +54,13 @@ class ant extends Entity {
     });
     
     // Ant-specific properties
-    this._speciesName = speciesName;
+    this._JobName = JobName;
     this._antIndex = ant_Index++;
     this.isBoxHovered = false;
     
-    // Initialize stats system
+    // Initialize StatsContainer system
     const initialPos = createVector(posX, posY);
-    this._stats = new stats(
+    this._stats = new StatsContainer(
       initialPos,
       { x: sizex, y: sizey },
       movementSpeed,
@@ -96,9 +96,9 @@ class ant extends Entity {
 
   // --- Ant-specific Getters/Setters ---
   get antIndex() { return this._antIndex; }
-  get speciesName() { return this._speciesName; }
-  set speciesName(value) { this._speciesName = value; }
-  get stats() { return this._stats; }
+  get JobName() { return this._JobName; }
+  set JobName(value) { this._JobName = value; }
+  get StatsContainer() { return this._stats; }
   get resourceManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
   get faction() { return this._faction; }
@@ -285,7 +285,7 @@ class ant extends Entity {
     return {
       ...baseInfo,
       antIndex: this._antIndex,
-      speciesName: this.speciesName,
+      JobName: this.JobName,
       currentState: this.getCurrentState(),
       health: `${this._health}/${this._maxHealth}`,
       resources: `${this.getResourceCount()}/${this.getMaxResources()}`,
@@ -309,16 +309,16 @@ class ant extends Entity {
 function AntsSpawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
-    let speciesName = assignSpecies();
+    let JobName = assignJob();
     let baseAnt = new ant(
       random(0, 500), random(0, 500), 
       antSize.x + sizeR, 
       antSize.y + sizeR, 
       30, 0,
       antBaseSprite,
-      speciesName
+      JobName
     );
-    let antWrapper = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
+    let antWrapper = new AntWrapper(new Job(baseAnt, JobName, JobImages[JobName]), JobName);
     ants.push(antWrapper);
     antWrapper.update();
     // Register ant with TileInteractionManager for efficient mouse detection

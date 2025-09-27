@@ -22,7 +22,7 @@
     
     <!-- Base Systems - Load first -->
     <script src="Classes/entities/sprite2d.js"></script>
-    <script src="Classes/entities/stats.js"></script>
+    <script src="Classes/containers/StatsContainer.js"></script>
     <script src="Classes/entities/entity.js"></script>
     
     <!-- Controller System - Load all controllers before ant classes -->
@@ -34,7 +34,9 @@
     <script src="Classes/controllers/SelectionController.js"></script>
     <script src="Classes/controllers/TerrainController.js"></script>
     <script src="Classes/controllers/InteractionController.js"></script>
-  <script src="Classes/controllers/AntUtilities.js"></script>
+    <script src="Classes/controllers/MouseInputController.js"></script>
+    <script src="Classes/controllers/SelectionBoxController.js"></script>
+    <script src="Classes/controllers/AntUtilities.js"></script>
     
     <!-- Core Systems -->
     <script src="Classes/terrianGen.js"></script>
@@ -46,15 +48,16 @@
     
     <!-- Ant Classes - Load in proper order -->
     <script src="Classes/ants/ants.js"></script>
-    <script src="Classes/ants/species.js"></script>
+    <script src="Classes/ants/Job.js"></script>
     <script src="Classes/ants/antWrapper.js"></script>
     <script src="Classes/ants/Queen.js"></script>
-  <script src="Classes/controllers/MouseInputController.js"></script>
-  <script src="Classes/controllers/SelectionBoxController.js"></script>
     <script src="Classes/ui/menu.js"></script>
     <script src="Classes/grid.js"></script>
     <script src="debug/commandLine.js"></script>
     <script src="debug/testing.js"></script>
+
+
+    <!-- Testing suites, comment these out for final build -->
     <script src="test/selectionBox.test.js"></script>
     <script src="test/selectionBox.integration.test.js"></script>
     <script src="test/controllerIntegration.browser.test.js"></script>

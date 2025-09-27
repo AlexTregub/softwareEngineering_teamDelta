@@ -1,16 +1,23 @@
 /**
  * CombatController - Handles combat detection, enemy tracking, and combat state management
  */
+
+
+
 class CombatController {
+  static _states = {OUT: "OUT_OF_COMBAT",IN: "IN_COMBAT"};
+  static _actionStates = {ATTACK: "ATTACKING", DEFEND: "DEFENDING", SPIT: "SPITTING", NONE: "NONE"};
+
   constructor(entity) {
     this._entity = entity;
     this._nearbyEnemies = [];
     this._detectionRadius = 60; // pixels
-    this._combatState = "OUT_OF_COMBAT";
+    this._combatState = CombatController._states.OUT;
+    this._combatActionState = CombatController._actionStates.NONE;
     this._lastEnemyCheck = 0;
     this._enemyCheckInterval = 100; // Check every 100ms for performance
   }
-
+  
   // --- Public API ---
 
   /**
@@ -38,7 +45,7 @@ class CombatController {
    * @returns {boolean} True if in combat
    */
   isInCombat() {
-    return this._combatState === "IN_COMBAT";
+    return this._combatState === CombatController._states.IN;
   }
 
   /**
@@ -146,9 +153,9 @@ class CombatController {
     const hasEnemies = this._nearbyEnemies.length > 0;
     
     if (hasEnemies && !wasInCombat) {
-      this.setCombatState("IN_COMBAT");
+      this.setCombatState(CombatController._states.IN);
     } else if (!hasEnemies && wasInCombat) {
-      this.setCombatState("OUT_OF_COMBAT");
+      this.setCombatState(CombatController._states.OUT);
     }
   }
 
@@ -183,6 +190,14 @@ class CombatController {
       detectionRadius: this._detectionRadius,
       entityFaction: this._entity.faction || "neutral"
     };
+  }
+
+  /**
+   *  draws a circle around an entity that represents is enemy detection range
+   *  should only be used if debug state is enabled
+   */
+  drawDetectionRange() {
+    
   }
 }
 

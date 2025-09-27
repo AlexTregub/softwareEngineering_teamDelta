@@ -56,7 +56,7 @@ class TransformController {
    * @returns {Object} Position object with x, y
    */
   getPosition() {
-    // Try to get from stats system first
+    // Try to get from StatsContainer system first
     if (this._entity._stats && this._entity._stats.position && this._entity._stats.position.statValue) {
       return this._entity._stats.position.statValue;
     }
@@ -115,7 +115,7 @@ class TransformController {
    * @returns {Object} Size object with x, y
    */
   getSize() {
-    // Try to get from stats system first
+    // Try to get from StatsContainer system first
     if (this._entity._stats && this._entity._stats.size && this._entity._stats.size.statValue) {
       return this._entity._stats.size.statValue;
     }

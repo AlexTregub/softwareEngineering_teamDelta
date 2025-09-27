@@ -56,7 +56,7 @@ this._movementController._movementSpeed = movementSpeed;
 ✅ **Controller configuration**  
 ✅ **Update method integration**  
 ✅ **Multiple ant independence**  
-✅ **Species integration with controllers**  
+✅ **Job integration with controllers**  
 
 **Expected**: 10/10 tests passing (was 9/10 before fixes)
 

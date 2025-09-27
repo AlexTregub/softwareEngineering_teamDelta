@@ -35,14 +35,14 @@ class AntWrapper {
       this.antObject.isBoxHovered = val;
     }
   }
-  constructor(antObject, species) {
+  constructor(antObject, Job) {
     this.antObject = antObject; // Instance of ant class (Entity-based)
-    this.species = species;
-    // Optionally: this.healthAmount = this.setHealthAmm(species);
+    this.Job = Job;
+    // Optionally: this.healthAmount = this.setHealthAmm(Job);
 
-    // Set species-specific image if needed
-    if (species === "DeLozier") {
-      this.antObject.setImage(speciesImages["DeLozier"]);
+    // Set Job-specific image if needed
+    if (Job === "DeLozier") {
+      this.antObject.setImage(JobImages["DeLozier"]);
     }
   }
 
@@ -50,7 +50,7 @@ class AntWrapper {
     this.antObject.update();
   }
 
-  makeSpeciesTestUi() {
+  makeJobTestUi() {
     const center = this.antObject.getCenter();
   
     push();
@@ -61,7 +61,7 @@ class AntWrapper {
     const labelY = center.y + size.y / 2 + 20;
   
     outlinedText(
-      this.species,         // text
+      this.Job,         // text
       center.x,             // x
       labelY,               // y
       font,                 // font

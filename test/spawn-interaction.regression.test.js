@@ -12,10 +12,10 @@ let ant_Index = 0;
 let selectedAnt = null;
 let width = 800;
 let height = 600;
-let speciesImages = {};
+let JobImages = {};
 let devConsoleEnabled = true;
 
-// Mock Species and ant classes for testing
+// Mock Job and ant classes for testing
 class MockAnt {
   constructor(posX = 0, posY = 0, sizeX = 32, sizeY = 32) {
     this.posX = posX;
@@ -60,10 +60,10 @@ class MockAnt {
   }
 }
 
-class MockSpecies extends MockAnt {
-  constructor(baseAnt, speciesName, image) {
+class MockJob extends MockAnt {
+  constructor(baseAnt, JobName, image) {
     super(baseAnt.posX, baseAnt.posY, baseAnt.sizeX, baseAnt.sizeY);
-    this.speciesName = speciesName;
+    this.JobName = JobName;
     this.image = image;
     // Copy other properties from baseAnt
     Object.assign(this, baseAnt);
@@ -71,9 +71,9 @@ class MockSpecies extends MockAnt {
 }
 
 class MockAntWrapper {
-  constructor(antObject, species) {
+  constructor(antObject, Job) {
     this.antObject = antObject;
-    this.species = species;
+    this.Job = Job;
   }
 
   update() {
@@ -84,9 +84,9 @@ class MockAntWrapper {
 }
 
 // Mock functions
-function assignSpecies() {
-  const species = ['DeLozier', 'Worker', 'Soldier', 'Scout'];
-  return species[Math.floor(Math.random() * species.length)];
+function assignJob() {
+  const Job = ['DeLozier', 'Worker', 'Soldier', 'Scout'];
+  return Job[Math.floor(Math.random() * Job.length)];
 }
 
 // Import the selection box functions
@@ -109,13 +109,13 @@ function mockSpawnCommand(count, type = 'ant', faction = 'neutral') {
       20 + sizeR
     );
     
-    let speciesName = assignSpecies();
+    let JobName = assignJob();
     
-    // Create Species object
-    let speciesAnt = new MockSpecies(baseAnt, speciesName, null);
+    // Create Job object
+    let JobAnt = new MockJob(baseAnt, JobName, null);
     
     // Create wrapper
-    ants[ant_Index] = new MockAntWrapper(speciesAnt, speciesName);
+    ants[ant_Index] = new MockAntWrapper(JobAnt, JobName);
     
     // Set faction if specified
     if (faction !== 'neutral') {
@@ -443,7 +443,7 @@ if (typeof module !== "undefined" && module.exports) {
     testSuite,
     mockSpawnCommand,
     MockAnt,
-    MockSpecies,
+    MockJob,
     MockAntWrapper
   };
 }

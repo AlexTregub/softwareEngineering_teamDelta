@@ -298,7 +298,7 @@ class MovementController {
   setEntityPosition(position) {
     this._entity.setPosition(position.x, position.y);
     
-    // Update stats system if available and properly structured
+    // Update StatsContainer system if available and properly structured
     if (this._entity._stats && 
         this._entity._stats.position && 
         this._entity._stats.position.statValue) {

@@ -5,8 +5,8 @@ Team contrib repo for Software Engineering course with Dr. Delozier (CS33901)
 
 ```
 ├── Classes/                 # Core game classes and systems
-│   ├── ants/               # Ant-related classes (ant, species, state machine)
-│   ├── entities/           # Base entity classes (sprite2d, stats)
+│   ├── ants/               # Ant-related classes (ant, Job, state machine)
+│   ├── entities/           # Base entity classes (sprite2d, StatsContainer)
 │   ├── systems/            # Controller classes (movement, task, render)
 │   └── managers/           # Game managers (ant manager, resource manager)
 ├── test/                   # Test suites

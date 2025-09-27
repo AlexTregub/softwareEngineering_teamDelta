@@ -196,17 +196,17 @@ function handleSpawnCommand(args) {
       // Create the base ant (this increments ant_Index)
       let sizeR = random(0, 15);
       let baseAnt = new ant(random(0, width-50), random(0, height-50), 20 + sizeR, 20 + sizeR, 30, 0);
-      let speciesName = assignSpecies();
+      let JobName = assignJob();
       
-      // Create Species object which extends ant but doesn't increment ant_Index again
+      // Create Job object which extends ant but doesn't increment ant_Index again
       // We need to temporarily decrement ant_Index to avoid double counting
       let tempIndex = ant_Index;
       ant_Index--;  // Temporarily decrement
-      let speciesAnt = new Species(baseAnt, speciesName, speciesImages[speciesName]);
+      let JobAnt = new Job(baseAnt, JobName, JobImages[JobName]);
       ant_Index = tempIndex;  // Restore to the correct value
       
         // Always push new ants to the end of the array
-        let antWrapper = new AntWrapper(speciesAnt, speciesName);
+        let antWrapper = new AntWrapper(JobAnt, JobName);
         ants.push(antWrapper);
         // Ensure the ant wrapper is properly constructed
         if (!antWrapper || !antWrapper.antObject) {
