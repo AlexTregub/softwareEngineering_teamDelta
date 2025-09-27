@@ -252,7 +252,7 @@ class AntStateMachine {
   }
 }
 
-function antSMtest() {
+function antSmTest() {
     // Create state machine for an ant
     let antSM = new AntStateMachine();
     

@@ -35,7 +35,7 @@ global.assignJob = () => "Builder";
 
 // Import required classes
 const AntStateMachine = require('../Classes/ants/antStateMachine.js');
-const Sprite2D = require('../Classes/entities/sprite2d.js');
+const Sprite2D = require('../Classes/systems/Sprite2d.js');
 const { StatsContainer, stat } = require('../Classes/containers/StatsContainer.js');
 const ResourceManager = require('../Classes/systems/ResourceManager.js');
 

@@ -36,7 +36,6 @@ class GameStateManager {
     if (!skipCallbacks) {
       this.executeCallbacks(newState, this.previousState);
     }
-
     return true;
   }
 

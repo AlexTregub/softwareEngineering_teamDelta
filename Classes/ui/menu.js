@@ -90,7 +90,7 @@ function updateMenu() {
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
     g_map.render();
-    AntsUpdate();
+    antsUpdate();
     drawMenu();
     
     const fadeAlpha = GameState.getFadeAlpha();

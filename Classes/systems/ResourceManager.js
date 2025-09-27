@@ -127,15 +127,15 @@ class ResourceManager {
 
   /**
    * Scans for nearby resources and attempts to collect them.
-   * Uses the global resourceList to find available resources.
+   * Uses the global g_resourceList to find available resources.
    */
   checkForNearbyResources() {
-    // Check if resourceList is available globally
-    if (typeof resourceList === 'undefined' || !resourceList.getResourceList) {
+    // Check if g_resourceList is available globally
+    if (typeof g_resourceList === 'undefined' || !g_resourceList.getResourceList) {
       return;
     }
 
-    const fruits = resourceList.getResourceList();
+    const fruits = g_resourceList.getResourceList();
     const keys = Object.keys(fruits);
 
     for (let key of keys) {

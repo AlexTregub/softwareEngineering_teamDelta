@@ -14,7 +14,7 @@ let JobImages = {};
 let antManager = null;
 
 // --- Preload Images and manager ---
-function AntsPreloader() {
+function antsPreloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
@@ -99,7 +99,7 @@ class ant extends Entity {
   get JobName() { return this._JobName; }
   set JobName(value) { this._JobName = value; }
   get StatsContainer() { return this._stats; }
-  get resourceManager() { return this._resourceManager; }
+  get g_resourceManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
   get faction() { return this._faction; }
   get health() { return this._health; }
@@ -306,7 +306,7 @@ class ant extends Entity {
 // --- Ant Management Functions ---
 
 // --- Spawn Ants ---
-function AntsSpawn(numToSpawn) {
+function antsSpawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let JobName = assignJob();
@@ -332,7 +332,7 @@ function AntsSpawn(numToSpawn) {
 }
 
 // --- Update All Ants ---
-function AntsUpdate() {
+function antsUpdate() {
   for (let i = 0; i < ant_Index; i++) {
     if (ants[i] && typeof ants[i].update === "function") {
       const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
@@ -367,5 +367,5 @@ function AntsUpdate() {
 
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ant, AntsSpawn, AntsUpdate, antLoopPropertyCheck };
+  module.exports = { ant, antsSpawn , antsUpdate, antLoopPropertyCheck };
 }

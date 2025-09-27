@@ -17,7 +17,7 @@
     "test:spawn-interaction": "node test/spawn-interaction.regression.test.js",
     "test:tracing": "node test/tracing.test.js",
     "test:antmanager": "node test/antManager.test.js",
-    "test:resourcemanager": "node test/resourceManager.test.js",
+    "test:resourcemanager": "node test/g_resourceManager.test.js",
     "test:button": "node test/button.test.js",
     "test:collisionbox2d": "node test/collisionBox2D.test.js",
     "test:movementcontroller": "node test/movementController.test.js",

@@ -140,7 +140,7 @@ function enhancedAntClickControl() {
 }
 
 // Example state-based AI behaviors
-function updateAntAI(ant) {
+function updateAntAi(ant) {
   // Example: Automatic behavior based on state
   
   if (ant.isIdle() && ant.faction === "enemy") {
@@ -177,8 +177,8 @@ function draw() {
   playerQueen.update();
   enemyQueen.update();
   
-  // Update ants (your existing AntsUpdate function already calls ant.update())
-  AntsUpdate();
+  // Update ants (your existing antsUpdate function already calls ant.update())
+  antsUpdate();
   
   // Additional AI updates
   for (let i = 0; i < ant_Index; i++) {

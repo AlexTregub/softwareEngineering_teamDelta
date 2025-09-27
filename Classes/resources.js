@@ -5,13 +5,13 @@ let stickImg;
 let leafImg;
 
 // Proload Images
-function Resources_Preloader() {
+function resourcesPreloader() {
     stickImg = loadImage("Images/Resources/stick.png") // placeholder image right now
     leafImg = loadImage("Images/Resources/leaf.webp")  // placeholder image right now
 }
 
 // Spawn Resources
-function Resources_Spawn(numToSpawn) {
+function resourcesSpawn(numToSpawn) {
     for (let i = 0; i < numToSpawn; i++) {
         let resourceType = random(['stick', 'leaf']); // Randomly choose a resource
         let img;
@@ -33,7 +33,7 @@ function Resources_Spawn(numToSpawn) {
 }
 
 // Update all resources
-function Resources_Update() {
+function resourcesUpdate() {
     for (let i = 0; i < resources.length; i++) {
         if (resources[i] && typeof resources[i].update === "function") {
             resources[i].update();

@@ -1,4 +1,4 @@
-function test_stats() {
+function testStats() {
     _stats = new StatsContainer(createVector(50,0),createVector(150,0))
  //   _stats.test_Exp()
     _stats.size.printStatToDebug()

@@ -1,13 +1,11 @@
-let apple;
-let cherry;
-let resourceList;
-let resourceManager;
+let g_resourceList;
+let g_resourceManager;
 
 function resourcePreLoad(){
   greenLeaf = loadImage('Images/Resources/leaf.png');
   mapleLeaf = loadImage('Images/Resources/mapleLeaf.png');
-  resourceList = new resourcesArray(); 
-  resourceManager = new ResourceSpawner(1,50,resourceList); // (Interval,Capacity,List)
+  g_resourceList = new resourcesArray(); 
+  g_resourceManager = new ResourceSpawner(1,50,g_resourceList); // (Interval,Capacity,List)
 }
 
 
@@ -31,6 +29,18 @@ class resourcesArray {
       this.resources[k].draw();
     }
   }
+}
+
+// Global Currency Counter
+function drawCurrencyUI() {
+  push(); 
+  noStroke();
+  textFont(g_menuFont); 
+  textSize(24);
+  fill(255);  // white text
+  textAlign(LEFT, TOP);
+  text("Food: " + globalResource.length, 10, 10);
+  pop();
 }
 
 // ResourceSpawner(Time Between Each Spawn, Max Amount, class resourcesArray)
