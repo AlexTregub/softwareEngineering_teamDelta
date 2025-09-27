@@ -65,7 +65,7 @@ function handleCommandLineInput() {
     commandInput = "";
     commandHistoryIndex = -1;
     console.log("💻 Command line cancelled.");
-  } else if (keyCode === 8) { // BACKSPACE
+  } else if (keyIsDown(8)) { // BACKSPACE
     // Remove last character
     commandInput = commandInput.slice(0, -1);
   } else if (keyCode === 38) { // UP_ARROW
@@ -188,22 +188,18 @@ function handleSpawnCommand(args) {
   console.log(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
   
   // Record the starting ant count
-  const startingCount = ant_Index;
+  const startingCount = antIndex;
   
   // Spawn ants using the same method as the original Ants_Spawn function
   for (let i = 0; i < count; i++) {
     try {
-      // Create the base ant (this increments ant_Index)
+      // Create the base ant (this increments antIndex)
       let sizeR = random(0, 15);
       let baseAnt = new ant(random(0, width-50), random(0, height-50), 20 + sizeR, 20 + sizeR, 30, 0);
       let JobName = assignJob();
       
-      // Create Job object which extends ant but doesn't increment ant_Index again
-      // We need to temporarily decrement ant_Index to avoid double counting
-      let tempIndex = ant_Index;
-      ant_Index--;  // Temporarily decrement
+      // Create Job object which extends ant but doesn't increment antIndex again
       let JobAnt = new Job(baseAnt, JobName, JobImages[JobName]);
-      ant_Index = tempIndex;  // Restore to the correct value
       
         // Always push new ants to the end of the array
         let antWrapper = new AntWrapper(JobAnt, JobName);
@@ -225,8 +221,8 @@ function handleSpawnCommand(args) {
     }
   }
   
-  const actualSpawned = ant_Index - startingCount;
-  console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${ant_Index}`);
+  const actualSpawned = antIndex - startingCount;
+  console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${antIndex}`);
   // Ensure SelectionBoxController sees new ants
   if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
     g_selectionBoxController.entities = ants;
@@ -261,7 +257,7 @@ function handleSelectCommand(args) {
   
   if (target === 'all') {
     let count = 0;
-    for (let i = 0; i < ant_Index; i++) {
+    for (let i = 0; i < antIndex; i++) {
       if (ants[i]) {
         const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
         if (antObj) {
@@ -272,7 +268,7 @@ function handleSelectCommand(args) {
     }
     console.log(`✅ Selected ${count} ants`);
   } else if (target === 'none') {
-    for (let i = 0; i < ant_Index; i++) {
+    for (let i = 0; i < antIndex; i++) {
       if (ants[i]) {
         const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
         if (antObj) {
@@ -284,13 +280,13 @@ function handleSelectCommand(args) {
     console.log("✅ Deselected all ants");
   } else {
     const index = parseInt(target);
-    if (isNaN(index) || index < 0 || index >= ant_Index || !ants[index]) {
+    if (isNaN(index) || index < 0 || index >= antIndex || !ants[index]) {
       console.log(`❌ Invalid ant index: ${target}`);
       return;
     }
     
     // Deselect all first
-    for (let i = 0; i < ant_Index; i++) {
+    for (let i = 0; i < antIndex; i++) {
       if (ants[i]) {
         const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
         if (antObj) antObj.isSelected = false;
@@ -316,14 +312,14 @@ function handleKillCommand(args) {
   const target = args[0].toLowerCase();
   
   if (target === 'all') {
-    const count = ant_Index;
+    const count = antIndex;
     ants = [];
-    ant_Index = 0;
+    antIndex = 0;
     selectedAnt = null;
     console.log(`💀 Removed all ${count} ants`);
   } else if (target === 'selected') {
     let count = 0;
-    for (let i = ant_Index - 1; i >= 0; i--) {
+    for (let i = antIndex - 1; i >= 0; i--) {
       if (ants[i]) {
         const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
         if (antObj && antObj.isSelected) {
@@ -332,18 +328,18 @@ function handleKillCommand(args) {
         }
       }
     }
-    ant_Index = ants.length;
+    antIndex = ants.length;
     selectedAnt = null;
     console.log(`💀 Removed ${count} selected ants`);
   } else {
     const index = parseInt(target);
-    if (isNaN(index) || index < 0 || index >= ant_Index || !ants[index]) {
+    if (isNaN(index) || index < 0 || index >= antIndex || !ants[index]) {
       console.log(`❌ Invalid ant index: ${target}`);
       return;
     }
     
     ants.splice(index, 1);
-    ant_Index = ants.length;
+    antIndex = ants.length;
     selectedAnt = null;
     console.log(`💀 Removed ant ${index}`);
   }
@@ -374,14 +370,14 @@ function handleTeleportCommand(args) {
 
 function showGameInfo() {
   console.log("🎮 Game State Information:");
-  console.log(`  Total Ants: ${ant_Index}`);
+  console.log(`  Total Ants: ${antIndex}`);
   console.log(`  Canvas Size: ${width} x ${height}`);
   console.log(`  Dev Console: ${devConsoleEnabled ? 'ON' : 'OFF'}`);
   console.log(`  Selected Ant: ${selectedAnt ? 'Yes' : 'None'}`);
   
   // Count ants by faction
   const factions = {};
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     if (ants[i]) {
       const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
       if (antObj && antObj.faction) {

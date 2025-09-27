@@ -8,7 +8,7 @@ global.Math = global.Math || {};
 
 // Mock game state
 let ants = [];
-let ant_Index = 0;
+let antIndex = 0;
 let selectedAnt = null;
 let width = 800;
 let height = 600;
@@ -97,7 +97,7 @@ const { handleMousePressed, handleMouseDragged, handleMouseReleased } = selectio
 function mockSpawnCommand(count, type = 'ant', faction = 'neutral') {
   console.log(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
   
-  const startingCount = ant_Index;
+  const startingCount = antIndex;
   
   for (let i = 0; i < count; i++) {
     // Create the base ant
@@ -115,21 +115,21 @@ function mockSpawnCommand(count, type = 'ant', faction = 'neutral') {
     let JobAnt = new MockJob(baseAnt, JobName, null);
     
     // Create wrapper
-    ants[ant_Index] = new MockAntWrapper(JobAnt, JobName);
+    ants[antIndex] = new MockAntWrapper(JobAnt, JobName);
     
     // Set faction if specified
     if (faction !== 'neutral') {
-      const antObj = ants[ant_Index].antObject;
+      const antObj = ants[antIndex].antObject;
       if (antObj) {
         antObj.faction = faction;
       }
     }
     
-    ant_Index++;
+    antIndex++;
   }
   
-  const actualSpawned = ant_Index - startingCount;
-  console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${ant_Index}`);
+  const actualSpawned = antIndex - startingCount;
+  console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${antIndex}`);
   return actualSpawned;
 }
 
@@ -145,12 +145,12 @@ function AntClickControl() {
 
   // Otherwise, select the ant under the mouse
   selectedAnt = null;
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     if (!ants[i]) continue;
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
     antObj.isSelected = false;
   }
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     if (!ants[i]) continue;
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
     if (antObj.isMouseOver(mockMouseX, mockMouseY)) {
@@ -224,18 +224,18 @@ const testSuite = new TestSuite('Spawn Interaction Tests');
 testSuite.test('Basic spawning functionality', () => {
   // Reset state
   ants = [];
-  ant_Index = 0;
+  antIndex = 0;
   selectedAnt = null;
   
   // Spawn some ants
   const spawned = mockSpawnCommand(3, 'ant', 'player');
   
   testSuite.assertEqual(spawned, 3, 'Should spawn exactly 3 ants');
-  testSuite.assertEqual(ant_Index, 3, 'ant_Index should be updated correctly');
+  testSuite.assertEqual(antIndex, 3, 'antIndex should be updated correctly');
   testSuite.assertEqual(ants.length, 3, 'ants array should have 3 elements');
   
   // Check ant structure
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     testSuite.assertTrue(ants[i] !== null, `Ant ${i} should not be null`);
     testSuite.assertTrue(ants[i] !== undefined, `Ant ${i} should not be undefined`);
     testSuite.assertTrue(ants[i].antObject !== null, `Ant ${i} antObject should not be null`);
@@ -247,7 +247,7 @@ testSuite.test('Basic spawning functionality', () => {
 testSuite.test('Mouse over detection after spawning', () => {
   // Reset and spawn
   ants = [];
-  ant_Index = 0;
+  antIndex = 0;
   selectedAnt = null;
   mockSpawnCommand(1, 'ant', 'player');
   
@@ -271,7 +271,7 @@ testSuite.test('Mouse over detection after spawning', () => {
 testSuite.test('Single ant selection after spawning', () => {
   // Reset and spawn
   ants = [];
-  ant_Index = 0;
+  antIndex = 0;
   selectedAnt = null;
   mockSpawnCommand(2, 'ant', 'player');
   
@@ -295,7 +295,7 @@ testSuite.test('Single ant selection after spawning', () => {
 testSuite.test('Box selection after spawning', () => {
   // Reset and spawn
   ants = [];
-  ant_Index = 0;
+  antIndex = 0;
   selectedAnt = null;
   mockSpawnCommand(3, 'ant', 'player');
   
@@ -327,12 +327,12 @@ testSuite.test('Box selection after spawning', () => {
 testSuite.test('Click and drag sequence after spawning', () => {
   // Reset and spawn
   ants = [];
-  ant_Index = 0;
+  antIndex = 0;
   selectedAnt = null;
   mockSpawnCommand(5, 'ant', 'player');
   
   // Position ants randomly but ensure they have valid properties
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     const ant = ants[i].antObject;
     ant.posX = Math.random() * 400 + 50;
     ant.posY = Math.random() * 400 + 50;
@@ -371,7 +371,7 @@ testSuite.test('Click and drag sequence after spawning', () => {
 testSuite.test('Multiple spawn cycles', () => {
   // Reset
   ants = [];
-  ant_Index = 0;
+  antIndex = 0;
   selectedAnt = null;
   
   // Spawn multiple times
@@ -379,10 +379,10 @@ testSuite.test('Multiple spawn cycles', () => {
   mockSpawnCommand(3, 'ant', 'blue');
   mockSpawnCommand(1, 'ant', 'green');
   
-  testSuite.assertEqual(ant_Index, 6, 'Should have 6 total ants');
+  testSuite.assertEqual(antIndex, 6, 'Should have 6 total ants');
   
   // Check all ants are valid
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     const wrapper = ants[i];
     testSuite.assertTrue(wrapper !== null, `Wrapper ${i} should not be null`);
     testSuite.assertTrue(wrapper.antObject !== null, `AntObject ${i} should not be null`);
@@ -404,7 +404,7 @@ testSuite.test('Multiple spawn cycles', () => {
 testSuite.test('Faction-based spawning and selection', () => {
   // Reset
   ants = [];
-  ant_Index = 0;
+  antIndex = 0;
   selectedAnt = null;
   
   // Spawn ants with different factions

@@ -39,7 +39,7 @@ class AntManager {
       this.moveSelectedAnt(false);
     } else {
       // No ant selected, try to select one under the mouse
-      for (let i = 0; i < ant_Index; i++) {
+      for (let i = 0; i < antIndex; i++) {
         let antObj = this.getAntObject(i);
         if (antObj && antObj.isMouseOver()) {
           // Deselect any previously selected ant

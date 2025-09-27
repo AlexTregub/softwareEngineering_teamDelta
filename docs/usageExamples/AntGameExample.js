@@ -13,7 +13,7 @@ function setupAntGame() {
   Ants_Spawn(10); // Your existing spawn function
   
   // Assign first 5 ants to player, next 5 to enemy
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     if (i < 5) {
       playerQueen.addAnt(ants[i].antObject || ants[i]);
     } else {
@@ -181,7 +181,7 @@ function draw() {
   antsUpdate();
   
   // Additional AI updates
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     if (ants[i]) {
       const antObj = ants[i].antObject || ants[i];
       updateAntAI(antObj);

@@ -143,6 +143,7 @@ function handleKeyEvent(type, ...args) {
 function keyPressed() {
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    if (keyIsDown(8)) { keyPressed()}
     return; // Debug key was handled, don't process further
   }
   if (keyCode === ESCAPE && g_selectionBoxController) {

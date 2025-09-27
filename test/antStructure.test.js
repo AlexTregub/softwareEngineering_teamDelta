@@ -26,7 +26,7 @@ global.JobImages = {
 };
 
 // Mock global variables
-global.ant_Index = 0;
+global.antIndex = 0;
 global.hasDeLozier = false;
 global.ants = []; // Add ants array
 
@@ -81,7 +81,7 @@ console.log('🧪 Running Ant Structure Compatibility Test Suite...\n');
 
 // Test helper functions
 function resetTestEnvironment() {
-  global.ant_Index = 0;
+  global.antIndex = 0;
   global.hasDeLozier = false;
   global.selectedEntities = [];
   global.ants = []; // Reset ants array
@@ -95,7 +95,7 @@ function createMockAntViaOriginalMethod() {
   let antWrapper = new AntWrapper(new Job(baseAnt, JobName, JobImages[JobName]), JobName);
   
   // Store in ants array like the original method
-  let index = ant_Index - 1; // ant_Index was incremented by Job constructor
+  let index = antIndex - 1; // antIndex was incremented by Job constructor
   ants[index] = antWrapper;
   
   return antWrapper;
@@ -107,16 +107,16 @@ function createMockAntViaDebugCommand() {
   let baseAnt = new ant(random(0, 500), random(0, 500), 20 + sizeR, 20 + sizeR, 30, 0);
   let JobName = "Builder";
   
-  // Create Job object which extends ant but manage ant_Index carefully
-  let tempIndex = ant_Index;
-  ant_Index--;  // Temporarily decrement
+  // Create Job object which extends ant but manage antIndex carefully
+  let tempIndex = antIndex;
+  antIndex--;  // Temporarily decrement
   let JobAnt = new Job(baseAnt, JobName, JobImages[JobName]);
-  ant_Index = tempIndex;  // Restore to the correct value
+  antIndex = tempIndex;  // Restore to the correct value
   
   let antWrapper = new AntWrapper(JobAnt, JobName);
   
   // Store in ants array like the debug method
-  let index = ant_Index - 1;
+  let index = antIndex - 1;
   ants[index] = antWrapper;
   
   return antWrapper;
@@ -221,13 +221,13 @@ function testAntIndexManagement() {
   console.log('✅ Testing ant index management...');
   
   // This test verifies that both creation methods would behave consistently
-  // in the real game environment. Since ant_Index is a global variable that
+  // in the real game environment. Since antIndex is a global variable that
   // gets incremented in constructors, we test the expected behavior patterns.
   
   resetTestEnvironment();
   
-  // Test 1: Verify that Job constructor calls super() (which would increment ant_Index)
-  // We can't directly test ant_Index incrementing in this isolated environment,
+  // Test 1: Verify that Job constructor calls super() (which would increment antIndex)
+  // We can't directly test antIndex incrementing in this isolated environment,
   // but we can verify that the Job object has the expected structure
   
   const originalAnt = createMockAntViaOriginalMethod();

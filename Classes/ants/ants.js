@@ -1,6 +1,6 @@
 // --- Ant Globals ---
 let antToSpawn = 0;
-let ant_Index = 0;
+let antIndex = 0;
 let antSize;
 let ants = [];
 let globalResource = [];
@@ -55,7 +55,7 @@ class ant extends Entity {
     
     // Ant-specific properties
     this._JobName = JobName;
-    this._antIndex = ant_Index++;
+    this._antIndex = antIndex++;
     this.isBoxHovered = false;
     
     // Initialize StatsContainer system
@@ -99,7 +99,7 @@ class ant extends Entity {
   get JobName() { return this._JobName; }
   set JobName(value) { this._JobName = value; }
   get StatsContainer() { return this._stats; }
-  get g_resourceManager() { return this._resourceManager; }
+  get resourceManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
   get faction() { return this._faction; }
   get health() { return this._health; }
@@ -333,7 +333,7 @@ function antsSpawn(numToSpawn) {
 
 // --- Update All Ants ---
 function antsUpdate() {
-  for (let i = 0; i < ant_Index; i++) {
+  for (let i = 0; i < antIndex; i++) {
     if (ants[i] && typeof ants[i].update === "function") {
       const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
       
