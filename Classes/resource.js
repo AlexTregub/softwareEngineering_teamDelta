@@ -31,16 +31,138 @@ class resourcesArray {
   }
 }
 
-// Global Currency Counter
-function drawCurrencyUI() {
-  push(); 
-  noStroke();
-  textFont(g_menuFont); 
-  textSize(24);
-  fill(255);  // white text
-  textAlign(LEFT, TOP);
-  text("Food: " + globalResource.length, 10, 10);
-  pop();
+function getCurrenciesRenderStyles() {
+  let screenOffsetMutiplier = .0625
+  const Styles = {
+      U_LEFT_DEF: {
+        name: "upperLeft",
+        textSize: 24,
+        textColor: 'white',
+        textAlign: [LEFT, TOP],
+        textFont: g_menuFont,
+        textPos: {
+          x:0,
+          y:0
+        },
+        offsets: {
+          x: 0,
+          y: 25
+        }
+    },
+    U_RIGHT_DEF: {
+        name: "upperRight",
+        textSize: 24,
+        textColor: 'white',
+        textAlign: [RIGHT, TOP],
+        textFont: g_menuFont,
+        textPos: {
+          x:g_canvasX - (g_canvasX * screenOffsetMutiplier),
+          y:0
+        },
+        offsets: {
+          x: 0,
+          y: 25
+        }
+    },
+    L_LEFT_DEF: {
+        name: "lowerLeft",
+        textSize: 24,
+        textColor: 'white',
+        textAlign: [LEFT, BOTTOM],
+        textFont: g_menuFont,
+        textPos: {
+          x:0,
+          y:g_canvasY - (g_canvasY * screenOffsetMutiplier)
+        },
+        offsets: {
+          x: 0,
+          y: -25
+        }
+    },
+    L_RIGHT_DEF: {
+        name: "lowerRight",
+        textSize: 24,
+        textColor: 'white',
+        textAlign: [RIGHT, BOTTOM],
+        textFont: g_menuFont,
+        textPos: {
+          x:g_canvasX - (g_canvasX * screenOffsetMutiplier),
+          y:g_canvasY - (g_canvasY * screenOffsetMutiplier)
+        },
+        offsets: {
+          x: 0,
+          y: -25
+        },
+    },
+      H_TOP: {
+        name: "hTop",
+        textSize: 24,
+        textColor: 'white',
+        textAlign: [LEFT, TOP],
+        textFont: g_menuFont,
+        textPos: {
+          x:g_canvasX/2 - 130,
+          y:20
+        },
+        offsets: {
+          x: 80,
+          y: 0
+        }
+      }
+  };
+  return Styles
+}
+
+function setRenderListLocation(style, order = "standard"){
+  let renderList = {}
+  switch (order) {
+    case "standard":
+      renderList = {
+        food:() => text("Food: " + globalResource.length, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0)),
+        leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
+        ant:() => text("🐜: " + globalResource.length, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 2))
+      }  
+      break;
+    case "reversed":
+        renderList = {
+        food:() => text("Food: " + globalResource.length, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 2)),
+        leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
+        ant:() => text("🐜: " + globalResource.length, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
+      }  
+      break;
+    default:
+      break;
+  } 
+  return renderList;
+}
+
+function getRenderList(style = getCurrenciesRenderStyles().U_LEFT_DEF, order = "") {
+  let renderList = {}
+  
+switch (style.name) {
+  case "upperLeft":
+  case "upperRight":
+  case "hTop":
+    order = "standard"; break;
+  case "lowerLeft":
+  case "lowerRight":
+    order = "reversed"; break;
+  }
+  renderList = setRenderListLocation (style, order)
+  return renderList
+}
+
+function renderCurrencies(){
+  let style = getCurrenciesRenderStyles().U_LEFT_DEF
+  let renderList = getRenderList(style)
+  renderVList(renderList.food,style);
+  renderVList(renderList.leaf,style);
+  renderVList(renderList.ant,style);  
+}
+
+// Delegator
+function renderVList(drawFn, style) { 
+  if (typeof drawFn === 'function') textNoStroke(drawFn,style);
 }
 
 // ResourceSpawner(Time Between Each Spawn, Max Amount, class resourcesArray)

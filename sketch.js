@@ -86,9 +86,8 @@ function uiRender(){
   if (renderMenu()) return; // Render menu if active, otherwise render game
   drawDevConsoleIndicator();
   drawCommandLine();
-
+  renderCurrencies();
   if (g_selectionBoxController) { g_selectionBoxController.draw(); }
-  drawCurrencyUI();
   if(g_recordingPath){ } // (Recording logic here if needed)
 }
 
