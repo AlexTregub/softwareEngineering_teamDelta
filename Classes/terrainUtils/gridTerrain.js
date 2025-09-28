@@ -29,8 +29,10 @@ class gridTerrain {
         this._centerChunkY = floor((this._gridSizeY-1)/2);
         
         this._gridSpanTL = [ // Chunk positions
-            this._centerChunkX - this._gridSizeX,
-            this._centerChunkY - this._gridSizeY
+            // this._centerChunkX - this._gridSizeX,
+            // this._centerChunkY - this._gridSizeY
+            -this._centerChunkX,
+            -this._centerChunkY
         ];
 
         this._chunkSize = chunkSize; // Chunk size (in tiles)
@@ -54,7 +56,7 @@ class gridTerrain {
         let len = this.chunkArray.getSize()[0]*this.chunkArray.getSize()[1];
         for (let i = 0; i < len; ++i) {
             let chunkPosition = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
-            this.chunkArray[i] = new Chunk(chunkPosition,
+            this.chunkArray.rawArray[i] = new Chunk(chunkPosition,
                 [
                     chunkPosition[0]*this._chunkSize,
                     chunkPosition[1]*this._chunkSize
@@ -63,7 +65,25 @@ class gridTerrain {
                 this._tileSize
             );
 
-            this.chunkArray[i].randomize(seed); // Randomize at creation, not necessarily working correctly
+            this.chunkArray.rawArray[i].randomize(seed); // Randomize at creation, not necessarily working correctly
         }
+
+        // Get info (extracting from generated grid for consistency):
+        // tileSpan = [
+        //     this.chunkArray.rawArray[0].tileData[0].getSpanRange()[0],
+        //     this.chunkArray.rawArray[len-1].getSpanRange()[1]
+        // ];
+    }
+
+    printDebug() {
+        print("gridTerrain debug:");
+        print("Chunk span:",this._gridSizeX,',',this._gridSizeY,"; Center chunk:",this._centerChunkX,',',this._centerChunkY)
+        print("Top left:",this._gridSpanTL);
+        // print(tileSpan);
+
+        print(this.chunkArray.getSize());
+        print("Tile-size span");
+        print(this.chunkArray.rawArray[0].tileData.getSpanRange()[0]);
+        print(this.chunkArray.rawArray[this.chunkArray.getSize()[0]*this.chunkArray.getSize()[0] - 1].tileData.getSpanRange()[1]);
     }
 }

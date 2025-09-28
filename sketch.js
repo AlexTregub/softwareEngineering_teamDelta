@@ -89,11 +89,16 @@ function setup() {
   Ants_Spawn(50);
   Resources_Spawn(20);
 
-  testChunk = new Chunk([0,0],[0,0]);
-  testChunk2 = new Chunk([1,0],[CHUNK_SIZE,0]);
-  testChunk.randomize(1);
-  testChunk2.randomize(1);
-  testCoord = new CoordinateSystem(CHUNK_SIZE*2,CHUNK_SIZE,TILE_SIZE,0,0);
+  // Chunks testing...
+  // testChunk = new Chunk([0,0],[0,0]);
+  // testChunk2 = new Chunk([1,0],[CHUNK_SIZE,0]);
+  // testChunk.randomize(1);
+  // testChunk2.randomize(1);
+  // testCoord = new CoordinateSystem(CHUNK_SIZE*2,CHUNK_SIZE,TILE_SIZE,0,0);
+
+  // Testing grid Terrain:
+  let temp = new gridTerrain(3,3,0);
+  temp.printDebug();
 }
 
 function draw() {
@@ -155,8 +160,9 @@ function draw() {
   // Draw fade overlay if transitioning
   drawFadeOverlay();
 
-  clear();
+  // Chunks testing...
+  // clear();
   // testCoord.setViewCornerBC([0,0]);
-  testChunk.render(testCoord);
-  testChunk2.render(testCoord);
+  // testChunk.render(testCoord);
+  // testChunk2.render(testCoord);
 }
