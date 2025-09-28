@@ -6,6 +6,7 @@
  * game systems. This helps catch issues when refactoring ant creation logic.
  */
 
+
 // Mock p5.js functions and dependencies
 global.createVector = (x, y) => ({ x, y, copy: () => ({ x, y }) });
 global.random = (min, max) => min + Math.random() * (max - min);
@@ -319,9 +320,11 @@ function runAllTests() {
   
   if (testsFailed === 0) {
     console.log('🎉 All ant structure compatibility tests passed!');
+    resetTestEnvironment()
   } else {
     console.log('💥 Some tests failed - ant creation methods may have compatibility issues');
-    process.exit(1);
+    resetTestEnvironment()
+    process.exit(1);    
   }
 }
 

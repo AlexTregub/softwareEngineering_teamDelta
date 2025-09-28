@@ -44,10 +44,13 @@ function resourcesUpdate() {
 //
 // RESOURCE CLASS
 //
-class Resource {
-    constructor(posX = 0, posY = 0, sizex = 30, sizey = 10, type = 'stick', img = stickImg) {
-        const initialPos = createVector(posX, posY);
-        const initialSize = createVector(sizex, sizey);
+class Resource extends entity {
+    constructor(pos, size, type = 'stick', img = stickImg) {
+
+        
+
+        const initialPos = pos;
+        const initialSize = size;
         this._sprite = new Sprite2D(img, initialPos, initialSize, 0);
         
         this._resourceIndex = resourceIndex++;

@@ -84,13 +84,33 @@ function fieldRender(){
 function uiRender(){
   updateMenu(); // Update menu state and handle transitions
   if (renderMenu()) return; // Render menu if active, otherwise render game
-  drawDevConsoleIndicator();
-  drawCommandLine();
   renderCurrencies();
   if (g_selectionBoxController) { g_selectionBoxController.draw(); }
   if(g_recordingPath){ } // (Recording logic here if needed)
+  debugRender();
 }
 
+/**
+ * debugRender
+ * -----------
+ * Renders development and diagnostic overlays (developer console indicator,
+ * in-game command line, etc.). Should be invoked after UI rendering so
+ * diagnostic elements are visually prioritized above gameplay and UI components.
+ *
+ * Handles conditional display based on developer console state and input focus.
+ */
+function debugRender() {
+  drawDevConsoleIndicator();
+  drawCommandLine();
+}
+
+/**
+ * preload
+ * -------
+ * Preloads game assets and resources used during runtime.
+ * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
+ * Assigns loaded assets to globals consumed by rendering and game systems.
+ */
 function preload(){
   terrainPreloader();
   antsPreloader();
@@ -143,7 +163,6 @@ function handleKeyEvent(type, ...args) {
 function keyPressed() {
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
-    if (keyIsDown(8)) { keyPressed()}
     return; // Debug key was handled, don't process further
   }
   if (keyCode === ESCAPE && g_selectionBoxController) {

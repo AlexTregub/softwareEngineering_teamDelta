@@ -19,6 +19,7 @@ class Job extends ant {
       JobImage,
       JobName
     );
+    antIndex--;
     this.img = JobImage;
     this.JobName = JobName;
     this.exp = antObject.StatsContainer?.exp || 0;

@@ -118,16 +118,18 @@ function setRenderListLocation(style, order = "standard"){
   switch (order) {
     case "standard":
       renderList = {
-        food:() => text("Food: " + globalResource.length, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0)),
+        entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0)),
         leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
-        ant:() => text("🐜: " + globalResource.length, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 2))
+        fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
+        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 3))
       }  
       break;
     case "reversed":
         renderList = {
-        food:() => text("Food: " + globalResource.length, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 2)),
-        leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
-        ant:() => text("🐜: " + globalResource.length, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
+        entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 3)),
+        leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
+        fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
+        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
       }  
       break;
     default:
@@ -153,10 +155,11 @@ switch (style.name) {
 }
 
 function renderCurrencies(){
-  let style = getCurrenciesRenderStyles().U_LEFT_DEF
+  let style = getCurrenciesRenderStyles().U_RIGHT_DEF
   let renderList = getRenderList(style)
-  renderVList(renderList.food,style);
+  renderVList(renderList.entities,style);
   renderVList(renderList.leaf,style);
+  renderVList(renderList.fallLeaf,style);
   renderVList(renderList.ant,style);  
 }
 

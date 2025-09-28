@@ -1,4 +1,6 @@
 
+
+
 // AntStateMachine.js
 // Manages the state of an ant character in a game, including primary activities and modifiers.
 // Supports complex state combinations and provides methods to query and change states.
@@ -6,7 +8,7 @@ class AntStateMachine {
   constructor() {
     // Primary activity states
     this.primaryState = "IDLE";
-    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING"];
+    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING", "PATROL"];
     
     // Combat modifier states
     this.combatModifier = "OUT_OF_COMBAT";
@@ -109,6 +111,7 @@ class AntStateMachine {
                this.primaryState !== "FOLLOWING" &&
                this.primaryState !== "BUILDING" &&
                this.primaryState !== "SOCIALIZING" &&
+               this.primaryState !== "PATROL" &&
                this.primaryState !== "MATING";
       
       case "attack":
@@ -155,6 +158,11 @@ class AntStateMachine {
         // Can only mate when out of combat and not engaged in other activities
         return this.combatModifier === "OUT_OF_COMBAT" &&
                this.primaryState !== "BUILDING" &&
+               this.primaryState !== "SOCIALIZING";
+      
+      case "patrol":
+        // Can't patrol while engaged in other activities
+        return this.primaryState !== "BUILDING" &&
                this.primaryState !== "SOCIALIZING";
       
       default:
@@ -251,6 +259,60 @@ class AntStateMachine {
     // This method exists to satisfy the interface expected by ant.js
   }
 }
+
+/**
+ * runAntStateCoverageTest
+ * -----------------------
+ * Exercise every state combination defined on AntStateMachine (primary × (null + combat) × (null + terrain)).
+ * Automatically picks up any new states added to primaryStates/combatStates/terrainStates.
+ * Returns a report object { total, checked, failures, visitedCount } and logs a concise summary.
+ */
+function runAntStateCoverageTest(selectedAnt = null, verbose = false) {
+  selectedAnt ??= new AntWrapper();
+  const failures = [];
+  const visited = new Set();
+  selectedAnt.getAntStateMachine().setStateChangeCallback((oldState, newState) => visited.add(newState));
+
+  const primaries = Array.from(selectedAnt.primaryStates);
+  const combats = [null].concat(Array.from(selectedAnt.combatStates));
+  const terrains = [null].concat(Array.from(selectedAnt.terrainStates));
+
+  function buildExpected(primary, combat, terrain) {
+    let s = primary;
+    if (combat) s += `_${combat}`;
+    if (terrain) s += `_${terrain}`;
+    return s;
+  }
+
+  let checked = 0;
+  for (const p of primaries) {
+    for (const c of combats) {
+      for (const t of terrains) {
+        checked++;
+        const ok = sm.setState(p, c, t);
+        const expected = buildExpected(p, c, t);
+        const actual = sm.getFullState();
+        if (!ok) failures.push({ primary: p, combat: c, terrain: t, reason: 'setState returned false' });
+        if (actual !== expected) failures.push({ primary: p, combat: c, terrain: t, reason: 'state mismatch', expected, actual });
+        if (verbose && failures.length === 0) {
+          console.log(`OK: ${expected}`);
+        }
+      }
+    }
+  }
+
+  const report = {
+    total: primaries.length * combats.length * terrains.length,
+    checked,
+    failures,
+    visitedCount: visited.size
+  };
+
+  console.log(`AntStateCoverage: checked ${checked} combinations, failures: ${failures.length}, visitedStateCount: ${visited.size}`);
+  if (failures.length) console.table(failures);
+  return report;
+}
+
 
 function antSmTest() {
     // Create state machine for an ant

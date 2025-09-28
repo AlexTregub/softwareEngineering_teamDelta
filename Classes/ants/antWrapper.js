@@ -46,6 +46,14 @@ class AntWrapper {
     }
   }
 
+  getAntStateMachine() {
+    return this.antObject._stateMachine
+  }
+
+  getAntCurrentState() {
+    return this.antObject._stateMachine.getFullState()
+  }
+
   update() {
     this.antObject.update();
   }
