@@ -29,7 +29,8 @@ function Ants_Preloader() {
 function Ants_Spawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
-    let baseAnt = new ant(random(0, 500), random(0, 500), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
+    // Offset from edges to prevent leaving
+    let baseAnt = new ant(random(0+25, CANVAS_X-25), random(0+25, CANVAS_Y-25), antSize.x + sizeR, antSize.y + sizeR, 30, 0);
     let speciesName = assignSpecies();
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();

@@ -8,7 +8,7 @@ let meetingNode = null;
 
 class PathMap{
   constructor(terrain){
-    this._terrain = terrain; //Requires terrain(for weight, objects, etc.)
+    // this._terrain = terrain; //Requires terrain(for weight, objects, etc.), only used in construction
     this._grid = new Grid( //Makes Grid for easy tile storage/access
       terrain._xCount, //Size of terrain to match
       terrain._yCount,
