@@ -21,7 +21,7 @@ ______________________...........(7.5,7.5)
 */
 
 class gridTerrain {
-    constructor(gridSizeX,gridSizeY,seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE) {
+    constructor(gridSizeX,gridSizeY,seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[CANVAS_X,CANVAS_Y]) {
         this._gridSizeX = gridSizeX;
         this._gridSizeY = gridSizeY;
         
@@ -68,11 +68,16 @@ class gridTerrain {
             this.chunkArray.rawArray[i].randomize(seed); // Randomize at creation, not necessarily working correctly
         }
 
+        this._canvasSize = canvasSize;
+
         // Get info (extracting from generated grid for consistency):
-        // tileSpan = [
-        //     this.chunkArray.rawArray[0].tileData[0].getSpanRange()[0],
-        //     this.chunkArray.rawArray[len-1].getSpanRange()[1]
-        // ];
+        this._tileSpan = [
+            this.chunkArray.rawArray[0].tileData.getSpanRange()[0],
+            this.chunkArray.rawArray[len - 1].tileData.getSpanRange()[1]
+        ];
+
+        // Canvas conversions handler
+        this.renderConversion = new camRenderConverter([0,0],this._canvasSize,this._tileSize);
     }
 
     printDebug() {
@@ -83,7 +88,70 @@ class gridTerrain {
 
         print(this.chunkArray.getSize());
         print("Tile-size span");
-        print(this.chunkArray.rawArray[0].tileData.getSpanRange()[0]);
-        print(this.chunkArray.rawArray[this.chunkArray.getSize()[0]*this.chunkArray.getSize()[0] - 1].tileData.getSpanRange()[1]);
+        // print(this.chunkArray.rawArray[0].tileData.getSpanRange()[0]);
+        // print(this.chunkArray.rawArray[this.chunkArray.getSize()[0]*this.chunkArray.getSize()[0] - 1].tileData.getSpanRange()[1]);
+        print(this._tileSpan);
+        print("Render center:",this.renderConversion.convPosToCanvas([0,0]));
+    }
+
+    render() {
+        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
+            for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) {
+                this.chunkArray.rawArray[i].tileData.rawArray[j].render2(this.renderConversion);
+            }
+        }
+    }
+};
+
+
+
+//// Camera + Position based coordinate system:
+class camRenderConverter {
+    constructor(posPair,canvasSizePair,tileSize=TILE_SIZE) { // ONLY NEED CAMERA POSITION + CANVAS SIZE
+        this._camPosition = posPair; // CAMERA CENTER, BY GRID COORDINATE
+        this._canvasSize = canvasSizePair; // CAMERA VIEW SIZE
+        
+        this._canvasCenter = [
+            this._canvasSize[0]/2,
+            this._canvasSize[1]/2
+        ]; // Canvas center in pixels.
+
+        this._tileSize = tileSize;
+    }
+
+    //// Util
+    posAdd(a,b) { // = a + b
+        return [
+            a[0] + b[0],
+            a[1] + b[1]
+        ];
+    }
+
+    posSub(a,b) { // = a - b (pairwise)
+        return [
+            a[0]-b[0],
+            a[1]-b[1]
+        ];
+    }
+
+    posNeg(a) {// = -a
+        return [
+            -a[0],
+            -a[1]
+        ];
+    }
+
+    scalMul(a,c) { // = a*c
+        return [
+            a[0]*c,
+            a[1]*c
+        ];
+    }
+
+    //// Conversions
+    convPosToCanvas(input) {
+        let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
+        let second = this.scalMul(first,tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
+        return this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
     }
 }

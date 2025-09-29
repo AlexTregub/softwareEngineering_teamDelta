@@ -15,6 +15,7 @@ let recordingPath
 let testChunk;
 let testChunk2;
 let testCoord;
+let temp;
 
 function preload(){
   test_stats();
@@ -97,7 +98,7 @@ function setup() {
   // testCoord = new CoordinateSystem(CHUNK_SIZE*2,CHUNK_SIZE,TILE_SIZE,0,0);
 
   // Testing grid Terrain:
-  let temp = new gridTerrain(3,3,0);
+  temp = new gridTerrain(10,10,0);
   temp.printDebug();
 }
 
@@ -165,4 +166,18 @@ function draw() {
   // testCoord.setViewCornerBC([0,0]);
   // testChunk.render(testCoord);
   // testChunk2.render(testCoord);
+
+  // Chunked-terrain
+  clear();
+  // delay(100);
+  let tempVar = temp.renderConversion._camPosition;
+  // print(tempVar);
+  temp.renderConversion._camPosition = [
+    tempVar[0]+0.1,
+    tempVar[1]+0.1
+  ]
+
+  
+  background(0,0,0);
+  temp.render();
 }
