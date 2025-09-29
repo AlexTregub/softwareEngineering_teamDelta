@@ -2,7 +2,25 @@
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
+const CHUNKS_X = 20;
+const CHUNKS_Y = 20;
+
 const NONE = '\0'; 
+
+let SEED;
+let MAP;
+let MAP2;
+
+let GRIDMAP;
+let COORDSY;
+let font;
+let recordingPath;
+let menuImage;
+let playButton;
+let optionButton;
+let exitButton;
+let infoButton;
+let debugButton;
 
 // --- CONTROLLER DECLARATIONS ---
 let g_mouseController;
@@ -36,6 +54,28 @@ function preload(){
 
 
 function setup() {
+  CANVAS_X = windowWidth;
+  CANVAS_Y = windowHeight;
+  createCanvas(CANVAS_X, CANVAS_Y);
+
+  SEED = hour()*minute()*floor(second()/10);
+
+  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
+  // MAP.randomize(SEED); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
+  
+  // New, Improved, and Chunked Terrain
+  MAP2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,SEED,CHUNK_SIZE,TILE_SIZE,[CANVAS_X,CANVAS_Y]);
+  MAP2.randomize(SEED);
+  MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  
+  // COORDSY = MAP.getCoordinateSystem();
+  // COORDSY.setViewCornerBC(0,0);
+  
+  GRIDMAP = new PathMap(MAP);
+  COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
+  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+
+  
 
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
@@ -101,6 +141,34 @@ function initializeWorld() {
  * interactive entities, and UI components. Called automatically by p5.js each frame.
  */
 function draw() {
+  background(0);
+
+  // --- UPDATE MENU STATE ---
+  updateMenu();
+
+  // --- MENU / OPTIONS ---
+  if (renderMenu()) {
+    return; // menu rendered, stop here
+  }
+
+  // --- PLAYING ---
+  if (GameState.isInGame()) {
+    MAP2.render();
+    Ants_Update();
+    resourceList.drawAll();
+
+    if (typeof drawSelectionBox === 'function') drawSelectionBox();
+    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+
+    if (typeof drawDevConsoleIndicator === 'function') {
+      drawDevConsoleIndicator();
+    }
+  
+    if (typeof drawCommandLine === 'function') {
+      drawCommandLine();
+    }
+
+    drawUI();
   mapRender();
   fieldRender();
   uiRender();
