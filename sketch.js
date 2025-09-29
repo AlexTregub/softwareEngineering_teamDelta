@@ -98,7 +98,10 @@ function setup() {
   // testCoord = new CoordinateSystem(CHUNK_SIZE*2,CHUNK_SIZE,TILE_SIZE,0,0);
 
   // Testing grid Terrain:
-  temp = new gridTerrain(10,10,0);
+  // TILE_SIZE = 4;
+  temp = new gridTerrain(20,20,0);
+  temp.renderConversion._camPosition = [-72,-72]; // Offset to top right
+  // temp._tileSize = 1
   temp.randomize();
   temp.printDebug();
 }
@@ -173,10 +176,10 @@ function draw() {
   // delay(100);
   let tempVar = temp.renderConversion._camPosition;
   // print(tempVar);
-  // temp.renderConversion._camPosition = [
-  //   tempVar[0]+0.1,
-  //   tempVar[1]+0.1
-  // ]
+  temp.renderConversion._camPosition = [
+    tempVar[0]+0.2,
+    tempVar[1]+0.2
+  ]
 
   
   background(255,255,0);
