@@ -140,7 +140,13 @@ function updateMenu() {
 // Render complete menu system
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS")) {
-    MAP.render();
+    // Dynamic re-gen of terrain: every 10 sec, similar to setup()
+    if (!GameState.isFadingTransition()) {
+      SEED = hour()*minute()*floor(second()/10);
+      MAP2.randomize(SEED);
+    }
+    MAP2.render();
+    
     AntsUpdate();
     drawMenu();
     

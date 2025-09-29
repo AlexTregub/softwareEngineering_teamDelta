@@ -1,8 +1,14 @@
 let GRASS_IMAGE;
 let DIRT_IMAGE;
+let STONE_IMAGE;
+let MOSS_IMAGE;
+
 let xCount = 32;
 let yCount = 32;
 let tileSize = 32; // Adds up to canvas dimensions
+
+// let PERLIN_RANGE = 10;
+let PERLIN_SCALE = 0.08;
 
 ////// TERRAIN
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
@@ -10,14 +16,24 @@ let tileSize = 32; // Adds up to canvas dimensions
 // LAST IS DEFAULT aka PROB=1
 let TERRAIN_MATERIALS = { // All-in-one configuration object.
   'stone' : [0.01, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
-  'dirt' : [0.3, (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+  'dirt' : [0.15, (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
   'grass' : [1 , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
+};
+
+let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y)
+  'moss_0' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+  'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+  'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
+  'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+  'grass' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
 };
 
 
 function terrainPreloader(){
   GRASS_IMAGE = loadImage('Images/16x16 Tiles/grass.png');
   DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
+  STONE_IMAGE = loadImage('Images/16x16 Tiles/stone.png');
+  MOSS_IMAGE = loadImage('Images/16x16 Tiles/moss.png');
 }
 
 class Terrain {
@@ -122,6 +138,31 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     }
   }
 
+  randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
+    let selected = random(); // [0-1)
+    for (let checkMat in TERRAIN_MATERIALS) {
+      if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
+        this._materialSet = checkMat;
+        return;
+      }
+    }
+  }
+
+  randomizePerlin(pos) {
+    let newPos = [
+      pos[0]*PERLIN_SCALE,
+      pos[1]*PERLIN_SCALE
+    ];
+    let val = noise(newPos[0],newPos[1]);
+    for (let checkMat in TERRAIN_MATERIALS_RANGED) {
+      // Using [min,max)
+      if (TERRAIN_MATERIALS_RANGED[checkMat][0][0] <= val && val < TERRAIN_MATERIALS_RANGED[checkMat][0][1]) {
+        this._materialSet = checkMat;
+        break;
+      }
+    }
+  }
+
   getMaterial() {
     return this._materialSet;
   }
@@ -155,5 +196,14 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
     smooth();
     return;
+  }
+
+  render2(coordSys) {
+    // coordSys.setViewCornerBC([0,0]);
+    let pixelPos = coordSys.convPosToCanvas([this._x,this._y]);
+
+    noSmooth();
+    TERRAIN_MATERIALS_RANGED[this._materialSet][1](pixelPos[0],pixelPos[1],this._squareSize);
+    smooth();
   }
 }

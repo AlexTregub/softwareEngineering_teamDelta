@@ -29,7 +29,7 @@ class Grid {
         return pos[1]*this._sizeX + pos[0]; 
     }
 
-    convToSqaure(z) { // Convert flat array index to [x,y]
+    convToSquare(z) { // Convert flat array index to [x,y]
         return [
             z%this._sizeX,
             floor(z/this._sizeX)
@@ -253,7 +253,7 @@ function testGridUtil() {
     let testObj = new Grid(size[0],size[1],[0,0],[0,0]);
 
     for (let i = 0; i < size[0]*size[1]; ++i) {
-        let sqr = testObj.convToSqaure(i);
+        let sqr = testObj.convToSquare(i);
         let flat = testObj.convToFlat(sqr);
         print(i,sqr,flat);
 

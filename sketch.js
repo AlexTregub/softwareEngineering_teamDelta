@@ -1,11 +1,14 @@
 let CANVAS_X = 800; // Default 800
 let CANVAS_Y = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
+const CHUNKS_X = 20;
+const CHUNKS_Y = 20;
 
 const NONE = '\0'; 
 
 let SEED;
 let MAP;
+let MAP2;
 
 let GRIDMAP;
 let COORDSY;
@@ -101,9 +104,15 @@ function setup() {
   SEED = hour()*minute()*floor(second()/10);
 
   MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
-  MAP.randomize(SEED);
-  COORDSY = MAP.getCoordinateSystem();
-  COORDSY.setViewCornerBC(0,0);
+  // MAP.randomize(SEED); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
+  
+  // New, Improved, and Chunked Terrain
+  MAP2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,SEED,CHUNK_SIZE,TILE_SIZE,[CANVAS_X,CANVAS_Y]);
+  MAP2.randomize(SEED);
+  MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  
+  // COORDSY = MAP.getCoordinateSystem();
+  // COORDSY.setViewCornerBC(0,0);
   
   GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
@@ -148,7 +157,7 @@ function draw() {
 
   // --- PLAYING ---
   if (GameState.isInGame()) {
-    MAP.render();
+    MAP2.render();
     Ants_Update();
     resourceList.drawAll();
 
