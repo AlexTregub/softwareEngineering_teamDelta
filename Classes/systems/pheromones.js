@@ -19,7 +19,7 @@ class Stench{
             Stress tells ants to find/build another path
             Slowly evaporates in case difficult terrain is best-case.
         */
-       
+
     }
 }
 
@@ -34,7 +34,10 @@ function diffuse(){
 function findDiffusionRate(){
     /*Diffusion Rate:
         Need to account for different terrain modifiers (rough vs flat)
-        Possible
+        Possible for ants to output more pheromone if spending time on longer terrain
+        Solutions: 
+            Only output pheromones when stepping on the tile
+            Constantly output pheromone on tiles but have a stress modifier for harsh terrain
     */
     
 }
