@@ -16,8 +16,7 @@ function preload(){
   test_stats();
   terrainPreloader()
   Ants_Preloader()
-  Resources_Preloader();
-
+  resourcePreLoad();
   font = loadFont("Images/Assets/Terraria.TTF");
 }
 
@@ -50,18 +49,27 @@ function mouseDragged() {
 
 function mouseReleased() {
   if (isInGame() && typeof handleMouseReleased === 'function') {
-    handleMouseReleased(ants);
+    handleMouseReleased(ants, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
   }
 }
 
+// Debug functionality moved to debug/testing.js
+
 // KEYBOARD INTERACTIONS
 function keyPressed() {
+  // Handle all debug-related keys (command line, dev console, test hotkeys)
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug key was handled, don't process further
+  }
+  
   if (keyCode === ESCAPE) {
     if (typeof deselectAllEntities === 'function') {
       deselectAllEntities();
     }
   }
 }
+
+// Command line functionality has been moved to debug/commandLine.js
 
 ////// MAIN
 function setup() {
@@ -137,16 +145,22 @@ function draw() {
   updateMenu();
   
   // Render menu if active, otherwise render game
-  if (renderMenu()) {
-    return; // Menu rendered, stop here
-  }
+  if (renderMenu()) { return; }
 
   // --- GAMEPLAY RENDERING ---
   MAP.render();
   Ants_Update();
-  Resources_Update();
+  resourceList.drawAll();
   if (typeof drawSelectionBox === 'function') drawSelectionBox();
-  drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+  drawDebugGrid(
+    TILE_SIZE,
+    Math.floor(CANVAS_X / TILE_SIZE),
+    Math.floor(CANVAS_Y / TILE_SIZE)
+  );
+
+  // Draw dev console indicator
+  if (typeof drawDevConsoleIndicator === 'function') { drawDevConsoleIndicator(); }
+  if (typeof drawCommandLine === 'function') { drawCommandLine(); }
 
   // Draw fade overlay if transitioning
   drawFadeOverlay();
