@@ -95,7 +95,7 @@ function moveSelectedAntToTile(mx, my, tileSize) {
   }
 }
 
-function Ant_Click_Control() {
+function AntClickControl() {
   // Simplified version of ant click control for testing
   if (selectedAnt) {
     selectedAnt.moveToLocation(mouseX, mouseY);
@@ -194,7 +194,7 @@ suite.test('Single Click Selection - No Prior Selection', () => {
   mouseY = 110;
   
   // Simulate clicking on first ant
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   suite.assertTrue(selectedAnt !== null, 'Ant should be selected');
   suite.assertTrue(selectedAnt.isSelected, 'Selected ant should have isSelected = true');
@@ -211,7 +211,7 @@ suite.test('Single Click Movement - With Prior Selection', () => {
   mouseY = 250;
   
   // Simulate clicking elsewhere to move selected ant
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   suite.assertTrue(mockAnts[0].moveCommands.length > 0, 'Move command should be issued');
   suite.assertEqual(mockAnts[0].moveCommands[0].x, mouseX, 'Should move to clicked location');
@@ -225,7 +225,7 @@ suite.test('Drag Selection - No Prior Selection', () => {
   // Start drag at 50, 50
   mouseX = 50;
   mouseY = 50;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   suite.assertTrue(global.isSelecting, 'Selection should start');
   suite.assertTrue(global.selectionStart !== null, 'Selection start should be set');
@@ -256,7 +256,7 @@ suite.test('Drag Selection - With Prior Selection', () => {
   // Start drag at 150, 50 (not on any ant)
   mouseX = 150;
   mouseY = 50;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   suite.assertTrue(global.isSelecting, 'Selection should start even with prior selection');
   
@@ -284,7 +284,7 @@ suite.test('Click vs Drag Detection', () => {
   // Start at 150, 150
   mouseX = 150;
   mouseY = 150;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Move only 2 pixels (should be detected as click)
   mouseX = 152;
@@ -309,7 +309,7 @@ suite.test('Large Drag Detection', () => {
   // Start at 50, 50
   mouseX = 50;
   mouseY = 50;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Move 50 pixels (should be detected as drag)
   mouseX = 100;
@@ -341,7 +341,7 @@ suite.test('Multi-Selection Movement', () => {
   mouseX = 400;
   mouseY = 400;
   
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Both ants should have received move commands
   suite.assertTrue(mockAnts[0].moveCommands.length > 0, 'First ant should have move command');
@@ -365,7 +365,7 @@ suite.test('Right Click Deselection', () => {
   mouseX = 200;
   mouseY = 200;
   
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, RIGHT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, RIGHT);
   
   // All should be deselected
   suite.assertFalse(mockAnts[0].isSelected, 'First ant should be deselected');
@@ -384,7 +384,7 @@ suite.test('Wrapped Ant Compatibility', () => {
   mouseY = 110;
   
   // Should work with wrapped ants
-  handleMousePressed(wrappedAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(wrappedAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   suite.assertTrue(selectedAnt !== null, 'Should select wrapped ant');
   suite.assertTrue(selectedAnt.isSelected, 'Wrapped ant should be selected');
@@ -396,7 +396,7 @@ suite.test('Function Parameter Compatibility', () => {
   
   try {
     // Test that all required parameters are passed correctly
-    handleMousePressed(mockAnts, 100, 100, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+    handleMousePressed(mockAnts, 100, 100, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
     handleMouseDragged(150, 150, mockAnts);
     handleMouseReleased(mockAnts, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
     
@@ -413,7 +413,7 @@ suite.test('Box Hover Visual Feedback During Drag', () => {
   // Start drag
   mouseX = 50;
   mouseY = 50;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Drag over ants
   mouseX = 250;
@@ -439,7 +439,7 @@ suite.test('Empty Selection Box Handling', () => {
   // Start drag in empty area
   mouseX = 500;
   mouseY = 500;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Drag in empty area
   mouseX = 600;

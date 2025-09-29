@@ -10,7 +10,13 @@ let MAP;
 let GRIDMAP;
 let COORDSY;
 let font;
-let recordingPath
+let recordingPath;
+let menuImage;
+let playButton;
+let optionButton;
+let exitButton;
+let infoButton;
+let debugButton;
 
 function preload(){
   test_stats();
@@ -18,6 +24,16 @@ function preload(){
   Ants_Preloader()
   resourcePreLoad();
   font = loadFont("Images/Assets/Terraria.TTF");
+  menuImage = loadImage("Images/Assets/Menu/ant_logo1.png");
+  playButton = loadImage("Images/Assets/Menu/play_button.png");
+  optionButton = loadImage("Images/Assets/Menu/options_button.png");
+  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
+  infoButton = loadImage("Images/Assets/Menu/info_button.png");
+  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
+  videoButton = loadImage("Images/Assets/Menu/vs_button.png");
+  audioButton = loadImage("Images/Assets/Menu/as_button.png");
+  controlButton = loadImage("Images/Assets/Menu/controls_button.png");
+  backButton = loadImage("Images/Assets/Menu/back_button.png");
 }
 
 // MOUSE INTERACTIONS
@@ -38,8 +54,13 @@ function mousePressed() {
   }
 
   // Handle menu button clicks
-  handleMenuClick();
+  if (isInMenu() || isInOptions()) {
+    if (typeof handleMenuClick === 'function') {
+      handleMenuClick();
+    }
+  }
 }
+
 
 function mouseDragged() {
   if (isInGame() && typeof handleMouseDragged === 'function') {
@@ -112,6 +133,49 @@ function setupTests() {
   antSMtest(); // Test Ant State Machine
 }
 
+function draw() {
+  background(0);
+
+  // --- UPDATE MENU STATE ---
+  updateMenu();
+
+  // --- MENU / OPTIONS ---
+  if (renderMenu()) {
+    return; // menu rendered, stop here
+  }
+
+  // --- PLAYING ---
+  if (GameState.isInGame()) {
+    MAP.render();
+    Ants_Update();
+    resourceList.drawAll();
+
+    if (typeof drawSelectionBox === 'function') drawSelectionBox();
+    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+
+    if (typeof drawDevConsoleIndicator === 'function') {
+      drawDevConsoleIndicator();
+    }
+  
+    if (typeof drawCommandLine === 'function') {
+      drawCommandLine();
+    }
+
+    drawUI();
+  }
+
+  // --- FADE OVERLAY (works in both menu + game) ---
+  if (GameState.isFadingTransition()) {
+    const fadeAlpha = GameState.getFadeAlpha();
+    if (fadeAlpha > 0) {
+      fill(255, fadeAlpha);
+      rect(0, 0, CANVAS_X, CANVAS_Y);
+    }
+    GameState.updateFade(10);
+  }
+}
+
+
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   strokeWeight(1);
@@ -140,30 +204,6 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   }
 }
 
-function draw() {
-  // Update menu state and handle transitions
-  updateMenu();
-  
-  // Render menu if active, otherwise render game
-  if (renderMenu()) { return; }
+// Dev console indicator moved to debug/testing.js
 
-  // --- GAMEPLAY RENDERING ---
-  MAP.render();
-  Ants_Update();
-  resourceList.drawAll();
-  if (typeof drawSelectionBox === 'function') drawSelectionBox();
-  drawDebugGrid(
-    TILE_SIZE,
-    Math.floor(CANVAS_X / TILE_SIZE),
-    Math.floor(CANVAS_Y / TILE_SIZE)
-  );
-
-  // Draw dev console indicator
-  if (typeof drawDevConsoleIndicator === 'function') { drawDevConsoleIndicator(); }
-  if (typeof drawCommandLine === 'function') { drawCommandLine(); }
-
-  // Draw fade overlay if transitioning
-  drawFadeOverlay();
-  drawUI();
-
-}
+// Command line drawing moved to debug/commandLine.js

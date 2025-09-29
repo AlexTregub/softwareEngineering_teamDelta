@@ -97,9 +97,9 @@ function moveSelectedAntToTile(mx, my, tileSize) {
   }
 }
 
-function Ant_Click_Control() {
+function AntClickControl() {
   // Track calls to this function
-  Ant_Click_Control.callCount = (Ant_Click_Control.callCount || 0) + 1;
+  AntClickControl.callCount = (AntClickControl.callCount || 0) + 1;
   
   if (selectedAnt) {
     selectedAnt.moveToLocation(mouseX, mouseY);
@@ -183,7 +183,7 @@ function resetTestState() {
   global.selectionStart = null;
   global.selectionEnd = null;
   global.selectedEntities = [];
-  Ant_Click_Control.callCount = 0;
+  AntClickControl.callCount = 0;
   
   // Clear all ant states
   mockAnts.forEach(ant => {
@@ -208,7 +208,7 @@ suite.test('REGRESSION: Drag selection with pre-selected ant', () => {
   mouseY = 50;
   
   // This should start a selection box, not try to move the ant
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   suite.assertTrue(global.isSelecting, 'Should start selection box even with pre-selected ant');
   suite.assertTrue(global.selectionStart !== null, 'Selection start should be set');
@@ -235,7 +235,7 @@ suite.test('REGRESSION: Small drag treated as click for movement', () => {
   // Start drag
   mouseX = 250;
   mouseY = 250;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Very small drag (3 pixels - should be treated as click)
   mouseX = 253;
@@ -276,7 +276,7 @@ suite.test('REGRESSION: Function parameter compatibility', () => {
     
     mouseX = 150;
     mouseY = 150;
-    handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+    handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
     
     mouseX = 200;
     mouseY = 200;
@@ -301,7 +301,7 @@ suite.test('REGRESSION: Selection state cleanup', () => {
   // Start and complete a selection
   mouseX = 50;
   mouseY = 50;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   mouseX = 350;
   mouseY = 150;
@@ -331,7 +331,7 @@ suite.test('REGRESSION: Right-click clearing single selection', () => {
   mouseY = 200;
   
   // Right-click should clear everything
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, RIGHT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, RIGHT);
   
   suite.assertTrue(selectedAnt === null || selectedAnt === undefined, 'selectedAnt should be cleared by right-click');
   suite.assertFalse(mockAnts[0].isSelected, 'Ant should be deselected by right-click');
@@ -350,7 +350,7 @@ suite.test('REGRESSION: Box selection clearing single selection', () => {
   // Do box selection
   mouseX = 150;
   mouseY = 50;
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   mouseX = 350;
   mouseY = 150;
@@ -376,7 +376,7 @@ suite.test('REGRESSION: Wrapped ant selection compatibility', () => {
   // Try single selection on wrapped ant
   mouseX = 110;
   mouseY = 110;
-  handleMousePressed(wrappedAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(wrappedAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   suite.assertTrue(selectedAnt !== null, 'Should select wrapped ant');
   
@@ -384,7 +384,7 @@ suite.test('REGRESSION: Wrapped ant selection compatibility', () => {
   selectedAnt = null;
   mouseX = 50;
   mouseY = 50;
-  handleMousePressed(wrappedAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(wrappedAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   mouseX = 350;
   mouseY = 150;
@@ -411,13 +411,13 @@ suite.test('REGRESSION: Click-to-move functionality', () => {
   // Click to move (not on any ant)
   const originalMoveCount = mockAnts[0].moveCommands.length;
   
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Should have issued movement command
   suite.assertTrue(mockAnts[0].moveCommands.length > originalMoveCount, 'Click should issue movement command');
   
-  // Should have called Ant_Click_Control
-  suite.assertTrue(Ant_Click_Control.callCount > 0, 'Ant_Click_Control should be called');
+  // Should have called AntClickControl
+  suite.assertTrue(AntClickControl.callCount > 0, 'AntClickControl should be called');
 });
 
 // REGRESSION TEST 9: "Multi-ant movement spreading"
@@ -433,7 +433,7 @@ suite.test('REGRESSION: Multi-ant movement spreading', () => {
   mouseX = 500;
   mouseY = 500;
   
-  handleMousePressed(mockAnts, mouseX, mouseY, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+  handleMousePressed(mockAnts, mouseX, mouseY, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
   
   // Both ants should have move commands
   suite.assertTrue(mockAnts[0].moveCommands.length > 0, 'First ant should have move command');
@@ -465,7 +465,7 @@ suite.test('REGRESSION: Function existence validation', () => {
   
   // Test that they can be called without errors
   try {
-    handleMousePressed(mockAnts, 100, 100, Ant_Click_Control, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
+    handleMousePressed(mockAnts, 100, 100, AntClickControl, selectedAnt, moveSelectedAntToTile, TILE_SIZE, LEFT);
     handleMouseDragged(150, 150, mockAnts);
     handleMouseReleased(mockAnts, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
     if (typeof deselectAllEntities === 'function') {

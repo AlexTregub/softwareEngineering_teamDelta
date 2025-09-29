@@ -4,19 +4,22 @@ let ant_Index = 0;
 let antSize;
 let ants = [];
 let globalResource = [];
-let antImg1;
+let antBaseSprite;
 let antbg;
 let hasDeLozier = false;
 let selectedAnt = null;
 let speciesImages = {};
 
+// Global ant manager instance - will be initialized when AntManager is available
+let antManager = null;
+
 // AntStateMachine will be available globally from antStateMachine.js
 
-// --- Preload Images ---
+// --- Preload Images and manager ---
 function Ants_Preloader() {
   antSize = createVector(20, 20);
   antbg = [60, 100, 60];
-  antImg1 = loadImage("Images/Ants/gray_ant.png");
+  antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   speciesImages = {
     Builder: loadImage('Images/Ants/blue_ant.png'),
     Scout: loadImage('Images/Ants/gray_ant.png'),
@@ -25,11 +28,24 @@ function Ants_Preloader() {
     Spitter: loadImage('Images/Ants/gray_ant.png'),
     DeLozier: loadImage('Images/Ants/greg.jpg')
   };
-  gregImg = loadImage("Images/Ants/greg.jpg");
+  initializeAntManager();
+}
+
+/**
+ * @fileoverview AntManager class for handling ant selection, movement, and interaction logic
+ * Provides centralized management of ant selection state and related operations.
+ */
+function initializeAntManager() {
+  if (typeof AntManager !== 'undefined' && !antManager) {
+    antManager = new AntManager();
+    console.log('AntManager initialized successfully');
+  } else if (typeof AntManager === 'undefined') {
+    console.error('AntManager class not available - functions will fall back to basic implementations');
+  }
 }
 
 // --- Spawn Ants ---
-function Ants_Spawn(numToSpawn) {
+function AntsSpawn(numToSpawn) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let speciesName = assignSpecies();
@@ -38,17 +54,16 @@ function Ants_Spawn(numToSpawn) {
       antSize.x + sizeR, 
       antSize.y + sizeR, 
       30, 0,
-      antImg1,
+      antBaseSprite,
       speciesName
       );
-    ants[i] = new AntWrapper(new Species(baseAnt, speciesName), speciesName);
     ants[i] = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
     ants[i].update();
   }
 }
 
 // --- Update All Ants ---
-function Ants_Update() {
+function AntsUpdate() {
   for (let i = 0; i < ant_Index; i++) {
     if (ants[i] && typeof ants[i].update === "function") {
       ants[i].update();
@@ -56,39 +71,31 @@ function Ants_Update() {
   }
 }
 
-// --- Single Ant Selection/Movement ---
-function Ant_Click_Control() {
-  // Move selected ant if one is already selected
-  if (selectedAnt) {
-    selectedAnt.moveToLocation(mouseX, mouseY);
-    selectedAnt.isSelected = false;
-    selectedAnt = null;
-    return;
-  }
+// Import AntManager from managers folder
+// Note: In browser environment, this will be loaded via script tag
+// In Node.js environment, this will be loaded via require()
 
-  // Otherwise, select the ant under the mouse
-  selectedAnt = null;
+// Initialize AntManager when available (after script loads)
+function initializeAntManager() {
+  if (typeof AntManager !== 'undefined' && !antManager) { antManager = new AntManager(); }
+  else {incorrectLoadOrderWarning("AntManager")}
+}
+
+// Will check if all ants, either in the wrapper or a base ant,
+//  has a property and what it is set to.
+function antLoopPropertyCheck(property) {
   for (let i = 0; i < ant_Index; i++) {
     if (!ants[i]) continue; // Safety check for null/undefined ants
     let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    if (antObj) antObj.isSelected = false; // Safety check
-  }
-  for (let i = 0; i < ant_Index; i++) {
-    if (!ants[i]) continue; // Safety check for null/undefined ants
-    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    if (antObj && typeof antObj.isMouseOver === 'function' && antObj.isMouseOver(mouseX, mouseY)) {
-      antObj.isSelected = true;
-      selectedAnt = antObj;
-      break;
-    }
-  }
+    return antObj[property]; // Safety check
+  } IncorrectParamPassed("Boolean", property)
 }
 
 
 
 // --- Ant Class ---
 class ant {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antImg1,speciesName) {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite,speciesName) {
     const initialPos = createVector(posX, posY);
     this._stats = new stats(
       initialPos,
@@ -98,20 +105,12 @@ class ant {
     );
     this.speciesName = speciesName;
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
-    this._skitterTimer = random(30, 200);
     this._antIndex = ant_Index++;
-    this._isMoving = false;
-    this._timeUntilSkitter = this._skitterTimer;
-    this._path = null;
     this._isSelected = false;
     this.isBoxHovered = false;
 
-
-    // Resource
-    this.isDroppingOff = false;
-    this.isMaxWeight = false // Ants capacity max
-    this.Resources = []; // Resource the ants is carrying
-
+    // Initialize resource management
+    this._resourceManager = new ResourceManager(this, 2, 25);
     
     // Initialize state machine
     this._stateMachine = new AntStateMachine();
@@ -119,10 +118,33 @@ class ant {
       this._onStateChange(oldState, newState);
     });
     
-    // Faction and command system
+    // Initialize new controller systems (only if classes are available)
+    try {
+      this._movementController = typeof MovementController !== 'undefined' ? new MovementController(this) : null;
+      this._taskManager = typeof TaskManager !== 'undefined' ? new TaskManager(this) : null;
+      this._renderController = typeof RenderController !== 'undefined' ? new RenderController(this) : null;
+      
+      // Set movement speed in controller
+      if (this._movementController) {
+        this._movementController.movementSpeed = movementSpeed;
+      }
+    } catch (error) {
+      // Controllers not available (e.g., in Node.js test environment)
+      this._movementController = null;
+      this._taskManager = null;
+      this._renderController = null;
+    }
+    
+    // Faction and enemy tracking
     this._faction = "neutral"; // Default faction
-    this._commandQueue = []; // Queue for receiving commands from queen
     this._nearbyEnemies = []; // Track nearby enemy ants
+    
+    // Legacy compatibility properties (deprecated)
+    this._isMoving = false;
+    this._timeUntilSkitter = 0;
+    this._skitterTimer = 0;
+    this._path = null;
+    this._commandQueue = [];
   }
 
   // --- Getters/Setters ---
@@ -132,22 +154,57 @@ class ant {
   set sprite(value) { this._sprite = value; }
   get antIndex() { return this._antIndex; }
   set antIndex(value) { this._antIndex = value; }
-  get isMoving() { return this._isMoving; }
-  set isMoving(value) { this._isMoving = value; }
+  
+  // Controller getters
+  get movementController() { return this._movementController; }
+  get taskManager() { return this._taskManager; }
+  get renderController() { return this._renderController; }
+  
+  // Movement properties (now delegated to MovementController)
+  get isMoving() { return this._movementController ? this._movementController.getIsMoving() : this._isMoving; }
+  set isMoving(value) { 
+    if (this._movementController) {
+      if (!value) this._movementController.stop();
+    } else {
+      this._isMoving = value;
+    }
+  }
+  
+  // Path properties (delegated to MovementController)
+  get path() { return this._movementController ? this._movementController.getPath() : this._path; }
+  set path(value) { 
+    if (this._movementController) {
+      this._movementController.setPath(value);
+    } else {
+      this._path = value;
+    }
+  }
+  
+  // Selection and visual properties
+  get isSelected() { return this._isSelected; }
+  set isSelected(value) { 
+    this._isSelected = value;
+    // Update render controller highlighting
+    if (this._renderController) {
+      if (value) {
+        this._renderController.highlightSelected();
+      } else {
+        this._renderController.clearHighlight();
+      }
+    }
+  }
+  
+  // Legacy getters/setters for compatibility
   get timeUntilSkitter() { return this._timeUntilSkitter; }
   set timeUntilSkitter(value) { this._timeUntilSkitter = value; }
   get skitterTimer() { return this._skitterTimer; }
   set skitterTimer(value) { this._skitterTimer = value; }
-  get path() { return this._path; }
-  set path(value) { this._path = value; }
-  get isSelected() { return this._isSelected; }
-  set isSelected(value) { this._isSelected = value; }
+  get commandQueue() { return this._commandQueue; }
   
-  // State machine and new properties
+  // State machine and properties
   get stateMachine() { return this._stateMachine; }
   get faction() { return this._faction; }
   set faction(value) { this._faction = value; }
-  get commandQueue() { return this._commandQueue; }
   get nearbyEnemies() { return this._nearbyEnemies; }
 
   // --- Sprite2D Helpers ---
@@ -158,42 +215,68 @@ class ant {
 
   // --- Rendering ---
   render() {
-    noSmooth();
-    this._sprite.render();
-    smooth();
+    if (this._renderController) {
+      // Update highlighting based on current state
+      if (this._isSelected) {
+        this._renderController.highlightSelected();
+      } else if (this.isMouseOver(mouseX, mouseY)) {
+        this._renderController.highlightHover();
+      } else if (this.isBoxHovered) {
+        this._renderController.highlightBoxHover();
+      } else if (this._stateMachine.isInCombat()) {
+        this._renderController.highlightCombat();
+      } else {
+        this._renderController.clearHighlight();
+      }
+      
+      // Use new render controller
+      this._renderController.render();
+    } else {
+      // Fallback to legacy rendering
+      noSmooth();
+      this._sprite.render();
+      smooth();
 
-    if (this._isMoving) {
-      const pos = this._sprite.pos;
-      const size = this._sprite.size;
-      const pendingPos = this._stats.pendingPos.statValue;
-      stroke(255);
-      strokeWeight(2);
-      line(
-        pos.x + size.x / 2, pos.y + size.y / 2,
-        pendingPos.x + size.x / 2, pendingPos.y + size.y / 2
-      );
+      if (this._isMoving) {
+        const pos = this._sprite.pos;
+        const size = this._sprite.size;
+        const pendingPos = this._stats.pendingPos.statValue;
+        stroke(255);
+        strokeWeight(2);
+        line(
+          pos.x + size.x / 2, pos.y + size.y / 2,
+          pendingPos.x + size.x / 2, pendingPos.y + size.y / 2
+        );
+      }
+      
+      // Legacy highlighting
+      this.legacyHighlight();
     }
   }
 
-  // --- Highlighting ---
-  highlight() {
-    // Use abstract highlighting functions from selectionBox.js
-    if (this._isSelected) {
-      highlightEntity(this, "selected");
-      renderDebugInfo(this);
-    } else if (this.isMouseOver(mouseX, mouseY)) {
-      highlightEntity(this, "hover");
-    } else if (this.isBoxHovered) {
-      highlightEntity(this, "boxHovered");
+  // --- Legacy Highlighting (fallback) ---
+  legacyHighlight() {
+    // Use abstract highlighting functions from selectionBox.js if available
+    if (typeof highlightEntity === 'function') {
+      if (this._isSelected) {
+        highlightEntity(this, "selected");
+        if (typeof renderDebugInfo === 'function') renderDebugInfo(this);
+      } else if (this.isMouseOver(mouseX, mouseY)) {
+        highlightEntity(this, "hover");
+      } else if (this.isBoxHovered) {
+        highlightEntity(this, "boxHovered");
+      }
+      
+      // Show combat state with red outline
+      if (this._stateMachine.isInCombat()) {
+        highlightEntity(this, "combat");
+      }
+      
+      // Show state-dependent visual indicators
+      if (typeof renderStateIndicators === 'function') {
+        renderStateIndicators(this);
+      }
     }
-    
-    // Show combat state with red outline
-    if (this._stateMachine.isInCombat()) {
-      highlightEntity(this, "combat");
-    }
-    
-    // Show state-dependent visual indicators
-    renderStateIndicators(this);
   }
   
   // --- Mouse Over Detection ---
@@ -208,7 +291,13 @@ class ant {
     );
   }
 
-  setPath(path) { this._path = path; }
+  setPath(path) { 
+    if (this._movementController) {
+      this._movementController.setPath(path);
+    } else {
+      this._path = path;
+    }
+  }
 
   // --- Skitter Logic ---
   setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
@@ -260,17 +349,12 @@ class ant {
     
     // Apply terrain modifiers
     switch (this._stateMachine.terrainModifier) {
-      case "IN_WATER":
-        return baseSpeed * 0.5; // 50% speed in water
-      case "IN_MUD":
-        return baseSpeed * 0.3; // 30% speed in mud
-      case "ON_SLIPPERY":
-        return 0; // Can't move on slippery terrain
-      case "ON_ROUGH":
-        return baseSpeed * 0.8; // 80% speed on rough terrain
+      case "IN_WATER": return baseSpeed * 0.5; // 50% speed in water
+      case "IN_MUD":return baseSpeed * 0.3; // 30% speed in mud
+      case "ON_SLIPPERY":return 0; // Can't move on slippery terrain
+      case "ON_ROUGH": return baseSpeed * 0.8; // 80% speed on rough terrain
       case "DEFAULT":
-      default:
-        return baseSpeed; // Normal speed
+      default:return baseSpeed; // Normal speed
     }
   }
 
@@ -287,13 +371,19 @@ class ant {
 
   // --- Move Logic ---
   moveToLocation(X, Y) {
-
-    // Only allow movement if state machine permits it
-    if (this._stateMachine.canPerformAction("move")) {
-      this._stats.pendingPos.statValue.x = X;
-      this._stats.pendingPos.statValue.y = Y;
-      this._isMoving = true;
-      this._stateMachine.setPrimaryState("MOVING");
+    // Use MovementController if available
+    if (this._movementController) {
+      return this._movementController.moveToLocation(X, Y);
+    } else {
+      // Fallback to legacy movement logic
+      if (this._stateMachine.canPerformAction("move")) {
+        this._stats.pendingPos.statValue.x = X;
+        this._stats.pendingPos.statValue.y = Y;
+        this._isMoving = true;
+        this._stateMachine.setPrimaryState("MOVING");
+        return true;
+      }
+      return false;
     }
   }
   
@@ -325,6 +415,12 @@ class ant {
   // if moving, updates position towards target
   // if idle, may skitter randomly
   ResolveMoment() {
+    // Use MovementController if available, otherwise use legacy logic
+    if (this._movementController) {
+      return; // MovementController handles this in its update
+    }
+    
+    // Legacy movement resolution logic
     if (this._isMoving) {
       const current = createVector(this.posX, this.posY);
       const target = createVector(
@@ -359,15 +455,9 @@ class ant {
         this._sprite.setPosition(target);
 
 
-        // Stores Resource and Reset State Upon Dropoff
-        if(this.isDroppingOff || this.isMaxWeight ){
-          for(let r of this.Resources){
-            globalResource.push(r);
-          }
-
-          this.Resources = [];
-          this.isDroppingOff = false;
-          this.isMaxWeight  = false;
+        // Process resource drop-off if at destination
+        if(this._resourceManager.isDroppingOff){
+          this._resourceManager.processDropOff(globalResource);
 
         
         // Set state back to IDLE when movement is complete, but only if no other activities are ongoing
@@ -386,39 +476,36 @@ class ant {
   }
   }
 
-  // Ants Collect NearBy Fruits/Resources 
+  /**
+   * @deprecated Use _resourceManager.checkForNearbyResources() instead
+   * Kept for backward compatibility
+   */
   resourceCheck(){
-    let fruits = resourceList.getResourceList();
-    let keys = Object.keys(fruits);
-
-    for(let k of keys){
-      let x = fruits[k].x;
-      let y = fruits[k].y;
-      
-      let xDifference = abs(Math.floor(x - this.posX));
-      let yDifference = abs(Math.floor(y - this.posY));
-      let range = 25;
-      let maxWeight = 2; // Change to member variable??
-
-      if(xDifference <= range && yDifference <= range){
-        let fruit = fruits[k];
-        if(this.Resources.length < maxWeight){
-            this.Resources.push(fruit);
-            delete fruits[k];
-        }
-        if(this.Resources.length >= maxWeight){
-          let dropPointX = 0;
-          let dropPointY = 0;
-          this.dropOff(dropPointX,dropPointY);
-        }
-      }   
-    }
+    this._resourceManager.checkForNearbyResources();
   }
 
+  /**
+   * @deprecated Use _resourceManager.startDropOff() instead
+   * Kept for backward compatibility
+   */
   dropOff(X,Y){
-    this.isDroppingOff = true;
-    this.isMaxWeight = true;
-    this.moveToLocation(X,Y);
+    this._resourceManager.startDropOff(X, Y);
+  }
+
+  /**
+   * Gets the current resource load of the ant.
+   * @returns {number} Number of resources currently carried
+   */
+  getCurrentResourceLoad() {
+    return this._resourceManager.getCurrentLoad();
+  }
+
+  /**
+   * Gets resource manager debug information.
+   * @returns {Object} Debug information about resource state
+   */
+  getResourceDebugInfo() {
+    return this._resourceManager.getDebugInfo();
   }
 
 
@@ -426,31 +513,30 @@ class ant {
     // Update terrain state based on current position
     this.updateTerrainState();
     
-    // Process any pending commands from queen
-    this.processCommandQueue();
+    // Update controllers
+    if (this._movementController) {
+      this._movementController.update();
+    }
+    
+    if (this._taskManager) {
+      this._taskManager.update();
+    }
     
     // Check for nearby enemies and enter combat if necessary
     this.checkForEnemies();
     
-    // Handle pathfinding movement first
-    if(!this.isMoving && this._path && this.path.length > 0){//If a path exists and not skittering
-      const nextNode = this._path.shift(); //Sets next tile to be travelled as next path tile
-      const targetX = nextNode._x * tileSize; //Translates tile coordinate to translatable distance
-      const targetY = nextNode._y * tileSize;
-      this.moveToLocation(targetX, targetY); //Moves ant
+    // Legacy pathfinding and movement logic (fallback)
+    if (!this._movementController) {
+      this.legacyMovementUpdate();
     }
-    else if (!this._isMoving && (!this._path || this._path.length === 0)){//Sets back to skittering when not pathfinding
-      this._timeUntilSkitter -= 1;
-      if (this._timeUntilSkitter < 0) {
-      this.rndTimeUntilSkitter();
-      this._isMoving = true;
-      this.moveToLocation(this.posX + random(-25, 25), this.posY + random(-25, 25));
-      }
-    }
-    this.ResolveMoment();
     
-    // Only skitter if not moving and in idle state
-    if (!this._isMoving && this._stateMachine.isPrimaryState("IDLE") && this._stateMachine.isOutOfCombat()) {
+    // Legacy command processing (fallback)
+    if (!this._taskManager) {
+      this.processCommandQueue();
+    }
+    
+    // Legacy skitter logic (fallback)
+    if (!this._movementController && !this._isMoving && this._stateMachine.isPrimaryState("IDLE") && this._stateMachine.isOutOfCombat()) {
       this._timeUntilSkitter -= 1;
       if (this._timeUntilSkitter < 0) {
         this.rndTimeUntilSkitter();
@@ -461,19 +547,44 @@ class ant {
       }
     }
     
+    // Legacy movement resolution (fallback)
+    if (!this._movementController) {
+      this.ResolveMoment();
+    }
+    
+    // Always render and update resource manager
     this.render();
-    this.highlight();
-    this.resourceCheck();
+    this._resourceManager.update();
+  }
+
+  // Legacy movement update logic (fallback when MovementController not available)
+  legacyMovementUpdate() {
+    // Handle pathfinding movement first
+    if(!this.isMoving && this._path && this.path.length > 0){
+      const nextNode = this._path.shift();
+      const targetX = nextNode._x * tileSize;
+      const targetY = nextNode._y * tileSize;
+      this.moveToLocation(targetX, targetY);
+    }
+    else if (!this._isMoving && (!this._path || this._path.length === 0)){
+      this._timeUntilSkitter -= 1;
+      if (this._timeUntilSkitter < 0) {
+      this.rndTimeUntilSkitter();
+      this._isMoving = true;
+      this.moveToLocation(this.posX + random(-25, 25), this.posY + random(-25, 25));
+      }
+    }
   }
   
   // State change callback handler
   _onStateChange(oldState, newState) {
     // Handle any special logic when states change
     // Only log state changes for selected ants when dev console is enabled
+    /*
     if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && this._isSelected) {
       console.log(`Selected Ant ${this._antIndex} state changed: ${oldState} -> ${newState}`);
     }
-    
+    */
     // Reset skitter timer when entering idle state
     if (this._stateMachine.isIdle()) {
       this.rndTimeUntilSkitter();
@@ -482,10 +593,31 @@ class ant {
 
   // --- Command System --- // Static Utility Methods
   addCommand(command) {
-    this._commandQueue.push(command);
+    // Use TaskManager if available, otherwise use legacy logic
+    if (this._taskManager) {
+      // Convert command to task format and add to TaskManager
+      const task = {
+        id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: command.type,
+        priority: command.priority || 1,
+        data: command,
+        timeout: command.timeout || 10000
+      };
+      this._taskManager.addTask(task);
+    } else {
+      // Legacy command queue
+      this._commandQueue.push(command);
+    }
   }
   
   processCommandQueue() {
+    // Use TaskManager if available, otherwise use legacy logic
+    if (this._taskManager) {
+      // TaskManager handles command processing in its update method
+      return;
+    }
+    
+    // Legacy command processing logic
     while (this._commandQueue.length > 0) {
       const command = this._commandQueue.shift();
       this.executeCommand(command);
@@ -535,7 +667,7 @@ class ant {
       case "FOLLOW":
         if (this._stateMachine.canPerformAction("follow") && command.target) {
           this._stateMachine.setPrimaryState("FOLLOWING");
-          // Add following logic here
+          // follows the ant in front of it.
         }
         break;
       default:
@@ -649,6 +781,8 @@ class ant {
 
 // --- Move Selected Ant to Tile ---
 function moveSelectedAntToTile(mx, my, tileSize) {
+  initializeAntManager();
+  const selectedAnt = antManager ? antManager.getSelectedAnt() : null;
   if (selectedAnt) {
     const tileX = Math.floor(mx / tileSize);
     const tileY = Math.floor(my / tileSize); //Gets coordinates clicked tiles
@@ -662,7 +796,9 @@ function moveSelectedAntToTile(mx, my, tileSize) {
       selectedAnt.setPath(newPath);
     }
     selectedAnt.isSelected = false;
-    selectedAnt = null; //Resets pathfinding/selection info
+    if (antManager) {
+      antManager.clearSelection(); //Resets pathfinding/selection info
+    }
   }
 }
 function moveSelectedAntsToTile(mx, my, tileSize) {
@@ -725,7 +861,25 @@ function forceAllAntsIdle() {
   }
 }
 
+// -- DEPRECATED --
+// Ensures compatibility with previous functions
+function Ant_Click_Control() { deprecatedWarning(AntClickControl); }
+function Ants_Update() { deprecatedWarning(AntsUpdate); }
+function Ants_Spawn(numToSpawn) { deprecatedWarning(AntsSpawn(numToSpawn)); }
+function AntClickControl() { deprecatedWarning(antManager.AntClickControl()); }
+function MoveAnt(resetSection) { deprecatedWarning(antManager.MoveAnt(resetSection)); }
+function SelectAnt(antCurrent = null) { deprecatedWarning(antManager.SelectAnt(antCurrent)); }
+function getAntObj(antCurrent) { return deprecatedWarning(antManager.getAntObj(antCurrent)); }
+
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = ant;
+  // Import AntManager for Node.js testing
+  const AntManager = require('../managers/AntManager.js');
+  
+  // Initialize antManager for Node.js
+  if (!antManager) { antManager = new AntManager(); }
+  
+  module.exports = ant; // Keep primary export as ant class for backward compatibility
+  module.exports.AntManager = AntManager;
+  module.exports.antManager = antManager;
 }

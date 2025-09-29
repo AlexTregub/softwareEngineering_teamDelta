@@ -12,6 +12,7 @@ let titleY = -100;        // start above the screen
 let titleTargetY;         // Will be set based on canvas size
 let titleSpeed = 9;       // pixels per frame
 
+
 // Menu system initialization
 function initializeMenu() {
   // Set title target position based on canvas size
@@ -23,6 +24,7 @@ function initializeMenu() {
 
 // Setup menu buttons
 function setupMenu() {
+  console.log(menuImage);
   menuButtons = [
     { 
       label: "Start Game", 
@@ -57,31 +59,65 @@ function startGameTransition() {
 function drawMenu() {
   textAlign(CENTER, CENTER);
 
-  // Animate the title dropping in
-  if (titleY < titleTargetY) {
-    titleY += titleSpeed;
-    if (titleY > titleTargetY) titleY = titleTargetY; // clamp to final pos
-  }
+  // Smooth drop for title
+  let easing = 0.07;
+  titleY += (titleTargetY - titleY) * easing;
+
+  // Floating effect for title
+  let floatOffset = sin(frameCount * 0.03) * 5;
 
   // Draw title
-  outlinedText("ANTS!", CANVAS_X / 2, titleY, font, 48, color(255), color(0));
+  imageMode(CENTER);
+  image(menuImage, CANVAS_X / 2, titleY + floatOffset, 500, 500);
 
   // Draw buttons
   menuButtons.forEach(btn => {
     const hovering = isButtonHovered(btn);
 
     push();
-    rectMode(CENTER);
-    stroke(255);
-    strokeWeight(3);
-    fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
-    rect(btn.x, btn.y, btn.w, btn.h, 10);
-    pop();
+    imageMode(CENTER);
 
-    // Button label with outlinedText
-    outlinedText(btn.label, btn.x, btn.y, font, 24, color(0), color(255));
+    if (btn.label === "Start Game") {
+      // Initialize currentScale if not exists
+      if (btn.currentScale === undefined) btn.currentScale = 1.0;
+
+      // Hover animations
+      let targetScale = hovering ? 1.1 : 1.0;       
+      btn.currentScale += (targetScale - btn.currentScale) * 0.1; // easing
+
+      let hoverFloat = hovering ? sin(frameCount * 0.1) * 5 : 0;
+
+      // Apply tint if hovering
+      if (hovering) {
+        tint(255, 220);
+      } else {
+        noTint();
+      }
+
+      // Draw play button
+      push();
+      translate(btn.x, btn.y + hoverFloat);
+      scale(btn.currentScale);
+      image(playButton, 0, 0, btn.w, btn.h);
+      pop();
+
+    } else {
+      // Other buttons as rectangles
+      rectMode(CENTER);
+      stroke(255);
+      strokeWeight(3);
+      fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
+      rect(btn.x, btn.y, btn.w, btn.h, 10);
+
+      // Draw label
+      outlinedText(btn.label, btn.x, btn.y, font, 24, color(0), color(255));
+    }
+
+    pop();
   });
 }
+
+
 
 // Check if a button is being hovered
 function isButtonHovered(btn) {
@@ -147,6 +183,27 @@ function renderMenu() {
   }
   
   return false; // Menu not active, continue with game rendering
+}
+
+function updateGame() {
+  if (GameState.isInGame()) {
+    AntsUpdate();  // actual game update loop
+    MAP.render();  // actual game render
+  }
+}
+
+function renderGame() {
+  if (GameState.isInGame()) {
+    AntsUpdate();   // update ants/movement
+    MAP.render();   // render the world
+    // maybe UI overlays, score, etc.
+    
+    const fadeAlpha = GameState.getFadeAlpha();
+    if (GameState.isFadingTransition() && fadeAlpha > 0) {
+      fill(255, fadeAlpha);
+      rect(0, 0, CANVAS_X, CANVAS_Y);
+    }
+  }
 }
 
 // Get current game state
