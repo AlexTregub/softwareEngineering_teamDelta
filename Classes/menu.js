@@ -132,7 +132,13 @@ function drawFadeOverlay() {
 function renderMenu() {
   if (gameState === "MENU") {
     // Render menu background and colony
-    MAP.render();
+    // + DYNAMICALLY update seed + render menu. 
+    if (!isFading) {
+      SEED = hour()*minute()*floor(second()/10);
+      MAP2.randomize(SEED);
+    }
+    MAP2.render();
+
     Ants_Update();
 
     // Draw the menu UI

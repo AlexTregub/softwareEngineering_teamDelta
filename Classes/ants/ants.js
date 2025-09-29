@@ -34,7 +34,7 @@ function Ants_Spawn(numToSpawn) {
     let sizeR = random(0, 15);
     let speciesName = assignSpecies();
     let baseAnt = new ant(
-      random(0, 500), random(0, 500), 
+      random(0+25, CANVAS_X-25), random(0+25, CANVAS_Y-25), 
       antSize.x + sizeR, 
       antSize.y + sizeR, 
       30, 0,
