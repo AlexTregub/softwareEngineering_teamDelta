@@ -113,8 +113,6 @@ function debugRender() {
  */
 function preload(){
   terrainPreloader();
-  antsPreloader();
-  resourcePreLoad();
   g_menuFont = loadFont("Images/Assets/Terraria.TTF");
 }
 
@@ -177,6 +175,8 @@ function keyPressed() {
 ////// MAIN
 
 function setup() {
+  antsPreloader();
+  resourcePreLoad();
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   createCanvas(g_canvasX, g_canvasY);

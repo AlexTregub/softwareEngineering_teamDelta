@@ -44,10 +44,10 @@ function resourcesUpdate() {
 //
 // RESOURCE CLASS
 //
-class Resource extends entity {
+class Resource extends Entity {
     constructor(pos, size, type = 'stick', img = stickImg) {
-
-        
+        if (!isVector2D(pos)) IncorrectParamPassed(createVector(0,0),pos); pos = createVector(0,0)
+        if (!isVector2D(size)) IncorrectParamPassed(createVector(0,0),size); size = createVector(0,0)
 
         const initialPos = pos;
         const initialSize = size;
