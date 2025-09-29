@@ -91,28 +91,13 @@ function setup() {
   // COORDSY.setViewCornerBC(0,0);
   
   GRIDMAP = new PathMap(MAP);
-  // COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
-  // COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+  COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
+  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
   //// 
   initializeMenu();  // Initialize the menu system
 
   Ants_Spawn(50);
   Resources_Spawn(20);
-
-  // Chunks testing...
-  // testChunk = new Chunk([0,0],[0,0]);
-  // testChunk2 = new Chunk([1,0],[CHUNK_SIZE,0]);
-  // testChunk.randomize(1);
-  // testChunk2.randomize(1);
-  // testCoord = new CoordinateSystem(CHUNK_SIZE*2,CHUNK_SIZE,TILE_SIZE,0,0);
-
-  // Testing grid Terrain:
-  // TILE_SIZE = 4;
-  // temp = new gridTerrain(20,20,0);
-  // temp.renderConversion._camPosition = [-72,-72]; // Offset to top right
-  // // temp._tileSize = 1
-  // temp.randomize();
-  // temp.printDebug();
 }
 
 function draw() {
@@ -173,24 +158,4 @@ function draw() {
 
   // Draw fade overlay if transitioning
   drawFadeOverlay();
-
-  // Chunks testing...
-  // clear();
-  // testCoord.setViewCornerBC([0,0]);
-  // testChunk.render(testCoord);
-  // testChunk2.render(testCoord);
-
-  // Chunked-terrain
-  // clear();
-  // // delay(100);
-  // let tempVar = temp.renderConversion._camPosition;
-  // // print(tempVar);
-  // temp.renderConversion._camPosition = [
-  //   tempVar[0]+0.2,
-  //   tempVar[1]+0.2
-  // ]
-
-  
-  // background(255,255,0);
-  // temp.render();
 }
