@@ -133,49 +133,6 @@ function setupTests() {
   antSMtest(); // Test Ant State Machine
 }
 
-function draw() {
-  background(0);
-
-  // --- UPDATE MENU STATE ---
-  updateMenu();
-
-  // --- MENU / OPTIONS ---
-  if (renderMenu()) {
-    return; // menu rendered, stop here
-  }
-
-  // --- PLAYING ---
-  if (GameState.isInGame()) {
-    MAP.render();
-    Ants_Update();
-    resourceList.drawAll();
-
-    if (typeof drawSelectionBox === 'function') drawSelectionBox();
-    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
-
-    if (typeof drawDevConsoleIndicator === 'function') {
-      drawDevConsoleIndicator();
-    }
-  
-    if (typeof drawCommandLine === 'function') {
-      drawCommandLine();
-    }
-
-    drawUI();
-  }
-
-  // --- FADE OVERLAY (works in both menu + game) ---
-  if (GameState.isFadingTransition()) {
-    const fadeAlpha = GameState.getFadeAlpha();
-    if (fadeAlpha > 0) {
-      fill(255, fadeAlpha);
-      rect(0, 0, CANVAS_X, CANVAS_Y);
-    }
-    GameState.updateFade(10);
-  }
-}
-
-
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   strokeWeight(1);
@@ -204,6 +161,29 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   }
 }
 
-// Dev console indicator moved to debug/testing.js
+function draw() {
+  // Update menu state and handle transitions
+  updateMenu();
+  
+  // Render menu if active, otherwise render game
+  if (renderMenu()) { return; }
 
-// Command line drawing moved to debug/commandLine.js
+  // --- GAMEPLAY RENDERING ---
+  MAP.render();
+  Ants_Update();
+  resourceList.drawAll();
+  if (typeof drawSelectionBox === 'function') drawSelectionBox();
+  drawDebugGrid(
+    TILE_SIZE,
+    Math.floor(CANVAS_X / TILE_SIZE),
+    Math.floor(CANVAS_Y / TILE_SIZE)
+  );
+
+  // Draw dev console indicator
+  if (typeof drawDevConsoleIndicator === 'function') { drawDevConsoleIndicator(); }
+  if (typeof drawCommandLine === 'function') { drawCommandLine(); }
+
+  // Draw fade overlay if transitioning
+  drawFadeOverlay();
+  drawUI();
+}
