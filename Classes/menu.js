@@ -140,6 +140,7 @@ function renderMenu() {
     MAP2.render();
 
     Ants_Update();
+    Resources_Update();
 
     // Draw the menu UI
     drawMenu();
