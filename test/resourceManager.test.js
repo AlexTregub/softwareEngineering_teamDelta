@@ -58,7 +58,7 @@ const testSuite = {
 };
 
 // Import ResourceManager for testing
-const ResourceManager = require("../Classes/systems/ResourceManager.js");
+const ResourceManager = require("../Classes/managers/ResourceManager.js");
 
 /**
  * Mock entity class for testing ResourceManager

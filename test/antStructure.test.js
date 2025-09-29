@@ -38,7 +38,7 @@ global.assignJob = () => "Builder";
 const AntStateMachine = require('../Classes/ants/antStateMachine.js');
 const Sprite2D = require('../Classes/systems/Sprite2d.js');
 const { StatsContainer, stat } = require('../Classes/containers/StatsContainer.js');
-const ResourceManager = require('../Classes/systems/ResourceManager.js');
+const ResourceManager = require('../Classes/managers/ResourceManager.js');
 
 // Mock the global dependencies for ant.js
 global.AntStateMachine = AntStateMachine;
