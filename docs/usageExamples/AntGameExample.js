@@ -92,34 +92,7 @@ function handleKeyCommands() {
   }
 }
 
-// Example debug display
-function displayAntDebugInfo() {
-  if (selectedAnt && typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-    const summary = selectedAnt.getStateSummary();
-    
-    // Display state information
-    fill(255);
-    textAlign(LEFT);
-    textSize(12);
-    text(`Selected Ant State: ${selectedAnt.getCurrentState()}`, 10, 30);
-    text(`Faction: ${selectedAnt.faction}`, 10, 50);
-    text(`Effective Speed: ${selectedAnt.getEffectiveMovementSpeed()}`, 10, 70);
-    text(`In Combat: ${selectedAnt.isInCombat()}`, 10, 90);
-    text(`Command Queue: ${selectedAnt.commandQueue.length}`, 10, 110);
-    text(`Nearby Enemies: ${selectedAnt.nearbyEnemies.length}`, 10, 130);
-    
-    // Display available actions
-    let y = 160;
-    text("Available Actions:", 10, y);
-    const actions = ["move", "gather", "attack", "defend", "build", "socialize"];
-    actions.forEach(action => {
-      y += 20;
-      const canPerform = selectedAnt.stateMachine.canPerformAction(action);
-      fill(canPerform ? color(0, 255, 0) : color(255, 0, 0));
-      text(`${action}: ${canPerform}`, 20, y);
-    });
-  }
-}
+
 
 // Integration with your existing mouse controls
 function enhancedAntClickControl() {

@@ -1,33 +1,13 @@
 // Minimal Spawn / Delete UI
+// Minimal Spawn / Delete UI
 (function(){
-  const container = document.createElement('div');
-  container.id = 'spawn-kill-ui';
-  Object.assign(container.style, {
-    position: 'fixed',
-    top: '12px',
-    right: '12px',
-    zIndex: 9999,
-    display: 'flex',
-    gap: '8px',
-    pointerEvents: 'auto'
-  });
-
-  const btnSpawn = document.createElement('button');
-  btnSpawn.textContent = 'Spawn Ant';
-  btnSpawn.title = 'Spawn one ant (uses command-line spawn if available)';
-
-  const btnKill = document.createElement('button');
-  btnKill.textContent = 'Delete Ant';
-  btnKill.title = 'Delete last ant (uses command-line kill if available)';
-
-  container.appendChild(btnSpawn);
-  container.appendChild(btnKill);
-  document.body.appendChild(container);
-
-  // Small style for buttons to be readable over canvas
-  const css = document.createElement('style');
-  css.innerHTML = `#spawn-kill-ui button{ padding:8px 12px; font-size:14px; border-radius:6px; border:1px solid rgba(0,0,0,0.2); background:rgba(255,255,255,0.9); cursor:pointer }`;
-  document.head.appendChild(css);
+  // Canvas-based spawn UI using the Button class
+  const spawnUI = {
+    buttons: [],
+    margin: 12,
+    width: 140,
+    height: 40
+  };
 
   function spawnOne() {
     try {
@@ -46,15 +26,12 @@
   function deleteOne() {
     try {
       if (typeof handleKillCommand === 'function') {
-        // remove last ant if possible
         const lastIndex = (typeof antIndex === 'number' && antIndex > 0) ? (antIndex - 1) : null;
         if (lastIndex !== null) {
           handleKillCommand([String(lastIndex)]);
           return;
         }
       }
-
-      // fallback: pop from ants array
       if (Array.isArray(ants) && ants.length > 0) {
         ants.pop();
         if (typeof antIndex === 'number' && antIndex > 0) antIndex--;
@@ -64,29 +41,42 @@
     } catch (e) { console.error('deleteOne error', e); }
   }
 
-  btnSpawn.addEventListener('click', spawnOne);
-  btnKill.addEventListener('click', deleteOne);
-
-  // Show/hide based on GameState
-  function updateVisibility() {
-    try {
-      if (typeof GameState !== 'undefined' && typeof GameState.isInGame === 'function') {
-        container.style.display = GameState.isInGame() ? 'flex' : 'none';
-      } else {
-        // if no GameState, default to visible
-        container.style.display = 'flex';
-      }
-    } catch (e) { container.style.display = 'flex'; }
+  function ensureButtons() {
+    if (spawnUI.buttons && spawnUI.buttons.length === 2) return;
+    spawnUI.buttons = [];
+    // positions will be updated in render
+    const b1 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Spawn Ant', 'default', spawnOne);
+    const b2 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Delete Ant', 'danger', deleteOne);
+    spawnUI.buttons.push(b1, b2);
   }
 
-  // Hook into GameState callbacks if available
-  if (typeof GameState !== 'undefined' && typeof GameState.onStateChange === 'function') {
-    GameState.onStateChange(() => setTimeout(updateVisibility, 10));
+  function updateButtonPositions() {
+    if (!spawnUI.buttons || spawnUI.buttons.length < 2) return;
+    const spacing = 8;
+    // Position bottom-left
+    const startX = spawnUI.margin;
+    const startY = g_canvasY - spawnUI.margin - spawnUI.height * 2 - spacing;
+    spawnUI.buttons[0].setPosition(startX, startY);
+    spawnUI.buttons[1].setPosition(startX, startY + spawnUI.height + spacing);
   }
 
-  // Initial visibility
-  updateVisibility();
+  function renderSpawnUI() {
+    if (typeof createMenuButton === 'undefined') return; // Button system not loaded
+    // show only while developer console / debug overlay is enabled
+    if (typeof devConsoleEnabled !== 'undefined' && !devConsoleEnabled) return;
+    if (typeof GameState !== 'undefined') {
+      if (!GameState.isInGame || !GameState.isInGame()) return; // only show in-game
+    }
+    ensureButtons();
+    updateButtonPositions();
 
-  // Make sure UI isn't focus-stealing when canvas is active
-  container.addEventListener('mousedown', (e) => e.stopPropagation());
+    for (let i = 0; i < spawnUI.buttons.length; i++) {
+      const btn = spawnUI.buttons[i];
+      btn.update(mouseX, mouseY, mouseIsPressed);
+      btn.render();
+    }
+  }
+
+  // Expose renderer to the global scope so sketch.js can call it during uiRender
+  window.renderSpawnUI = renderSpawnUI;
 })();

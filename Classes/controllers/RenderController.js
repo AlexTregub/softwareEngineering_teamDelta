@@ -506,50 +506,61 @@ class RenderController {
   renderDebugInfo() {
     if (!this._debugMode) return;
 
-    const pos = this.getEntityPosition();
-    const size = this.getEntitySize();
-    
-    this._safeRender(() => {
-      // Debug text background
-      fill(0, 0, 0, 150);
-      noStroke();
-      rect(pos.x, pos.y + size.y + 5, 120, 60);
-
-      // Debug text
-      fill(255);
-      textAlign(LEFT, TOP);
-      textSize(8);
-      
-      let debugY = pos.y + size.y + 10;
-      const lineHeight = 10;
-      
-      // Entity info
-      text(`ID: ${this._entity._antIndex || "unknown"}`, pos.x + 2, debugY);
-      debugY += lineHeight;
-      
-      // Position
-      text(`Pos: (${Math.round(pos.x)}, ${Math.round(pos.y)})`, pos.x + 2, debugY);
-      debugY += lineHeight;
-      
-      // State
-      if (this._entity._stateMachine) {
-        const state = this._entity._stateMachine.primaryState || "UNKNOWN";
-        text(`State: ${state}`, pos.x + 2, debugY);
-        debugY += lineHeight;
+    // Delegate to shared DebugRenderer if available
+    try {
+      if (typeof DebugRenderer !== 'undefined' && DebugRenderer && typeof DebugRenderer.renderEntityDebug === 'function') {
+        DebugRenderer.renderEntityDebug(this._entity);
+        return;
       }
+
+      // Fallback to legacy behavior if DebugRenderer not available
+      const pos = this.getEntityPosition();
+      const size = this.getEntitySize();
       
-      // Movement
-      const isMoving = this._entity._movementController ? 
-        this._entity._movementController.getIsMoving() : 
-        this._entity._isMoving;
-      text(`Moving: ${isMoving ? "YES" : "NO"}`, pos.x + 2, debugY);
-    });
-    debugY += lineHeight;
-    
-    // Tasks
-    if (this._entity._taskManager) {
-      const taskCount = this._entity._taskManager.getQueueLength();
-      text(`Tasks: ${taskCount}`, pos.x + 2, debugY);
+      this._safeRender(() => {
+        // Debug text background
+        fill(0, 0, 0, 150);
+        noStroke();
+        rect(pos.x, pos.y + size.y + 5, 120, 60);
+
+        // Debug text
+        fill(255);
+        textAlign(LEFT, TOP);
+        textSize(8);
+        
+        let debugY = pos.y + size.y + 10;
+        const lineHeight = 10;
+        
+        // Entity info
+        text(`ID: ${this._entity._antIndex || "unknown"}`, pos.x + 2, debugY);
+        debugY += lineHeight;
+        
+        // Position
+        text(`Pos: (${Math.round(pos.x)}, ${Math.round(pos.y)})`, pos.x + 2, debugY);
+        debugY += lineHeight;
+        
+        // State
+        if (this._entity._stateMachine) {
+          const state = this._entity._stateMachine.primaryState || "UNKNOWN";
+          text(`State: ${state}`, pos.x + 2, debugY);
+          debugY += lineHeight;
+        }
+        
+        // Movement
+        const isMoving = this._entity._movementController ? 
+          this._entity._movementController.getIsMoving() : 
+          this._entity._isMoving;
+        text(`Moving: ${isMoving ? "YES" : "NO"}`, pos.x + 2, debugY);
+      });
+      debugY += lineHeight;
+      
+      // Tasks
+      if (this._entity._taskManager) {
+        const taskCount = this._entity._taskManager.getQueueLength();
+        text(`Tasks: ${taskCount}`, pos.x + 2, debugY);
+      }
+    } catch (e) {
+      console.warn('RenderController.renderDebugInfo fallback failed', e);
     }
   }
 

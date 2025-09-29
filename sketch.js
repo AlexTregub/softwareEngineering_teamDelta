@@ -87,6 +87,10 @@ function uiRender(){
   renderCurrencies();
   if (g_selectionBoxController) { g_selectionBoxController.draw(); }
   if(g_recordingPath){ } // (Recording logic here if needed)
+  // Render spawn/delete UI (canvas-based) if available
+  if (typeof window.renderSpawnUI === 'function') {
+    window.renderSpawnUI();
+  }
   debugRender();
 }
 
