@@ -108,7 +108,9 @@ function setup() {
   GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
   COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+
   
+
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
  
