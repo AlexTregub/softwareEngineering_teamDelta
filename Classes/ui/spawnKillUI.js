@@ -25,6 +25,13 @@
 
   function deleteOne() {
     try {
+      // Prefer using the centralized command system if present
+      if (typeof executeCommand === 'function') {
+        executeCommand('kill all');
+        return;
+      }
+
+      // Fallback: call handleKillCommand to remove last ant
       if (typeof handleKillCommand === 'function') {
         const lastIndex = (typeof antIndex === 'number' && antIndex > 0) ? (antIndex - 1) : null;
         if (lastIndex !== null) {
@@ -32,11 +39,14 @@
           return;
         }
       }
+
+      // Final fallback: pop from ants array and adjust antIndex
       if (Array.isArray(ants) && ants.length > 0) {
         ants.pop();
         if (typeof antIndex === 'number' && antIndex > 0) antIndex--;
         return;
       }
+
       console.warn('No ants to delete');
     } catch (e) { console.error('deleteOne error', e); }
   }
@@ -46,7 +56,7 @@
     spawnUI.buttons = [];
     // positions will be updated in render
     const b1 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Spawn Ant', 'default', spawnOne);
-    const b2 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Delete Ant', 'danger', deleteOne);
+  const b2 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Delete Ant', 'danger', deleteOne);
     spawnUI.buttons.push(b1, b2);
   }
 

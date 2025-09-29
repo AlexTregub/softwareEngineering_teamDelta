@@ -100,6 +100,21 @@
     }
   };
 
+  // Public API: return a shallow copy of currently selected entities (wrapper objects)
+  SelectionBoxController.prototype.getSelectedEntities = function () {
+    return Array.isArray(this._selectedEntities) ? this._selectedEntities.slice() : [];
+  };
+
+  // Public API: replace the entities list used for selection tests
+  SelectionBoxController.prototype.setEntities = function (entities) {
+    this._entities = entities || [];
+  };
+
+  // Public API: get the entities list
+  SelectionBoxController.prototype.getEntities = function () {
+    return this._entities;
+  };
+
   SelectionBoxController.prototype.draw = function () {
     if (this._isSelecting && this._selectionStart && this._selectionEnd) {
       push();
@@ -161,5 +176,15 @@
   };
 
   // Export
+  // Backwards-compatible property mappings
+  Object.defineProperty(SelectionBoxController.prototype, 'entities', {
+    get: function() { return this._entities; },
+    set: function(val) { this._entities = val || []; }
+  });
+
+  Object.defineProperty(SelectionBoxController.prototype, 'selectedEntities', {
+    get: function() { return this._selectedEntities; }
+  });
+
   window.SelectionBoxController = SelectionBoxController;
 })();
