@@ -70,3 +70,61 @@ class Node{
   }
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }
+
+function wander(){
+  /*Wandering:
+      When an ant starts its first path:
+        Wanders around aimlessly (Takes the shortest path?)
+        Leaves pheromone related to its current task
+  */
+
+}
+
+function intuitiveWander(){
+  /*Intuitive Wandering:
+      When the destination of the end path is known (queen gives direct order):
+        Wander in the general direction of the destination (maybe use current A* with pheromones
+          for faster pathfinding)
+  */
+
+}
+
+////Problem: When an ant breaks off from a path to optimize, how do we make sure it doesn't just wander randomly again? Keep moving in same direction
+
+function follow(){
+  /*Following:
+      When an ant smells to a related path:
+        Follow the path to where the ant went
+        Percent chance to branch from path to attempt optimization
+  */
+}
+
+function track(){
+  /*Tracking:
+      When an ant smells a related pheromone trail:
+        Check surrounding tiles:
+          Follow the strongest smell direction (Should lead to trail)
+          Choose one if multiple are identical
+      Different ants track different trails:
+        Warriors follow enemy trail or *maybe blood trail?*
+        Scouts follow and make trails in order to optimize. (Should scouts be able to edit paths once something is found?)
+        Farmers follow farming trails (aphid farms to collection base, maybe harvesting trails?)
+      When ants idle:
+        Do not track any smelled tiles
+        Randomly wander around set node (city)
+      If ants get to the end of path and find nothing:
+        Wander nearby
+        If nothing found, wander randomly
+  */
+}
+
+function changeState(){
+  /*Changing State
+      When a path has no more purpose (original resources exhausted)...
+      Should we delete the path?
+        No! How else can ants get home?
+        2 Choices:
+          Ant sets state to returning and goes home
+          Ant sets state to wandering and builds new path from old path like a tree
+  */
+}

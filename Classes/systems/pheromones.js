@@ -11,7 +11,8 @@ class Stench{
     constructor(state, antType){
         this.state = state;
         this.stress = 0;
-        
+        this.next; //Where the ant went next
+        this.prev; //Where the ant came from (Used for other ants to navigate path)
     }
     addStress(terrainType){
         /*Adding Stress: 
