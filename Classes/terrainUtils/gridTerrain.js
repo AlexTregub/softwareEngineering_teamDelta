@@ -56,6 +56,13 @@ class gridTerrain {
         let len = this.chunkArray.getSize()[0]*this.chunkArray.getSize()[1];
         for (let i = 0; i < len; ++i) {
             let chunkPosition = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
+            print(chunkPosition);
+            print(
+                [
+                    chunkPosition[0]*this._chunkSize,
+                    chunkPosition[1]*this._chunkSize
+                ]
+            );
             this.chunkArray.rawArray[i] = new Chunk(chunkPosition,
                 [
                     chunkPosition[0]*this._chunkSize,
@@ -75,6 +82,11 @@ class gridTerrain {
             this.chunkArray.rawArray[0].tileData.getSpanRange()[0],
             this.chunkArray.rawArray[len - 1].tileData.getSpanRange()[1]
         ];
+
+        this._tileSpanRange = [
+            this._tileSpan[1][0] - this._tileSpan[0][0],
+            this._tileSpan[1][1] - this._tileSpan[0][1]
+        ]
 
         // Canvas conversions handler
         this.renderConversion = new camRenderConverter([0,0],this._canvasSize,this._tileSize);
@@ -99,6 +111,14 @@ class gridTerrain {
             for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) {
                 this.chunkArray.rawArray[i].tileData.rawArray[j].render2(this.renderConversion);
             }
+        }
+    }
+
+    randomize(seed=this._seed) {
+        noiseSeed(seed);
+
+        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
+            this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
         }
     }
 };

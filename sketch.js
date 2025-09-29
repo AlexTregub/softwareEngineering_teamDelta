@@ -99,6 +99,7 @@ function setup() {
 
   // Testing grid Terrain:
   temp = new gridTerrain(10,10,0);
+  temp.randomize();
   temp.printDebug();
 }
 
@@ -172,12 +173,12 @@ function draw() {
   // delay(100);
   let tempVar = temp.renderConversion._camPosition;
   // print(tempVar);
-  temp.renderConversion._camPosition = [
-    tempVar[0]+0.1,
-    tempVar[1]+0.1
-  ]
+  // temp.renderConversion._camPosition = [
+  //   tempVar[0]+0.1,
+  //   tempVar[1]+0.1
+  // ]
 
   
-  background(0,0,0);
+  background(255,255,0);
   temp.render();
 }
