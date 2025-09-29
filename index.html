@@ -10,8 +10,6 @@
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
-    <script src="Classes/resource.js"></script>
-    <script src="Classes/resources.js"></script>
 
     <!-- Type Checks -->
      <script src="debug/typeChecks/vectorCheck.js"></script>
@@ -22,7 +20,6 @@
     <script src="Classes/systems/text/textRenderer.js"></script>
 
     <!-- Core Systems -->
-    <script src="Classes/systems/ResourceManager.js"></script>
     <script src="Classes/systems/CollisionBox2D.js"></script>
     <script src="Classes/systems/Button.js"></script>
     <script src="Classes/managers/TileInteractionManager.js"></script>
@@ -30,10 +27,13 @@
     <script src="Classes/managers/AntManager.js"></script>
     <script src="Classes/systems/shapes/circle.js"></script>
     <script src="Classes/systems/Sprite2d.js"></script>
+    <script src="Classes/resources.js"></script>
+    
     
     <!-- Controller System - Load all controllers before ant classes -->
     <script src="Classes/controllers/MovementController.js"></script>
     <script src="Classes/controllers/TaskManager.js"></script>
+    <script src="Classes/controllers/ResourceManager.js"></script>
     <script src="Classes/controllers/RenderController.js"></script>
     <script src="Classes/controllers/CombatController.js"></script>
     <script src="Classes/controllers/TransformController.js"></script>
@@ -50,6 +50,10 @@
     <script src="Classes/terrianGen.js"></script>
     <script src="Classes/pathfinding.js"></script>
     <script src="Classes/coordinateSystem.js"></script>
+    <script src="Classes/containers/DropoffLocation.js"></script>
+    <script src="Classes/systems/ui/dropoffButton.js"></script>
+    <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script>
+    <script src="Classes/systems/ui/menu.js"></script>
     
     <!-- Ant Support Systems -->
     <script src="Classes/ants/antStateMachine.js"></script>
@@ -59,7 +63,6 @@
     <script src="Classes/ants/Job.js"></script>
     <script src="Classes/ants/antWrapper.js"></script>
     <script src="Classes/ants/Queen.js"></script>
-    <script src="Classes/ui/menu.js"></script>
     <script src="Classes/grid.js"></script>
     <script src="debug/commandLine.js"></script>
     <script src="debug/testing.js"></script>

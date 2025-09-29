@@ -135,13 +135,70 @@ class ant extends Entity {
   
   // --- State Machine Integration ---
   _onStateChange(oldState, newState) {
-  //
+    // When entering DROPPING_OFF, find nearest dropoff and move there
+    if (typeof newState === 'string' && newState.includes("DROPPING_OFF")) {
+      this._goToNearestDropoff();
+    }
+    // leaving dropoff clears target
+    if (typeof oldState === 'string' && oldState.includes("DROPPING_OFF") && !(typeof newState === 'string' && newState.includes("DROPPING_OFF"))) {
+      this._targetDropoff = null;
+    }
   }
-  
-  getCurrentState() { return this._stateMachine?.getCurrentState() || "IDLE"; }
-  setState(newState) { return this._stateMachine?.setState(newState); }
-  
-  // --- Combat Methods ---
+
+  // Find nearest DropoffLocation and move to its center. Returns true if a target was found.
+  _goToNearestDropoff() {
+    const list = (typeof window !== 'undefined' && window.dropoffs) ? window.dropoffs :
+                 (typeof dropoffs !== 'undefined' ? dropoffs : []);
+    if (!Array.isArray(list) || list.length === 0) return false;
+    const pos = this.getPosition();
+    let best = null, bestDist = Infinity;
+    for (const d of list) {
+      if (!d) continue;
+      const c = (typeof d.getCenterPx === 'function') ? d.getCenterPx() :
+                { x: (d.x + d.width/2) * (d.tileSize || 32), y: (d.y + d.height/2) * (d.tileSize || 32) };
+      const dx = c.x - pos.x, dy = c.y - pos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < bestDist) { bestDist = dist; best = d; }
+    }
+    if (!best) return false;
+    this._targetDropoff = best;
+    const center = best.getCenterPx ? best.getCenterPx() : { x: (best.x + 0.5) * (best.tileSize || 32), y: (best.y + 0.5) * (best.tileSize || 32) };
+    if (typeof this.moveToLocation === 'function') this.moveToLocation(center.x, center.y);
+    return true;
+  }
+
+  // Check arrival at target dropoff; deposit carried resources and transition out of dropoff state.
+  _checkDropoffArrival() {
+    if (!this._targetDropoff) return;
+    const pos = this.getPosition();
+    const center = this._targetDropoff.getCenterPx ? this._targetDropoff.getCenterPx() : { x: (this._targetDropoff.x + 0.5) * (this._targetDropoff.tileSize || 32), y: (this._targetDropoff.y + 0.5) * (this._targetDropoff.tileSize || 32) };
+    const dist = Math.hypot(center.x - pos.x, center.y - pos.y);
+    const size = this.getSize();
+    const arrivalThreshold = Math.max(8, (size.x + size.y) * 0.25);
+    if (dist <= arrivalThreshold) {
+      // take resources from ant and deposit into dropoff
+      const taken = (typeof this._resourceManager?.dropAllResources === 'function') ? this._resourceManager.dropAllResources() : [];
+      let deposited = 0;
+      for (const r of taken) {
+        if (!r) continue;
+        if (typeof this._targetDropoff.depositResource === 'function') {
+          if (this._targetDropoff.depositResource(r)) deposited++;
+        } else if (this._targetDropoff.inventory && typeof this._targetDropoff.inventory.addResource === 'function') {
+          if (this._targetDropoff.inventory.addResource(r)) deposited++;
+        } else if (typeof resources !== 'undefined' && Array.isArray(resources)) {
+          resources.push(r); deposited++;
+        }
+      }
+      if (typeof console !== 'undefined') console.log(`Ant ${this._antIndex} deposited ${deposited} resource(s) at dropoff.`);
+      if (this._stateMachine) this._stateMachine.setState("IDLE");
+      this._targetDropoff = null;
+    }
+  }
+ 
+   getCurrentState() { return this._stateMachine?.getCurrentState() || "IDLE"; }
+   setState(newState) { return this._stateMachine?.setState(newState); }
+ 
+   // --- Combat Methods ---
   takeDamage(amount) {
     this._health = Math.max(0, this._health - amount);
     if (this._health <= 0) {
@@ -191,8 +248,12 @@ class ant extends Entity {
     this._updateStateMachine();
     this._updateResourceManager();
     this._updateEnemyDetection();
-  }
-  
+    // If currently dropping off, check arrival each frame
+    if (this._stateMachine && typeof this._stateMachine.isDroppingOff === 'function' && this._stateMachine.isDroppingOff()) {
+      this._checkDropoffArrival();
+    }
+   }
+ 
   _updateStats() {
     if (this._stats) {
       const pos = this.getPosition();
@@ -209,8 +270,19 @@ class ant extends Entity {
   _updateResourceManager() {
     if (this._resourceManager) {
       this._resourceManager.update();
+      // If resource manager reached capacity, enter DROPPING_OFF and navigate to nearest dropoff
+      if (this._resourceManager.isAtMaxLoad && typeof this._resourceManager.isAtMaxLoad === 'function') {
+        if (this._resourceManager.isAtMaxLoad() && this._stateMachine && !this._stateMachine.isDroppingOff()) {
+          // set state and trigger movement via state change callback
+          this._stateMachine.setState("DROPPING_OFF");
+        }
+      } else if (this._resourceManager.isAtMaxCapacity) {
+        if (this._resourceManager.isAtMaxCapacity && this._resourceManager.isAtMaxCapacity === true && this._stateMachine && !this._stateMachine.isDroppingOff()) {
+          this._stateMachine.setState("DROPPING_OFF");
+        }
+      }
     }
-  }
+   }
   
   _updateEnemyDetection() {
     // Check for enemies periodically

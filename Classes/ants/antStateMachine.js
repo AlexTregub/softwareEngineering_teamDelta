@@ -1,6 +1,3 @@
-
-
-
 // AntStateMachine.js
 // Manages the state of an ant character in a game, including primary activities and modifiers.
 // Supports complex state combinations and provides methods to query and change states.
@@ -8,7 +5,8 @@ class AntStateMachine {
   constructor() {
     // Primary activity states
     this.primaryState = "IDLE";
-    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING", "PATROL"];
+    // added DROPPING_OFF so ants can transition to a dedicated dropoff state
+    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING", "PATROL", "DROPPING_OFF"];
     
     // Combat modifier states
     this.combatModifier = "OUT_OF_COMBAT";
@@ -106,13 +104,14 @@ class AntStateMachine {
                this.terrainModifier !== "ON_SLIPPERY";
       
       case "gather":
-        // Can't gather while in combat, following, building, socializing, or mating
+        // Can't gather while in combat, following, building, socializing, mating, patrolling, or dropping off
         return this.combatModifier === "OUT_OF_COMBAT" && 
                this.primaryState !== "FOLLOWING" &&
                this.primaryState !== "BUILDING" &&
                this.primaryState !== "SOCIALIZING" &&
                this.primaryState !== "PATROL" &&
-               this.primaryState !== "MATING";
+               this.primaryState !== "MATING" &&
+               this.primaryState !== "DROPPING_OFF";
       
       case "attack":
         // Can only attack when in combat states, not while building or mating
@@ -172,6 +171,7 @@ class AntStateMachine {
 
   // Check current states
   isPrimaryState(state) { return this.primaryState === state; }
+  isDroppingOff() { return this.primaryState === "DROPPING_OFF"; }
   isInCombat() { return this.combatModifier !== "OUT_OF_COMBAT" && this.combatModifier !== null; }
   isOutOfCombat() { return this.combatModifier === "OUT_OF_COMBAT"; }
   isOnTerrain(terrain) { return this.terrainModifier === terrain; }
