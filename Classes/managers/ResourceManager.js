@@ -1,7 +1,7 @@
 /**
  * @fileoverview ResourceManager class for handling entity resource collection and management
  * Manages resource carrying, drop-off behavior, and capacity limits for any game entity.
- * 
+ *
  * @author Software Engineering Team Delta - David Willman
  * @version 1.0.0
  */
@@ -9,13 +9,13 @@
 /**
  * Manages resource collection, carrying capacity, and drop-off behavior for any entity.
  * Handles the complete resource management lifecycle from collection to delivery.
- * 
+ *
  * @class ResourceManager
  */
 class ResourceManager {
   /**
    * Creates a new ResourceManager for an entity.
-   * 
+   *
    * @param {Object} parentEntity - The entity this resource manager belongs to
    * @param {number} parentEntity.posX - X position of the entity
    * @param {number} parentEntity.posY - Y position of the entity
@@ -36,7 +36,7 @@ class ResourceManager {
 
   /**
    * Gets the number of resources currently being carried.
-   * 
+   *
    * @returns {number} The current resource count
    */
   getCurrentLoad() {
@@ -45,7 +45,7 @@ class ResourceManager {
 
   /**
    * Checks if the ant is at maximum carrying capacity.
-   * 
+   *
    * @returns {boolean} True if at max capacity, false otherwise
    */
   isAtMaxLoad() {
@@ -54,7 +54,7 @@ class ResourceManager {
 
   /**
    * Gets the remaining carrying capacity.
-   * 
+   *
    * @returns {number} Number of additional resources that can be carried
    */
   getRemainingCapacity() {
@@ -63,7 +63,7 @@ class ResourceManager {
 
   /**
    * Adds a resource to the ant's inventory if there's capacity.
-   * 
+   *
    * @param {Object} resource - The resource object to add
    * @returns {boolean} True if resource was added, false if at capacity
    */
@@ -80,7 +80,7 @@ class ResourceManager {
   /**
    * Removes all resources from the ant's inventory.
    * Typically called when dropping off at a collection point.
-   * 
+   *
    * @returns {Array} Array of resources that were removed
    */
   dropAllResources() {
@@ -93,7 +93,7 @@ class ResourceManager {
 
   /**
    * Initiates the drop-off process by moving the entity to specified coordinates.
-   * 
+   *
    * @param {number} dropX - X coordinate of drop-off point
    * @param {number} dropY - Y coordinate of drop-off point
    */
@@ -108,18 +108,22 @@ class ResourceManager {
   /**
    * Processes resource drop-off when entity reaches destination.
    * Should be called when entity reaches drop-off coordinates.
-   * 
+   *
    * @param {Array} globalResourceArray - Global resource collection array
    */
   processDropOff(globalResourceArray) {
-    if (this.isDroppingOff && globalResourceArray) {
+    // Allow explicit processing of drop-off even if isDroppingOff isn't true.
+    if (globalResourceArray) {
       const droppedResources = this.dropAllResources();
-      
-      // Add resources to global collection
+
+      // Add resources to global collection and notify resources
       for (let resource of droppedResources) {
+        if (resource && typeof resource.drop === 'function') {
+          try { resource.drop(); } catch (e) { /* best-effort */ }
+        }
         globalResourceArray.push(resource);
       }
-      
+
       return droppedResources;
     }
     return [];
@@ -136,33 +140,68 @@ class ResourceManager {
     }
 
     const fruits = g_resourceList.getResourceList();
-    const keys = Object.keys(fruits);
 
-    for (let key of keys) {
-      const resource = fruits[key];
-      if (!resource || typeof resource.x === 'undefined' || typeof resource.y === 'undefined') {
-        continue;
-      }
+    // If the resource list is an array (common case), iterate backwards so we can splice safely
+    if (Array.isArray(fruits)) {
+      for (let i = fruits.length - 1; i >= 0; i--) {
+        const resource = fruits[i];
+        if (!resource) continue;
 
-      // Calculate distance to resource
-      const xDifference = Math.abs(Math.floor(resource.x - this.parentEntity.posX));
-      const yDifference = Math.abs(Math.floor(resource.y - this.parentEntity.posY));
+        const rx = (typeof resource.x !== 'undefined') ? resource.x : (resource.posX || (resource.getPosition && resource.getPosition().x));
+        const ry = (typeof resource.y !== 'undefined') ? resource.y : (resource.posY || (resource.getPosition && resource.getPosition().y));
+        if (typeof rx === 'undefined' || typeof ry === 'undefined') continue;
 
-      // Check if resource is within collection range
-      if (xDifference <= this.collectionRange && yDifference <= this.collectionRange) {
-        
-        // Try to collect the resource
-        if (this.addResource(resource)) {
-          // Remove resource from global list since it's been collected
-          delete fruits[key];
+        const xDifference = Math.abs(Math.floor(rx - (this.parentEntity.posX || (this.parentEntity.getPosition && this.parentEntity.getPosition().x))));
+        const yDifference = Math.abs(Math.floor(ry - (this.parentEntity.posY || (this.parentEntity.getPosition && this.parentEntity.getPosition().y))));
+
+        if (xDifference <= this.collectionRange && yDifference <= this.collectionRange) {
+          // Try to collect the resource
+          if (this.addResource(resource)) {
+            // Notify the resource it's being picked up if it supports that API
+            if (resource && typeof resource.pickUp === 'function') {
+              try { resource.pickUp(this.parentEntity); } catch (e) { /* best-effort */ }
+            }
+            // Remove from global list
+            fruits.splice(i, 1);
+          }
+
+          if (this.isAtMaxLoad()) {
+            const dropPointX = 0; // Default drop-off coordinates
+            const dropPointY = 0;
+            this.startDropOff(dropPointX, dropPointY);
+            break; // Stop collecting, go drop off
+          }
         }
+      }
+    } else if (fruits && typeof fruits === 'object') {
+      // Fallback for object/dictionary shaped resource stores
+      const keys = Object.keys(fruits);
+      for (let key of keys) {
+        const resource = fruits[key];
+        if (!resource) continue;
 
-        // If at max capacity, start drop-off process
-        if (this.isAtMaxLoad()) {
-          const dropPointX = 0; // Default drop-off coordinates
-          const dropPointY = 0;
-          this.startDropOff(dropPointX, dropPointY);
-          break; // Stop collecting, go drop off
+        const rx = (typeof resource.x !== 'undefined') ? resource.x : (resource.posX || (resource.getPosition && resource.getPosition().x));
+        const ry = (typeof resource.y !== 'undefined') ? resource.y : (resource.posY || (resource.getPosition && resource.getPosition().y));
+        if (typeof rx === 'undefined' || typeof ry === 'undefined') continue;
+
+        const xDifference = Math.abs(Math.floor(rx - (this.parentEntity.posX || (this.parentEntity.getPosition && this.parentEntity.getPosition().x))));
+        const yDifference = Math.abs(Math.floor(ry - (this.parentEntity.posY || (this.parentEntity.getPosition && this.parentEntity.getPosition().y))));
+
+        if (xDifference <= this.collectionRange && yDifference <= this.collectionRange) {
+          if (this.addResource(resource)) {
+            if (resource && typeof resource.pickUp === 'function') {
+              try { resource.pickUp(this.parentEntity); } catch (e) { /* best-effort */ }
+            }
+            // remove key from object store
+            delete fruits[key];
+          }
+
+          if (this.isAtMaxLoad()) {
+            const dropPointX = 0; // Default drop-off coordinates
+            const dropPointY = 0;
+            this.startDropOff(dropPointX, dropPointY);
+            break; // Stop collecting, go drop off
+          }
         }
       }
     }
@@ -181,7 +220,7 @@ class ResourceManager {
 
   /**
    * Gets debug information about the resource manager state.
-   * 
+   *
    * @returns {Object} Debug information object
    */
   getDebugInfo() {
@@ -192,7 +231,7 @@ class ResourceManager {
       isDroppingOff: this.isDroppingOff,
       isAtMaxCapacity: this.isAtMaxCapacity,
       collectionRange: this.collectionRange,
-      resourceTypes: this.resources.g_map(r => r.type || 'unknown')
+      resourceTypes: Array.isArray(this.resources) ? this.resources.map(r => (r && (r.type || r._type)) || 'unknown') : []
     };
   }
 

@@ -408,6 +408,31 @@ class MovementController {
   }
 }
 
+// Static helper to move an entity to a tile coordinate (used by AntUtilities)
+MovementController.moveEntityToTile = function(entity, tileX, tileY, tileSize = 32, pathMap = null) {
+  if (!entity) return false;
+  const px = tileX * tileSize + Math.floor(tileSize / 2);
+  const py = tileY * tileSize + Math.floor(tileSize / 2);
+
+  // Prefer delegating to entity.moveToLocation if present
+  if (typeof entity.moveToLocation === 'function') {
+    return entity.moveToLocation(px, py);
+  }
+
+  // Otherwise use the entity's MovementController instance if available
+  if (entity._movementController && typeof entity._movementController.moveToLocation === 'function') {
+    return entity._movementController.moveToLocation(px, py);
+  }
+
+  // As a last resort, try setting position directly
+  if (typeof entity.setPosition === 'function') {
+    entity.setPosition(px, py);
+    return true;
+  }
+
+  return false;
+};
+
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
   module.exports = MovementController;

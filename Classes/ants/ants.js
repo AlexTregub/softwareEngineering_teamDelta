@@ -437,6 +437,8 @@ function antsUpdate() {
 }
 
 
+
+
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { ant, antsSpawn , antsUpdate, antLoopPropertyCheck };

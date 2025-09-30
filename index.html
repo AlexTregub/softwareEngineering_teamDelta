@@ -7,7 +7,7 @@
     <title>ANTS!</title>
 
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="Images/favicon.ico">
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
 
@@ -18,8 +18,12 @@
     <script src="Classes/containers/StatsContainer.js"></script>
     <script src="Classes/containers/Entity.js"></script>
     <script src="Classes/systems/text/textRenderer.js"></script>
+    
 
     <!-- Core Systems -->
+    <script src="Classes/resource.js"></script>
+    <script src="Classes/resources.js"></script>
+    <script src="Classes/managers/ResourceManager.js"></script>
     <script src="Classes/systems/CollisionBox2D.js"></script>
     <script src="Classes/systems/Button.js"></script>
     <script src="Classes/managers/TileInteractionManager.js"></script>
@@ -63,6 +67,8 @@
     <script src="Classes/ants/Job.js"></script>
     <script src="Classes/ants/antWrapper.js"></script>
     <script src="Classes/ants/Queen.js"></script>
+    <script src="Classes/ui/menu.js"></script>
+    <script src="Classes/ui/spawnKillUI.js"></script>
     <script src="Classes/grid.js"></script>
     <script src="debug/commandLine.js"></script>
     <script src="debug/testing.js"></script>
@@ -76,6 +82,7 @@
   </head>
 
   <body>
+    <script src="test/debugPickup.js"></script>
     <script src="sketch.js"></script>
   </body>
 </html>
