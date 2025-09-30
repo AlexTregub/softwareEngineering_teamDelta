@@ -4,30 +4,6 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
 const NONE = '\0'; 
 
-let playButton;
-let optionButton;
-let exitButton;
-let infoButton;
-let debugButton;
-let menuImage;
-
-function preload(){
-  test_stats();
-  terrainPreloader()
-  Ants_Preloader()
-  resourcePreLoad();
-  g_menuFont = loadFont("Images/Assets/Terraria.TTF");
-  menuImage = loadImage("Images/Assets/Menu/ant_logo1.png");
-  playButton = loadImage("Images/Assets/Menu/play_button.png");
-  optionButton = loadImage("Images/Assets/Menu/options_button.png");
-  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
-  infoButton = loadImage("Images/Assets/Menu/info_button.png");
-  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
-  videoButton = loadImage("Images/Assets/Menu/vs_button.png");
-  audioButton = loadImage("Images/Assets/Menu/as_button.png");
-  controlButton = loadImage("Images/Assets/Menu/controls_button.png");
-  backButton = loadImage("Images/Assets/Menu/back_button.png");
-}
 // --- CONTROLLER DECLARATIONS ---
 let g_mouseController;
 let g_keyboardController;
@@ -44,6 +20,13 @@ let g_menuFont;
 let g_recordingPath;
 
 
+function preload(){
+  test_stats();
+  terrainPreloader();
+  Ants_Preloader();
+  resourcePreLoad();
+  menuPreload();
+}
 
 /**
  * draw

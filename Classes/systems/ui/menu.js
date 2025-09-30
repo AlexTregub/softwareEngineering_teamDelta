@@ -1,6 +1,13 @@
 // Concise Menu System for Ant Game - Uses GameStateManager
 let menuButtons = [];
 let titleY = -100, titleTargetY, titleSpeed = 9;
+let menuButton;
+let playButton;
+let optionButton;
+let exitButton;
+let infoButton;
+let debugButton;
+let menuImage;
 
 // Button configurations for each menu state
 const MENU_CONFIGS = {
@@ -23,6 +30,20 @@ const MENU_CONFIGS = {
   ]
 };
 
+function menuPreload(){
+  g_menuFont = loadFont("Images/Assets/Terraria.TTF");
+  menuImage = loadImage("Images/Assets/Menu/ant_logo1.png");
+  playButton = loadImage("Images/Assets/Menu/play_button.png");
+  optionButton = loadImage("Images/Assets/Menu/options_button.png");
+  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
+  infoButton = loadImage("Images/Assets/Menu/info_button.png");
+  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
+  videoButton = loadImage("Images/Assets/Menu/vs_button.png");
+  audioButton = loadImage("Images/Assets/Menu/as_button.png");
+  controlButton = loadImage("Images/Assets/Menu/controls_button.png");
+  backButton = loadImage("Images/Assets/Menu/back_button.png");
+}
+
 // Initialize menu system
 function initializeMenu() {
   titleTargetY = g_canvasY / 2 - 150;
@@ -38,31 +59,84 @@ function initializeMenu() {
 
 // Load buttons for current state
 function loadButtons() {
-  const centerX = g_canvasX / 2, centerY = g_canvasY / 2;
-  const currentState = GameState.getState();
-  menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).g_map(btn => 
-    createMenuButton(centerX + btn.x, centerY + btn.y, btn.w, btn.h, btn.text, btn.style, btn.action)
-  );
+    const centerX = g_canvasX / 2, centerY = g_canvasY / 2;
+    const currentState = GameState.getState();
+
+    menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).map(btn => {
+      let img = null;
+      switch (btn.text) {
+        case "Start Game":
+          img = playButton;
+          break;
+        case "Options":
+          img = optionButton;
+          break;
+        case "Exit Game":
+          img = exitButton;
+          break;
+        case "Credits":
+          img = infoButton;
+          break;
+        case "Audio Settings":
+          img = audioButton;
+          break;
+        case "Video Settings":
+          img = videoButton;
+          break;
+        case "Controls":
+          img = controlButton;
+          break;
+        case "Back to Menu":
+          img = backButton;
+          break;
+        case "Debug":
+          img = debugButton;
+          break;
+        default:
+          img = null;
+        
+      }
+
+      return createMenuButton(
+            centerX + btn.x,
+            centerY + btn.y,
+            btn.w,
+            btn.h,
+            btn.text,
+            btn.style,
+            btn.action,
+            img 
+      );
+  });
+
+    // Register buttons for click handling
+    setActiveButtons(menuButtons);
 }
+
 
 // Start game with fade transition
 function startGameTransition() {
-  GameState.startGame();
+    // Only start fade out, do NOT switch state yet
+    GameState.startFadeTransition("out");
 }
 
 // Main menu render function
 function drawMenu() {
-  textAlign(CENTER, CENTER);
+    textAlign(CENTER, CENTER);
   
-  // Animate title
-  if (titleY < titleTargetY) {
-    titleY += titleSpeed;
-    if (titleY > titleTargetY) titleY = titleTargetY;
-  }
+    // --- Title drop animation ---
+    let easing = 0.07;
+    titleY += (titleTargetY - titleY) * easing;
+    let floatOffset = sin(frameCount * 0.03) * 5;
   
-  // Draw title and buttons
-  const titleText = GameState.isInOptions() ? "OPTIONS" : "ANTS!";
-  outlinedText(titleText, g_canvasX / 2, titleY, g_menuFont, 48, color(255), color(0));
+    // Draw logo instead of plain text
+    imageMode(CENTER);
+    if (menuImage) {
+      image(menuImage, g_canvasX / 2, (titleY - 50) + floatOffset, 700, 700);
+    } else {
+      // fallback outlined text if image fails
+      outlinedText("ANTS!", g_canvasX / 2, titleY + floatOffset, g_menuFont, 48, color(255), color(0));
+    }
   
   menuButtons.forEach(btn => {
     btn.update(mouseX, mouseY, mouseIsPressed);
@@ -72,19 +146,21 @@ function drawMenu() {
 
 // Update menu transitions
 function updateMenu() {
-  if (GameState.isInMenu() && GameState.isFadingTransition()) {
-    if (GameState.updateFade(5)) {
-      // Fade complete, transition to playing
-      GameState.setState("PLAYING");
-    }
-  } else if (GameState.isInGame()) {
-    // Handle fade-out when returning from game
-    const currentAlpha = GameState.getFadeAlpha();
-    if (currentAlpha > 0) {
-      GameState.setFadeAlpha(currentAlpha - 10);
+    if (GameState.isFadingTransition()) {
+      const fadeComplete = GameState.updateFade(10);
+  
+      if (fadeComplete) {
+        if (GameState.fadeDirection === "out") {
+          // Fade-out done → switch state to PLAYING
+          GameState.setState("PLAYING", true); // skip callbacks if needed
+          GameState.startFadeTransition("in"); // start fade-in
+        } else {
+          // Fade-in done → stop fading
+          GameState.stopFadeTransition();
+        }
+      }
     }
   }
-}
 
 // Render complete menu system
 function renderMenu() {
