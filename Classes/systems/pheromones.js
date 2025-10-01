@@ -8,8 +8,9 @@ class Stench{
         
 
     */
-    constructor(state, antType){
+    constructor(state, allegience){
         this.state = state;
+        this.origin = allegience;
         this.stress = 0;
         this.strength = 0;
     }

@@ -1,6 +1,6 @@
 class PathMap{
   constructor(terrain){
-    // this._terrain = terrain; //Requires terrain(for weight, objects, etc.), only used in construction
+    this._terrain = terrain; //Requires terrain(for weight, objects, etc.), only used in construction
     this._grid = new Grid( //Makes Grid for easy tile storage/access
       terrain._xCount, //Size of terrain to match
       terrain._yCount,
@@ -58,7 +58,7 @@ function wander(grid, node, travelled, ant, state){
         Leaves pheromone related to its current task
   */
   if(node.scents != [] && !avoidSmellCheck){
-    let result = tryTrack(node.scents, ant);
+    let result = tryTrack(node.scents, ant.speciesName, travelled);
     if(result = 0){
       ant.avoidSmellCheck = true; //this should be implemented into Ant class. Ants stop checking smell (at least temp) once test failed
       return findBestNeighbor(grid, node, travelled);
@@ -116,10 +116,67 @@ function tryTrack(scents, antType, failedTrailTypes){
       If ant rejects pheromone, return 0 to have wander run wander. This should set an ant flag to 'false' so the ant continues to make its own path using wander instead of constant smelling.
       If smelled trail type failed before, ignore. If unsmelled before, run calc.
   */
-
   let job = antType;
-  switch(); //Switch statement for different ant types
+  let followBuildTrail;
+  let followForageTrail;
+  let followFarmTrail;
+  let followEnemyTrail;
+  let followBossTrail = 1;
+  switch (job) {
+    case "Builder":
+        followBuildTrail = 0.9;
+        followForageTrail = 0.05;
+        followFarmTrail = 0;
+        followEnemyTrail = 0.05;
+    case "Scout":
+        followBuildTrail = 0.25;
+        followForageTrail = 0.25;
+        followFarmTrail = 0.25;
+        followEnemyTrail = 0.25;
+    case "Farmer":
+        followBuildTrail = 0;
+        followForageTrail = 0.1;
+        followFarmTrail = 0.85;
+        followEnemyTrail = 0.05;
+    case "Warrior":
+        followBuildTrail = 0;
+        followForageTrail = 0.2;
+        followFarmTrail = 0;
+        followEnemyTrail = 1;
+    case "Spitter":
+        followBuildTrail = 0;
+        followForageTrail = 0.2;
+        followFarmTrail = 0;
+        followEnemyTrail = 1;
+    case "DeLozier":
+        followBuildTrail = 0;
+        followForageTrail = 0;
+        followFarmTrail = 0;
+        followEnemyTrail = 0;
+    default:
+        followBuildTrail = 0;
+        followForageTrail = 0.75;
+        followFarmTrail = 0;
+        followEnemyTrail = 0.25;
+  } //Switch statement for different ant types
+    /*Different pheromone types
+        Should be built on two factors: faction(enemy,neutral) and purpose
+        Purposes:
+          To forage - Placed after food found. Scout (foragers) prioritize this
+          To home - Placed when walking from home.
+          To farm - Placed by farmers. Farmer only trail since only they farm
+          To enemy - Placed by ant when foreign pheromone detected. Trail when reporting location. Strong diffusion during combat. Prioritized by warriors and spitters
+          To build - Placed by builders. Only used by builders since only they build
+          Boss (Special) - All ants should follow. Diffuses instantly so all ants know
+          Default - Unnamed trail
+    */
+  for(let i = 0; i < scents.length; i++){
+    let scent = scents[i];
+    switch(scent){
+      case "default":
 
+    }
+  }
 }
 
 ////Problem: When an ant breaks off from a path to optimize, how do we make sure it doesn't just wander randomly again? Keep moving in same direction
