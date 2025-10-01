@@ -199,7 +199,7 @@ suite.test('Sketch.js calls selection functions correctly', () => {
   // Should pass the right parameters to handleMouseReleased
   const mouseReleasedCall = content.match(/handleMouseReleased\((.*?)\)/);
   if (mouseReleasedCall) {
-    const params = mouseReleasedCall[1].split(',').g_map(p => p.trim());
+    const params = mouseReleasedCall[1].split(',').map(p => p.trim());
     suite.assertTrue(params.length >= 4, 'handleMouseReleased should be called with at least 4 parameters');
     suite.assertTrue(params.includes('selectedAnt'), 'Should pass selectedAnt parameter');
     suite.assertTrue(params.includes('TILE_SIZE'), 'Should pass TILE_SIZE parameter');
