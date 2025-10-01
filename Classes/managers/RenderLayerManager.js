@@ -276,8 +276,8 @@ class RenderLayerManager {
     
     // Debug grid for playing state
     if (gameState === 'PLAYING' && typeof drawDebugGrid === 'function') {
-      if (typeof GRIDMAP !== 'undefined' && GRIDMAP) {
-        drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+      if (typeof g_gridMap !== 'undefined' && g_gridMap) {
+        drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
       }
     }
   }
