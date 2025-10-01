@@ -184,11 +184,12 @@ function uiRender(){
 function debugRender() {
   drawDevConsoleIndicator();
   drawCommandLine();
-  
+
   // Draw global performance graph when debug mode is enabled
   if (typeof getEntityDebugManager === 'function') {
     const manager = getEntityDebugManager();
     if (manager && manager.isDebugEnabled && manager.showGlobalPerformance) {
+
       // Position in top-right corner, with some margin from the edge
       const graphX = g_canvasX - 360;
       const graphY = 10;
@@ -203,8 +204,9 @@ function debugRender() {
         highlightColor: [255, 255, 100],
         showEntityBreakdown: true
       });
+        manager.update();
+      }
     }
-  }
 }
 
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {

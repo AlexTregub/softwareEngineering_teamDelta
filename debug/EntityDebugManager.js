@@ -91,9 +91,12 @@ class EntityDebugManager {
     
     // Integrate with existing debug system
     if (typeof window !== 'undefined') {
-      window.addEventListener('keydown', this._handleKeyDown.bind(this));
+      // Bind once and store the handler so we can remove the exact same
+      // function reference later (avoid removeEventListener mismatch)
+      this._keyDownHandler = this._handleKeyDown.bind(this);
+      window.addEventListener('keydown', this._keyDownHandler);
       this._listenersAttached = true;
-      
+
       console.log('EntityDebugManager: Event listeners attached');
     }
   }
