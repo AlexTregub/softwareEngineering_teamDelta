@@ -14,7 +14,7 @@ let scrollOffset = 0; // For scrolling through output
 let originalConsoleLog = console.log;
 console.log = function(...args) {
   // Call original console.log
-  originalConsoleLog.apply(console, args);
+  //originalConsoleLog.apply(console, args);
   
   // Capture output for command line display
   if (commandLineActive) {

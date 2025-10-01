@@ -17,7 +17,9 @@ let optionButton;
 let exitButton;
 let infoButton;
 let debugButton;
-
+let cameraX = 0;
+let cameraY = 0;
+let cameraSpeed = 10;
 function preload(){
   test_stats();
   terrainPreloader()
@@ -39,6 +41,7 @@ function preload(){
 // MOUSE INTERACTIONS
 function mousePressed() {
   if (isInGame()) {  // only allow ant interactions in game
+    originalConsoleLog("b");
     if (typeof handleMousePressed === 'function') {
       handleMousePressed(
         ants,
@@ -88,8 +91,40 @@ function keyPressed() {
       deselectAllEntities();
     }
   }
+
+
 }
 
+function updateCamera() {
+  originalConsoleLog(cameraX, cameraY);
+  if(!isInGame()) return;
+  let dx=0, dy=0;
+  if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) { // Left arrow or 'A'
+    originalConsoleLog("Left key is down");
+    cameraX -= cameraSpeed;
+    
+  }
+  if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) { // Right arrow or 'D'
+    originalConsoleLog("Right key is down");
+    cameraX += cameraSpeed;
+  }
+  if (keyIsDown(UP_ARROW) || keyIsDown(87)) { // Up arrow or 'W'
+    cameraY -= cameraSpeed;
+    originalConsoleLog("Up key is down");
+  }
+  if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) { // Down arrow or 'S'
+    cameraY += cameraSpeed;
+    originalConsoleLog("Down key is down");
+  }
+
+  // if(dx||dy) {
+  //   const maxX = max(0, MAP._xCount * TILE_SIZE - CANVAS_X);
+  //   const maxY = max(0, MAP._yCount * TILE_SIZE - CANVAS_Y);
+  //   cameraX = constrain(cameraX + dx, 0, maxX);
+  //   cameraY = constrain(cameraY + dy, 0, maxY);
+  //   COORDSY.setViewCornerBC(cameraX, cameraY);
+  // }
+}
 // Command line functionality has been moved to debug/commandLine.js
 
 ////// MAIN
@@ -134,6 +169,7 @@ function setupTests() {
 }
 
 function draw() {
+  console.log("t");
   background(0);
 
   // --- UPDATE MENU STATE ---
@@ -146,9 +182,13 @@ function draw() {
 
   // --- PLAYING ---
   if (GameState.isInGame()) {
+    push();
+    translate(-cameraX, -cameraY);
+
     MAP.render();
     Ants_Update();
     resourceList.drawAll();
+    pop();
 
     if (typeof drawSelectionBox === 'function') drawSelectionBox();
     drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
@@ -160,7 +200,7 @@ function draw() {
     if (typeof drawCommandLine === 'function') {
       drawCommandLine();
     }
-
+    updateCamera();
     drawUI();
   }
 
@@ -180,7 +220,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   strokeWeight(1);
   noFill();
-
+  console.log("t");
   for (let x = 0; x < gridWidth; x++) {
     for (let y = 0; y < gridHeight; y++) {
       rect(x * tileSize, y * tileSize, tileSize, tileSize);

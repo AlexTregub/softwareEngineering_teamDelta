@@ -51,7 +51,7 @@ function isEntityUnderMouse(entity, mx, my) {
 function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, selectedEntity, moveSelectedEntityToTile, TILE_SIZE, mousePressed) {
   // Spread out multi-selected entities around the clicked location
   if (selectedEntities.length > 1 && mousePressed === LEFT) {
-    moveSelectedAntsToTile(mouseX, mouseY, TILE_SIZE);
+    moveSelectedAntsToTile(mouseX+cameraX, mouseY+cameraY, TILE_SIZE);
     deselectAllEntities();
     return;
   } else if (mousePressed == RIGHT) {
@@ -70,7 +70,7 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
     // Safety check: ensure entity has required methods
     if (!entity || typeof entity.isMouseOver !== 'function') continue;
     
-    if (isEntityUnderMouse(entity, mouseX, mouseY)) {
+    if (isEntityUnderMouse(entity, mouseX+cameraX, mouseY+cameraY)) {
       // Safety check: ensure callback exists before calling
       if (typeof selectEntityCallback === 'function') {
         selectEntityCallback();
@@ -83,7 +83,7 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
   // If no entity was clicked, start box selection (regardless of whether an entity is selected)
   if (!entityWasClicked) {
     isSelecting = true;
-    selectionStart = createVector(mouseX, mouseY);
+    selectionStart = createVector(mouseX+cameraX, mouseY+cameraY);
     selectionEnd = selectionStart.copy();
   }
 }
@@ -91,7 +91,7 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
 // Handles mouse drag for updating selection box
 function handleMouseDragged(mouseX, mouseY, entities) {
   if (isSelecting) {
-    selectionEnd = createVector(mouseX, mouseY);
+    selectionEnd = createVector(mouseX+cameraX, mouseY+cameraY);
 
     let x1 = Math.min(selectionStart.x, selectionEnd.x);
     let x2 = Math.max(selectionStart.x, selectionEnd.x);
