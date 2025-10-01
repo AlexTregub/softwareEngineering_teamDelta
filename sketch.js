@@ -40,8 +40,8 @@ function preload(){
 
 
 function setup() {
-  g_canvasX = window.innerWidth;
-  g_canvasY = window.innerHeight;
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
   createCanvas(g_canvasX, g_canvasY);
   initializeWorld();
 
