@@ -272,17 +272,19 @@ class gridTerrain {
                 window.noSmooth = () => this._terrainCache.noSmooth();
                 window.smooth = () => this._terrainCache.smooth();
                 
-                // Call the material's render function
-                TERRAIN_MATERIALS_RANGED[material][1](cachePos[0], cachePos[1], this._tileSize);
-                
-                // Restore original p5.js functions
-                window.fill = currentFillFunc;
-                window.stroke = currentStrokeFunc;
-                window.noStroke = currentNoStrokeFunc;
-                window.image = currentImageFunc;
-                window.rect = currentRectFunc;
-                window.noSmooth = currentNoSmoothFunc;
-                window.smooth = currentSmoothFunc;
+                try {
+                    // Call the material's render function
+                    TERRAIN_MATERIALS_RANGED[material][1](cachePos[0], cachePos[1], this._tileSize);
+                } finally {
+                    // Restore original p5.js functions
+                    window.fill = currentFillFunc;
+                    window.stroke = currentStrokeFunc;
+                    window.noStroke = currentNoStrokeFunc;
+                    window.image = currentImageFunc;
+                    window.rect = currentRectFunc;
+                    window.noSmooth = currentNoSmoothFunc;
+                    window.smooth = currentSmoothFunc;
+                }
             } else {
                 // Fallback: draw a default colored tile
                 this._terrainCache.fill(100, 150, 100); // Default grass color
