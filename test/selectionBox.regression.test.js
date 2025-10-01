@@ -371,7 +371,7 @@ suite.test('REGRESSION: Wrapped ant selection compatibility', () => {
   resetTestState();
   
   // Create wrapped versions
-  let wrappedAnts = mockAnts.g_map(ant => ({ antObject: ant }));
+  let wrappedAnts = mockAnts.map(ant => ({ antObject: ant }));
   
   // Try single selection on wrapped ant
   mouseX = 110;
