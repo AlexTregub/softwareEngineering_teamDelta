@@ -14,10 +14,10 @@ class Chunk {
     }
 
     randomize(posOffset) {
-        // Set chunk-seed (arbitrary, ideally shouldnt have collision)
+        // Set chunk-g_seed (arbitrary, ideally shouldnt have collision)
         // randomSeed(
-        //     // sign(x)((seed^x)/y) for chunkPos x,y .
-        //     Math.sign(this.tileData.getObjPos()[0])*pow(seed,abs(this.tileData.getObjPos()[0])+0.5)/(this.tileData.getObjPos()[1]+0.5)
+        //     // sign(x)((g_seed^x)/y) for chunkPos x,y .
+        //     Math.sign(this.tileData.getObjPos()[0])*pow(g_seed,abs(this.tileData.getObjPos()[0])+0.5)/(this.tileData.getObjPos()[1]+0.5)
         // );
 
         let width = this.tileData.getSize()[0]; // ASSUMED SQUARE

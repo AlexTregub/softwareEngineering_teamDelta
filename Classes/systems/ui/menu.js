@@ -9,6 +9,7 @@ let infoButton;
 let debugButton;
 let menuImage;
 let menuHeader = null;
+let g_mapRendered
 
 // layout debug data is produced by VerticalButtonList and exposed via
 // window.menuLayoutData so debug rendering code can access it without
@@ -119,11 +120,8 @@ function loadButtons() {
 
   // Register buttons for click handling
   setActiveButtons(menuButtons);
+  g_mapRendered = false;
 }
-
-
-
-
 
 // Start game with fade transition
 function startGameTransition() {
@@ -185,11 +183,12 @@ function updateMenu() {
     }
   }
 
+
+
 // Render complete menu system
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
-    g_map.render();
-    antsUpdate();
+    if (!g_mapRendered) { g_map2.render(); g_mapRendered = true }
     drawMenu();
     
     const fadeAlpha = GameState.getFadeAlpha();

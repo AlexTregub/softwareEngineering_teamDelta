@@ -21,7 +21,7 @@ ______________________...........(7.5,7.5)
 */
 
 class gridTerrain {
-    constructor(gridSizeX,gridSizeY,seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[CANVAS_X,CANVAS_Y]) {
+    constructor(gridSizeX,gridSizeY,g_seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[g_canvasX,g_canvasY]) {
         this._gridSizeX = gridSizeX;
         this._gridSizeY = gridSizeY;
         
@@ -37,7 +37,7 @@ class gridTerrain {
 
         this._chunkSize = chunkSize; // Chunk size (in tiles)
         this._tileSize = tileSize; // tile size (in pixels)
-        this._seed = seed;
+        this._seed = g_seed;
         
         // chunkArray considered public
         this.chunkArray = new Grid(this._gridSizeX,this._gridSizeY, 
@@ -72,7 +72,7 @@ class gridTerrain {
                 this._tileSize
             );
 
-            this.chunkArray.rawArray[i].randomize(seed); // Randomize at creation, not necessarily working correctly
+            this.chunkArray.rawArray[i].randomize(g_seed); // Randomize at creation, not necessarily working correctly
         }
 
         this._canvasSize = canvasSize;
@@ -114,8 +114,8 @@ class gridTerrain {
         }
     }
 
-    randomize(seed=this._seed) {
-        noiseSeed(seed);
+    randomize(g_seed=this._seed) {
+        noiseSeed(g_seed);
 
         for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
             this.chunkArray.rawArray[i].randomize(this._tileSpanRange);

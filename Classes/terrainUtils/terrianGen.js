@@ -91,11 +91,11 @@ class Terrain {
 
 
   //// Usage
-  randomize(seed) { // Randomize all values via set seed
-    randomSeed(seed); // Set global seed.
+  randomize(g_seed) { // Randomize all values via set g_seed
+    randomSeed(g_seed); // Set global g_seed.
 
     for (let i = 0; i < this._xCount*this._yCount; ++i) {
-      this._tileStore[i].randomizeMaterial(); // Rng calls should use global seed
+      this._tileStore[i].randomizeMaterial(); // Rng calls should use global g_seed
     }
   }
 

@@ -7,21 +7,6 @@ const CHUNKS_Y = 20;
 
 const NONE = '\0'; 
 
-let SEED;
-let MAP;
-let MAP2;
-
-let GRIDMAP;
-let COORDSY;
-let font;
-let recordingPath;
-let menuImage;
-let playButton;
-let optionButton;
-let exitButton;
-let infoButton;
-let debugButton;
-
 // --- CONTROLLER DECLARATIONS ---
 let g_mouseController;
 let g_keyboardController;
@@ -30,6 +15,7 @@ let g_tileInteractionManager; // Efficient tile-based interaction system
 // --- WORLD GENERATION ---
 let g_seed;
 let g_map;
+let g_map2;
 let g_gridMap;
 let g_coordsy;
 // --- UI ---
@@ -54,29 +40,6 @@ function preload(){
 
 
 function setup() {
-  CANVAS_X = windowWidth;
-  CANVAS_Y = windowHeight;
-  createCanvas(CANVAS_X, CANVAS_Y);
-
-  SEED = hour()*minute()*floor(second()/10);
-
-  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
-  // MAP.randomize(SEED); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
-  
-  // New, Improved, and Chunked Terrain
-  MAP2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,SEED,CHUNK_SIZE,TILE_SIZE,[CANVAS_X,CANVAS_Y]);
-  MAP2.randomize(SEED);
-  MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
-  
-  // COORDSY = MAP.getCoordinateSystem();
-  // COORDSY.setViewCornerBC(0,0);
-  
-  GRIDMAP = new PathMap(MAP);
-  COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
-  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-
-  
-
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   createCanvas(g_canvasX, g_canvasY);
@@ -97,7 +60,7 @@ function setup() {
   }
   // Do not force spawn UI visible here; spawn UI is dev-console-only by default.
 
-  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
+  // g_seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
     if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.spawn === 'function') {
       g_resourceManager.spawn();
@@ -113,17 +76,26 @@ function setup() {
  * for tests or reset logic.
  */
 function initializeWorld() {
+
   g_seed = hour()*minute()*floor(second()/10);
 
-  g_map = new Terrain(g_canvasX + 300, g_canvasY + 300, TILE_SIZE);
-  g_map.randomize(g_seed);
-  g_coordsy = g_map.getCoordinateSystem();
-  g_coordsy.setViewCornerBC(0,0);
+  g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
+  // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
+  
+  // New, Improved, and Chunked Terrain
+  g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  g_map2.randomize(g_seed);
+  g_map2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  
+  // COORDSY = MAP.getCoordinateSystem();
+  // COORDSY.setViewCornerBC(0,0);
+  
+  GRIDMAP = new PathMap(g_map);
+  COORDSY = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
+  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
 
-  g_gridMap = new PathMap(g_map);
-  // Ensure coordinate system is available and aligned to the top-left of the backing canvas
-  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
-  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas
+  
+
 }
 
 
@@ -153,9 +125,7 @@ function draw() {
 
   // --- PLAYING ---
   if (GameState.isInGame()) {
-    MAP2.render();
-    Ants_Update();
-    resourceList.drawAll();
+    g_map2.render();
 
     if (typeof drawSelectionBox === 'function') drawSelectionBox();
     drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
@@ -167,8 +137,9 @@ function draw() {
     if (typeof drawCommandLine === 'function') {
       drawCommandLine();
     }
+  }
 
-    drawUI();
+
   mapRender();
   fieldRender();
   uiRender();
@@ -186,8 +157,8 @@ function draw() {
  * development and gameplay features such as selection and movement targeting.
  */
 function mapRender(){
-  g_map.render();
-  drawDebugGrid(TILE_SIZE, Math.floor((g_canvasX + 300) / TILE_SIZE), Math.floor((g_canvasY + 300) / TILE_SIZE));
+  //g_map2.render();
+  //drawDebugGrid(TILE_SIZE, Math.floor((g_canvasX + 300) / TILE_SIZE), Math.floor((g_canvasY + 300) / TILE_SIZE));
 }
 
 /**
@@ -376,10 +347,3 @@ function keyPressed() {
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
 }
-
-// Command line functionality has been moved to debug/commandLine.js
-
-////// MAIN
-
-
-
