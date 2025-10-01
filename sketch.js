@@ -131,7 +131,7 @@ function legacyRender() {
   // --- PLAYING ---
   if (GameState.isInGame()) {
     if (typeof drawSelectionBox === 'function') drawSelectionBox();
-    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+    drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
 
     if (typeof drawDevConsoleIndicator === 'function') {
       drawDevConsoleIndicator();
