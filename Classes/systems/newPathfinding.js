@@ -78,7 +78,7 @@ function wander(grid, node, travelled, ant, state){
 }
 
 function findBestNeighbor(grid, node, travelled){
-  let shortestDistance = 1000;
+  let shortestDistance = Infinity;
   let x = node._x;
   let y = node._y;
   let bestNeighbor = null;
@@ -116,6 +116,10 @@ function tryTrack(scents, antType, failedTrailTypes){
       If ant rejects pheromone, return 0 to have wander run wander. This should set an ant flag to 'false' so the ant continues to make its own path using wander instead of constant smelling.
       If smelled trail type failed before, ignore. If unsmelled before, run calc.
   */
+
+  let job = antType;
+  switch(); //Switch statement for different ant types
+
 }
 
 ////Problem: When an ant breaks off from a path to optimize, how do we make sure it doesn't just wander randomly again? Keep moving in same direction
