@@ -181,6 +181,7 @@ function updateMenu() {
         }
       }
     }
+    renderMenu()
   }
 
 
@@ -188,8 +189,7 @@ function updateMenu() {
 // Render complete menu system
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
-    if (!g_mapRendered) { g_map2.render(); g_mapRendered = true }
-    drawMenu();
+    drawMenu()
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {

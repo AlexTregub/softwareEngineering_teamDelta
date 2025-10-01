@@ -40,8 +40,8 @@ function preload(){
 
 
 function setup() {
-  g_canvasX = windowWidth;
-  g_canvasY = windowHeight;
+  g_canvasX = window.innerWidth;
+  g_canvasY = window.innerHeight;
   createCanvas(g_canvasX, g_canvasY);
   initializeWorld();
 
@@ -90,12 +90,13 @@ function initializeWorld() {
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
-  GRIDMAP = new PathMap(g_map);
-  COORDSY = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
-  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-
-  
-
+  g_gridMap = new PathMap(g_map);
+  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
+  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+   // Initialize the render layer manager if not already done
+  if (typeof RenderManager !== 'undefined' && !RenderManager.isInitialized) {
+    RenderManager.initialize();
+  }
 }
 
 
@@ -113,32 +114,32 @@ function initializeWorld() {
  * interactive entities, and UI components. Called automatically by p5.js each frame.
  */
 function draw() {
+  // Clear the canvas
   background(0);
 
-  // --- UPDATE MENU STATE ---
-  updateMenu();
-
-  // --- MENU / OPTIONS ---
-  if (renderMenu()) {
-    return; // menu rendered, stop here
+  // Use the new layered rendering system
+  if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
+    RenderManager.render(GameState.getState());
   }
+}
 
+/**
+ * Legacy rendering fallback
+ * Used when the new rendering system is not available
+ */
+function legacyRender() {
   // --- PLAYING ---
   if (GameState.isInGame()) {
-    g_map2.render();
-
     if (typeof drawSelectionBox === 'function') drawSelectionBox();
     drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
 
     if (typeof drawDevConsoleIndicator === 'function') {
       drawDevConsoleIndicator();
-    }
-  
+    }  
     if (typeof drawCommandLine === 'function') {
       drawCommandLine();
     }
   }
-
 
   mapRender();
   fieldRender();
@@ -148,67 +149,179 @@ function draw() {
 /**
  * mapRender
  * ---------
- * Renders the game g_map background and overlays the debug grid.
- * 
- * This function should be called prior to rendering dynamic entities and UI elements,
- * ensuring the g_map and grid are drawn as the foundational visual layer.
- * 
- * The debug grid assists with tile-based visualization and interaction, supporting
- * development and gameplay features such as selection and movement targeting.
+ * Legacy terrain rendering function - now primarily used as fallback
+ * The new RenderLayerManager handles terrain rendering through its terrain layer
  */
 function mapRender(){
-  //g_map2.render();
-  //drawDebugGrid(TILE_SIZE, Math.floor((g_canvasX + 300) / TILE_SIZE), Math.floor((g_canvasY + 300) / TILE_SIZE));
+  // Check if we should use the new rendering system
+  if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
+    // Let RenderLayerManager handle terrain rendering
+    return;
+  }
+  
+  // Legacy fallback terrain rendering
+  if (typeof g_map2 !== 'undefined' && g_map2 && typeof g_map2.render === 'function') {
+    g_map2.render();
+  }
 }
 
 /**
  * fieldRender
  * -----------
- * Renders all dynamic game entities and resources to the canvas.
- * Intended to be invoked after the map background is drawn and before UI elements are rendered.
- * 
- * Serves as the primary rendering layer for game objects, ensuring proper visual stacking and separation
- * between g_map, entities, and UI components.
+ * Legacy entity rendering function - now primarily used as fallback
+ * The new RenderLayerManager handles entity rendering through EntityLayerRenderer
  */
 function fieldRender(){
-  antsUpdate();
-  if (g_resourceList && typeof g_resourceList.updateAll === 'function') {
-    g_resourceList.updateAll();
+  // Check if we should use the new rendering system
+  if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
+    // Let RenderLayerManager handle entity rendering
+    return;
   }
-  g_resourceList.drawAll();
+  
+  // Legacy fallback entity rendering
+  const gameState = GameState.getState();
+  
+  switch (gameState) {
+    case GameState.STATES.MENU:
+    case GameState.STATES.OPTIONS:
+      // No field entities to render in menu states
+      break;
+      
+    case GameState.STATES.DEBUG_MENU:
+    case GameState.STATES.PLAYING:
+      // Active gameplay - render all entities and resources
+      if (typeof antsUpdateAndRender === 'function') {
+        antsUpdateAndRender();
+      } else if (typeof antsUpdate === 'function') {
+        antsUpdate();
+      }
+      
+      if (g_resourceList && typeof g_resourceList.updateAll === 'function') {
+        g_resourceList.updateAll();
+      }
+      if (g_resourceList && typeof g_resourceList.drawAll === 'function') {
+        g_resourceList.drawAll();
+      }
+      break;
+      
+    case GameState.STATES.PAUSED:
+    case GameState.STATES.GAME_OVER:
+      // Paused/game over - show entities but no updates
+      if (typeof antsRender === 'function') {
+        antsRender();
+      }
+      if (g_resourceList && typeof g_resourceList.drawAll === 'function') {
+        g_resourceList.drawAll();
+      }
+      break;
+      
+    default:
+      console.warn(`Unknown game state in fieldRender: ${gameState}`);
+      break;
+  }
 }
 
 
 /**
  * uiRender
  * --------
- * Renders all user interface elements and overlays, including selection boxes,
- * developer console indicators, and command line input.
- *
- * This function should be called after rendering the g_map and game entities,
- * ensuring UI components are visually layered above all gameplay elements.
- *
- * Handles conditional rendering of UI features based on game state and controller availability.
+ * Legacy UI rendering function - now primarily used as fallback
+ * The new RenderLayerManager handles UI rendering through dedicated UI layers
  */
 function uiRender(){
-  updateMenu(); // Update menu state and handle transitions
-  // Update dropoff UI each frame (positions, input handling)
-  if (typeof window !== 'undefined' && typeof window.updateDropoffUI === 'function') {
-    window.updateDropoffUI();
+  // Check if we should use the new rendering system
+  if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
+    // Let RenderLayerManager handle UI rendering
+    return;
   }
-  if (renderMenu()) return; // Render menu if active, otherwise render game
-  renderCurrencies();
-  if (g_selectionBoxController) { g_selectionBoxController.draw(); }
-  if(g_recordingPath){ } // (Recording logic here if needed)
-  // Render spawn/delete UI (canvas-based) if available
-  if (typeof window.renderSpawnUI === 'function') {
-    window.renderSpawnUI();
+  
+  // Legacy fallback UI rendering
+  const gameState = GameState.getState();
+  
+  // Always update menu state
+  if (typeof updateMenu === 'function') {
+    updateMenu();
   }
-  // Draw dropoff UI (button, placement preview) after other UI elements
-  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
-    window.drawDropoffUI();
+  
+  switch (gameState) {
+    case GameState.STATES.MENU:
+    case GameState.STATES.OPTIONS:
+    case GameState.STATES.DEBUG_MENU:
+      if (typeof renderMenu === 'function') {
+        renderMenu();
+      }
+      break;
+      
+    case GameState.STATES.PLAYING:
+      // Active gameplay UI
+      if (typeof renderCurrencies === 'function') {
+        renderCurrencies();
+      }
+      
+      if (typeof window !== 'undefined') {
+        if (typeof window.updateDropoffUI === 'function') {
+          window.updateDropoffUI();
+        }
+        if (typeof window.drawDropoffUI === 'function') {
+          window.drawDropoffUI();
+        }
+      }
+      
+      if (typeof window.renderSpawnUI === 'function') {
+        window.renderSpawnUI();
+      }
+      
+      if (g_selectionBoxController) { 
+        g_selectionBoxController.draw(); 
+      }
+      
+      if (typeof debugRender === 'function') {
+        debugRender();
+      }
+      break;
+      
+    case GameState.STATES.PAUSED:
+      // Paused UI
+      if (typeof renderCurrencies === 'function') {
+        renderCurrencies();
+      }
+      
+      // Pause overlay
+      fill(0, 0, 0, 150);
+      rect(0, 0, g_canvasX, g_canvasY);
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(48);
+      text("PAUSED", g_canvasX / 2, g_canvasY / 2);
+      textSize(24);
+      text("Press ESC to resume", g_canvasX / 2, g_canvasY / 2 + 60);
+      break;
+      
+    case GameState.STATES.GAME_OVER:
+      // Game over UI
+      if (typeof renderCurrencies === 'function') {
+        renderCurrencies();
+      }
+      
+      // Game over overlay
+      fill(0, 0, 0, 180);
+      rect(0, 0, g_canvasX, g_canvasY);
+      fill(255, 100, 100);
+      textAlign(CENTER, CENTER);
+      textSize(64);
+      text("GAME OVER", g_canvasX / 2, g_canvasY / 2 - 50);
+      fill(255);
+      textSize(24);
+      text("Press R to restart or ESC for menu", g_canvasX / 2, g_canvasY / 2 + 50);
+      break;
+      
+    default:
+      console.warn(`Unknown game state in uiRender: ${gameState}`);
+      if (typeof renderMenu === 'function') {
+        renderMenu();
+      }
+      break;
   }
-  debugRender();
 }
 
 /**

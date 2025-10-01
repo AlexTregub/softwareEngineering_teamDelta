@@ -435,13 +435,32 @@ function antsUpdate() {
           g_tileInteractionManager.updateObjectPosition(antObj, newPos.x, newPos.y);
         }
       }
+    }
+  }
+}
+
+// --- Render All Ants (Separated from Updates) ---
+function antsRender() {
+  // Render all ants in a single pass for better performance
+  for (let i = 0; i < antIndex; i++) {
+    if (ants[i]) {
+      const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
       
-      // Also render the ant if it has a render method
+      // Render the ant if it has a render method and is active
       if (antObj && typeof antObj.render === "function") {
-        antObj.render();
+        // Check if ant should be rendered (not culled, active, etc.)
+        if (antObj.isActive !== false) { // Default to true if property doesn't exist
+          antObj.render();
+        }
       }
     }
   }
+}
+
+// --- Update and Render All Ants (Legacy function for backward compatibility) ---
+function antsUpdateAndRender() {
+  antsUpdate();
+  antsRender();
 }
 
 
@@ -449,5 +468,5 @@ function antsUpdate() {
 
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ant, antsSpawn , antsUpdate, antLoopPropertyCheck };
+  module.exports = { ant, antsSpawn, antsUpdate, antsRender, antsUpdateAndRender, antLoopPropertyCheck };
 }
