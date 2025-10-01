@@ -86,7 +86,7 @@ let selectedAnt = null;
 let TILE_SIZE = 32;
 
 // Mock functions
-function moveSelectedAntToTile(mx, my, tileSize) {
+function moveSelectedEntityToTile(mx, my, tileSize) {
   if (selectedAnt) {
     selectedAnt.moveCommands = selectedAnt.moveCommands || [];
     selectedAnt.moveCommands.push({ x: mx, y: my, type: 'tile' });

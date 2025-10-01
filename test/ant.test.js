@@ -22,9 +22,9 @@ global.devConsoleEnabled = false;
 
 // Mock array for ant storage
 global.ants = [];
-global.ant_Index = 0;
+global.antIndex = 0;
 
-// Mock stats class
+// Mock StatsContainer class
 class MockStats {
   constructor(position, size, movementSpeed, pendingPos) {
     this.position = { statValue: position };
@@ -33,7 +33,7 @@ class MockStats {
     this.pendingPos = { statValue: pendingPos };
   }
 }
-global.stats = MockStats;
+global.StatsContainer = MockStats;
 
 // Mock Sprite2D class
 class MockSprite2D {
@@ -95,7 +95,7 @@ global.line = () => {};
 class ant {
   constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite) {
     const initialPos = createVector(posX, posY);
-    this._stats = new stats(
+    this._stats = new StatsContainer(
       initialPos,
       { x: sizex, y: sizey },
       movementSpeed,
@@ -103,7 +103,7 @@ class ant {
     );
     this._sprite = new Sprite2D(img, initialPos, createVector(sizex, sizey), rotation);
     this._skitterTimer = random(30, 200);
-    this._antIndex = ant_Index++;
+    this._antIndex = antIndex++;
     this._isMoving = false;
     this._timeUntilSkitter = this._skitterTimer;
     this._path = null;
@@ -123,8 +123,8 @@ class ant {
   }
 
   // Getters/Setters
-  get stats() { return this._stats; }
-  set stats(value) { this._stats = value; }
+  get StatsContainer() { return this._stats; }
+  set StatsContainer(value) { this._stats = value; }
   get sprite() { return this._sprite; }
   set sprite(value) { this._sprite = value; }
   get antIndex() { return this._antIndex; }
@@ -274,7 +274,7 @@ class ant {
     this._nearbyEnemies = [];
     const detectionRadius = 60;
     
-    for (let i = 0; i < ant_Index; i++) {
+    for (let i = 0; i < antIndex; i++) {
       if (!ants[i] || ants[i] === this) continue;
       
       const otherAnt = ants[i].antObject ? ants[i].antObject : ants[i];
@@ -454,7 +454,7 @@ suite.test('Constructor - Custom parameters', () => {
 });
 
 suite.test('Constructor - Ant index assignment', () => {
-  const initialIndex = ant_Index;
+  const initialIndex = antIndex;
   const testAnt1 = new ant();
   const testAnt2 = new ant();
   suite.assertEqual(testAnt1.antIndex, initialIndex, 'First ant should get correct index');
@@ -647,11 +647,11 @@ suite.test('Faction setter', () => {
 
 suite.test('Enemy detection - no enemies', () => {
   ants = []; // Reset global ants array
-  ant_Index = 0;
+  antIndex = 0;
   const testAnt = new ant();
   testAnt.faction = 'blue';
   ants[0] = testAnt;
-  ant_Index = 1;
+  antIndex = 1;
   
   testAnt.checkForEnemies();
   suite.assertEqual(testAnt.nearbyEnemies.length, 0, 'Should find no enemies when alone');
@@ -660,14 +660,14 @@ suite.test('Enemy detection - no enemies', () => {
 
 suite.test('Enemy detection - with enemy', () => {
   ants = []; // Reset global ants array
-  ant_Index = 0;
+  antIndex = 0;
   const testAnt1 = new ant(0, 0);
   const testAnt2 = new ant(30, 30); // Within detection radius
   testAnt1.faction = 'blue';
   testAnt2.faction = 'red';
   ants[0] = testAnt1;
   ants[1] = testAnt2;
-  ant_Index = 2;
+  antIndex = 2;
   
   testAnt1.checkForEnemies();
   suite.assertEqual(testAnt1.nearbyEnemies.length, 1, 'Should detect one enemy');

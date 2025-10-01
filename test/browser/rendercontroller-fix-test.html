@@ -244,14 +244,47 @@
     <!-- Load all required scripts -->
     <script src="libraries/p5.min.js"></script>
     <script src="Classes/entities/sprite2d.js"></script>
-    <script src="Classes/entities/stats.js"></script>
+    <script src="Classes/entities/StatsContainer.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
-    <script src="Classes/systems/ResourceManager.js"></script>
+    <script src="Classes/managers/ResourceManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
     <script src="Classes/systems/MovementController.js"></script>
     <script src="Classes/systems/TaskManager.js"></script>
     <script src="Classes/systems/RenderController.js"></script>
     <script src="Classes/ants/ants.js"></script>
-    <script src="Classes/ants/species.js"></script>
+    <script src="Classes/ants/Job.js"></script>
+    <script>
+        // Auto-run the three tests in sequence and report a compact result via an image beacon
+        (function autoRunTests() {
+            function safeRun(fn) {
+                try { fn(); return { ok: true } } catch (e) { return { ok: false, msg: e.message } }
+            }
+
+            // run after a short delay to allow scripts to initialize
+            setTimeout(() => {
+                const results = { renderController: null, antWithRenderer: null, renderingMethods: null };
+
+                const r1 = safeRun(testRenderController);
+                results.renderController = r1.ok ? 'PASS' : `FAIL:${encodeURIComponent(r1.msg || 'error')}`;
+
+                const r2 = safeRun(testAntWithRenderer);
+                results.antWithRenderer = r2.ok ? 'PASS' : `FAIL:${encodeURIComponent(r2.msg || 'error')}`;
+
+                const r3 = safeRun(testRenderingMethods);
+                results.renderingMethods = r3.ok ? 'PASS' : `FAIL:${encodeURIComponent(r3.msg || 'error')}`;
+
+                const payload = encodeURIComponent(JSON.stringify(results));
+                // Fire-and-forget image beacon so python http.server logs the request
+                const img = new Image();
+                img.src = `/__test_report?d=${payload}`;
+
+                // Also write results into the DOM
+                const el = document.getElementById('test-results');
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(results, null, 2);
+                el.appendChild(pre);
+            }, 1200);
+        })();
+    </script>
 </body>
 </html>

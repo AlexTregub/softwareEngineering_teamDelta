@@ -1,3 +1,4 @@
+// DEPRECATED: This test file checks legacy selectionBox.js logic. The codebase now uses SelectionBoxController and MouseInputController. Update or remove these tests as needed.
 // Simple Selection Box Validation Tests
 // Tests the key functionality that keeps breaking
 // Run with: node test/selectionBox.simple.test.js
@@ -80,14 +81,14 @@ suite.test('Functions have correct parameter signatures', () => {
   const mousePressedMatch = content.match(/function handleMousePressed\((.*?)\)/);
   suite.assertTrue(mousePressedMatch !== null, 'handleMousePressed should have parameters');
   
-  const pressedParams = mousePressedMatch[1].split(',').map(p => p.trim());
+  const pressedParams = mousePressedMatch[1].split(',').g_map(p => p.trim());
   suite.assertTrue(pressedParams.length >= 7, 'handleMousePressed should have at least 7 parameters');
   
   // Check handleMouseReleased parameters  
   const mouseReleasedMatch = content.match(/function handleMouseReleased\((.*?)\)/);
   suite.assertTrue(mouseReleasedMatch !== null, 'handleMouseReleased should have parameters');
   
-  const releasedParams = mouseReleasedMatch[1].split(',').map(p => p.trim());
+  const releasedParams = mouseReleasedMatch[1].split(',').g_map(p => p.trim());
   suite.assertTrue(releasedParams.length >= 4, 'handleMouseReleased should have at least 4 parameters');
 });
 
@@ -135,8 +136,8 @@ suite.test('Multi-selection movement is implemented', () => {
   // Should handle multiple selected entities in selection box
   suite.assertTrue(selectionContent.includes('selectedEntities.length > 1'), 'Should detect multi-selection');
   
-  // Should call moveSelectedAntsToTile function
-  suite.assertTrue(selectionContent.includes('moveSelectedAntsToTile'), 'Should call multi-ant movement function');
+  // Should call moveSelectedEntitiesToTile function
+  suite.assertTrue(selectionContent.includes('moveSelectedEntitiesToTile'), 'Should call multi-entity movement function');
   
   // Should spread ants in circle (in ants.js)
   suite.assertTrue(antsContent.includes('angleStep'), 'Should calculate angle steps for spreading');

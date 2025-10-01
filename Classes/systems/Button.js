@@ -28,8 +28,8 @@ class Button {
    * @param {string} [options.borderColor='#333'] - Border color
    * @param {number} [options.borderWidth=2] - Border thickness
    * @param {number} [options.cornerRadius=5] - Corner rounding radius
-   * @param {string} [options.fontFamily='Arial'] - Font family for text
-   * @param {number} [options.fontSize=16] - Font size for text
+   * @param {string} [options.fontFamily='Arial'] - g_menuFont family for text
+   * @param {number} [options.fontSize=16] - g_menuFont size for text
    * @param {Function} [options.onClick=null] - Click handler function
    * @param {boolean} [options.enabled=true] - Whether button is clickable
    */
@@ -160,16 +160,23 @@ class Button {
       image(this.img, 0, 0, this.width, this.height);
       pop();
     } else {
-      // --- draw rectangle button ---
+      // --- draw rectangle button using configured style colors ---
       push();
       translate(center.x, center.y + hoverFloat);
       scale(this.currentScale);
-      fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
-      stroke(255);
-      strokeWeight(3);
-      rect(0, 0, this.width, this.height, this.cornerRadius);
-  
-      fill(this.textColor);
+      // Use configured colors (strings like '#rrggbb' or rgb) — fall back to green if something is wrong
+      try {
+        const bgColor = hovering ? (this.hoverColor || this.backgroundColor) : (this.backgroundColor || '#64C864');
+        fill(bgColor);
+      } catch (err) {
+        fill(color(100, 200, 100));
+      }
+      try { stroke(this.borderColor || 255); } catch (err) { stroke(255); }
+      strokeWeight(this.borderWidth || 2);
+      rect(0, 0, this.width, this.height, this.cornerRadius || 5);
+
+      // Text
+      fill(this.textColor || 'white');
       noStroke();
       textFont(this.fontFamily);
       textSize(this.fontSize);
@@ -373,7 +380,11 @@ function createMenuButton(x, y, width, height, caption, style = 'default', click
     image: image
   };
 
-  return new Button(x, y, width, height, caption, buttonStyle);
+  const btn = new Button(x, y, width, height, caption, buttonStyle);
+  // Backwards compatibility: some code expects an `action` method/property.
+  // Ensure both modern `onClick` and legacy `action` call the same handler.
+  btn.action = function() { if (typeof btn.onClick === 'function') return btn.onClick(btn); };
+  return btn;
 }
 
 // Export for Node.js compatibility

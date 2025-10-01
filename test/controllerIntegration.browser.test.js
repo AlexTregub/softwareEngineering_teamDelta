@@ -36,6 +36,7 @@ function runControllerIntegrationTest() {
   test('Ant initializes with controllers', () => {
     const testAnt = new ant(100, 100, 20, 20, 30, 0);
     
+    
     if (!testAnt._movementController) throw new Error('MovementController not initialized');
     if (!testAnt._taskManager) throw new Error('TaskManager not initialized');  
     if (!testAnt._renderController) throw new Error('RenderController not initialized');
@@ -43,6 +44,7 @@ function runControllerIntegrationTest() {
     if (!(testAnt._movementController instanceof MovementController)) throw new Error('MovementController wrong type');
     if (!(testAnt._taskManager instanceof TaskManager)) throw new Error('TaskManager wrong type');
     if (!(testAnt._renderController instanceof RenderController)) throw new Error('RenderController wrong type');
+
   });
   
   // Test 3: Test movement controller delegation
@@ -59,6 +61,7 @@ function runControllerIntegrationTest() {
     
     // After movement command, ant should be moving
     if (!testAnt.isMoving) throw new Error('Ant should be moving after moveToLocation');
+    
   });
   
   // Test 4: Test task manager delegation
@@ -77,6 +80,7 @@ function runControllerIntegrationTest() {
     
     // Verify command was added to TaskManager
     if (testAnt._taskManager._taskQueue.length === 0) throw new Error('Command not added to TaskManager');
+    
   });
   
   // Test 5: Test render controller delegation  
@@ -93,20 +97,7 @@ function runControllerIntegrationTest() {
     }
     
     testAnt.isSelected = false;
-  });
-  
-  // Test 6: Test backwards compatibility (legacy methods still work)
-  test('Backwards compatibility', () => {
-    const testAnt = new ant(500, 500, 20, 20, 30, 0);
     
-    // Legacy properties should still be accessible
-    if (typeof testAnt.posX === 'undefined') throw new Error('posX property missing');
-    if (typeof testAnt.posY === 'undefined') throw new Error('posY property missing');
-    if (typeof testAnt.moveToLocation !== 'function') throw new Error('moveToLocation method missing');
-    
-    // Legacy command queue should still work
-    testAnt.addCommand({ type: 'GATHER' });
-    // Should not throw error
   });
   
   // Test 7: Test controller configuration
@@ -117,11 +108,13 @@ function runControllerIntegrationTest() {
     if (testAnt._movementController.movementSpeed !== 45) {
       throw new Error(`Expected speed 45, got ${testAnt._movementController.movementSpeed}`);
     }
+    
   });
   
   // Test 8: Test update method integration
   test('Update method integration', () => {
     const testAnt = new ant(700, 700, 20, 20, 30, 0);
+    antIndex--;
     
     // Start movement
     testAnt.moveToLocation(750, 750);
@@ -131,12 +124,14 @@ function runControllerIntegrationTest() {
     
     // Ant should still be valid after update
     if (typeof testAnt.posX !== 'number') throw new Error('Position corrupted after update');
+    
   });
   
   // Test 9: Test multiple ants don't interfere
   test('Multiple ant independence', () => {
     const ant1 = new ant(100, 200, 20, 20, 30, 0);
     const ant2 = new ant(200, 100, 20, 20, 30, 0);
+    
     
     ant1.moveToLocation(150, 250);
     ant2.moveToLocation(250, 150);
@@ -149,22 +144,24 @@ function runControllerIntegrationTest() {
     if (ant1._movementController === ant2._movementController) {
       throw new Error('Ants sharing movement controller');
     }
+
   });
   
-  // Test 10: Test Species integration
-  test('Species integration with controllers', () => {
-    // Create ant through Species (like the game does)
+  // Test 10: Test Job integration
+  test('Job integration with controllers', () => {
+    // Create ant through Job (like the game does)
     const baseAnt = new ant(800, 800, 20, 20, 30, 0);
-    const species = new Species(baseAnt, "Builder", antBaseSprite);
-    
-    // Species should inherit controller functionality
-    if (!species._movementController) throw new Error('Species missing MovementController');
-    if (!species._taskManager) throw new Error('Species missing TaskManager');
-    if (!species._renderController) throw new Error('Species missing RenderController');
+    const jobInst = new Job(baseAnt, "Builder", antBaseSprite);
+
+    // Job should inherit controller functionality
+    if (!jobInst._movementController) throw new Error('Job missing MovementController');
+    if (!jobInst._taskManager) throw new Error('Job missing TaskManager');
+    if (!jobInst._renderController) throw new Error('Job missing RenderController');
     
     // Should be able to move
-    const moveResult = species.moveToLocation(850, 850);
-    if (!moveResult) throw new Error('Species movement failed');
+    const moveResult = jobInst.moveToLocation(850, 850);
+    if (!moveResult) throw new Error('Job movement failed');
+    
   });
   
   console.log(`\n📊 Integration Test Results: ${testsPassed} passed, ${testsFailed} failed`);

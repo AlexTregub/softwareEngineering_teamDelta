@@ -1,191 +1,213 @@
-let CANVAS_X = 800; // Default 800
-let CANVAS_Y = 800; // Default 800
+// --- GRID SYSTEM ---
+let g_canvasX = 800; // Default 800
+let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
-const CHUNKS_X = 20;
-const CHUNKS_Y = 20;
-
 const NONE = '\0'; 
 
-let SEED;
-let MAP;
-let MAP2;
+// --- CONTROLLER DECLARATIONS ---
+let g_mouseController;
+let g_keyboardController;
+let g_selectionBoxController;
+let g_tileInteractionManager; // Efficient tile-based interaction system
+// --- WORLD GENERATION ---
+let g_seed;
+let g_map;
+let g_gridMap;
+let g_coordsy;
+// --- UI ---
+let g_menuFont;
+// --- IDK! ----
+let g_recordingPath;
 
-let GRIDMAP;
-let COORDSY;
-let font;
-let recordingPath;
-let menuImage;
-let playButton;
-let optionButton;
-let exitButton;
-let infoButton;
-let debugButton;
 
+/**
+ * preload
+ * -------
+ * Preloads game assets and resources used during runtime.
+ * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
+ * Assigns loaded assets to globals consumed by rendering and game systems.
+ */
 function preload(){
-  test_stats();
-  terrainPreloader()
-  Ants_Preloader()
+  terrainPreloader();
+  menuPreload();
+  antsPreloader();
   resourcePreLoad();
-  font = loadFont("Images/Assets/Terraria.TTF");
-  menuImage = loadImage("Images/Assets/Menu/ant_logo1.png");
-  playButton = loadImage("Images/Assets/Menu/play_button.png");
-  optionButton = loadImage("Images/Assets/Menu/options_button.png");
-  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
-  infoButton = loadImage("Images/Assets/Menu/info_button.png");
-  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
-  videoButton = loadImage("Images/Assets/Menu/vs_button.png");
-  audioButton = loadImage("Images/Assets/Menu/as_button.png");
-  controlButton = loadImage("Images/Assets/Menu/controls_button.png");
-  backButton = loadImage("Images/Assets/Menu/back_button.png");
-}
-
-// MOUSE INTERACTIONS
-function mousePressed() {
-  if (isInGame()) {  // only allow ant interactions in game
-    if (typeof handleMousePressed === 'function') {
-      handleMousePressed(
-        ants,
-        mouseX,
-        mouseY,
-        Ant_Click_Control,
-        selectedAnt,
-        moveSelectedAntToTile,
-        TILE_SIZE,
-        mouseButton
-      );
-    }
-  }
-
-  // Handle menu button clicks
-  if (isInMenu() || isInOptions()) {
-    if (typeof handleMenuClick === 'function') {
-      handleMenuClick();
-    }
-  }
 }
 
 
-function mouseDragged() {
-  if (isInGame() && typeof handleMouseDragged === 'function') {
-    handleMouseDragged(mouseX, mouseY, ants);
-  }
-}
-
-function mouseReleased() {
-  if (isInGame() && typeof handleMouseReleased === 'function') {
-    handleMouseReleased(ants, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
-  }
-}
-
-// Debug functionality moved to debug/testing.js
-
-// KEYBOARD INTERACTIONS
-function keyPressed() {
-  // Handle all debug-related keys (command line, dev console, test hotkeys)
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
-    return; // Debug key was handled, don't process further
-  }
-  
-  if (keyCode === ESCAPE) {
-    if (typeof deselectAllEntities === 'function') {
-      deselectAllEntities();
-    }
-  }
-}
-
-// Command line functionality has been moved to debug/commandLine.js
-
-////// MAIN
 function setup() {
-  CANVAS_X = windowWidth;
-  CANVAS_Y = windowHeight;
-  createCanvas(CANVAS_X, CANVAS_Y);
 
-  SEED = hour()*minute()*floor(second()/10);
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
+  createCanvas(g_canvasX, g_canvasY);
+  initializeWorld();
 
-  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
-  // MAP.randomize(SEED); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
-  
-  // New, Improved, and Chunked Terrain
-  MAP2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,SEED,CHUNK_SIZE,TILE_SIZE,[CANVAS_X,CANVAS_Y]);
-  MAP2.randomize(SEED);
-  MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
-  
-  // COORDSY = MAP.getCoordinateSystem();
-  // COORDSY.setViewCornerBC(0,0);
-  
-  GRIDMAP = new PathMap(MAP);
-  COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
-  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+  // Initialize TileInteractionManager for efficient mouse input handling
+  g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
-  
+  // --- Initialize Controllers ---
+  g_mouseController = new MouseInputController();
+  g_keyboardController = new KeyboardInputController();
+  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
 
   initializeMenu();  // Initialize the menu system
-  setupTests(); // Call test functions from AntStateMachine branch
- 
-  Ants_Spawn(10);
-  // Resources_Spawn(20);
+  // Initialize dropoff UI if present (creates the Place Dropoff button)
+  if (typeof window !== 'undefined' && typeof window.initDropoffUI === 'function') {
+    window.initDropoffUI();
+  }
+  // Do not force spawn UI visible here; spawn UI is dev-console-only by default.
+
+  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
+  try {
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.spawn === 'function') {
+      g_resourceManager.spawn();
+    }
+  } catch (e) { /* non-fatal; spawner will populate via interval */ }
 }
 
-// Global Currency Counter
-function drawUI() {
-  push(); 
-  textFont(font); 
-  textSize(24);
-  fill(255);  // white text
-  textAlign(LEFT, TOP);
-  text("Food: " + globalResource.length, 10, 10);
-  pop();
+/**
+ * initializeWorld
+ * ----------------
+ * Encapsulates the world and map initialization that was previously inlined
+ * inside setup(). Keeps setup() concise and makes the initialization reusable
+ * for tests or reset logic.
+ */
+function initializeWorld() {
+  g_seed = hour()*minute()*floor(second()/10);
+
+  g_map = new Terrain(g_canvasX + 300, g_canvasY + 300, TILE_SIZE);
+  g_map.randomize(g_seed);
+  g_coordsy = g_map.getCoordinateSystem();
+  g_coordsy.setViewCornerBC(0,0);
+
+  g_gridMap = new PathMap(g_map);
+  // Ensure coordinate system is available and aligned to the top-left of the backing canvas
+  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
+  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas
 }
 
-function setupTests() {
-  // Any test functions can be called here
-  // e.g. antSMtest();
-  antSMtest(); // Test Ant State Machine
-}
 
+/**
+ * draw
+ * ----
+ * Main rendering loop for the game.
+ * 
+ * Invokes the rendering pipeline in three distinct stages:
+ *   1. mapRender   - Draws the g_map background and debug grid.
+ *   2. fieldRender - Renders all dynamic game entities and resources.
+ *   3. uiRender    - Draws user interface elements and overlays.
+ * 
+ * Ensures proper visual stacking and separation between foundational layers,
+ * interactive entities, and UI components. Called automatically by p5.js each frame.
+ */
 function draw() {
-  background(0);
-
-  // --- UPDATE MENU STATE ---
-  updateMenu();
-
-  // --- MENU / OPTIONS ---
-  if (renderMenu()) {
-    return; // menu rendered, stop here
-  }
-
-  // --- PLAYING ---
-  if (GameState.isInGame()) {
-    MAP2.render();
-    Ants_Update();
-    resourceList.drawAll();
-
-    if (typeof drawSelectionBox === 'function') drawSelectionBox();
-    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
-
-    if (typeof drawDevConsoleIndicator === 'function') {
-      drawDevConsoleIndicator();
-    }
-  
-    if (typeof drawCommandLine === 'function') {
-      drawCommandLine();
-    }
-
-    drawUI();
-  }
-
-  // --- FADE OVERLAY (works in both menu + game) ---
-  if (GameState.isFadingTransition()) {
-    const fadeAlpha = GameState.getFadeAlpha();
-    if (fadeAlpha > 0) {
-      fill(255, fadeAlpha);
-      rect(0, 0, CANVAS_X, CANVAS_Y);
-    }
-    GameState.updateFade(10);
-  }
+  mapRender();
+  fieldRender();
+  uiRender();
 }
 
+/**
+ * mapRender
+ * ---------
+ * Renders the game g_map background and overlays the debug grid.
+ * 
+ * This function should be called prior to rendering dynamic entities and UI elements,
+ * ensuring the g_map and grid are drawn as the foundational visual layer.
+ * 
+ * The debug grid assists with tile-based visualization and interaction, supporting
+ * development and gameplay features such as selection and movement targeting.
+ */
+function mapRender(){
+  g_map.render();
+  drawDebugGrid(TILE_SIZE, Math.floor((g_canvasX + 300) / TILE_SIZE), Math.floor((g_canvasY + 300) / TILE_SIZE));
+}
+
+/**
+ * fieldRender
+ * -----------
+ * Renders all dynamic game entities and resources to the canvas.
+ * Intended to be invoked after the map background is drawn and before UI elements are rendered.
+ * 
+ * Serves as the primary rendering layer for game objects, ensuring proper visual stacking and separation
+ * between g_map, entities, and UI components.
+ */
+function fieldRender(){
+  antsUpdate();
+  if (g_resourceList && typeof g_resourceList.updateAll === 'function') {
+    g_resourceList.updateAll();
+  }
+  g_resourceList.drawAll();
+}
+
+
+/**
+ * uiRender
+ * --------
+ * Renders all user interface elements and overlays, including selection boxes,
+ * developer console indicators, and command line input.
+ *
+ * This function should be called after rendering the g_map and game entities,
+ * ensuring UI components are visually layered above all gameplay elements.
+ *
+ * Handles conditional rendering of UI features based on game state and controller availability.
+ */
+function uiRender(){
+  updateMenu(); // Update menu state and handle transitions
+  // Update dropoff UI each frame (positions, input handling)
+  if (typeof window !== 'undefined' && typeof window.updateDropoffUI === 'function') {
+    window.updateDropoffUI();
+  }
+  if (renderMenu()) return; // Render menu if active, otherwise render game
+  renderCurrencies();
+  if (g_selectionBoxController) { g_selectionBoxController.draw(); }
+  if(g_recordingPath){ } // (Recording logic here if needed)
+  // Render spawn/delete UI (canvas-based) if available
+  if (typeof window.renderSpawnUI === 'function') {
+    window.renderSpawnUI();
+  }
+  // Draw dropoff UI (button, placement preview) after other UI elements
+  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
+    window.drawDropoffUI();
+  }
+  debugRender();
+}
+
+/**
+ * debugRender
+ * -----------
+ * Renders development and diagnostic overlays (developer console indicator,
+ * in-game command line, etc.). Should be invoked after UI rendering so
+ * diagnostic elements are visually prioritized above gameplay and UI components.
+ *
+ * Handles conditional display based on developer console state and input focus.
+ */
+function debugRender() {
+  drawDevConsoleIndicator();
+  drawCommandLine();
+
+  // Draw global performance graph when debug mode is enabled
+  if (typeof getEntityDebugManager === 'function') {
+    const manager = getEntityDebugManager();
+    if (manager && manager.isDebugEnabled && manager.showGlobalPerformance) {
+
+      // Position in top-right corner, with some margin from the edge
+      const graphX = g_canvasX - 360;
+      const graphY = 10;
+      const graphWidth = 350;
+      const graphHeight = 200;
+      
+      manager.drawGlobalPerformanceGraph(graphX, graphY, graphWidth, graphHeight, {
+        backgroundColor: [0, 0, 0, 200],
+        borderColor: [100, 200, 255],
+        titleColor: [100, 200, 255],
+        textColor: [255, 255, 255],
+        highlightColor: [255, 255, 100],
+        showEntityBreakdown: true
+      });
+        manager.update();
+      }
+    }
+}
 
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
@@ -201,20 +223,95 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   // Highlight tile under mouse
   const tileX = Math.floor(mouseX / tileSize);
   const tileY = Math.floor(mouseY / tileSize);
+  
+  // Fill the tile with transparent yellow
   fill(255, 255, 0, 50); // transparent yellow
   noStroke();
   rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+  
+  // Add a border to make the tile more visible
+  noFill();
+  stroke(255, 255, 0, 150); // more opaque yellow border
+  strokeWeight(2);
+  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+  
+  // Show tile center dot to indicate where ant will move
+  if (selectedAnt) {
+    fill(255, 0, 0, 200); // red dot for movement target
+    noStroke();
+    const tileCenterX = tileX * tileSize + tileSize / 2;
+    const tileCenterY = tileY * tileSize + tileSize / 2;
+    ellipse(tileCenterX, tileCenterY, 6, 6);
+  }
 
   // Highlight selected ant's current tile
   if (selectedAnt) {
-    const antTileX = Math.floor(selectedAnt.posX / tileSize);
-    const antTileY = Math.floor(selectedAnt.posY / tileSize);
+    const pos = selectedAnt.getPosition();
+    const antTileX = Math.floor(pos.x / tileSize);
+    const antTileY = Math.floor(pos.y / tileSize);
     fill(0, 255, 0, 80); // transparent green
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
 }
 
-// Dev console indicator moved to debug/testing.js
+/**
+ * handleMouseEvent
+ * ----------------
+ * Delegates mouse events to the mouse controller if the game is in an active state.
+ * @param {string} type - The mouse event type (e.g., 'handleMousePressed').
+ * @param {...any} args - Arguments to pass to the controller handler.
+ */
+function handleMouseEvent(type, ...args) {
+  if (GameState.isInGame()) {
+    g_mouseController[type](...args);
+  }
+}
 
-// Command line drawing moved to debug/commandLine.js
+/**
+ * mousePressed
+ * ------------
+ * Handles mouse press events by delegating to the mouse controller.
+ */
+function mousePressed()  { handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton); }
+function mouseDragged()  { handleMouseEvent('handleMouseDragged', mouseX, mouseY); }
+function mouseReleased() { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); }
+
+// KEYBOARD INTERACTIONS
+
+/**
+ * handleKeyEvent
+ * --------------
+ * Delegates keyboard events to the appropriate handler if the game is in an active state.
+ * @param {string} type - The key event type (e.g., 'handleKeyPressed').
+ * @param {...any} args - Arguments to pass to the handler.
+ */
+function handleKeyEvent(type, ...args) {
+  if (GameState.isInGame() && typeof g_keyboardController[type] === 'function') {
+    g_keyboardController[type](...args);
+  }
+}
+
+/**
+ * keyPressed
+ * ----------
+ * Handles key press events, prioritizing debug keys and ESC for selection clearing.
+ */
+function keyPressed() {
+  // Handle all debug-related keys (command line, dev console, test hotkeys)
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug key was handled, don't process further
+  }
+  if (keyCode === ESCAPE && g_selectionBoxController) {
+    g_selectionBoxController.deselectAll();
+    return;
+  }
+  handleKeyEvent('handleKeyPressed', keyCode, key);
+}
+
+// Command line functionality has been moved to debug/commandLine.js
+
+////// MAIN
+
+
+

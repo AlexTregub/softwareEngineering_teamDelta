@@ -84,7 +84,7 @@ Created `controllerIntegration.browser.test.js` for comprehensive browser-based 
 - Render delegation
 - Backward compatibility
 - Multi-ant independence
-- Species integration
+- Job integration
 
 ## 🔄 Backward Compatibility
 

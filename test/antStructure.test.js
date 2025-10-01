@@ -6,6 +6,7 @@
  * game systems. This helps catch issues when refactoring ant creation logic.
  */
 
+
 // Mock p5.js functions and dependencies
 global.createVector = (x, y) => ({ x, y, copy: () => ({ x, y }) });
 global.random = (min, max) => min + Math.random() * (max - min);
@@ -16,7 +17,7 @@ global.mouseY = 300;
 
 // Mock images
 global.antBaseSprite = { width: 32, height: 32 };
-global.speciesImages = {
+global.JobImages = {
   "Builder": { width: 32, height: 32 },
   "Scout": { width: 32, height: 32 },
   "Farmer": { width: 32, height: 32 },
@@ -26,31 +27,31 @@ global.speciesImages = {
 };
 
 // Mock global variables
-global.ant_Index = 0;
+global.antIndex = 0;
 global.hasDeLozier = false;
 global.ants = []; // Add ants array
 
-// Mock assignSpecies function
-global.assignSpecies = () => "Builder";
+// Mock assignJob function
+global.assignJob = () => "Builder";
 
 // Import required classes
 const AntStateMachine = require('../Classes/ants/antStateMachine.js');
-const Sprite2D = require('../Classes/entities/sprite2d.js');
-const { stats, stat } = require('../Classes/entities/stats.js');
-const ResourceManager = require('../Classes/systems/ResourceManager.js');
+const Sprite2D = require('../Classes/systems/Sprite2d.js');
+const { StatsContainer, stat } = require('../Classes/containers/StatsContainer.js');
+const ResourceManager = require('../Classes/managers/ResourceManager.js');
 
 // Mock the global dependencies for ant.js
 global.AntStateMachine = AntStateMachine;
 global.Sprite2D = Sprite2D;
-global.stats = stats;
+global.StatsContainer = StatsContainer;
 global.ResourceManager = ResourceManager;
 
 // Import ant class first
 const ant = require('../Classes/ants/ants.js');
-global.ant = ant; // Make it globally available for Species
+global.ant = ant; // Make it globally available for Job
 
 const AntWrapper = require('../Classes/ants/antWrapper.js');
-const Species = require('../Classes/ants/species.js');
+const Job = require('../Classes/ants/Job.js');
 
 // Import selection box functions safely
 const fs = require('fs');
@@ -81,7 +82,7 @@ console.log('🧪 Running Ant Structure Compatibility Test Suite...\n');
 
 // Test helper functions
 function resetTestEnvironment() {
-  global.ant_Index = 0;
+  global.antIndex = 0;
   global.hasDeLozier = false;
   global.selectedEntities = [];
   global.ants = []; // Reset ants array
@@ -91,11 +92,11 @@ function createMockAntViaOriginalMethod() {
   // Simulate original Ants_Spawn method
   let sizeR = random(0, 15);
   let baseAnt = new ant(random(0, 500), random(0, 500), 20 + sizeR, 20 + sizeR, 30, 0);
-  let speciesName = "Builder"; // Use fixed species for testing
-  let antWrapper = new AntWrapper(new Species(baseAnt, speciesName, speciesImages[speciesName]), speciesName);
+  let JobName = "Builder"; // Use fixed Job for testing
+  let antWrapper = new AntWrapper(new Job(baseAnt, JobName, JobImages[JobName]), JobName);
   
   // Store in ants array like the original method
-  let index = ant_Index - 1; // ant_Index was incremented by Species constructor
+  let index = antIndex - 1; // antIndex was incremented by Job constructor
   ants[index] = antWrapper;
   
   return antWrapper;
@@ -105,18 +106,18 @@ function createMockAntViaDebugCommand() {
   // Simulate debug command method (the fixed version)
   let sizeR = random(0, 15);
   let baseAnt = new ant(random(0, 500), random(0, 500), 20 + sizeR, 20 + sizeR, 30, 0);
-  let speciesName = "Builder";
+  let JobName = "Builder";
   
-  // Create Species object which extends ant but manage ant_Index carefully
-  let tempIndex = ant_Index;
-  ant_Index--;  // Temporarily decrement
-  let speciesAnt = new Species(baseAnt, speciesName, speciesImages[speciesName]);
-  ant_Index = tempIndex;  // Restore to the correct value
+  // Create Job object which extends ant but manage antIndex carefully
+  let tempIndex = antIndex;
+  antIndex--;  // Temporarily decrement
+  let JobAnt = new Job(baseAnt, JobName, JobImages[JobName]);
+  antIndex = tempIndex;  // Restore to the correct value
   
-  let antWrapper = new AntWrapper(speciesAnt, speciesName);
+  let antWrapper = new AntWrapper(JobAnt, JobName);
   
   // Store in ants array like the debug method
-  let index = ant_Index - 1;
+  let index = antIndex - 1;
   ants[index] = antWrapper;
   
   return antWrapper;
@@ -221,34 +222,34 @@ function testAntIndexManagement() {
   console.log('✅ Testing ant index management...');
   
   // This test verifies that both creation methods would behave consistently
-  // in the real game environment. Since ant_Index is a global variable that
+  // in the real game environment. Since antIndex is a global variable that
   // gets incremented in constructors, we test the expected behavior patterns.
   
   resetTestEnvironment();
   
-  // Test 1: Verify that Species constructor calls super() (which would increment ant_Index)
-  // We can't directly test ant_Index incrementing in this isolated environment,
-  // but we can verify that the Species object has the expected structure
+  // Test 1: Verify that Job constructor calls super() (which would increment antIndex)
+  // We can't directly test antIndex incrementing in this isolated environment,
+  // but we can verify that the Job object has the expected structure
   
   const originalAnt = createMockAntViaOriginalMethod();
   const debugAnt = createMockAntViaDebugCommand();
   
-  // Both should create Species objects as their antObject
-  if (!(originalAnt.antObject instanceof Species)) {
-    throw new Error('Original method should create Species objects');
+  // Both should create Job objects as their antObject
+  if (!(originalAnt.antObject instanceof Job)) {
+    throw new Error('Original method should create Job objects');
   }
   
-  if (!(debugAnt.antObject instanceof Species)) {
-    throw new Error('Debug method should create Species objects');
+  if (!(debugAnt.antObject instanceof Job)) {
+    throw new Error('Debug method should create Job objects');
   }
   
-  // Both Species objects should extend ant class
+  // Both Job objects should extend ant class
   if (!(originalAnt.antObject instanceof ant)) {
-    throw new Error('Original Species should extend ant class');
+    throw new Error('Original Job should extend ant class');
   }
   
   if (!(debugAnt.antObject instanceof ant)) {
-    throw new Error('Debug Species should extend ant class');
+    throw new Error('Debug Job should extend ant class');
   }
   
   // Test 2: Verify that both methods create the same object hierarchy
@@ -259,14 +260,14 @@ function testAntIndexManagement() {
     throw new Error(`Object prototypes don't match: ${originalProto.constructor.name} vs ${debugProto.constructor.name}`);
   }
   
-  console.log('   ✓ Both methods create Species objects that extend ant');
+  console.log('   ✓ Both methods create Job objects that extend ant');
   console.log('   ✓ Object hierarchies are consistent between methods');
   console.log('   ✓ Index management compatibility verified');
 }
 
-// Test species assignment consistency
-function testSpeciesAssignmentConsistency() {
-  console.log('✅ Testing species assignment consistency...');
+// Test Job assignment consistency
+function testJobAssignmentConsistency() {
+  console.log('✅ Testing Job assignment consistency...');
   
   resetTestEnvironment();
   const originalAnt = createMockAntViaOriginalMethod();
@@ -274,24 +275,24 @@ function testSpeciesAssignmentConsistency() {
   resetTestEnvironment();
   const debugAnt = createMockAntViaDebugCommand();
   
-  // Both should have species property
-  if (!originalAnt.species) {
-    throw new Error('Original ant missing species property');
+  // Both should have Job property
+  if (!originalAnt.Job) {
+    throw new Error('Original ant missing Job property');
   }
-  if (!debugAnt.species) {
-    throw new Error('Debug ant missing species property');
-  }
-  
-  // Both should have antObject with speciesName
-  if (!originalAnt.antObject.speciesName) {
-    throw new Error('Original ant antObject missing speciesName');
-  }
-  if (!debugAnt.antObject.speciesName) {
-    throw new Error('Debug ant antObject missing speciesName');
+  if (!debugAnt.Job) {
+    throw new Error('Debug ant missing Job property');
   }
   
-  console.log('   ✓ Species properties are consistently assigned');
-  console.log('   ✓ Species names are accessible on antObjects');
+  // Both should have antObject with JobName
+  if (!originalAnt.antObject.JobName) {
+    throw new Error('Original ant antObject missing JobName');
+  }
+  if (!debugAnt.antObject.JobName) {
+    throw new Error('Debug ant antObject missing JobName');
+  }
+  
+  console.log('   ✓ Job properties are consistently assigned');
+  console.log('   ✓ Job names are accessible on antObjects');
 }
 
 // Run all tests
@@ -302,7 +303,7 @@ function runAllTests() {
   const tests = [
     testAntStructureCompatibility,
     testAntIndexManagement,
-    testSpeciesAssignmentConsistency
+    testJobAssignmentConsistency
   ];
   
   for (const test of tests) {
@@ -319,9 +320,11 @@ function runAllTests() {
   
   if (testsFailed === 0) {
     console.log('🎉 All ant structure compatibility tests passed!');
+    resetTestEnvironment()
   } else {
     console.log('💥 Some tests failed - ant creation methods may have compatibility issues');
-    process.exit(1);
+    resetTestEnvironment()
+    process.exit(1);    
   }
 }
 

@@ -19,7 +19,7 @@ global.image = (img, x, y, width, height) => {};
 global.CENTER = 'center';
 
 // Import the Sprite2D class
-const Sprite2D = require('../Classes/entities/sprite2d.js');
+const Sprite2D = require('../Classes/systems/Sprite2d.js');
 
 class TestSuite {
   constructor() {

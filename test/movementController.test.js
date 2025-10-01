@@ -11,7 +11,7 @@ global.deltaTime = 16;
 // Load MovementController
 const fs = require('fs');
 const path = require('path');
-const controllerPath = path.join(__dirname, '..', 'Classes', 'systems', 'MovementController.js');
+const controllerPath = path.join(__dirname, '..', 'Classes', 'controllers', 'MovementController.js');
 const controllerCode = fs.readFileSync(controllerPath, 'utf8');
 
 // Create a simple eval environment
