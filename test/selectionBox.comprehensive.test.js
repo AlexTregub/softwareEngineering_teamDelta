@@ -378,7 +378,7 @@ suite.test('Wrapped Ant Compatibility', () => {
   resetTestState();
   
   // Create wrapped ants
-  let wrappedAnts = mockAnts.g_map(ant => new MockWrappedAnt(ant));
+  let wrappedAnts = mockAnts.map(ant => new MockWrappedAnt(ant));
   
   mouseX = 110;
   mouseY = 110;
