@@ -181,7 +181,7 @@ function updateMenu() {
         }
       }
     }
-    renderMenu()
+    // renderMenu() call removed; updateMenu is now state-only
   }
 
 
