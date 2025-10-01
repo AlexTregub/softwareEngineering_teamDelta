@@ -54,6 +54,9 @@ class EntityDebugManager {
     /** @type {number} Timestamp of last debug activity */
     this._lastActivity = Date.now();
     
+    /** @type {boolean} Whether global performance summary is visible */
+    this.showGlobalPerformance = false;
+    
     this._setupEventListeners();
   }
 
@@ -214,11 +217,44 @@ class EntityDebugManager {
    * Toggles the global debug state.
    * When enabled, shows debuggers for selected entities or nearest entities.
    */
+  /**
+   * Toggles only the closest entity to the mouse cursor.
+   * If no entity is currently being debugged, enables the closest one.
+   * If an entity is being debugged, toggles it off.
+   */
+  toggleClosestEntity() {
+    const entities = this.getAllEntities();
+    if (entities.length === 0) return;
+    
+    // Find currently active debugger
+    const activeEntities = entities.filter(entity => 
+      entity.entityDebugger && entity.entityDebugger.isActive
+    );
+    
+    // If we have active debuggers, turn them off
+    if (activeEntities.length > 0) {
+      activeEntities.forEach(entity => entity.toggleDebugger(false));
+      this.isDebugEnabled = false;
+      console.log('EntityDebugManager: Disabled active entity debuggers');
+      this._updateDebugState();
+      return;
+    }
+    
+    // No active debuggers, find and enable the closest entity
+    const closestEntity = this._findClosestEntity();
+    if (closestEntity) {
+      closestEntity.toggleDebugger(true);
+      this.isDebugEnabled = true;
+      console.log(`EntityDebugManager: Enabled debugger for closest entity (${closestEntity.constructor.name})`);
+      this._updateDebugState();
+    }
+  }
+
   toggleGlobalDebug() {
     this.isDebugEnabled = !this.isDebugEnabled;
     
     if (this.isDebugEnabled) {
-      this._showNearestEntities();
+      this.toggleClosestEntity();
       console.log('EntityDebugManager: Global debug enabled');
     } else {
       this.hideAllDebuggers();
@@ -334,6 +370,39 @@ class EntityDebugManager {
   }
 
   /**
+   * Finds the closest entity to the mouse cursor (or screen center if no mouse available).
+   * 
+   * @returns {Entity|null} The closest entity or null if no entities exist
+   * @private
+   */
+  _findClosestEntity() {
+    const entities = this.getAllEntities();
+    if (entities.length === 0) return null;
+    
+    // Use mouse position if available, otherwise screen center
+    const targetX = (typeof mouseX !== 'undefined') ? mouseX : (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : 400;
+    const targetY = (typeof mouseY !== 'undefined') ? mouseY : (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : 300;
+    
+    // Find the closest entity
+    let closestEntity = null;
+    let closestDistance = Infinity;
+    
+    entities.forEach(entity => {
+      const pos = entity.getPosition();
+      const dx = pos.x - targetX;
+      const dy = pos.y - targetY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestEntity = entity;
+      }
+    });
+    
+    return closestEntity;
+  }
+
+  /**
    * Updates global debug state and integrates with existing systems.
    * @private
    */
@@ -404,6 +473,292 @@ class EntityDebugManager {
   _cleanupInactiveEntities() {
     const inactiveEntities = Array.from(this.entities).filter(entity => !entity.isActive);
     inactiveEntities.forEach(entity => this.unregisterEntity(entity));
+  }
+
+  /**
+   * Gets aggregated performance data from all active debuggers.
+   * 
+   * @returns {Object} Combined performance statistics
+   * @public
+   */
+  getGlobalPerformanceData() {
+    const allData = {
+      totalEntities: 0,
+      activeDebuggers: 0,
+      combinedUpdateTimes: [],
+      combinedRenderTimes: [],
+      combinedMemoryUsage: [],
+      totalAverageUpdateTime: 0,
+      totalAverageRenderTime: 0,
+      totalAverageMemoryUsage: 0,
+      peakUpdateTime: 0,
+      peakRenderTime: 0,
+      peakMemoryUsage: 0,
+      entityBreakdown: []
+    };
+
+    const activeEntities = Array.from(this.entities).filter(entity => 
+      entity.entityDebugger && entity.entityDebugger.isActive
+    );
+
+    allData.totalEntities = this.entities.size;
+    allData.activeDebuggers = activeEntities.length;
+
+    if (activeEntities.length === 0) return allData;
+
+    // Aggregate data from all debuggers
+    let totalUpdateSum = 0;
+    let totalRenderSum = 0;
+    let totalMemorySum = 0;
+    let updateCount = 0;
+    let renderCount = 0;
+    let memoryCount = 0;
+
+    activeEntities.forEach(entity => {
+      const perfData = entity.entityDebugger.getPerformanceData();
+      
+      // Track entity-specific data
+      allData.entityBreakdown.push({
+        entityType: perfData.targetObjectType,
+        entityId: perfData.targetObjectId,
+        avgUpdateTime: perfData.averageUpdateTime,
+        avgRenderTime: perfData.averageRenderTime,
+        updateFrequency: perfData.updateFrequency,
+        renderFrequency: perfData.renderFrequency
+      });
+
+      // Aggregate averages
+      if (perfData.averageUpdateTime > 0) {
+        totalUpdateSum += perfData.averageUpdateTime;
+        updateCount++;
+      }
+      if (perfData.averageRenderTime > 0) {
+        totalRenderSum += perfData.averageRenderTime;
+        renderCount++;
+      }
+
+      // Track peaks
+      allData.peakUpdateTime = Math.max(allData.peakUpdateTime, perfData.peakUpdateTime);
+      allData.peakRenderTime = Math.max(allData.peakRenderTime, perfData.peakRenderTime);
+
+      // Combine time series data (take the most recent values)
+      if (perfData.updateTimes && perfData.updateTimes.length > 0) {
+        allData.combinedUpdateTimes.push(...perfData.updateTimes.slice(-20)); // Last 20 frames
+      }
+      if (perfData.renderTimes && perfData.renderTimes.length > 0) {
+        allData.combinedRenderTimes.push(...perfData.renderTimes.slice(-20)); // Last 20 frames
+      }
+    });
+
+    // Calculate global averages
+    allData.totalAverageUpdateTime = updateCount > 0 ? totalUpdateSum / updateCount : 0;
+    allData.totalAverageRenderTime = renderCount > 0 ? totalRenderSum / renderCount : 0;
+
+    return allData;
+  }
+
+  /**
+   * Draws a global performance summary graph showing aggregated data.
+   * Always shows a toggle button, and shows performance data when enabled.
+   * 
+   * @param {number} x - X position for the summary graph
+   * @param {number} y - Y position for the summary graph
+   * @param {number} width - Width of the summary graph
+   * @param {number} height - Height of the summary graph
+   * @public
+   */
+  drawGlobalPerformanceSummary(x, y, width, height) {
+    const globalData = this.getGlobalPerformanceData();
+    
+    push();
+    
+    // Always draw the toggle button
+    this._drawGlobalToggleButton(x, y, width);
+    
+    // Only show performance data if toggled on and we have active debuggers
+    if (this.showGlobalPerformance && globalData.activeDebuggers > 0) {
+      // Draw background
+      fill(0, 200);
+      stroke(255, 255, 0);
+      strokeWeight(2);
+      rect(x, y + 35, width, height - 35); // Adjusted for button space
+      
+      // Title
+      fill(255, 255, 0);
+      textSize(12);
+      textAlign(LEFT, TOP);
+      text(`Global Performance Summary (${globalData.activeDebuggers} entities)`, x + 5, y + 40);
+    
+      // Stats display
+      fill(255);
+      textSize(10);
+      let yPos = y + 55; // Adjusted for button space
+      text(`Total Avg Update: ${globalData.totalAverageUpdateTime.toFixed(2)}ms`, x + 5, yPos);
+      yPos += 15;
+      text(`Total Avg Render: ${globalData.totalAverageRenderTime.toFixed(2)}ms`, x + 5, yPos);
+      yPos += 15;
+      text(`Peak Update: ${globalData.peakUpdateTime.toFixed(2)}ms`, x + 5, yPos);
+      yPos += 15;
+      text(`Peak Render: ${globalData.peakRenderTime.toFixed(2)}ms`, x + 5, yPos);
+      
+      // Draw combined performance graph
+      const graphY = y + 115; // Adjusted for button space
+      const graphHeight = height - 120; // Adjusted for button space
+      
+      if (globalData.combinedUpdateTimes.length > 0 || globalData.combinedRenderTimes.length > 0) {
+        this._drawGlobalPerformanceChart(x + 5, graphY, width - 10, graphHeight, globalData);
+      }
+    } else if (globalData.activeDebuggers === 0) {
+      // Show message when no debuggers are active
+      fill(150);
+      textSize(10);
+      textAlign(CENTER, CENTER);
+      text('No active debuggers', x + width/2, y + 20);
+    }
+    
+    pop();
+  }
+
+  /**
+   * Draws the toggle button for global performance summary.
+   * 
+   * @param {number} x - Button panel X position
+   * @param {number} y - Button panel Y position
+   * @param {number} width - Panel width
+   * @private
+   */
+  _drawGlobalToggleButton(x, y, width) {
+    const buttonW = 120;
+    const buttonH = 25;
+    const buttonX = x + width - buttonW - 10;
+    const buttonY = y + 5;
+    
+    // Draw button background
+    fill(this.showGlobalPerformance ? [0, 200, 0, 150] : [100, 100, 100, 150]);
+    stroke(this.showGlobalPerformance ? [0, 255, 0] : [200, 200, 200]);
+    strokeWeight(2);
+    rect(buttonX, buttonY, buttonW, buttonH);
+    
+    // Draw button text
+    fill(255);
+    textSize(10);
+    textAlign(CENTER, CENTER);
+    text(this.showGlobalPerformance ? 'Hide Global Perf' : 'Show Global Perf', 
+         buttonX + buttonW/2, buttonY + buttonH/2);
+    
+    // Handle button clicks
+    if (mouseIsPressed && frameCount % 5 === 0) { // Debounce clicks
+      if (mouseX >= buttonX && mouseX <= buttonX + buttonW &&
+          mouseY >= buttonY && mouseY <= buttonY + buttonH) {
+        this.showGlobalPerformance = !this.showGlobalPerformance;
+        console.log(`Global performance summary ${this.showGlobalPerformance ? 'enabled' : 'disabled'}`);
+      }
+    }
+  }
+
+  /**
+   * Draws the global performance chart.
+   * 
+   * @param {number} x - Chart X position
+   * @param {number} y - Chart Y position
+   * @param {number} w - Chart width
+   * @param {number} h - Chart height
+   * @param {Object} globalData - Global performance data
+   * @private
+   */
+  _drawGlobalPerformanceChart(x, y, w, h, globalData) {
+    // Combine all update and render times into a single timeline
+    const combinedTimes = [];
+    const maxLength = Math.max(globalData.combinedUpdateTimes.length, globalData.combinedRenderTimes.length);
+    
+    for (let i = 0; i < maxLength; i++) {
+      const updateTime = i < globalData.combinedUpdateTimes.length ? globalData.combinedUpdateTimes[i] : 0;
+      const renderTime = i < globalData.combinedRenderTimes.length ? globalData.combinedRenderTimes[i] : 0;
+      combinedTimes.push(updateTime + renderTime);
+    }
+    
+    if (combinedTimes.length < 2) return;
+    
+    // Draw chart background
+    fill(0, 100);
+    noStroke();
+    rect(x, y, w, h);
+    
+    // Draw chart border
+    noFill();
+    stroke(255, 200);
+    strokeWeight(1);
+    rect(x, y, w, h);
+    
+    // Scale and draw the combined performance line
+    const maxValue = Math.max(...combinedTimes);
+    const minValue = Math.min(...combinedTimes);
+    const range = maxValue - minValue;
+    const scale = range > 0 ? (h - 10) / range : 1;
+    
+    stroke(255, 255, 0);
+    strokeWeight(2);
+    noFill();
+    
+    beginShape();
+    for (let i = 0; i < combinedTimes.length; i++) {
+      const dataX = x + (i / (combinedTimes.length - 1)) * w;
+      const dataY = y + h - 5 - ((combinedTimes[i] - minValue) * scale);
+      vertex(dataX, dataY);
+    }
+    endShape();
+    
+    // Current value indicator
+    if (combinedTimes.length > 0) {
+      const currentValue = combinedTimes[combinedTimes.length - 1];
+      const currentY = y + h - 5 - ((currentValue - minValue) * scale);
+      
+      fill(255, 255, 0);
+      noStroke();
+      ellipse(x + w - 2, currentY, 6, 6);
+      
+      fill(255);
+      textSize(8);
+      textAlign(RIGHT, CENTER);
+      text(currentValue.toFixed(1), x + w - 8, currentY);
+    }
+    
+    // Draw scale labels
+    fill(255, 150);
+    textSize(7);
+    textAlign(LEFT, CENTER);
+    text(maxValue.toFixed(1), x + 2, y + 5);
+    if (range > 0) {
+      text(minValue.toFixed(1), x + 2, y + h - 5);
+    }
+  }
+
+  /**
+   * Toggles the global performance summary display.
+   * 
+   * @param {boolean} [state] - Optional specific state to set
+   * @returns {boolean} New toggle state
+   * @public
+   */
+  toggleGlobalPerformance(state) {
+    if (typeof state === 'boolean') {
+      this.showGlobalPerformance = state;
+    } else {
+      this.showGlobalPerformance = !this.showGlobalPerformance;
+    }
+    
+    console.log(`Global performance summary ${this.showGlobalPerformance ? 'enabled' : 'disabled'}`);
+    return this.showGlobalPerformance;
+  }
+
+  /**
+   * Gets the current state of the global performance toggle.
+   * 
+   * @returns {boolean} Current toggle state
+   * @public
+   */
+  getGlobalPerformanceState() {
+    return this.showGlobalPerformance;
   }
 
   /**

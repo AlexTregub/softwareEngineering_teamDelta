@@ -233,6 +233,32 @@ function setupDebugCommands() {
       if (manager) manager.showAllDebuggers(true);
     });
     
+    addDebugCommand('debug-performance', 'Show performance data for all active debuggers', () => {
+      const manager = getEntityDebugManager();
+      if (manager) {
+        const activeEntities = manager.getActiveDebugEntities();
+        activeEntities.forEach(entity => {
+          const entityDebugger = entity.getDebugger();
+          if (entityDebugger) {
+            const perfData = entityDebugger.getPerformanceData();
+            console.log(`Performance for ${perfData.targetObjectType}:`, perfData);
+          }
+        });
+      }
+    });
+    
+    addDebugCommand('debug-perf-reset', 'Reset performance data for all debuggers', () => {
+      const manager = getEntityDebugManager();
+      if (manager) {
+        const activeEntities = manager.getActiveDebugEntities();
+        activeEntities.forEach(entity => {
+          const entityDebugger = entity.getDebugger();
+          if (entityDebugger) entityDebugger.resetPerformanceData();
+        });
+        console.log('Performance data reset for all active debuggers');
+      }
+    });
+    
     console.log('Entity debugger commands added to debug system');
   }
 }
@@ -304,6 +330,174 @@ if (typeof window !== 'undefined') {
     if (manager) {
       manager.showAllDebuggers(true);
       console.log('Forced showing all entity debuggers');
+    }
+  };
+  
+  // Performance monitoring functions
+  window.showPerformanceData = () => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      console.log(`Performance data for ${activeEntities.length} active debuggers:`);
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          const perfData = entityDebugger.getPerformanceData();
+          console.log(`${perfData.targetObjectType} (${perfData.targetObjectId}):`, perfData);
+        }
+      });
+    }
+  };
+  
+  window.resetPerformanceData = () => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) entityDebugger.resetPerformanceData();
+      });
+      console.log(`Performance data reset for ${activeEntities.length} debuggers`);
+    }
+  };
+  
+  window.togglePerformanceGraphs = (show = true) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          entityDebugger.config.showPerformanceGraph = show;
+        }
+      });
+      console.log(`Performance graphs ${show ? 'enabled' : 'disabled'} for ${activeEntities.length} debuggers`);
+    }
+  };
+
+  // Individual graph toggle functions
+  window.toggleUpdateGraphs = (state) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          entityDebugger.toggleGraph('update', state);
+        }
+      });
+      console.log(`Update graphs ${typeof state === 'boolean' ? (state ? 'enabled' : 'disabled') : 'toggled'} for ${activeEntities.length} debuggers`);
+    }
+  };
+
+  window.toggleRenderGraphs = (state) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          entityDebugger.toggleGraph('render', state);
+        }
+      });
+      console.log(`Render graphs ${typeof state === 'boolean' ? (state ? 'enabled' : 'disabled') : 'toggled'} for ${activeEntities.length} debuggers`);
+    }
+  };
+
+  window.toggleMemoryGraphs = (state) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          entityDebugger.toggleGraph('memory', state);
+        }
+      });
+      console.log(`Memory graphs ${typeof state === 'boolean' ? (state ? 'enabled' : 'disabled') : 'toggled'} for ${activeEntities.length} debuggers`);
+    }
+  };
+
+  window.toggleSummaryGraphs = (state) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          entityDebugger.toggleGraph('summary', state);
+        }
+      });
+      console.log(`Summary graphs ${typeof state === 'boolean' ? (state ? 'enabled' : 'disabled') : 'toggled'} for ${activeEntities.length} debuggers`);
+    }
+  };
+
+  window.setAllGraphs = (state) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          entityDebugger.setAllGraphs(state);
+        }
+      });
+      console.log(`All graphs ${state ? 'enabled' : 'disabled'} for ${activeEntities.length} debuggers`);
+    }
+  };
+
+  window.getGraphStates = () => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const activeEntities = manager.getActiveDebugEntities();
+      const states = {};
+      activeEntities.forEach(entity => {
+        const entityDebugger = entity.getDebugger();
+        if (entityDebugger) {
+          const entityType = entityDebugger.introspectionData?.objectType?.constructor || 'Unknown';
+          states[entityType] = entityDebugger.getGraphStates();
+        }
+      });
+      console.log('Current graph states by entity type:', states);
+      return states;
+    }
+  };
+
+  // Global performance summary functions
+  window.showGlobalPerformance = () => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const globalData = manager.getGlobalPerformanceData();
+      console.log('Global Performance Summary:', globalData);
+      return globalData;
+    }
+  };
+
+  window.drawGlobalSummary = (x = 10, y = 10, width = 300, height = 200) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      // This would typically be called in the draw() function
+      console.log(`Call manager.drawGlobalPerformanceSummary(${x}, ${y}, ${width}, ${height}) in your draw() function to display the global summary graph.`);
+      console.log('Alternatively, add it to an entity\'s render method or main rendering loop.');
+    }
+  };
+
+  // Global performance toggle functions
+  window.toggleGlobalPerformance = (state) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const newState = manager.toggleGlobalPerformance(state);
+      console.log(`Global performance summary ${newState ? 'enabled' : 'disabled'}`);
+      return newState;
+    }
+  };
+
+  window.getGlobalPerformanceState = () => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const state = manager.getGlobalPerformanceState();
+      console.log(`Global performance summary is currently ${state ? 'enabled' : 'disabled'}`);
+      return state;
     }
   };
 }
