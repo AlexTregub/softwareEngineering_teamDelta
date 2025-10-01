@@ -33,6 +33,10 @@ class Entity {
     this._sprite = typeof Sprite2D !== 'undefined' ?
       new Sprite2D(options.imagePath || null, createVector(x, y), createVector(width, height), 0) : null;
 
+    // Initialize debugger system (if UniversalDebugger available)
+    this._debugger = null;
+    this._initializeDebugger(options);
+
     // Initialize controllers and apply options
     this._initializeControllers(options);
 
@@ -49,6 +53,39 @@ class Entity {
   /** @returns {boolean} active flag */
   get isActive() { return this._isActive; }
   set isActive(value) { this._isActive = value; }
+
+  // --- Debugger Initialization ---
+  /**
+   * Initialize the debugger system if UniversalDebugger is available.
+   * @param {Object} [options] - Configuration options
+   * @private
+   */
+  _initializeDebugger(options = {}) {
+    if (typeof UniversalDebugger !== 'undefined') {
+      try {
+        // Configure debugger with entity-specific settings
+        const debugConfig = {
+          showBoundingBox: true,
+          showPropertyPanel: options.showDebugPanel !== false,
+          borderColor: options.debugBorderColor || '#FF0000',
+          fillColor: options.debugFillColor || 'rgba(255, 0, 0, 0.1)',
+          autoRefresh: options.debugAutoRefresh || false,
+          fontSize: options.debugFontSize || 10,
+          ...options.debugConfig
+        };
+        
+        this._debugger = new UniversalDebugger(this, debugConfig);
+        
+        // Register this entity with the global debug manager if available
+        if (typeof window !== 'undefined' && window.EntityDebugManager) {
+          window.EntityDebugManager.registerEntity(this);
+        }
+      } catch (error) {
+        console.warn('Failed to initialize entity debugger:', error);
+        this._debugger = null;
+      }
+    }
+  }
 
   // --- Controller Initialization ---
   /**
@@ -213,6 +250,11 @@ class Entity {
     this._collisionBox.setSize(size.x, size.y);
     this._sprite?.setPosition(createVector(pos.x, pos.y));
     this._sprite?.setSize(createVector(size.x, size.y));
+
+    // Update debugger if active
+    if (this._debugger?.isActive) {
+      try { this._debugger.update(); } catch (error) { console.warn('Error updating entity debugger:', error); }
+    }
   }
 
   // --- Rendering ---
@@ -226,6 +268,11 @@ class Entity {
     const renderController = this._controllers.get('render');
     if (renderController) renderController.render();
     else this._fallbackRender();
+
+    // Render debugger overlay if active
+    if (this._debugger?.isActive) {
+      try { this._debugger.render(); } catch (error) { console.warn('Error rendering entity debugger:', error); }
+    }
   }
 
   /**
@@ -273,8 +320,44 @@ class Entity {
       controllerCount: this._controllers.size,
       hasSprite: !!this._sprite,
       hasImage: this.hasImage(),
-      opacity: this.getOpacity()
+      opacity: this.getOpacity(),
+      hasDebugger: !!this._debugger,
+      debuggerActive: this._debugger?.isActive || false
     };
+  }
+
+  /**
+   * Toggle the entity's debugger visualization.
+   * @param {boolean} [forceState] - Optional forced state (true/false)
+   * @returns {boolean} New debugger state
+   */
+  toggleDebugger(forceState) {
+    if (!this._debugger) return false;
+    
+    if (typeof forceState === 'boolean') {
+      if (forceState) this._debugger.activate();
+      else this._debugger.deactivate();
+    } else {
+      this._debugger.toggle();
+    }
+    
+    return this._debugger.isActive;
+  }
+
+  /**
+   * Check if debugger is active.
+   * @returns {boolean} True if debugger is active
+   */
+  isDebuggerActive() {
+    return this._debugger?.isActive || false;
+  }
+
+  /**
+   * Get the debugger instance for advanced configuration.
+   * @returns {UniversalDebugger|null} Debugger instance or null
+   */
+  getDebugger() {
+    return this._debugger;
   }
 
   // --- Cleanup ---
