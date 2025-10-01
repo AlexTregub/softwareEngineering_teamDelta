@@ -500,4 +500,25 @@ if (typeof window !== 'undefined') {
       return state;
     }
   };
+
+  // Standalone global performance graph functions
+  window.drawGlobalPerformanceGraph = (x = 10, y = 10, width = 350, height = 200, options = {}) => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      console.log(`Call manager.drawGlobalPerformanceGraph(${x}, ${y}, ${width}, ${height}, options) in your draw() function.`);
+      console.log('Available options: backgroundColor, borderColor, titleColor, textColor, highlightColor, showEntityBreakdown');
+      console.log('Example: manager.drawGlobalPerformanceGraph(10, 10, 350, 200, {showEntityBreakdown: true})');
+      return true;
+    }
+    return false;
+  };
+
+  window.getGlobalPerformanceData = () => {
+    const manager = getEntityDebugManager();
+    if (manager) {
+      const data = manager.getGlobalPerformanceData();
+      console.log('Global Performance Data:', data);
+      return data;
+    }
+  };
 }

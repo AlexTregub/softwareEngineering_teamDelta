@@ -10,7 +10,7 @@ The debugger automatically integrates with all `Entity` instances. Simply press 
 
 | Key Combination | Action |
 |----------------|--------|
-| **`** | Toggle debug for nearest entities |
+| **`** | Toggle debug for closest entity + global performance graph |
 | **Shift + `** | Show ALL entity debuggers |
 | **Alt + `** | Hide all entity debuggers |
 | **Ctrl + `** | Cycle through selected entity debuggers |

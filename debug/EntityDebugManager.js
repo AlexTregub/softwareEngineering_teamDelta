@@ -57,6 +57,25 @@ class EntityDebugManager {
     /** @type {boolean} Whether global performance summary is visible */
     this.showGlobalPerformance = false;
     
+    /** @type {Object} Collected performance data storage */
+    this.collectedPerformanceData = {
+      combinedUpdateTimes: [],
+      combinedRenderTimes: [],
+      combinedMemoryUsage: [],
+      totalAverageUpdateTime: 0,
+      totalAverageRenderTime: 0,
+      totalAverageMemoryUsage: 0,
+      peakUpdateTime: 0,
+      peakRenderTime: 0,
+      peakMemoryUsage: 0,
+      lastCollectionTime: 0,
+      collectionInterval: 3000, // 3 seconds in milliseconds
+      dataHistory: [] // Store historical collection points
+    };
+    
+    /** @type {number|null} Timer ID for periodic data collection */
+    this._dataCollectionTimer = null;
+    
     this._setupEventListeners();
   }
 
@@ -255,10 +274,14 @@ class EntityDebugManager {
     
     if (this.isDebugEnabled) {
       this.toggleClosestEntity();
-      console.log('EntityDebugManager: Global debug enabled');
+      // Automatically show global performance graph when debug mode is enabled
+      this.showGlobalPerformance = true;
+      console.log('EntityDebugManager: Global debug enabled (with performance graph)');
     } else {
       this.hideAllDebuggers();
-      console.log('EntityDebugManager: Global debug disabled');
+      // Hide global performance graph when debug mode is disabled
+      this.showGlobalPerformance = false;
+      console.log('EntityDebugManager: Global debug disabled (performance graph hidden)');
     }
     
     this._updateDebugState();
@@ -462,8 +485,177 @@ class EntityDebugManager {
       }
     }
     
+    // Handle periodic data collection when debug mode is enabled
+    if (this.isDebugEnabled) {
+      this._updateDataCollection();
+    }
+    
     // Clean up inactive entities
     this._cleanupInactiveEntities();
+  }
+
+  /**
+   * Manages periodic data collection from all entities.
+   * Collects data every 3 seconds when debug mode is active.
+   * @private
+   */
+  _updateDataCollection() {
+    const currentTime = Date.now();
+    
+    // Check if it's time to collect data (every 3 seconds)
+    if (currentTime - this.collectedPerformanceData.lastCollectionTime >= this.collectedPerformanceData.collectionInterval) {
+      this._collectPerformanceDataFromAllEntities();
+      this.collectedPerformanceData.lastCollectionTime = currentTime;
+      
+      console.log(`EntityDebugManager: Collected performance data from ${this.entities.size} entities`);
+    }
+  }
+
+  /**
+   * Collects current performance data from all entities and updates storage.
+   * @private
+   */
+  _collectPerformanceDataFromAllEntities() {
+    const currentCollection = {
+      timestamp: Date.now(),
+      updateTimes: [],
+      renderTimes: [],
+      memoryUsage: [],
+      entityCount: 0
+    };
+
+    // Collect from all entities with debuggers
+    const allEntities = Array.from(this.entities).filter(entity => 
+      entity.entityDebugger && entity.isActive
+    );
+
+    allEntities.forEach(entity => {
+      const perfData = entity.entityDebugger.getPerformanceData();
+      
+      // Collect current frame performance data
+      if (perfData.updateTimes && perfData.updateTimes.length > 0) {
+        const latestUpdateTime = perfData.updateTimes[perfData.updateTimes.length - 1];
+        if (latestUpdateTime > 0) {
+          currentCollection.updateTimes.push(latestUpdateTime);
+        }
+      }
+      
+      if (perfData.renderTimes && perfData.renderTimes.length > 0) {
+        const latestRenderTime = perfData.renderTimes[perfData.renderTimes.length - 1];
+        if (latestRenderTime > 0) {
+          currentCollection.renderTimes.push(latestRenderTime);
+        }
+      }
+      
+      // Estimate memory usage (simplified calculation)
+      const estimatedMemory = this._estimateEntityMemoryUsage(entity);
+      if (estimatedMemory > 0) {
+        currentCollection.memoryUsage.push(estimatedMemory);
+      }
+      
+      currentCollection.entityCount++;
+    });
+
+    // Add to historical data and update combined arrays
+    this.collectedPerformanceData.dataHistory.push(currentCollection);
+    
+    // Keep only last 100 collection points to prevent memory bloat
+    if (this.collectedPerformanceData.dataHistory.length > 100) {
+      this.collectedPerformanceData.dataHistory.shift();
+    }
+    
+    // Update combined arrays with latest data
+    this._updateCombinedPerformanceData();
+  }
+
+  /**
+   * Estimates memory usage for an entity (simplified calculation).
+   * @param {Entity} entity - Entity to estimate memory for
+   * @returns {number} Estimated memory usage in bytes
+   * @private
+   */
+  _estimateEntityMemoryUsage(entity) {
+    // Simple heuristic based on entity properties and debugger data
+    let memoryEstimate = 1024; // Base entity overhead
+    
+    // Add memory for common entity properties
+    if (entity.position) memoryEstimate += 64;
+    if (entity.velocity) memoryEstimate += 64;
+    if (entity.sprite) memoryEstimate += 512;
+    if (entity.stats) memoryEstimate += 256;
+    
+    // Add debugger memory overhead
+    if (entity.entityDebugger) {
+      memoryEstimate += 2048; // Debugger overhead
+      const perfData = entity.entityDebugger.getPerformanceData();
+      if (perfData.updateTimes) memoryEstimate += perfData.updateTimes.length * 8;
+      if (perfData.renderTimes) memoryEstimate += perfData.renderTimes.length * 8;
+    }
+    
+    return memoryEstimate;
+  }
+
+  /**
+   * Updates the combined performance arrays from historical data.
+   * @private
+   */
+  _updateCombinedPerformanceData() {
+    const data = this.collectedPerformanceData;
+    
+    // Reset combined arrays
+    data.combinedUpdateTimes = [];
+    data.combinedRenderTimes = [];
+    data.combinedMemoryUsage = [];
+    
+    let totalUpdate = 0, totalRender = 0, totalMemory = 0;
+    let updateCount = 0, renderCount = 0, memoryCount = 0;
+    
+    data.peakUpdateTime = 0;
+    data.peakRenderTime = 0;
+    data.peakMemoryUsage = 0;
+    
+    // Process each historical collection point
+    this.collectedPerformanceData.dataHistory.forEach(collection => {
+      // Combine update times
+      collection.updateTimes.forEach(time => {
+        data.combinedUpdateTimes.push(time);
+        totalUpdate += time;
+        updateCount++;
+        data.peakUpdateTime = Math.max(data.peakUpdateTime, time);
+      });
+      
+      // Combine render times
+      collection.renderTimes.forEach(time => {
+        data.combinedRenderTimes.push(time);
+        totalRender += time;
+        renderCount++;
+        data.peakRenderTime = Math.max(data.peakRenderTime, time);
+      });
+      
+      // Combine memory usage
+      collection.memoryUsage.forEach(memory => {
+        data.combinedMemoryUsage.push(memory);
+        totalMemory += memory;
+        memoryCount++;
+        data.peakMemoryUsage = Math.max(data.peakMemoryUsage, memory);
+      });
+    });
+    
+    // Calculate averages
+    data.totalAverageUpdateTime = updateCount > 0 ? totalUpdate / updateCount : 0;
+    data.totalAverageRenderTime = renderCount > 0 ? totalRender / renderCount : 0;
+    data.totalAverageMemoryUsage = memoryCount > 0 ? totalMemory / memoryCount : 0;
+    
+    // Keep arrays to reasonable size (last 300 data points)
+    if (data.combinedUpdateTimes.length > 300) {
+      data.combinedUpdateTimes = data.combinedUpdateTimes.slice(-300);
+    }
+    if (data.combinedRenderTimes.length > 300) {
+      data.combinedRenderTimes = data.combinedRenderTimes.slice(-300);
+    }
+    if (data.combinedMemoryUsage.length > 300) {
+      data.combinedMemoryUsage = data.combinedMemoryUsage.slice(-300);
+    }
   }
 
   /**
@@ -476,7 +668,8 @@ class EntityDebugManager {
   }
 
   /**
-   * Gets aggregated performance data from all active debuggers.
+   * Gets aggregated performance data from all registered entities.
+   * Uses the periodically collected data for more accurate statistics.
    * 
    * @returns {Object} Combined performance statistics
    * @public
@@ -485,6 +678,7 @@ class EntityDebugManager {
     const allData = {
       totalEntities: 0,
       activeDebuggers: 0,
+      allEntities: 0,
       combinedUpdateTimes: [],
       combinedRenderTimes: [],
       combinedMemoryUsage: [],
@@ -494,65 +688,93 @@ class EntityDebugManager {
       peakUpdateTime: 0,
       peakRenderTime: 0,
       peakMemoryUsage: 0,
-      entityBreakdown: []
+      entityBreakdown: [],
+      dataCollectionActive: false,
+      lastCollectionTime: 0,
+      collectionCount: 0
     };
 
-    const activeEntities = Array.from(this.entities).filter(entity => 
-      entity.entityDebugger && entity.entityDebugger.isActive
-    );
+    const allEntities = Array.from(this.entities).filter(entity => entity.entityDebugger);
+    const activeDebuggers = allEntities.filter(entity => entity.entityDebugger.isActive);
 
     allData.totalEntities = this.entities.size;
-    allData.activeDebuggers = activeEntities.length;
+    allData.allEntities = allEntities.length;
+    allData.activeDebuggers = activeDebuggers.length;
 
-    if (activeEntities.length === 0) return allData;
+    // Add collection status information
+    allData.dataCollectionActive = this.isDebugEnabled;
+    allData.lastCollectionTime = this.collectedPerformanceData.lastCollectionTime;
+    allData.collectionCount = this.collectedPerformanceData.dataHistory.length;
 
-    // Aggregate data from all debuggers
-    let totalUpdateSum = 0;
-    let totalRenderSum = 0;
-    let totalMemorySum = 0;
-    let updateCount = 0;
-    let renderCount = 0;
-    let memoryCount = 0;
+    if (allEntities.length === 0) return allData;
 
-    activeEntities.forEach(entity => {
+    // Use collected performance data if available and recent
+    const timeSinceCollection = Date.now() - this.collectedPerformanceData.lastCollectionTime;
+    const hasRecentData = timeSinceCollection < (this.collectedPerformanceData.collectionInterval * 2);
+
+    if (hasRecentData && this.collectedPerformanceData.dataHistory.length > 0) {
+      // Use periodically collected data
+      allData.combinedUpdateTimes = [...this.collectedPerformanceData.combinedUpdateTimes];
+      allData.combinedRenderTimes = [...this.collectedPerformanceData.combinedRenderTimes];
+      allData.combinedMemoryUsage = [...this.collectedPerformanceData.combinedMemoryUsage];
+      allData.totalAverageUpdateTime = this.collectedPerformanceData.totalAverageUpdateTime;
+      allData.totalAverageRenderTime = this.collectedPerformanceData.totalAverageRenderTime;
+      allData.totalAverageMemoryUsage = this.collectedPerformanceData.totalAverageMemoryUsage;
+      allData.peakUpdateTime = this.collectedPerformanceData.peakUpdateTime;
+      allData.peakRenderTime = this.collectedPerformanceData.peakRenderTime;
+      allData.peakMemoryUsage = this.collectedPerformanceData.peakMemoryUsage;
+    } else {
+      // Fallback to real-time data collection for immediate display
+      let totalUpdateSum = 0;
+      let totalRenderSum = 0;
+      let updateCount = 0;
+      let renderCount = 0;
+
+      allEntities.forEach(entity => {
+        const perfData = entity.entityDebugger.getPerformanceData();
+
+        // Aggregate averages
+        if (perfData.averageUpdateTime > 0) {
+          totalUpdateSum += perfData.averageUpdateTime;
+          updateCount++;
+        }
+        if (perfData.averageRenderTime > 0) {
+          totalRenderSum += perfData.averageRenderTime;
+          renderCount++;
+        }
+
+        // Track peaks
+        allData.peakUpdateTime = Math.max(allData.peakUpdateTime, perfData.peakUpdateTime);
+        allData.peakRenderTime = Math.max(allData.peakRenderTime, perfData.peakRenderTime);
+
+        // Combine time series data (take the most recent values)
+        if (perfData.updateTimes && perfData.updateTimes.length > 0) {
+          allData.combinedUpdateTimes.push(...perfData.updateTimes.slice(-10)); // Last 10 frames
+        }
+        if (perfData.renderTimes && perfData.renderTimes.length > 0) {
+          allData.combinedRenderTimes.push(...perfData.renderTimes.slice(-10)); // Last 10 frames
+        }
+      });
+
+      // Calculate global averages
+      allData.totalAverageUpdateTime = updateCount > 0 ? totalUpdateSum / updateCount : 0;
+      allData.totalAverageRenderTime = renderCount > 0 ? totalRenderSum / renderCount : 0;
+    }
+
+    // Build entity breakdown (always real-time for current status)
+    allEntities.forEach(entity => {
       const perfData = entity.entityDebugger.getPerformanceData();
       
-      // Track entity-specific data
       allData.entityBreakdown.push({
         entityType: perfData.targetObjectType,
         entityId: perfData.targetObjectId,
         avgUpdateTime: perfData.averageUpdateTime,
         avgRenderTime: perfData.averageRenderTime,
         updateFrequency: perfData.updateFrequency,
-        renderFrequency: perfData.renderFrequency
+        renderFrequency: perfData.renderFrequency,
+        isActive: entity.entityDebugger.isActive
       });
-
-      // Aggregate averages
-      if (perfData.averageUpdateTime > 0) {
-        totalUpdateSum += perfData.averageUpdateTime;
-        updateCount++;
-      }
-      if (perfData.averageRenderTime > 0) {
-        totalRenderSum += perfData.averageRenderTime;
-        renderCount++;
-      }
-
-      // Track peaks
-      allData.peakUpdateTime = Math.max(allData.peakUpdateTime, perfData.peakUpdateTime);
-      allData.peakRenderTime = Math.max(allData.peakRenderTime, perfData.peakRenderTime);
-
-      // Combine time series data (take the most recent values)
-      if (perfData.updateTimes && perfData.updateTimes.length > 0) {
-        allData.combinedUpdateTimes.push(...perfData.updateTimes.slice(-20)); // Last 20 frames
-      }
-      if (perfData.renderTimes && perfData.renderTimes.length > 0) {
-        allData.combinedRenderTimes.push(...perfData.renderTimes.slice(-20)); // Last 20 frames
-      }
     });
-
-    // Calculate global averages
-    allData.totalAverageUpdateTime = updateCount > 0 ? totalUpdateSum / updateCount : 0;
-    allData.totalAverageRenderTime = renderCount > 0 ? totalRenderSum / renderCount : 0;
 
     return allData;
   }
@@ -762,11 +984,171 @@ class EntityDebugManager {
   }
 
   /**
+   * Draws a standalone global performance graph using GlobalPerformanceData.
+   * This is a simpler version that can be called independently.
+   * 
+   * @param {number} x - X position for the graph
+   * @param {number} y - Y position for the graph
+   * @param {number} width - Width of the graph
+   * @param {number} height - Height of the graph
+   * @param {Object} [options] - Optional display settings
+   * @public
+   */
+  drawGlobalPerformanceGraph(x, y, width, height, options = {}) {
+    const globalData = this.getGlobalPerformanceData();
+    
+    if (globalData.allEntities === 0) {
+      // Show message when no entities exist
+      push();
+      fill(100, 100, 100, 150);
+      stroke(150);
+      strokeWeight(1);
+      rect(x, y, width, height);
+      
+      fill(200);
+      textSize(12);
+      textAlign(CENTER, CENTER);
+      text('No Entities Available', x + width/2, y + height/2);
+      pop();
+      return;
+    }
+
+    push();
+    
+    // Draw background
+    fill(options.backgroundColor || [0, 0, 0, 180]);
+    stroke(options.borderColor || [100, 200, 255]);
+    strokeWeight(options.borderWidth || 2);
+    rect(x, y, width, height);
+    
+    // Title
+    fill(options.titleColor || [100, 200, 255]);
+    textSize(options.titleSize || 14);
+    textAlign(LEFT, TOP);
+    text(`Global Performance (${globalData.allEntities} entities, ${globalData.activeDebuggers} active)`, x + 5, y + 5);
+    
+    // Performance statistics
+    fill(options.textColor || [255, 255, 255]);
+    textSize(options.textSize || 10);
+    let yPos = y + 25;
+    
+    text(`Entities: ${globalData.allEntities} total, ${globalData.activeDebuggers} tracking`, x + 5, yPos);
+    yPos += 12;
+    text(`Data Points: ${globalData.combinedUpdateTimes.length} update, ${globalData.combinedRenderTimes.length} render, ${globalData.combinedMemoryUsage.length} memory`, x + 5, yPos);
+    yPos += 12;
+    text(`Avg Update: ${globalData.totalAverageUpdateTime.toFixed(2)}ms`, x + 5, yPos);
+    yPos += 12;
+    text(`Avg Render: ${globalData.totalAverageRenderTime.toFixed(2)}ms`, x + 5, yPos);
+    yPos += 12;
+    text(`Avg Memory: ${(globalData.totalAverageMemoryUsage / 1024).toFixed(1)}KB`, x + 5, yPos);
+    yPos += 12;
+    text(`Peak Update: ${globalData.peakUpdateTime.toFixed(2)}ms`, x + 5, yPos);
+    yPos += 12;
+    text(`Peak Render: ${globalData.peakRenderTime.toFixed(2)}ms`, x + 5, yPos);
+    yPos += 12;
+    text(`Peak Memory: ${(globalData.peakMemoryUsage / 1024).toFixed(1)}KB`, x + 5, yPos);
+    yPos += 12;
+    
+    const totalAvg = globalData.totalAverageUpdateTime + globalData.totalAverageRenderTime;
+    fill(options.highlightColor || [255, 255, 100]);
+    text(`Total Avg: ${totalAvg.toFixed(2)}ms`, x + 5, yPos);
+    yPos += 12;
+    
+    // Collection status
+    fill(globalData.dataCollectionActive ? [100, 255, 100] : [255, 100, 100]);
+    text(`Collection: ${globalData.dataCollectionActive ? 'Active' : 'Inactive'} (${globalData.collectionCount} samples)`, x + 5, yPos);
+    
+    // Draw performance chart
+    const chartY = y + 80;
+    const chartHeight = height - 85;
+    const chartWidth = width - 10;
+    
+    if (globalData.combinedUpdateTimes.length > 0 || globalData.combinedRenderTimes.length > 0) {
+      this._drawGlobalPerformanceChart(x + 5, chartY, chartWidth, chartHeight, globalData, options);
+    } else if (globalData.allEntities > 0) {
+      // Show message about data collection when entities exist but no performance data yet
+      fill(150);
+      textSize(10);
+      textAlign(CENTER, CENTER);
+      text('Performance data collecting...', x + chartWidth/2, chartY + chartHeight/2);
+    }
+    
+    // Entity breakdown (if space allows and option enabled)
+    if (options.showEntityBreakdown && height > 200 && globalData.entityBreakdown.length > 0) {
+      this._drawEntityBreakdown(x + width - 150, y + 25, 140, Math.min(100, height - 30), globalData.entityBreakdown);
+    }
+    
+    pop();
+  }
+
+  /**
+   * Draws entity performance breakdown list.
+   * 
+   * @param {number} x - X position
+   * @param {number} y - Y position  
+   * @param {number} width - Width of breakdown area
+   * @param {number} height - Height of breakdown area
+   * @param {Array} entityBreakdown - Array of entity performance data
+   * @private
+   */
+  _drawEntityBreakdown(x, y, width, height, entityBreakdown) {
+    // Background for breakdown
+    fill(0, 0, 0, 100);
+    stroke(100, 100, 100);
+    strokeWeight(1);
+    rect(x, y, width, height);
+    
+    fill(200, 200, 200);
+    textSize(8);
+    textAlign(LEFT, TOP);
+    text('Entity Breakdown:', x + 3, y + 3);
+    
+    let yPos = y + 15;
+    const maxEntries = Math.floor((height - 20) / 10);
+    
+    for (let i = 0; i < Math.min(entityBreakdown.length, maxEntries); i++) {
+      const entity = entityBreakdown[i];
+      const totalTime = entity.avgUpdateTime + entity.avgRenderTime;
+      
+      // Color code by performance (green = good, red = bad)
+      if (totalTime < 1.0) {
+        fill(100, 255, 100);
+      } else if (totalTime < 2.0) {
+        fill(255, 255, 100);  
+      } else {
+        fill(255, 100, 100);
+      }
+      
+      textSize(7);
+      text(`${entity.entityType}: ${totalTime.toFixed(1)}ms`, x + 3, yPos);
+      yPos += 10;
+    }
+    
+    if (entityBreakdown.length > maxEntries) {
+      fill(150);
+      textSize(6);
+      text(`+${entityBreakdown.length - maxEntries} more...`, x + 3, yPos);
+    }
+  }
+
+  /**
    * Destroys the debug manager and cleans up resources.
    */
   destroy() {
     this.hideAllDebuggers();
     this.entities.clear();
+    
+    // Clean up data collection timer if it exists
+    if (this._dataCollectionTimer) {
+      clearInterval(this._dataCollectionTimer);
+      this._dataCollectionTimer = null;
+    }
+    
+    // Clear collected performance data
+    this.collectedPerformanceData.combinedUpdateTimes = [];
+    this.collectedPerformanceData.combinedRenderTimes = [];
+    this.collectedPerformanceData.combinedMemoryUsage = [];
+    this.collectedPerformanceData.dataHistory = [];
     
     if (this._listenersAttached && typeof window !== 'undefined') {
       window.removeEventListener('keydown', this._handleKeyDown.bind(this));
