@@ -11,6 +11,7 @@
 
   function spawnOne() {
     try {
+      console.log('Spawn button pressed');
       if (typeof handleSpawnCommand === 'function') {
         handleSpawnCommand(['1','ant','player']);
         return;
@@ -19,12 +20,17 @@
         antsSpawn(1);
         return;
       }
+      if (typeof executeCommand === 'function') {
+        executeCommand('spawn 1 ant player');
+        return;
+      }
       console.warn('Spawn function not available');
     } catch (e) { console.error('spawnOne error', e); }
   }
 
   function deleteOne() {
     try {
+      console.log('Delete button pressed');
       // Prefer using the centralized command system if present
       if (typeof executeCommand === 'function') {
         executeCommand('kill all');
@@ -58,6 +64,34 @@
     const b1 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Spawn Ant', 'default', spawnOne);
   const b2 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Delete Ant', 'danger', deleteOne);
     spawnUI.buttons.push(b1, b2);
+
+    // Attach a one-time global mouseup listener to capture clicks even when
+    // other controllers consume p5 mouse events. This converts client coords
+    // into canvas-local coordinates and dispatches to the same handlers.
+    if (!window._spawnKillMouseListenerAttached) {
+      window._spawnKillMouseListenerAttached = true;
+      window.addEventListener('mouseup', function _spawnKillMouseUp(e) {
+        try {
+          const canvas = document.querySelector('canvas');
+          if (!canvas) return;
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          // Iterate buttons and call handler for the first one that contains point
+          for (let i = 0; i < spawnUI.buttons.length; i++) {
+            const btn = spawnUI.buttons[i];
+            if (!btn) continue;
+            try {
+              if (typeof btn.isMouseOver === 'function' ? btn.isMouseOver(x, y) : btn.bounds.contains(x, y)) {
+                if (i === 0) spawnOne(); else deleteOne();
+                e.stopPropagation(); e.preventDefault();
+                return;
+              }
+            } catch (err) { /* ignore button check errors */ }
+          }
+        } catch (err) { console.error('spawnKillUI mouseup handler error', err); }
+      }, { passive: false });
+    }
   }
 
   function updateButtonPositions() {
@@ -73,16 +107,32 @@
   function renderSpawnUI() {
     if (typeof createMenuButton === 'undefined') return; // Button system not loaded
     // show only while developer console / debug overlay is enabled
-    if (typeof devConsoleEnabled !== 'undefined' && !devConsoleEnabled) return;
+    if (typeof devConsoleEnabled !== 'undefined' && !devConsoleEnabled) {
+      // Print a one-time hint so developers know why the UI is hidden
+      if (!renderSpawnUI._hintShown) {
+        try { console.info("spawnKillUI hidden: enable dev console (press `) or call toggleDevConsole() to show spawn/delete buttons."); } catch (e) {}
+        renderSpawnUI._hintShown = true;
+      }
+      return;
+    }
     if (typeof GameState !== 'undefined') {
       if (!GameState.isInGame || !GameState.isInGame()) return; // only show in-game
     }
     ensureButtons();
     updateButtonPositions();
+    // Debug instrumentation removed: avoid noisy per-frame logs. Click handlers still log on activation.
 
     for (let i = 0; i < spawnUI.buttons.length; i++) {
       const btn = spawnUI.buttons[i];
+      // Update button state; no per-frame logging to avoid console spam.
       btn.update(mouseX, mouseY, mouseIsPressed);
+      // Fallback: some systems expect a legacy .action; ensure click triggers
+      if (typeof btn.wasClickedThisFrame === 'function' && btn.wasClickedThisFrame()) {
+        try {
+          if (i === 0) spawnOne();
+          else if (i === 1) deleteOne();
+        } catch (e) { console.error('spawnKillUI fallback handler error', e); }
+      }
       btn.render();
     }
   }

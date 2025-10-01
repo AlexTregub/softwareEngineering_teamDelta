@@ -19,6 +19,7 @@
     "test:antmanager": "node test/antManager.test.js",
     "test:resourcemanager": "node test/g_resourceManager.test.js",
     "test:button": "node test/button.test.js",
+  "test:vertical": "node test/verticalButtonList.test.js && node test/verticalButtonList.header.test.js",
     "test:collisionbox2d": "node test/collisionBox2D.test.js",
     "test:movementcontroller": "node test/movementController.test.js",
     "test:taskmanager": "node test/taskManager.test.js",

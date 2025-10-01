@@ -151,16 +151,15 @@ function runControllerIntegrationTest() {
   test('Job integration with controllers', () => {
     // Create ant through Job (like the game does)
     const baseAnt = new ant(800, 800, 20, 20, 30, 0);
-    const Job = new Job(baseAnt, "Builder", antBaseSprite);
-    
-    
+    const jobInst = new Job(baseAnt, "Builder", antBaseSprite);
+
     // Job should inherit controller functionality
-    if (!Job._movementController) throw new Error('Job missing MovementController');
-    if (!Job._taskManager) throw new Error('Job missing TaskManager');
-    if (!Job._renderController) throw new Error('Job missing RenderController');
+    if (!jobInst._movementController) throw new Error('Job missing MovementController');
+    if (!jobInst._taskManager) throw new Error('Job missing TaskManager');
+    if (!jobInst._renderController) throw new Error('Job missing RenderController');
     
     // Should be able to move
-    const moveResult = Job.moveToLocation(850, 850);
+    const moveResult = jobInst.moveToLocation(850, 850);
     if (!moveResult) throw new Error('Job movement failed');
     
   });

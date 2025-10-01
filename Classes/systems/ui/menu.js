@@ -8,21 +8,51 @@ let exitButton;
 let infoButton;
 let debugButton;
 let menuImage;
+let menuHeader = null;
+
+// layout debug data is produced by VerticalButtonList and exposed via
+// window.menuLayoutData so debug rendering code can access it without
+// polluting this module's globals.
+// window.menuLayoutData = { debugRects:[], groupRects:[], centers:[], debugImgs:[], headerTop }
+// global vertical offset (px) to move the menu up/down. Negative moves up.
+// default offset and persisted storage key
+const DEFAULT_MENU_YOFFSET = -50;
+const MENU_YOFFSET_KEY = 'antgame.menuYOffset';
+
+// load persisted offset if available, otherwise fall back to default
+let menuYOffset = (function(){
+  try {
+    const v = localStorage.getItem(MENU_YOFFSET_KEY);
+    if (v !== null) {
+      const n = parseInt(v, 10);
+      if (!Number.isNaN(n)) return n;
+    }
+  } catch (err) {
+    // localStorage may be unavailable in some contexts
+  }
+  return DEFAULT_MENU_YOFFSET;
+})();
+
+// the canonical default to reset to (Home will reset to this value)
+const initialMenuYOffset = DEFAULT_MENU_YOFFSET;
+// Debug behaviors (keyboard, pointer, drag, history, rendering) were moved
+// to debug/menu_debug.js. The debug module exposes initializeMenuDebug()
+// and drawMenuDebug() which we call when available.
 
 // Button configurations for each menu state
 const MENU_CONFIGS = {
   MENU: [
-    { x: -100, y: -100, w: 200, h: 50, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: -100, y: -40,  w: 200, h: 50, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
-    { x: -100, y: 20,   w: 200, h: 50, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
-    { x: -110, y: 120,  w: 100, h: 40, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
-    { x: 10,   y: 120,  w: 100, h: 40, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
+    { x: 0, y: -100, w: 200, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
+    { x: 0, y: -40,  w: 200, h: 100, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
+    { x: 0, y: 20,   w: 200, h: 100, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
+    { x: 0, y: 120,  w: 100, h: 50, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
+    { x: 10,   y: 120,  w: 100, h: 50, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
-    { x: -100, y: -100, w: 200, h: 50, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
-    { x: -100, y: -40,  w: 200, h: 50, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
-    { x: -100, y: 20,   w: 200, h: 50, text: "Controls",      style: 'default', action: () => console.log("Controls") },
-    { x: -100, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
+    { x: 0, y: -100, w: 200, h: 50, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
+    { x: 0, y: -40,  w: 200, h: 50, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
+    { x: 0, y: 20,   w: 200, h: 50, text: "Controls",      style: 'default', action: () => console.log("Controls") },
+    { x: 0, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ],
   DEBUG: [
     { x: -100, y: -100, w: 200, h: 50, text: "Check Mouse Over", style: 'warning', action: () => console.log("Audio Settings") },
@@ -46,7 +76,7 @@ function menuPreload(){
 
 // Initialize menu system
 function initializeMenu() {
-  titleTargetY = g_canvasY / 2 - 150;
+  titleTargetY = g_canvasY / 2 - 150 + menuYOffset;
   loadButtons();
   
   // Register callback to reload buttons when state changes
@@ -55,63 +85,44 @@ function initializeMenu() {
       loadButtons();
     }
   });
+
+  // initialize external debug handlers (if the debug module is present)
+  if (window.initializeMenuDebug) window.initializeMenuDebug();
 }
 
 // Load buttons for current state
 function loadButtons() {
-    const centerX = g_canvasX / 2, centerY = g_canvasY / 2;
+  const centerX = g_canvasX / 2, centerY = g_canvasY / 2 + menuYOffset;
     const currentState = GameState.getState();
+    const configs = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU);
 
-    menuButtons = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU).map(btn => {
-      let img = null;
-      switch (btn.text) {
-        case "Start Game":
-          img = playButton;
-          break;
-        case "Options":
-          img = optionButton;
-          break;
-        case "Exit Game":
-          img = exitButton;
-          break;
-        case "Credits":
-          img = infoButton;
-          break;
-        case "Audio Settings":
-          img = audioButton;
-          break;
-        case "Video Settings":
-          img = videoButton;
-          break;
-        case "Controls":
-          img = controlButton;
-          break;
-        case "Back to Menu":
-          img = backButton;
-          break;
-        case "Debug":
-          img = debugButton;
-          break;
-        default:
-          img = null;
-        
-      }
+    // Use a vertical container to auto-layout the buttons.
+    // This preserves each config's width/height but constrains max width
+    // and evenly spaces buttons vertically while keeping horizontal offsets
+    // (btn.x) as small manual nudges if present.
+  const container = new VerticalButtonList(centerX, centerY, { spacing: 8, maxWidth: Math.floor(g_canvasX * 0.55), headerImg: menuImage, headerScale: .7, headerGap: 30, headerMaxWidth: 500 });
+  const layout = container.buildFromConfigs(configs);
+  menuButtons = layout.buttons;
+  menuHeader = layout.header || null;
+  // publish layout debug data for the debug module (if present)
+  try {
+    window.menuLayoutData = {
+      debugRects: layout.debugRects || [],
+      groupRects: layout.groupRects || [],
+      centers: layout.centers || [],
+      debugImgs: layout.debugImgs || [],
+      headerTop: layout.headerTop
+    };
+  } catch (err) {
+    // ignore if window is not writable in some test contexts
+  }
 
-      return createMenuButton(
-            centerX + btn.x,
-            centerY + btn.y,
-            btn.w,
-            btn.h,
-            btn.text,
-            btn.style,
-            btn.action,
-            img 
-      );
-  });
-
-    // Register buttons for click handling
-    setActiveButtons(menuButtons);
+  // Register buttons for click handling
+  setActiveButtons(menuButtons);
 }
+
+
+
 
 
 // Start game with fade transition
@@ -131,7 +142,13 @@ function drawMenu() {
   
     // Draw logo instead of plain text
     imageMode(CENTER);
-    if (menuImage) {
+    // If we have a header laid out by the container, draw it centered at its computed position.
+    if (menuHeader && menuHeader.img) {
+      const hx = g_canvasX / 2;
+      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset;
+      image(menuHeader.img, hx, hy, menuHeader.w, menuHeader.h);
+    } else if (menuImage) {
+      // fallback to previous large logo behavior if header wasn't provided
       image(menuImage, g_canvasX / 2, (titleY - 50) + floatOffset, 700, 700);
     } else {
       // fallback outlined text if image fails
@@ -142,6 +159,12 @@ function drawMenu() {
     btn.update(mouseX, mouseY, mouseIsPressed);
     btn.render();
   });
+
+  // Debug rendering and interactions were moved to debug/menu_debug.js
+  // Use the shared window.menuLayoutDebug flag so both modules agree on state.
+  if (window.menuLayoutDebug && window.drawMenuDebug) {
+    window.drawMenuDebug();
+  }
 }
 
 // Update menu transitions

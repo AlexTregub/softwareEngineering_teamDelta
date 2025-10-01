@@ -117,6 +117,14 @@ class ant extends Entity {
   get _interactionController() { return this.getController('interaction'); }
   
   // --- Property/Method Compatibility ---
+  // Backwards-compatible posX/posY accessors used across unit/integration tests
+  // These proxy into the transform controller (or collision box) so older tests
+  // that read/write posX/posY continue to work.
+  get posX() { return this.getPosition().x; }
+  set posX(value) { const p = this.getPosition(); this.setPosition(value, p.y); }
+  get posY() { return this.getPosition().y; }
+  set posY(value) { const p = this.getPosition(); this.setPosition(p.x, value); }
+
   get isMoving() { return this._delegate('movement', 'getIsMoving') || false; }
   get isSelected() {
     const result = this._delegate('selection', 'isSelected') || false;

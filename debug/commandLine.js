@@ -15,7 +15,7 @@ let originalConsoleLog = console.log;
 console.log = function(...args) {
   originalConsoleLog.apply(console, args);
   if (commandLineActive) {
-    let message = args.g_map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+    let message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
     consoleOutput.unshift(message);
     if (consoleOutput.length > 100) consoleOutput.pop();
   }

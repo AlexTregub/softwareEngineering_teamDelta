@@ -20,13 +20,72 @@ let g_menuFont;
 let g_recordingPath;
 
 
+/**
+ * preload
+ * -------
+ * Preloads game assets and resources used during runtime.
+ * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
+ * Assigns loaded assets to globals consumed by rendering and game systems.
+ */
 function preload(){
-  test_stats();
   terrainPreloader();
-  Ants_Preloader();
-  resourcePreLoad();
   menuPreload();
+  antsPreloader();
+  resourcePreLoad();
 }
+
+
+function setup() {
+
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
+  createCanvas(g_canvasX, g_canvasY);
+  initializeWorld();
+
+  // Initialize TileInteractionManager for efficient mouse input handling
+  g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
+
+  // --- Initialize Controllers ---
+  g_mouseController = new MouseInputController();
+  g_keyboardController = new KeyboardInputController();
+  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
+
+  initializeMenu();  // Initialize the menu system
+  // Initialize dropoff UI if present (creates the Place Dropoff button)
+  if (typeof window !== 'undefined' && typeof window.initDropoffUI === 'function') {
+    window.initDropoffUI();
+  }
+  // Do not force spawn UI visible here; spawn UI is dev-console-only by default.
+
+  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
+  try {
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.spawn === 'function') {
+      g_resourceManager.spawn();
+    }
+  } catch (e) { /* non-fatal; spawner will populate via interval */ }
+}
+
+/**
+ * initializeWorld
+ * ----------------
+ * Encapsulates the world and map initialization that was previously inlined
+ * inside setup(). Keeps setup() concise and makes the initialization reusable
+ * for tests or reset logic.
+ */
+function initializeWorld() {
+  g_seed = hour()*minute()*floor(second()/10);
+
+  g_map = new Terrain(g_canvasX + 300, g_canvasY + 300, TILE_SIZE);
+  g_map.randomize(g_seed);
+  g_coordsy = g_map.getCoordinateSystem();
+  g_coordsy.setViewCornerBC(0,0);
+
+  g_gridMap = new PathMap(g_map);
+  // Ensure coordinate system is available and aligned to the top-left of the backing canvas
+  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
+  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas
+}
+
 
 /**
  * draw
@@ -74,6 +133,9 @@ function mapRender(){
  */
 function fieldRender(){
   antsUpdate();
+  if (g_resourceList && typeof g_resourceList.updateAll === 'function') {
+    g_resourceList.updateAll();
+  }
   g_resourceList.drawAll();
 }
 
@@ -91,6 +153,10 @@ function fieldRender(){
  */
 function uiRender(){
   updateMenu(); // Update menu state and handle transitions
+  // Update dropoff UI each frame (positions, input handling)
+  if (typeof window !== 'undefined' && typeof window.updateDropoffUI === 'function') {
+    window.updateDropoffUI();
+  }
   if (renderMenu()) return; // Render menu if active, otherwise render game
   renderCurrencies();
   if (g_selectionBoxController) { g_selectionBoxController.draw(); }
@@ -98,6 +164,10 @@ function uiRender(){
   // Render spawn/delete UI (canvas-based) if available
   if (typeof window.renderSpawnUI === 'function') {
     window.renderSpawnUI();
+  }
+  // Draw dropoff UI (button, placement preview) after other UI elements
+  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
+    window.drawDropoffUI();
   }
   debugRender();
 }
@@ -116,16 +186,50 @@ function debugRender() {
   drawCommandLine();
 }
 
-/**
- * preload
- * -------
- * Preloads game assets and resources used during runtime.
- * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
- * Assigns loaded assets to globals consumed by rendering and game systems.
- */
-function preload(){
-  terrainPreloader();
-  g_menuFont = loadFont("Images/Assets/Terraria.TTF");
+function drawDebugGrid(tileSize, gridWidth, gridHeight) {
+  stroke(100, 100, 100, 100); // light gray grid lines
+  strokeWeight(1);
+  noFill();
+
+  for (let x = 0; x < gridWidth; x++) {
+    for (let y = 0; y < gridHeight; y++) {
+      rect(x * tileSize, y * tileSize, tileSize, tileSize);
+    }
+  }
+
+  // Highlight tile under mouse
+  const tileX = Math.floor(mouseX / tileSize);
+  const tileY = Math.floor(mouseY / tileSize);
+  
+  // Fill the tile with transparent yellow
+  fill(255, 255, 0, 50); // transparent yellow
+  noStroke();
+  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+  
+  // Add a border to make the tile more visible
+  noFill();
+  stroke(255, 255, 0, 150); // more opaque yellow border
+  strokeWeight(2);
+  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+  
+  // Show tile center dot to indicate where ant will move
+  if (selectedAnt) {
+    fill(255, 0, 0, 200); // red dot for movement target
+    noStroke();
+    const tileCenterX = tileX * tileSize + tileSize / 2;
+    const tileCenterY = tileY * tileSize + tileSize / 2;
+    ellipse(tileCenterX, tileCenterY, 6, 6);
+  }
+
+  // Highlight selected ant's current tile
+  if (selectedAnt) {
+    const pos = selectedAnt.getPosition();
+    const antTileX = Math.floor(pos.x / tileSize);
+    const antTileY = Math.floor(pos.y / tileSize);
+    fill(0, 255, 0, 80); // transparent green
+    noStroke();
+    rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
+  }
 }
 
 /**
@@ -186,79 +290,5 @@ function keyPressed() {
 
 ////// MAIN
 
-function setup() {
-  antsPreloader();
-  resourcePreLoad();
-  g_canvasX = windowWidth;
-  g_canvasY = windowHeight;
-  createCanvas(g_canvasX, g_canvasY);
 
-  g_seed = hour()*minute()*floor(second()/10);
-
-  g_map = new Terrain(g_canvasX + 300,g_canvasY + 300,TILE_SIZE);
-  g_map.randomize(g_seed);
-  g_coordsy = g_map.getCoordinateSystem();
-  g_coordsy.setViewCornerBC(0,0);
-
-  g_gridMap = new PathMap(g_map);
-  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
-  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-
-  // Initialize TileInteractionManager for efficient mouse input handling
-  g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
-
-  // --- Initialize Controllers ---
-  g_mouseController = new MouseInputController();
-  g_keyboardController = new KeyboardInputController();
-  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-
-  initializeMenu();  // Initialize the menu system
-}
-
-
-function drawDebugGrid(tileSize, gridWidth, gridHeight) {
-  stroke(100, 100, 100, 100); // light gray grid lines
-  strokeWeight(1);
-  noFill();
-
-  for (let x = 0; x < gridWidth; x++) {
-    for (let y = 0; y < gridHeight; y++) {
-      rect(x * tileSize, y * tileSize, tileSize, tileSize);
-    }
-  }
-
-  // Highlight tile under mouse
-  const tileX = Math.floor(mouseX / tileSize);
-  const tileY = Math.floor(mouseY / tileSize);
-  
-  // Fill the tile with transparent yellow
-  fill(255, 255, 0, 50); // transparent yellow
-  noStroke();
-  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
-  
-  // Add a border to make the tile more visible
-  noFill();
-  stroke(255, 255, 0, 150); // more opaque yellow border
-  strokeWeight(2);
-  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
-  
-  // Show tile center dot to indicate where ant will move
-  if (selectedAnt) {
-    fill(255, 0, 0, 200); // red dot for movement target
-    noStroke();
-    const tileCenterX = tileX * tileSize + tileSize / 2;
-    const tileCenterY = tileY * tileSize + tileSize / 2;
-    ellipse(tileCenterX, tileCenterY, 6, 6);
-  }
-
-  // Highlight selected ant's current tile
-  if (selectedAnt) {
-    const pos = selectedAnt.getPosition();
-    const antTileX = Math.floor(pos.x / tileSize);
-    const antTileY = Math.floor(pos.y / tileSize);
-    fill(0, 255, 0, 80); // transparent green
-    noStroke();
-    rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
-  }
-}
 

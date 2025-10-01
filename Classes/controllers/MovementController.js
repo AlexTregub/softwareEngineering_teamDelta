@@ -317,6 +317,11 @@ class MovementController {
    * @returns {boolean}
    */
   shouldSkitter() {
+    // Don't skitter if movement speed is 0
+    if (this.getEffectiveMovementSpeed() <= 0) {
+      return false;
+    }
+
     // Only skitter if idle and out of combat
     if (this._entity._stateMachine) {
       const canMove = this._entity._stateMachine.canPerformAction("move");

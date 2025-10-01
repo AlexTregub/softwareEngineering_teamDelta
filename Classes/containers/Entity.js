@@ -91,7 +91,7 @@ class Entity {
    */
   _configureControllers(options) {
     const movement = this._controllers.get('movement');
-    if (movement && options.movementSpeed) movement.movementSpeed = options.movementSpeed;
+    if (movement && options.movementSpeed !== undefined) movement.movementSpeed = options.movementSpeed;
 
     const selection = this._controllers.get('selection');
     if (selection && options.selectable !== undefined) selection.setSelectable(options.selectable);
@@ -143,6 +143,16 @@ class Entity {
   isMoving() { return this._delegate('movement', 'getIsMoving') || false; }
   /** Stop movement. */
   stop() { return this._delegate('movement', 'stop'); }
+  /** Get movement speed. */
+  get movementSpeed() { 
+    const movement = this._controllers.get('movement');
+    return movement ? movement.movementSpeed : 0;
+  }
+  /** Set movement speed. */
+  set movementSpeed(speed) { 
+    const movement = this._controllers.get('movement');
+    if (movement) movement.movementSpeed = speed;
+  }
 
   // --- Selection ---
   setSelected(selected) { return this._delegate('selection', 'setSelected', selected); }

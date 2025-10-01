@@ -1,5 +1,6 @@
 let g_resourceList;
 let g_resourceManager;
+let resourceIndex = 0;
 
 function resourcePreLoad(){
   greenLeaf = loadImage('Images/Resources/leaf.png');
@@ -24,9 +25,20 @@ class resourcesArray {
   }
 
   drawAll() {
-    let keys = Object.keys(this.resources);
-    for(let k of keys){
-      this.resources[k].draw();
+    for (const r of this.resources) {
+      // Prefer modern Entity/Controller render path; fallback to legacy draw if encountered
+      try {
+        if (r && typeof r.render === 'function') r.render();
+        else if (r && typeof r.draw === 'function') r.draw();
+      } catch (e) { /* tolerate faulty draw implementations */ }
+    }
+  }
+
+  updateAll() {
+    for (const r of this.resources) {
+      try {
+        if (r && typeof r.update === 'function') r.update();
+      } catch (_) { /* ignore individual update errors */ }
     }
   }
 }
@@ -179,54 +191,18 @@ class ResourceSpawner {
       greenLeaf: { 
         weight: 0.5, 
         make: () => {
-          let x = random(0, g_canvasX - 20);
-          let y = random(0, g_canvasY - 20);
-          let w = 20, h = 20;
-
-          return {
-            type: "greenLeaf",
-            x, y, w, h,
-            draw: () => {
-              image(greenLeaf, x, y, w, h);
-
-              // hover detection
-              if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
-                push();
-                noFill();
-                stroke(255); // white outline
-                strokeWeight(2);
-                rect(x, y, w, h);
-                pop();
-              }
-            }
-          };
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createGreenLeaf(x, y);
         }
       },
 
       mapleLeaf: { 
         weight: 0.8, 
         make: () => {
-          let x = random(0, g_canvasX - 20);
-          let y = random(0, g_canvasY - 20);
-          let w = 20, h = 20;
-
-          return {
-            type: "mappleLeaf",
-            x, y, w, h,
-            draw: () => {
-              image(mapleLeaf, x, y, w, h);
-
-              // hover detection
-              if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
-                push();
-                noFill();
-                stroke(255); // white outline
-                strokeWeight(2);
-                rect(x, y, w, h);
-                pop();
-              }
-            }
-          };
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createMapleLeaf(x, y);
         }
       },
     };
@@ -239,7 +215,7 @@ class ResourceSpawner {
   // Asset selected based on rarity, drawn and appened to list of resources
   spawn() {
     let list = this.resources.getResourceList();
-  if (Object.keys(list).length >= this.maxAmount) return; 
+    if (list.length >= this.maxAmount) return;
 
     let keys = Object.keys(this.assets);
     let total = keys.reduce((sum, k) => sum + this.assets[k].weight, 0);
@@ -259,42 +235,6 @@ class ResourceSpawner {
   }
 }
 
-
-// Spawn Resources
-function resourcesSpawn(numToSpawn) {
-    for (let i = 0; i < numToSpawn; i++) {
-        let resourceType = random(['stick', 'leaf']); // Randomly choose a resource
-        let img;
-        let size = createVector(0,0);
-
-        // Set the specifics for the randomly chosen resource
-        if (resourceType === 'stick') {
-            img = stickImg;
-            size.set(30, 30)
-        } else if (resourceType === 'leaf') {
-            img = leafImg;
-            size.set(30, 30);
-        }
-        
-        // Create and add the new resource to the array
-        let newResource = new Resource(random(0, 500), random(0, 500), size.x, size.y, resourceType, img);
-        resources.push(newResource);
-    }
-}
-
-// Update all resources
-function resourcesUpdate() {
-    for (let i = 0; i < resources.length; i++) {
-        if (resources[i] && typeof resources[i].update === "function") {
-            resources[i].update();
-        }
-    }
-}
-
-//
-// RESOURCE CLASS
-//
-class Resource extends Entity {
   /**
    * Resource
    * A small wrapper entity representing a pick-upable resource (leaf, stick, etc.).
@@ -305,111 +245,104 @@ class Resource extends Entity {
    * flattened signature used elsewhere: (x, y, w, h, type, img). We normalize
    * both forms into the Entity constructor.
    */
-  constructor(...args) {
-    // Normalize arguments to (x, y, w, h, type, img)
-    let x = 0, y = 0, w = 32, h = 32, type = 'stick', img = stickImg;
+class Resource extends Entity {
 
-    if (args.length === 0) {
-      // use defaults
-    } else if (args.length === 1 && typeof args[0] === 'object' && args[0].x !== undefined) {
-      // single vector-ish arg? treat as pos vector and use defaults for size
-      x = args[0].x; y = args[0].y;
-    } else if (args.length >= 2 && isVector2D(args[0]) && isVector2D(args[1])) {
-      // (posVec, sizeVec, type?, img?)
-      x = args[0].x; y = args[0].y; w = args[1].x; h = args[1].y; if (args[2]) type = args[2]; if (args[3]) img = args[3];
-    } else if (args.length >= 4 && typeof args[0] === 'number') {
-      // flattened: (x, y, w, h, type?, img?)
-      x = args[0]; y = args[1]; w = args[2]; h = args[3]; if (args[4]) type = args[4]; if (args[5]) img = args[5];
+  /**
+   * Create a Resource entity.
+   * @param {number} [x=0] - X position
+   * @param {number} [y=0] - Y position  
+   * @param {number} [width=20] - Width
+   * @param {number} [height=20] - Height
+   * @param {Object} [options={}] - Resource options (resourceType, imagePath, etc.)
+   */
+  constructor(x = 0, y = 0, width = 20, height = 20, options = {}) {
+    // Handle legacy calls: new Resource(x, y, w, h, type, img)
+    if (arguments.length >= 5 && typeof arguments[4] === 'string') {
+      options = { resourceType: arguments[4], imagePath: arguments[5], ...options };
     }
 
-    // Call Entity constructor: Entity(x, y, width, height, options)
-    super(x, y, w, h, { type: 'Resource', imagePath: img });
+    // Set resource type and resolve image
+    const resourceType = options.resourceType || 'leaf';
+    const imagePath = options.imagePath || Resource._getImageForType(resourceType);
+
+    // Configure Entity options
+    const entityOptions = {
+      type: 'Resource',
+      imagePath: imagePath,
+      selectable: true,
+      movementSpeed: 0,  // Resources should not move
+      ...options
+    };
+
+    // Call Entity constructor
+    super(x, y, width, height, entityOptions);
 
     // Resource specific state
     this._resourceIndex = resourceIndex++;
-    this._type = type;
+    this._resourceType = resourceType;
     this._isCarried = false;
     this._carrier = null;
-
-    // Ensure sprite uses the provided image if RenderController not present
-    if (this._sprite && img) this._sprite.setImage(img);
   }
 
-  // Compatibility getters/setters that delegate to Entity transform/sprite
-  get posX() { return this.getPosition().x; }
-  set posX(v) { const p = this.getPosition(); this.setPosition(v, p.y); }
+  // Static helper to resolve images by type
+  static _getImageForType(type) {
+    switch (type) {
+      case 'greenLeaf':
+      case 'leaf':
+        return (typeof greenLeaf !== 'undefined' && greenLeaf) || null;
+      case 'mapleLeaf':
+        return (typeof mapleLeaf !== 'undefined' && mapleLeaf) || null;
+      default:
+        return (typeof greenLeaf !== 'undefined' && greenLeaf) || 
+               (typeof mapleLeaf !== 'undefined' && mapleLeaf) || null;
+    }
+  }
 
-  get posY() { return this.getPosition().y; }
-  set posY(v) { const p = this.getPosition(); this.setPosition(p.x, v); }
+  // Factory methods for common resource types
+  static createGreenLeaf(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'greenLeaf' });
+  }
 
-  get sizeX() { return this.getSize().x; }
-  set sizeX(v) { const s = this.getSize(); this.setSize(v, s.y); }
+  static createMapleLeaf(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'mapleLeaf' });
+  }
 
-  get sizeY() { return this.getSize().y; }
-  set sizeY(v) { const s = this.getSize(); this.setSize(s.x, v); }
-
-  // Legacy aliases to match older plain-object resources that used x/y/w/h
-  get x() { return this.posX; }
-  set x(v) { this.posX = v; }
-
-  get y() { return this.posY; }
-  set y(v) { this.posY = v; }
-
-  get w() { return this.sizeX; }
-  set w(v) { this.sizeX = v; }
-
-  get h() { return this.sizeY; }
-  set h(v) { this.sizeY = v; }
-
-  get type() { return this._type; }
+  get type() { return this._resourceType; }
+  get resourceType() { return this._resourceType; }
   get isCarried() { return !!this._isCarried; }
   get carrier() { return this._carrier; }
 
   // Rendering: delegate to Entity.render() which will use RenderController if available
-  render() { return super.render(); }
-
-  // Legacy compatibility: some code expects a `.draw()` method on resource objects.
-  // Provide a small adapter that performs rendering/highlighting but does not
-  // run the full update loop (to avoid double-updating when both update() and
-  // draw() are called in different loops).
-  draw() {
-    this.render();
+  render() {
+    super.render();
+    // Apply hover highlight in the modern path
     this.highlight();
-  }
-
-  /**
-   * Highlight when hovered and not carried. Uses the RenderController if present
-   * otherwise falls back to simple p5 drawing using the entity's position/size.
-   */
-  highlight() {
-    if (this._isCarried) return;
-
-    // If there's a selection/interaction controller, prefer its hover test
-    const interaction = this.getController('interaction');
-    const isHover = interaction ? interaction.isMouseOver(mouseX, mouseY) : this.isMouseOver(mouseX, mouseY);
-
-    if (!isHover) return;
-
-    const renderController = this.getController('render');
-    if (renderController && typeof renderController.renderOutlineHighlight === 'function') {
-      const pos = this.getPosition(); const size = this.getSize();
-      renderController.renderOutlineHighlight(pos, size, [255,255,255,255], 2);
-      return;
-    }
-
-    // Fallback p5 highlight
-    if (typeof push === 'function') push();
-    if (typeof noFill === 'function') noFill();
-    if (typeof stroke === 'function') stroke(255);
-    if (typeof strokeWeight === 'function') strokeWeight(2);
-    const pos = this.getPosition(); const size = this.getSize();
-    if (typeof rect === 'function') rect(pos.x, pos.y, size.x, size.y);
-    if (typeof pop === 'function') pop();
   }
 
   isMouseOver(mx, my) {
     const pos = this.getPosition(); const size = this.getSize();
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
+  }
+
+  highlight() {
+    // Use InteractionController for hover detection if available
+    const interactionController = this.getController('interaction');
+    const isHovered = interactionController ? 
+      interactionController.isMouseOver() : 
+      this.isMouseOver(mouseX, mouseY);
+
+    if (isHovered) {
+      const pos = this.getPosition();
+      const size = this.getSize();
+      
+      // Draw highlight overlay
+      push();
+      noFill();
+      stroke(255, 255, 0, 150); // Yellow highlight
+      strokeWeight(2);
+      rect(pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
+      pop();
+    }
   }
 
   pickUp(antObject) {
