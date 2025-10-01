@@ -163,6 +163,14 @@ function assignJob() {
   return chosenJob;
 }
 
+// Export Job class for Node.js testing and also expose helper to browser global
 if (typeof module !== "undefined" && module.exports) {
   module.exports = Job;
+  // Also provide assignJob for tests that mock or call it directly
+  module.exports.assignJob = assignJob;
+}
+
+// In browser environment, ensure assignJob is available globally
+if (typeof window !== 'undefined') {
+  window.assignJob = assignJob;
 }
