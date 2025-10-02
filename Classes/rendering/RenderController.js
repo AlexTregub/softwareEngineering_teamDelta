@@ -1,6 +1,8 @@
 /**
  * RenderController - Standardizes rendering, highlighting, and visual effects
- * Provides consistent visual representation across all entities
+ * Provides consintation across all entities
+ * 
+ * Dependencies: EntityAccessor.js (for standardized entity position/size access)
  */
 class RenderController {
   constructor(entity) {
@@ -101,32 +103,11 @@ class RenderController {
   // --- Helper Methods ---
 
   /**
-   * Check if p5.js rendering functions are available
-   * @returns {boolean} True if p5.js functions are accessible
-   */
-  _isP5Available() {
-    return typeof stroke === 'function' && 
-           typeof fill === 'function' && 
-           typeof rect === 'function' &&
-           typeof strokeWeight === 'function' &&
-           typeof noFill === 'function' &&
-           typeof noStroke === 'function';
-  }
-
-  /**
-   * Safe wrapper for p5.js function calls
+   * Direct render function - all safety checks handled by functionAsserts.js at startup
    * @param {function} renderFunction - Function containing p5.js calls
    */
   _safeRender(renderFunction) {
-    if (!this._isP5Available()) {
-      console.warn('RenderController: p5.js functions not available, skipping render');
-      return;
-    }
-    try {
-      renderFunction();
-    } catch (error) {
-      console.error('RenderController: Render error:', error);
-    }
+    renderFunction();
   }
 
   // --- Public API ---
@@ -135,40 +116,38 @@ class RenderController {
    * Main render method - call this every frame
    */
   render() {
-    this._safeRender(() => {
-      // Set smoothing preference
-      if (this._smoothing) {
-        smooth();
-      } else {
-        noSmooth();
-      }
+    // Set smoothing preference
+    if (this._smoothing) {
+      smooth();
+    } else {
+      noSmooth();
+    }
 
-      // Render the main entity
-      this.renderEntity();
-      
-      // Render movement indicators
-      this.renderMovementIndicators();
-      
-      // Render highlighting
-      this.renderHighlighting();
-      
-      // Render state indicators
-      this.renderStateIndicators();
-      
-      // Render debug information
-      if (this._debugMode) {
-        this.renderDebugInfo();
-      }
-      
-      // Update and render effects
-      this.updateEffects();
-      this.renderEffects();
+    // Render the main entity
+    this.renderEntity();
+    
+    // Render movement indicators
+    this.renderMovementIndicators();
+    
+    // Render highlighting
+    this.renderHighlighting();
+    
+    // Render state indicators
+    this.renderStateIndicators();
+    
+    // Render debug information
+    if (this._debugMode) {
+      this.renderDebugInfo();
+    }
+    
+    // Update and render effects
+    this.updateEffects();
+    this.renderEffects();
 
-      // Reset smoothing
-      if (this._smoothing) {
-        smooth();
-      }
-    });
+    // Reset smoothing
+    if (this._smoothing) {
+      smooth();
+    }
   }
 
   /**
@@ -425,12 +404,6 @@ class RenderController {
    * Render outline highlight
    */
   renderOutlineHighlight(pos, size, color, strokeWeightValue) {
-    // Ensure p5.js functions are available
-    if (typeof stroke !== 'function' || typeof strokeWeight !== 'function') {
-      console.warn('RenderController: p5.js functions not available');
-      return;
-    }
-    
     stroke(...color);
     strokeWeight(strokeWeightValue);
     noFill();
@@ -508,7 +481,7 @@ class RenderController {
 
     // Delegate to shared DebugRenderer if available
     try {
-      if (typeof DebugRenderer !== 'undefined' && DebugRenderer && typeof DebugRenderer.renderEntityDebug === 'function') {
+      if (DebugRenderer && DebugRenderer.renderEntityDebug) {
         DebugRenderer.renderEntityDebug(this._entity);
         return;
       }
@@ -615,7 +588,7 @@ class RenderController {
    * Render text effect (damage numbers, floating text)
    */
   renderTextEffect(effect) {
-    const alpha = effect.alpha !== undefined ? effect.alpha : 1.0;
+    const alpha = effect.alpha || 1.0;
     const color = [...effect.color];
     
     if (color.length === 3) {
@@ -634,7 +607,7 @@ class RenderController {
    * Render particle effect
    */
   renderParticleEffect(effect) {
-    const alpha = effect.alpha !== undefined ? effect.alpha : 1.0;
+    const alpha = effect.alpha || 1.0;
     const color = [...effect.color];
     
     if (color.length === 3) {
@@ -649,48 +622,18 @@ class RenderController {
   }
 
   /**
-   * Helper Methods (getEntityPosition, getEntitySize, getEntityCenter, generateEffectId, getDebugInfo)
+   * Helper Methods - Uses standardized EntityAccessor for consistent entity access
    */
   getEntityPosition() {
-    if (this._entity.getPosition && typeof this._entity.getPosition === 'function') {
-      return this._entity.getPosition();
-    }
-    
-    if (this._entity._sprite && this._entity._sprite.pos) {
-      return this._entity._sprite.pos;
-    }
-    
-    if (this._entity.posX !== undefined && this._entity.posY !== undefined) {
-      return { x: this._entity.posX, y: this._entity.posY };
-    }
-    
-    return { x: 0, y: 0 };
+    return EntityAccessor.getPosition(this._entity);
   }
 
   getEntitySize() {
-    if (this._entity.getSize && typeof this._entity.getSize === 'function') {
-      return this._entity.getSize();
-    }
-    
-    if (this._entity._sprite && this._entity._sprite.size) {
-      return this._entity._sprite.size;
-    }
-    
-    if (this._entity.sizeX !== undefined && this._entity.sizeY !== undefined) {
-      return { x: this._entity.sizeX, y: this._entity.sizeY };
-    }
-    
-    return { x: 20, y: 20 }; // Default size
+    return EntityAccessor.getSize(this._entity);
   }
 
   getEntityCenter() {
-    const pos = this.getEntityPosition();
-    const size = this.getEntitySize();
-    
-    return {
-      x: pos.x + size.x / 2,
-      y: pos.y + size.y / 2
-    };
+    return EntityAccessor.getCenter(this._entity);
   }
 
   generateEffectId() {

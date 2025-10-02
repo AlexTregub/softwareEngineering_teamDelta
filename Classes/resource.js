@@ -186,6 +186,8 @@ class ResourceSpawner {
     this.maxAmount = maxAmount;
     this.interval = interval;
     this.resources = resources;
+    this.timer = null;
+    this.isActive = false;
 
     this.assets = {
       greenLeaf: { 
@@ -207,13 +209,53 @@ class ResourceSpawner {
       },
     };
 
-    // spawn every {interval} seconds
-    this.timer = setInterval(() => this.spawn(), this.interval * 1000);
+    // Register for game state changes to start/stop spawning automatically
+    if (typeof GameState !== 'undefined') {
+      GameState.onStateChange((newState, oldState) => {
+        if (newState === 'PLAYING') {
+          this.start();
+        } else {
+          this.stop();
+        }
+      });
+
+      // If we're already in PLAYING state when created, start immediately
+      if (GameState.getState() === 'PLAYING') {
+        this.start();
+      }
+    } else {
+      // Fallback for environments without GameState (like tests) - start immediately
+      this.start();
+    }
+  }
+
+  // Start the spawning timer
+  start() {
+    if (!this.isActive) {
+      this.isActive = true;
+      this.timer = setInterval(() => this.spawn(), this.interval * 1000);
+      console.log('ResourceSpawner: Started spawning resources');
+    }
+  }
+
+  // Stop the spawning timer
+  stop() {
+    if (this.isActive) {
+      this.isActive = false;
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+      console.log('ResourceSpawner: Stopped spawning resources');
+    }
   }
 
   
   // Asset selected based on rarity, drawn and appened to list of resources
   spawn() {
+    // Only spawn if active
+    if (!this.isActive) return;
+
     let list = this.resources.getResourceList();
     if (list.length >= this.maxAmount) return;
 
@@ -232,6 +274,14 @@ class ResourceSpawner {
 
     let chosen = this.assets[chosenKey].make();
     list.push(chosen);
+  }
+
+  // Manual spawn method for testing or immediate spawning
+  forceSpawn() {
+    const wasActive = this.isActive;
+    this.isActive = true; // Temporarily enable for this spawn
+    this.spawn();
+    this.isActive = wasActive; // Restore previous state
   }
 }
 

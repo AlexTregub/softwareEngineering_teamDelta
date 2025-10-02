@@ -1,4 +1,8 @@
-// EntityLayerRenderer - Enhanced rendering system for dynamic game entities
+/**
+ * EntityLayerRenderer - Enhanced rendering system for dynamic game entities
+ * 
+ * Dependencies: EntityAccessor.js (for standardized entity position/size access)  
+ */
 class EntityLayerRenderer {
   constructor() {
     // Entity rendering groups for depth sorting
@@ -75,7 +79,7 @@ class EntityLayerRenderer {
    */
   collectEntities(gameState) {
     // Collect resources
-    if (typeof g_resourceList !== 'undefined' && g_resourceList) {
+    if (g_resourceList) {
       this.collectResources(gameState);
     }
     
@@ -105,7 +109,7 @@ class EntityLayerRenderer {
     }
     
     // Update resources if in playing state
-    if (gameState === 'PLAYING' && typeof g_resourceList.updateAll === 'function') {
+    if (gameState === 'PLAYING' && g_resourceList.updateAll) {
       g_resourceList.updateAll();
     }
   }
@@ -132,7 +136,7 @@ class EntityLayerRenderer {
     }
     
     // Update ants if in playing state  
-    if (gameState === 'PLAYING' && typeof antsUpdate === 'function') {
+    if (gameState === 'PLAYING' && antsUpdate) {
       antsUpdate();
     }
   }
@@ -183,46 +187,17 @@ class EntityLayerRenderer {
   }
   
   /**
-   * Get entity position
+   * Get entity position - Uses standardized EntityAccessor
    */
   getEntityPosition(entity) {
-    if (!entity) return { x: 0, y: 0 };
-    
-    // Try different position accessor methods
-    if (typeof entity.getPosition === 'function') {
-      return entity.getPosition();
-    }
-    if (entity.position) {
-      return entity.position;
-    }
-    if (entity.sprite && entity.sprite.pos) {
-      return entity.sprite.pos;
-    }
-    if (entity.x !== undefined && entity.y !== undefined) {
-      return { x: entity.x, y: entity.y };
-    }
-    
-    return { x: 0, y: 0 };
+    return EntityAccessor.getPosition(entity);
   }
   
   /**
-   * Get entity size for culling
+   * Get entity size for culling - Uses standardized EntityAccessor with width/height format
    */
   getEntitySize(entity) {
-    if (!entity) return { width: 32, height: 32 }; // Default size
-    
-    if (typeof entity.getSize === 'function') {
-      const size = entity.getSize();
-      return { width: size.x || size.width || 32, height: size.y || size.height || 32 };
-    }
-    if (entity.size) {
-      return { width: entity.size.x || entity.size.width || 32, height: entity.size.y || entity.size.height || 32 };
-    }
-    if (entity.width !== undefined && entity.height !== undefined) {
-      return { width: entity.width, height: entity.height };
-    }
-    
-    return { width: 32, height: 32 };
+    return EntityAccessor.getSizeWH(entity);
   }
   
   /**
@@ -265,7 +240,7 @@ class EntityLayerRenderer {
   renderEntityGroupStandard(entityGroup) {
     for (const entityData of entityGroup) {
       try {
-        if (entityData.entity && typeof entityData.entity.render === 'function') {
+        if (entityData.entity && entityData.entity.render) {
           entityData.entity.render();
           this.stats.renderedEntities++;
         }

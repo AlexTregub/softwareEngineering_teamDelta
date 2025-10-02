@@ -5,7 +5,8 @@
   "main": "sketch.js",
   "scripts": {
     "test": "npm run test:all",
-    "test:all": "npm run test:statemachine && npm run test:selection && npm run test:ant && npm run test:sprite2d && npm run test:structure && npm run test:selection-simple && npm run test:spawn-interaction && npm run test:tracing && npm run test:antmanager && npm run test:resourcemanager && npm run test:button && npm run test:collisionbox2d && npm run test:movementcontroller && npm run test:taskmanager && npm run test:rendercontroller",
+    "test:all": "npm run test:statemachine && npm run test:selection && npm run test:ant && npm run test:sprite2d && npm run test:structure && npm run test:selection-simple && npm run test:spawn-interaction && npm run test:tracing && npm run test:antmanager && npm run test:resourcemanager && npm run test:button && npm run test:collisionbox2d && npm run test:movementcontroller && npm run test:taskmanager && npm run test:rendercontroller && npm run test:rendering-bdd",
+    "test:rendering-bdd": "node test/rendering/run_tests.js",
     "test:statemachine": "node test/AntStateMachine.test.js",
     "test:selection": "node test/selectionBox.node.test.js",
     "test:ant": "node test/ant.test.js",
@@ -37,7 +38,11 @@
   ],
   "author": "Software Engineering Team Delta",
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.10",
+    "jsdom": "^22.1.0"
+  },
   "engines": {
     "node": ">=14.0.0"
   },

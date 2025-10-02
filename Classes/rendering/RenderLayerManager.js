@@ -127,7 +127,7 @@ class RenderLayerManager {
     }
     
     // Use the existing terrain rendering system
-    if (typeof g_map2 !== 'undefined' && g_map2 && typeof g_map2.render === 'function') {
+    if (g_map2 && g_map2.render) {
       g_map2.render();
     }
   }
@@ -142,7 +142,7 @@ class RenderLayerManager {
     }
     
     // Use enhanced entity layer renderer if available
-    if (typeof EntityRenderer !== 'undefined' && EntityRenderer) {
+    if (EntityRenderer) {
       EntityRenderer.renderAllLayers(gameState);
     } else {
       // Fallback to direct rendering
@@ -156,11 +156,11 @@ class RenderLayerManager {
    */
   renderEntitiesDirectFallback(gameState) {
     // Render resources
-    if (typeof g_resourceList !== 'undefined' && g_resourceList) {
-      if (gameState === 'PLAYING' && typeof g_resourceList.updateAll === 'function') {
+    if (g_resourceList) {
+      if (gameState === 'PLAYING' && g_resourceList.updateAll) {
         g_resourceList.updateAll();
       }
-      if (typeof g_resourceList.drawAll === 'function') {
+      if (g_resourceList.drawAll) {
         g_resourceList.drawAll();
       }
     }
@@ -168,14 +168,14 @@ class RenderLayerManager {
     // Render ants
     if (gameState === 'PLAYING') {
       // Update and render ants
-      if (typeof antsUpdate === 'function') {
+      if (antsUpdate) {
         antsUpdate();
       }
     } else {
       // Just render ants without updates for paused/game over states
-      if (typeof antsRender === 'function') {
+      if (antsRender) {
         antsRender();
-      } else if (typeof antsUpdateAndRender === 'function') {
+      } else if (antsUpdateAndRender) {
         // Fallback to combined function
         antsUpdateAndRender();
       }
@@ -203,17 +203,17 @@ class RenderLayerManager {
    */
   renderBaseGameUI() {
     // Render currencies
-    if (typeof renderCurrencies === 'function') {
+    if (renderCurrencies) {
       renderCurrencies();
     }
     
     // Selection box
-    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+    if (g_selectionBoxController) {
       g_selectionBoxController.draw();
     }
     
     // Recording indicator
-    if (typeof g_recordingPath !== 'undefined' && g_recordingPath) {
+    if (g_recordingPath) {
       // Recording logic here if needed
       this.renderRecordingIndicator();
     }
@@ -228,17 +228,17 @@ class RenderLayerManager {
     if (gameState !== 'PLAYING') return;
     
     // Dropoff UI
-    if (typeof window !== 'undefined') {
-      if (typeof window.updateDropoffUI === 'function') {
+    if (window) {
+      if (window.updateDropoffUI) {
         window.updateDropoffUI();
       }
-      if (typeof window.drawDropoffUI === 'function') {
+      if (window.drawDropoffUI) {
         window.drawDropoffUI();
       }
     }
     
     // Spawn UI (development/debug tool)
-    if (typeof window.renderSpawnUI === 'function') {
+    if (window.renderSpawnUI) {
       window.renderSpawnUI();
     }
   }
@@ -263,13 +263,13 @@ class RenderLayerManager {
       return;
     }
     
-    if (typeof debugRender === 'function') {
+    if (debugRender) {
       debugRender();
     }
     
     // Debug grid for playing state
-    if (gameState === 'PLAYING' && typeof drawDebugGrid === 'function') {
-      if (typeof g_gridMap !== 'undefined' && g_gridMap) {
+    if (gameState === 'PLAYING' && drawDebugGrid) {
+      if (g_gridMap) {
         drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
       }
     }
@@ -280,13 +280,13 @@ class RenderLayerManager {
    */
   renderMenuUILayer(gameState) {
     // Update menu state
-    if (typeof updateMenu === 'function') {
+    if (updateMenu) {
       updateMenu();
     }
     
     // Render menu if in menu states
     if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
-      if (typeof renderMenu === 'function') {
+      if (renderMenu) {
         renderMenu();
       }
     }

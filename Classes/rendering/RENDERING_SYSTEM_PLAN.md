@@ -147,6 +147,27 @@ RenderManager.registerLayerRenderer(layerName, rendererFunction);
 - Renders comprehensive debug overlay
 - Provides performance APIs for all systems
 
+### **6. EntityAccessor** (Standardized Entity Access)
+**File**: `EntityAccessor.js` (NEW)  
+**Purpose**: Unified entity position/size access across all rendering systems  
+
+**Responsibilities**:
+- Eliminates duplicate accessor logic between RenderController and EntityLayerRenderer
+- Provides consistent fallback chains for entity property access
+- Supports multiple entity formats ({x,y} vs {width,height}, sprite-based, direct properties)
+- Optimized performance with minimal overhead
+
+**API**:
+```javascript
+EntityAccessor.getPosition(entity);    // Returns {x, y}
+EntityAccessor.getSize(entity);        // Returns {x, y} (RenderController format)  
+EntityAccessor.getSizeWH(entity);      // Returns {width, height} (EntityRenderer format)
+EntityAccessor.getCenter(entity);      // Returns center point {x, y}
+EntityAccessor.getBounds(entity);      // Returns {x, y, width, height}
+EntityAccessor.hasPosition(entity);    // Check if entity has position data
+EntityAccessor.hasSize(entity);        // Check if entity has size data
+```
+
 ---
 
 ## 🎨 **UI LAYER DETAILED PLAN**
@@ -448,10 +469,10 @@ EntityDelegationBuilder.createDelegationMethods(Entity, '_renderController', [
 ## 🚀 **IMPLEMENTATION PHASES**
 
 ### **Phase 1: Foundation**
-1. Update `functionAsserts.js` with all safety checks
-2. Create `PerformanceMonitor.js`
-3. Remove safety checks from existing files
-4. Standardize entity position/size API
+1. ✅ Update `functionAsserts.js` with all safety checks
+2. ✅ Create `PerformanceMonitor.js`
+3. ✅ Remove safety checks from existing files
+4. ✅ **Standardize entity position/size API** - Create `EntityAccessor.js` for unified entity access
 
 ### **Phase 2: Core Refactoring**  
 1. Refactor `RenderLayerManager` (remove redundant logic)
@@ -465,11 +486,331 @@ EntityDelegationBuilder.createDelegationMethods(Entity, '_renderController', [
 3. Add performance monitoring display
 4. Implement user API improvements
 
-### **Phase 4: Optimization**
+### **Phase 4: Optimization & Framebuffer System**
 1. Add effect pooling and batching
 2. Implement performance scaling
 3. Add advanced culling techniques
-4. Optimize for mobile/web performance
+4. **Implement framebuffer optimization system**
+5. Optimize for mobile/web performance
+
+---
+
+## 🖼️ **FRAMEBUFFER OPTIMIZATION SYSTEM**
+
+### **Architecture Overview**
+The framebuffer system provides dynamic, layer-based rendering optimization by caching entity groups in off-screen buffers and selectively redrawing only when changes occur.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    EntityRenderer (Enhanced)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
+│  │ TERRAIN Buffer  │  │ RESOURCES Buffer│  │  ANTS Buffer    │     │
+│  │ • Static tiles  │  │ • Sticks/leaves │  │ • All ant types │     │
+│  │ • Rare updates  │  │ • Moderate chg  │  │ • Frequent chg  │     │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
+│           │                     │                     │             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
+│  │ BUILDINGS Buffer│  │ EFFECTS Buffer  │  │ UI Buffer       │     │
+│  │ • Anthills      │  │ • Particles     │  │ • HUD elements  │     │
+│  │ • Structures    │  │ • Animations    │  │ • Debug overlay │     │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
+│           │                     │                     │             │
+│           └─────────────────────┼─────────────────────┘             │
+│                                 ▼                                   │
+│              ┌─────────────────────────────────────┐                │
+│              │      Main Canvas (Composition)      │                │
+│              │    Fast image() blit operations     │                │
+│              └─────────────────────────────────────┘                │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### **Dynamic Redraw Strategy**
+```javascript
+class EntityRenderer {
+    constructor() {
+        this.framebuffers = new Map([
+            ['TERRAIN', { buffer: null, dirty: true, lastUpdate: 0 }],
+            ['RESOURCES', { buffer: null, dirty: true, lastUpdate: 0 }],
+            ['ANTS', { buffer: null, dirty: true, lastUpdate: 0 }],
+            ['BUILDINGS', { buffer: null, dirty: true, lastUpdate: 0 }],
+            ['EFFECTS', { buffer: null, dirty: true, lastUpdate: 0 }]
+        ]);
+        this.changeDetectors = new Map();
+        this.config = {
+            maxFramesBeforeRefresh: 10, // Force refresh every N frames
+            enableSmartDetection: true,
+            enableRegionalUpdates: false // Future enhancement
+        };
+    }
+
+    render() {
+        // 1. CHANGE DETECTION PHASE
+        this.detectChanges();
+        
+        // 2. SELECTIVE REDRAW PHASE  
+        this.updateDirtyFramebuffers();
+        
+        // 3. COMPOSITION PHASE
+        this.compositeToMainCanvas();
+    }
+
+    detectChanges() {
+        // Terrain (rarely changes)
+        if (this.terrainChanged() || this.shouldForceRefresh('TERRAIN')) {
+            this.markDirty('TERRAIN');
+        }
+        
+        // Resources (moderate changes)
+        if (this.resourcesChanged() || this.shouldForceRefresh('RESOURCES')) {
+            this.markDirty('RESOURCES');
+        }
+        
+        // Ants (frequent changes)
+        if (this.antsChanged() || this.shouldForceRefresh('ANTS')) {
+            this.markDirty('ANTS');
+        }
+        
+        // Buildings (rare changes)
+        if (this.buildingsChanged() || this.shouldForceRefresh('BUILDINGS')) {
+            this.markDirty('BUILDINGS');
+        }
+        
+        // Effects (always changing)
+        this.markDirty('EFFECTS'); // Effects always redraw
+    }
+
+    antsChanged() {
+        // Multiple detection strategies for optimal performance
+        
+        // Strategy 1: Position-based detection (most common)
+        for (let ant of ants) {
+            if (ant.hasMoved() || ant.stateChanged() || ant.highlightChanged()) {
+                return true;
+            }
+        }
+        
+        // Strategy 2: Global dirty flags
+        if (this.antsDirtyFlag) {
+            this.antsDirtyFlag = false;
+            return true;
+        }
+        
+        // Strategy 3: Count-based detection
+        let currentAntCount = ants.length;
+        if (currentAntCount !== this.lastAntCount) {
+            this.lastAntCount = currentAntCount;
+            return true;
+        }
+        
+        return false;
+    }
+
+    updateDirtyFramebuffers() {
+        for (let [layerName, layerData] of this.framebuffers) {
+            if (layerData.dirty) {
+                this.redrawFramebuffer(layerName);
+                layerData.dirty = false;
+                layerData.lastUpdate = frameCount;
+            }
+        }
+    }
+
+    redrawFramebuffer(layerName) {
+        let layerData = this.framebuffers.get(layerName);
+        
+        // Create buffer if needed
+        if (!layerData.buffer) {
+            layerData.buffer = createGraphics(width, height);
+        }
+        
+        // Clear and redraw
+        layerData.buffer.clear();
+        
+        switch(layerName) {
+            case 'TERRAIN':
+                this.renderTerrainToBuffer(layerData.buffer);
+                break;
+            case 'RESOURCES':
+                this.renderResourcesToBuffer(layerData.buffer);
+                break;
+            case 'ANTS':
+                this.renderAntsToBuffer(layerData.buffer);
+                break;
+            case 'BUILDINGS':
+                this.renderBuildingsToBuffer(layerData.buffer);
+                break;
+            case 'EFFECTS':
+                this.renderEffectsToBuffer(layerData.buffer);
+                break;
+        }
+    }
+
+    renderAntsToBuffer(buffer) {
+        // Render all ants to the framebuffer
+        buffer.push();
+        
+        for (let ant of ants) {
+            // Same rendering logic, but to framebuffer context
+            ant.getRenderController().renderToContext(buffer);
+        }
+        
+        buffer.pop();
+    }
+
+    compositeToMainCanvas() {
+        // Fast blit operations - much faster than individual entity draws
+        for (let [layerName, layerData] of this.framebuffers) {
+            if (layerData.buffer) {
+                image(layerData.buffer, 0, 0);
+            }
+        }
+    }
+}
+```
+
+### **Performance Benefits**
+
+#### **Scenario Analysis**
+```
+Current System (150 ants):
+┌─────────────────────────────────────┐
+│ Every Frame (16.7ms budget):        │
+│ • 150 individual image() calls      │
+│ • 150 push/pop matrix operations    │  
+│ • 150 transform calculations        │
+│ • Total: ~8-12ms entity rendering   │
+└─────────────────────────────────────┘
+
+Framebuffer System (150 ants):
+┌─────────────────────────────────────┐
+│ High Activity Frames (~80% frames): │
+│ • Redraw ant buffer: ~8ms           │
+│ • Composite buffer: ~1ms            │ 
+│ • Total: ~9ms (similar performance) │
+│                                     │
+│ Low Activity Frames (~20% frames):  │
+│ • Skip ant buffer redraw: ~0ms      │
+│ • Composite buffer: ~1ms            │
+│ • Total: ~1ms (90% improvement!)    │
+│                                     │
+│ Average Performance Gain: ~40-60%   │
+└─────────────────────────────────────┘
+```
+
+#### **Scalability Benefits**
+- **500+ Entities**: Framebuffer system scales much better
+- **Complex Scenes**: Multiple entity types benefit from selective updates
+- **Mobile Performance**: Reduced draw calls improve battery life
+- **Memory Efficiency**: Buffers reused across frames
+
+### **Advanced Features**
+
+#### **Adaptive Refresh Rates**
+```javascript
+class AdaptiveFramebufferManager {
+    getRefreshStrategy(layerName) {
+        let activity = this.getActivityLevel(layerName);
+        
+        // Dynamic refresh rates based on activity
+        if (activity > 0.8) return { rate: 1, strategy: 'IMMEDIATE' };     // Every frame
+        if (activity > 0.4) return { rate: 2, strategy: 'MODERATE' };     // Every 2 frames  
+        if (activity > 0.1) return { rate: 5, strategy: 'CONSERVATIVE' }; // Every 5 frames
+        return { rate: 10, strategy: 'MINIMAL' };                         // Every 10 frames
+    }
+
+    getActivityLevel(layerName) {
+        // Measure entity movement, state changes, additions/removals
+        switch(layerName) {
+            case 'ANTS': 
+                return this.calculateAntActivity(); // Moving, state changes, combat
+            case 'RESOURCES':
+                return this.calculateResourceActivity(); // Collection, spawning
+            case 'TERRAIN':
+                return 0.01; // Very static
+            case 'EFFECTS':
+                return 1.0; // Always changing
+            default:
+                return 0.5;
+        }
+    }
+}
+```
+
+#### **Regional Updates** (Future Enhancement)
+```javascript
+// Only redraw portions of framebuffer that changed
+class RegionalFramebuffer {
+    constructor(width, height) {
+        this.buffer = createGraphics(width, height);
+        this.dirtyRegions = new Set();
+        this.regionSize = 64; // 64x64 pixel regions
+    }
+
+    markRegionDirty(x, y, width, height) {
+        // Convert world coordinates to region coordinates
+        let regions = this.worldToRegions(x, y, width, height);
+        regions.forEach(region => this.dirtyRegions.add(region));
+    }
+
+    redrawDirtyRegions() {
+        this.dirtyRegions.forEach(region => {
+            this.redrawRegion(region);
+        });
+        this.dirtyRegions.clear();
+    }
+}
+```
+
+### **Integration with Existing System**
+
+#### **RenderController Enhancement**
+```javascript
+class RenderController {
+    renderToContext(context) {
+        // Existing render logic, but to any graphics context
+        context.push();
+        
+        // Apply transforms
+        context.translate(this.entity.x, this.entity.y);
+        
+        // Render sprite
+        if (this.sprite) {
+            this.sprite.renderToContext(context);
+        }
+        
+        // Render effects
+        this.renderEffectsToContext(context);
+        
+        context.pop();
+    }
+
+    render() {
+        // Default render to main canvas
+        this.renderToContext(window); // p5.js global context
+    }
+}
+```
+
+#### **Configuration Options**
+```javascript
+// User-configurable framebuffer settings
+EntityRenderer.configureFramebuffers({
+    enabled: true,
+    layers: {
+        TERRAIN: { enabled: true, maxRefreshRate: 30 },    // 30 frames max
+        RESOURCES: { enabled: true, maxRefreshRate: 5 },   // 5 frames max
+        ANTS: { enabled: true, maxRefreshRate: 1 },        // Every frame
+        BUILDINGS: { enabled: true, maxRefreshRate: 20 },  // 20 frames max
+        EFFECTS: { enabled: false }                        // Always direct render
+    },
+    performance: {
+        enableSmartDetection: true,
+        enableRegionalUpdates: false,
+        maxBufferMemoryMB: 50
+    }
+});
+```
 
 ---
 

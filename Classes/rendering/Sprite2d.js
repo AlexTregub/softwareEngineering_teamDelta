@@ -26,7 +26,7 @@ class Sprite2D {
     imageMode(CENTER);
     
     // Apply opacity if set
-    if (this.alpha !== undefined && this.alpha < 255) {
+    if (this.alpha && this.alpha < 255) {
       tint(255, this.alpha);
     }
     

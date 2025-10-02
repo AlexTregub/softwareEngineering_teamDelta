@@ -58,9 +58,9 @@ function setup() {
   window.initDropoffUI();
   // Do not force spawn UI visible here; spawn UI is dev-console-only by default.
 
-  // g_seed at least one set of resources so the field isn't empty if interval hasn't fired yet
+  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
-      g_resourceManager.spawn();
+      g_resourceManager.forceSpawn();
   } catch (e) { /* non-fatal; spawner will populate via interval */ }
 }
 
