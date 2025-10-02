@@ -298,13 +298,13 @@ let ant = new AntEntity();
 ant.setSprite(new Sprite2D(antImage, position, size));
 ant.setRenderLayer("ANTS");
 
-// Add effects (optional) - delegated methods for clean API
-ant.highlightSelected();
-ant.showDamageNumber(25, [255, 0, 0]); // Currently implemented
-ant.showFloatingText("Level Up!", [0, 255, 0]); // Currently implemented
+// Add effects (optional) - clean property-based API
+ant.highlight.selected();
+ant.effects.damageNumber(25, [255, 0, 0]); // Currently implemented  
+ant.effects.floatingText("Level Up!", [0, 255, 0]); // Currently implemented
 
-// OR using addEffect with current supported types:
-ant.addEffect({
+// OR using effects.add with current supported types:
+ant.effects.add({
     type: "FLOATING_TEXT",
     text: "Gathering...",
     position: { x: ant.x, y: ant.y - 20 },
@@ -316,37 +316,45 @@ ant.addEffect({
 // System handles everything else automatically!
 ```
 
-### **Comprehensive Entity Delegation Pattern**
+### **Property-Based Delegation Pattern (Recommended)**
 ```javascript
-// Inside Entity class - delegates ALL RenderController methods
+// Inside Entity class - clean property-based delegation
 class Entity {
     constructor() {
         this._renderController = new RenderController(this);
         this._sprite = null;
         this._renderLayer = "DEFAULT";
+        
+        // === HIGHLIGHT NAMESPACE ===
+        this.highlight = {
+            selected: () => this._renderController.highlightSelected(),
+            hover: () => this._renderController.highlightHover(),
+            boxHover: () => this._renderController.highlightBoxHover(),
+            combat: () => this._renderController.highlightCombat(),
+            set: (type, intensity) => this._renderController.setHighlight(type, intensity),
+            clear: () => this._renderController.clearHighlight()
+        };
+        
+        // === EFFECTS NAMESPACE ===
+        this.effects = {
+            add: (effect) => this._renderController.addEffect(effect),
+            remove: (effectId) => this._renderController.removeEffect(effectId),
+            clear: () => this._renderController.clearEffects(),
+            damageNumber: (damage, color) => this._renderController.showDamageNumber(damage, color),
+            healNumber: (heal) => this._renderController.showHealNumber(heal),
+            floatingText: (text, color) => this._renderController.showFloatingText(text, color)
+        };
+        
+        // === RENDERING NAMESPACE ===
+        this.rendering = {
+            setDebugMode: (enabled) => this._renderController.setDebugMode(enabled),
+            setSmoothing: (enabled) => this._renderController.setSmoothing(enabled),
+            render: () => this._renderController.render(),
+            update: () => this._renderController.update()
+        };
     }
     
-    // === HIGHLIGHT DELEGATION ===
-    highlightSelected() { return this._renderController.highlightSelected(); }
-    highlightHover() { return this._renderController.highlightHover(); }
-    highlightBoxHover() { return this._renderController.highlightBoxHover(); }
-    highlightCombat() { return this._renderController.highlightCombat(); }
-    setHighlight(type, intensity) { return this._renderController.setHighlight(type, intensity); }
-    clearHighlight() { return this._renderController.clearHighlight(); }
-    
-    // === EFFECT DELEGATION ===
-    addEffect(effect) { return this._renderController.addEffect(effect); }
-    removeEffect(effectId) { return this._renderController.removeEffect(effectId); }
-    clearEffects() { return this._renderController.clearEffects(); }
-    showDamageNumber(damage, color) { return this._renderController.showDamageNumber(damage, color); }
-    showHealNumber(heal) { return this._renderController.showHealNumber(heal); }
-    showFloatingText(text, color) { return this._renderController.showFloatingText(text, color); }
-    
-    // === RENDERING SETTINGS DELEGATION ===
-    setDebugMode(enabled) { return this._renderController.setDebugMode(enabled); }
-    setSmoothing(enabled) { return this._renderController.setSmoothing(enabled); }
-    
-    // === SPRITE & LAYER MANAGEMENT ===
+    // === CORE ENTITY METHODS ===
     setSprite(sprite) { 
         this._sprite = sprite; 
         // Auto-assign sprite to render controller if it expects one
@@ -358,10 +366,6 @@ class Entity {
     
     setRenderLayer(layer) { this._renderLayer = layer; }
     getRenderLayer() { return this._renderLayer; }
-    
-    // === RENDER DELEGATION ===
-    render() { return this._renderController.render(); }
-    update() { return this._renderController.update(); }
     
     // Advanced access for complex operations
     getRenderController() { return this._renderController; }
