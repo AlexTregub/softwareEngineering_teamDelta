@@ -79,7 +79,8 @@ function initializeWorld() {
   // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
   
   // New, Improved, and Chunked Terrain
-  g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
   
@@ -110,8 +111,8 @@ function initializeWorld() {
  * interactive entities, and UI components. Called automatically by p5.js each frame.
  */
 function draw() {
-  background(0);
-  g_map2.renderDirect();
+  // background(0);
+  // g_map2.renderDirect();
 
   // Use the new layered rendering system
   if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {

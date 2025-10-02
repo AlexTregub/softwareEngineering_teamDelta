@@ -270,6 +270,7 @@ class RenderLayerManager {
       return;
     }
     
+    // No debug render passed?
     if (typeof debugRender === 'function') {
       debugRender();
     }
