@@ -77,9 +77,8 @@ class Entity {
         this._debugger = new UniversalDebugger(this, debugConfig);
         
         // Register this entity with the global debug manager if available
-        if (typeof window !== 'undefined' && window.EntityDebugManager) {
-          window.EntityDebugManager.registerEntity(this);
-        }
+        window.EntityDebugManager.registerEntity(this);
+
       } catch (error) {
         console.warn('Failed to initialize entity debugger:', error);
         this._debugger = null;
@@ -128,13 +127,13 @@ class Entity {
    */
   _configureControllers(options) {
     const movement = this._controllers.get('movement');
-    if (movement && options.movementSpeed !== undefined) movement.movementSpeed = options.movementSpeed;
+    movement.movementSpeed = options.movementSpeed;
 
     const selection = this._controllers.get('selection');
-    if (selection && options.selectable !== undefined) selection.setSelectable(options.selectable);
+    selection.setSelectable(options.selectable);
 
     const combat = this._controllers.get('combat');
-    if (combat && options.faction) combat.setFaction(options.faction);
+    combat.setFaction(options.faction);
   }
 
   // --- Controller Access Helper ---

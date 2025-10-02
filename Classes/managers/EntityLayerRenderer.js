@@ -113,9 +113,7 @@ class EntityLayerRenderer {
   /**
    * Collect ant entities
    */
-  collectAnts(gameState) {
-    if (typeof ants === 'undefined' || typeof antIndex === 'undefined') return;
-    
+  collectAnts(gameState) {    
     for (let i = 0; i < antIndex; i++) {
       if (ants[i]) {
         const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
