@@ -1,8 +1,20 @@
 /**
  * RenderController Unit Tests
- * Tests the rendering controller system functionality
- */
-
+ * Tests the rendering controller system functio// Test highlighting system through behavioral verification
+test('Highlighting - Set and clear highlight behavior', () => {
+  const entity = createMockEntity();
+  const controller = new RenderController(entity);
+  
+  // Test highlight activation through convenience method
+  controller.highlightSelected(entity);
+  let debugInfo = controller.getDebugInfo();
+  if (debugInfo.highlightCount === 0) throw new Error('Selection highlight not applied');
+  
+  // Test highlight clearing
+  controller.setHighlight('none');
+  debugInfo = controller.getDebugInfo();
+  if (debugInfo.highlightCount !== 0) throw new Error('Highlights not cleared properly');
+});
 // Mock p5.js functions for Node.js environment
 global.push = () => {};
 global.pop = () => {};
@@ -68,14 +80,19 @@ function createMockEntity() {
   };
 }
 
-// Test constructor
-test('Constructor - Basic initialization', () => {
+// Test constructor through behavior verification
+test('Constructor - Proper initialization behavior', () => {
   const entity = createMockEntity();
   const controller = new RenderController(entity);
   
-  if (!controller._entity) throw new Error('Entity not set');
-  if (controller._highlightType !== null) throw new Error('Highlight type should be null initially');
-  if (!Array.isArray(controller._effects)) throw new Error('Effects array not initialized');
+  // Test that controller can render without errors (proves entity was set)
+  controller.render();
+  
+  // Test that debug info is available (proves internal state was initialized)
+  const debugInfo = controller.getDebugInfo();
+  if (!debugInfo) throw new Error('Debug info not available - initialization failed');
+  if (typeof debugInfo.highlightCount !== 'number') throw new Error('Highlight system not initialized');
+  if (typeof debugInfo.activeEffects !== 'number') throw new Error('Effect system not initialized');
 });
 
 // Test highlighting system

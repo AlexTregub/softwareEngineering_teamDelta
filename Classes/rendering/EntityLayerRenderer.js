@@ -78,6 +78,9 @@ class EntityLayerRenderer {
    * Collect entities for rendering based on game state
    */
   collectEntities(gameState) {
+    // Clear previous entities before collecting new ones
+    this.clearRenderGroups();
+    
     // Collect resources
     if (g_resourceList) {
       this.collectResources(gameState);

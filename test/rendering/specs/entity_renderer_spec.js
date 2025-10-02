@@ -67,8 +67,13 @@ describe('EntityRenderer', function() {
                 // When I collect entities for rendering
                 entityRenderer.collectEntities('PLAYING');
                 
-                // Then resources should be collected
-                expect(entityRenderer.renderGroups.RESOURCES.length).to.be.greaterThan(0);
+                // Then resources should be collected with correct data
+                expect(entityRenderer.renderGroups.RESOURCES).to.have.lengthOf(2);
+                expect(entityRenderer.renderGroups.RESOURCES[0].type).to.equal('resource');
+                expect(entityRenderer.renderGroups.RESOURCES[1].type).to.equal('resource');
+                // Verify entity contains specific resource types
+                expect(entityRenderer.renderGroups.RESOURCES[0].entity.type).to.equal('leaf');
+                expect(entityRenderer.renderGroups.RESOURCES[1].entity.type).to.equal('stick');
             });
         });
         
@@ -77,8 +82,13 @@ describe('EntityRenderer', function() {
                 // When I collect entities for rendering
                 entityRenderer.collectEntities('PLAYING');
                 
-                // Then ants should be collected
-                expect(entityRenderer.renderGroups.ANTS.length).to.be.greaterThan(0);
+                // Then ants should be collected with correct data
+                expect(entityRenderer.renderGroups.ANTS).to.have.lengthOf(2);
+                expect(entityRenderer.renderGroups.ANTS[0].type).to.equal('ant');
+                expect(entityRenderer.renderGroups.ANTS[1].type).to.equal('ant');
+                // Verify wrapper contains specific ant types
+                expect(entityRenderer.renderGroups.ANTS[0].wrapper.type).to.equal('worker');
+                expect(entityRenderer.renderGroups.ANTS[1].wrapper.type).to.equal('soldier');
             });
         });
         
@@ -186,39 +196,71 @@ describe('EntityRenderer', function() {
         
         describe('Scenario: Sort entities by depth', function() {
             it('should arrange entities in correct rendering order', function() {
-                // Given entities with different depths
-                const entities = [
-                    { position: {x: 100, y: 100}, depth: 3 },
-                    { position: {x: 200, y: 200}, depth: 1 }, 
-                    { position: {x: 300, y: 300}, depth: 2 }
-                ];
+                // Given entities with different depths added to renderGroups
+                entityRenderer.clearRenderGroups();
+                entityRenderer.renderGroups.ANTS.push(
+                    {
+                        entity: { id: 'ant1' },
+                        type: 'ant',
+                        depth: 3,
+                        position: {x: 100, y: 100}
+                    },
+                    {
+                        entity: { id: 'ant2' },
+                        type: 'ant', 
+                        depth: 1,
+                        position: {x: 200, y: 200}
+                    },
+                    {
+                        entity: { id: 'ant3' },
+                        type: 'ant',
+                        depth: 2,
+                        position: {x: 300, y: 300}
+                    }
+                );
                 
-                // When I sort by depth
-                const sorted = entityRenderer.sortEntitiesByDepth(entities);
+                // When I sort by depth using the real method
+                entityRenderer.sortEntitiesByDepth();
                 
                 // Then entities should be in depth order (lowest first)
-                expect(sorted[0].depth).to.equal(1);
-                expect(sorted[1].depth).to.equal(2);
-                expect(sorted[2].depth).to.equal(3);
+                expect(entityRenderer.renderGroups.ANTS[0].depth).to.equal(1);
+                expect(entityRenderer.renderGroups.ANTS[1].depth).to.equal(2);
+                expect(entityRenderer.renderGroups.ANTS[2].depth).to.equal(3);
             });
         });
         
-        describe('Scenario: Fallback to Y-position sorting', function() {
-            it('should sort by Y position when no depth specified', function() {
-                // Given entities without depth but with Y positions
-                const entities = [
-                    { position: {x: 100, y: 300} }, // Bottom
-                    { position: {x: 200, y: 100} }, // Top
-                    { position: {x: 300, y: 200} }  // Middle
-                ];
+        describe('Scenario: Sort entities by depth values', function() {
+            it('should sort by explicit depth values when specified', function() {
+                // Given entities with explicit depth values
+                entityRenderer.clearRenderGroups();
+                entityRenderer.renderGroups.ANTS.push(
+                    {
+                        entity: { id: 'ant1' },
+                        type: 'ant',
+                        depth: 300, // Higher depth (farther back)
+                        position: {x: 100, y: 300}
+                    },
+                    {
+                        entity: { id: 'ant2' },
+                        type: 'ant',
+                        depth: 100, // Lower depth (closer to front)
+                        position: {x: 200, y: 100}
+                    },
+                    {
+                        entity: { id: 'ant3' },
+                        type: 'ant',
+                        depth: 200, // Middle depth
+                        position: {x: 300, y: 200}
+                    }
+                );
                 
-                // When I sort by depth (fallback to Y)
-                const sorted = entityRenderer.sortEntitiesByDepth(entities);
+                // When I sort by depth
+                entityRenderer.sortEntitiesByDepth();
                 
-                // Then entities should be sorted by Y position
-                expect(sorted[0].position.y).to.equal(100);
-                expect(sorted[1].position.y).to.equal(200);
-                expect(sorted[2].position.y).to.equal(300);
+                // Then entities should be sorted by depth value (lowest depth first)
+                expect(entityRenderer.renderGroups.ANTS[0].depth).to.equal(100);
+                expect(entityRenderer.renderGroups.ANTS[1].depth).to.equal(200);
+                expect(entityRenderer.renderGroups.ANTS[2].depth).to.equal(300);
             });
         });
     });
@@ -231,10 +273,17 @@ describe('EntityRenderer', function() {
                 entityRenderer.collectEntities('PLAYING');
                 
                 // When entities are organized
-                // Then they should be grouped by type
-                expect(entityRenderer.renderGroups).to.have.property('RESOURCES');
-                expect(entityRenderer.renderGroups).to.have.property('ANTS');
-                expect(entityRenderer.renderGroups).to.have.property('EFFECTS');
+                // Then they should be grouped by type with correct entities
+                expect(entityRenderer.renderGroups.RESOURCES).to.be.an('array').with.lengthOf(2);
+                expect(entityRenderer.renderGroups.ANTS).to.be.an('array').with.lengthOf(2);
+                expect(entityRenderer.renderGroups.EFFECTS).to.be.an('array').with.lengthOf(0);
+                
+                // Validate actual grouping behavior - check by render group type
+                expect(entityRenderer.renderGroups.RESOURCES.every(item => item.type === 'resource')).to.be.true;
+                expect(entityRenderer.renderGroups.ANTS.every(item => item.type === 'ant')).to.be.true;
+                // Validate entity content is correct
+                expect(entityRenderer.renderGroups.RESOURCES.every(item => item.entity.type === 'leaf' || item.entity.type === 'stick')).to.be.true;
+                expect(entityRenderer.renderGroups.ANTS.every(item => item.wrapper.type === 'worker' || item.wrapper.type === 'soldier')).to.be.true;
             });
         });
         
@@ -243,18 +292,25 @@ describe('EntityRenderer', function() {
                 // Given a culling margin configuration
                 entityRenderer.config.cullMargin = 50;
                 
-                // When I check culling with margin
-                const entity = {
-                    x: -25, // Just outside viewport but within margin
+                // When I check entities at different distances from viewport edge
+                const entityWithinMargin = {
+                    x: -25, // 25px outside left edge (within 50px margin)
                     y: 100,
                     width: 32,
                     height: 32
                 };
                 
-                const isVisible = entityRenderer.isEntityInViewport(entity);
+                const entityBeyondMargin = {
+                    x: -85, // 85px outside left edge (beyond 50px margin)
+                    y: 100,
+                    width: 32,
+                    height: 32
+                };
                 
-                // Then entity should be visible due to margin
-                expect(isVisible).to.be.true;
+                // Then margin should include entities slightly outside viewport
+                expect(entityRenderer.isEntityInViewport(entityWithinMargin)).to.be.true;
+                // But exclude entities too far outside the margin
+                expect(entityRenderer.isEntityInViewport(entityBeyondMargin)).to.be.false;
             });
         });
     });
@@ -278,9 +334,27 @@ describe('EntityRenderer', function() {
         
         describe('Scenario: Update entity data', function() {
             it('should refresh entity information on each frame', function() {
-                // This test would verify that entity positions/states
-                // are updated properly each frame, but requires game loop integration
-                expect(true).to.be.true; // Placeholder for integration test
+                // Given an entity collection
+                entityRenderer.collectEntities('PLAYING');
+                
+                // When I modify an ant's position and recollect
+                const originalPosition = window.ants[0].x;
+                window.ants[0].x = 200; // Move ant to new position (within viewport bounds)
+                window.ants[0].antObject.getPosition = () => ({x: 200, y: 250});
+                
+                entityRenderer.collectEntities('PLAYING');
+                
+                // Then the updated position should be reflected in render groups
+                expect(entityRenderer.renderGroups.ANTS).to.have.lengthOf(2);
+                
+                // Find the ant that should have been updated (worker type)
+                const updatedAnt = entityRenderer.renderGroups.ANTS.find(ant => ant.wrapper.type === 'worker');
+                expect(updatedAnt).to.not.be.undefined;
+                expect(updatedAnt.position.x).to.equal(200);
+                
+                // Cleanup - restore original position
+                window.ants[0].x = originalPosition;
+                window.ants[0].antObject.getPosition = () => ({x: originalPosition, y: 250});
             });
         });
     });

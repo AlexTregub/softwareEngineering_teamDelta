@@ -18,15 +18,31 @@ global.window = dom.window;
 global.document = dom.window.document;
 global.navigator = dom.window.navigator;
 
+// Ensure window.performance matches global.performance for consistency
+global.window.performance = global.performance;
+
 // Mock p5.js functions
 global.createVector = function(x, y) {
   return { x: x || 0, y: y || 0 };
 };
 
-// Mock performance for testing
+// Mock performance for testing - controllable timing without fake behavior
 global.performance = {
   now: function() {
-    return Date.now();
+    // Use mock time if set (for controlled testing), otherwise real time
+    return typeof global.mockTime !== 'undefined' ? global.mockTime : Date.now();
+  },
+  // Add memory mock for browser compatibility
+  memory: {
+    get usedJSHeapSize() {
+      return global.mockMemory ? global.mockMemory.usedJSHeapSize : 1000000;
+    },
+    get totalJSHeapSize() {
+      return global.mockMemory ? global.mockMemory.totalJSHeapSize : 2000000;
+    },
+    get jsHeapSizeLimit() {
+      return global.mockMemory ? global.mockMemory.jsHeapSizeLimit : 4000000;
+    }
   }
 };
 

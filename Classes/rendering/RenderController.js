@@ -22,6 +22,7 @@ class RenderController {
     // Rendering settings
     this._smoothing = false; // Pixel art style by default
     this._debugMode = false;
+    this._renderCallCount = 0; // Track render calls for debug info
     
     // Visual effect types
     this.HIGHLIGHT_TYPES = {
@@ -116,6 +117,8 @@ class RenderController {
    * Main render method - call this every frame
    */
   render() {
+    this._renderCallCount++; // Track render calls for performance debugging
+    
     // Set smoothing preference
     if (this._smoothing) {
       smooth();
@@ -205,6 +208,18 @@ class RenderController {
    */
   clearEffects() {
     this._effects = [];
+  }
+
+  /**
+   * Update effects and remove expired ones
+   * @param {number} deltaTime - Optional time delta (for testing)
+   */
+  updateEffects(deltaTime = null) {
+    const currentTime = Date.now();
+    this._effects = this._effects.filter(effect => {
+      const elapsed = currentTime - effect.createdAt;
+      return elapsed < effect.duration;
+    });
   }
 
   /**
@@ -621,6 +636,119 @@ class RenderController {
     ellipse(effect.position.x, effect.position.position.y, effect.size || 4, effect.size || 4);
   }
 
+  // --- Effect Animation & Configuration Methods ---
+
+  /**
+   * Get animated render position for effect
+   * @param {string} effectId - Effect ID
+   * @returns {Object} Current animated position {x, y}
+   */
+  getEffectRenderPosition(effectId) {
+    const effect = this._effects.find(e => e.id === effectId);
+    if (!effect) return null;
+    
+    const elapsed = Date.now() - effect.createdAt;
+    const progress = Math.min(elapsed / effect.duration, 1.0);
+    
+    // Base position - fallback to entity center if no position specified
+    let x, y;
+    if (effect.position) {
+      x = effect.position.x;
+      y = effect.position.y;
+    } else {
+      const center = this.getEntityCenter();
+      x = center.x;
+      y = center.y;
+    }
+    
+    // Apply velocity-based movement
+    if (effect.velocity) {
+      x += effect.velocity.x * elapsed / 16; // Normalize to ~60fps
+      y += effect.velocity.y * elapsed / 16;
+    }
+    
+    // Apply animation type modifications
+    if (effect.animationType === 'FLOAT_UP') {
+      y -= progress * 30; // Float 30 pixels up
+    } else if (effect.animationType === 'BOUNCE_FADE') {
+      // Bounce animation with sine wave
+      const bounceHeight = Math.sin(progress * Math.PI) * 10;
+      y -= bounceHeight;
+    }
+    
+    return { x, y };
+  }
+
+  /**
+   * Get visual properties for effect (opacity, scale, color)
+   * @param {string} effectId - Effect ID
+   * @returns {Object} Visual properties {opacity, scale, color}
+   */
+  getEffectVisualProperties(effectId) {
+    const effect = this._effects.find(e => e.id === effectId);
+    if (!effect) return null;
+    
+    const elapsed = Date.now() - effect.createdAt;
+    const progress = Math.min(elapsed / effect.duration, 1.0);
+    
+    let opacity = 1.0;
+    let scale = 1.0;
+    const color = effect.color ? (Array.isArray(effect.color) ? [...effect.color] : [255, 255, 255]) : [255, 255, 255];
+    
+    // Fade out effect
+    if (effect.fadeOut) {
+      opacity = 1.0 - progress;
+    }
+    
+    // Animation-specific properties
+    if (effect.animationType === 'BOUNCE_FADE') {
+      // Scale bounce: starts at 1.0, peaks at 1.3 midway, settles to 0.8
+      const bounceScale = 1.0 + Math.sin(progress * Math.PI) * 0.3;
+      scale = bounceScale * (1.0 - progress * 0.2); // Slight shrink over time
+      opacity = Math.max(0.1, 1.0 - progress * 0.8); // Fade but stay visible
+    }
+    
+    return { opacity, scale, color };
+  }
+
+  /**
+   * Get current render configuration
+   * @returns {Object} Rendering configuration settings
+   */
+  getRenderConfiguration() {
+    return {
+      smoothing: this._smoothing,
+      antiAliasing: this._smoothing,
+      textSmoothing: this._smoothing,
+      quality: this._smoothing ? 'HIGH' : 'PERFORMANCE',
+      interpolation: this._smoothing ? 'BILINEAR' : 'NEAREST_NEIGHBOR',
+      performanceImpact: this._smoothing ? 'MEDIUM' : 'LOW',
+      debugMode: this._debugMode
+    };
+  }
+
+  /**
+   * Get render properties for specific effect
+   * @param {string} effectId - Effect ID
+   * @returns {Object} Text rendering properties
+   */
+  getEffectRenderProperties(effectId) {
+    const effect = this._effects.find(e => e.id === effectId);
+    if (!effect) return null;
+    
+    const config = this.getRenderConfiguration();
+    
+    return {
+      fontSmoothing: config.smoothing,
+      subpixelRendering: config.smoothing,
+      renderQuality: config.quality,
+      antiAlias: config.antiAliasing,
+      hinting: config.smoothing ? 'FULL' : 'NONE',
+      effectType: effect.type,
+      text: effect.text
+    };
+  }
+
   /**
    * Helper Methods - Uses standardized EntityAccessor for consistent entity access
    */
@@ -641,14 +769,35 @@ class RenderController {
   }
 
   getDebugInfo() {
+    if (!this._debugMode) {
+      return {
+        debugMode: false,
+        entityState: null,
+        effects: null,
+        performance: null
+      };
+    }
+    
     return {
-      highlightState: this._highlightState,
-      effectCount: this._effects.length,
       debugMode: this._debugMode,
-      smoothing: this._smoothing,
-      position: this.getEntityPosition(),
-      size: this.getEntitySize(),
-      center: this.getEntityCenter()
+      highlightCount: this._highlightState ? 1 : 0,
+      activeEffects: this._effects.length,
+      entityState: {
+        position: this.getEntityPosition(),
+        size: this.getEntitySize(),
+        highlightState: this._highlightState,
+        highlightIntensity: this._highlightIntensity
+      },
+      effects: this._effects.map(effect => ({
+        type: effect.type,
+        remainingDuration: Math.max(0, effect.duration - (Date.now() - effect.createdAt)),
+        text: effect.text,
+        id: effect.id
+      })),
+      performance: {
+        effectCount: this._effects.length,
+        renderCallCount: this._renderCallCount || 0
+      }
     };
   }
 }

@@ -6,8 +6,18 @@
  * @version 1.0.0
  */
 
+// Default thresholds exported for reuse
+const DEFAULT_PERFORMANCE_THRESHOLDS = {
+    goodAvgFPS: 55,
+    fairAvgFPS: 30,
+    poorAvgFrameTime: 33, // ms
+    worstFrameTime: 50, // ms
+    memoryGrowthBytes: 50 * 1024 * 1024, // 50MB
+    memoryIncreaseRateBytesPerSec: 1024 * 1024 // 1MB/sec
+};
+
 class PerformanceMonitor {
-    constructor() {
+    constructor(config = {}) {
         // Frame timing data
         this.frameData = {
             frameCount: 0,
@@ -46,6 +56,22 @@ class PerformanceMonitor {
             worstFrameTime: 0,
             performanceLevel: 'GOOD' // GOOD, FAIR, POOR
         };
+
+        // Thresholds used for warnings and performance level decisions
+        // Merge defaults with any environment-provided thresholds and then any constructor config overrides
+        // Priority: DEFAULT < ENV (PERFORMANCE_THRESHOLDS) < constructor config
+        let envThresholds = {};
+        try {
+            if (typeof process !== 'undefined' && process.env && process.env.PERFORMANCE_THRESHOLDS) {
+                envThresholds = JSON.parse(process.env.PERFORMANCE_THRESHOLDS);
+            }
+        } catch (e) {
+            // Don't throw in production; warn and continue with defaults
+            console.warn('PerformanceMonitor: failed to parse PERFORMANCE_THRESHOLDS env var; using defaults. Error:', e && e.message);
+            envThresholds = {};
+        }
+
+        this.thresholds = Object.assign({}, DEFAULT_PERFORMANCE_THRESHOLDS, envThresholds || {}, config.thresholds || {});
 
         // Debug display settings
         this.debugDisplay = {
@@ -187,9 +213,9 @@ class PerformanceMonitor {
         this.metrics.worstFrameTime = Math.max(...this.frameData.frameHistory);
         
         // Determine performance level
-        if (this.metrics.avgFPS >= 55) {
+        if (this.metrics.avgFPS >= this.thresholds.goodAvgFPS) {
             this.metrics.performanceLevel = 'GOOD';
-        } else if (this.metrics.avgFPS >= 30) {
+        } else if (this.metrics.avgFPS >= this.thresholds.fairAvgFPS) {
             this.metrics.performanceLevel = 'FAIR';
         } else {
             this.metrics.performanceLevel = 'POOR';
@@ -260,7 +286,7 @@ class PerformanceMonitor {
      * @returns {boolean} True if performance is below acceptable thresholds
      */
     isPerformancePoor() {
-        return this.metrics.avgFPS < 30 || this.metrics.avgFrameTime > 33;
+    return this.metrics.avgFPS < this.thresholds.fairAvgFPS || this.metrics.avgFrameTime > this.thresholds.poorAvgFrameTime;
     }
 
     /**
@@ -270,11 +296,11 @@ class PerformanceMonitor {
     getPerformanceWarnings() {
         const warnings = [];
 
-        if (this.metrics.avgFPS < 30) {
+        if (this.metrics.avgFPS < this.thresholds.fairAvgFPS) {
             warnings.push('Low FPS: Consider reducing entity count or effects');
         }
 
-        if (this.metrics.worstFrameTime > 50) {
+        if (this.metrics.worstFrameTime > this.thresholds.worstFrameTime) {
             warnings.push('Frame spikes detected: Check for performance bottlenecks');
         }
 
@@ -287,7 +313,7 @@ class PerformanceMonitor {
 
         if (this.memoryTracking.enabled) {
             const memoryGrowth = this.memoryTracking.current - this.memoryTracking.baseline;
-            if (memoryGrowth > 50 * 1024 * 1024) { // 50MB growth
+            if (memoryGrowth > this.thresholds.memoryGrowthBytes) {
                 warnings.push('Memory usage increasing: Possible memory leak');
             }
         }
