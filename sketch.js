@@ -121,6 +121,9 @@ function draw() {
   if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
     RenderManager.render(GameState.getState());
   }
+
+  clear();
+  g_map2.renderDirect();
 }
 
 /**

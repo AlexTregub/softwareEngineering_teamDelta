@@ -20,6 +20,8 @@ ______________________(-0.5,-0.5)........
 ______________________...........(7.5,7.5)
 */
 
+// NOTE: OPTIMIZATIONS HAVE BEEN MADE TO DIRECT RENDERING AND CACHED RENDERING SIMULTANEOUSLY, BEWARE THE BUGS
+
 class gridTerrain {
     constructor(gridSizeX,gridSizeY,g_seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[g_canvasX,g_canvasY]) {
         this._gridSizeX = gridSizeX;
@@ -218,17 +220,34 @@ class gridTerrain {
     _renderChunksToCache() {
         // Set drawing context to the cache buffer
         this._terrainCache.push();
+
+        // Same optimization as in direct render
+        let posSpan = this.renderConversion.getPosSpan(); // Get in position span
+        let chunkSpan = [ // TL,BR range in chunkSpan
+            [
+                posSpan[0][0]%CHUNK_SIZE == 0 ? posSpan[0][0]/CHUNK_SIZE : floor(posSpan[0][0]/CHUNK_SIZE)+1,
+                posSpan[0][1]%CHUNK_SIZE == 0 ? posSpan[0][1]/CHUNK_SIZE : floor(posSpan[0][1]/CHUNK_SIZE)+1
+            ],
+            [
+                posSpan[1][0]%CHUNK_SIZE == 0 ? posSpan[1][0]/CHUNK_SIZE : floor(posSpan[1][0]/CHUNK_SIZE)+1,
+                posSpan[1][1]%CHUNK_SIZE == 0 ? posSpan[1][1]/CHUNK_SIZE : floor(posSpan[1][1]/CHUNK_SIZE)+1
+            ]
+        ]
         
         // Render all terrain chunks directly using p5.Graphics methods
         for (let i = 0; i < this._gridSizeX * this._gridSizeY; ++i) {
-            const chunk = this.chunkArray.rawArray[i];
-            if (chunk && chunk.tileData && chunk.tileData.rawArray) {
-                for (let j = 0; j < this._chunkSize * this._chunkSize; ++j) {
-                    const tile = chunk.tileData.rawArray[j];
-                    if (tile) {
-                        this._renderTileToCache(tile);
-                    }
-                }
+            let chunkPos = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
+            // const chunk = this.chunkArray.rawArray[i];
+            
+            // Skip render of unseeable chunks
+            if (chunkPos[0] < chunkSpan[0][0] || chunkPos[0] > chunkSpan[1][0] || chunkPos[1] < chunkSpan[1][1] || chunkPos[1] > chunkSpan[0][1]) {
+                console.log("skipped a chunk.");
+                continue;
+            }
+
+            for (let j = 0; j < this._chunkSize * this._chunkSize; ++j) {
+                // const tile = this.chunkArray.rawArray[i].tileData.rawArray[j];
+                this._renderTileToCache(this.chunkArray.rawArray[i].tileData.rawArray[j]);
             }
         }
         
@@ -410,8 +429,29 @@ class gridTerrain {
      * @public
      */
     renderDirect() {
-        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
-            for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) {
+        let posSpan = this.renderConversion.getPosSpan(); // Get in position span
+        let chunkSpan = [ // TL,BR range in chunkSpan
+            [
+                posSpan[0][0]%CHUNK_SIZE == 0 ? posSpan[0][0]/CHUNK_SIZE : floor(posSpan[0][0]/CHUNK_SIZE)+1,
+                posSpan[0][1]%CHUNK_SIZE == 0 ? posSpan[0][1]/CHUNK_SIZE : floor(posSpan[0][1]/CHUNK_SIZE)+1
+            ],
+            [
+                posSpan[1][0]%CHUNK_SIZE == 0 ? posSpan[1][0]/CHUNK_SIZE : floor(posSpan[1][0]/CHUNK_SIZE)+1,
+                posSpan[1][1]%CHUNK_SIZE == 0 ? posSpan[1][1]/CHUNK_SIZE : floor(posSpan[1][1]/CHUNK_SIZE)+1
+            ]
+        ]
+        console.log(chunkSpan);
+
+        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) { // Access chunks
+            let chunkPos = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
+
+            // Skip render of unseeable chunks
+            if (chunkPos[0] < chunkSpan[0][0] || chunkPos[0] > chunkSpan[1][0] || chunkPos[1] < chunkSpan[1][1] || chunkPos[1] > chunkSpan[0][1]) {
+                // console.log("skipped a chunk."+chunkPos);
+                continue;
+            }
+
+            for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) { // Direct access tiles
                 this.chunkArray.rawArray[i].tileData.rawArray[j].render2(this.renderConversion);
             }
         }
@@ -511,5 +551,34 @@ class camRenderConverter {
         let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
         let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
         return this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
+    }
+
+    //// Get Span:
+    getPosSpan() {
+        // Get canvas size/offsets.
+        // let posOffsetFromCamX = floor(this._canvasCenter[0]/TILE_SIZE);
+        // let posOffsetFromCamY = floor(this._canvasCenter[1]/TILE_SIZE);
+        // if (this._canvasCenter[0]%TILE_SIZE != 0) {
+        //     ++posOffsetFromCamX;
+        // }
+        // if (this._canvasCenter[1]%TILE_SIZE != 0) {
+        //     ++posOffsetFromCamY;
+        // }
+        // Conditional assign: 
+        // this._canvasCenter[0]%TILE_SIZE == 0 ? this._canvasCenter[0]/TILE_SIZE : floor(this._canvasCenter[0]/TILE_SIZE)+1
+
+        let posOffsetFromCamX = this._canvasCenter[0]%TILE_SIZE == 0 ? this._canvasCenter[0]/TILE_SIZE : floor(this._canvasCenter[0]/TILE_SIZE)+1
+        let posOffsetFromCamY = this._canvasCenter[1]%TILE_SIZE == 0 ? this._canvasCenter[1]/TILE_SIZE : floor(this._canvasCenter[1]/TILE_SIZE)+1
+
+        return [ // Return TL, BR pos
+            [ // TL, -x,+y
+                this._camPosition[0]-posOffsetFromCamX,
+                this._camPosition[1]+posOffsetFromCamY
+            ],
+            [ // BR, +x,-y
+                this._camPosition[0]+posOffsetFromCamX,
+                this._camPosition[1]-posOffsetFromCamY
+            ]
+        ]
     }
 }

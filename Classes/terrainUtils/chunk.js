@@ -14,12 +14,6 @@ class Chunk {
     }
 
     randomize(posOffset) {
-        // Set chunk-g_seed (arbitrary, ideally shouldnt have collision)
-        // randomSeed(
-        //     // sign(x)((g_seed^x)/y) for chunkPos x,y .
-        //     Math.sign(this.tileData.getObjPos()[0])*pow(g_seed,abs(this.tileData.getObjPos()[0])+0.5)/(this.tileData.getObjPos()[1]+0.5)
-        // );
-
         let width = this.tileData.getSize()[0]; // ASSUMED SQUARE
         let len = width*width;
         for (let i = 0; i < len; ++i) {
@@ -32,38 +26,6 @@ class Chunk {
             this.tileData.rawArray[i].randomizePerlin(position); // Picks from random material
             // print(this.tileData.getSpanRange());
         }
-
-        // Dirt clustering -> not of latest method, using previous idea of neighbors
-        // for (let i = 0; i < len; ++i) {
-        //     let iPos = this.tileData.convToSquare(i);
-        //     let countDirt = 0;
-
-        //     // Get 4 neighbors, without OOB
-        //     if (iPos[0]+1 < width && iPos[0]+1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0]+1,iPos[1]]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-        //     if (iPos[0]-1 < width && iPos[0]-1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0]-1,iPos[1]]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-        //     if (iPos[1]+1 < width && iPos[1]+1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0],iPos[1]+1]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-        //     if (iPos[1]-1 < width && iPos[1]-1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0],iPos[1]-1]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-
-        //     if (random() < (countDirt/4)) {
-        //         this.tileData.rawArray[i].setMaterial('dirt');
-        //     }
-        // }
     }
 
     render(coordSys) { // Render through coordinate system
