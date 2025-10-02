@@ -11,10 +11,16 @@
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
 
-    <!-- Type Checks -->
+        <!-- Type Checks -->
      <script src="debug/typeChecks/vectorCheck.js"></script>
 
-    <!-- Base Systems - Load first -->
+    <!-- Rendering System - Load First -->
+    <script src="Classes/rendering/EntityLayerRenderer.js"></script>
+    <script src="Classes/rendering/RenderLayerManager.js"></script>
+    <script src="Classes/rendering/RenderController.js"></script>
+    <script src="Classes/rendering/Sprite2d.js"></script>
+    
+    <!-- Base Systems - Load Second -->
     <script src="Classes/containers/StatsContainer.js"></script>
     <script src="Classes/containers/Entity.js"></script>
     <script src="Classes/systems/text/textRenderer.js"></script>
@@ -28,16 +34,12 @@
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
     <script src="Classes/managers/AntManager.js"></script>
-    <script src="Classes/managers/EntityLayerRenderer.js"></script>
-    <script src="Classes/managers/RenderLayerManager.js"></script>
     <script src="Classes/systems/shapes/circle.js"></script>
-    <script src="Classes/systems/Sprite2d.js"></script>
     <script src="Classes/pathfinding.js"></script>
 
     <!-- Controller System - Load all controllers before ant classes -->
     <script src="Classes/controllers/MovementController.js"></script>
     <script src="Classes/controllers/TaskManager.js"></script>
-    <script src="Classes/controllers/RenderController.js"></script>
     <script src="Classes/controllers/CombatController.js"></script>
     <script src="Classes/controllers/TransformController.js"></script>
     <script src="Classes/controllers/SelectionController.js"></script>

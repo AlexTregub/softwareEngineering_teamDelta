@@ -110,9 +110,8 @@ function initializeWorld() {
  * interactive entities, and UI components. Called automatically by p5.js each frame.
  */
 function draw() {
-  // Clear the canvas
-  clear();
-  //g_map2.renderDirect();
+  background(0);
+  g_map2.renderDirect();
 
   // Use the new layered rendering system
   if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
