@@ -97,6 +97,8 @@ function executeCommand(command) {
     case 'tp': handleTeleportCommand(args); break;
     case 'info': showGameInfo(); break;
     case 'test': handleTestCommand(args); break;
+    case 'perf': handlePerformanceCommand(args); break;
+    case 'entity-perf': handleEntityPerformanceCommand(args); break;
     default: console.log(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
   }
 }
@@ -116,10 +118,14 @@ function showCommandHelp() {
   console.log("  kill <all|selected|index> - Remove entities");
   console.log("  teleport <x> <y> - Move selected ant to coordinates");
   console.log("  info - Show game state information");
+  console.log("  perf [toggle|stats] - Control performance monitor");
+  console.log("  entity-perf [report|reset] - Entity performance analysis");
   console.log("Examples:");
   console.log("  spawn 10 ant blue");
   console.log("  teleport 100 200");
   console.log("  select all");
+  console.log("  perf toggle");
+  console.log("  entity-perf report");
 }
 
 /**
@@ -148,17 +154,25 @@ function handleSpawnCommand(args) {
   for (let i = 0; i < count; i++) {
     try {
       let sizeR = random(0, 15);
-      let baseAnt = new ant(random(0, width-50), random(0, height-50), 20 + sizeR, 20 + sizeR, 30, 0);
       let JobName = assignJob();
-      let JobAnt = new Job(baseAnt, JobName, JobImages[JobName]);
-      let antWrapper = new AntWrapper(JobAnt, JobName);
-      ants.push(antWrapper);
-      if (!antWrapper || !antWrapper.antObject) { console.log(`❌ Failed to create ant ${i + 1}`); continue; }
-      if (faction !== 'neutral') { const antObj = antWrapper.antObject ? antWrapper.antObject : antWrapper; if (antObj) antObj.faction = faction; }
+      
+      // Create ant with new system
+      let newAnt = new ant(random(0, width-50), random(0, height-50), 20 + sizeR, 20 + sizeR, 30, 0);
+      newAnt.assignJob(JobName, JobImages[JobName]);
+      
+      // Set faction if specified
+      if (faction !== 'neutral') {
+        newAnt.faction = faction;
+      }
+      
+      // Store ant directly
+      ants.push(newAnt);
+      
+      if (!newAnt) { console.log(`❌ Failed to create ant ${i + 1}`); continue; }
     } catch (error) { console.log(`❌ Error creating ant ${i + 1}: ${error.message}`); }
   }
-  const actualSpawned = antIndex - startingCount;
-  console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${antIndex}`);
+  const actualSpawned = ants.length - startingCount;
+  console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${ants.length}`);
   if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) g_selectionBoxController.entities = ants;
 }
 
@@ -340,3 +354,113 @@ function closeCommandLine() { commandLineActive = false; commandInput = ""; comm
 
 /** isCommandLineActive - Returns true if the command line UI is active. */
 function isCommandLineActive() { return commandLineActive; }
+
+/**
+ * handlePerformanceCommand
+ * -------------------------
+ * Handle performance monitor commands.
+ * @param {string[]} args - Command arguments ['toggle'|'stats']
+ */
+function handlePerformanceCommand(args) {
+  if (typeof g_performanceMonitor === 'undefined' || !g_performanceMonitor) {
+    console.log("❌ Performance monitor not available");
+    return;
+  }
+
+  const action = args[0] || 'stats';
+  
+  switch (action.toLowerCase()) {
+    case 'toggle':
+      const currentState = g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled;
+      g_performanceMonitor.setDebugDisplay(!currentState);
+      console.log(`🔍 Performance monitor ${!currentState ? 'ENABLED' : 'DISABLED'}`);
+      break;
+      
+    case 'stats':
+      const stats = g_performanceMonitor.getFrameStats();
+      console.log("📊 Performance Statistics:");
+      console.log(`   FPS: ${stats.fps} (avg: ${stats.avgFPS}, min: ${stats.minFPS})`);
+      console.log(`   Frame Time: ${stats.frameTime}ms (avg: ${stats.avgFrameTime}ms)`);
+      console.log(`   Performance Level: ${stats.performanceLevel}`);
+      console.log(`   Entities: ${stats.entityStats.totalEntities} total, ${stats.entityStats.renderedEntities} rendered`);
+      if (stats.entityPerformance) {
+        console.log(`   Entity Render Time: ${stats.entityPerformance.totalEntityRenderTime.toFixed(2)}ms`);
+        console.log(`   Entity Efficiency: ${stats.entityPerformance.entityRenderEfficiency.toFixed(1)}%`);
+      }
+      break;
+      
+    default:
+      console.log("❌ Usage: perf [toggle|stats]");
+  }
+}
+
+/**
+ * handleEntityPerformanceCommand
+ * -------------------------------
+ * Handle detailed entity performance analysis commands.
+ * @param {string[]} args - Command arguments ['report'|'reset'|'slowest']
+ */
+function handleEntityPerformanceCommand(args) {
+  if (typeof g_performanceMonitor === 'undefined' || !g_performanceMonitor) {
+    console.log("❌ Performance monitor not available");
+    return;
+  }
+
+  const action = args[0] || 'report';
+  
+  switch (action.toLowerCase()) {
+    case 'report':
+      const report = g_performanceMonitor.getEntityPerformanceReport();
+      console.log("🎯 Entity Performance Report:");
+      console.log(`   Total Render Time: ${report.totalRenderTime.toFixed(2)}ms`);
+      console.log(`   Average per Entity: ${report.averageRenderTime.toFixed(2)}ms`);
+      console.log(`   Render Efficiency: ${report.renderEfficiency.toFixed(1)}%`);
+      
+      if (report.typePerformance.length > 0) {
+        console.log("\n📋 Entity Types (by performance):");
+        report.typePerformance.forEach(type => {
+          console.log(`   ${type.type}: ${type.currentAverage.toFixed(2)}ms avg (${type.count}x) - ${type.efficiency.toFixed(0)} entities/sec`);
+        });
+      }
+      
+      if (report.slowestEntities.length > 0) {
+        console.log("\n⚠️  Slowest Entities:");
+        report.slowestEntities.slice(0, 5).forEach((entity, i) => {
+          console.log(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms`);
+        });
+      }
+      
+      if (report.phaseBreakdown.length > 0) {
+        console.log("\n⏱️  Render Phases:");
+        report.phaseBreakdown.forEach(phase => {
+          if (phase.time > 0) {
+            console.log(`   ${phase.phase}: ${phase.time.toFixed(2)}ms (${phase.percentage.toFixed(1)}%)`);
+          }
+        });
+      }
+      break;
+      
+    case 'reset':
+      // Reset performance tracking data
+      g_performanceMonitor.entityPerformance.slowestEntities = [];
+      g_performanceMonitor.entityPerformance.typeHistory.clear();
+      g_performanceMonitor.entityPerformance.typeAverages.clear();
+      console.log("🔄 Entity performance data reset");
+      break;
+      
+    case 'slowest':
+      const slowest = g_performanceMonitor.entityPerformance.slowestEntities.slice(0, 10);
+      if (slowest.length > 0) {
+        console.log("🐌 Top 10 Slowest Entities:");
+        slowest.forEach((entity, i) => {
+          console.log(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms (frame ${entity.frame})`);
+        });
+      } else {
+        console.log("📊 No entity performance data available yet");
+      }
+      break;
+      
+    default:
+      console.log("❌ Usage: entity-perf [report|reset|slowest]");
+  }
+}

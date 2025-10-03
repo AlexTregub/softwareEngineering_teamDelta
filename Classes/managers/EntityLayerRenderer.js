@@ -114,14 +114,13 @@ class EntityLayerRenderer {
    * Collect ant entities
    */
   collectAnts(gameState) {    
-    for (let i = 0; i < antIndex; i++) {
+    for (let i = 0; i < ants.length; i++) {
       if (ants[i]) {
-        const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+        const ant = ants[i];
         
-        if (this.shouldRenderEntity(antObj)) {
+        if (this.shouldRenderEntity(ant)) {
           this.renderGroups.ANTS.push({
-            entity: antObj,
-            wrapper: ants[i], // Keep reference to wrapper for updates
+            entity: ant,
             type: 'ant',
             depth: this.getEntityDepth(antObj),
             position: this.getEntityPosition(antObj)

@@ -141,13 +141,12 @@ class AntUtilities {
     // Find ant under mouse (iterate backwards for top-most ant)
     for (let i = ants.length - 1; i >= 0; i--) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (this.isAntUnderMouse(antObj, mouseX, mouseY)) {
+      if (this.isAntUnderMouse(ant, mouseX, mouseY)) {
         // Select this ant
-        if (antObj._selectionController) {
-          antObj._selectionController.setSelected(true);
-        } else if (antObj.isSelected !== undefined) {
+        if (ant._selectionController) {
+          ant._selectionController.setSelected(true);
+        } else if (ant.isSelected !== undefined) {
           antObj.isSelected = true;
         }
         
@@ -200,12 +199,11 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (antObj._selectionController) {
-        antObj._selectionController.setSelected(false);
-      } else if (antObj.isSelected !== undefined) {
-        antObj.isSelected = false;
+      if (ant._selectionController) {
+        ant._selectionController.setSelected(false);
+      } else if (ant.isSelected !== undefined) {
+        ant.isSelected = false;
       }
     }
   }
@@ -222,14 +220,13 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      const isSelected = antObj._selectionController ? 
-        antObj._selectionController.isSelected() : 
-        (antObj.isSelected || false);
+      const isSelected = ant._selectionController ? 
+        ant._selectionController.isSelected() : 
+        (ant.isSelected || false);
       
       if (isSelected) {
-        selected.push(antObj);
+        selected.push(ant);
       }
     }
     
@@ -341,15 +338,14 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      const pos = antObj.getPosition ? antObj.getPosition() : 
-        antObj.getPosition();
+      const pos = ant.getPosition ? ant.getPosition() : 
+        ant.getPosition();
       
       const distance = this.getDistance(centerX, centerY, pos.x, pos.y);
       
       if (distance <= radius) {
-        nearbyAnts.push(antObj);
+        nearbyAnts.push(ant);
       }
     }
     
@@ -369,10 +365,9 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (antObj.faction === faction) {
-        factionAnts.push(antObj);
+      if (ant.faction === faction) {
+        factionAnts.push(ant);
       }
     }
     
@@ -394,20 +389,19 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (antObj) {
+      if (ant) {
         totalAnts++;
         
         // Count selected
-        const isSelected = antObj._selectionController ? 
-          antObj._selectionController.isSelected() : 
-          (antObj.isSelected || false);
+        const isSelected = ant._selectionController ? 
+          ant._selectionController.isSelected() : 
+          (ant.isSelected || false);
         if (isSelected) selectedCount++;
         
         // Count moving
-        const isMoving = antObj._movementController ? 
-          antObj._movementController.getIsMoving() : 
+        const isMoving = ant._movementController ? 
+          ant._movementController.getIsMoving() : 
           (antObj.isMoving || false);
         if (isMoving) movingCount++;
         
@@ -434,8 +428,7 @@ class AntUtilities {
 function antLoopPropertyCheck(property) {
   for (let i = 0; i < antIndex; i++) {
     if (!ants[i]) continue;
-    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    return antObj[property];
+    return ants[i][property];
   } 
   IncorrectParamPassed("Boolean", property);
 }
@@ -451,8 +444,7 @@ function moveSelectedEntityToTile(mx, my, tileSize) {
     return;
   }
   let selectedEntity = selectedEntities[0];
-  // Unwrap if this is a wrapper object
-  if (selectedEntity && selectedEntity.antObject) selectedEntity = selectedEntity.antObject;
+  // Now working with direct ant objects - no unwrapping needed
 
   const tileX = Math.floor(mx / tileSize);
   const tileY = Math.floor(my / tileSize);
@@ -478,8 +470,7 @@ function moveSelectedEntitiesToTile(mx, my, tileSize) {
 
   for (let i = 0; i < selectedEntities.length; i++) {
     let entity = selectedEntities[i];
-    // Unwrap if this is a wrapper object
-    if (entity && entity.antObject) entity = entity.antObject;
+    // Now working with direct ant objects - no unwrapping needed
 
     // assign each entity its own destination tile around the click
     const angle = i * angleStep;

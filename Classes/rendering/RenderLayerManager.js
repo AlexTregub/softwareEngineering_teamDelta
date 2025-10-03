@@ -5,6 +5,7 @@ class RenderLayerManager {
     this.layers = {
       TERRAIN: 'terrain',      // Static terrain, cached
       ENTITIES: 'entities',    // Dynamic game objects (ants, resources)
+      EFFECTS: 'effects',      // Particle effects, visual effects, screen effects
       UI_GAME: 'ui_game',     // In-game UI (currencies, selection, dropoff)
       UI_DEBUG: 'ui_debug',   // Debug overlays (console, performance)
       UI_MENU: 'ui_menu'      // Menu system and transitions
@@ -39,6 +40,7 @@ class RenderLayerManager {
     // Register default layer renderers
     this.registerLayerRenderer(this.layers.TERRAIN, this.renderTerrainLayer.bind(this));
     this.registerLayerRenderer(this.layers.ENTITIES, this.renderEntitiesLayer.bind(this));
+    this.registerLayerRenderer(this.layers.EFFECTS, this.renderEffectsLayer.bind(this));
     this.registerLayerRenderer(this.layers.UI_GAME, this.renderGameUILayer.bind(this));
     this.registerLayerRenderer(this.layers.UI_DEBUG, this.renderDebugUILayer.bind(this));
     this.registerLayerRenderer(this.layers.UI_MENU, this.renderMenuUILayer.bind(this));
@@ -100,16 +102,16 @@ class RenderLayerManager {
         return [this.layers.TERRAIN, this.layers.UI_MENU];
         
       case 'DEBUG_MENU':
-        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.UI_DEBUG, this.layers.UI_MENU];
+        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_DEBUG, this.layers.UI_MENU];
         
       case 'PLAYING':
-        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.UI_GAME, this.layers.UI_DEBUG];
+        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_DEBUG];
         
       case 'PAUSED':
-        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.UI_GAME];
+        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME];
         
       case 'GAME_OVER':
-        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.UI_GAME, this.layers.UI_MENU];
+        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_MENU];
         
       default:
         console.warn(`Unknown game state: ${gameState}`);
@@ -141,46 +143,36 @@ class RenderLayerManager {
       return;
     }
     
-    // Use enhanced entity layer renderer if available
-    if (EntityRenderer) {
-      EntityRenderer.renderAllLayers(gameState);
-    } else {
-      // Fallback to direct rendering
-      this.renderEntitiesDirectFallback(gameState);
+    // Get the EntityRenderer instance (not the class)
+    const entityRenderer = (typeof window !== 'undefined') ? window.EntityRenderer : 
+                          (typeof global !== 'undefined') ? global.EntityRenderer : null;
+
+    // Use EntityRenderer instance for all entity rendering
+    if (entityRenderer && typeof entityRenderer.renderAllLayers === 'function') {
+      entityRenderer.renderAllLayers(gameState);
+    }
+  }
+
+  /**
+   * EFFECTS LAYER - Particle effects, visual effects, screen effects
+   */
+  renderEffectsLayer(gameState) {
+    // Render effects in most game states
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MAIN_MENU'].includes(gameState)) {
+      return;
+    }
+    
+    // Get the EffectsRenderer instance
+    const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
+                           (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+
+    // Use EffectsRenderer for all effect rendering
+    if (effectsRenderer && typeof effectsRenderer.renderEffects === 'function') {
+      effectsRenderer.renderEffects(gameState);
     }
   }
   
-  /**
-   * Fallback entity rendering for when EntityRenderer is not available
-   * @private
-   */
-  renderEntitiesDirectFallback(gameState) {
-    // Render resources
-    if (g_resourceList) {
-      if (gameState === 'PLAYING' && g_resourceList.updateAll) {
-        g_resourceList.updateAll();
-      }
-      if (g_resourceList.drawAll) {
-        g_resourceList.drawAll();
-      }
-    }
-    
-    // Render ants
-    if (gameState === 'PLAYING') {
-      // Update and render ants
-      if (antsUpdate) {
-        antsUpdate();
-      }
-    } else {
-      // Just render ants without updates for paused/game over states
-      if (antsRender) {
-        antsRender();
-      } else if (antsUpdateAndRender) {
-        // Fallback to combined function
-        antsUpdateAndRender();
-      }
-    }
-  }
+
   
   /**
    * GAME UI LAYER - In-game interface elements
@@ -188,13 +180,21 @@ class RenderLayerManager {
   renderGameUILayer(gameState) {
     if (!['PLAYING', 'PAUSED', 'GAME_OVER'].includes(gameState)) { return; }
     
-    // Render base game UI elements and interaction UI elements
-    this.renderBaseGameUI();
-    this.renderInteractionUI(gameState);
+    // Use comprehensive UI renderer
+    const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
+                      (typeof global !== 'undefined') ? global.UIRenderer : null;
     
-    // Render state-specific overlays
-    if (gameState === 'PAUSED') { this.renderPauseOverlay(); } 
-    if (gameState === 'GAME_OVER') { this.renderGameOverOverlay();  }
+    if (uiRenderer) {
+      uiRenderer.renderUI(gameState);
+    } else {
+      // Fallback to legacy UI rendering
+      this.renderBaseGameUI();
+      this.renderInteractionUI(gameState);
+      
+      // Render state-specific overlays
+      if (gameState === 'PAUSED') { this.renderPauseOverlay(); } 
+      if (gameState === 'GAME_OVER') { this.renderGameOverOverlay();  }
+    }
   }
   
   /**
@@ -263,7 +263,34 @@ class RenderLayerManager {
       return;
     }
     
-    if (debugRender) {
+    // Render existing PerformanceMonitor if enabled
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && 
+        g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled &&
+        typeof g_performanceMonitor.render === 'function') {
+      g_performanceMonitor.render();
+    }
+    
+    // Render existing debug console if active
+    if (typeof drawCommandLine === 'function' && typeof isCommandLineActive === 'function' && isCommandLineActive()) {
+      drawCommandLine();
+    }
+    
+    // Render dev console indicator if enabled
+    if (typeof drawDevConsoleIndicator === 'function' && typeof isDevConsoleEnabled === 'function' && isDevConsoleEnabled()) {
+      drawDevConsoleIndicator();
+    }
+    
+    // Render UIRenderer debug elements as fallback
+    const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
+                      (typeof global !== 'undefined') ? global.UIRenderer : null;
+    
+    if (uiRenderer && uiRenderer.config.enableDebugUI) {
+      if (uiRenderer.debugUI.entityInspector.enabled) {
+        uiRenderer.renderEntityInspector();
+      }
+    }
+    
+    if (typeof debugRender === 'function') {
       debugRender();
     }
     
@@ -279,15 +306,23 @@ class RenderLayerManager {
    * MENU UI LAYER - Menu system and transitions
    */
   renderMenuUILayer(gameState) {
-    // Update menu state
-    if (updateMenu) {
-      updateMenu();
-    }
+    // Use comprehensive UI renderer for menu states
+    const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
+                      (typeof global !== 'undefined') ? global.UIRenderer : null;
     
-    // Render menu if in menu states
-    if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
-      if (renderMenu) {
-        renderMenu();
+    if (uiRenderer && ['MAIN_MENU', 'OPTIONS', 'SETTINGS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
+      uiRenderer.renderUI(gameState);
+    } else {
+      // Fallback to legacy menu rendering
+      if (updateMenu) {
+        updateMenu();
+      }
+      
+      // Render menu if in menu states
+      if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
+        if (renderMenu) {
+          renderMenu();
+        }
       }
     }
   }

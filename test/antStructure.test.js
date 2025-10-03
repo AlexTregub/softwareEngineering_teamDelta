@@ -34,6 +34,24 @@ global.ants = []; // Add ants array
 // Mock assignJob function
 global.assignJob = () => "Builder";
 
+// Mock Entity class for ant inheritance
+class Entity {
+  constructor(x, y, w, h, options = {}) {
+    this.position = {x, y};
+    this.size = {x: w, y: h};
+    this.isActive = true;
+    this.controllers = new Map();
+  }
+  getPosition() { return this.position; }
+  getSize() { return this.size; }
+  setPosition(x, y) { this.position = {x, y}; }
+  setImage(img) { this.image = img; }
+  getController(name) { return this.controllers.get(name); }
+  render() {}
+  update() {}
+}
+global.Entity = Entity;
+
 // Import required classes
 const AntStateMachine = require('../Classes/ants/antStateMachine.js');
 const Sprite2D = require('../Classes/systems/Sprite2d.js');

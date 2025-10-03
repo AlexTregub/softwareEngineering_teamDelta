@@ -53,6 +53,12 @@ function setup() {
   g_keyboardController = new KeyboardInputController();
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
 
+  // Connect keyboard controller for general input handling
+  g_keyboardController.onKeyPress((keyCode, key) => {
+    // UI shortcuts are now handled directly in keyPressed() function
+    // This maintains compatibility with existing game input systems
+  });
+
   initializeMenu();  // Initialize the menu system
   // Initialize dropoff UI if present (creates the Place Dropoff button)
   window.initDropoffUI();
@@ -165,6 +171,14 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  // Handle UI shortcuts first (Ctrl+Shift combinations)
+  if (typeof window !== 'undefined' && window.UIManager && window.UIManager.handleKeyPress) {
+    const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
+    if (handled) {
+      return; // UI shortcut was handled, don't process further
+    }
+  }
+  
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
@@ -174,4 +188,75 @@ function keyPressed() {
     return;
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
+}
+
+// DEBUG RENDERING FUNCTIONS
+// These functions provide basic debug visualization capability
+
+/**
+ * debugRender
+ * -----------
+ * Basic debug rendering function for UI debug layer.
+ * Renders basic debug information when dev console is enabled.
+ */
+function debugRender() {
+  // Only render debug info if dev console is enabled
+  if (typeof devConsoleEnabled === 'undefined' || !devConsoleEnabled) {
+    return;
+  }
+
+  // Basic debug info display
+  push();
+  fill(255, 255, 0); // Yellow text
+  noStroke();
+  textAlign(LEFT);
+  textSize(12);
+  
+  // Display basic game state information
+  let debugY = 10;
+  text(`Game State: ${GameState ? GameState.getState() : 'Unknown'}`, 10, debugY += 15);
+  text(`Canvas: ${g_canvasX}x${g_canvasY}`, 10, debugY += 15);
+  text(`Tile Size: ${TILE_SIZE}`, 10, debugY += 15);
+  
+  // Display entity counts if available
+  if (typeof ants !== 'undefined' && ants) {
+    text(`Ants: ${ants.length || 0}`, 10, debugY += 15);
+  }
+  if (typeof g_resourceList !== 'undefined' && g_resourceList && g_resourceList.resources) {
+    text(`Resources: ${g_resourceList.resources.length || 0}`, 10, debugY += 15);
+  }
+  
+  pop();
+}
+
+/**
+ * drawDebugGrid
+ * -------------
+ * Draws a debug grid overlay for tile-based debugging.
+ * @param {number} tileSize - Size of each tile in pixels
+ * @param {number} gridWidth - Width of the grid in tiles
+ * @param {number} gridHeight - Height of the grid in tiles
+ */
+function drawDebugGrid(tileSize, gridWidth, gridHeight) {
+  // Only render grid if dev console is enabled
+  if (typeof devConsoleEnabled === 'undefined' || !devConsoleEnabled) {
+    return;
+  }
+
+  push();
+  stroke(255, 255, 0, 100); // Semi-transparent yellow
+  strokeWeight(1);
+  noFill();
+
+  // Draw vertical grid lines
+  for (let x = 0; x <= gridWidth * tileSize; x += tileSize) {
+    line(x, 0, x, gridHeight * tileSize);
+  }
+
+  // Draw horizontal grid lines  
+  for (let y = 0; y <= gridHeight * tileSize; y += tileSize) {
+    line(0, y, gridWidth * tileSize, y);
+  }
+
+  pop();
 }

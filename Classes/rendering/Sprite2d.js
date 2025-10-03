@@ -18,7 +18,9 @@ class Sprite2D {
   getOpacity() { return this.alpha || 255; }
 
   render() {
-    if (!this.img) return; // Don't render if no image
+    if (!this.img) {
+      return; // Don't render if no image
+    }
     
     push();
     translate(this.pos.x + this.size.x / 2, this.pos.y + this.size.y / 2);

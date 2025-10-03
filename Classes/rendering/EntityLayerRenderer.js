@@ -1,9 +1,9 @@
 /**
- * EntityLayerRenderer - Enhanced rendering system for dynamic game entities
+ * EntityRenderer - Enhanced rendering system for dynamic game entities
  * 
  * Dependencies: EntityAccessor.js (for standardized entity position/size access)  
  */
-class EntityLayerRenderer {
+class EntityRenderer {
   constructor() {
     // Entity rendering groups for depth sorting
     this.renderGroups = {
@@ -39,6 +39,11 @@ class EntityLayerRenderer {
   renderAllLayers(gameState) {
     const startTime = performance.now();
     
+    // Start preparation phase tracking
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+      g_performanceMonitor.startRenderPhase('preparation');
+    }
+    
     // Clear previous frame data
     this.clearRenderGroups();
     this.stats.totalEntities = 0;
@@ -48,9 +53,21 @@ class EntityLayerRenderer {
     // Collect entities based on game state
     this.collectEntities(gameState);
     
+    // End preparation, start culling phase
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+      g_performanceMonitor.endRenderPhase();
+      g_performanceMonitor.startRenderPhase('culling');
+    }
+    
     // Sort entities by depth if enabled
     if (this.config.enableDepthSorting) {
       this.sortEntitiesByDepth();
+    }
+    
+    // End culling, start rendering phase
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+      g_performanceMonitor.endRenderPhase();
+      g_performanceMonitor.startRenderPhase('rendering');
     }
     
     // Render each group in order
@@ -60,8 +77,26 @@ class EntityLayerRenderer {
     this.renderGroup(this.renderGroups.EFFECTS);
     this.renderGroup(this.renderGroups.FOREGROUND);
     
+    // End rendering phase, start post-processing
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+      g_performanceMonitor.endRenderPhase();
+      g_performanceMonitor.startRenderPhase('postProcessing');
+    }
+    
     // Update performance stats
     this.stats.renderTime = performance.now() - startTime;
+    
+    // Record entity stats in performance monitor and finalize
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+      g_performanceMonitor.recordEntityStats(
+        this.stats.totalEntities,
+        this.stats.renderedEntities, 
+        this.stats.culledEntities,
+        this.getEntityTypeBreakdown()
+      );
+      g_performanceMonitor.finalizeEntityPerformance();
+      g_performanceMonitor.endRenderPhase();
+    }
     this.stats.lastFrameStats = { ...this.stats };
   }
   
@@ -120,19 +155,19 @@ class EntityLayerRenderer {
   /**
    * Collect ant entities
    */
-  collectAnts(gameState) {    
-    for (let i = 0; i < antIndex; i++) {
+  collectAnts(gameState) {
+    for (let i = 0; i < ants.length; i++) {
       if (ants[i]) {
-        const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
+        const ant = ants[i];
         
-        if (this.shouldRenderEntity(antObj)) {
-          this.renderGroups.ANTS.push({
-            entity: antObj,
-            wrapper: ants[i], // Keep reference to wrapper for updates
+        if (this.shouldRenderEntity(ant)) {
+          const entityData = {
+            entity: ant,
             type: 'ant',
-            depth: this.getEntityDepth(antObj),
-            position: this.getEntityPosition(antObj)
-          });
+            depth: this.getEntityDepth(ant),
+            position: this.getEntityPosition(ant)
+          };
+          this.renderGroups.ANTS.push(entityData);
           this.stats.totalEntities++;
         }
       }
@@ -159,10 +194,14 @@ class EntityLayerRenderer {
    * Check if an entity should be rendered
    */
   shouldRenderEntity(entity) {
-    if (!entity) return false;
+    if (!entity) {
+      return false;
+    }
     
     // Check if entity is active
-    if (entity.isActive === false) return false;
+    if (entity.isActive === false) {
+      return false;
+    }
     
     // Frustum culling - check if entity is within viewport
     if (this.config.enableFrustumCulling) {
@@ -177,7 +216,10 @@ class EntityLayerRenderer {
    */
   isEntityInViewport(entity) {
     const pos = this.getEntityPosition(entity);
-    if (!pos) return true; // Render if we can't determine position
+    
+    if (!pos) {
+      return true; // Render if we can't determine position
+    }
     
     const size = this.getEntitySize(entity);
     const margin = this.config.cullMargin;
@@ -244,11 +286,26 @@ class EntityLayerRenderer {
     for (const entityData of entityGroup) {
       try {
         if (entityData.entity && entityData.entity.render) {
+          // Start entity performance tracking
+          if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+            g_performanceMonitor.startEntityRender(entityData.entity);
+          }
+          
           entityData.entity.render();
           this.stats.renderedEntities++;
+          
+          // End entity performance tracking
+          if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+            g_performanceMonitor.endEntityRender();
+          }
         }
       } catch (error) {
-        console.warn('EntityLayerRenderer: Error rendering entity:', error);
+        console.warn('EntityRenderer: Error rendering entity:', error);
+        
+        // End tracking even on error
+        if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+          g_performanceMonitor.endEntityRender();
+        }
       }
     }
   }
@@ -303,12 +360,34 @@ class EntityLayerRenderer {
     text(`Entities: ${this.stats.totalEntities} | Rendered: ${this.stats.renderedEntities} | Culled: ${this.stats.culledEntities}`, 10, 30);
     text(`Render Time: ${this.stats.renderTime.toFixed(2)}ms`, 10, 45);
   }
+
+  /**
+   * Get breakdown of entities by type for performance monitoring
+   * @returns {Object} Type breakdown
+   */
+  getEntityTypeBreakdown() {
+    const breakdown = {};
+    
+    // Count entities in each render group
+    Object.entries(this.renderGroups).forEach(([groupName, entities]) => {
+      entities.forEach(entityData => {
+        const entityType = entityData.type || entityData.entity?.constructor?.name || 'Unknown';
+        breakdown[entityType] = (breakdown[entityType] || 0) + 1;
+      });
+    });
+    
+    return breakdown;
+  }
 }
 
-// Create global instance
-const EntityRenderer = new EntityLayerRenderer();
+// Create global instance for browser use
+if (typeof window !== 'undefined') {
+  window.EntityRenderer = new EntityRenderer();
+} else if (typeof global !== 'undefined') {
+  global.EntityRenderer = new EntityRenderer();
+}
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { EntityLayerRenderer, EntityRenderer };
+  module.exports = EntityRenderer;
 }

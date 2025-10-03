@@ -43,20 +43,24 @@ function initializeAntManager() {
 // --- Entity-based Ant Class ---
 // Inherits all controller functionality from Entity base class
 class ant extends Entity {
-  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite, JobName = "Scout") {
+  constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite, JobName = "Scout", faction = "player") {
     // Initialize Entity with ant-specific options
     super(posX, posY, sizex, sizey, {
       type: "Ant",
       imagePath: img,
       movementSpeed: movementSpeed,
       selectable: true,
-      faction: "player"
+      faction: faction
     });
     
     // Ant-specific properties
     this._JobName = JobName;
     this._antIndex = antIndex++;
     this.isBoxHovered = false;
+    
+    // New job system (component-based)
+    this.job = null;  // Will hold JobComponent instance
+    this.jobName = JobName || "Scout";  // Direct job name access
     
     // Initialize StatsContainer system
     const initialPos = createVector(posX, posY);
@@ -77,7 +81,7 @@ class ant extends Entity {
     });
     
     // Faction and enemy tracking
-    this._faction = "player";
+    this._faction = faction;
     this._enemies = [];
     this._lastEnemyCheck = 0;
     this._enemyCheckInterval = 30; // frames
@@ -105,6 +109,69 @@ class ant extends Entity {
   get health() { return this._health; }
   get maxHealth() { return this._maxHealth; }
   get damage() { return this._damage; }
+  
+  // --- New Job System Methods ---
+  assignJob(jobName, image = null) {
+    // Create job component if JobComponent is available
+    if (typeof JobComponent !== 'undefined') {
+      this.job = new JobComponent(jobName, image);
+      this._applyJobStats(this.job.stats);
+    } else {
+      // Fallback for when JobComponent isn't loaded yet
+      console.warn('JobComponent not available, using fallback job assignment');
+      const stats = this._getFallbackJobStats(jobName);
+      this._applyJobStats(stats);
+    }
+    
+    // Update job name properties
+    this.jobName = jobName;
+    this._JobName = jobName;  // Keep legacy property in sync
+    
+    // Set image if provided
+    if (image) {
+      this.setImage(image);
+    }
+    
+    return this;
+  }
+  
+  _applyJobStats(stats) {
+    // Apply job stats to ant properties
+    this._maxHealth = stats.health;
+    this._health = stats.health;
+    this._damage = stats.strength;
+    
+    // Apply to StatsContainer if available
+    if (this._stats) {
+      this._stats.strength.statValue = stats.strength;
+      this._stats.health.statValue = stats.health;
+      this._stats.gatherSpeed.statValue = stats.gatherSpeed;
+      this._stats.movementSpeed.statValue = stats.movementSpeed;
+    }
+    
+    // Apply to movement controller if available
+    const movementController = this.getController('movement');
+    if (movementController) {
+      movementController.movementSpeed = stats.movementSpeed;
+    }
+  }
+  
+  _getFallbackJobStats(jobName) {
+    // Fallback job stats when JobComponent isn't available
+    switch (jobName) {
+      case "Builder": return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 60 };
+      case "Scout": return { strength: 10, health: 80, gatherSpeed: 10, movementSpeed: 80 };
+      case "Farmer": return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 60 };
+      case "Warrior": return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
+      case "Spitter": return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
+      case "DeLozier": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+      default: return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
+    }
+  }
+  
+  getJobStats() {
+    return this.job ? this.job.stats : this._getFallbackJobStats(this.jobName);
+  }
   
   // --- Controller Access for Test Compatibility ---
   get _movementController() { return this.getController('movement'); }
@@ -385,42 +452,58 @@ class ant extends Entity {
 
 // --- Ant Management Functions ---
 
+// --- Job Assignment Function ---
+function assignJob() {
+  const JobList = ['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter'];
+  const specialJobList = ['DeLozier'];
+  const availableJobs = !hasDeLozier ? [...JobList, ...specialJobList] : JobList;
+  
+  const chosenJob = availableJobs[Math.floor(random(0, availableJobs.length))];
+  if (chosenJob === "DeLozier") { 
+    hasDeLozier = true; 
+  }
+  return chosenJob;
+}
+
 // --- Spawn Ants ---
-function antsSpawn(numToSpawn) {
+function antsSpawn(numToSpawn, faction = "neutral") {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let JobName = assignJob();
-    let baseAnt = new ant(
+    
+    // Create ant directly with new job system
+    let newAnt = new ant(
       random(0, 500), random(0, 500), 
       antSize.x + sizeR, 
       antSize.y + sizeR, 
       30, 0,
       antBaseSprite,
-      JobName
+      JobName,
+      faction
     );
-    let antWrapper = new AntWrapper(new Job(baseAnt, JobName, JobImages[JobName]), JobName);
-    ants.push(antWrapper);
-    antWrapper.update();
+    
+    // Assign job using new component system
+    newAnt.assignJob(JobName, JobImages[JobName]);
+    
+    // Store ant directly (no wrapper!)
+    ants.push(newAnt);
+    newAnt.update();
+    
     // Register ant with TileInteractionManager for efficient mouse detection
     if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
-      const antObj = antWrapper.antObject ? antWrapper.antObject : antWrapper;
-      if (antObj) {
-        g_tileInteractionManager.addObject(antObj, 'ant');
-      }
+      g_tileInteractionManager.addObject(newAnt, 'ant');
     }
   }
 }
 
 // --- Update All Ants ---
 function antsUpdate() {
-  for (let i = 0; i < antIndex; i++) {
+  for (let i = 0; i < ants.length; i++) {
     if (ants[i] && typeof ants[i].update === "function") {
-      const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-      
       // Store previous position for TileInteractionManager updates
       let prevPos = null;
-      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && antObj) {
-        const currentPos = antObj.getPosition ? antObj.getPosition() : (antObj.sprite ? antObj.sprite.pos : null);
+      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && ants[i]) {
+        const currentPos = ants[i].getPosition ? ants[i].getPosition() : (ants[i].sprite ? ants[i].sprite.pos : null);
         if (currentPos) {
           prevPos = { x: currentPos.x, y: currentPos.y };
         }
@@ -429,10 +512,10 @@ function antsUpdate() {
       ants[i].update();
       
       // Update TileInteractionManager with new position if ant moved
-      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && antObj && prevPos) {
-        const newPos = antObj.getPosition ? antObj.getPosition() : (antObj.sprite ? antObj.sprite.pos : null);
+      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && ants[i] && prevPos) {
+        const newPos = ants[i].getPosition ? ants[i].getPosition() : (ants[i].sprite ? ants[i].sprite.pos : null);
         if (newPos && (newPos.x !== prevPos.x || newPos.y !== prevPos.y)) {
-          g_tileInteractionManager.updateObjectPosition(antObj, newPos.x, newPos.y);
+          g_tileInteractionManager.updateObjectPosition(ants[i], newPos.x, newPos.y);
         }
       }
     }
@@ -441,19 +524,36 @@ function antsUpdate() {
 
 // --- Render All Ants (Separated from Updates) ---
 function antsRender() {
+  // Start render phase tracking for legacy rendering
+  if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+    g_performanceMonitor.startRenderPhase('rendering');
+  }
+  
   // Render all ants in a single pass for better performance
-  for (let i = 0; i < antIndex; i++) {
-    if (ants[i]) {
-      const antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-      
-      // Render the ant if it has a render method and is active
-      if (antObj && typeof antObj.render === "function") {
-        // Check if ant should be rendered (not culled, active, etc.)
-        if (antObj.isActive !== false) { // Default to true if property doesn't exist
-          antObj.render();
+  for (let i = 0; i < ants.length; i++) {
+    if (ants[i] && typeof ants[i].render === "function") {
+      // Check if ant should be rendered (not culled, active, etc.)
+      if (ants[i].isActive !== false) { // Default to true if property doesn't exist
+        // Start individual entity tracking
+        if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+          g_performanceMonitor.startEntityRender(ants[i]);
+        }
+        
+        ants[i].render();
+        
+        // End individual entity tracking
+        if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+          g_performanceMonitor.endEntityRender();
         }
       }
     }
+  }
+  
+  // End render phase tracking and finalize performance data
+  if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+    g_performanceMonitor.endRenderPhase();
+    g_performanceMonitor.recordEntityStats(ants.length, ants.length, 0, { ant: ants.length });
+    g_performanceMonitor.finalizeEntityPerformance();
   }
 }
 
@@ -468,5 +568,45 @@ function antsUpdateAndRender() {
 
 // Export for Node.js testing
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ant, antsSpawn, antsUpdate, antsRender, antsUpdateAndRender, antLoopPropertyCheck };
+  module.exports = { 
+    ant, 
+    antsSpawn, 
+    antsUpdate, 
+    antsRender, 
+    antsUpdateAndRender, 
+    assignJob, 
+    handleSpawnCommand,
+    antsPreloader,
+    // Export reference to local variables for testing
+    getAntSize: () => antSize,
+    setAntSize: (size) => { antSize = size; },
+    getAnts: () => ants,
+    getAntIndex: () => antIndex,
+    setAntIndex: (index) => { antIndex = index; }
+  };
+}
+
+// Simple wrapper for handleSpawnCommand to match test expectations
+function handleSpawnCommand(count, faction) {
+  // Create ants using antsSpawn with the new signature
+  antsSpawn(count, faction);
+}
+
+// Make functions available globally for browser environment
+if (typeof window !== 'undefined') {
+  window.ant = ant;
+  window.antsSpawn = antsSpawn;
+  window.antsUpdate = antsUpdate;
+  window.antsRender = antsRender;
+  window.antsUpdateAndRender = antsUpdateAndRender;
+  window.assignJob = assignJob;
+  window.handleSpawnCommand = handleSpawnCommand;
+} else if (typeof global !== 'undefined') {
+  global.ant = ant;
+  global.antsSpawn = antsSpawn;
+  global.antsUpdate = antsUpdate;
+  global.antsRender = antsRender;
+  global.antsUpdateAndRender = antsUpdateAndRender;
+  global.assignJob = assignJob;
+  global.handleSpawnCommand = handleSpawnCommand;
 }

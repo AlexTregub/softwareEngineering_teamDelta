@@ -133,7 +133,7 @@ function setRenderListLocation(style, order = "standard"){
         entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0)),
         leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
         fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
-        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 3))
+        ant:() => text("🐜: " + ants.length, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 3))
       }  
       break;
     case "reversed":
@@ -141,7 +141,7 @@ function setRenderListLocation(style, order = "standard"){
         entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 3)),
         leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
         fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
-        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
+        ant:() => text("🐜: " + ants.length, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
       }  
       break;
     default:
@@ -365,8 +365,8 @@ class Resource extends Entity {
   // Rendering: delegate to Entity.render() which will use RenderController if available
   render() {
     super.render();
-    // Apply hover highlight in the modern path
-    this.highlight();
+    // Apply hover highlight in the modern path using enhanced API
+    this.applyHighlight();
   }
 
   isMouseOver(mx, my) {
@@ -374,7 +374,26 @@ class Resource extends Entity {
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
   }
 
-  highlight() {
+  applyHighlight() {
+    // Try to use the enhanced API first (Phase 3 feature)
+    if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
+      // Use InteractionController for hover detection if available
+      const interactionController = this.getController('interaction');
+      const isHovered = interactionController ? 
+        interactionController.isMouseOver() : 
+        this.isMouseOver(mouseX, mouseY);
+
+      if (isHovered) {
+        this.highlight.hover();
+        return;
+      }
+    }
+
+    // Fallback to manual highlight drawing if enhanced API not available
+    this.drawManualHighlight();
+  }
+
+  drawManualHighlight() {
     // Use InteractionController for hover detection if available
     const interactionController = this.getController('interaction');
     const isHovered = interactionController ? 
@@ -427,7 +446,7 @@ class Resource extends Entity {
     // If RenderController exists it will handle rendering in Entity.render()
     if (!this.getController('render')) {
       this.render();
-      this.highlight();
+      this.applyHighlight();
     }
   }
 

@@ -1,6 +1,14 @@
 /**
  * PerformanceMonitor - Centralized performance tracking and debug display
- * Provides comprehensive performance analysis for the rendering system
+ * Provides comprehensive pe        // Debug display settings
+        this.debugDisplay = {
+            enabled: false,
+            position: { x: 10, y: 10 },
+            width: 280,
+            height: 300,
+            backgroundColor: [0, 0, 0, 150],
+            textColor: [0, 255, 0, 255],
+            fontSize: 12 analysis for the rendering system
  * 
  * @author Software Engineering Team Delta - David Willman
  * @version 1.0.0
@@ -44,6 +52,55 @@ class PerformanceMonitor {
             culledEntities: 0,
             entityTypes: {},
             lastUpdate: 0
+        };
+
+        // Enhanced entity rendering performance tracking
+        this.entityPerformance = {
+            // Current frame entity timings
+            currentEntityTimings: new Map(),
+            currentTypeTimings: new Map(),
+            
+            // Rolling averages for entity types
+            typeAverages: new Map(),
+            typeHistory: new Map(),
+            
+            // Slowest entities tracking
+            slowestEntities: [],
+            maxSlowEntities: 10,
+            
+            // Entity rendering phases
+            phaseTimings: {
+                preparation: 0,
+                culling: 0,
+                rendering: 0,
+                postProcessing: 0
+            },
+            
+            // Performance metrics
+            totalEntityRenderTime: 0,
+            avgEntityRenderTime: 0,
+            entityRenderEfficiency: 100, // percentage
+            
+            // Last frame data for display (preserved until next frame)
+            lastFrameData: {
+                totalEntityRenderTime: 0,
+                avgEntityRenderTime: 0,
+                entityRenderEfficiency: 100,
+                typeAverages: new Map(),
+                slowestEntities: [],
+                phaseTimings: {
+                    preparation: 0,
+                    culling: 0,
+                    rendering: 0,
+                    postProcessing: 0
+                }
+            },
+            
+            // Timing state
+            activeEntity: null,
+            entityStartTime: 0,
+            activePhase: null,
+            phaseStartTime: 0
         };
 
         // Performance metrics
@@ -183,6 +240,169 @@ class PerformanceMonitor {
         this.entityStats.lastUpdate = Date.now();
     }
 
+    // ===== ENHANCED ENTITY PERFORMANCE TRACKING =====
+
+    /**
+     * Start timing a rendering phase (preparation, culling, rendering, postProcessing)
+     * @param {string} phase - The rendering phase name
+     */
+    startRenderPhase(phase) {
+        this.entityPerformance.activePhase = phase;
+        this.entityPerformance.phaseStartTime = performance.now();
+    }
+
+    /**
+     * End timing a rendering phase
+     */
+    endRenderPhase() {
+        if (this.entityPerformance.activePhase && this.entityPerformance.phaseStartTime > 0) {
+            const duration = performance.now() - this.entityPerformance.phaseStartTime;
+            this.entityPerformance.phaseTimings[this.entityPerformance.activePhase] = duration;
+            this.entityPerformance.activePhase = null;
+            this.entityPerformance.phaseStartTime = 0;
+        }
+    }
+
+    /**
+     * Start timing an individual entity render
+     * @param {Object} entity - The entity being rendered
+     */
+    startEntityRender(entity) {
+        this.entityPerformance.activeEntity = entity;
+        this.entityPerformance.entityStartTime = performance.now();
+    }
+
+    /**
+     * End timing an individual entity render
+     */
+    endEntityRender() {
+        if (this.entityPerformance.activeEntity && this.entityPerformance.entityStartTime > 0) {
+            const duration = performance.now() - this.entityPerformance.entityStartTime;
+            const entity = this.entityPerformance.activeEntity;
+            const entityType = entity.constructor?.name || entity.type || 'Unknown';
+            const entityId = entity.id || `${entityType}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Record individual entity timing
+            this.entityPerformance.currentEntityTimings.set(entityId, {
+                duration,
+                type: entityType,
+                entity: entity,
+                frame: this.frameData.frameCount
+            });
+
+            // Update type timing totals
+            if (!this.entityPerformance.currentTypeTimings.has(entityType)) {
+                this.entityPerformance.currentTypeTimings.set(entityType, { total: 0, count: 0 });
+            }
+            const typeData = this.entityPerformance.currentTypeTimings.get(entityType);
+            typeData.total += duration;
+            typeData.count++;
+
+            // Track slowest entities
+            this._updateSlowestEntities(entityId, duration, entityType);
+
+            // Reset timing state
+            this.entityPerformance.activeEntity = null;
+            this.entityPerformance.entityStartTime = 0;
+        }
+    }
+
+    /**
+     * Update the slowest entities list
+     * @private
+     */
+    _updateSlowestEntities(entityId, duration, entityType) {
+        const slowEntity = { id: entityId, duration, type: entityType, frame: this.frameData.frameCount };
+        
+        // Add to slowest list
+        this.entityPerformance.slowestEntities.push(slowEntity);
+        
+        // Sort by duration (slowest first) and limit size
+        this.entityPerformance.slowestEntities.sort((a, b) => b.duration - a.duration);
+        if (this.entityPerformance.slowestEntities.length > this.entityPerformance.maxSlowEntities) {
+            this.entityPerformance.slowestEntities = this.entityPerformance.slowestEntities.slice(0, this.entityPerformance.maxSlowEntities);
+        }
+    }
+
+    /**
+     * Complete entity performance analysis for the current frame
+     * Call this after all entities have been rendered
+     */
+    finalizeEntityPerformance() {
+        // Calculate total entity render time
+        this.entityPerformance.totalEntityRenderTime = 0;
+        for (const [_, timing] of this.entityPerformance.currentEntityTimings) {
+            this.entityPerformance.totalEntityRenderTime += timing.duration;
+        }
+
+        // Calculate average entity render time
+        const entityCount = this.entityPerformance.currentEntityTimings.size;
+        this.entityPerformance.avgEntityRenderTime = entityCount > 0 ? 
+            this.entityPerformance.totalEntityRenderTime / entityCount : 0;
+
+        // Calculate entity render efficiency (entity render time vs total frame time)
+        this.entityPerformance.entityRenderEfficiency = this.frameData.frameTime > 0 ?
+            Math.max(0, 100 - ((this.entityPerformance.totalEntityRenderTime / this.frameData.frameTime) * 100)) : 100;
+
+        // Update type averages with rolling history
+        this._updateTypeAverages();
+
+        // Save data for display before clearing
+        this.entityPerformance.lastFrameData = {
+            totalEntityRenderTime: this.entityPerformance.totalEntityRenderTime,
+            avgEntityRenderTime: this.entityPerformance.avgEntityRenderTime,
+            entityRenderEfficiency: this.entityPerformance.entityRenderEfficiency,
+            typeAverages: new Map(this.entityPerformance.typeAverages),
+            slowestEntities: [...this.entityPerformance.slowestEntities],
+            phaseTimings: { ...this.entityPerformance.phaseTimings }
+        };
+
+        // Clear current frame data for next frame
+        this.entityPerformance.currentEntityTimings.clear();
+        this.entityPerformance.currentTypeTimings.clear();
+        
+        // Reset phase timings
+        Object.keys(this.entityPerformance.phaseTimings).forEach(phase => {
+            this.entityPerformance.phaseTimings[phase] = 0;
+        });
+    }
+
+    /**
+     * Update rolling averages for entity types
+     * @private
+     */
+    _updateTypeAverages() {
+        for (const [type, data] of this.entityPerformance.currentTypeTimings) {
+            const avgTime = data.total / data.count;
+            
+            // Initialize history if needed
+            if (!this.entityPerformance.typeHistory.has(type)) {
+                this.entityPerformance.typeHistory.set(type, []);
+            }
+            
+            // Add to history
+            const history = this.entityPerformance.typeHistory.get(type);
+            history.push({ time: avgTime, count: data.count, frame: this.frameData.frameCount });
+            
+            // Keep only last 30 frames of history
+            if (history.length > 30) {
+                history.splice(0, history.length - 30);
+            }
+            
+            // Calculate rolling average
+            const totalTime = history.reduce((sum, entry) => sum + (entry.time * entry.count), 0);
+            const totalCount = history.reduce((sum, entry) => sum + entry.count, 0);
+            const rollingAvg = totalCount > 0 ? totalTime / totalCount : 0;
+            
+            this.entityPerformance.typeAverages.set(type, {
+                current: avgTime,
+                average: rollingAvg,
+                count: data.count,
+                total: data.total
+            });
+        }
+    }
+
     /**
      * Update frame history and calculate rolling averages
      * @private
@@ -245,6 +465,16 @@ class PerformanceMonitor {
             // Entity stats
             entityStats: { ...this.entityStats },
             
+            // Enhanced entity performance data (use last frame data for display)
+            entityPerformance: {
+                totalEntityRenderTime: Math.round(this.entityPerformance.lastFrameData.totalEntityRenderTime * 100) / 100,
+                avgEntityRenderTime: Math.round(this.entityPerformance.lastFrameData.avgEntityRenderTime * 100) / 100,
+                entityRenderEfficiency: Math.round(this.entityPerformance.lastFrameData.entityRenderEfficiency * 10) / 10,
+                typeAverages: new Map(this.entityPerformance.lastFrameData.typeAverages),
+                slowestEntities: [...this.entityPerformance.lastFrameData.slowestEntities],
+                phaseTimings: { ...this.entityPerformance.lastFrameData.phaseTimings }
+            },
+            
             // Performance level
             performanceLevel: this.metrics.performanceLevel,
             
@@ -278,6 +508,45 @@ class PerformanceMonitor {
             min: Math.round(min * 100) / 100,
             max: Math.round(max * 100) / 100,
             current: Math.round(current * 100) / 100
+        };
+    }
+
+    /**
+     * Get detailed entity performance report
+     * @returns {Object} Detailed performance breakdown
+     */
+    getEntityPerformanceReport() {
+        return {
+            // Overall metrics
+            totalRenderTime: this.entityPerformance.totalEntityRenderTime,
+            averageRenderTime: this.entityPerformance.avgEntityRenderTime,
+            renderEfficiency: this.entityPerformance.entityRenderEfficiency,
+            
+            // Type breakdown
+            typePerformance: Array.from(this.entityPerformance.typeAverages.entries()).map(([type, data]) => ({
+                type,
+                currentAverage: data.current,
+                rollingAverage: data.average,
+                count: data.count,
+                totalTime: data.total,
+                efficiency: data.total > 0 ? (data.count / data.total * 1000) : 0 // entities per second
+            })),
+            
+            // Slowest entities
+            slowestEntities: this.entityPerformance.slowestEntities.map(entity => ({
+                id: entity.id,
+                type: entity.type,
+                renderTime: entity.duration,
+                frame: entity.frame
+            })),
+            
+            // Phase breakdown
+            phaseBreakdown: Object.entries(this.entityPerformance.phaseTimings).map(([phase, time]) => ({
+                phase,
+                time,
+                percentage: this.entityPerformance.totalEntityRenderTime > 0 ? 
+                    (time / this.entityPerformance.totalEntityRenderTime * 100) : 0
+            }))
         };
     }
 
@@ -398,6 +667,63 @@ class PerformanceMonitor {
 
             const cullingEff = ((stats.entityStats.culledEntities / stats.entityStats.totalEntities) * 100).toFixed(1);
             text(`Culling: ${cullingEff}% efficiency`, pos.x + 10, yOffset);
+            yOffset += lineHeight;
+        }
+
+        // Enhanced entity performance data - always show for debugging
+        yOffset += lineHeight * 0.3;
+        text('=== ENTITY PERFORMANCE ===', pos.x + 10, yOffset);
+        yOffset += lineHeight;
+        
+        if (stats.entityPerformance) {
+            const ep = stats.entityPerformance;
+            
+            text(`Entity Render: ${ep.totalEntityRenderTime.toFixed(2)}ms (avg: ${ep.avgEntityRenderTime.toFixed(2)}ms)`, pos.x + 10, yOffset);
+            yOffset += lineHeight;
+            
+            text(`Render Efficiency: ${ep.entityRenderEfficiency.toFixed(1)}%`, pos.x + 10, yOffset);
+            yOffset += lineHeight;
+            
+            text(`Tracking: ${ep.typeAverages ? ep.typeAverages.size : 0} types, ${ep.slowestEntities ? ep.slowestEntities.length : 0} tracked entities`, pos.x + 10, yOffset);
+            yOffset += lineHeight;
+
+            // Show top 3 slowest entity types
+            if (ep.typeAverages && ep.typeAverages.size > 0) {
+                text('Entity Types (avg time):', pos.x + 10, yOffset);
+                yOffset += lineHeight;
+                
+                const sortedTypes = Array.from(ep.typeAverages.entries())
+                    .sort(([,a], [,b]) => b.current - a.current)
+                    .slice(0, 3);
+                
+                sortedTypes.forEach(([type, data]) => {
+                    text(`├─ ${type}: ${data.current.toFixed(2)}ms (${data.count}x)`, pos.x + 15, yOffset);
+                    yOffset += lineHeight;
+                });
+            } else {
+                text('No entity type data yet', pos.x + 10, yOffset);
+                yOffset += lineHeight;
+            }
+
+            // Show render phases
+            if (ep.phaseTimings) {
+                const phases = Object.entries(ep.phaseTimings).filter(([_, time]) => time > 0);
+                if (phases.length > 0) {
+                    text('Render Phases:', pos.x + 10, yOffset);
+                    yOffset += lineHeight;
+                    
+                    phases.forEach(([phase, time]) => {
+                        text(`├─ ${phase}: ${time.toFixed(2)}ms`, pos.x + 15, yOffset);
+                        yOffset += lineHeight;
+                    });
+                } else {
+                    text('No phase timing data', pos.x + 10, yOffset);
+                    yOffset += lineHeight;
+                }
+            }
+        } else {
+            text('Entity performance data not available!', pos.x + 10, yOffset);
+            yOffset += lineHeight;
         }
 
         // Memory info (if available)
