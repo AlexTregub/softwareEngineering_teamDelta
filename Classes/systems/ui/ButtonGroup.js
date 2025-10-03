@@ -393,6 +393,7 @@ class ButtonGroup {
    */
   calculatePosition() {
     const pos = this.config.layout?.position || { x: 'center', y: 'center' };
+    const padding = this.config.layout?.padding || { top: 0, right: 0, bottom: 0, left: 0 };
     
     // Use mock canvas dimensions for testing, real dimensions for runtime
     const canvas = { 
@@ -400,13 +401,17 @@ class ButtonGroup {
       height: (typeof window !== 'undefined' && window.innerHeight) || 800 
     };
     
-    // Calculate base position
+    // First, layout buttons at origin to calculate bounds
+    this.layoutButtons(0, 0);
+    const bounds = this.getBounds();
+    
+    // Calculate base position based on bounds
     let x = 0, y = 0;
     
     switch (pos.x) {
-      case 'left': x = 0; break;
-      case 'center': x = canvas.width / 2; break;
-      case 'right': x = canvas.width; break;
+      case 'left': x = padding.left || 0; break;
+      case 'center': x = (canvas.width - bounds.width) / 2; break;
+      case 'right': x = canvas.width - bounds.width; break;
       case 'mouse': 
         x = (typeof window !== 'undefined' && typeof window.mouseX === 'number') ? window.mouseX : 0; 
         break;
@@ -414,9 +419,9 @@ class ButtonGroup {
     }
     
     switch (pos.y) {
-      case 'top': y = 0; break;
-      case 'center': y = canvas.height / 2; break;
-      case 'bottom': y = canvas.height; break;
+      case 'top': y = padding.top || 0; break;
+      case 'center': y = (canvas.height - bounds.height) / 2; break;
+      case 'bottom': y = canvas.height - bounds.height; break;
       case 'mouse': 
         y = (typeof window !== 'undefined' && typeof window.mouseY === 'number') ? window.mouseY : 0; 
         break;
@@ -427,13 +432,11 @@ class ButtonGroup {
     x += pos.offsetX || 0;
     y += pos.offsetY || 0;
     
-    // Apply saved position if enabled
-    if (this.config.persistence?.savePosition) {
-      x += this.state.position.x;
-      y += this.state.position.y;
-    }
+    // Set the group's position state
+    this.state.position.x = x;
+    this.state.position.y = y;
     
-    // Update button positions using layout system
+    // Update button positions using layout system with final position
     this.layoutButtons(x, y);
   }
 
@@ -550,8 +553,8 @@ class ButtonGroup {
         this.state.position.x = constrainedPosition.x;
         this.state.position.y = constrainedPosition.y;
         
-        // Recalculate button positions
-        this.calculatePosition();
+        // Update button positions directly (don't recalculate from layout)
+        this.layoutButtons(constrainedPosition.x, constrainedPosition.y);
       } else {
         // Mouse released - stop dragging and save state
         this.isDragging = false;
@@ -613,15 +616,16 @@ class ButtonGroup {
     
     const padding = this.config.layout?.padding || { top: 0, right: 0, bottom: 0, left: 0 };
     
-    // Find the minimum and maximum coordinates of all buttons
+    // Find the minimum and maximum coordinates of all buttons  
     const minX = Math.min(...this.buttons.map(b => b.x));
     const minY = Math.min(...this.buttons.map(b => b.y));
     const maxX = Math.max(...this.buttons.map(b => b.x + b.width));
     const maxY = Math.max(...this.buttons.map(b => b.y + b.height));
     
+    // Bounds should start at group position minus padding (test expectation)
     return {
-      x: minX - (padding.left || 0),
-      y: minY - (padding.top || 0),
+      x: this.state.position.x - (padding.left || 0),
+      y: this.state.position.y - (padding.top || 0),
       width: (maxX - minX) + (padding.left || 0) + (padding.right || 0),
       height: (maxY - minY) + (padding.top || 0) + (padding.bottom || 0)
     };

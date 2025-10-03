@@ -38,7 +38,7 @@ Then('the buttons should be arranged horizontally with proper spacing', function
 Then('each button should be clickable and respond to mouse interactions', function() {
   // Validate buttons have real interaction capabilities
   this.buttonGroup.buttons.forEach(button => {
-    expect(button).to.have.property('handleClick');
+    expect(button).to.have.property('onClick'); // Button uses onClick callback pattern
     expect(button).to.have.property('update');
     expect(button.width).to.be.greaterThan(0);
     expect(button.height).to.be.greaterThan(0);
