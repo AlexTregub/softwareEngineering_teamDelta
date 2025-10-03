@@ -27,7 +27,11 @@ function toggleDevConsole() {
     console.log("   P - Run Performance Tests");
     console.log("   I - Run Integration Tests");
     console.log("   Enter - Open Command Line");
-    console.log("   ` - Toggle Dev Console");
+    console.log("   ` - Toggle Dev Console + UI Debug Manager");
+    console.log("   ~ - Toggle UI Debug Manager Only");
+    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+      console.log("🎯 UI Debug Manager: " + (g_uiDebugManager.isActive ? "ENABLED" : "DISABLED"));
+    }
   } else {
     console.log("🛠️  DEV CONSOLE DISABLED");
     closeCommandLine(); // Close command line when dev console is disabled
@@ -125,9 +129,24 @@ function handleDebugConsoleKeys(keyCode, key) {
     return true; // Key handled by command line
   }
   
-  // Toggle dev console with ` key (backtick)
+  // Toggle dev console with ` key (backtick) - now also toggles UI Debug Manager
   if (key === '`') {
     toggleDevConsole();
+    // Also toggle UI Debug Manager if available
+    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+      g_uiDebugManager.toggle();
+    }
+    return true;
+  }
+  
+  // Toggle UI Debug Manager only with ~ key (tilde)
+  if (key === '~') {
+    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+      g_uiDebugManager.toggle();
+      console.log('🎯 UI Debug Manager toggled via ~ key');
+    } else {
+      console.log('❌ UI Debug Manager not available');
+    }
     return true;
   }
   

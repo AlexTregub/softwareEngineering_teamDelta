@@ -10,7 +10,91 @@ let commandHistoryIndex = -1;
 let consoleOutput = []; // Store console output for display
 let scrollOffset = 0; // For scrolling through output
 
-// Console capture system - overrides console.log to capture messages for the in-game console.
+// Console capture s      break;
+      
+    default:
+      console.log("❌ Usage: entity-perf <report|reset|slowest>");
+  }
+}
+
+/**
+ * handleUIDebugCommand
+ * --------------------
+ * Handles UI Debug Manager commands from the command line.
+ * @param {string[]} args - Command arguments: toggle, enable, disable, reset, list
+ */
+function handleUIDebugCommand(args) {
+  if (typeof g_uiDebugManager === 'undefined' || !g_uiDebugManager) {
+    console.log("❌ UI Debug Manager not available");
+    return;
+  }
+  
+  if (args.length === 0) {
+    console.log(`🎯 UI Debug Manager Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
+    console.log(`📊 Registered Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
+    return;
+  }
+  
+  const action = args[0].toLowerCase();
+  switch (action) {
+    case 'toggle':
+      g_uiDebugManager.toggle();
+      console.log(`🎯 UI Debug Manager: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
+      break;
+      
+    case 'enable':
+    case 'on':
+      g_uiDebugManager.enable();
+      console.log("🎯 UI Debug Manager ENABLED");
+      break;
+      
+    case 'disable':
+    case 'off':
+      g_uiDebugManager.disable();
+      console.log("🎯 UI Debug Manager DISABLED");
+      break;
+      
+    case 'reset':
+      if (g_uiDebugManager.resetAllPositions) {
+        g_uiDebugManager.resetAllPositions();
+        console.log("🔄 All UI elements reset to original positions");
+      } else {
+        console.log("❌ Reset function not available");
+      }
+      break;
+      
+    case 'list':
+      const elements = g_uiDebugManager.registeredElements;
+      const elementCount = Object.keys(elements).length;
+      if (elementCount === 0) {
+        console.log("📝 No UI elements registered yet");
+      } else {
+        console.log(`📝 Registered UI Elements (${elementCount}):`);
+        Object.entries(elements).forEach(([id, element], index) => {
+          const status = element.isDraggable ? '🖱️' : '🔒';
+          const pos = `(${element.bounds.x}, ${element.bounds.y})`;
+          console.log(`   ${index + 1}. ${status} ${element.label || id} - ${pos}`);
+        });
+      }
+      break;
+      
+    case 'info':
+      console.log("🎯 UI Debug Manager Information:");
+      console.log(`   Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
+      console.log(`   Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
+      console.log(`   Debug Mode: Press ~ or \` to toggle`);
+      console.log(`   Drag: Click yellow handles when debug mode is ON`);
+      break;
+      
+    default:
+      console.log("❌ Usage: ui <toggle|enable|disable|reset|list|info>");
+      console.log("Examples:");
+      console.log("  ui toggle    - Toggle debug mode on/off");
+      console.log("  ui enable    - Enable UI debug mode");
+      console.log("  ui list      - List all registered UI elements");
+      console.log("  ui reset     - Reset all positions to original");
+  }
+}- overrides console.log to capture messages for the in-game console.
 let originalConsoleLog = console.log;
 console.log = function(...args) {
   originalConsoleLog.apply(console, args);
@@ -99,6 +183,8 @@ function executeCommand(command) {
     case 'test': handleTestCommand(args); break;
     case 'perf': handlePerformanceCommand(args); break;
     case 'entity-perf': handleEntityPerformanceCommand(args); break;
+    case 'ui': 
+    case 'ui-debug': handleUIDebugCommand(args); break;
     default: console.log(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
   }
 }
@@ -120,6 +206,7 @@ function showCommandHelp() {
   console.log("  info - Show game state information");
   console.log("  perf [toggle|stats] - Control performance monitor");
   console.log("  entity-perf [report|reset] - Entity performance analysis");
+  console.log("  ui <toggle|enable|disable|reset|list> - Control UI Debug Manager");
   console.log("Examples:");
   console.log("  spawn 10 ant blue");
   console.log("  teleport 100 200");
@@ -148,7 +235,7 @@ function handleSpawnCommand(args) {
   const count = Number.isNaN(parsed) ? 1 : parsed;
   const type = args[1] || 'ant';
   const faction = args[2] || 'neutral';
-  if (count < 1 || count > 100) { console.log("❌ Spawn count must be between 1 and 100"); return; }
+  if (count < 1 || count > 5000) { console.log("❌ Spawn count must be between 1 and 5000"); return; }
   console.log(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
   const startingCount = antIndex;
   for (let i = 0; i < count; i++) {

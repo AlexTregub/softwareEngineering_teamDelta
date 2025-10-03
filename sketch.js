@@ -203,15 +203,7 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
-  // Handle UI Debug Manager keys first (tilde/backtick to toggle debug mode)
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
-    if (key === '~' || key === '`') {
-      g_uiDebugManager.toggle();
-      return; // UI Debug key was handled, don't process further
-    }
-  }
-  
-  // Handle UI shortcuts (Ctrl+Shift combinations)
+  // Handle UI shortcuts first (Ctrl+Shift combinations)
   if (typeof window !== 'undefined' && window.UIManager && window.UIManager.handleKeyPress) {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
     if (handled) {
@@ -219,7 +211,7 @@ function keyPressed() {
     }
   }
   
-  // Handle all debug-related keys (command line, dev console, test hotkeys)
+  // Handle all debug-related keys (unified debug system handles both console and UI debug)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
   }
