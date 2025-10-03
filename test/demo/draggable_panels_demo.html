@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Panel System Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .keyboard-shortcuts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .shortcut {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .shortcut kbd {
+            background: #444;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        canvas {
+            border: 2px solid #34495e;
+            display: block;
+            margin: 0 auto;
+            background: linear-gradient(45deg, #1a4d2e, #1a4d4d);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>🪟 Draggable Panel System Demo</h1>
+        <p>Drag panels by their title bars • Panels auto-save positions • Adapted from Universal Button System</p>
+    </div>
+    
+    <div class="instructions">
+        <h3>Features Demonstrated:</h3>
+        <ul>
+            <li><strong>Drag & Drop:</strong> Click and drag panel title bars to move them around</li>
+            <li><strong>Position Persistence:</strong> Panel positions are saved to localStorage automatically</li>
+            <li><strong>Keyboard Shortcuts:</strong> Toggle panels and reset positions with hotkeys</li>
+            <li><strong>Screen Constraints:</strong> Panels can't be dragged off-screen</li>
+            <li><strong>Edge Snapping:</strong> Panels snap to screen edges when dragged close</li>
+            <li><strong>Reused Code:</strong> Built using drag logic from Universal Button System</li>
+        </ul>
+        
+        <h3>Keyboard Shortcuts:</h3>
+        <div class="keyboard-shortcuts">
+            <div class="shortcut">
+                <kbd>Ctrl+Shift+1</kbd><br>
+                Toggle Performance Monitor
+            </div>
+            <div class="shortcut">
+                <kbd>Ctrl+Shift+2</kbd><br>
+                Toggle Resource Display
+            </div>
+            <div class="shortcut">
+                <kbd>Ctrl+Shift+R</kbd><br>
+                Reset All Panels
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include required libraries and systems -->
+    <script src="../libraries/p5.min.js"></script>
+    <script src="../Classes/rendering/Button.js"></script>
+    <script src="../Classes/rendering/ButtonStyles.js"></script>
+    <script src="../Classes/systems/ui/DraggablePanel.js"></script>
+    <script src="../Classes/systems/ui/DraggablePanelManager.js"></script>
+    <script src="../Classes/systems/ui/DraggablePanelSystem.js"></script>
+    
+    <script>
+        // Global variables for demo
+        let panelManager;
+        let demoStats = {
+            frames: 0,
+            entities: 42,
+            wood: 150,
+            food: 89,
+            population: 25
+        };
+        
+        // Canvas dimensions
+        const CANVAS_WIDTH = 1000;
+        const CANVAS_HEIGHT = 600;
+        
+        // p5.js setup
+        function setup() {
+            createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            console.log('🚀 Starting Draggable Panel System Demo');
+            
+            // Initialize the draggable panel system
+            initializeDemoPanelSystem();
+        }
+        
+        // p5.js draw loop
+        function draw() {
+            // Animated gradient background
+            for (let y = 0; y < height; y++) {
+                const inter = map(y, 0, height, 0, 1);
+                const c = lerpColor(color(26, 77, 46), color(26, 77, 77), inter);
+                stroke(c);
+                line(0, y, width, y);
+            }
+            
+            // Draw some demo content
+            drawDemoContent();
+            
+            // Update demo stats
+            updateDemoStats();
+            
+            // Update and render draggable panels
+            if (typeof updateDraggablePanels === 'function') {
+                updateDraggablePanels();
+            }
+            if (typeof renderDraggablePanels === 'function') {
+                renderDraggablePanels();
+            }
+        }
+        
+        // Initialize the demo panel system
+        async function initializeDemoPanelSystem() {
+            try {
+                console.log('🔧 Initializing demo panel system...');
+                
+                // Mock global variables that the system expects
+                window.g_resourceList = {
+                    wood: new Array(demoStats.wood),
+                    food: new Array(demoStats.food)
+                };
+                window.ants = new Array(demoStats.population);
+                
+                // Initialize the draggable panel system
+                if (typeof initializeDraggablePanelSystem === 'function') {
+                    await initializeDraggablePanelSystem();
+                    console.log('✅ Demo panel system initialized');
+                } else {
+                    console.error('❌ initializeDraggablePanelSystem function not found');
+                }
+                
+            } catch (error) {
+                console.error('❌ Demo panel system initialization failed:', error);
+            }
+        }
+        
+        // Draw demo content in the background
+        function drawDemoContent() {
+            // Draw some animated circles as "entities"
+            fill(255, 255, 255, 100);
+            noStroke();
+            
+            for (let i = 0; i < 8; i++) {
+                const x = 100 + (i * 100) + sin(frameCount * 0.02 + i) * 20;
+                const y = 200 + cos(frameCount * 0.03 + i) * 30;
+                const size = 8 + sin(frameCount * 0.05 + i) * 3;
+                circle(x, y, size);
+            }
+            
+            // Draw title text
+            fill(255, 255, 255, 200);
+            textAlign(CENTER, CENTER);
+            textSize(24);
+            text('Draggable Panel System Demo', width / 2, height - 50);
+            
+            textSize(16);
+            text('Drag the panels around by their title bars!', width / 2, height - 25);
+        }
+        
+        // Update demo statistics
+        function updateDemoStats() {
+            demoStats.frames++;
+            
+            // Animate resource values
+            if (frameCount % 120 === 0) { // Every 2 seconds
+                demoStats.wood = Math.floor(100 + Math.random() * 100);
+                demoStats.food = Math.floor(50 + Math.random() * 100);
+                demoStats.population = Math.floor(20 + Math.random() * 30);
+                
+                // Update mock globals
+                if (window.g_resourceList) {
+                    window.g_resourceList.wood = new Array(demoStats.wood);
+                    window.g_resourceList.food = new Array(demoStats.food);
+                }
+                if (window.ants) {
+                    window.ants = new Array(demoStats.population);
+                }
+            }
+        }
+        
+        // Handle window resize
+        function windowResized() {
+            resizeCanvas(windowWidth - 40, Math.max(400, windowHeight - 200));
+        }
+        
+        // Custom keyPressed handler for demo
+        function keyPressed() {
+            // The panel system keyboard shortcuts are handled in DraggablePanelSystem.js
+            // This is just for demo-specific shortcuts
+            
+            if (key === ' ') { // Spacebar
+                // Toggle visibility of all panels
+                if (window.draggablePanelManager) {
+                    const resourceVisible = window.draggablePanelManager.togglePanel('resource-display');
+                    const perfVisible = window.draggablePanelManager.togglePanel('performance-monitor');
+                    console.log(`Demo: Toggled all panels (Resource: ${resourceVisible}, Performance: ${perfVisible})`);
+                }
+            }
+        }
+        
+        // Add some visual feedback for successful panel operations
+        let feedbackMessage = '';
+        let feedbackTimer = 0;
+        
+        // Override console.log to show feedback messages
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            
+            const message = args.join(' ');
+            if (message.includes('ENABLED') || message.includes('DISABLED') || message.includes('reset')) {
+                feedbackMessage = message;
+                feedbackTimer = 180; // Show for 3 seconds at 60fps
+            }
+        };
+        
+        // Show feedback messages on screen
+        function draw() {
+            // ... existing draw code ...
+            
+            // Previous draw code here (background, demo content, etc.)
+            for (let y = 0; y < height; y++) {
+                const inter = map(y, 0, height, 0, 1);
+                const c = lerpColor(color(26, 77, 46), color(26, 77, 77), inter);
+                stroke(c);
+                line(0, y, width, y);
+            }
+            
+            drawDemoContent();
+            updateDemoStats();
+            
+            if (typeof updateDraggablePanels === 'function') {
+                updateDraggablePanels();
+            }
+            if (typeof renderDraggablePanels === 'function') {
+                renderDraggablePanels();
+            }
+            
+            // Show feedback message
+            if (feedbackTimer > 0) {
+                feedbackTimer--;
+                
+                push();
+                fill(0, 0, 0, 180);
+                noStroke();
+                rectMode(CENTER);
+                rect(width / 2, 40, textWidth(feedbackMessage) + 40, 30, 15);
+                
+                fill(255, 255, 255);
+                textAlign(CENTER, CENTER);
+                textSize(14);
+                text(feedbackMessage, width / 2, 40);
+                pop();
+            }
+        }
+    </script>
+</body>
+</html>

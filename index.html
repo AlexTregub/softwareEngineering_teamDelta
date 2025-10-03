@@ -51,6 +51,11 @@
     <script src="Classes/systems/ui/UniversalButtonSystem.js"></script>
     <script src="Classes/systems/ui/GameActionFactory.js"></script>
     
+    <!-- Draggable Panel System -->
+    <script src="Classes/systems/ui/DraggablePanel.js"></script>
+    <script src="Classes/systems/ui/DraggablePanelManager.js"></script>
+    <script src="Classes/systems/ui/DraggablePanelSystem.js"></script>
+    
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
     <script src="Classes/managers/AntManager.js"></script>
@@ -73,8 +78,17 @@
 
     <!-- <script src="Classes/coordinateSystem.js"></script> -->
     <script src="Classes/containers/DropoffLocation.js"></script>
-    <script src="Classes/systems/ui/dropoffButton.js"></script>
-    <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script>
+    
+    <!-- Universal Button System Integration -->
+    <script src="Classes/systems/ui/dropoffButton_universal.js"></script>
+    <script src="Classes/systems/ui/spawnGreenLeafButton_universal.js"></script>
+    <script src="Classes/systems/ui/spawnControlsUI_universal.js"></script>
+    
+    <!-- Legacy fallbacks (commented out - kept for reference) -->
+    <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
+    <!-- <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script> -->
+    <!-- <script src="Classes/systems/ui/spawnControlsUI.js"></script> -->
+    
     <script src="Classes/systems/ui/verticalButtonList.js"></script>
     <script src="Classes/systems/ui/menu.js"></script>
     <script src="debug/menu_debug.js"></script>
@@ -89,7 +103,6 @@
     <script src="Classes/ants/ants.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
     <script src="Classes/ants/Queen.js"></script>
-    <script src="Classes/systems/ui/spawnControlsUI.js"></script>
     <script src="Classes/systems/ui/spawnKillUI.js"></script>
     <script src="debug/commandLine.js"></script>
     <script src="debug/testing.js"></script>

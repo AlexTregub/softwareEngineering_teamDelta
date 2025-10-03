@@ -1,0 +1,509 @@
+{
+  "meta": {
+    "name": "Legacy Button System Conversions",
+    "description": "Converted legacy button implementations to Universal Button System",
+    "version": "1.0.0",
+    "lastModified": "2025-01-03"
+  },
+  "groups": [
+    {
+      "id": "ui-toolbar",
+      "name": "UI Toolbar",
+      "layout": {
+        "type": "horizontal",
+        "position": {
+          "x": "center",
+          "y": "bottom",
+          "offsetX": 0,
+          "offsetY": -70
+        },
+        "spacing": 10,
+        "padding": {
+          "top": 10,
+          "right": 20,
+          "bottom": 10,
+          "left": 20
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 0.9,
+        "visible": true,
+        "background": {
+          "color": [0, 0, 0, 150],
+          "cornerRadius": 5
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": true
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": false,
+        "saveTransparency": true,
+        "storageKey": "ui-toolbar"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "build-tool",
+          "text": "Build",
+          "size": {
+            "width": 50,
+            "height": 40
+          },
+          "style": {
+            "backgroundColor": "#3C3C3C",
+            "hoverColor": "#5A5A5A",
+            "activeColor": "#6496FF",
+            "textColor": "#FFFFFF",
+            "borderColor": "#222222",
+            "borderWidth": 1,
+            "cornerRadius": 3,
+            "fontSize": 12
+          },
+          "action": {
+            "type": "toolbar",
+            "handler": "toolbar.selectTool",
+            "parameters": {
+              "tool": "build",
+              "index": 0
+            }
+          },
+          "tooltip": "Build structures and defenses",
+          "hotkey": "B"
+        },
+        {
+          "id": "gather-tool",
+          "text": "Gather",
+          "size": {
+            "width": 50,
+            "height": 40
+          },
+          "style": {
+            "backgroundColor": "#3C3C3C",
+            "hoverColor": "#5A5A5A",
+            "activeColor": "#6496FF",
+            "textColor": "#FFFFFF",
+            "borderColor": "#222222",
+            "borderWidth": 1,
+            "cornerRadius": 3,
+            "fontSize": 12
+          },
+          "action": {
+            "type": "toolbar",
+            "handler": "toolbar.selectTool",
+            "parameters": {
+              "tool": "gather",
+              "index": 1
+            }
+          },
+          "tooltip": "Collect resources from environment",
+          "hotkey": "G"
+        },
+        {
+          "id": "attack-tool",
+          "text": "Attack",
+          "size": {
+            "width": 50,
+            "height": 40
+          },
+          "style": {
+            "backgroundColor": "#3C3C3C",
+            "hoverColor": "#5A5A5A",
+            "activeColor": "#6496FF",
+            "textColor": "#FFFFFF",
+            "borderColor": "#222222",
+            "borderWidth": 1,
+            "cornerRadius": 3,
+            "fontSize": 12
+          },
+          "action": {
+            "type": "toolbar",
+            "handler": "toolbar.selectTool",
+            "parameters": {
+              "tool": "attack",
+              "index": 2
+            }
+          },
+          "tooltip": "Attack enemies and threats",
+          "hotkey": "A"
+        },
+        {
+          "id": "defend-tool",
+          "text": "Defend",
+          "size": {
+            "width": 50,
+            "height": 40
+          },
+          "style": {
+            "backgroundColor": "#3C3C3C",
+            "hoverColor": "#5A5A5A",
+            "activeColor": "#6496FF",
+            "textColor": "#FFFFFF",
+            "borderColor": "#222222",
+            "borderWidth": 1,
+            "cornerRadius": 3,
+            "fontSize": 12
+          },
+          "action": {
+            "type": "toolbar",
+            "handler": "toolbar.selectTool",
+            "parameters": {
+              "tool": "defend",
+              "index": 3
+            }
+          },
+          "tooltip": "Set up defensive positions",
+          "hotkey": "D"
+        }
+      ]
+    },
+    {
+      "id": "spawn-leaf-control",
+      "name": "Spawn Leaf Control",
+      "layout": {
+        "type": "horizontal",
+        "position": {
+          "x": "left",
+          "y": "bottom",
+          "offsetX": 20,
+          "offsetY": -30
+        },
+        "spacing": 0,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 1.0,
+        "visible": true,
+        "background": {
+          "color": [0, 0, 0, 0],
+          "cornerRadius": 0
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": false,
+        "saveTransparency": false,
+        "storageKey": "spawn-leaf-control"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "spawn-leaves",
+          "text": "Spawn 10 leaves",
+          "size": {
+            "width": 160,
+            "height": 34
+          },
+          "style": {
+            "backgroundColor": "#4CAF50",
+            "hoverColor": "#45a049",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "spawn",
+            "handler": "spawn.greenLeaves",
+            "parameters": {
+              "count": 10
+            }
+          },
+          "tooltip": "Spawn green leaf resources",
+          "hotkey": "L"
+        }
+      ]
+    },
+    {
+      "id": "spawn-controls",
+      "name": "Spawn Controls",
+      "layout": {
+        "type": "grid",
+        "position": {
+          "x": "right",
+          "y": "center",
+          "offsetX": -240,
+          "offsetY": -50
+        },
+        "columns": 2,
+        "spacing": 8,
+        "padding": {
+          "top": 15,
+          "right": 15,
+          "bottom": 15,
+          "left": 15
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 1.0,
+        "visible": true,
+        "background": {
+          "color": [0, 0, 0, 140],
+          "cornerRadius": 6
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": false,
+        "saveTransparency": false,
+        "storageKey": "spawn-controls"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "spawn-1",
+          "text": "+1",
+          "size": {
+            "width": 110,
+            "height": 36
+          },
+          "style": {
+            "backgroundColor": "#4CAF50",
+            "hoverColor": "#45a049",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "spawn",
+            "handler": "spawn.ants",
+            "parameters": {
+              "count": 1
+            }
+          },
+          "tooltip": "Spawn 1 ant",
+          "hotkey": "1"
+        },
+        {
+          "id": "kill-1",
+          "text": "-1",
+          "size": {
+            "width": 110,
+            "height": 36
+          },
+          "style": {
+            "backgroundColor": "#f44336",
+            "hoverColor": "#da190b",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "kill",
+            "handler": "kill.ants",
+            "parameters": {
+              "count": 1
+            }
+          },
+          "tooltip": "Remove 1 ant",
+          "hotkey": "Shift+1"
+        },
+        {
+          "id": "spawn-5",
+          "text": "+5",
+          "size": {
+            "width": 110,
+            "height": 36
+          },
+          "style": {
+            "backgroundColor": "#4CAF50",
+            "hoverColor": "#45a049",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "spawn",
+            "handler": "spawn.ants",
+            "parameters": {
+              "count": 5
+            }
+          },
+          "tooltip": "Spawn 5 ants",
+          "hotkey": "5"
+        },
+        {
+          "id": "kill-5",
+          "text": "-5",
+          "size": {
+            "width": 110,
+            "height": 36
+          },
+          "style": {
+            "backgroundColor": "#f44336",
+            "hoverColor": "#da190b",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "kill",
+            "handler": "kill.ants",
+            "parameters": {
+              "count": 5
+            }
+          },
+          "tooltip": "Remove 5 ants",
+          "hotkey": "Shift+5"
+        },
+        {
+          "id": "spawn-10",
+          "text": "+10",
+          "size": {
+            "width": 110,
+            "height": 36
+          },
+          "style": {
+            "backgroundColor": "#4CAF50",
+            "hoverColor": "#45a049",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "spawn",
+            "handler": "spawn.ants",
+            "parameters": {
+              "count": 10
+            }
+          },
+          "tooltip": "Spawn 10 ants",
+          "hotkey": "0"
+        },
+        {
+          "id": "kill-10",
+          "text": "-10",
+          "size": {
+            "width": 110,
+            "height": 36
+          },
+          "style": {
+            "backgroundColor": "#f44336",
+            "hoverColor": "#da190b",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "kill",
+            "handler": "kill.ants",
+            "parameters": {
+              "count": 10
+            }
+          },
+          "tooltip": "Remove 10 ants",
+          "hotkey": "Shift+0"
+        }
+      ]
+    },
+    {
+      "id": "dropoff-placement",
+      "name": "Dropoff Placement",
+      "layout": {
+        "type": "horizontal",
+        "position": {
+          "x": "center",
+          "y": "bottom",
+          "offsetX": 0,
+          "offsetY": -150
+        },
+        "spacing": 0,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 1.0,
+        "visible": true,
+        "background": {
+          "color": [0, 0, 0, 0],
+          "cornerRadius": 0
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": false,
+        "saveTransparency": false,
+        "storageKey": "dropoff-placement"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "place-dropoff",
+          "text": "Place Dropoff",
+          "size": {
+            "width": 140,
+            "height": 34
+          },
+          "style": {
+            "backgroundColor": "#4CAF50",
+            "hoverColor": "#45a049",
+            "textColor": "white",
+            "borderColor": "#333",
+            "borderWidth": 2,
+            "cornerRadius": 5,
+            "fontSize": 16
+          },
+          "action": {
+            "type": "placement",
+            "handler": "placement.toggleDropoffMode",
+            "parameters": {}
+          },
+          "tooltip": "Click to enter dropoff placement mode",
+          "hotkey": "P"
+        }
+      ]
+    }
+  ]
+}

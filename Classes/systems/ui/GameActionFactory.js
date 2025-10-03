@@ -20,56 +20,70 @@ function createGameActionFactory() {
       console.log(`🎯 Executing action: ${handler} (${actionType})`);
       
       try {
-        // Handle function-type actions by parsing the handler prefix
-        if (actionType === 'function' && handler) {
-          const handlerParts = handler.split('.');
-          const category = handlerParts[0];
-          
-          switch (category) {
-            case 'gameState':
-              return { success: handleGameStateAction(handler, parameters, gameContext) };
-              
-            case 'entity':
-              return { success: handleEntityAction(handler, parameters, gameContext) };
-              
-            case 'ui':
-              return { success: handleUIAction(handler, parameters, gameContext) };
-              
-            case 'debug':
-              return { success: handleDebugAction(handler, parameters, gameContext) };
-              
-            case 'info':
-              return { success: handleInfoAction(handler, parameters, gameContext) };
-              
-            case 'system':
-              return { success: handleSystemAction(handler, parameters, gameContext) };
-              
-            default:
-              console.warn(`⚠️ Unhandled function handler category: ${category}`);
-              return { success: false, error: `Unknown handler category: ${category}` };
-          }
-        }
-        
-        // Handle explicit action types
+        // Handle action types directly or function-type actions
         switch (actionType) {
           case 'gameState':
             return { success: handleGameStateAction(handler, parameters, gameContext) };
-          
+            
           case 'entity':
             return { success: handleEntityAction(handler, parameters, gameContext) };
-          
+            
           case 'ui':
             return { success: handleUIAction(handler, parameters, gameContext) };
-          
+            
           case 'debug':
             return { success: handleDebugAction(handler, parameters, gameContext) };
-          
+            
           case 'info':
             return { success: handleInfoAction(handler, parameters, gameContext) };
-          
+            
           case 'system':
             return { success: handleSystemAction(handler, parameters, gameContext) };
-          
+            
+          case 'toolbar':
+            return { success: handleToolbarAction(handler, parameters, gameContext) };
+            
+          case 'spawn':
+            return { success: handleSpawnAction(handler, parameters, gameContext) };
+            
+          case 'kill':
+            return { success: handleKillAction(handler, parameters, gameContext) };
+            
+          case 'placement':
+            return { success: handlePlacementAction(handler, parameters, gameContext) };
+            
+          case 'function':
+            // Handle legacy function-type actions by parsing the handler prefix
+            if (handler) {
+              const handlerParts = handler.split('.');
+              const category = handlerParts[0];
+              
+              switch (category) {
+                case 'gameState':
+                  return { success: handleGameStateAction(handler, parameters, gameContext) };
+                  
+                case 'entity':
+                  return { success: handleEntityAction(handler, parameters, gameContext) };
+                  
+                case 'ui':
+                  return { success: handleUIAction(handler, parameters, gameContext) };
+                  
+                case 'debug':
+                  return { success: handleDebugAction(handler, parameters, gameContext) };
+                  
+                case 'info':
+                  return { success: handleInfoAction(handler, parameters, gameContext) };
+                  
+                case 'system':
+                  return { success: handleSystemAction(handler, parameters, gameContext) };
+                  
+                default:
+                  console.warn(`⚠️ Unhandled function handler category: ${category}`);
+                  return { success: false, error: `Unknown handler category: ${category}` };
+              }
+            }
+            break;
+            
           default:
             console.warn(`⚠️ Unhandled action type: ${actionType}`);
             return { success: false, error: `Unknown action type: ${actionType}` };
@@ -264,6 +278,164 @@ function handleSystemAction(handler, parameters, gameContext) {
 }
 
 /**
+ * Handle toolbar actions (tool selection)
+ */
+function handleToolbarAction(handler, parameters, gameContext) {
+  switch (handler) {
+    case 'toolbar.selectTool':
+      const tool = parameters.tool || 'unknown';
+      const index = parameters.index || 0;
+      console.log(`🔧 Selecting toolbar tool: ${tool} (index: ${index})`);
+      
+      // Update UILayerRenderer's active tool if available
+      if (typeof window !== 'undefined' && window.UIRenderer && window.UIRenderer.hudElements) {
+        window.UIRenderer.hudElements.toolbar.activeButton = index;
+        console.log(`✅ Updated active toolbar button to index ${index}`);
+      }
+      
+      // Store globally for other systems to use
+      if (typeof window !== 'undefined') {
+        window.activeToolbarTool = tool;
+        window.activeToolbarIndex = index;
+      }
+      
+      return true;
+    
+    default:
+      console.warn(`⚠️ Unhandled toolbar action: ${handler}`);
+      return false;
+  }
+}
+
+/**
+ * Handle spawn actions (create entities/resources)
+ */
+function handleSpawnAction(handler, parameters, gameContext) {
+  switch (handler) {
+    case 'spawn.ants':
+      const antCount = parameters.count || 1;
+      console.log(`🐜 Spawning ${antCount} ant(s)`);
+      
+      try {
+        // Try multiple spawn methods for compatibility
+        if (typeof handleSpawnCommand === 'function') {
+          handleSpawnCommand([String(antCount), 'ant', 'player']);
+        } else if (typeof antsSpawn === 'function') {
+          antsSpawn(antCount);
+        } else if (typeof executeCommand === 'function') {
+          executeCommand(`spawn ${antCount} ant player`);
+        } else {
+          console.warn('No spawn method available');
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error('❌ Spawn ant error:', error);
+        return false;
+      }
+    
+    case 'spawn.greenLeaves':
+      const leafCount = parameters.count || 10;
+      console.log(`🍃 Spawning ${leafCount} green leaf resource(s)`);
+      
+      try {
+        if (typeof spawnGreenLeaves === 'function') {
+          spawnGreenLeaves(leafCount);
+        } else {
+          console.warn('spawnGreenLeaves function not available');
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error('❌ Spawn leaves error:', error);
+        return false;
+      }
+    
+    default:
+      console.warn(`⚠️ Unhandled spawn action: ${handler}`);
+      return false;
+  }
+}
+
+/**
+ * Handle kill actions (remove entities)
+ */
+function handleKillAction(handler, parameters, gameContext) {
+  switch (handler) {
+    case 'kill.ants':
+      const killCount = parameters.count || 1;
+      console.log(`💀 Removing ${killCount} ant(s)`);
+      
+      try {
+        if (Array.isArray(ants) && ants.length > 0) {
+          const toRemove = Math.min(killCount, ants.length);
+          for (let i = 0; i < toRemove; i++) {
+            ants.pop();
+          }
+          
+          // Update ant index if it exists
+          if (typeof antIndex === 'number') {
+            antIndex = ants.length;
+          }
+          
+          // Update selection controller if available
+          if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+            g_selectionBoxController.entities = ants;
+          }
+          
+          console.log(`✅ Removed ${toRemove} ant(s). Remaining: ${ants.length}`);
+          return true;
+        } else {
+          console.warn('No ants to remove');
+          return false;
+        }
+      } catch (error) {
+        console.error('❌ Kill ants error:', error);
+        return false;
+      }
+    
+    default:
+      console.warn(`⚠️ Unhandled kill action: ${handler}`);
+      return false;
+  }
+}
+
+/**
+ * Handle placement actions (interactive placement modes)
+ */
+function handlePlacementAction(handler, parameters, gameContext) {
+  switch (handler) {
+    case 'placement.toggleDropoffMode':
+      console.log('🏗️ Toggling dropoff placement mode');
+      
+      try {
+        // Try the new universal system function first
+        if (typeof toggleDropoffPlacementMode === 'function') {
+          toggleDropoffPlacementMode();
+          console.log('✅ Dropoff placement mode toggled via universal system');
+          return true;
+        }
+        // Fallback to direct dropoffUI access
+        else if (typeof dropoffUI !== 'undefined' && dropoffUI) {
+          dropoffUI.placing = true;
+          console.log('✅ Dropoff placement mode activated via legacy system');
+          return true;
+        } else {
+          console.warn('dropoffUI not available');
+          return false;
+        }
+      } catch (error) {
+        console.error('❌ Dropoff placement error:', error);
+        return false;
+      }
+    
+    default:
+      console.warn(`⚠️ Unhandled placement action: ${handler}`);
+      return false;
+  }
+}
+
+/**
  * Initialize the Universal Button Group System
  * Call this from your main setup function
  */
@@ -306,37 +478,61 @@ async function initializeUniversalButtonSystem() {
       const currentState = window.GameState ? window.GameState.getState() : 'MENU';
       console.log(`🔧 Loading button groups for state: ${currentState}`);
       
-      // For now, create a basic menu navigation group as default
-      const defaultMenuConfig = {
-        id: 'default-menu-nav',
-        name: 'Default Menu Navigation',
-        layout: {
-          type: 'vertical',
-          position: { x: 60, y: 60 },
-          spacing: 10
-        },
-        appearance: {
-          visible: true,
-          transparency: 1.0
-        },
-        behavior: {
-          draggable: true,
-          resizable: false,
-          snapToEdges: false
-        },
-        conditions: {},
-        buttons: [
-          {
-            id: 'debug-toggle',
-            text: '🔧 Debug',
-            size: { width: 80, height: 30 },
-            action: { type: 'debug', handler: 'debug.toggleGrid' }
-          }
-        ]
-      };
-      
-      await window.buttonGroupManager.initialize([defaultMenuConfig]);
-      console.log('✅ ButtonGroupManager initialized with default configuration');
+      // Try to load the legacy conversions configuration file
+      try {
+        const response = await fetch('config/button-groups/legacy-conversions.json');
+        if (response.ok) {
+          const legacyConfig = await response.json();
+          console.log('✅ Loaded legacy-conversions.json configuration:', legacyConfig);
+          console.log('📋 Configuration structure check:', {
+            hasGroups: !!legacyConfig.groups,
+            groupsCount: legacyConfig.groups?.length || 0,
+            groupIds: legacyConfig.groups?.map(g => g.id) || [],
+            meta: legacyConfig.meta
+          });
+          
+          // Initialize with legacy conversions
+          console.log('🚀 About to initialize ButtonGroupManager with:', legacyConfig.groups);
+          await window.buttonGroupManager.initialize(legacyConfig.groups);
+          console.log('✅ ButtonGroupManager initialized with legacy conversions');
+        } else {
+          throw new Error('Failed to load legacy-conversions.json');
+        }
+      } catch (configError) {
+        console.warn('⚠️ Could not load legacy conversions config:', configError);
+        
+        // Fallback to default configuration
+        const defaultMenuConfig = {
+          id: 'default-menu-nav',
+          name: 'Default Menu Navigation',
+          layout: {
+            type: 'vertical',
+            position: { x: 60, y: 60 },
+            spacing: 10
+          },
+          appearance: {
+            visible: true,
+            transparency: 1.0
+          },
+          behavior: {
+            draggable: true,
+            resizable: false,
+            snapToEdges: false
+          },
+          conditions: {},
+          buttons: [
+            {
+              id: 'debug-toggle',
+              text: '🔧 Debug',
+              size: { width: 80, height: 30 },
+              action: { type: 'debug', handler: 'debug.toggleGrid' }
+            }
+          ]
+        };
+        
+        await window.buttonGroupManager.initialize([defaultMenuConfig]);
+        console.log('✅ ButtonGroupManager initialized with fallback configuration');
+      }
     } catch (error) {
       console.error('❌ Failed to initialize ButtonGroupManager:', error);
       // Try initializing with empty array as fallback

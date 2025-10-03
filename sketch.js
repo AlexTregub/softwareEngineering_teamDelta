@@ -81,6 +81,9 @@ function setup() {
 
   // Initialize Universal Button Group System
   initializeUniversalButtonSystem();
+  
+  // Initialize Draggable Panel System
+  initializeDraggablePanelSystem();
 }
 
 /**
@@ -145,6 +148,24 @@ function draw() {
       window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
     } catch (error) {
       console.error('❌ Error updating button group system:', error);
+    }
+  }
+  
+  // Update draggable panels
+  if (typeof updateDraggablePanels === 'function') {
+    try {
+      updateDraggablePanels();
+    } catch (error) {
+      console.error('❌ Error updating draggable panels:', error);
+    }
+  }
+  
+  // Render draggable panels (on top of everything else)
+  if (typeof renderDraggablePanels === 'function') {
+    try {
+      renderDraggablePanels();
+    } catch (error) {
+      console.error('❌ Error rendering draggable panels:', error);
     }
   }
 }

@@ -61,6 +61,8 @@ class ButtonGroupManager {
       throw new Error('ButtonGroupManager is already initialized');
     }
 
+    console.log('🏁 ButtonGroupManager.initialize() called with config:', config);
+
     this.groupCreationErrors = [];
     const results = {
       successful: 0,
@@ -70,12 +72,16 @@ class ButtonGroupManager {
 
     try {
       const configurations = Array.isArray(config) ? config : [config];
+      console.log(`📋 ButtonGroupManager processing ${configurations.length} configurations`);
       
       for (const groupConfig of configurations) {
+        console.log(`🔨 ButtonGroupManager attempting to create group: ${groupConfig?.id || 'unknown'}`);
         try {
           this.createButtonGroup(groupConfig);
           results.successful++;
+          console.log(`✅ Successfully created group: ${groupConfig.id}`);
         } catch (error) {
+          console.error(`❌ Failed to create group ${groupConfig?.id || 'unknown'}:`, error);
           results.failed++;
           results.errors.push({
             groupId: groupConfig?.id || 'unknown',

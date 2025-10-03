@@ -148,6 +148,25 @@ class UILayerRenderer {
   }
 
   renderCurrencyDisplay() {
+    // Currency display is now rendered by the Draggable Panel System
+    // Check if the draggable panel manager is available
+    if (typeof window !== 'undefined' && 
+        window.draggablePanelManager && 
+        typeof window.draggablePanelManager.getPanel === 'function') {
+      
+      const resourcePanel = window.draggablePanelManager.getPanel('resource-display');
+      if (!resourcePanel) {
+        // Fallback to original currency display if draggable panel system is not active
+        this.renderFallbackCurrencyDisplay();
+      }
+      // Otherwise, the Draggable Panel System handles currency display rendering
+    } else {
+      // Fallback to original currency display
+      this.renderFallbackCurrencyDisplay();
+    }
+  }
+
+  renderFallbackCurrencyDisplay() {
     push();
     
     // Background
@@ -173,6 +192,31 @@ class UILayerRenderer {
   }
 
   renderToolbar() {
+    // The toolbar is now rendered by the Universal Button System
+    // Check if the ui-toolbar button group is loaded and visible
+    if (typeof window !== 'undefined' && 
+        window.buttonGroupManager && 
+        typeof window.buttonGroupManager.getActiveGroupCount === 'function') {
+      
+      const activeGroups = window.buttonGroupManager.getActiveGroupCount();
+      console.log(`🎨 UILayerRenderer.renderToolbar() - Active groups: ${activeGroups}`);
+      
+      if (activeGroups === 0) {
+        console.log('⬇️ UILayerRenderer falling back to legacy toolbar (no active groups)');
+        // Fallback to original toolbar if Universal Button System is not active
+        this.renderFallbackToolbar();
+      } else {
+        console.log('✨ UILayerRenderer using Universal Button System for toolbar rendering');
+        // Otherwise, the Universal Button System handles toolbar rendering
+      }
+    } else {
+      console.log('⬇️ UILayerRenderer falling back to legacy toolbar (buttonGroupManager not available)');
+      // Fallback to original toolbar
+      this.renderFallbackToolbar();
+    }
+  }
+
+  renderFallbackToolbar() {
     push();
 
     const toolbarWidth = 300;
@@ -367,6 +411,15 @@ class UILayerRenderer {
    * Debug UI - Performance, Entity Inspector, Console
    */
   renderPerformanceOverlay() {
+    // Check if draggable panel system is available and active
+    if (typeof window !== 'undefined' && window.draggablePanelManager) {
+      const performancePanel = window.draggablePanelManager.getPanel('performance-monitor');
+      if (performancePanel && performancePanel.visible) {
+        // Draggable panel system handles rendering
+        return;
+      }
+    }
+    
     // Use existing PerformanceMonitor if available
     const performanceMonitor = (typeof window !== 'undefined') ? window.PerformanceMonitor : 
                               (typeof global !== 'undefined') ? global.PerformanceMonitor : null;

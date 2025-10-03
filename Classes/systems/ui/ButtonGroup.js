@@ -442,8 +442,18 @@ class ButtonGroup {
    * Calculate and apply positioning to buttons based on layout configuration
    */
   calculatePosition() {
+    console.log(`🧮 [${this.config.id}] Starting calculatePosition()`);
+    
     const pos = this.config.layout?.position || { x: 'center', y: 'center' };
     const padding = this.config.layout?.padding || { top: 0, right: 0, bottom: 0, left: 0 };
+    
+    console.log(`📐 [${this.config.id}] Position config:`, {
+      x: pos.x,
+      y: pos.y,
+      offsetX: pos.offsetX,
+      offsetY: pos.offsetY,
+      padding: padding
+    });
     
     // Use mock canvas dimensions for testing, real dimensions for runtime
     const canvas = { 
@@ -451,40 +461,70 @@ class ButtonGroup {
       height: (typeof window !== 'undefined' && window.innerHeight) || 800 
     };
     
+    console.log(`🖼️ [${this.config.id}] Canvas dimensions:`, canvas);
+    
     // First, layout buttons at origin to calculate bounds
     this.layoutButtons(0, 0);
     const bounds = this.getBounds();
+    
+    console.log(`📦 [${this.config.id}] Calculated bounds:`, bounds);
     
     // Calculate base position based on bounds
     let x = 0, y = 0;
     
     switch (pos.x) {
-      case 'left': x = padding.left || 0; break;
-      case 'center': x = (canvas.width - bounds.width) / 2; break;
-      case 'right': x = canvas.width - bounds.width; break;
+      case 'left': 
+        x = padding.left || 0; 
+        break;
+      case 'center': 
+        x = (canvas.width - bounds.width) / 2; 
+        break;
+      case 'right': 
+        // For right positioning, start from right edge and subtract group width
+        x = canvas.width - bounds.width - (padding.right || 0);
+        break;
       case 'mouse': 
         x = (typeof window !== 'undefined' && typeof window.mouseX === 'number') ? window.mouseX : 0; 
         break;
-      default: x = parseFloat(pos.x) || 0;
+      default: 
+        x = parseFloat(pos.x) || 0;
     }
     
+    console.log(`➡️ [${this.config.id}] Base X calculation: anchor='${pos.x}' canvas.width=${canvas.width} bounds.width=${bounds.width} -> x=${x}`);
+    
     switch (pos.y) {
-      case 'top': y = padding.top || 0; break;
-      case 'center': y = (canvas.height - bounds.height) / 2; break;
-      case 'bottom': y = canvas.height - bounds.height; break;
+      case 'top': 
+        y = padding.top || 0; 
+        break;
+      case 'center': 
+        y = (canvas.height - bounds.height) / 2; 
+        break;
+      case 'bottom': 
+        // For bottom positioning, start from bottom edge and subtract group height  
+        y = canvas.height - bounds.height - (padding.bottom || 0);
+        break;
       case 'mouse': 
         y = (typeof window !== 'undefined' && typeof window.mouseY === 'number') ? window.mouseY : 0; 
         break;
-      default: y = parseFloat(pos.y) || 0;
+      default: 
+        y = parseFloat(pos.y) || 0;
     }
     
+    console.log(`⬇️ [${this.config.id}] Base Y calculation: anchor='${pos.y}' canvas.height=${canvas.height} bounds.height=${bounds.height} -> y=${y}`);
+    
     // Apply offsets
+    const preOffsetX = x;
+    const preOffsetY = y;
     x += pos.offsetX || 0;
     y += pos.offsetY || 0;
+    
+    console.log(`🎯 [${this.config.id}] After offsets: (${preOffsetX} + ${pos.offsetX || 0}, ${preOffsetY} + ${pos.offsetY || 0}) = (${x}, ${y})`);
     
     // Set the group's position state
     this.state.position.x = x;
     this.state.position.y = y;
+    
+    console.log(`✅ [${this.config.id}] Final position set: (${x}, ${y})`);
     
     // Update button positions using layout system with final position
     this.layoutButtons(x, y);
