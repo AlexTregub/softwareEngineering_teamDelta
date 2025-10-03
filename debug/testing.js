@@ -3,8 +3,8 @@
  * Handles all debug console functionality and test hotkeys
  */
 
-// DEV CONSOLE STATE
-let devConsoleEnabled = false;
+// DEV CONSOLE STATE (defined in commandLine.js)
+// let devConsoleEnabled is now in commandLine.js to avoid loading order issues
 
 // DEBUG LOGGING HELPER
 function debugLog(message, ...args) {

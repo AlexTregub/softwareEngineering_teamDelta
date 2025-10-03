@@ -10,12 +10,19 @@ let commandHistoryIndex = -1;
 let consoleOutput = []; // Store console output for display
 let scrollOffset = 0; // For scrolling through output
 
-// Console capture s      break;
-      
-    default:
-      console.log("❌ Usage: entity-perf <report|reset|slowest>");
+// DEV CONSOLE STATE (shared with testing.js)
+let devConsoleEnabled = false;
+
+// Console capture - overrides console.log to capture messages for the in-game console.
+let originalConsoleLog = console.log;
+console.log = function(...args) {
+  originalConsoleLog.apply(console, args);
+  if (commandLineActive) {
+    let message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+    consoleOutput.unshift(message);
+    if (consoleOutput.length > 100) consoleOutput.pop();
   }
-}
+};
 
 /**
  * handleUIDebugCommand
@@ -94,16 +101,7 @@ function handleUIDebugCommand(args) {
       console.log("  ui list      - List all registered UI elements");
       console.log("  ui reset     - Reset all positions to original");
   }
-}- overrides console.log to capture messages for the in-game console.
-let originalConsoleLog = console.log;
-console.log = function(...args) {
-  originalConsoleLog.apply(console, args);
-  if (commandLineActive) {
-    let message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-    consoleOutput.unshift(message);
-    if (consoleOutput.length > 100) consoleOutput.pop();
-  }
-};
+}
 
 /**
  * handleCommandLineInput
@@ -441,6 +439,14 @@ function closeCommandLine() { commandLineActive = false; commandInput = ""; comm
 
 /** isCommandLineActive - Returns true if the command line UI is active. */
 function isCommandLineActive() { return commandLineActive; }
+
+// Debug: Ensure the function is available globally
+if (typeof window !== 'undefined') {
+  window.isCommandLineActive = isCommandLineActive;
+}
+
+// Debug: Log that the file loaded successfully
+console.log('✅ commandLine.js loaded successfully, isCommandLineActive function available');
 
 /**
  * handlePerformanceCommand

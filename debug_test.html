@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Console Test</title>
+</head>
+<body>
+    <h1>Debug Console Test</h1>
+    <p>Test debug console functionality:</p>
+    <ol>
+        <li>Press ` (backtick) to toggle debug mode</li>
+        <li>Check if debug mode is enabled (should show in console)</li>
+        <li>Press Enter to open command line</li>
+    </ol>
+    
+    <div id="debug-info">
+        <h3>Debug State:</h3>
+        <div>devConsoleEnabled: <span id="dev-console-state">false</span></div>
+        <div>commandLineActive: <span id="command-line-state">false</span></div>
+    </div>
+
+    <!-- Load scripts in correct order -->
+    <script src="libraries/p5.min.js"></script>
+    <script src="Classes/terrainUtils/coordinateSystem.js"></script>
+    <script src="debug/commandLine.js"></script>
+    <script src="debug/testing.js"></script>
+    
+    <script>
+        // Set up p5.js global variables that the debug system expects
+        window.keyCode = 0;
+        window.key = '';
+        window.frameCount = 0;
+        
+        // Create a simple state updater
+        function updateDebugState() {
+            document.getElementById('dev-console-state').textContent = 
+                (typeof devConsoleEnabled !== 'undefined') ? devConsoleEnabled : 'undefined';
+            document.getElementById('command-line-state').textContent = 
+                (typeof commandLineActive !== 'undefined') ? commandLineActive : 'undefined';
+        }
+        
+        // Update state every second
+        setInterval(updateDebugState, 1000);
+        
+        // Override console.log to show messages on page
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            const debugDiv = document.getElementById('debug-info');
+            const logDiv = document.createElement('div');
+            logDiv.textContent = args.join(' ');
+            logDiv.style.background = '#f0f0f0';
+            logDiv.style.margin = '2px';
+            logDiv.style.padding = '4px';
+            debugDiv.appendChild(logDiv);
+        };
+        
+        // Set up key event listeners
+        document.addEventListener('keydown', function(event) {
+            // Set p5.js global variables
+            window.keyCode = event.keyCode;
+            window.key = event.key;
+            
+            console.log(`Key pressed: ${event.key} (keyCode: ${event.keyCode})`);
+            
+            // Call the debug key handler
+            if (typeof handleDebugConsoleKeys === 'function') {
+                const handled = handleDebugConsoleKeys();
+                console.log(`Debug handler result: ${handled}`);
+            }
+            
+            updateDebugState();
+        });
+        
+        // Initialize
+        updateDebugState();
+    </script>
+</body>
+</html>
