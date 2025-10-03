@@ -6,7 +6,7 @@ The ant game uses a sophisticated layered rendering system with two main compone
 ## Architecture Components
 
 ### 1. RenderLayerManager (Top-Level Orchestrator)
-**Location:** `Classes/managers/RenderLayerManager.js`
+**Location:** `Classes/rendering/RenderLayerManager.js`
 
 The RenderLayerManager acts as the central coordinator for all rendering operations, organizing visual elements into distinct layers that render in a specific order.
 
@@ -15,6 +15,7 @@ The RenderLayerManager acts as the central coordinator for all rendering operati
 this.layers = {
   TERRAIN: 'terrain',      // Static terrain, cached
   ENTITIES: 'entities',    // Dynamic game objects (ants, resources)
+  EFFECTS: 'effects',      // Particle effects, visual effects, screen effects
   UI_GAME: 'ui_game',     // In-game UI (currencies, selection, dropoff)
   UI_DEBUG: 'ui_debug',   // Debug overlays (console, performance)
   UI_MENU: 'ui_menu'      // Menu system and transitions
@@ -23,15 +24,15 @@ this.layers = {
 
 #### State-Based Rendering
 Different game states show different layer combinations:
-- **PLAYING**: TERRAIN + ENTITIES + UI_GAME + UI_DEBUG
-- **PAUSED**: TERRAIN + ENTITIES + UI_GAME
+- **PLAYING**: TERRAIN + ENTITIES + EFFECTS + UI_GAME + UI_DEBUG
+- **PAUSED**: TERRAIN + ENTITIES + EFFECTS + UI_GAME
 - **MENU**: TERRAIN + UI_MENU
-- **DEBUG_MENU**: TERRAIN + ENTITIES + UI_DEBUG + UI_MENU
+- **DEBUG_MENU**: TERRAIN + ENTITIES + EFFECTS + UI_DEBUG + UI_MENU
 
-### 2. EntityLayerRenderer (Entity-Specific Handler)
-**Location:** `Classes/managers/EntityLayerRenderer.js`
+### 2. EntityRenderer (Entity-Specific Handler)
+**Location:** `Classes/rendering/EntityLayerRenderer.js`
 
-The EntityLayerRenderer specializes in managing dynamic game entities with advanced features like depth sorting, frustum culling, and performance optimization.
+The EntityRenderer specializes in managing dynamic game entities with advanced features like depth sorting, frustum culling, and performance optimization.
 
 #### Entity Groups (Rendering Order)
 ```javascript

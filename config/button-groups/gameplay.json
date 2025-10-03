@@ -1,0 +1,389 @@
+{
+  "meta": {
+    "name": "Gameplay Button Groups",
+    "description": "Interactive controls and information panels for active gameplay",
+    "version": "1.0.0",
+    "lastModified": "2024-12-19"
+  },
+  "groups": [
+    {
+      "id": "game-controls",
+      "name": "Game Controls",
+      "layout": {
+        "type": "horizontal",
+        "position": {
+          "x": "left",
+          "y": "top",
+          "offsetX": 20,
+          "offsetY": 20
+        },
+        "spacing": 8,
+        "padding": {
+          "top": 10,
+          "right": 15,
+          "bottom": 10,
+          "left": 15
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 0.9,
+        "visible": true,
+        "background": {
+          "color": [35, 35, 45, 180],
+          "cornerRadius": 8
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": true
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": true,
+        "saveTransparency": true,
+        "storageKey": "game-controls"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "pause-game",
+          "text": "⏸",
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "action": {
+            "type": "gameState",
+            "handler": "game.togglePause"
+          },
+          "tooltip": "Pause/Resume game",
+          "hotkey": "Space"
+        },
+        {
+          "id": "save-game",
+          "text": "💾",
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "action": {
+            "type": "gameState",
+            "handler": "game.save"
+          },
+          "tooltip": "Save current game progress",
+          "hotkey": "Ctrl+S"
+        },
+        {
+          "id": "game-menu",
+          "text": "☰",
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "action": {
+            "type": "ui",
+            "handler": "ui.showGameMenu"
+          },
+          "tooltip": "Open game menu",
+          "hotkey": "Escape"
+        }
+      ]
+    },
+    {
+      "id": "entity-actions",
+      "name": "Entity Actions",
+      "layout": {
+        "type": "grid",
+        "position": {
+          "x": "right",
+          "y": "center",
+          "offsetX": -20,
+          "offsetY": 0
+        },
+        "columns": 2,
+        "spacing": 5,
+        "padding": {
+          "top": 12,
+          "right": 15,
+          "bottom": 12,
+          "left": 15
+        }
+      },
+      "appearance": {
+        "scale": 0.9,
+        "transparency": 0.85,
+        "visible": true,
+        "background": {
+          "color": [50, 70, 90, 160],
+          "cornerRadius": 6
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": true
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": false,
+        "saveTransparency": true,
+        "storageKey": "entity-actions"
+      },
+      "conditions": {
+        "gameState": "playing",
+        "hasSelection": true
+      },
+      "buttons": [
+        {
+          "id": "move-entity",
+          "text": "Move",
+          "size": {
+            "width": 65,
+            "height": 35
+          },
+          "action": {
+            "type": "entity",
+            "handler": "entity.move"
+          },
+          "tooltip": "Move selected entities",
+          "hotkey": "M"
+        },
+        {
+          "id": "attack-entity",
+          "text": "Attack",
+          "size": {
+            "width": 65,
+            "height": 35
+          },
+          "action": {
+            "type": "entity",
+            "handler": "entity.attack"
+          },
+          "tooltip": "Attack with selected entities",
+          "hotkey": "A",
+          "conditions": {
+            "minimumResources": {
+              "energy": 10
+            }
+          }
+        },
+        {
+          "id": "gather-resource",
+          "text": "Gather",
+          "size": {
+            "width": 65,
+            "height": 35
+          },
+          "action": {
+            "type": "entity",
+            "handler": "entity.gather"
+          },
+          "tooltip": "Gather nearby resources",
+          "hotkey": "G"
+        },
+        {
+          "id": "build-structure",
+          "text": "Build",
+          "size": {
+            "width": 65,
+            "height": 35
+          },
+          "action": {
+            "type": "entity",
+            "handler": "entity.build"
+          },
+          "tooltip": "Build structures",
+          "hotkey": "B",
+          "conditions": {
+            "minimumResources": {
+              "materials": 50
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resource-display",
+      "name": "Resource Information",
+      "layout": {
+        "type": "horizontal",
+        "position": {
+          "x": "center",
+          "y": "top",
+          "offsetX": 0,
+          "offsetY": 15
+        },
+        "spacing": 20,
+        "padding": {
+          "top": 8,
+          "right": 20,
+          "bottom": 8,
+          "left": 20
+        }
+      },
+      "appearance": {
+        "scale": 0.8,
+        "transparency": 0.8,
+        "visible": true,
+        "background": {
+          "color": [25, 45, 25, 140],
+          "cornerRadius": 15
+        }
+      },
+      "behavior": {
+        "draggable": false,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": false,
+        "saveTransparency": true,
+        "storageKey": "resource-display"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "food-counter",
+          "text": "🍃 0",
+          "size": {
+            "width": 80,
+            "height": 30
+          },
+          "action": {
+            "type": "info",
+            "handler": "ui.showResourceDetails",
+            "parameters": {
+              "resourceType": "food"
+            }
+          },
+          "tooltip": "Current food supply"
+        },
+        {
+          "id": "material-counter",
+          "text": "🪵 0",
+          "size": {
+            "width": 80,
+            "height": 30
+          },
+          "action": {
+            "type": "info",
+            "handler": "ui.showResourceDetails",
+            "parameters": {
+              "resourceType": "materials"
+            }
+          },
+          "tooltip": "Available building materials"
+        },
+        {
+          "id": "energy-counter",
+          "text": "⚡ 100",
+          "size": {
+            "width": 80,
+            "height": 30
+          },
+          "action": {
+            "type": "info",
+            "handler": "ui.showResourceDetails",
+            "parameters": {
+              "resourceType": "energy"
+            }
+          },
+          "tooltip": "Colony energy level"
+        }
+      ]
+    },
+    {
+      "id": "debug-panel",
+      "name": "Debug Tools",
+      "layout": {
+        "type": "vertical",
+        "position": {
+          "x": "left",
+          "y": "bottom",
+          "offsetX": 20,
+          "offsetY": -20
+        },
+        "spacing": 3,
+        "padding": {
+          "top": 8,
+          "right": 10,
+          "bottom": 8,
+          "left": 10
+        }
+      },
+      "appearance": {
+        "scale": 0.7,
+        "transparency": 0.6,
+        "visible": false,
+        "background": {
+          "color": [60, 20, 20, 120],
+          "cornerRadius": 4
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": false,
+        "saveTransparency": true,
+        "storageKey": "debug-panel"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "show-grid",
+          "text": "Grid",
+          "size": {
+            "width": 50,
+            "height": 25
+          },
+          "action": {
+            "type": "debug",
+            "handler": "debug.toggleGrid"
+          },
+          "tooltip": "Toggle coordinate grid",
+          "hotkey": "F1"
+        },
+        {
+          "id": "show-fps",
+          "text": "FPS",
+          "size": {
+            "width": 50,
+            "height": 25
+          },
+          "action": {
+            "type": "debug",
+            "handler": "debug.toggleFPS"
+          },
+          "tooltip": "Toggle FPS display",
+          "hotkey": "F2"
+        },
+        {
+          "id": "spawn-ant",
+          "text": "Ant+",
+          "size": {
+            "width": 50,
+            "height": 25
+          },
+          "action": {
+            "type": "debug",
+            "handler": "debug.spawnAnt"
+          },
+          "tooltip": "Spawn test ant",
+          "hotkey": "F3"
+        }
+      ]
+    }
+  ]
+}

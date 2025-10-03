@@ -4,17 +4,17 @@
     "elements": [
       {
         "description": "",
-        "id": "universal-button-group-system;creating-a-vertical-button-group-with-custom-positioning",
+        "id": "universal-button-group-system;creating-a-basic-horizontal-button-group",
         "keyword": "Scenario",
-        "line": 19,
-        "name": "Creating a vertical button group with custom positioning",
+        "line": 11,
+        "name": "Creating a basic horizontal button group",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 531600
+              "duration": 512299
             }
           },
           {
@@ -27,7 +27,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 8206900
+              "duration": 8637500
             }
           },
           {
@@ -40,7 +40,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1535499
+              "duration": 2082500
             }
           },
           {
@@ -53,7 +53,151 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1045199
+              "duration": 982600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 12,
+            "name": "I have a horizontal layout configuration with 2 buttons",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:73"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3926199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 13,
+            "name": "I create a button group at center screen position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:15"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2279599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 14,
+            "name": "the button group should be visible and interactive",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:15"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2213300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 15,
+            "name": "the buttons should be arranged horizontally with proper spacing",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:24"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1386300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 16,
+            "name": "each button should be clickable and respond to mouse interactions",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:38"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2369199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 17,
+            "name": "the group should have the correct bounding box dimensions",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:48"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1733799
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 135600
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;creating-a-vertical-button-group-with-custom-positioning",
+        "keyword": "Scenario",
+        "line": 19,
+        "name": "Creating a vertical button group with custom positioning",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 43000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 91400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 39199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 30999
             }
           },
           {
@@ -66,7 +210,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 4296400
+              "duration": 1315799
             }
           },
           {
@@ -79,7 +223,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 839100
+              "duration": 784400
             }
           },
           {
@@ -92,7 +236,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1872099
+              "duration": 633800
             }
           },
           {
@@ -105,7 +249,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1890099
+              "duration": 830900
             }
           },
           {
@@ -118,7 +262,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 948500
+              "duration": 1582099
             }
           },
           {
@@ -131,7 +275,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1126700
+              "duration": 1225999
             }
           },
           {
@@ -139,7 +283,2189 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 79100
+              "duration": 25999
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;creating-a-grid-layout-button-group",
+        "keyword": "Scenario",
+        "line": 27,
+        "name": "Creating a grid layout button group",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 49699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 56400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 27600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 28,
+            "name": "I have a grid layout configuration with 6 buttons in 2 columns",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:147"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1731199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 29,
+            "name": "I create the button group at bottom-right position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:30"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 868799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 30,
+            "name": "the buttons should be arranged in a 2x3 grid pattern",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:102"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 2415200,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -707\n    +662\n\n    at C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:114:27\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:113:16)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 31,
+            "name": "the group should be positioned at the bottom-right corner",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:119"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 32,
+            "name": "each button should maintain consistent sizing within the grid",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:133"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 45099
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-state-management",
+        "keyword": "Scenario",
+        "line": 34,
+        "name": "Button group state management",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 53700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 60000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 27800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 35,
+            "name": "I have a button group with default visibility and transparency",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:182"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1031600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 36,
+            "name": "I set the transparency to 0.5",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:35"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2567300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 37,
+            "name": "I set the scale to 1.2",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:40"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1648099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 38,
+            "name": "the button group should be semi-transparent",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:144"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1028300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 39,
+            "name": "the button group should be scaled to 120% size",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:149"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1360400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 40,
+            "name": "the visual changes should be applied to all buttons in the group",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:155"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1464499
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 34599
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-visibility-control",
+        "keyword": "Scenario",
+        "line": 42,
+        "name": "Button group visibility control",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 48699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 62400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 27300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 44899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 43,
+            "name": "I have a visible button group",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:211"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1115499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 44,
+            "name": "I set the group to invisible",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:45"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 916899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 45,
+            "name": "the button group should not be visible on screen",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:167"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 887399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 46,
+            "name": "mouse interactions should not affect the invisible group",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:173"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 911800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 47,
+            "name": "I set the group back to visible",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:50"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 491799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 48,
+            "name": "the button group should reappear with all original properties",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:190"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 992899
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 35799
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-position-persistence",
+        "keyword": "Scenario",
+        "line": 50,
+        "name": "Button group position persistence",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 40700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 70199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 44599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 37000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 51,
+            "name": "I have a draggable button group with persistence enabled",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:236"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 957200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 52,
+            "name": "the storage key is \"test-persistence-group\"",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:268"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2024400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 53,
+            "name": "I move the button group to position (150, 200)",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:55"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3622100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 54,
+            "name": "I trigger state saving",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:60"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 749299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 55,
+            "name": "the position should be saved to localStorage",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:201"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2218599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 56,
+            "name": "the saved data should contain the correct position coordinates",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:212"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 2232700,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -550\n    +150\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:217:35)"
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 18799
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;loading-persisted-button-group-state",
+        "keyword": "Scenario",
+        "line": 58,
+        "name": "Loading persisted button group state",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 37299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 83499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 30399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 31400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 59,
+            "name": "I have saved button group state in localStorage",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:273"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1418799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 60,
+            "name": "the saved state contains position (100, 150), scale 0.8, and transparency 0.7",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:288"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2543400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 61,
+            "name": "I create a new button group with the same storage key",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:65"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 815899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 62,
+            "name": "the button group should load the persisted position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:221"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 816199,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -558\n    +100\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:223:48)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 63,
+            "name": "the button group should have the saved scale factor",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:227"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 64,
+            "name": "the button group should have the saved transparency level",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:232"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 31299
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-state-persistence-with-invalid-data",
+        "keyword": "Scenario",
+        "line": 66,
+        "name": "Button group state persistence with invalid data",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 42899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 63099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 23699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 67,
+            "name": "I have corrupted data in localStorage for a button group",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:296"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 865499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 68,
+            "name": "I create a button group that tries to load the corrupted state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:94"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2245999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 69,
+            "name": "the button group should use default values instead of corrupted data",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:237"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 999300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 70,
+            "name": "the system should handle the error gracefully without crashing",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:246"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 946899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 71,
+            "name": "a new valid state should be established",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:253"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 669300
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 15099
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;user-drags-button-group-to-new-position",
+        "keyword": "Scenario",
+        "line": 73,
+        "name": "User drags button group to new position",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 36100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 57300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 28099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 74,
+            "name": "I have a draggable button group at position (100, 100)",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:321"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1350999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 75,
+            "name": "I click and hold on the button group",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:99"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1107400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 76,
+            "name": "I move the mouse to position (200, 150)",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:112"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1071499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 77,
+            "name": "I release the mouse button",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:120"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 787799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 78,
+            "name": "the button group should move to the new position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:261"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 1247200,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -125\n    +200\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:263:48)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 79,
+            "name": "the drag operation should update the group's internal position state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:267"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 80,
+            "name": "the new position should be saved automatically if persistence is enabled",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:274"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 19800
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-drag-interaction-outside-bounds",
+        "keyword": "Scenario",
+        "line": 82,
+        "name": "Button group drag interaction outside bounds",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 41100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 59700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 29499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 25399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 83,
+            "name": "I have a draggable button group",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:409"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 679199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 84,
+            "name": "I click outside the button group boundaries",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:128"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 657199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 85,
+            "name": "the drag operation should not initiate",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:283"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 618999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 86,
+            "name": "the button group should remain in its original position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:289"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 686100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 87,
+            "name": "no drag state should be activated",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:295"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 513399
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 20199
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-drag-with-snap-to-edges-enabled",
+        "keyword": "Scenario",
+        "line": 89,
+        "name": "Button group drag with snap-to-edges enabled",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 22199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 40799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 21200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 90,
+            "name": "I have a draggable button group with snap-to-edges enabled",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:353"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 790700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 91,
+            "name": "I drag the button group close to the left screen edge",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:141"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 734600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 92,
+            "name": "I release the mouse button",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:120"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 77100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 93,
+            "name": "the button group should snap to the exact left edge position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:301"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 913099,
+              "error_message": "AssertionError\n    + expected - actual\n\n    --25\n    +0\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:303:48)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 94,
+            "name": "the snapped position should be persisted",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:306"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 11100
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-drag-constraints-without-snap-to-edges",
+        "keyword": "Scenario",
+        "line": 96,
+        "name": "Button group drag constraints without snap-to-edges",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 29999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 59600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 31200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 23699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 97,
+            "name": "I have a draggable button group with snap-to-edges disabled",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:381"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 925600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 98,
+            "name": "I drag the button group near screen edges",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:158"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 620299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 99,
+            "name": "the button group should maintain the exact drag position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:315"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 814899,
+              "error_message": "AssertionError\n    + expected - actual\n\n    --25\n    +15\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:317:48)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 100,
+            "name": "no automatic position adjustment should occur",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:321"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 11300
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;multiple-consecutive-drag-operations",
+        "keyword": "Scenario",
+        "line": 102,
+        "name": "Multiple consecutive drag operations",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 25699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 55100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 23900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 20499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 103,
+            "name": "I have a draggable button group at position (50, 50)",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:321"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 322199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 104,
+            "name": "I drag it to position (100, 75)",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:175"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1152299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 105,
+            "name": "I drag it again to position (175, 125)",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:191"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 962899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 106,
+            "name": "the final position should be (175, 125)",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:328"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 1127100,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -100\n    +175\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:330:48)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 107,
+            "name": "each drag operation should be independent",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:334"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 108,
+            "name": "the position history should reflect all movements",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:340"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12800
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-with-empty-button-configuration",
+        "keyword": "Scenario",
+        "line": 110,
+        "name": "Button group with empty button configuration",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 25700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 48400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 21399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 111,
+            "name": "I have a button group configuration with no buttons",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:438"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 737600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 112,
+            "name": "I attempt to create the button group",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:207"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 671399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 113,
+            "name": "the button group should handle the empty state gracefully",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:347"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1508900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 114,
+            "name": "the bounding box should reflect zero dimensions",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:354"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 720500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 115,
+            "name": "no interactive elements should be present",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:361"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 664800
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12299
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-update-cycle-integration",
+        "keyword": "Scenario",
+        "line": 117,
+        "name": "Button group update cycle integration",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 22699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 43000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 21100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 118,
+            "name": "I have a button group with multiple buttons",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:460"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 808399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 119,
+            "name": "I call the update method with mouse coordinates and click state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:212"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1041599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 120,
+            "name": "all buttons in the group should receive update calls",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:366"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 677399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 121,
+            "name": "drag handling should be processed if enabled",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:372"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 914899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 122,
+            "name": "the group should maintain consistent state across the update cycle",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:380"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 999900
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 11900
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-render-integration",
+        "keyword": "Scenario",
+        "line": 124,
+        "name": "Button group render integration",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 23800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 42300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 28099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 47900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 125,
+            "name": "I have a visible button group with styled buttons",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:488"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 760800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 126,
+            "name": "the render method is called",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:236"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 884400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 127,
+            "name": "the group background should be drawn with correct styling",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:388"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 882899,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_then_steps.js:390:34)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 128,
+            "name": "each button should be rendered in its calculated position",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:394"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 129,
+            "name": "visual effects like transparency and scaling should be applied",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:400"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12799
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-bounds-calculation-accuracy",
+        "keyword": "Scenario",
+        "line": 131,
+        "name": "Button group bounds calculation accuracy",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 35799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 61500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 22599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 132,
+            "name": "I have a button group with varied button sizes and padding",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:515"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 935200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 133,
+            "name": "I request the group's bounding rectangle",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:269"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 745099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 134,
+            "name": "the bounds should encompass all buttons including padding",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:407"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 817700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 135,
+            "name": "the bounds should account for the current scale factor",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:423"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 792900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 136,
+            "name": "the bounds should reflect the actual rendered dimensions",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:434"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1515699
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12500
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "universal-button-group-system;button-group-mouse-interaction-detection",
+        "keyword": "Scenario",
+        "line": 138,
+        "name": "Button group mouse interaction detection",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 30399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group configuration system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:56"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 63199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have an action factory for button behaviors",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:61"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 25599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 21599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 139,
+            "name": "I have a button group with specific bounds",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_given_steps.js:543"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1260899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 140,
+            "name": "I test various mouse positions for interaction",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_when_steps.js:274"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 848799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 141,
+            "name": "points inside the bounds should register as interactive",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:448"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 787000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 142,
+            "name": "points outside the bounds should not register as interactive",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:456"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 867100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 143,
+            "name": "boundary edge cases should be handled correctly",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_then_steps.js:464"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 680999
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 11200
             }
           }
         ],
@@ -169,7 +2495,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 41200
+              "duration": 30799
             }
           },
           {
@@ -182,7 +2508,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1275599
+              "duration": 795999
             }
           },
           {
@@ -195,7 +2521,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 868100
+              "duration": 492100
             }
           },
           {
@@ -208,7 +2534,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 602600
+              "duration": 489199
             }
           },
           {
@@ -221,7 +2547,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1392400
+              "duration": 1279899
             }
           },
           {
@@ -234,7 +2560,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1389699
+              "duration": 1166799
             }
           },
           {
@@ -247,7 +2573,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1155099
+              "duration": 727699
             }
           },
           {
@@ -260,7 +2586,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1289400
+              "duration": 978100
             }
           },
           {
@@ -273,7 +2599,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 2558300
+              "duration": 1770499
             }
           },
           {
@@ -286,7 +2612,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1078599
+              "duration": 1002600
             }
           },
           {
@@ -294,7 +2620,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 22699
+              "duration": 21799
             }
           }
         ],
@@ -313,7 +2639,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 36600
+              "duration": 27800
             }
           },
           {
@@ -326,152 +2652,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 51099
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 8,
-            "name": "I have clean localStorage state",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:74"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 29300
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 9,
-            "name": "I have a mock canvas environment",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:81"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 28000
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 20,
-            "name": "I have a JSON configuration file \"ui-config.json\" with multiple groups",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:101"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 4024999
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "When ",
-            "line": 21,
-            "name": "I load the configuration file into the manager",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_when_steps.js:23"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 2834400
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 22,
-            "name": "the manager should parse the JSON successfully",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:52"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1008199
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 23,
-            "name": "create button groups for each configuration entry",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:62"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1049899
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 24,
-            "name": "handle any configuration validation errors gracefully",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:80"
-            },
-            "result": {
-              "status": "failed",
-              "duration": 2173699,
-              "error_message": "AssertionError\n    + expected - actual\n\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_manager_then_steps.js:86:41)"
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 25,
-            "name": "report successful and failed group creations",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:89"
-            },
-            "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 23800
-            }
-          }
-        ],
-        "tags": [],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "button-group-manager---universal-button-system-controller;managing-multiple-active-button-groups",
-        "keyword": "Scenario",
-        "line": 27,
-        "name": "Managing multiple active button groups",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 34800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 7,
-            "name": "I have a button group manager system",
-            "match": {
-              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:64"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 48199
+              "duration": 58799
             }
           },
           {
@@ -497,7 +2678,152 @@
             },
             "result": {
               "status": "passed",
-              "duration": 27699
+              "duration": 28899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 20,
+            "name": "I have a JSON configuration file \"ui-config.json\" with multiple groups",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:101"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1469999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 21,
+            "name": "I load the configuration file into the manager",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_when_steps.js:23"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1224000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 22,
+            "name": "the manager should parse the JSON successfully",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:52"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1436000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 23,
+            "name": "create button groups for each configuration entry",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:62"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1429900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 24,
+            "name": "handle any configuration validation errors gracefully",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:80"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 1533800,
+              "error_message": "AssertionError\n    + expected - actual\n\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_manager_then_steps.js:86:41)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 25,
+            "name": "report successful and failed group creations",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_then_steps.js:89"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 25300
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "button-group-manager---universal-button-system-controller;managing-multiple-active-button-groups",
+        "keyword": "Scenario",
+        "line": 27,
+        "name": "Managing multiple active button groups",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 27400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "I have a button group manager system",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:64"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 71599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I have clean localStorage state",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:74"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 112300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I have a mock canvas environment",
+            "match": {
+              "location": "test\\behavioral\\steps\\button_group_manager_given_steps.js:81"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 32600
             }
           },
           {
@@ -510,7 +2836,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1420799
+              "duration": 1302900
             }
           },
           {
@@ -523,7 +2849,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 480500
+              "duration": 478500
             }
           },
           {
@@ -536,7 +2862,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1296300
+              "duration": 1113199
             }
           },
           {
@@ -549,7 +2875,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1323499
+              "duration": 1206999
             }
           },
           {
@@ -562,7 +2888,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1463399
+              "duration": 1535999
             }
           },
           {
@@ -575,7 +2901,7 @@
             },
             "result": {
               "status": "failed",
-              "duration": 1072300,
+              "duration": 877299,
               "error_message": "AssertionError: expected null not to be null\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_manager_then_steps.js:122:40)"
             }
           },
@@ -597,7 +2923,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 21700
+              "duration": 20600
             }
           }
         ],
@@ -616,7 +2942,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 36600
+              "duration": 31599
             }
           },
           {
@@ -629,7 +2955,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 53300
+              "duration": 89699
             }
           },
           {
@@ -642,7 +2968,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 29199
+              "duration": 32199
             }
           },
           {
@@ -655,7 +2981,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 45799
+              "duration": 41299
             }
           },
           {
@@ -668,7 +2994,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 291100
+              "duration": 296500
             }
           },
           {
@@ -681,7 +3007,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 916599
+              "duration": 976400
             }
           },
           {
@@ -694,7 +3020,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 856700
+              "duration": 901999
             }
           },
           {
@@ -707,7 +3033,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 813800
+              "duration": 812799
             }
           },
           {
@@ -720,7 +3046,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1451300
+              "duration": 1138599
             }
           },
           {
@@ -733,7 +3059,7 @@
             },
             "result": {
               "status": "failed",
-              "duration": 808500,
+              "duration": 699799,
               "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_manager_then_steps.js:159:34)"
             }
           },
@@ -755,7 +3081,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 46300
+              "duration": 22600
             }
           }
         ],
@@ -774,7 +3100,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 39200
+              "duration": 25899
             }
           },
           {
@@ -787,7 +3113,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 68999
+              "duration": 57800
             }
           },
           {
@@ -800,7 +3126,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 29700
+              "duration": 28300
             }
           },
           {
@@ -813,7 +3139,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 28800
+              "duration": 27100
             }
           },
           {
@@ -826,7 +3152,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1681499
+              "duration": 1288800
             }
           },
           {
@@ -839,7 +3165,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 2115699
+              "duration": 1169199
             }
           },
           {
@@ -852,7 +3178,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 2836400
+              "duration": 1024800
             }
           },
           {
@@ -865,7 +3191,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 980999
+              "duration": 648800
             }
           },
           {
@@ -878,7 +3204,7 @@
             },
             "result": {
               "status": "failed",
-              "duration": 1223600,
+              "duration": 795699,
               "error_message": "AssertionError\n    + expected - actual\n\n    -455\n    +300\n\n    at CustomWorld.<anonymous> (C:\\Users\\willm\\OneDrive\\Desktop\\Classes\\Class Repo\\softwareEngineering_teamDelta\\test\\behavioral\\steps\\button_group_manager_then_steps.js:184:44)"
             }
           },
@@ -900,7 +3226,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 15499
+              "duration": 15100
             }
           }
         ],
@@ -919,7 +3245,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 29099
+              "duration": 28000
             }
           },
           {
@@ -932,7 +3258,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 111000
+              "duration": 65800
             }
           },
           {
@@ -945,7 +3271,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 32099
+              "duration": 28599
             }
           },
           {
@@ -958,7 +3284,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 29900
+              "duration": 29199
             }
           },
           {
@@ -971,7 +3297,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1261799
+              "duration": 1117600
             }
           },
           {
@@ -984,7 +3310,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 2575899
+              "duration": 1645299
             }
           },
           {
@@ -997,7 +3323,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1337099
+              "duration": 1067099
             }
           },
           {
@@ -1010,7 +3336,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 676100
+              "duration": 596700
             }
           },
           {
@@ -1023,7 +3349,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 786699
+              "duration": 552199
             }
           },
           {
@@ -1036,7 +3362,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 948600
+              "duration": 674199
             }
           },
           {
@@ -1044,7 +3370,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 16700
+              "duration": 17500
             }
           }
         ],
@@ -1063,7 +3389,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 31700
+              "duration": 22300
             }
           },
           {
@@ -1089,7 +3415,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 27799
+              "duration": 30500
             }
           },
           {
@@ -1102,7 +3428,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 27199
+              "duration": 27399
             }
           },
           {
@@ -1115,7 +3441,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1331799
+              "duration": 1288399
             }
           },
           {
@@ -1128,7 +3454,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 888199
+              "duration": 827499
             }
           },
           {
@@ -1141,7 +3467,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 746399
+              "duration": 1117899
             }
           },
           {
@@ -1154,7 +3480,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 724700
+              "duration": 862199
             }
           },
           {
@@ -1167,7 +3493,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 734400
+              "duration": 1079200
             }
           },
           {
@@ -1180,7 +3506,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 867899
+              "duration": 1312500
             }
           },
           {
@@ -1188,7 +3514,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 14400
+              "duration": 40200
             }
           }
         ],
@@ -1207,7 +3533,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 57199
+              "duration": 28199
             }
           },
           {
@@ -1220,7 +3546,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 46100
+              "duration": 66199
             }
           },
           {
@@ -1233,7 +3559,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 28699
+              "duration": 28899
             }
           },
           {
@@ -1246,7 +3572,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 27499
+              "duration": 26999
             }
           },
           {
@@ -1259,7 +3585,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 822100
+              "duration": 803899
             }
           },
           {
@@ -1272,7 +3598,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1405799
+              "duration": 1284200
             }
           },
           {
@@ -1285,7 +3611,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 855500
+              "duration": 811800
             }
           },
           {
@@ -1298,7 +3624,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 776999
+              "duration": 613299
             }
           },
           {
@@ -1311,7 +3637,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 887099
+              "duration": 793800
             }
           },
           {
@@ -1324,7 +3650,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 666000
+              "duration": 684700
             }
           },
           {
@@ -1332,7 +3658,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 18300
+              "duration": 32300
             }
           }
         ],
@@ -1351,7 +3677,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 33799
+              "duration": 21200
             }
           },
           {
@@ -1364,7 +3690,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 49999
+              "duration": 54099
             }
           },
           {
@@ -1377,7 +3703,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 31599
+              "duration": 29400
             }
           },
           {
@@ -1390,7 +3716,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 29700
+              "duration": 50399
             }
           },
           {
@@ -1403,7 +3729,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1217599
+              "duration": 1182299
             }
           },
           {
@@ -1416,7 +3742,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 703099
+              "duration": 658599
             }
           },
           {
@@ -1429,7 +3755,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 944799
+              "duration": 832300
             }
           },
           {
@@ -1442,7 +3768,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 636900
+              "duration": 608600
             }
           },
           {
@@ -1455,7 +3781,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 712500
+              "duration": 605799
             }
           },
           {
@@ -1468,7 +3794,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 663800
+              "duration": 588100
             }
           },
           {
@@ -1481,7 +3807,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 684700
+              "duration": 680100
             }
           },
           {
@@ -1494,7 +3820,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 753500
+              "duration": 765300
             }
           },
           {
@@ -1502,7 +3828,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 18199
+              "duration": 17900
             }
           }
         ],
@@ -1521,7 +3847,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 23599
+              "duration": 27100
             }
           },
           {
@@ -1534,7 +3860,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 79899
+              "duration": 67299
             }
           },
           {
@@ -1547,7 +3873,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 49099
+              "duration": 32100
             }
           },
           {
@@ -1560,7 +3886,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 40399
+              "duration": 32299
             }
           },
           {
@@ -1573,7 +3899,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1331199
+              "duration": 1441599
             }
           },
           {
@@ -1586,7 +3912,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1375899
+              "duration": 1410700
             }
           },
           {
@@ -1599,7 +3925,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 818399
+              "duration": 1086599
             }
           },
           {
@@ -1612,7 +3938,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 984700
+              "duration": 976099
             }
           },
           {
@@ -1625,7 +3951,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 648099
+              "duration": 623600
             }
           },
           {
@@ -1638,7 +3964,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 735500
+              "duration": 831199
             }
           },
           {
@@ -1651,7 +3977,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 670500
+              "duration": 739499
             }
           },
           {
@@ -1664,7 +3990,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1064200
+              "duration": 1170499
             }
           },
           {
@@ -1672,7 +3998,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 42799
+              "duration": 23599
             }
           }
         ],
@@ -1691,7 +4017,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 21100
+              "duration": 40499
             }
           },
           {
@@ -1704,7 +4030,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 45800
+              "duration": 76099
             }
           },
           {
@@ -1717,7 +4043,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 24800
+              "duration": 27699
             }
           },
           {
@@ -1730,7 +4056,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 25499
+              "duration": 25699
             }
           },
           {
@@ -1743,7 +4069,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 857499
+              "duration": 1190299
             }
           },
           {
@@ -1756,7 +4082,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1516300
+              "duration": 2233499
             }
           },
           {
@@ -1769,7 +4095,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1009999
+              "duration": 745000
             }
           },
           {
@@ -1782,7 +4108,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 733600
+              "duration": 721599
             }
           },
           {
@@ -1795,7 +4121,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 579900
+              "duration": 506399
             }
           },
           {
@@ -1808,7 +4134,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 834100
+              "duration": 730800
             }
           },
           {
@@ -1816,7 +4142,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 20200
+              "duration": 21799
             }
           }
         ],
@@ -1835,7 +4161,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 28399
+              "duration": 29100
             }
           },
           {
@@ -1848,7 +4174,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 53999
+              "duration": 44700
             }
           },
           {
@@ -1861,7 +4187,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 25200
+              "duration": 23500
             }
           },
           {
@@ -1874,7 +4200,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 21600
+              "duration": 20500
             }
           },
           {
@@ -1887,7 +4213,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1701800
+              "duration": 1509300
             }
           },
           {
@@ -1900,7 +4226,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 865000
+              "duration": 765099
             }
           },
           {
@@ -1913,7 +4239,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 631799
+              "duration": 613499
             }
           },
           {
@@ -1926,7 +4252,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 711300
+              "duration": 708400
             }
           },
           {
@@ -1939,7 +4265,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 672500
+              "duration": 1189099
             }
           },
           {
@@ -1952,7 +4278,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 770499
+              "duration": 1200800
             }
           },
           {
@@ -1965,7 +4291,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 671299
+              "duration": 697799
             }
           },
           {
@@ -1973,7 +4299,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 19599
+              "duration": 16300
             }
           }
         ],
@@ -1992,7 +4318,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 20699
+              "duration": 36399
             }
           },
           {
@@ -2005,7 +4331,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 37199
+              "duration": 65400
             }
           },
           {
@@ -2018,7 +4344,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 23299
+              "duration": 33699
             }
           },
           {
@@ -2031,7 +4357,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 35200
+              "duration": 29599
             }
           },
           {
@@ -2044,7 +4370,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 861500
+              "duration": 1259999
             }
           },
           {
@@ -2057,7 +4383,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 829000
+              "duration": 1246799
             }
           },
           {
@@ -2070,7 +4396,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 800499
+              "duration": 823599
             }
           },
           {
@@ -2083,7 +4409,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 920399
+              "duration": 985599
             }
           },
           {
@@ -2096,7 +4422,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 559599
+              "duration": 664800
             }
           },
           {
@@ -2109,7 +4435,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 732200
+              "duration": 555100
             }
           },
           {
@@ -2122,7 +4448,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1153900
+              "duration": 609699
             }
           },
           {
@@ -2130,7 +4456,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 30899
+              "duration": 16699
             }
           }
         ],
@@ -2149,7 +4475,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 22899
+              "duration": 24599
             }
           },
           {
@@ -2162,7 +4488,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 46000
+              "duration": 42599
             }
           },
           {
@@ -2175,7 +4501,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 24400
+              "duration": 24200
             }
           },
           {
@@ -2188,7 +4514,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 22100
+              "duration": 21300
             }
           },
           {
@@ -2201,7 +4527,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1050600
+              "duration": 813300
             }
           },
           {
@@ -2214,7 +4540,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 788199
+              "duration": 765699
             }
           },
           {
@@ -2227,7 +4553,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1546799
+              "duration": 1248700
             }
           },
           {
@@ -2240,7 +4566,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 962199
+              "duration": 1465699
             }
           },
           {
@@ -2253,7 +4579,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1172900
+              "duration": 986999
             }
           },
           {
@@ -2266,7 +4592,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 608600
+              "duration": 603399
             }
           },
           {
@@ -2279,7 +4605,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 918700
+              "duration": 1010099
             }
           },
           {
@@ -2287,7 +4613,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 14900
+              "duration": 28500
             }
           }
         ],
@@ -2306,7 +4632,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 20199
+              "duration": 26299
             }
           },
           {
@@ -2319,7 +4645,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 37100
+              "duration": 60899
             }
           },
           {
@@ -2332,7 +4658,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 24499
+              "duration": 25800
             }
           },
           {
@@ -2345,7 +4671,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 21200
+              "duration": 20800
             }
           },
           {
@@ -2358,7 +4684,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1179600
+              "duration": 1467599
             }
           },
           {
@@ -2371,7 +4697,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 910700
+              "duration": 957799
             }
           },
           {
@@ -2384,7 +4710,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 728700
+              "duration": 693700
             }
           },
           {
@@ -2397,7 +4723,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 547399
+              "duration": 681299
             }
           },
           {
@@ -2410,7 +4736,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 707500
+              "duration": 699599
             }
           },
           {
@@ -2423,7 +4749,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 802299
+              "duration": 671300
             }
           },
           {
@@ -2436,7 +4762,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 736100
+              "duration": 804799
             }
           },
           {
@@ -2444,7 +4770,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 16799
+              "duration": 28800
             }
           }
         ],
@@ -2474,7 +4800,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 25000
+              "duration": 23700
             }
           },
           {
@@ -2562,7 +4888,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 12900
+              "duration": 10199
             }
           }
         ],
@@ -2581,7 +4907,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 23199
+              "duration": 24700
             }
           },
           {
@@ -2659,7 +4985,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 8500
+              "duration": 8600
             }
           }
         ],
@@ -2678,7 +5004,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 17799
+              "duration": 31599
             }
           },
           {
@@ -2766,7 +5092,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 5899
+              "duration": 8499
             }
           }
         ],
@@ -2785,7 +5111,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 19400
+              "duration": 22499
             }
           },
           {
@@ -2873,7 +5199,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 7899
+              "duration": 7200
             }
           }
         ],
@@ -2903,7 +5229,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 20499
+              "duration": 22099
             }
           },
           {
@@ -3011,7 +5337,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 9800
+              "duration": 24599
             }
           }
         ],
@@ -3030,7 +5356,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 26200
+              "duration": 35699
             }
           },
           {
@@ -3118,7 +5444,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 12500
+              "duration": 17499
             }
           }
         ],
@@ -3137,7 +5463,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 19900
+              "duration": 28999
             }
           },
           {
@@ -3225,7 +5551,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 11500
+              "duration": 7800
             }
           }
         ],
@@ -3244,7 +5570,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 17699
+              "duration": 33500
             }
           },
           {
@@ -3332,7 +5658,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 6100
+              "duration": 8000
             }
           }
         ],
