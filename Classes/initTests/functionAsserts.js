@@ -82,7 +82,7 @@ class FunctionAsserts {
             { name: 'g_map2', type: 'object', critical: true },
             { name: 'g_resourceList', type: 'object', critical: true },
             { name: 'ants', type: 'object', critical: true },
-            { name: 'antIndex', type: 'number', critical: true }
+            { name: 'g_uiDebugManager', type: 'object', critical: true }
         ];
 
         const missing = [];

@@ -5,21 +5,22 @@
   "main": "sketch.js",
   "scripts": {
     "test": "npm run test:all",
-    "test:all": "npm run test:rendering-bdd",
+    "test:all": "npm run test:rendering-bdd && npm run test:behave",
     "test:rendering-bdd": "node test/rendering/run_tests.js",
+    "test:behave": "npx cucumber-js",
+    "test:behave:dev": "npx cucumber-js --profile dev",
+    "test:behave:ci": "npx cucumber-js --profile ci",
+    "test:button-group": "npx cucumber-js test/behavioral/features/button_group_management.feature",
     "test:statemachine": "node test/AntStateMachine.test.js",
     "test:selection": "node test/selectionBox.node.test.js",
     "test:ant": "node test/ant.test.js",
     "test:sprite2d": "node test/sprite2d.test.js",
-
     "test:selection-comprehensive": "node test/selectionBox.comprehensive.test.js",
     "test:selection-regression": "node test/selectionBox.regression.test.js",
-
-
     "test:antmanager": "node test/antManager.test.js",
     "test:resourcemanager": "node test/g_resourceManager.test.js",
     "test:button": "node test/button.test.js",
-  "test:vertical": "node test/verticalButtonList.test.js && node test/verticalButtonList.header.test.js",
+    "test:vertical": "node test/verticalButtonList.test.js && node test/verticalButtonList.header.test.js",
     "test:collisionbox2d": "node test/collisionBox2D.test.js",
     "test:movementcontroller": "node test/movementController.test.js",
     "test:taskmanager": "node test/taskManager.test.js",
@@ -40,7 +41,8 @@
   "devDependencies": {
     "mocha": "^10.2.0",
     "chai": "^4.3.10",
-    "jsdom": "^22.1.0"
+    "jsdom": "^22.1.0",
+    "@cucumber/cucumber": "^9.5.0"
   },
   "engines": {
     "node": ">=14.0.0"
