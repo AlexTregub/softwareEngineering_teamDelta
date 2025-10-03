@@ -738,12 +738,8 @@ class AdaptiveFramebufferManager {
   }
 }
 
-// Create global instance
-const FramebufferManager = new FramebufferManager();
-
 // Export for browser environments
 if (typeof window !== 'undefined') {
-  window.FramebufferManager = FramebufferManager;
   window.AdaptiveFramebufferManager = AdaptiveFramebufferManager;
 }
 

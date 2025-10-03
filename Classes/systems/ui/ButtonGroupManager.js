@@ -7,7 +7,7 @@
  * @version 1.0.0
  */
 
-const ButtonGroup = require('./ButtonGroup.js');
+// ButtonGroup class should be loaded via script tag in index.html
 
 /**
  * ButtonGroupManager - Central coordinator for multiple button groups
@@ -105,19 +105,31 @@ class ButtonGroupManager {
    * @returns {ButtonGroup} Created button group instance
    */
   createButtonGroup(config) {
+    console.log(`🏭 ButtonGroupManager.createButtonGroup called for: ${config?.id || 'unknown'}`);
+    
     // Validate configuration
     if (!config || typeof config !== 'object') {
       throw new Error('Button group configuration must be a valid object');
     }
+    console.log(`✅ ButtonGroupManager config validation passed for: ${config.id}`);
+    
     if (!config.id || typeof config.id !== 'string') {
       throw new Error('Button group configuration must have a valid string ID');
     }
+    console.log(`✅ ButtonGroupManager ID validation passed for: ${config.id}`);
+    
     if (this.activeGroups.has(config.id)) {
       throw new Error(`Button group with ID '${config.id}' already exists`);
     }
+    console.log(`✅ ButtonGroupManager duplicate check passed for: ${config.id}`);
 
     // Create button group using real ButtonGroup class
+    console.log(`🚀 ButtonGroupManager about to create ButtonGroup for: ${config.id}`);
+    console.log(`   Config:`, config);
+    console.log(`   ActionFactory:`, this.actionFactory);
+    
     const buttonGroup = new ButtonGroup(config, this.actionFactory);
+    console.log(`✅ ButtonGroupManager ButtonGroup created successfully for: ${config.id}`);
     
     // Register in active groups
     this.activeGroups.set(config.id, {
@@ -496,6 +508,86 @@ class ButtonGroupManager {
   getActiveGroupCount() {
     return this.activeGroups.size;
   }
+
+  /**
+   * Update all active button groups
+   * 
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position  
+   * @param {boolean} mousePressed - Whether mouse is currently pressed
+   */
+  update(mouseX, mouseY, mousePressed) {
+    if (!this.isInitialized) {
+      return;
+    }
+
+    // Update each active button group
+    for (const [groupId, groupEntry] of this.activeGroups) {
+      if (groupEntry.instance && typeof groupEntry.instance.update === 'function') {
+        try {
+          groupEntry.instance.update(mouseX, mouseY, mousePressed);
+        } catch (error) {
+          console.error(`❌ Error updating button group ${groupId}:`, error);
+        }
+      }
+    }
+  }
+
+  /**
+   * Render all active button groups
+   * 
+   * @param {Object} renderContext - Optional rendering context/settings
+   */
+  render(renderContext = {}) {
+    if (!this.isInitialized) {
+      return;
+    }
+
+    // Render each active button group
+    for (const [groupId, groupEntry] of this.activeGroups) {
+      if (groupEntry.instance && typeof groupEntry.instance.render === 'function') {
+        try {
+          groupEntry.instance.render(renderContext);
+        } catch (error) {
+          console.error(`❌ Error rendering button group ${groupId}:`, error);
+        }
+      }
+    }
+  }
+
+  /**
+   * Handle mouse click events for all button groups
+   * 
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @returns {boolean} True if any button was clicked
+   */
+  handleClick(mouseX, mouseY) {
+    if (!this.isInitialized) {
+      return false;
+    }
+
+    let clickHandled = false;
+
+    // Check each active button group for clicks
+    for (const [groupId, groupEntry] of this.activeGroups) {
+      if (groupEntry.instance && typeof groupEntry.instance.handleClick === 'function') {
+        try {
+          if (groupEntry.instance.handleClick(mouseX, mouseY)) {
+            clickHandled = true;
+            break; // Only handle first click
+          }
+        } catch (error) {
+          console.error(`❌ Error handling click for button group ${groupId}:`, error);
+        }
+      }
+    }
+
+    return clickHandled;
+  }
 }
 
-module.exports = ButtonGroupManager;
+// Export for Node.js environments only
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = ButtonGroupManager;
+}

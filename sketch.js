@@ -23,7 +23,6 @@ let g_menuFont;
 // --- IDK! ----
 let g_recordingPath;
 
-
 /**
  * preload
  * -------
@@ -79,6 +78,9 @@ function setup() {
   try {
       g_resourceManager.forceSpawn();
   } catch (e) { /* non-fatal; spawner will populate via interval */ }
+
+  // Initialize Universal Button Group System
+  initializeUniversalButtonSystem();
 }
 
 /**
@@ -136,7 +138,15 @@ function draw() {
     RenderManager.render(GameState.getState());
   }
 
-  
+  // Update button groups (rendering handled by RenderLayerManager)
+  if (window.buttonGroupManager && 
+      typeof window.buttonGroupManager.update === 'function') {
+    try {
+      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+    } catch (error) {
+      console.error('❌ Error updating button group system:', error);
+    }
+  }
 }
 
 /**
@@ -163,6 +173,18 @@ function mousePressed() {
     const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
     if (handled) return;
   }
+  
+  // Handle Universal Button Group System clicks
+  if (window.buttonGroupManager && 
+      typeof window.buttonGroupManager.handleClick === 'function') {
+    try {
+      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
+      if (handled) return; // Button was clicked, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling button click:', error);
+    }
+  }
+  
   handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton);
 }
 
@@ -211,6 +233,48 @@ function keyPressed() {
     }
   }
   
+  // Handle render layer toggles (Shift + C/V/B/N/M)
+  if (keyIsDown(SHIFT) && typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
+    let handled = false;
+    
+    switch (key.toLowerCase()) {
+      case 'c': // Shift+C - Toggle TERRAIN layer
+        RenderManager.toggleLayer('terrain');
+        handled = true;
+        break;
+      case 'v': // Shift+V - Toggle ENTITIES layer
+        RenderManager.toggleLayer('entities');
+        handled = true;
+        break;
+      case 'b': // Shift+B - Toggle EFFECTS layer
+        RenderManager.toggleLayer('effects');
+        handled = true;
+        break;
+      case 'n': // Shift+N - Toggle UI_GAME layer
+        RenderManager.toggleLayer('ui_game');
+        handled = true;
+        break;
+      case 'm': // Shift+M - Toggle UI_DEBUG layer
+        RenderManager.toggleLayer('ui_debug');
+        handled = true;
+        break;
+      case ',': // Shift+, - Toggle UI_MENU layer (comma key)
+        RenderManager.toggleLayer('ui_menu');
+        handled = true;
+        break;
+      case '.': // Shift+. - Enable all layers (period key)
+        RenderManager.enableAllLayers();
+        handled = true;
+        break;
+    }
+    
+    if (handled) {
+      // Display current layer states
+      console.log('🔧 Layer States:', RenderManager.getLayerStates());
+      return; // Layer toggle was handled, don't process further
+    }
+  }
+  
   // Handle all debug-related keys (unified debug system handles both console and UI debug)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
@@ -256,6 +320,17 @@ function debugRender() {
   }
   if (typeof g_resourceList !== 'undefined' && g_resourceList && g_resourceList.resources) {
     text(`Resources: ${g_resourceList.resources.length || 0}`, 10, debugY += 15);
+  }
+  
+  // Display render layer toggle information
+  if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
+    debugY += 10; // Extra spacing
+    text('Layer Toggles (Shift+Key):', 10, debugY += 15);
+    const layerStates = g_renderLayerManager.getLayerStates();
+    text(`C=Terrain:${layerStates.TERRAIN ? 'ON' : 'OFF'} V=Entities:${layerStates.ENTITIES ? 'ON' : 'OFF'}`, 10, debugY += 15);
+    text(`B=Effects:${layerStates.EFFECTS ? 'ON' : 'OFF'} N=UI_Game:${layerStates.UI_GAME ? 'ON' : 'OFF'}`, 10, debugY += 15);
+    text(`M=UI_Debug:${layerStates.UI_DEBUG ? 'ON' : 'OFF'} ,=UI_Menu:${layerStates.UI_MENU ? 'ON' : 'OFF'}`, 10, debugY += 15);
+    text(`Shift+. = Enable All Layers`, 10, debugY += 15);
   }
   
   pop();

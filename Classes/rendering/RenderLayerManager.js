@@ -14,6 +14,9 @@ class RenderLayerManager {
     // Layer rendering functions
     this.layerRenderers = new Map();
     
+    // Layer toggle state for debugging
+    this.disabledLayers = new Set();
+    
     // Performance tracking
     this.renderStats = {
       frameCount: 0,
@@ -70,8 +73,14 @@ class RenderLayerManager {
     // Determine which layers to render based on game state
     const layersToRender = this.getLayersForState(gameState);
     
-    // Render each layer in order
+    // Render each layer in order (skip disabled layers)
     for (const layerName of layersToRender) {
+      // Skip disabled layers
+      if (this.disabledLayers.has(layerName)) {
+        if (layerName == this.layers.TERRAIN) { background(0); }
+        continue;
+      }
+      
       const layerStart = performance.now();
       
       const renderer = this.layerRenderers.get(layerName);
@@ -195,6 +204,9 @@ class RenderLayerManager {
       if (gameState === 'PAUSED') { this.renderPauseOverlay(); } 
       if (gameState === 'GAME_OVER') { this.renderGameOverOverlay();  }
     }
+    
+    // Render Universal Button Group System (always on top of other UI)
+    this.renderButtonGroups(gameState);
   }
   
   /**
@@ -393,10 +405,139 @@ class RenderLayerManager {
       layerTimes: {}
     };
   }
+  
+  /**
+   * Render Universal Button Group System
+   * Integrated into the UI rendering pipeline
+   * @private
+   */
+  renderButtonGroups(gameState) {
+    // Only render buttons in appropriate game states (including MENU for testing)
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU'].includes(gameState)) {
+      console.log(`🚫 Not rendering buttons for game state: ${gameState}`);
+      return;
+    }
+    
+    console.log(`🎯 renderButtonGroups called for state: ${gameState}`);
+    
+    // Check if Universal Button Group System is available
+    if (typeof window !== 'undefined' && 
+        window.buttonGroupManager && 
+        typeof window.buttonGroupManager.render === 'function') {
+      
+      try {
+        // Set up state bridge for button groups (uppercase -> lowercase conversion)
+        const stateMapping = {
+          'PLAYING': 'playing',
+          'PAUSED': 'paused',
+          'GAME_OVER': 'gameOver',
+          'MENU': 'menu',
+          'DEBUG_MENU': 'debug'
+        };
+        
+        // Set the current game state for button group conditions
+        window.currentGameState = stateMapping[gameState] || gameState.toLowerCase();
+        window.gameState = window.currentGameState; // Fallback
+        
+        // Debug logging (can be removed later)
+        if (this.debugButtonGroups !== true) {
+          console.log(`🎯 Rendering button groups: ${gameState} -> ${window.currentGameState}`);
+          console.log(`📊 Button groups active: ${window.buttonGroupManager.getActiveGroupCount()}`);
+          this.debugButtonGroups = true; // Only log once to avoid spam
+        }
+        
+        // Render the button groups on top of other UI elements
+        window.buttonGroupManager.render({
+          gameState: gameState,
+          layerName: 'ui_game',
+          zIndex: 1000 // Ensure buttons render on top
+        });
+      } catch (error) {
+        console.error('❌ Error rendering button groups in UI layer:', error);
+      }
+    }
+  }
+  
+  /**
+   * Toggle a specific render layer on/off
+   * @param {string} layerName - The layer to toggle
+   */
+  toggleLayer(layerName) {
+    if (this.disabledLayers.has(layerName)) {
+      this.disabledLayers.delete(layerName);
+      console.log(`🔵 Layer enabled: ${layerName}`);
+    } else {
+      this.disabledLayers.add(layerName);
+      console.log(`🔴 Layer disabled: ${layerName}`);
+    }
+    return !this.disabledLayers.has(layerName);
+  }
+  
+  /**
+   * Enable a specific render layer
+   * @param {string} layerName - The layer to enable
+   * @returns {boolean} True if layer is now enabled
+   */
+  enableLayer(layerName) {
+    if (this.disabledLayers.has(layerName)) {
+      this.disabledLayers.delete(layerName);
+      console.log(`🔵 Layer enabled: ${layerName}`);
+    }
+    return true; // Layer is now enabled
+  }
+  
+  /**
+   * Disable a specific render layer
+   * @param {string} layerName - The layer to disable
+   * @returns {boolean} True if layer is now disabled
+   */
+  disableLayer(layerName) {
+    if (!this.disabledLayers.has(layerName)) {
+      this.disabledLayers.add(layerName);
+      console.log(`🔴 Layer disabled: ${layerName}`);
+    }
+    return false; // Layer is now disabled (returns the enabled state)
+  }
+  
+  /**
+   * Check if a layer is enabled
+   * @param {string} layerName - The layer to check
+   * @returns {boolean} True if layer is enabled
+   */
+  isLayerEnabled(layerName) {
+    return !this.disabledLayers.has(layerName);
+  }
+  
+  /**
+   * Get current layer toggle states for debugging
+   * @returns {Object} Layer states
+   */
+  getLayerStates() {
+    const states = {};
+    Object.values(this.layers).forEach(layer => {
+      states[layer] = this.isLayerEnabled(layer);
+    });
+    return states;
+  }
+  
+  /**
+   * Reset all layers to enabled
+   */
+  enableAllLayers() {
+    this.disabledLayers.clear();
+    console.log('🔵 All layers enabled');
+  }
 }
 
 // Create global instance
 const RenderManager = new RenderLayerManager();
+
+// Create global variable for compatibility
+if (typeof window !== 'undefined') {
+  window.g_renderLayerManager = RenderManager;
+} else if (typeof global !== 'undefined') {
+  global.g_renderLayerManager = RenderManager;
+}
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {

@@ -1,0 +1,226 @@
+{
+  "timestamp": "2025-10-03 18:05:54",
+  "total_tests": 8,
+  "passed_tests": 6,
+  "results": [
+    {
+      "test": "Button System Initialization",
+      "passed": true,
+      "details": {
+        "Button class": true,
+        "ButtonGroup class": true,
+        "ButtonGroupManager": true,
+        "GameActionFactory": true,
+        "RenderLayerManager": true
+      }
+    },
+    {
+      "test": "JSON Config Loading",
+      "passed": true,
+      "details": {
+        "error": null,
+        "initFunctionAvailable": true,
+        "testGroupCreated": true,
+        "testGroupId": "test-group"
+      }
+    },
+    {
+      "test": "Button Group Creation",
+      "passed": true,
+      "details": {
+        "activeGroupCount": 2,
+        "creationErrors": [],
+        "diagnostics": {
+          "activeGroups": [
+            {
+              "buttonCount": 1,
+              "createdAt": 1759529140257,
+              "id": "default-menu-nav",
+              "lastInteraction": 0,
+              "position": {
+                "x": 60,
+                "y": 60
+              },
+              "renderCount": 0,
+              "visible": true
+            },
+            {
+              "buttonCount": 1,
+              "createdAt": 1759529145187,
+              "id": "test-group",
+              "lastInteraction": 0,
+              "position": {
+                "x": 100,
+                "y": 100
+              },
+              "renderCount": 0,
+              "visible": true
+            }
+          ],
+          "creationErrors": 0,
+          "isInitialized": true,
+          "lastInteractionTime": 0,
+          "lastRenderTime": 0,
+          "options": {
+            "canvasHeight": 800,
+            "canvasWidth": 1200,
+            "debugMode": false,
+            "enableCulling": true
+          },
+          "performanceMetrics": {
+            "interactionChecksThisFrame": 0,
+            "renderCallsThisFrame": 0,
+            "totalGroups": 1
+          },
+          "totalActiveGroups": 2
+        },
+        "isInitialized": true,
+        "managerOptions": {
+          "canvasHeight": 800,
+          "canvasWidth": 1200,
+          "debugMode": false,
+          "enableCulling": true
+        }
+      }
+    },
+    {
+      "test": "Button Rendering",
+      "passed": true,
+      "details": {
+        "console_logs": 0,
+        "rendering_logs": 0,
+        "visibility_test": {
+          "activeGroupsCount": 2,
+          "buttonManagerAvailable": true,
+          "gameState": "MENU",
+          "renderManagerAvailable": true
+        }
+      }
+    },
+    {
+      "test": "Game State Transitions",
+      "passed": true,
+      "details": {
+        "MENU": {
+          "gameState": "MENU",
+          "totalGroups": 2,
+          "visibleGroups": 2
+        },
+        "PLAYING": {
+          "gameState": "PLAYING",
+          "totalGroups": 2,
+          "visibleGroups": 2
+        },
+        "DEBUG_MENU": {
+          "gameState": "DEBUG_MENU",
+          "totalGroups": 2,
+          "visibleGroups": 2
+        }
+      }
+    },
+    {
+      "test": "Debug Button Click",
+      "passed": false,
+      "details": {
+        "button_found": true,
+        "button_info": {
+          "button": {
+            "height": 30,
+            "id": "debug-toggle",
+            "text": "\ud83d\udd27 Debug",
+            "visible": true,
+            "width": 80,
+            "x": 60,
+            "y": 60
+          },
+          "found": true,
+          "group": {
+            "id": "default-menu-nav",
+            "position": {
+              "x": 60,
+              "y": 60
+            }
+          },
+          "totalGroups": 2
+        },
+        "console_logs_generated": 0
+      }
+    },
+    {
+      "test": "Button Drag Functionality",
+      "passed": false,
+      "details": {
+        "draggable_groups_found": true,
+        "draggable_info": {
+          "draggableGroups": [
+            {
+              "bounds": {
+                "height": 50,
+                "width": 100,
+                "x": 60,
+                "y": 60
+              },
+              "draggable": true,
+              "id": "default-menu-nav",
+              "name": "Default Menu Navigation",
+              "position": {
+                "x": 60,
+                "y": 60
+              }
+            },
+            {
+              "bounds": {
+                "height": 50,
+                "width": 100,
+                "x": 100,
+                "y": 100
+              },
+              "draggable": true,
+              "id": "test-group",
+              "name": "Test Group",
+              "position": {
+                "x": 100,
+                "y": 100
+              }
+            }
+          ],
+          "found": true,
+          "totalGroups": 2
+        },
+        "position_changed": false,
+        "drag_logs_count": 0
+      }
+    },
+    {
+      "test": "Button Interaction",
+      "passed": true,
+      "details": {
+        "Top-left (game controls area)": {
+          "position": [
+            60,
+            40
+          ],
+          "new_console_logs": 0,
+          "success": true
+        },
+        "Top-center (resource display area)": {
+          "position": [
+            593,
+            30
+          ],
+          "new_console_logs": 0,
+          "success": true
+        },
+        "Right-center (entity actions area)": {
+          "position": [
+            1127,
+            327
+          ],
+          "new_console_logs": 0,
+          "success": false,
+          "error": "Message: move target out of bounds\n  (Session info: chrome=140.0.7339.210)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff763dafc95+79861]\n\tGetHandleVerifier [0x0x7ff763dafcf0+79952]\n\t(No symbol) [0x0x7ff763b2c8fc]\n\t(No symbol) [0x0x7ff763be03fc]\n\t(No symbol) [0x0x7ff763bacada]\n\t(No symbol) [0x0x7ff763bd4f8b]\n\t(No symbol) [0x0x7ff763bac8b3]\n\t(No symbol) [0x0x7ff763b75272]\n\t(No symbol) [0x0x7ff763b76043]\n\tGetHandleVerifier [0x0x7ff76406b9cd+2946349]\n\tGetHandleVerifier [0x0x7ff764065c4a+2922410]\n\tGetHandleVerifier [0x0x7ff7640859d7+3052855]\n\tGetHandleVerifier [0x0x7ff763dcaa7e+189918]\n\tGetHandleVerifier [0x0x7ff763dd2a1f+222591]\n\tGetHandleVerifier [0x0x7ff763db8ab4+116244]\n\tGetHandleVerifier [0x0x7ff763db8c69+116681]\n\tGetHandleVerifier [0x0x7ff763d9f048+11176]\n\tBaseThreadInitThunk [0x0x7ffad4f8e8d7+23]\n\tRtlUserThreadStart [0x0x7ffad6b28d9c+44]\n"
+        }
+      }
+    }
+  ]
+}

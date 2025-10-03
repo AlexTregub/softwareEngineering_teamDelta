@@ -435,14 +435,27 @@ const ButtonStyles = {
     borderColor: '#4A148C',
     borderWidth: 2,
     cornerRadius: 8
+  },
+  
+  // Universal Button Group System - Dynamic styling
+  DYNAMIC: {
+    backgroundColor: '#4A5568',
+    hoverColor: '#2D3748',
+    textColor: '#FFFFFF',
+    borderColor: '#718096',
+    borderWidth: 1,
+    cornerRadius: 6,
+    fontSize: 14
   }
 };
 
-// Make ButtonStyles globally available
+// Make Button class and ButtonStyles globally available
 if (typeof window !== 'undefined') {
+  window.Button = Button;
   window.ButtonStyles = ButtonStyles;
 }
 if (typeof global !== 'undefined') {
+  global.Button = Button;
   global.ButtonStyles = ButtonStyles;
 }
 

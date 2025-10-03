@@ -9,7 +9,7 @@
  */
 
 // Example integration for UILayerRenderer class
-class UILayerRenderer {
+class UILayerRendererDebugIntegration {
   constructor() {
     // ... existing constructor code ...
     

@@ -7,13 +7,9 @@
  * @version 1.0.0
  */
 
-// Import all system components
-const ButtonGroup = require('./ButtonGroup.js');
-const ButtonGroupManager = require('./ButtonGroupManager.js');
-const ButtonGroupConfigLoader = require('./ButtonGroupConfigLoader.js');
-const { UIQuadTree } = require('./UIQuadTree.js');
-const { UIObjectPoolManager } = require('./UIObjectPoolManager.js');
-const { UIVisibilityCuller } = require('./UIVisibilityCuller.js');
+// All system components should be loaded via script tags in index.html
+// ButtonGroupManager, ButtonGroupConfigLoader, UIQuadTree, UIObjectPoolManager, UIVisibilityCuller
+// are all loaded via index.html script tags
 
 /**
  * Universal Button System - Main integration class

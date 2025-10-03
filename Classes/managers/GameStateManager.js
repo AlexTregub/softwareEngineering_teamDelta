@@ -162,3 +162,10 @@ class GameStateManager {
 
 // Create global instance
 const GameState = new GameStateManager();
+
+// Make globally available
+if (typeof window !== 'undefined') {
+  window.GameState = GameState;
+} else if (typeof global !== 'undefined') {
+  global.GameState = GameState;
+}

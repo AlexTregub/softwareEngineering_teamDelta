@@ -45,9 +45,7 @@
         "saveTransparency": true,
         "storageKey": "game-controls"
       },
-      "conditions": {
-        "gameState": "playing"
-      },
+      "conditions": {},
       "buttons": [
         {
           "id": "pause-game",

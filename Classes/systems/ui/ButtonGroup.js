@@ -18,31 +18,45 @@ class ButtonGroup {
    * @param {Object} actionFactory - Factory for executing button actions
    */
   constructor(config, actionFactory) {
-    // Validate required parameters
-    if (!config || typeof config !== 'object') {
-      throw new Error('ButtonGroup requires a valid configuration object');
-    }
-    if (!actionFactory || typeof actionFactory.executeAction !== 'function') {
-      throw new Error('ButtonGroup requires a valid actionFactory with executeAction method');
-    }
-
-    this.config = config;
-    this.actionFactory = actionFactory;
-    this.buttons = [];
-    this.isDragging = false;
-    this.isResizing = false;
-    this.dragOffset = { x: 0, y: 0 };
+    console.log(`🏗️ ButtonGroup constructor starting for ${config?.id || 'unknown'}`);
     
-    // Runtime state (will be persisted)
-    this.state = {
-      position: { x: 0, y: 0 },
-      scale: config.appearance?.scale || 1.0,
-      transparency: config.appearance?.transparency || 1.0,
-      visible: config.appearance?.visible !== false
-    };
+    try {
+      // Validate required parameters
+      if (!config || typeof config !== 'object') {
+        throw new Error('ButtonGroup requires a valid configuration object');
+      }
+      console.log(`✅ ButtonGroup config validation passed for ${config.id}`);
+      
+      if (!actionFactory || typeof actionFactory.executeAction !== 'function') {
+        throw new Error('ButtonGroup requires a valid actionFactory with executeAction method');
+      }
+      console.log(`✅ ButtonGroup actionFactory validation passed for ${config.id}`);
 
-    // Initialize the button group
-    this.initialize();
+      this.config = config;
+      this.actionFactory = actionFactory;
+      this.buttons = [];
+      this.isDragging = false;
+      this.isResizing = false;
+      this.dragOffset = { x: 0, y: 0 };
+      console.log(`✅ ButtonGroup basic properties set for ${config.id}`);
+      
+      // Runtime state (will be persisted)
+      this.state = {
+        position: { x: 0, y: 0 },
+        scale: config.appearance?.scale || 1.0,
+        transparency: config.appearance?.transparency || 1.0,
+        visible: config.appearance?.visible !== false
+      };
+      console.log(`✅ ButtonGroup state initialized for ${config.id}`);
+
+      // Initialize the button group
+      console.log(`🚀 ButtonGroup about to call initialize() for ${config.id}`);
+      this.initialize();
+      console.log(`✅ ButtonGroup initialize() completed for ${config.id}`);
+    } catch (error) {
+      console.error(`❌ ButtonGroup constructor failed for ${config?.id || 'unknown'}:`, error);
+      throw error;
+    }
   }
 
   /**
@@ -50,9 +64,13 @@ class ButtonGroup {
    * Loads persisted state and creates buttons
    */
   initialize() {
+    console.log('[DEBUG] ButtonGroup.initialize() called for:', this.config.id);
     this.loadPersistedState();
+    console.log('[DEBUG] ButtonGroup.initialize() - after loadPersistedState');
     this.createButtons();
+    console.log('[DEBUG] ButtonGroup.initialize() - after createButtons, buttons count:', this.buttons.length);
     this.calculatePosition();
+    console.log('[DEBUG] ButtonGroup.initialize() - completed');
   }
 
   /**
@@ -126,21 +144,37 @@ class ButtonGroup {
    * Create button instances from configuration
    */
   createButtons() {
+    console.log(`🚀 Starting createButtons for group ${this.config.id}`);
     this.buttons = [];
     
     // Validate that buttons configuration exists and is an array
     if (!this.config.buttons || !Array.isArray(this.config.buttons)) {
-      console.warn(`ButtonGroup ${this.config.id} has no buttons configuration`);
+      console.warn(`ButtonGroup ${this.config.id} has no buttons configuration`, this.config);
       return;
     }
     
+    console.log(`🔧 Creating buttons for group ${this.config.id}:`, {
+      configButtons: this.config.buttons.length,
+      buttonStylesAvailable: typeof ButtonStyles !== 'undefined',
+      dynamicStyleExists: typeof ButtonStyles !== 'undefined' && ButtonStyles.DYNAMIC !== undefined
+    });
+    
     for (const btnConfig of this.config.buttons) {
-      if (!this.shouldShowButton(btnConfig)) continue;
+      if (!this.shouldShowButton(btnConfig)) {
+        console.log(`⏭️ Skipping button ${btnConfig.id} - conditions not met`);
+        continue;
+      }
       
       try {
         // Create button with scaled dimensions
         const scaledWidth = (btnConfig.size?.width || 60) * this.state.scale;
         const scaledHeight = (btnConfig.size?.height || 45) * this.state.scale;
+        
+        console.log(`🔨 Creating button ${btnConfig.id}:`, {
+          text: btnConfig.text,
+          size: { width: scaledWidth, height: scaledHeight },
+          buttonClassAvailable: typeof Button !== 'undefined'
+        });
         
         const btn = new Button(
           0, 0, // Position will be calculated in layout
@@ -159,10 +193,13 @@ class ButtonGroup {
         btn.hotkey = btnConfig.hotkey;
         
         this.buttons.push(btn);
+        console.log(`✅ Button ${btnConfig.id} created successfully`);
       } catch (error) {
-        console.error(`Failed to create button ${btnConfig.id || 'unnamed'} in group ${this.config.id}:`, error.message);
+        console.error(`❌ Failed to create button ${btnConfig.id || 'unnamed'} in group ${this.config.id}:`, error.message, error);
       }
     }
+    
+    console.log(`🎯 ButtonGroup ${this.config.id} created ${this.buttons.length} buttons`);
   }
 
   /**
@@ -174,13 +211,18 @@ class ButtonGroup {
   shouldShowButton(btnConfig) {
     // Always show buttons without conditions
     if (!btnConfig.conditions || typeof btnConfig.conditions !== 'object') {
+      console.log(`✅ Button ${btnConfig.id} has no conditions - showing`);
       return true;
     }
+    
+    console.log(`🔍 Checking conditions for button ${btnConfig.id}:`, btnConfig.conditions);
     
     // Check game state condition
     if (btnConfig.conditions.gameState) {
       const currentGameState = this.getCurrentGameState();
+      console.log(`🎮 Game state check: current='${currentGameState}', required='${btnConfig.conditions.gameState}'`);
       if (currentGameState !== btnConfig.conditions.gameState) {
+        console.log(`❌ Button ${btnConfig.id} hidden - game state mismatch`);
         return false;
       }
     }
@@ -188,7 +230,9 @@ class ButtonGroup {
     // Check minimum resources condition
     if (btnConfig.conditions.minimumResources) {
       const hasResources = this.checkMinimumResources(btnConfig.conditions.minimumResources);
+      console.log(`💰 Resource check for ${btnConfig.id}: ${hasResources}`);
       if (!hasResources) {
+        console.log(`❌ Button ${btnConfig.id} hidden - insufficient resources`);
         return false;
       }
     }
@@ -196,11 +240,14 @@ class ButtonGroup {
     // Check selection requirement
     if (btnConfig.conditions.hasSelection) {
       const hasSelection = this.checkHasSelection();
+      console.log(`🎯 Selection check for ${btnConfig.id}: ${hasSelection}`);
       if (!hasSelection) {
+        console.log(`❌ Button ${btnConfig.id} hidden - no selection`);
         return false;
       }
     }
     
+    console.log(`✅ Button ${btnConfig.id} passed all condition checks`);
     return true;
   }
 
@@ -211,10 +258,13 @@ class ButtonGroup {
    */
   getCurrentGameState() {
     // Try multiple sources for game state
-    return window.currentGameState || 
-           window.gameState || 
-           (window.state && window.state.current) || 
-           'unknown';
+    const state = window.currentGameState || 
+                  window.gameState || 
+                  (window.state && window.state.current) || 
+                  'unknown';
+    
+    console.log(`🎮 getCurrentGameState() result: '${state}' (sources: currentGameState=${window.currentGameState}, gameState=${window.gameState}, state.current=${window.state?.current})`);
+    return state;
   }
 
   /**
@@ -676,6 +726,21 @@ class ButtonGroup {
   render() {
     if (!this.state.visible) return;
     
+    // Debug logging for button rendering issues
+    if (this.config.id === 'game-controls' && this.debugRenderCount !== true) {
+      console.log(`🎨 ButtonGroup ${this.config.id} rendering:`, {
+        buttonsCount: this.buttons.length,
+        visible: this.state.visible,
+        transparency: this.state.transparency,
+        position: this.state.position,
+        pushAvailable: typeof push === 'function'
+      });
+      if (this.buttons.length > 0) {
+        console.log(`🔘 First button:`, this.buttons[0].getDebugInfo ? this.buttons[0].getDebugInfo() : this.buttons[0]);
+      }
+      this.debugRenderCount = true; // Only log once
+    }
+    
     // Use p5.js functions for rendering (if available)
     if (typeof push === 'function') {
       push();
@@ -689,9 +754,11 @@ class ButtonGroup {
       this.renderBackground();
       
       // Render all buttons
-      this.buttons.forEach(btn => {
+      this.buttons.forEach((btn, index) => {
         if (btn.render && typeof btn.render === 'function') {
           btn.render();
+        } else {
+          console.warn(`🚨 Button ${index} in group ${this.config.id} has no render method`);
         }
       });
       
@@ -703,6 +770,8 @@ class ButtonGroup {
       if (typeof pop === 'function') {
         pop();
       }
+    } else {
+      console.warn(`🚨 p5.js push() function not available for ButtonGroup ${this.config.id}`);
     }
   }
 
