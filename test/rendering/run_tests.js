@@ -200,7 +200,8 @@ try {
   // Verify ant system files exist first
   const requiredAntFiles = [
     'systems/CollisionBox2D.js',
-    'systems/Sprite2d.js',
+    'systems/Button.js',
+    'rendering/Sprite2d.js',
     'containers/StatsContainer.js',
     'containers/Entity.js', 
     'ants/JobComponent.js',
@@ -240,7 +241,13 @@ try {
   global.CollisionBox2D = require(path.join(antSystemPath, 'systems/CollisionBox2D.js'));
   console.log('✓ Loaded REAL CollisionBox2D');
   
-  global.Sprite2D = require(path.join(antSystemPath, 'systems/Sprite2d.js'));
+  const ButtonModule = require(path.join(antSystemPath, 'systems/Button.js'));
+  global.Button = ButtonModule;
+  global.ButtonStyles = ButtonModule.ButtonStyles;
+  global.createMenuButton = ButtonModule.createMenuButton;
+  console.log('✓ Loaded REAL Button and ButtonStyles');
+  
+  global.Sprite2D = require(path.join(antSystemPath, 'rendering/Sprite2d.js'));
   console.log('✓ Loaded REAL Sprite2D');
   
   const { StatsContainer } = require(path.join(antSystemPath, 'containers/StatsContainer.js'));

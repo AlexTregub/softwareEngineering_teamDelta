@@ -62,8 +62,41 @@
     spawnUI.buttons = [];
     // positions will be updated in render
     const b1 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Spawn Ant', 'default', spawnOne);
-  const b2 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Delete Ant', 'danger', deleteOne);
+    const b2 = createMenuButton(0, 0, spawnUI.width, spawnUI.height, 'Delete Ant', 'danger', deleteOne);
     spawnUI.buttons.push(b1, b2);
+    
+    // Register with UI Debug System if available
+    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+      g_uiDebugManager.registerElement(
+        'spawn-ant-button',
+        { x: 0, y: 0, width: spawnUI.width, height: spawnUI.height },
+        (x, y) => {
+          if (b1 && b1.setPosition) {
+            b1.setPosition(x, y);
+          }
+        },
+        {
+          label: 'Spawn Ant Button',
+          isDraggable: true,
+          persistKey: 'spawnAntButton'
+        }
+      );
+      
+      g_uiDebugManager.registerElement(
+        'delete-ant-button',
+        { x: 0, y: spawnUI.height + 8, width: spawnUI.width, height: spawnUI.height },
+        (x, y) => {
+          if (b2 && b2.setPosition) {
+            b2.setPosition(x, y);
+          }
+        },
+        {
+          label: 'Delete Ant Button',
+          isDraggable: true,
+          persistKey: 'deleteAntButton'
+        }
+      );
+    }
 
     // Attach a one-time global mouseup listener to capture clicks even when
     // other controllers consume p5 mouse events. This converts client coords

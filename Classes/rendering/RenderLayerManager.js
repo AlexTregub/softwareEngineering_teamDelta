@@ -263,6 +263,11 @@ class RenderLayerManager {
       return;
     }
     
+    // Render Universal UI Debug System (highest priority - always on top)
+    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+      g_uiDebugManager.render();
+    }
+    
     // Render existing PerformanceMonitor if enabled
     if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && 
         g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled &&

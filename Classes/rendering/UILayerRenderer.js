@@ -11,7 +11,7 @@ class UILayerRenderer {
     };
 
     this.hudElements = {
-      currency: { wood: 0, food: 0, population: 0 },
+      currency: { wood: 0, food: 0, population: 0, pain: 100 },
       toolbar: { activeButton: null, buttons: [] },
       minimap: { enabled: false, size: 120 }
     };
@@ -174,44 +174,56 @@ class UILayerRenderer {
 
   renderToolbar() {
     push();
-    
+
     const toolbarWidth = 300;
     const toolbarHeight = 60;
     const toolbarX = (width - toolbarWidth) / 2;
     const toolbarY = height - toolbarHeight - 10;
-    
+
     // Background
     fill(...this.colors.hudBackground);
     noStroke();
     rect(toolbarX, toolbarY, toolbarWidth, toolbarHeight, 5);
-    
-    // Buttons
+
+    // Buttons layout
     const buttonWidth = 50;
     const buttonHeight = 40;
     const buttonSpacing = 10;
     const startX = toolbarX + 20;
     const startY = toolbarY + 10;
-    
-    const buttons = ['Build', 'Gather', 'Attack', 'Defend'];
-    
-    for (let i = 0; i < buttons.length; i++) {
-      const buttonX = startX + i * (buttonWidth + buttonSpacing);
-      
-      // Button background
-      if (this.hudElements.toolbar.activeButton === i) {
-        fill(100, 150, 255);
-      } else {
-        fill(60, 60, 60);
+
+    const labels = ['Build', 'Gather', 'Attack', 'Defend'];
+
+    // Initialize toolbar buttons array if needed
+    if (!this.hudElements.toolbar.buttons || this.hudElements.toolbar.buttons.length !== labels.length) {
+      this.hudElements.toolbar.buttons = [];
+      for (let i = 0; i < labels.length; i++) {
+        const bx = startX + i * (buttonWidth + buttonSpacing);
+        const btn = new Button(bx, startY, buttonWidth, buttonHeight, labels[i], {
+          ...ButtonStyles.TOOLBAR,
+          onClick: (b) => { this.hudElements.toolbar.activeButton = i; }
+        });
+        this.hudElements.toolbar.buttons.push(btn);
       }
-      rect(buttonX, startY, buttonWidth, buttonHeight, 3);
-      
-      // Button text
-      fill(...this.colors.hudText);
-      textAlign(CENTER, CENTER);
-      textSize(12);
-      text(buttons[i], buttonX + buttonWidth/2, startY + buttonHeight/2);
     }
-    
+
+    // Render each button
+    for (let i = 0; i < labels.length; i++) {
+      const btn = this.hudElements.toolbar.buttons[i];
+
+      // Update button input state from p5 globals
+      btn.update(mouseX, mouseY, mouseIsPressed);
+
+      // Reflect active state visually
+      if (this.hudElements.toolbar.activeButton === i) {
+        btn.setBackgroundColor(ButtonStyles.TOOLBAR_ACTIVE.backgroundColor);
+      } else {
+        btn.setBackgroundColor(ButtonStyles.TOOLBAR.backgroundColor);
+      }
+
+      btn.render();
+    }
+
     pop();
   }
 
@@ -541,16 +553,16 @@ class UILayerRenderer {
     for (let i = 0; i < buttons.length; i++) {
       const buttonY = startY + i * (buttonHeight + buttonSpacing);
       
-      // Button background
-      fill(60, 60, 60);
-      stroke(255);
-      strokeWeight(2);
-      rect(width/2 - buttonWidth/2, buttonY, buttonWidth, buttonHeight, 5);
+      // Button background using centralized styles
+      fill(ButtonStyles.MAIN_MENU.backgroundColor);
+      stroke(ButtonStyles.MAIN_MENU.borderColor);
+      strokeWeight(ButtonStyles.MAIN_MENU.borderWidth);
+      rect(width/2 - buttonWidth/2, buttonY, buttonWidth, buttonHeight, ButtonStyles.MAIN_MENU.cornerRadius);
       
-      // Button text
-      fill(255);
+      // Button text using centralized styles
+      fill(ButtonStyles.MAIN_MENU.textColor);
       textAlign(CENTER, CENTER);
-      textSize(24);
+      textSize(ButtonStyles.MAIN_MENU.fontSize);
       text(buttons[i], width/2, buttonY + buttonHeight/2);
     }
     
@@ -595,16 +607,16 @@ class UILayerRenderer {
     for (let i = 0; i < buttons.length; i++) {
       const buttonY = startY + i * (buttonHeight + buttonSpacing);
       
-      // Button background
-      fill(60, 60, 60);
-      stroke(200);
-      strokeWeight(1);
-      rect(panelX + (panelWidth - buttonWidth)/2, buttonY, buttonWidth, buttonHeight, 5);
+      // Button background using centralized styles
+      fill(ButtonStyles.PAUSE_MENU.backgroundColor);
+      stroke(ButtonStyles.PAUSE_MENU.borderColor);
+      strokeWeight(ButtonStyles.PAUSE_MENU.borderWidth);
+      rect(panelX + (panelWidth - buttonWidth)/2, buttonY, buttonWidth, buttonHeight, ButtonStyles.PAUSE_MENU.cornerRadius);
       
-      // Button text
-      fill(255);
+      // Button text using centralized styles
+      fill(ButtonStyles.PAUSE_MENU.textColor);
       textAlign(CENTER, CENTER);
-      textSize(18);
+      textSize(ButtonStyles.PAUSE_MENU.fontSize);
       text(buttons[i], panelX + panelWidth/2, buttonY + buttonHeight/2);
     }
     

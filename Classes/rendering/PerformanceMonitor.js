@@ -132,7 +132,7 @@ class PerformanceMonitor {
 
         // Debug display settings
         this.debugDisplay = {
-            enabled: false,
+            enabled: true,
             position: { x: 10, y: 10 },
             width: 280,
             height: 200,

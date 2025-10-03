@@ -73,7 +73,28 @@
         return raw(cfg.amount);
       };
       const style = cfg.type === 'kill' ? 'danger' : 'default';
-      return createMenuButton(0, 0, Controls.width, Controls.height, cfg.label, style, action);
+      const button = createMenuButton(0, 0, Controls.width, Controls.height, cfg.label, style, action);
+      
+      // Register with UI Debug System if available
+      if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+        const elementId = `spawn-control-${cfg.label.replace(/[^a-zA-Z0-9]/g, '')}`;
+        g_uiDebugManager.registerElement(
+          elementId,
+          { x: 0, y: 0, width: Controls.width, height: Controls.height },
+          (x, y) => {
+            if (button && button.setPosition) {
+              button.setPosition(x, y);
+            }
+          },
+          {
+            label: `Spawn Control ${cfg.label}`,
+            isDraggable: true,
+            persistKey: `spawnControl_${cfg.label.replace(/[^a-zA-Z0-9]/g, '')}`
+          }
+        );
+      }
+      
+      return button;
     });
   }
 

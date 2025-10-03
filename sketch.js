@@ -60,9 +60,20 @@ function setup() {
   });
 
   initializeMenu();  // Initialize the menu system
+  
+  // Initialize UI Debug System
+  if (typeof UIDebugManager !== 'undefined' && typeof g_uiDebugManager === 'undefined') {
+    window.g_uiDebugManager = new UIDebugManager();
+  }
+  
   // Initialize dropoff UI if present (creates the Place Dropoff button)
   window.initDropoffUI();
   // Do not force spawn UI visible here; spawn UI is dev-console-only by default.
+  
+  // Initialize all UI elements with debug system (delayed to allow UI creation)
+  if (typeof initializeAllUIElements === 'function') {
+    setTimeout(initializeAllUIElements, 200);
+  }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
@@ -146,9 +157,30 @@ function handleMouseEvent(type, ...args) {
  * ------------
  * Handles mouse press events by delegating to the mouse controller.
  */
-function mousePressed()  { handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton); }
-function mouseDragged()  { handleMouseEvent('handleMouseDragged', mouseX, mouseY); }
-function mouseReleased() { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); }
+function mousePressed() {
+  // Handle UI Debug Manager mouse events first
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+    const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
+    if (handled) return;
+  }
+  handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton);
+}
+
+function mouseDragged() {
+  // Handle UI Debug Manager drag events
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+    g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
+  }
+  handleMouseEvent('handleMouseDragged', mouseX, mouseY);
+}
+
+function mouseReleased() {
+  // Handle UI Debug Manager release events
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+    g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
+  }
+  handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+}
 
 // KEYBOARD INTERACTIONS
 
@@ -171,7 +203,15 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
-  // Handle UI shortcuts first (Ctrl+Shift combinations)
+  // Handle UI Debug Manager keys first (tilde/backtick to toggle debug mode)
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+    if (key === '~' || key === '`') {
+      g_uiDebugManager.toggle();
+      return; // UI Debug key was handled, don't process further
+    }
+  }
+  
+  // Handle UI shortcuts (Ctrl+Shift combinations)
   if (typeof window !== 'undefined' && window.UIManager && window.UIManager.handleKeyPress) {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
     if (handled) {

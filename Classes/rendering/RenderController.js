@@ -65,13 +65,14 @@ class RenderController {
 
     // State indicators
     this.STATE_INDICATORS = {
-      MOVING: { color: [0, 255, 0], symbol: "" },
-      GATHERING: { color: [255, 165, 0], symbol: "" },
-      BUILDING: { color: [139, 69, 19], symbol: "" },
-      ATTACKING: { color: [255, 0, 0], symbol: "" },
-      FOLLOWING: { color: [0, 0, 255], symbol: "" },
-      FLEEING: { color: [255, 255, 0], symbol: "" },
-      IDLE: { color: [128, 128, 128], symbol: "" }
+      MOVING: { color: [0, 255, 0], symbol: "→" },
+      GATHERING: { color: [255, 165, 0], symbol: "🌸" },
+      BUILDING: { color: [139, 69, 19], symbol: "🏗" },
+      ATTACKING: { color: [255, 0, 0], symbol: "🗡" },
+      FOLLOWING: { color: [0, 0, 255], symbol: "🐜" },
+      FLEEING: { color: [255, 255, 0], symbol: "🏃" },
+      MATING: {color: [255, 255, 0], symbol: "👌" },
+      IDLE: { color: [128, 128, 128], symbol: " " }
     };
   }
 
