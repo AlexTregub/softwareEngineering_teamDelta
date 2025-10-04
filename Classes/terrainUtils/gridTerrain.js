@@ -107,7 +107,26 @@ class gridTerrain {
     }
 
     render() {
+        let viewSpan = this.renderConversion.getViewSpan();
+        let chunkSpan = [
+            [ // -x,+y TL
+                (viewSpan[0][0]%this._chunkSize != 0) ? floor(viewSpan[0][0]/this._chunkSize)-1 : viewSpan[0][0]/this._chunkSize,
+                (viewSpan[0][1]%this._chunkSize != 0) ? floor(viewSpan[0][1]/this._chunkSize)+1 : viewSpan[0][1]/this._chunkSize
+            ],
+            [ // +x,-y BR
+                (viewSpan[1][0]%this._chunkSize != 0) ? floor(viewSpan[1][0]/this._chunkSize)+1 : viewSpan[1][0]/this._chunkSize,
+                (viewSpan[1][1]%this._chunkSize != 0) ? floor(viewSpan[1][1]/this._chunkSize)-1 : viewSpan[1][1]/this._chunkSize
+            ]
+        ];
+
         for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
+            // Cull rendering of un-viewable chunks
+            let chunkLoc = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
+            if (chunkLoc[0] < chunkSpan[0][0] || chunkLoc[0] > chunkSpan[1][0] || chunkLoc[1] > chunkSpan[0][1] || chunkLoc[1] < chunkSpan[1][1]) {
+                console.log("Chunk "+i+'/'+chunkLoc+" skipped.");
+                continue;
+            }
+
             for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) {
                 this.chunkArray.rawArray[i].tileData.rawArray[j].render2(this.renderConversion);
             }
@@ -173,5 +192,25 @@ class camRenderConverter {
         let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
         let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
         return this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
+    }
+
+    getViewSpan() {
+        let tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
+            // (this._canvasCenter[0]%TILE_SIZE != 0) ? floor(this._canvasCenter[0]/TILE_SIZE)+1 : this._canvasCenter[0]/TILE_SIZE,
+            // (this._canvasCenter[1]%TILE_SIZE != 0) ? floor(this._canvasCenter[1]/TILE_SIZE)+1 : this._canvasCenter[1]/TILE_SIZE
+            this._canvasCenter[0]/this._tileSize,
+            this._canvasCenter[1]/this._tileSize
+        ];
+
+        return [
+            [ // TL (-x,+y)
+                this._camPosition[0]-tileOffsets[0],
+                this._camPosition[1]+tileOffsets[1]
+            ],
+            [ // BR (+x,-y)
+                this._camPosition[0]+tileOffsets[0],
+                this._camPosition[1]-tileOffsets[1]
+            ]
+        ];
     }
 }
