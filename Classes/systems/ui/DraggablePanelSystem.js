@@ -12,14 +12,14 @@
  */
 async function initializeDraggablePanelSystem() {
   try {
-    console.log('🪟 Starting Draggable Panel System initialization...');
+
     
     // Check if DraggablePanelManager is available
     if (typeof DraggablePanelManager === 'undefined') {
       console.error('❌ DraggablePanelManager not loaded. Check index.html script tags.');
       return false;
     }
-    console.log('✅ DraggablePanelManager class found');
+
     
     // Create panel manager instance
     window.draggablePanelManager = new DraggablePanelManager();
@@ -78,10 +78,36 @@ async function initializeDraggablePanelSystem() {
     });
     console.log('✅ Performance monitor panel created');
     
+    // Create the debug info panel
+    const debugInfoPanel = window.draggablePanelManager.addPanel({
+      id: 'debug-info',
+      title: 'Debug Info',
+      position: { x: 260, y: 20 },
+      size: { width: 240, height: 180 },
+      style: {
+        backgroundColor: [0, 0, 0, 180],
+        titleColor: [255, 255, 0],
+        textColor: [255, 255, 0],
+        borderColor: [200, 200, 0],
+        titleBarHeight: 25,
+        padding: 10,
+        fontSize: 12
+      },
+      behavior: {
+        draggable: true,
+        persistent: true,
+        constrainToScreen: true,
+        snapToEdges: true
+      },
+      visible: true // Start visible, can be toggled with Ctrl+Shift+3
+    });
+    console.log('✅ Debug info panel created');
+    
     // Set up content renderers
     window.draggablePanelContentRenderers = {
       'resource-display': renderResourceDisplayContent,
-      'performance-monitor': renderPerformanceMonitorContent
+      'performance-monitor': renderPerformanceMonitorContent,
+      'debug-info': renderDebugInfoContent
     };
     console.log('✅ Panel content renderers configured');
     
@@ -170,6 +196,53 @@ function renderPerformanceMonitorContent(contentArea, style) {
 }
 
 /**
+ * Content renderer for the debug info panel
+ */
+function renderDebugInfoContent(contentArea, style) {
+  if (typeof text === 'function') {
+    let yOffset = 0;
+    const lineHeight = 16;
+    
+    // Game State
+    text(`Game State: ${GameState ? GameState.getState() : 'Unknown'}`, contentArea.x, contentArea.y + yOffset);
+    yOffset += lineHeight;
+    
+    // Canvas info
+    text(`Canvas: ${g_canvasX}x${g_canvasY}`, contentArea.x, contentArea.y + yOffset);
+    yOffset += lineHeight;
+    
+    // Tile size
+    text(`Tile Size: ${TILE_SIZE}`, contentArea.x, contentArea.y + yOffset);
+    yOffset += lineHeight;
+    
+    // Entity counts
+    if (typeof ants !== 'undefined' && ants) {
+      text(`Ants: ${ants.length || 0}`, contentArea.x, contentArea.y + yOffset);
+      yOffset += lineHeight;
+    }
+    
+    if (typeof g_resourceList !== 'undefined' && g_resourceList && g_resourceList.resources) {
+      text(`Resources: ${g_resourceList.resources.length || 0}`, contentArea.x, contentArea.y + yOffset);
+      yOffset += lineHeight;
+    }
+    
+    // Layer toggles info (compact version)
+    if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
+      yOffset += 5; // Extra spacing
+      text('Layer Toggles (Shift+Key):', contentArea.x, contentArea.y + yOffset);
+      yOffset += lineHeight;
+      
+      const layerStates = g_renderLayerManager.getLayerStates();
+      text(`C=Terrain:${layerStates.TERRAIN ? 'ON' : 'OFF'}`, contentArea.x, contentArea.y + yOffset);
+      yOffset += lineHeight;
+      text(`V=Entities:${layerStates.ENTITIES ? 'ON' : 'OFF'}`, contentArea.x, contentArea.y + yOffset);
+      yOffset += lineHeight;
+      text(`B=Effects:${layerStates.EFFECTS ? 'ON' : 'OFF'}`, contentArea.x, contentArea.y + yOffset);
+    }
+  }
+}
+
+/**
  * Set up keyboard shortcuts for panel management
  */
 function setupPanelKeyboardShortcuts() {
@@ -196,6 +269,12 @@ function setupPanelKeyboardShortcuts() {
         if (keyCode === 50 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '2' key
           const visible = window.draggablePanelManager.togglePanel('resource-display');
           console.log(`Resource Display ${visible ? 'ENABLED' : 'DISABLED'}`);
+        }
+        
+        // Ctrl+Shift+3: Toggle Debug Info
+        if (keyCode === 51 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '3' key
+          const visible = window.draggablePanelManager.togglePanel('debug-info');
+          console.log(`Debug Info ${visible ? 'ENABLED' : 'DISABLED'}`);
         }
         
         // Ctrl+Shift+R: Reset all panels to default positions

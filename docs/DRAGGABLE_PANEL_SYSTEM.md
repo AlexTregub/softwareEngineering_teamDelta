@@ -280,6 +280,17 @@ window.draggablePanelManager.resetAllPanels();
 
 // Toggle specific panel
 window.draggablePanelManager.togglePanel('resource-display');
+
+// 🚂 Panel Train Mode (fun debug feature)
+window.draggablePanelManager.togglePanelTrainMode();     // Toggle on/off
+window.draggablePanelManager.setPanelTrainMode(true);    // Enable
+window.draggablePanelManager.setPanelTrainMode(false);   // Disable
+
+// Console commands (type in debug console)
+// train toggle    - Toggle TRAIN MODE with personality!
+// train on        - Enable TRAIN MODE (responses: YES, DUH, HELL YES)
+// train off       - Disable train mode (response: I AM LAME)
+// train status    - Check current status
 ```
 
 ## 🔮 **Future Enhancements**

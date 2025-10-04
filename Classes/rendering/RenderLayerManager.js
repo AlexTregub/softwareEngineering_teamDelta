@@ -49,7 +49,6 @@ class RenderLayerManager {
     this.registerLayerRenderer(this.layers.UI_MENU, this.renderMenuUILayer.bind(this));
     
     this.isInitialized = true;
-    console.log('RenderLayerManager initialized');
   }
   
   /**
@@ -275,10 +274,10 @@ class RenderLayerManager {
       return;
     }
     
-    // Render Universal UI Debug System (highest priority - always on top)
-    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
-      g_uiDebugManager.render();
-    }
+    // UI Debug System rendering disabled
+    // if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+    //   g_uiDebugManager.render();
+    // }
     
     // Render existing PerformanceMonitor if enabled
     if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && 
@@ -414,11 +413,8 @@ class RenderLayerManager {
   renderButtonGroups(gameState) {
     // Only render buttons in appropriate game states (including MENU for testing)
     if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU'].includes(gameState)) {
-      console.log(`🚫 Not rendering buttons for game state: ${gameState}`);
       return;
     }
-    
-    console.log(`🎯 renderButtonGroups called for state: ${gameState}`);
     
     // Check if Universal Button Group System is available
     if (typeof window !== 'undefined' && 
@@ -440,11 +436,7 @@ class RenderLayerManager {
         window.gameState = window.currentGameState; // Fallback
         
         // Debug logging (can be removed later)
-        if (this.debugButtonGroups !== true) {
-          console.log(`🎯 Rendering button groups: ${gameState} -> ${window.currentGameState}`);
-          console.log(`📊 Button groups active: ${window.buttonGroupManager.getActiveGroupCount()}`);
-          this.debugButtonGroups = true; // Only log once to avoid spam
-        }
+
         
         // Render the button groups on top of other UI elements
         window.buttonGroupManager.render({
@@ -465,10 +457,8 @@ class RenderLayerManager {
   toggleLayer(layerName) {
     if (this.disabledLayers.has(layerName)) {
       this.disabledLayers.delete(layerName);
-      console.log(`🔵 Layer enabled: ${layerName}`);
     } else {
       this.disabledLayers.add(layerName);
-      console.log(`🔴 Layer disabled: ${layerName}`);
     }
     return !this.disabledLayers.has(layerName);
   }
@@ -481,7 +471,6 @@ class RenderLayerManager {
   enableLayer(layerName) {
     if (this.disabledLayers.has(layerName)) {
       this.disabledLayers.delete(layerName);
-      console.log(`🔵 Layer enabled: ${layerName}`);
     }
     return true; // Layer is now enabled
   }
@@ -494,7 +483,6 @@ class RenderLayerManager {
   disableLayer(layerName) {
     if (!this.disabledLayers.has(layerName)) {
       this.disabledLayers.add(layerName);
-      console.log(`🔴 Layer disabled: ${layerName}`);
     }
     return false; // Layer is now disabled (returns the enabled state)
   }
@@ -525,7 +513,6 @@ class RenderLayerManager {
    */
   enableAllLayers() {
     this.disabledLayers.clear();
-    console.log('🔵 All layers enabled');
   }
 }
 

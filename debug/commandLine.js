@@ -183,6 +183,8 @@ function executeCommand(command) {
     case 'entity-perf': handleEntityPerformanceCommand(args); break;
     case 'ui': 
     case 'ui-debug': handleUIDebugCommand(args); break;
+    case 'panel-train':
+    case 'train': handlePanelTrainCommand(args); break;
     default: console.log(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
   }
 }
@@ -205,6 +207,7 @@ function showCommandHelp() {
   console.log("  perf [toggle|stats] - Control performance monitor");
   console.log("  entity-perf [report|reset] - Entity performance analysis");
   console.log("  ui <toggle|enable|disable|reset|list> - Control UI Debug Manager");
+  console.log("  🚂 train [on|off|toggle] - TRAIN MODE! Panels follow each other like train cars!");
   console.log("Examples:");
   console.log("  spawn 10 ant blue");
   console.log("  teleport 100 200");
@@ -555,5 +558,68 @@ function handleEntityPerformanceCommand(args) {
       
     default:
       console.log("❌ Usage: entity-perf [report|reset|slowest]");
+  }
+}
+
+/**
+ * 🚂 handlePanelTrainCommand
+ * --------------------------
+ * Handle TRAIN MODE debug commands with personality!
+ * @param {string[]} args - Command arguments [on|off|toggle]
+ */
+function handlePanelTrainCommand(args) {
+  if (!window.draggablePanelManager) {
+    console.log("❌ Draggable Panel Manager not available");
+    return;
+  }
+
+  const action = args[0] ? args[0].toLowerCase() : 'toggle';
+  
+  // Fun response arrays
+  const onMessages = ["YES", "DUH", "HELL YES"];
+  const offMessages = ["I AM LAME"];
+  
+  switch (action) {
+    case 'on':
+    case 'enable':
+      window.draggablePanelManager.setPanelTrainMode(true);
+      const onMsg = onMessages[Math.floor(Math.random() * onMessages.length)];
+      console.log(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
+      break;
+      
+    case 'off':
+    case 'disable':
+      window.draggablePanelManager.setPanelTrainMode(false);
+      const offMsg = offMessages[Math.floor(Math.random() * offMessages.length)];
+      console.log(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
+      break;
+      
+    case 'toggle':
+      const newState = window.draggablePanelManager.togglePanelTrainMode();
+      if (newState) {
+        const onMsg = onMessages[Math.floor(Math.random() * onMessages.length)];
+        console.log(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
+      } else {
+        const offMsg = offMessages[Math.floor(Math.random() * offMessages.length)];
+        console.log(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
+      }
+      break;
+      
+    case 'status':
+      const isEnabled = window.draggablePanelManager.isPanelTrainModeEnabled();
+      if (isEnabled) {
+        console.log(`🚂 TRAIN MODE: Currently ENABLED! CHOO CHOO! 🚂💨`);
+      } else {
+        console.log(`🚂 TRAIN MODE: Currently disabled. How boring. 😴`);
+      }
+      break;
+      
+    default:
+      console.log("❌ Usage: train [on|off|toggle|status]");
+      console.log("🚂 Examples:");
+      console.log("  train on     - Enable TRAIN MODE! (panels follow each other)");
+      console.log("  train off    - Disable train mode (boring normal dragging)");
+      console.log("  train toggle - Switch between modes");
+      console.log("  train status - Check current mode");
   }
 }

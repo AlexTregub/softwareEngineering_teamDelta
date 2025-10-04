@@ -199,18 +199,16 @@ class UILayerRenderer {
         typeof window.buttonGroupManager.getActiveGroupCount === 'function') {
       
       const activeGroups = window.buttonGroupManager.getActiveGroupCount();
-      console.log(`🎨 UILayerRenderer.renderToolbar() - Active groups: ${activeGroups}`);
       
       if (activeGroups === 0) {
-        console.log('⬇️ UILayerRenderer falling back to legacy toolbar (no active groups)');
         // Fallback to original toolbar if Universal Button System is not active
         this.renderFallbackToolbar();
       } else {
-        console.log('✨ UILayerRenderer using Universal Button System for toolbar rendering');
         // Otherwise, the Universal Button System handles toolbar rendering
       }
     } else {
-      console.log('⬇️ UILayerRenderer falling back to legacy toolbar (buttonGroupManager not available)');
+      // Fallback to original toolbar
+      this.renderFallbackToolbar();
       // Fallback to original toolbar
       this.renderFallbackToolbar();
     }
@@ -411,13 +409,10 @@ class UILayerRenderer {
    * Debug UI - Performance, Entity Inspector, Console
    */
   renderPerformanceOverlay() {
-    // Check if draggable panel system is available and active
+    // Check if draggable panel system is available
     if (typeof window !== 'undefined' && window.draggablePanelManager) {
-      const performancePanel = window.draggablePanelManager.getPanel('performance-monitor');
-      if (performancePanel && performancePanel.visible) {
-        // Draggable panel system handles rendering
-        return;
-      }
+      // Draggable panel system is active - don't render static overlay
+      return;
     }
     
     // Use existing PerformanceMonitor if available
@@ -985,24 +980,20 @@ class UILayerRenderer {
   // Debug UI API
   togglePerformanceOverlay() {
     this.debugUI.performanceOverlay.enabled = !this.debugUI.performanceOverlay.enabled;
-    console.log('UILayerRenderer: Performance Overlay', this.debugUI.performanceOverlay.enabled ? 'ENABLED' : 'DISABLED');
   }
 
   toggleEntityInspector() {
     this.debugUI.entityInspector.enabled = !this.debugUI.entityInspector.enabled;
-    console.log('UILayerRenderer: Entity Inspector', this.debugUI.entityInspector.enabled ? 'ENABLED' : 'DISABLED');
   }
 
   selectEntityForInspection(entity) {
     this.debugUI.entityInspector.selectedEntity = entity;
     this.debugUI.entityInspector.enabled = true;
-    console.log('UILayerRenderer: Selected entity for inspection:', entity);
   }
 
   toggleDebugConsole() {
     this.debugUI.debugConsole.visible = !this.debugUI.debugConsole.visible;
     this.debugUI.debugConsole.enabled = true; // Enable debug console when toggling visibility
-    console.log('UILayerRenderer: Debug Console', this.debugUI.debugConsole.visible ? 'VISIBLE' : 'HIDDEN');
   }
 
   // Minimap API

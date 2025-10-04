@@ -87,8 +87,8 @@ function initializeMenu() {
     }
   });
 
-  // initialize external debug handlers (if the debug module is present)
-  if (window.initializeMenuDebug) window.initializeMenuDebug();
+  // Debug system initialization disabled
+  // if (window.initializeMenuDebug) window.initializeMenuDebug();
 }
 
 // Load buttons for current state
@@ -158,11 +158,10 @@ function drawMenu() {
     btn.render();
   });
 
-  // Debug rendering and interactions were moved to debug/menu_debug.js
-  // Use the shared window.menuLayoutDebug flag so both modules agree on state.
-  if (window.menuLayoutDebug && window.drawMenuDebug) {
-    window.drawMenuDebug();
-  }
+  // Debug rendering disabled
+  // if (window.menuLayoutDebug && window.drawMenuDebug) {
+  //   window.drawMenuDebug();
+  // }
 }
 
 // Update menu transitions

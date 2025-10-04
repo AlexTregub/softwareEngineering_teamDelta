@@ -60,19 +60,19 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   
-  // Initialize UI Debug System
-  if (typeof UIDebugManager !== 'undefined' && typeof g_uiDebugManager === 'undefined') {
-    window.g_uiDebugManager = new UIDebugManager();
-  }
+  // UI Debug System disabled
+  // if (typeof UIDebugManager !== 'undefined' && typeof g_uiDebugManager === 'undefined') {
+  //   window.g_uiDebugManager = new UIDebugManager();
+  // }
   
   // Initialize dropoff UI if present (creates the Place Dropoff button)
   window.initDropoffUI();
   // Do not force spawn UI visible here; spawn UI is dev-console-only by default.
   
-  // Initialize all UI elements with debug system (delayed to allow UI creation)
-  if (typeof initializeAllUIElements === 'function') {
-    setTimeout(initializeAllUIElements, 200);
-  }
+  // UI elements debug integration disabled
+  // if (typeof initializeAllUIElements === 'function') {
+  //   setTimeout(initializeAllUIElements, 200);
+  // }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
@@ -151,8 +151,8 @@ function draw() {
     }
   }
   
-  // Update draggable panels
-  if (typeof updateDraggablePanels === 'function') {
+  // Update draggable panels (only during PLAYING gamestate)
+  if (typeof updateDraggablePanels === 'function' && GameState.getState() === 'PLAYING') {
     try {
       updateDraggablePanels();
     } catch (error) {
@@ -160,8 +160,8 @@ function draw() {
     }
   }
   
-  // Render draggable panels (on top of everything else)
-  if (typeof renderDraggablePanels === 'function') {
+  // Render draggable panels (only during PLAYING gamestate)
+  if (typeof renderDraggablePanels === 'function' && GameState.getState() === 'PLAYING') {
     try {
       renderDraggablePanels();
     } catch (error) {
@@ -313,48 +313,13 @@ function keyPressed() {
 /**
  * debugRender
  * -----------
- * Basic debug rendering function for UI debug layer.
- * Renders basic debug information when dev console is enabled.
+ * Debug rendering function - now using draggable panels instead of static overlay.
+ * The debug information is now displayed in the Debug Info draggable panel.
  */
 function debugRender() {
-  // Only render debug info if dev console is enabled
-  if (typeof devConsoleEnabled === 'undefined' || !devConsoleEnabled) {
-    return;
-  }
-
-  // Basic debug info display
-  push();
-  fill(255, 255, 0); // Yellow text
-  noStroke();
-  textAlign(LEFT);
-  textSize(12);
-  
-  // Display basic game state information
-  let debugY = 10;
-  text(`Game State: ${GameState ? GameState.getState() : 'Unknown'}`, 10, debugY += 15);
-  text(`Canvas: ${g_canvasX}x${g_canvasY}`, 10, debugY += 15);
-  text(`Tile Size: ${TILE_SIZE}`, 10, debugY += 15);
-  
-  // Display entity counts if available
-  if (typeof ants !== 'undefined' && ants) {
-    text(`Ants: ${ants.length || 0}`, 10, debugY += 15);
-  }
-  if (typeof g_resourceList !== 'undefined' && g_resourceList && g_resourceList.resources) {
-    text(`Resources: ${g_resourceList.resources.length || 0}`, 10, debugY += 15);
-  }
-  
-  // Display render layer toggle information
-  if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
-    debugY += 10; // Extra spacing
-    text('Layer Toggles (Shift+Key):', 10, debugY += 15);
-    const layerStates = g_renderLayerManager.getLayerStates();
-    text(`C=Terrain:${layerStates.TERRAIN ? 'ON' : 'OFF'} V=Entities:${layerStates.ENTITIES ? 'ON' : 'OFF'}`, 10, debugY += 15);
-    text(`B=Effects:${layerStates.EFFECTS ? 'ON' : 'OFF'} N=UI_Game:${layerStates.UI_GAME ? 'ON' : 'OFF'}`, 10, debugY += 15);
-    text(`M=UI_Debug:${layerStates.UI_DEBUG ? 'ON' : 'OFF'} ,=UI_Menu:${layerStates.UI_MENU ? 'ON' : 'OFF'}`, 10, debugY += 15);
-    text(`Shift+. = Enable All Layers`, 10, debugY += 15);
-  }
-  
-  pop();
+  // Debug info is now handled by the Debug Info draggable panel
+  // No static debug rendering needed here anymore
+  return;
 }
 
 /**

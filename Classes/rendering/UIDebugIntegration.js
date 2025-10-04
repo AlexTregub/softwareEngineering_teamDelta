@@ -297,17 +297,17 @@ class UILayerRendererDebugIntegration {
 
 // Global initialization function to set up the debug system
 function initializeUIDebugSystem() {
-  // Create global UI debug manager instance
-  if (typeof window !== 'undefined') {
-    window.g_uiDebugManager = new UIDebugManager();
-    
-    // Enable/disable based on development mode
-    if (typeof DEV_MODE !== 'undefined' && DEV_MODE) {
-      window.g_uiDebugManager.enable();
-    }
-    
-    console.log('Global UI Debug System initialized');
-  }
+  // UI Debug Manager creation disabled
+  // if (typeof window !== 'undefined') {
+  //   window.g_uiDebugManager = new UIDebugManager();
+  //   
+  //   // Enable/disable based on development mode
+  //   if (typeof DEV_MODE !== 'undefined' && DEV_MODE) {
+  //     window.g_uiDebugManager.enable();
+  //   }
+  //   
+  //   console.log('Global UI Debug System initialized');
+  // }
 }
 
 // Initialize all UI elements with debug system
@@ -325,21 +325,21 @@ function initializeAllUIElements() {
   console.log('UI Debug System: All UI elements initialized');
 }
 
-// Auto-initialize if in browser
-if (typeof window !== 'undefined') {
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeUIDebugSystem();
-      // Delay UI element registration to ensure all scripts are loaded
-      setTimeout(initializeAllUIElements, 200);
-    });
-  } else {
-    initializeUIDebugSystem();
-    // Delay UI element registration to ensure all scripts are loaded
-    setTimeout(initializeAllUIElements, 200);
-  }
-}
+// Auto-initialization disabled  
+// if (typeof window !== 'undefined') {
+//   // Wait for DOM to be ready
+//   if (document.readyState === 'loading') {
+//     document.addEventListener('DOMContentLoaded', () => {
+//       initializeUIDebugSystem();
+//       // Delay UI element registration to ensure all scripts are loaded
+//       setTimeout(initializeAllUIElements, 200);
+//     });
+//   } else {
+//     initializeUIDebugSystem();
+//     // Delay UI element registration to ensure all scripts are loaded
+//     setTimeout(initializeAllUIElements, 200);
+//   }
+// }
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {

@@ -58,7 +58,10 @@ class DraggablePanel {
     // Load persisted position if enabled
     this.loadPersistedState();
 
-    console.log(`🪟 DraggablePanel '${this.config.id}' created at (${this.state.position.x}, ${this.state.position.y})`);
+        // Log creation success (only for debug mode)
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      console.log(`🪟 DraggablePanel '${this.config.id}' created at (${this.state.position.x}, ${this.state.position.y})`);
+    }
   }
 
   /**
@@ -137,7 +140,7 @@ class DraggablePanel {
         x: mouseX - this.state.position.x,
         y: mouseY - this.state.position.y
       };
-      console.log(`🖱️ Started dragging panel ${this.config.id}`);
+
     }
     
     // Handle dragging movement
@@ -156,7 +159,7 @@ class DraggablePanel {
         // Mouse released - stop dragging and save state
         this.isDragging = false;
         this.saveState();
-        console.log(`✋ Stopped dragging panel ${this.config.id} at (${this.state.position.x}, ${this.state.position.y})`);
+
       }
     }
   }
@@ -389,7 +392,7 @@ class DraggablePanel {
   toggleVisibility() {
     this.state.visible = !this.state.visible;
     this.saveState();
-    console.log(`👁️ Panel ${this.config.id} visibility: ${this.state.visible}`);
+
   }
 
   /**
@@ -398,7 +401,7 @@ class DraggablePanel {
   toggleMinimized() {
     this.state.minimized = !this.state.minimized;
     this.saveState();
-    console.log(`📦 Panel ${this.config.id} minimized: ${this.state.minimized}`);
+
   }
 
   /**

@@ -18,7 +18,15 @@ class DraggablePanelManager {
     this.panels = new Map();
     this.isInitialized = false;
     
-    console.log('🪟 DraggablePanelManager created');
+    // Debug mode: Panel Train Mode (panels follow each other when dragged) 🚂
+    this.debugMode = {
+      panelTrainMode: false
+    };
+    
+    // Track which panel is currently being dragged (for proper isolation)
+    this.currentlyDragging = null;
+    
+
   }
 
   /**
@@ -31,7 +39,7 @@ class DraggablePanelManager {
     }
 
     this.isInitialized = true;
-    console.log('✅ DraggablePanelManager initialized');
+
   }
 
   /**
@@ -52,7 +60,7 @@ class DraggablePanelManager {
     const panel = new DraggablePanel(config);
     this.panels.set(config.id, panel);
     
-    console.log(`➕ Added draggable panel: ${config.id}`);
+
     return panel;
   }
 
@@ -65,7 +73,7 @@ class DraggablePanelManager {
   removePanel(panelId) {
     const success = this.panels.delete(panelId);
     if (success) {
-      console.log(`➖ Removed draggable panel: ${panelId}`);
+
     }
     return success;
   }
@@ -90,6 +98,52 @@ class DraggablePanelManager {
   update(mouseX, mouseY, mousePressed) {
     if (!this.isInitialized) return;
 
+    if (this.debugMode.panelTrainMode) {
+      // 🚂 PANEL TRAIN MODE: All panels follow the leader!
+      this.updatePanelTrainMode(mouseX, mouseY, mousePressed);
+    } else {
+      // Normal mode: Proper drag isolation (only one panel drags at a time)
+      this.updateNormalMode(mouseX, mouseY, mousePressed);
+    }
+  }
+
+  /**
+   * Normal update mode with proper drag isolation
+   */
+  updateNormalMode(mouseX, mouseY, mousePressed) {
+    // If mouse is released, clear the currently dragging panel
+    if (!mousePressed) {
+      this.currentlyDragging = null;
+    }
+
+    // If no panel is currently being dragged, check for new drag start
+    if (!this.currentlyDragging && mousePressed) {
+      // Find the topmost panel under the mouse (iterate in reverse order)
+      const panelArray = Array.from(this.panels.values()).reverse();
+      for (const panel of panelArray) {
+        if (panel.state.visible && panel.config.behavior.draggable) {
+          const titleBarBounds = panel.getTitleBarBounds();
+          if (panel.isPointInBounds(mouseX, mouseY, titleBarBounds)) {
+            this.currentlyDragging = panel.config.id;
+            break;
+          }
+        }
+      }
+    }
+
+    // Update only the currently dragging panel, or all panels if none are dragging
+    for (const panel of this.panels.values()) {
+      if (!this.currentlyDragging || panel.config.id === this.currentlyDragging) {
+        panel.update(mouseX, mouseY, mousePressed);
+      }
+    }
+  }
+
+  /**
+   * 🚂 Panel Train Mode: All panels follow each other in a fun chain!
+   */
+  updatePanelTrainMode(mouseX, mouseY, mousePressed) {
+    // All panels update together - the bug becomes a feature! 
     for (const panel of this.panels.values()) {
       panel.update(mouseX, mouseY, mousePressed);
     }
@@ -231,6 +285,39 @@ class DraggablePanelManager {
       panel.setPosition(panel.config.position.x, panel.config.position.y);
     }
     console.log('🔄 Reset all panels to default positions');
+  }
+
+  /**
+   * 🚂 Toggle Panel Train Mode (debug feature)
+   * When enabled, all panels follow each other when one is dragged
+   * 
+   * @returns {boolean} New panel train mode state
+   */
+  togglePanelTrainMode() {
+    this.debugMode.panelTrainMode = !this.debugMode.panelTrainMode;
+    const status = this.debugMode.panelTrainMode ? 'ENABLED' : 'DISABLED';
+    console.log(`🚂 Panel Train Mode ${status}`);
+    return this.debugMode.panelTrainMode;
+  }
+
+  /**
+   * Get current Panel Train Mode state
+   * 
+   * @returns {boolean} Whether panel train mode is enabled
+   */
+  isPanelTrainModeEnabled() {
+    return this.debugMode.panelTrainMode;
+  }
+
+  /**
+   * Set Panel Train Mode state
+   * 
+   * @param {boolean} enabled - Whether to enable panel train mode
+   */
+  setPanelTrainMode(enabled) {
+    this.debugMode.panelTrainMode = !!enabled;
+    const status = this.debugMode.panelTrainMode ? 'ENABLED' : 'DISABLED';
+    console.log(`🚂 Panel Train Mode ${status}`);
   }
 
   /**

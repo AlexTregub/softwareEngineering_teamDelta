@@ -17,7 +17,7 @@ function createGameActionFactory() {
       const handler = buttonConfig.action?.handler;
       const parameters = buttonConfig.action?.parameters || {};
       
-      console.log(`🎯 Executing action: ${handler} (${actionType})`);
+
       
       try {
         // Handle action types directly or function-type actions
@@ -109,16 +109,16 @@ function handleGameStateAction(handler, parameters, gameContext) {
     case 'game.togglePause':
     case 'game.pause':
       // Toggle pause state - you'll need to implement this based on your game logic
-      console.log('🎮 Toggling pause state');
+
       return true;
     
     case 'game.save':
-      console.log('💾 Saving game');
+
       // Implement save functionality
       return true;
     
     case 'game.load':
-      console.log('📁 Loading game');
+
       // Implement load functionality
       return true;
     
@@ -139,17 +139,17 @@ function handleGameStateAction(handler, parameters, gameContext) {
 function handleEntityAction(handler, parameters, gameContext) {
   switch (handler) {
     case 'entity.move':
-      console.log('🚶 Moving selected entities');
+
       // Implement entity movement
       return true;
     
     case 'entity.attack':
-      console.log('⚔️ Attacking with selected entities');
+
       // Implement entity attack
       return true;
     
     case 'entity.gather':
-      console.log('🌾 Gathering resources');
+
       // Implement resource gathering
       return true;
     
@@ -441,11 +441,11 @@ function handlePlacementAction(handler, parameters, gameContext) {
  */
 async function initializeUniversalButtonSystem() {
   try {
-    console.log('🔄 Starting Universal Button Group System initialization...');
+
     
     // Create the action factory
     const gameActionFactory = createGameActionFactory();
-    console.log('✅ Action factory created');
+
     
     // Make gameActionFactory globally available
     window.gameActionFactory = gameActionFactory;
@@ -455,11 +455,11 @@ async function initializeUniversalButtonSystem() {
       console.error('❌ ButtonGroupManager not loaded. Check index.html script tags.');
       return false;
     }
-    console.log('✅ ButtonGroupManager class found');
+
     
     // Create button group manager instance
     window.buttonGroupManager = new ButtonGroupManager(gameActionFactory);
-    console.log('✅ ButtonGroupManager instance created');
+
     
     // Verify the instance has required methods
     if (typeof window.buttonGroupManager.update !== 'function') {
@@ -470,31 +470,22 @@ async function initializeUniversalButtonSystem() {
       console.error('❌ ButtonGroupManager missing render method');
       return false;
     }
-    console.log('✅ ButtonGroupManager methods verified');
+
     
     // Initialize the manager with proper configuration loading
     try {
       // Load button group configurations for current game state
       const currentState = window.GameState ? window.GameState.getState() : 'MENU';
-      console.log(`🔧 Loading button groups for state: ${currentState}`);
+
       
       // Try to load the legacy conversions configuration file
       try {
         const response = await fetch('config/button-groups/legacy-conversions.json');
         if (response.ok) {
           const legacyConfig = await response.json();
-          console.log('✅ Loaded legacy-conversions.json configuration:', legacyConfig);
-          console.log('📋 Configuration structure check:', {
-            hasGroups: !!legacyConfig.groups,
-            groupsCount: legacyConfig.groups?.length || 0,
-            groupIds: legacyConfig.groups?.map(g => g.id) || [],
-            meta: legacyConfig.meta
-          });
-          
-          // Initialize with legacy conversions
-          console.log('🚀 About to initialize ButtonGroupManager with:', legacyConfig.groups);
+
           await window.buttonGroupManager.initialize(legacyConfig.groups);
-          console.log('✅ ButtonGroupManager initialized with legacy conversions');
+
         } else {
           throw new Error('Failed to load legacy-conversions.json');
         }
@@ -531,13 +522,13 @@ async function initializeUniversalButtonSystem() {
         };
         
         await window.buttonGroupManager.initialize([defaultMenuConfig]);
-        console.log('✅ ButtonGroupManager initialized with fallback configuration');
+
       }
     } catch (error) {
       console.error('❌ Failed to initialize ButtonGroupManager:', error);
       // Try initializing with empty array as fallback
       await window.buttonGroupManager.initialize([]);
-      console.log('⚠️ ButtonGroupManager initialized with empty configuration');
+
     }
     
     console.log('🎮 Universal Button Group System initialized successfully');

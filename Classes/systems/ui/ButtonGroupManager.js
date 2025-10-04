@@ -61,7 +61,7 @@ class ButtonGroupManager {
       throw new Error('ButtonGroupManager is already initialized');
     }
 
-    console.log('🏁 ButtonGroupManager.initialize() called with config:', config);
+
 
     this.groupCreationErrors = [];
     const results = {
@@ -72,14 +72,14 @@ class ButtonGroupManager {
 
     try {
       const configurations = Array.isArray(config) ? config : [config];
-      console.log(`📋 ButtonGroupManager processing ${configurations.length} configurations`);
+
       
       for (const groupConfig of configurations) {
-        console.log(`🔨 ButtonGroupManager attempting to create group: ${groupConfig?.id || 'unknown'}`);
+
         try {
           this.createButtonGroup(groupConfig);
           results.successful++;
-          console.log(`✅ Successfully created group: ${groupConfig.id}`);
+
         } catch (error) {
           console.error(`❌ Failed to create group ${groupConfig?.id || 'unknown'}:`, error);
           results.failed++;
@@ -111,23 +111,23 @@ class ButtonGroupManager {
    * @returns {ButtonGroup} Created button group instance
    */
   createButtonGroup(config) {
-    console.log(`🏭 ButtonGroupManager.createButtonGroup called for: ${config?.id || 'unknown'}`);
+
     
     // Validate configuration
     if (!config || typeof config !== 'object') {
       throw new Error('Button group configuration must be a valid object');
     }
-    console.log(`✅ ButtonGroupManager config validation passed for: ${config.id}`);
+
     
     if (!config.id || typeof config.id !== 'string') {
       throw new Error('Button group configuration must have a valid string ID');
     }
-    console.log(`✅ ButtonGroupManager ID validation passed for: ${config.id}`);
+
     
     if (this.activeGroups.has(config.id)) {
       throw new Error(`Button group with ID '${config.id}' already exists`);
     }
-    console.log(`✅ ButtonGroupManager duplicate check passed for: ${config.id}`);
+
 
     // Create button group using real ButtonGroup class
     console.log(`🚀 ButtonGroupManager about to create ButtonGroup for: ${config.id}`);
