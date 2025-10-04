@@ -40,7 +40,8 @@ class gridTerrain {
             // this._centerChunkX - this._gridSizeX,
             // this._centerChunkY - this._gridSizeY
             -this._centerChunkX,
-            -this._centerChunkY
+            // this._centerChunkY
+            this._gridSizeY-this._centerChunkY
         ];
 
         this._chunkSize = chunkSize; // Chunk size (in tiles)
@@ -131,7 +132,7 @@ class gridTerrain {
             // Cull rendering of un-viewable chunks
             let chunkLoc = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
             if (chunkLoc[0] < chunkSpan[0][0] || chunkLoc[0] > chunkSpan[1][0] || chunkLoc[1] > chunkSpan[0][1] || chunkLoc[1] < chunkSpan[1][1]) {
-                console.log("Chunk "+i+'/'+chunkLoc+" skipped.");
+                // console.log("Chunk "+i+'/'+chunkLoc+" skipped.");
                 continue;
             }
 
@@ -199,7 +200,8 @@ class camRenderConverter {
     convPosToCanvas(input) {
         let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
         let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
-        return this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
+        let third = this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
+        return third;
     }
 
     getViewSpan() {

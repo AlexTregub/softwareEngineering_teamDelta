@@ -111,7 +111,7 @@ function setup() {
   MAP2.randomize(SEED);
   MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
 
-  MAP2.renderConversion._camPosition = [-72,-72]; // MOVEMENT OF VIEW EXAMPLE
+  MAP2.renderConversion._camPosition = [-72,88]; // MOVEMENT OF VIEW EXAMPLE
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
@@ -127,6 +127,14 @@ function setup() {
  
   Ants_Spawn(10);
   // Resources_Spawn(20);
+
+  // Grid new functionality testing:
+  let temp = new Grid(8,8,[5,5]);
+  temp.print();
+  print(temp.infoStr());
+
+  MAP2.chunkArray.print();
+  print(MAP2.chunkArray.infoStr());
 }
 
 // Global Currency Counter
@@ -161,7 +169,7 @@ function draw() {
   if (GameState.isInGame()) {
     MAP2.renderConversion._camPosition = [ // MOVEMENT OF VIEW EXAMPLE
       MAP2.renderConversion._camPosition[0]+0.1,
-      MAP2.renderConversion._camPosition[1]+0.1,
+      MAP2.renderConversion._camPosition[1]-0.1,
     ];
 
     MAP2.render();

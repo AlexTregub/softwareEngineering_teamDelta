@@ -206,4 +206,8 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     TERRAIN_MATERIALS_RANGED[this._materialSet][1](pixelPos[0],pixelPos[1],this._squareSize);
     smooth();
   }
+
+  toString() {
+    return this._materialSet+'('+this._x+','+this._y+')';
+  }
 }
