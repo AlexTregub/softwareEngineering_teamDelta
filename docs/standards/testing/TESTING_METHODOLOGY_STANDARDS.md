@@ -1,4 +1,28 @@
-This document establishes testing standards based on systematic analysis of weak tests encountered during the rendering pipeline test suite development. The goal is to ensure all tests provide **authentic validation** of real system functionality rather than trivial assertions.
+This document establishes testing standards based on systematic analysis of weak tests encountered during the rendering pipeline test suite development. The goal is to ensure all tests provide **comprehensive validation** of system functionality rather than trivial assertions.
+
+> **Language Guidelines**: See [BDD_LANGUAGE_STYLE_GUIDE.md](./BDD_LANGUAGE_STYLE_GUIDE.md) for consistent, professional test language without unnecessary emphasis words.
+
+## 🖥️ **BROWSER AUTOMATION REQUIREMENTS**
+
+**ALL browser-based tests MUST run in HEADLESS mode:**
+
+### ✅ REQUIRED Configuration:
+```python
+# Mandatory Chrome headless setup
+chrome_options = Options()
+chrome_options.add_argument('--headless=new')  # Use new headless mode
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--window-size=1280,720')
+```
+
+### Why Headless Mode is Mandatory:
+- **✅ CI/CD Compatibility**: Works on servers without displays
+- **✅ Performance**: Faster execution without GUI overhead
+- **✅ Reliability**: Consistent results across environments
+- **✅ Resource Efficiency**: Lower memory and CPU usage
+- **✅ Parallel Execution**: Multiple tests can run simultaneously
 
 ## 🚫 RED FLAGS - Weak Test Patterns
 
@@ -18,6 +42,14 @@ This document establishes testing standards based on systematic analysis of weak
 - **Incomplete Test Implementation**: `expect(true).to.be.true` placeholder tests
 - **Test Description Mismatch**: Test description doesn't match implementation
 - **Partial Test Validation**: Executing code but missing expectation statements
+- **❌ FAKE TEST RESULTS**: `results['tests_passed'] = 17` - Hardcoded test counts without execution
+- **❌ SIMULATED SUCCESS**: `simulate successful test execution` - Fake success reporting
+- **❌ HARDCODED METRICS**: Any hardcoded numbers representing test outcomes without real execution
+- **❌ ASSUMPTION-BASED TESTING**: Writing tests based on assumptions about system capabilities without dependency analysis
+- **❌ MANUAL PROPERTY INJECTION**: `antObj.jobPriority = priority` - Setting properties that may not exist in real system
+- **❌ FAKE API SIMULATION**: Creating mock methods/properties in tests instead of using real system APIs
+- **❌ BYPASSING REAL CONSTRUCTORS**: Manually creating object structures instead of using actual class constructors
+- **❌ SKIPPING DEPENDENCY DETECTION**: Writing tests without first analyzing what the real system actually provides
 
 ## ✅ STRONG TEST PATTERNS
 
@@ -32,9 +64,61 @@ This document establishes testing standards based on systematic analysis of weak
 ## Quick Test Quality Check:
 
 **Ask these 3 questions:**
-1. **"Does this test use the real system API?"** If no → weak test
-2. **"Would this test catch a real bug?"** If no → weak test  
+1. **"Does this test use the system API?"** If no → weak test
+2. **"Would this test catch a bug?"** If no → weak test  
 3. **"Am I testing system behavior or test logic?"** If test logic → weak test
+
+## 📝 LANGUAGE GUIDELINES - Clean Test Descriptions
+
+### ✅ PREFERRED Language:
+- **"test ant creation using antsSpawn"** ✓
+- **"verify job system returns data"** ✓
+- **"ensure spawned ant uses constructor"** ✓
+- **"validate system dependencies"** ✓
+- **"test JobComponent.getAllJobs()"** ✓
+
+### ❌ AVOID Emphasis Language:
+- ~~"test ant creation using **REAL** antsSpawn"~~ ❌
+- ~~"verify job system returns **actual** data"~~ ❌
+- ~~"ensure spawned ant uses **actual** constructor"~~ ❌
+- ~~"validate **real** system dependencies"~~ ❌
+- ~~"instead of **fake implementations**"~~ ❌
+- ~~"**authentic** testing"~~ ❌
+- ~~"**genuine** system behavior"~~ ❌
+
+### Why Clean Language Matters:
+1. **Focus on Functionality**: Tests should describe what they're validating, not contrast with alternatives
+2. **Maintainability**: Clean language ages better and doesn't become dated
+3. **Professionalism**: Straightforward descriptions are more professional and readable
+4. **Clarity**: Simple language is clearer for future developers
+
+### BDD Feature File Guidelines:
+```gherkin
+# ✅ GOOD - Clear and direct
+Feature: Ant Creation and Properties
+  As a game developer
+  I want to test ant creation using the antsSpawn function
+  So that I validate system behavior
+
+# ❌ AVOID - Unnecessary emphasis
+Feature: Ant Creation Using Real System APIs  
+  As a game developer  
+  I want to test ant creation using the actual antsSpawn function
+  So that I validate real system behavior instead of fake implementations
+```
+
+### Step Definition Guidelines:
+```python
+# ✅ GOOD - Clean and functional
+@when('I call antsSpawn with {count:d} ant')
+@then('the spawned ant should use the ant constructor')
+@then('I should get the list of available jobs')
+
+# ❌ AVOID - Unnecessary qualifiers  
+@when('I call the real antsSpawn function with {count:d} ant')
+@then('the spawned ant should use the actual ant constructor')
+@then('I should get the actual list of available jobs')
+```
 
 ## Weak Test Pattern Analysis
 
@@ -268,6 +352,48 @@ const leakAmount = 60 * 1024 * 1024; // Realistic 60MB memory increase
 - [ ] Uses realistic, domain-appropriate test data
 - [ ] Validates meaningful thresholds and calculations
 - [ ] Provides value for debugging and regression prevention
+
+## Unified BDD Test Structure
+
+### Test Organization Standards
+
+**Unified Test Directory Structure:**
+```
+test/unified_bdd_tests/
+├── features/           # All .feature files consolidated here
+│   ├── browser_automation.feature
+│   ├── core_systems.feature
+│   ├── system_integration.feature
+│   ├── ui_debug_system.feature
+│   └── ... (all other .feature files)
+└── steps/             # All step definition files consolidated here
+    ├── browser_automation_steps.py
+    ├── core_systems_steps.py
+    ├── integration_system_steps.py
+    ├── ui_debug_steps.py
+    ├── environment.py          # BDD environment configuration
+    └── __init__.py
+```
+
+**Key Requirements:**
+- **Unified Location**: All BDD tests must be in `test/unified_bdd_tests/`
+- **Feature Files**: Located in `test/unified_bdd_tests/features/`
+- **Step Definitions**: Located in `test/unified_bdd_tests/steps/`
+- **ChromeDriver Management**: Automatic via `webdriver-manager` package
+- **Environment Setup**: Managed through `environment.py` in steps directory
+
+**Dependencies:**
+- `behave>=1.2.6` - Core BDD framework
+- `selenium>=4.15.0` - Browser automation
+- `webdriver-manager>=4.0.1` - Automatic ChromeDriver management
+
+**Test Execution Command:**
+```bash
+cd test/unified_bdd_tests
+python -m behave features/ --format pretty
+```
+
+This unified structure eliminates fragmentation across multiple test directories (`test/features/`, `test/behavioral/features/`, `test/browser/features/`, `test/bdd/`) and ensures consistent test organization and execution.
 
 ## Conclusion
 

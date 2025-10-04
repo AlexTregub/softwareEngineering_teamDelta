@@ -4,28 +4,23 @@
   "description": "Test suite for the Ant Game project",
   "main": "sketch.js",
   "scripts": {
-    "test": "npm run test:all",
-    "test:all": "npm run test:rendering-bdd && npm run test:behave",
-    "test:rendering-bdd": "node test/rendering/run_tests.js",
-    "test:behave": "npx cucumber-js",
-    "test:behave:dev": "npx cucumber-js --profile dev",
-    "test:behave:ci": "npx cucumber-js --profile ci",
-    "test:button-group": "npx cucumber-js test/behavioral/features/button_group_management.feature",
-    "test:statemachine": "node test/AntStateMachine.test.js",
-    "test:selection": "node test/selectionBox.node.test.js",
-    "test:ant": "node test/ant.test.js",
-    "test:sprite2d": "node test/sprite2d.test.js",
-    "test:selection-comprehensive": "node test/selectionBox.comprehensive.test.js",
-    "test:selection-regression": "node test/selectionBox.regression.test.js",
-    "test:antmanager": "node test/antManager.test.js",
-    "test:resourcemanager": "node test/g_resourceManager.test.js",
-    "test:button": "node test/button.test.js",
-    "test:vertical": "node test/verticalButtonList.test.js && node test/verticalButtonList.header.test.js",
-    "test:collisionbox2d": "node test/collisionBox2D.test.js",
-    "test:movementcontroller": "node test/movementController.test.js",
-    "test:taskmanager": "node test/taskManager.test.js",
-    "test:rendercontroller": "node test/renderController.test.js",
-    "test:watch": "npm run test -- --watch",
+    "test": "npm run test:bdd",
+    "test:setup": "cd test/bdd_new && pip install -r requirements.txt",
+    "test:python": "python test/bdd_new/steps/run_python_tests.py",
+    "test:python:core": "behave --steps-dir test/bdd_new/steps test/bdd_new/features --tags @core",
+    "test:python:ui": "behave --steps-dir test/bdd_new/steps test/bdd_new/features --tags @ui",
+    "test:python:browser": "behave --steps-dir test/bdd_new/steps test/bdd_new/features --tags @browser",
+    "test:python:legacy": "python test/bdd_new/steps/legacy_system_steps.py",
+    "test:python:buttons": "behave --steps-dir test/bdd_new/steps test/bdd_new/features --tags @buttons",
+    "test:python:integration": "behave --steps-dir test/bdd_new/steps test/bdd_new/features --tags @integration",
+    "test:python:red-flags": "python test/bdd_new/steps/detect_red_flags.py",
+    "test:python:all": "npm run test:python:setup && npm run test:python:red-flags && npm run test:python",
+    "test:bdd": "python test/bdd_new/run_bdd_tests.py",
+    "test:bdd:ants": "python test/bdd_new/run_bdd_tests.py --tags @ants",
+    "test:bdd:buttons": "python test/bdd_new/run_bdd_tests.py --tags @buttons",
+    "test:bdd:ui": "python test/bdd_new/run_bdd_tests.py --tags @ui",
+    "test:bdd:integration": "python test/bdd_new/run_bdd_tests.py --tags @integration",
+    "test:bdd:core": "python test/bdd_new/run_bdd_tests.py --tags @core",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"
   },
@@ -41,8 +36,11 @@
   "devDependencies": {
     "@cucumber/cucumber": "^9.5.0",
     "chai": "^4.3.10",
+    "chromedriver": "^141.0.0",
     "jsdom": "^22.1.0",
-    "mocha": "^10.2.0"
+    "mocha": "^10.2.0",
+    "puppeteer": "^24.23.0",
+    "selenium-webdriver": "^4.36.0"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -54,8 +52,5 @@
   "bugs": {
     "url": "https://github.com/AlexTregub/softwareEngineering_teamDelta/issues"
   },
-  "homepage": "https://github.com/AlexTregub/softwareEngineering_teamDelta#readme",
-  "dependencies": {
-    "selenium-webdriver": "^4.36.0"
-  }
+  "homepage": "https://github.com/AlexTregub/softwareEngineering_teamDelta#readme"
 }

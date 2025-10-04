@@ -7,7 +7,7 @@
 - **Basic Math Tests**: `expect(minValue).to.be.lessThan(maxValue)` 
 - **Language Feature Tests**: Testing `.some()`, `.forEach()`, array methods
 - **Arbitrary Thresholds**: Magic numbers not from system config
-- **Manual Re-implementation**: Writing own logic instead of testing real APIs
+- **Manual Re-implementation**: Writing own logic instead of testing system APIs
 - **Test Logic Validation**: Testing that tests work, not that system works
 - **Private Method Testing**: `obj._privateMethod()` instead of public APIs
 - **Trivial Setter Testing**: `setFlag(true)` → `expect(flag).to.be.true`
@@ -22,12 +22,13 @@
 ## ✅ STRONG TEST PATTERNS
 
 ### Must-Have Elements:
-1. **Real API Usage**: `system.getWarnings()` not `array.some()`
-2. **Actual Thresholds**: Use system's real 50ms, not arbitrary 30ms  
+1. **System API Usage**: `system.getWarnings()` not `array.some()`
+2. **System Thresholds**: Use system's 50ms, not arbitrary 30ms  
 3. **Business Logic**: Test requirements, not mechanics
 4. **Positive + Negative**: Both "should detect" and "should not false alarm"
 5. **Realistic Data**: Domain-appropriate test values
 6. **Statistical Rigor**: Proper calculations for trend/pattern analysis
+7. **🖥️ Headless Browsers**: ALL browser tests must run headless
 
 ## Quick Test Quality Check:
 

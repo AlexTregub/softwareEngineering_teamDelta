@@ -1,28 +1,28 @@
-# Dependency Management Strategy for Real Class Testing
+# Dependency Management Strategy for System Class Testing
 
 ## The Problem You Asked About
 
 **Question**: "And what if those change in the future? how do we account for that"
 
-When the real rendering classes change their dependencies in the future, our tests could break or become invalid. This is a critical maintenance issue.
+When the rendering classes change their dependencies in the future, our tests could break or become invalid. This is a critical maintenance issue.
 
 ## Our Solution: Smart Dependency Detection & Validation
 
 We've built a comprehensive system that **automatically detects and validates** dependencies to prevent future breakage:
 
 ### 1. ✅ **Automatic Dependency Detection** 
-- **Real-time scanning**: The system scans actual rendering class files to detect what globals they use
+- **Runtime scanning**: The system scans rendering class files to detect what globals they use
 - **Smart categorization**: Groups dependencies into `gameState`, `p5js`, and `browser` categories
 - **No manual maintenance**: Dependencies are discovered automatically, not hard-coded
 
 ### 2. ✅ **Dependency Validation & Warnings**
-- **Missing mock detection**: Warns when real classes need dependencies we haven't mocked
+- **Missing mock detection**: Warns when classes need dependencies we haven't mocked
 - **Outdated mock detection**: Identifies mocks for dependencies that are no longer used
 - **Breaking change alerts**: Provides clear warnings about dependency mismatches
 
 ### 3. ✅ **Future-Proof Test Updates**
 
-When real classes change their dependencies, our system will:
+When classes change their dependencies, our system will:
 
 ```
 🚨 Mock validation issues:
@@ -44,7 +44,7 @@ This means:
 - ❌ Manual maintenance nightmare when code changes
 
 ### After (Our Solution)  
-- ✅ **Automatic dependency discovery** from real class files
+- ✅ **Automatic dependency discovery** from class files
 - ✅ **Runtime validation** that catches dependency mismatches
 - ✅ **Clear warnings** about what needs updating
 - ✅ **Self-documenting** system that explains issues
