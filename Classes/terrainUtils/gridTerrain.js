@@ -13,11 +13,19 @@ floor chunks to get (0,0) chunk offset towards TL
 5-1/2 = @2
 ...
 
+OLD SYSTEM (easier to implement, silly to think about)
 eg: (tiles//backing grid?) - -0.5 offsets configured by Chunk. (only for rendering)
 (-8.5,-8.5).......... ___________________
 ...........(-0.5,-0.5)___________________
 ______________________(-0.5,-0.5)........
 ______________________...........(7.5,7.5)
+
+POTENTIAL:
+eg: (tiles//backing grid?) - -0.5 offsets configured by Chunk. (only for rendering)
+(-8.5,8.5).......... ___________________
+...........(-0.5,0.5)___________________
+______________________(-0.5,0.5)........
+______________________...........(7.5,-7.5)
 */
 
 class gridTerrain {
