@@ -39,10 +39,10 @@
   "author": "Software Engineering Team Delta",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^10.2.0",
+    "@cucumber/cucumber": "^9.5.0",
     "chai": "^4.3.10",
     "jsdom": "^22.1.0",
-    "@cucumber/cucumber": "^9.5.0"
+    "mocha": "^10.2.0"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -54,5 +54,8 @@
   "bugs": {
     "url": "https://github.com/AlexTregub/softwareEngineering_teamDelta/issues"
   },
-  "homepage": "https://github.com/AlexTregub/softwareEngineering_teamDelta#readme"
+  "homepage": "https://github.com/AlexTregub/softwareEngineering_teamDelta#readme",
+  "dependencies": {
+    "selenium-webdriver": "^4.36.0"
+  }
 }

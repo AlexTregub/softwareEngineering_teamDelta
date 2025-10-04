@@ -727,6 +727,114 @@ class RenderController {
       center: this.getEntityCenter()
     };
   }
+
+  // --- Selenium Testing Getters ---
+
+  /**
+   * Get current highlight state (for Selenium validation)
+   * @returns {string|null} Current highlight type
+   */
+  getHighlightState() {
+    return this._highlightState;
+  }
+
+  /**
+   * Get highlight color (for Selenium validation)
+   * @returns {Array|null} Current highlight color [r, g, b, a]
+   */
+  getHighlightColor() {
+    return this._highlightColor ? [...this._highlightColor] : null;
+  }
+
+  /**
+   * Get highlight intensity (for Selenium validation)
+   * @returns {number} Current highlight intensity (0-1)
+   */
+  getHighlightIntensity() {
+    return this._highlightIntensity;
+  }
+
+  /**
+   * Check if highlight is active (for Selenium validation)
+   * @returns {boolean} True if any highlight is active
+   */
+  isHighlighted() {
+    return this._highlightState !== null;
+  }
+
+  /**
+   * Get available highlight types (for Selenium validation)
+   * @returns {Array<string>} Array of available highlight type names
+   */
+  getAvailableHighlights() {
+    return Object.keys(this.HIGHLIGHT_TYPES);
+  }
+
+  /**
+   * Get available state indicators (for Selenium validation)
+   * @returns {Array<string>} Array of available state names
+   */
+  getAvailableStates() {
+    return Object.keys(this.STATE_INDICATORS);
+  }
+
+  /**
+   * Get current entity state from state machine (for Selenium validation)
+   * @returns {string|null} Current entity state
+   */
+  getCurrentEntityState() {
+    if (!this._entity || !this._entity._stateMachine) return null;
+    return this._entity._stateMachine.primaryState || null;
+  }
+
+  /**
+   * Check if state indicator is showing (for Selenium validation)
+   * @returns {boolean} True if state indicator should be visible
+   */
+  isStateIndicatorVisible() {
+    const currentState = this.getCurrentEntityState();
+    return currentState && currentState !== "IDLE" && this.STATE_INDICATORS[currentState];
+  }
+
+  /**
+   * Get expected state indicator symbol (for Selenium validation)
+   * @returns {string|null} Expected symbol for current state
+   */
+  getExpectedStateSymbol() {
+    const currentState = this.getCurrentEntityState();
+    if (!currentState || !this.STATE_INDICATORS[currentState]) return null;
+    return this.STATE_INDICATORS[currentState].symbol;
+  }
+
+  /**
+   * Get visual effects count (for Selenium validation)
+   * @returns {number} Number of active visual effects
+   */
+  getEffectsCount() {
+    return this._effects.length;
+  }
+
+  /**
+   * Get render controller validation data (for Selenium validation)
+   * @returns {Object} Complete validation data for testing
+   */
+  getValidationData() {
+    return {
+      highlightState: this._highlightState,
+      highlightColor: this._highlightColor ? [...this._highlightColor] : null,
+      highlightIntensity: this._highlightIntensity,
+      isHighlighted: this.isHighlighted(),
+      entityState: this.getCurrentEntityState(),
+      isStateIndicatorVisible: this.isStateIndicatorVisible(),
+      expectedStateSymbol: this.getExpectedStateSymbol(),
+      effectsCount: this._effects.length,
+      availableHighlights: this.getAvailableHighlights(),
+      availableStates: this.getAvailableStates(),
+      position: this.getEntityPosition(),
+      size: this.getEntitySize(),
+      timestamp: new Date().toISOString()
+    };
+  }
 }
 
 // Export for Node.js testing

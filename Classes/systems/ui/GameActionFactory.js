@@ -53,33 +53,39 @@ function createGameActionFactory() {
             return { success: handlePlacementAction(handler, parameters, gameContext) };
             
           case 'function':
-            // Handle legacy function-type actions by parsing the handler prefix
+            // Handle function-type actions
             if (handler) {
-              const handlerParts = handler.split('.');
-              const category = handlerParts[0];
-              
-              switch (category) {
-                case 'gameState':
-                  return { success: handleGameStateAction(handler, parameters, gameContext) };
-                  
-                case 'entity':
-                  return { success: handleEntityAction(handler, parameters, gameContext) };
-                  
-                case 'ui':
-                  return { success: handleUIAction(handler, parameters, gameContext) };
-                  
-                case 'debug':
-                  return { success: handleDebugAction(handler, parameters, gameContext) };
-                  
-                case 'info':
-                  return { success: handleInfoAction(handler, parameters, gameContext) };
-                  
-                case 'system':
-                  return { success: handleSystemAction(handler, parameters, gameContext) };
-                  
-                default:
-                  console.warn(`⚠️ Unhandled function handler category: ${category}`);
-                  return { success: false, error: `Unknown handler category: ${category}` };
+              // Check if it's a categorized handler (contains dot)
+              if (handler.includes('.')) {
+                const handlerParts = handler.split('.');
+                const category = handlerParts[0];
+                
+                switch (category) {
+                  case 'gameState':
+                    return { success: handleGameStateAction(handler, parameters, gameContext) };
+                    
+                  case 'entity':
+                    return { success: handleEntityAction(handler, parameters, gameContext) };
+                    
+                  case 'ui':
+                    return { success: handleUIAction(handler, parameters, gameContext) };
+                    
+                  case 'debug':
+                    return { success: handleDebugAction(handler, parameters, gameContext) };
+                    
+                  case 'info':
+                    return { success: handleInfoAction(handler, parameters, gameContext) };
+                    
+                  case 'system':
+                    return { success: handleSystemAction(handler, parameters, gameContext) };
+                    
+                  default:
+                    console.warn(`⚠️ Unhandled function handler category: ${category}`);
+                    return { success: false, error: `Unknown handler category: ${category}` };
+                }
+              } else {
+                // Handle standalone global function calls
+                return { success: handleStandaloneFunctionCall(handler, parameters, gameContext) };
               }
             }
             break;
@@ -432,6 +438,57 @@ function handlePlacementAction(handler, parameters, gameContext) {
     default:
       console.warn(`⚠️ Unhandled placement action: ${handler}`);
       return false;
+  }
+}
+
+/**
+ * Handle standalone global function calls
+ */
+function handleStandaloneFunctionCall(functionName, parameters, gameContext) {
+  try {
+    // Check if function exists in global scope
+    let targetFunction = null;
+    
+    // Try window scope first (browser environment)
+    if (typeof window !== 'undefined' && typeof window[functionName] === 'function') {
+      targetFunction = window[functionName];
+    }
+    // Try global scope (Node.js or other contexts)
+    else if (typeof global !== 'undefined' && typeof global[functionName] === 'function') {
+      targetFunction = global[functionName];
+    }
+    // Try direct global reference (most common case)
+    else if (typeof eval !== 'undefined') {
+      try {
+        const evalResult = eval(functionName);
+        if (typeof evalResult === 'function') {
+          targetFunction = evalResult;
+        }
+      } catch (evalError) {
+        // eval failed, function might not exist
+      }
+    }
+    
+    if (targetFunction) {
+      console.log(`🎯 Calling global function: ${functionName}`);
+      
+      // Call the function with parameters if provided
+      if (parameters && Object.keys(parameters).length > 0) {
+        targetFunction(parameters);
+      } else {
+        targetFunction();
+      }
+      
+      console.log(`✅ Successfully called ${functionName}`);
+      return true;
+    } else {
+      console.warn(`⚠️ Global function not found: ${functionName}`);
+      return false;
+    }
+    
+  } catch (error) {
+    console.error(`❌ Error calling global function ${functionName}:`, error);
+    return false;
   }
 }
 

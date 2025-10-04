@@ -595,6 +595,89 @@ class Entity {
     return this._chainAPI;
   }
 
+  // --- Selenium Testing Getters ---
+
+  /**
+   * Get entity job name (for Selenium validation)
+   * @returns {string|null} Current job name
+   */
+  getJobName() {
+    return this._JobName || null;
+  }
+
+  /**
+   * Get entity type (for Selenium validation)
+   * @returns {string} Entity type
+   */
+  getEntityType() {
+    return this._type || 'Unknown';
+  }
+
+  /**
+   * Get entity faction (for Selenium validation)
+   * @returns {string} Entity faction
+   */
+  getFaction() {
+    return this._faction || 'neutral';
+  }
+
+  /**
+   * Get current state from state machine (for Selenium validation)
+   * @returns {string|null} Current entity state
+   */
+  getCurrentState() {
+    if (!this._stateMachine) return null;
+    return this._stateMachine.primaryState || null;
+  }
+
+  /**
+   * Check if entity is selected (for Selenium validation)
+   * @returns {boolean} True if entity is selected
+   */
+  isSelected() {
+    return this._isSelected || false;
+  }
+
+  /**
+   * Check if entity is active (for Selenium validation)
+   * @returns {boolean} True if entity is active
+   */
+  isActive() {
+    return this._isActive;
+  }
+
+  /**
+   * Get render controller validation data (for Selenium validation)
+   * @returns {Object|null} Render controller validation data
+   */
+  getRenderValidationData() {
+    const renderController = this._controllers.get('render');
+    if (!renderController || !renderController.getValidationData) return null;
+    return renderController.getValidationData();
+  }
+
+  /**
+   * Get complete entity validation data (for Selenium validation)
+   * @returns {Object} Complete validation data for testing
+   */
+  getValidationData() {
+    return {
+      id: this._id,
+      type: this.getEntityType(),
+      jobName: this.getJobName(),
+      faction: this.getFaction(),
+      currentState: this.getCurrentState(),
+      isSelected: this.isSelected(),
+      isActive: this.isActive(),
+      position: this.getPosition(),
+      size: this.getSize(),
+      hasSprite: this.hasImage(),
+      renderData: this.getRenderValidationData(),
+      controllers: Array.from(this._controllers.keys()),
+      timestamp: new Date().toISOString()
+    };
+  }
+
   // --- Cleanup ---
   /** Mark entity inactive; controllers will be released for GC. */
   destroy() { this._isActive = false; }

@@ -29,14 +29,8 @@ function antsPreloader() {
   initializeAntManager();
 }
 
-function initializeAntManager() {
-  if (typeof AntManager !== 'undefined' && !antManager) {
-    antManager = new AntManager();
-  // AntManager initialized successfully
-  } else if (typeof AntManager === 'undefined') {
-    console.error('AntManager class not available - functions will fall back to basic implementations');
-  }
-}
+/** Initializes the AntManager instance */
+function initializeAntManager() { antManager = new AntManager(); }
 
 
 
@@ -201,7 +195,6 @@ class ant extends Entity {
   }
   set isSelected(value) {
     // Debug: log when selection state is set
-
     this._delegate('selection', 'setSelected', value);
   }
   
@@ -371,34 +364,14 @@ class ant extends Entity {
   render() {
     if (!this.isActive) return;
 
-    if (this._renderController) {
-      // Update highlighting based on current state
-      if (this.isSelected) {
-        this._renderController.highlightSelected();
-      } else if (this.isMouseOver(mouseX, mouseY)) {
-        this._renderController.highlightHover();
-      } else if (this.isBoxHovered) {
-        this._renderController.highlightBoxHover();
-      } else if (this._stateMachine.isInCombat()) {
-        this._renderController.highlightCombat();
-      } else {
-        this._renderController.clearHighlight();
-      }
-    }
-
-    // Use Entity rendering (handles sprite automatically)
+    // Use Entity rendering (handles sprite and highlights automatically)
     super.render();
-
-    // --- Selection Box Rendering ---
-    const pos = this.getPosition();
-    const size = this.getSize();
-    let borderColor = null;
 
     // Add ant-specific rendering
     this._renderHealthBar();
     this._renderResourceIndicator();
   }
-  
+
   _renderHealthBar() {
     if (this._health < this._maxHealth) {
       const pos = this.getPosition();
@@ -441,6 +414,82 @@ class ant extends Entity {
     };
   }
   
+  // --- Selenium Testing Getters (Ant-specific) ---
+
+  /**
+   * Get ant index (for Selenium validation)
+   * @returns {number|null} Ant's index in the ants array
+   */
+  getAntIndex() {
+    return this._antIndex || null;
+  }
+
+  /**
+   * Get ant health information (for Selenium validation)
+   * @returns {Object} Health data
+   */
+  getHealthData() {
+    return {
+      current: this._health,
+      max: this._maxHealth,
+      percentage: Math.round((this._health / this._maxHealth) * 100)
+    };
+  }
+
+  /**
+   * Get ant resource information (for Selenium validation)
+   * @returns {Object} Resource data
+   */
+  getResourceData() {
+    return {
+      current: this.getResourceCount(),
+      max: this.getMaxResources(),
+      percentage: Math.round((this.getResourceCount() / this.getMaxResources()) * 100)
+    };
+  }
+
+  /**
+   * Get ant combat information (for Selenium validation)
+   * @returns {Object} Combat data
+   */
+  getCombatData() {
+    return {
+      enemies: this._enemies.length,
+      inCombat: this._enemies.length > 0,
+      faction: this._faction
+    };
+  }
+
+  /**
+   * Get available jobs list (for Selenium validation)
+   * @returns {Array<string>} Available job types
+   */
+  static getAvailableJobs() {
+    return Object.keys(JobImages || {});
+  }
+
+  /**
+   * Get complete ant validation data (for Selenium validation)
+   * @returns {Object} Complete validation data for testing
+   */
+  getAntValidationData() {
+    const baseData = super.getValidationData();
+    return {
+      ...baseData,
+      antIndex: this.getAntIndex(),
+      health: this.getHealthData(),
+      resources: this.getResourceData(),
+      combat: this.getCombatData(),
+      jobName: this.getJobName(),
+      availableJobs: ant.getAvailableJobs(),
+      antSpecific: {
+        enemies: this._enemies.length,
+        maxHealth: this._maxHealth,
+        maxResources: this.getMaxResources()
+      }
+    };
+  }
+
   // --- Cleanup Override ---
   destroy() {
     this._stateMachine = null;

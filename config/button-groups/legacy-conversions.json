@@ -240,7 +240,7 @@
       "layout": {
         "type": "grid",
         "position": {
-          "x": "right",
+          "x": "center",
           "y": "center",
           "offsetX": -240,
           "offsetY": -50
@@ -248,10 +248,10 @@
         "columns": 2,
         "spacing": 8,
         "padding": {
-          "top": 15,
-          "right": 15,
-          "bottom": 15,
-          "left": 15
+          "top": 5,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
         }
       },
       "appearance": {
@@ -433,6 +433,58 @@
           },
           "tooltip": "Remove 10 ants",
           "hotkey": "Shift+0"
+        },
+        {
+            "id": "spawn-100",
+            "text": "+100",
+            "size": {
+                "width": 110,
+                "height": 36
+            },
+            "style": {
+                "backgroundColor": "#4CAF50",
+                "hoverColor": "#45a049",
+                "textColor": "white",
+                "borderColor": "#333",
+                "borderWidth": 2,
+                "cornerRadius": 5,
+                "fontSize": 16
+            },
+            "action": {
+                "type": "spawn",
+                "handler": "spawn.ants",
+                "parameters": {
+                    "count": 100
+                }
+            },
+            "tooltip": "Spawn 100 ants",
+            "hotkey": "Shift+100"
+        },
+        {
+            "id": "kill-100",
+            "text": "-100",
+            "size": {
+                "width": 110,
+                "height": 36
+            },
+            "style": {
+                "backgroundColor": "#f44336",
+                "hoverColor": "#da190b",
+                "textColor": "white",
+                "borderColor": "#333",
+                "borderWidth": 2,
+                "cornerRadius": 5,
+                "fontSize": 16
+            },
+            "action": {
+                "type": "kill",
+                "handler": "kill.ants",
+                "parameters": {
+                    "count": 100
+                }
+            },
+            "tooltip": "Remove 100 ants",
+            "hotkey": "Shift+0"
         }
       ]
     },
@@ -502,6 +554,77 @@
           },
           "tooltip": "Click to enter dropoff placement mode",
           "hotkey": "P"
+        }
+      ]
+    },
+    {
+      "id": "demo-testing",
+      "name": "Demo & Testing",
+      "layout": {
+        "type": "vertical",
+        "position": {
+          "x": "right",
+          "y": "top",
+          "offsetX": -10,
+          "offsetY": 60
+        },
+        "spacing": 5,
+        "padding": {
+          "top": 8,
+          "right": 8,
+          "bottom": 8,
+          "left": 8
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 0.95,
+        "visible": true,
+        "background": {
+          "color": [25, 25, 35, 200],
+          "cornerRadius": 8
+        }
+      },
+      "behavior": {
+        "draggable": true,
+        "resizable": false,
+        "snapToEdges": true
+      },
+      "persistence": {
+        "savePosition": true,
+        "saveScale": false,
+        "saveTransparency": true,
+        "storageKey": "demo-testing"
+      },
+      "conditions": {
+        "gameState": "playing"
+      },
+      "buttons": [
+        {
+          "id": "shareholder-demo",
+          "text": "🎭 Demo",
+          "size": {
+            "width": 100,
+            "height": 36
+          },
+          "style": {
+            "backgroundColor": "#FF6B35",
+            "hoverColor": "#E55A2B",
+            "activeColor": "#FF8C69",
+            "textColor": "#FFFFFF",
+            "borderColor": "#D44815",
+            "borderWidth": 2,
+            "cornerRadius": 6,
+            "fontSize": 14,
+            "fontWeight": "bold"
+          },
+          "action": {
+            "type": "function",
+            "handler": "startShareholderDemo",
+            "parameters": {}
+          },
+          "tooltip": "Start automated visual demonstration for stakeholders",
+          "hotkey": "F9"
         }
       ]
     }
