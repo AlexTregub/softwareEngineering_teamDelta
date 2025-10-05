@@ -53,6 +53,36 @@ function _pushMenuYOffsetHistory(val) {
 }
 
 /**
+ * Initialize menu debug UI with Universal UI Debug System integration
+ */
+function initMenuDebugUI() {
+  // Register debug panel with UI Debug System if available
+  if (g_uiDebugManager) {
+    g_uiDebugManager.registerElement(
+      'menu-debug-panel',
+      { x: 8, y: (typeof g_canvasY !== 'undefined' ? g_canvasY : 600) - 108, width: 400, height: 100 },
+      (x, y) => {
+        // Update panel position for menu debug rendering
+        if (typeof window._menuDebugPanelX !== 'undefined') {
+          window._menuDebugPanelX = x;
+          window._menuDebugPanelY = y;
+        }
+      },
+      {
+        label: 'Menu Debug Panel',
+        isDraggable: true,
+        persistKey: 'menuDebugPanel'
+      }
+    );
+  }
+}
+
+// Expose to global scope
+if (typeof window !== 'undefined') {
+  window.initMenuDebugUI = initMenuDebugUI;
+}
+
+/**
  * Undos the last menuYOffset change by moving back in history.
  * Updates the menu position and persists the change to localStorage.
  */
@@ -576,8 +606,27 @@ function _renderFallbackButtons() {
   
   let bx = panelX + 8;
   for (const b of btnDefs) {
-    stroke(200); strokeWeight(1); fill(60); rect(bx, btnY, btnW, btnH, 4);
-    noStroke(); fill(255); textSize(12); textAlign(CENTER, CENTER); text(b.label, bx + btnW/2, btnY + btnH/2);
+    // Use centralized button styles if available, otherwise fallback to hardcoded values
+    const styles = (typeof ButtonStyles !== 'undefined') ? ButtonStyles.DEBUG_FALLBACK : {
+      backgroundColor: '#3C3C3C',
+      borderColor: '#C8C8C8',
+      textColor: '#FFFFFF',
+      borderWidth: 1,
+      cornerRadius: 4,
+      fontSize: 12
+    };
+    
+    stroke(styles.borderColor); 
+    strokeWeight(styles.borderWidth); 
+    fill(styles.backgroundColor); 
+    rect(bx, btnY, btnW, btnH, styles.cornerRadius);
+    
+    noStroke(); 
+    fill(styles.textColor); 
+    textSize(styles.fontSize); 
+    textAlign(CENTER, CENTER); 
+    text(b.label, bx + btnW/2, btnY + btnH/2);
+    
     menuDebugControlRects.push({ x: bx, y: btnY, w: btnW, h: btnH, action: b.action, amount: b.amount });
     bx += btnW + 8;
   }

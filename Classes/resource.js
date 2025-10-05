@@ -133,7 +133,7 @@ function setRenderListLocation(style, order = "standard"){
         entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0)),
         leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
         fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
-        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 3))
+        ant:() => text("🐜: " + ants.length, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 3))
       }  
       break;
     case "reversed":
@@ -141,7 +141,7 @@ function setRenderListLocation(style, order = "standard"){
         entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 3)),
         leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
         fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
-        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
+        ant:() => text("🐜: " + ants.length, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
       }  
       break;
     default:
@@ -186,6 +186,8 @@ class ResourceSpawner {
     this.maxAmount = maxAmount;
     this.interval = interval;
     this.resources = resources;
+    this.timer = null;
+    this.isActive = false;
 
     this.assets = {
       greenLeaf: { 
@@ -207,13 +209,53 @@ class ResourceSpawner {
       },
     };
 
-    // spawn every {interval} seconds
-    this.timer = setInterval(() => this.spawn(), this.interval * 1000);
+    // Register for game state changes to start/stop spawning automatically
+    if (typeof GameState !== 'undefined') {
+      GameState.onStateChange((newState, oldState) => {
+        if (newState === 'PLAYING') {
+          this.start();
+        } else {
+          this.stop();
+        }
+      });
+
+      // If we're already in PLAYING state when created, start immediately
+      if (GameState.getState() === 'PLAYING') {
+        this.start();
+      }
+    } else {
+      // Fallback for environments without GameState (like tests) - start immediately
+      this.start();
+    }
+  }
+
+  // Start the spawning timer
+  start() {
+    if (!this.isActive) {
+      this.isActive = true;
+      this.timer = setInterval(() => this.spawn(), this.interval * 1000);
+      console.log('ResourceSpawner: Started spawning resources');
+    }
+  }
+
+  // Stop the spawning timer
+  stop() {
+    if (this.isActive) {
+      this.isActive = false;
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+      console.log('ResourceSpawner: Stopped spawning resources');
+    }
   }
 
   
   // Asset selected based on rarity, drawn and appened to list of resources
   spawn() {
+    // Only spawn if active
+    if (!this.isActive) return;
+
     let list = this.resources.getResourceList();
     if (list.length >= this.maxAmount) return;
 
@@ -232,6 +274,14 @@ class ResourceSpawner {
 
     let chosen = this.assets[chosenKey].make();
     list.push(chosen);
+  }
+
+  // Manual spawn method for testing or immediate spawning
+  forceSpawn() {
+    const wasActive = this.isActive;
+    this.isActive = true; // Temporarily enable for this spawn
+    this.spawn();
+    this.isActive = wasActive; // Restore previous state
   }
 }
 
@@ -315,8 +365,8 @@ class Resource extends Entity {
   // Rendering: delegate to Entity.render() which will use RenderController if available
   render() {
     super.render();
-    // Apply hover highlight in the modern path
-    this.highlight();
+    // Apply hover highlight in the modern path using enhanced API
+    this.applyHighlight();
   }
 
   isMouseOver(mx, my) {
@@ -324,7 +374,26 @@ class Resource extends Entity {
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
   }
 
-  highlight() {
+  applyHighlight() {
+    // Try to use the enhanced API first (Phase 3 feature)
+    if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
+      // Use InteractionController for hover detection if available
+      const interactionController = this.getController('interaction');
+      const isHovered = interactionController ? 
+        interactionController.isMouseOver() : 
+        this.isMouseOver(mouseX, mouseY);
+
+      if (isHovered) {
+        this.highlight.hover();
+        return;
+      }
+    }
+
+    // Fallback to manual highlight drawing if enhanced API not available
+    this.drawManualHighlight();
+  }
+
+  drawManualHighlight() {
     // Use InteractionController for hover detection if available
     const interactionController = this.getController('interaction');
     const isHovered = interactionController ? 
@@ -377,7 +446,7 @@ class Resource extends Entity {
     // If RenderController exists it will handle rendering in Entity.render()
     if (!this.getController('render')) {
       this.render();
-      this.highlight();
+      this.applyHighlight();
     }
   }
 

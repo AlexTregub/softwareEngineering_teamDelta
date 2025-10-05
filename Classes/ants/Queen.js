@@ -130,6 +130,6 @@ class Queen {
 }
 
 // Export for use in other files
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = Queen;
 }

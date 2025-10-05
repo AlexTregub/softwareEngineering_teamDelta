@@ -9,6 +9,7 @@ let infoButton;
 let debugButton;
 let menuImage;
 let menuHeader = null;
+let g_mapRendered
 
 // layout debug data is produced by VerticalButtonList and exposed via
 // window.menuLayoutData so debug rendering code can access it without
@@ -86,8 +87,8 @@ function initializeMenu() {
     }
   });
 
-  // initialize external debug handlers (if the debug module is present)
-  if (window.initializeMenuDebug) window.initializeMenuDebug();
+  // Debug system initialization disabled
+  // if (window.initializeMenuDebug) window.initializeMenuDebug();
 }
 
 // Load buttons for current state
@@ -119,11 +120,8 @@ function loadButtons() {
 
   // Register buttons for click handling
   setActiveButtons(menuButtons);
+  g_mapRendered = false;
 }
-
-
-
-
 
 // Start game with fade transition
 function startGameTransition() {
@@ -160,11 +158,10 @@ function drawMenu() {
     btn.render();
   });
 
-  // Debug rendering and interactions were moved to debug/menu_debug.js
-  // Use the shared window.menuLayoutDebug flag so both modules agree on state.
-  if (window.menuLayoutDebug && window.drawMenuDebug) {
-    window.drawMenuDebug();
-  }
+  // Debug rendering disabled
+  // if (window.menuLayoutDebug && window.drawMenuDebug) {
+  //   window.drawMenuDebug();
+  // }
 }
 
 // Update menu transitions
@@ -183,14 +180,15 @@ function updateMenu() {
         }
       }
     }
+    // renderMenu() call removed; updateMenu is now state-only
   }
+
+
 
 // Render complete menu system
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
-    g_map.render();
-    antsUpdate();
-    drawMenu();
+    drawMenu()
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {

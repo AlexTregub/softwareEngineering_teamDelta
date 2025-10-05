@@ -337,45 +337,140 @@ class Button {
   }
 }
 
+/**
+ * Global button styles - centralized styling for all buttons in the game
+ * All button colors and styling should be defined here for consistency
+ */
+const ButtonStyles = {
+  // Toolbar buttons (used in UILayerRenderer)
+  TOOLBAR: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#5A5A5A',
+    textColor: '#FFFFFF',
+    borderColor: '#222222',
+    borderWidth: 1,
+    cornerRadius: 3,
+    fontSize: 12
+  },
+  TOOLBAR_ACTIVE: {
+    backgroundColor: '#6496FF',
+    hoverColor: '#5A88E6',
+    textColor: '#FFFFFF',
+    borderColor: '#4A78CC',
+    borderWidth: 1,
+    cornerRadius: 3,
+    fontSize: 12
+  },
+  
+  // Main menu buttons
+  MAIN_MENU: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#4A4A4A',
+    textColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+    borderWidth: 2,
+    cornerRadius: 5,
+    fontSize: 24
+  },
+  
+  // Pause menu buttons
+  PAUSE_MENU: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#4A4A4A',
+    textColor: '#FFFFFF',
+    borderColor: '#C8C8C8',
+    borderWidth: 1,
+    cornerRadius: 5,
+    fontSize: 18
+  },
+  
+  // Debug fallback buttons
+  DEBUG_FALLBACK: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#4A4A4A',
+    textColor: '#FFFFFF',
+    borderColor: '#C8C8C8',
+    borderWidth: 1,
+    cornerRadius: 4,
+    fontSize: 12
+  },
+  
+  // Menu button styles (createMenuButton factory)
+  DEFAULT: {
+    backgroundColor: '#2196F3',
+    hoverColor: '#1976D2',
+    textColor: 'white',
+    borderColor: '#0D47A1',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  SUCCESS: {
+    backgroundColor: '#4CAF50',
+    hoverColor: '#45a049',
+    textColor: 'white',
+    borderColor: '#2E7D32',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  WARNING: {
+    backgroundColor: '#FF9800',
+    hoverColor: '#F57C00',
+    textColor: 'white',
+    borderColor: '#E65100',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  DANGER: {
+    backgroundColor: '#F44336',
+    hoverColor: '#D32F2F',
+    textColor: 'white',
+    borderColor: '#B71C1C',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  PURPLE: {
+    backgroundColor: '#9C27B0',
+    hoverColor: '#7B1FA2',
+    textColor: 'white',
+    borderColor: '#4A148C',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  
+  // Universal Button Group System - Dynamic styling
+  DYNAMIC: {
+    backgroundColor: '#4A5568',
+    hoverColor: '#2D3748',
+    textColor: '#FFFFFF',
+    borderColor: '#718096',
+    borderWidth: 1,
+    cornerRadius: 6,
+    fontSize: 14
+  }
+};
+
+// Make Button class and ButtonStyles globally available
+if (typeof window !== 'undefined') {
+  window.Button = Button;
+  window.ButtonStyles = ButtonStyles;
+}
+if (typeof global !== 'undefined') {
+  global.Button = Button;
+  global.ButtonStyles = ButtonStyles;
+}
+
 // Button factory function with predefined styles
 function createMenuButton(x, y, width, height, caption, style = 'default', clickHandler = null, image = null) {
-  const styles = {
-    default: {
-      backgroundColor: '#2196F3',
-      hoverColor: '#1976D2',
-      textColor: 'white',
-      borderColor: '#0D47A1'
-    },
-    success: {
-      backgroundColor: '#4CAF50',
-      hoverColor: '#45a049',
-      textColor: 'white',
-      borderColor: '#2E7D32'
-    },
-    warning: {
-      backgroundColor: '#FF9800',
-      hoverColor: '#F57C00',
-      textColor: 'white',
-      borderColor: '#E65100'
-    },
-    danger: {
-      backgroundColor: '#F44336',
-      hoverColor: '#D32F2F',
-      textColor: 'white',
-      borderColor: '#B71C1C'
-    },
-    purple: {
-      backgroundColor: '#9C27B0',
-      hoverColor: '#7B1FA2',
-      textColor: 'white',
-      borderColor: '#4A148C'
-    }
+  const styleMap = {
+    default: ButtonStyles.DEFAULT,
+    success: ButtonStyles.SUCCESS,
+    warning: ButtonStyles.WARNING,
+    danger: ButtonStyles.DANGER,
+    purple: ButtonStyles.PURPLE
   };
 
   const buttonStyle = {
-    ...styles[style],
-    borderWidth: 2,
-    cornerRadius: 8,
+    ...styleMap[style],
     onClick: clickHandler || (() => console.log(`${caption} clicked!`)),
     image: image
   };
@@ -388,8 +483,10 @@ function createMenuButton(x, y, width, height, caption, style = 'default', click
 }
 
 // Export for Node.js compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = Button;
+  module.exports.ButtonStyles = ButtonStyles;
+  module.exports.createMenuButton = createMenuButton;
 }
 
 let activeButtons = [];

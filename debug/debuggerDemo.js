@@ -287,7 +287,7 @@ function initializeDebuggerDemo() {
   }
   
   // Auto-run demo if in development mode
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  if (window.location.hostname === 'localhost') {
     setTimeout(() => {
       console.log('Running automatic demo...');
       demonstrateEntityDebugger();

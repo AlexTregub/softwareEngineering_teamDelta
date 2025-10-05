@@ -25,6 +25,25 @@ function initDropoffUI() {
     dropoffUI.placing = true;
     console.log("Place Dropoff: click a tile to place, press ESC to cancel.");
   });
+  
+  // Register with UI Debug System if available
+  if (window.g_uiDebugManager) {
+    window.g_uiDebugManager.registerElement(
+      'dropoff-placement-button',
+      { x: 0, y: 0, width: 140, height: 34 },
+      (x, y) => {
+        if (dropoffUI.button && dropoffUI.button.setPosition) {
+          dropoffUI.button.setPosition(x, y);
+        }
+      },
+      {
+        label: 'Dropoff Placement Button',
+        isDraggable: true,
+        persistKey: 'dropoffPlacementButton'
+      }
+    );
+  }
+  
   // expose for console if helpful
   window.dropoffUI = dropoffUI;
   if (!window.dropoffs) window.dropoffs = dropoffUI.dropoffs;

@@ -110,10 +110,10 @@ class CombatController {
     const entityFaction = this._entity.faction || "neutral";
     
     // Check all other ants for enemies
-    for (let i = 0; i < antIndex; i++) {
+    for (let i = 0; i < ants.length; i++) {
       if (!ants[i] || ants[i] === this._entity) continue;
       
-      const otherAnt = ants[i].antObject ? ants[i].antObject : ants[i];
+      const otherAnt = ants[i];
       
       // Skip if same faction or either is neutral
       if (otherAnt.faction === entityFaction || 
@@ -202,6 +202,6 @@ class CombatController {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = CombatController;
 }

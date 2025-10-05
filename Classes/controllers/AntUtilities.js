@@ -141,17 +141,16 @@ class AntUtilities {
     // Find ant under mouse (iterate backwards for top-most ant)
     for (let i = ants.length - 1; i >= 0; i--) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (this.isAntUnderMouse(antObj, mouseX, mouseY)) {
+      if (this.isAntUnderMouse(ant, mouseX, mouseY)) {
         // Select this ant
-        if (antObj._selectionController) {
-          antObj._selectionController.setSelected(true);
-        } else if (antObj.isSelected !== undefined) {
-          antObj.isSelected = true;
+        if (ant._selectionController) {
+          ant._selectionController.setSelected(true);
+        } else if (ant.isSelected !== undefined) {
+          ant.isSelected = true;
         }
         
-        selectedAnt = antObj;
+        selectedAnt = ant;
         break;
       }
     }
@@ -200,12 +199,11 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (antObj._selectionController) {
-        antObj._selectionController.setSelected(false);
-      } else if (antObj.isSelected !== undefined) {
-        antObj.isSelected = false;
+      if (ant._selectionController) {
+        ant._selectionController.setSelected(false);
+      } else if (ant.isSelected !== undefined) {
+        ant.isSelected = false;
       }
     }
   }
@@ -222,14 +220,13 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      const isSelected = antObj._selectionController ? 
-        antObj._selectionController.isSelected() : 
-        (antObj.isSelected || false);
+      const isSelected = ant._selectionController ? 
+        ant._selectionController.isSelected() : 
+        (ant.isSelected || false);
       
       if (isSelected) {
-        selected.push(antObj);
+        selected.push(ant);
       }
     }
     
@@ -310,6 +307,180 @@ class AntUtilities {
     }
   }
 
+    // --- Spawning Functions ---
+
+  /**
+   * Spawn ant with specific job, faction, and optional custom image
+   * @param {number} x - Spawn X coordinate
+   * @param {number} y - Spawn Y coordinate
+   * @param {string} jobName - Job type from JobComponent
+   * @param {string} faction - Faction name (red, blue, neutral)
+   * @param {Object} customImage - Optional custom image (uses job default if null)
+   * @returns {Object} Spawned ant object
+   */
+  static spawnAnt(x, y, jobName = "Scout", faction = "neutral", customImage = null) {
+    if (typeof JobComponent === 'undefined') {
+      console.warn('JobComponent not available for spawning');
+      return null;
+    }
+
+    // Validate job name
+    const availableJobs = JobComponent.getAllJobs();
+    if (!availableJobs.includes(jobName)) {
+      console.warn(`Invalid job name: ${jobName}. Using Scout.`);
+      jobName = "Scout";
+    }
+
+    // Validate faction
+    const validFactions = ["red", "blue", "neutral"];
+    if (!validFactions.includes(faction)) {
+      console.warn(`Invalid faction: ${faction}. Using neutral.`);
+      faction = "neutral";
+    }
+
+    // Determine image to use
+    let imageToUse = customImage;
+    if (!imageToUse && typeof JobImages !== 'undefined') {
+      imageToUse = JobImages[jobName] || JobImages["Scout"];
+    }
+    if (!imageToUse && typeof antBaseSprite !== 'undefined') {
+      imageToUse = antBaseSprite;
+    }
+
+    try {
+      // Create ant using existing ant constructor
+      const newAnt = new ant(
+        x, y,
+        20, 20, // Default size
+        30, 0,   // Movement speed, rotation
+        imageToUse,
+        jobName,
+        faction
+      );
+
+      // Assign job using component system
+      newAnt.assignJob(jobName, imageToUse);
+
+      // Add to global ants array if it exists
+      if (ants && Array.isArray(ants)) {
+        ants.push(newAnt);
+      }
+
+      // Register with TileInteractionManager if available
+      if (g_tileInteractionManager) {
+        g_tileInteractionManager.addObject(newAnt, 'ant');
+      }
+
+      // Update UI Selection Box entities
+      if (updateUISelectionEntities) {
+        updateUISelectionEntities();
+      }
+
+      return newAnt;
+    } catch (error) {
+      console.error('Error spawning ant:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Spawn multiple ants of the same type
+   * @param {number} count - Number of ants to spawn
+   * @param {string} jobName - Job type
+   * @param {string} faction - Faction name
+   * @param {number} centerX - Center X for formation
+   * @param {number} centerY - Center Y for formation
+   * @param {number} radius - Spawn radius
+   * @returns {Array} Array of spawned ants
+   */
+  static spawnMultipleAnts(count, jobName = "Scout", faction = "neutral", centerX = 400, centerY = 400, radius = 50) {
+    const spawnedAnts = [];
+    const angleStep = (2 * Math.PI) / count;
+
+    for (let i = 0; i < count; i++) {
+      const angle = i * angleStep;
+      const spawnX = centerX + Math.cos(angle) * radius;
+      const spawnY = centerY + Math.sin(angle) * radius;
+
+      const ant = this.spawnAnt(spawnX, spawnY, jobName, faction);
+      if (ant) {
+        spawnedAnts.push(ant);
+      }
+    }
+
+    return spawnedAnts;
+  }
+
+  // --- State Management Functions ---
+
+  /**
+   * Change state of all selected ants
+   * @param {Array} ants - Array of all ants
+   * @param {string} primaryState - New primary state
+   * @param {string} combatModifier - Optional combat modifier
+   * @param {string} terrainModifier - Optional terrain modifier
+   */
+  static changeSelectedAntsState(ants, primaryState, combatModifier = null, terrainModifier = null) {
+    const selectedAnts = this.getSelectedAnts(ants);
+    
+    if (selectedAnts.length === 0) {
+      console.log('No ants selected for state change');
+      return;
+    }
+
+    let changedCount = 0;
+    for (const ant of selectedAnts) {
+      if (ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
+        const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
+        if (success) {
+          changedCount++;
+        }
+      }
+    }
+
+    console.log(`Changed state of ${changedCount} ants to ${primaryState}`);
+  }
+
+  /**
+   * Set all selected ants to IDLE state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsIdle(ants) {
+    this.changeSelectedAntsState(ants, "IDLE", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to GATHERING state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsGathering(ants) {
+    this.changeSelectedAntsState(ants, "GATHERING", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to PATROL state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsPatrol(ants) {
+    this.changeSelectedAntsState(ants, "PATROL", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to combat state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsCombat(ants) {
+    this.changeSelectedAntsState(ants, "MOVING", "IN_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to BUILDING state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsBuilding(ants) {
+    this.changeSelectedAntsState(ants, "BUILDING", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
   // --- Utility Functions ---
 
   /**
@@ -341,15 +512,14 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      const pos = antObj.getPosition ? antObj.getPosition() : 
-        antObj.getPosition();
+      const pos = ant.getPosition ? ant.getPosition() : 
+        ant.getPosition();
       
       const distance = this.getDistance(centerX, centerY, pos.x, pos.y);
       
       if (distance <= radius) {
-        nearbyAnts.push(antObj);
+        nearbyAnts.push(ant);
       }
     }
     
@@ -369,10 +539,9 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (antObj.faction === faction) {
-        factionAnts.push(antObj);
+      if (ant.faction === faction) {
+        factionAnts.push(ant);
       }
     }
     
@@ -394,27 +563,26 @@ class AntUtilities {
     
     for (let i = 0; i < ants.length; i++) {
       const ant = ants[i];
-      const antObj = ant.antObject ? ant.antObject : ant;
       
-      if (antObj) {
+      if (ant) {
         totalAnts++;
         
         // Count selected
-        const isSelected = antObj._selectionController ? 
-          antObj._selectionController.isSelected() : 
-          (antObj.isSelected || false);
+        const isSelected = ant._selectionController ? 
+          ant._selectionController.isSelected() : 
+          (ant.isSelected || false);
         if (isSelected) selectedCount++;
         
         // Count moving
-        const isMoving = antObj._movementController ? 
-          antObj._movementController.getIsMoving() : 
-          (antObj.isMoving || false);
+        const isMoving = ant._movementController ? 
+          ant._movementController.getIsMoving() : 
+          (ant.isMoving || false);
         if (isMoving) movingCount++;
         
         // Count in combat
-        const inCombat = antObj._combatController ? 
-          antObj._combatController.isInCombat() : 
-          (antObj.isInCombat && antObj.isInCombat());
+        const inCombat = ant._combatController ? 
+          ant._combatController.isInCombat() : 
+          (ant.isInCombat && ant.isInCombat());
         if (inCombat) combatCount++;
       }
     }
@@ -434,8 +602,7 @@ class AntUtilities {
 function antLoopPropertyCheck(property) {
   for (let i = 0; i < antIndex; i++) {
     if (!ants[i]) continue;
-    let antObj = ants[i].antObject ? ants[i].antObject : ants[i];
-    return antObj[property];
+    return ants[i][property];
   } 
   IncorrectParamPassed("Boolean", property);
 }
@@ -451,8 +618,7 @@ function moveSelectedEntityToTile(mx, my, tileSize) {
     return;
   }
   let selectedEntity = selectedEntities[0];
-  // Unwrap if this is a wrapper object
-  if (selectedEntity && selectedEntity.antObject) selectedEntity = selectedEntity.antObject;
+  // Now working with direct ant objects - no unwrapping needed
 
   const tileX = Math.floor(mx / tileSize);
   const tileY = Math.floor(my / tileSize);
@@ -478,8 +644,7 @@ function moveSelectedEntitiesToTile(mx, my, tileSize) {
 
   for (let i = 0; i < selectedEntities.length; i++) {
     let entity = selectedEntities[i];
-    // Unwrap if this is a wrapper object
-    if (entity && entity.antObject) entity = entity.antObject;
+    // Now working with direct ant objects - no unwrapping needed
 
     // assign each entity its own destination tile around the click
     const angle = i * angleStep;
@@ -515,6 +680,6 @@ function moveSelectedEntitiesToTile(mx, my, tileSize) {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntUtilities;
 }

@@ -439,6 +439,6 @@ MovementController.moveEntityToTile = function(entity, tileX, tileY, tileSize = 
 };
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = MovementController;
 }

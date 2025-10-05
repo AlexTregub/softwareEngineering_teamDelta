@@ -40,6 +40,9 @@ class Entity {
     // Initialize controllers and apply options
     this._initializeControllers(options);
 
+    // Initialize enhanced API
+    this._initializeEnhancedAPI();
+
     // Ensure transform state propagated to collision box and sprite
     this.setPosition(x, y);
     this.setSize(width, height);
@@ -77,9 +80,8 @@ class Entity {
         this._debugger = new UniversalDebugger(this, debugConfig);
         
         // Register this entity with the global debug manager if available
-        if (typeof window !== 'undefined' && window.EntityDebugManager) {
-          window.EntityDebugManager.registerEntity(this);
-        }
+        window.EntityDebugManager.registerEntity(this);
+
       } catch (error) {
         console.warn('Failed to initialize entity debugger:', error);
         this._debugger = null;
@@ -128,13 +130,13 @@ class Entity {
    */
   _configureControllers(options) {
     const movement = this._controllers.get('movement');
-    if (movement && options.movementSpeed !== undefined) movement.movementSpeed = options.movementSpeed;
+    movement.movementSpeed = options.movementSpeed;
 
     const selection = this._controllers.get('selection');
-    if (selection && options.selectable !== undefined) selection.setSelectable(options.selectable);
+    selection.setSelectable(options.selectable);
 
     const combat = this._controllers.get('combat');
-    if (combat && options.faction) combat.setFaction(options.faction);
+    combat.setFaction(options.faction);
   }
 
   // --- Controller Access Helper ---
@@ -264,10 +266,16 @@ class Entity {
    * Delegates rendering to the render controller when present, otherwise falls back.
    */
   render() {
-    if (!this._isActive) return;
+    if (!this._isActive) {
+      return;
+    }
+    
     const renderController = this._controllers.get('render');
-    if (renderController) renderController.render();
-    else this._fallbackRender();
+    if (renderController) {
+      renderController.render();
+    } else {
+      this._fallbackRender();
+    }
 
     // Render debugger overlay if active
     if (this._debugger?.isActive) {
@@ -285,6 +293,7 @@ class Entity {
   _fallbackRender() {
     const pos = this.getPosition();
     const size = this.getSize();
+    
     if (this._sprite && this.hasImage()) {
       this._sprite.render();
     } else {
@@ -360,10 +369,319 @@ class Entity {
     return this._debugger;
   }
 
+  // --- Enhanced API ---
+  /**
+   * Initialize the enhanced property-based API for rendering, effects, and highlights
+   * This creates clean namespaced methods like entity.highlight.selected() and entity.effects.add()
+   */
+  _initializeEnhancedAPI() {
+    // Highlight namespace
+    this.highlight = {
+      selected: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightSelected() : null;
+      },
+      hover: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightHover() : null;
+      },
+      boxHover: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightBoxHover() : null;
+      },
+      combat: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightCombat() : null;
+      },
+      set: (type, intensity) => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.setHighlight(type, intensity) : null;
+      },
+      clear: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.clearHighlight() : null;
+      }
+    };
+
+    // Effects namespace
+    this.effects = {
+      add: (effect) => {
+        // Try render controller first, then effects renderer
+        const renderController = this._controllers.get('render');
+        if (renderController && renderController.addEffect) {
+          return renderController.addEffect(effect);
+        }
+        
+        // Fallback to global effects renderer
+        const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
+                               (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+        if (effectsRenderer) {
+          return effectsRenderer.addEffect(effect.type || effect, { 
+            x: this.x, 
+            y: this.y, 
+            ...effect 
+          });
+        }
+        
+        return null;
+      },
+      remove: (effectId) => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.removeEffect(effectId) : null;
+      },
+      clear: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.clearEffects() : null;
+      },
+      damageNumber: (damage, color = [255, 0, 0]) => {
+        return this.effects.add({
+          type: 'DAMAGE_NUMBER',
+          text: `-${damage}`,
+          color: color,
+          x: this.x,
+          y: this.y - 20
+        });
+      },
+      healNumber: (heal, color = [0, 255, 0]) => {
+        return this.effects.add({
+          type: 'HEAL_NUMBER',
+          text: `+${heal}`,
+          color: color,
+          x: this.x,
+          y: this.y - 20
+        });
+      },
+      floatingText: (text, color = [255, 255, 255]) => {
+        return this.effects.add({
+          type: 'FLOATING_TEXT',
+          text: text,
+          color: color,
+          x: this.x,
+          y: this.y - 15
+        });
+      },
+      bloodSplatter: (options = {}) => {
+        const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
+                               (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+        return effectsRenderer ? effectsRenderer.bloodSplatter(this.x, this.y, options) : null;
+      },
+      impactSparks: (options = {}) => {
+        const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
+                               (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+        return effectsRenderer ? effectsRenderer.impactSparks(this.x, this.y, options) : null;
+      },
+      selectionSparkle: (options = {}) => {
+        const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
+                               (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+        return effectsRenderer ? effectsRenderer.selectionSparkle(this.x, this.y, options) : null;
+      },
+      gatheringSparkle: (options = {}) => {
+        const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
+                               (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+        return effectsRenderer ? effectsRenderer.gatheringSparkle(this.x, this.y, options) : null;
+      }
+    };
+
+    // Rendering namespace
+    this.rendering = {
+      setDebugMode: (enabled) => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.setDebugMode(enabled) : null;
+      },
+      setSmoothing: (enabled) => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.setSmoothing(enabled) : null;
+      },
+      render: () => {
+        return this.render(); // Delegate to existing render method
+      },
+      update: () => {
+        return this.update(); // Delegate to existing update method
+      },
+      setVisible: (visible) => {
+        if (this._sprite) {
+          this._sprite.visible = visible;
+        }
+        return this;
+      },
+      isVisible: () => {
+        return this._sprite ? this._sprite.visible !== false : true;
+      },
+      setOpacity: (opacity) => {
+        if (this._sprite) {
+          this._sprite.alpha = opacity;
+        }
+        return this;
+      },
+      getOpacity: () => {
+        return this._sprite ? this._sprite.alpha : 1.0;
+      }
+    };
+
+    // Config namespace for properties
+    this.config = {
+      get debugMode() {
+        const controller = this._controllers.get('render');
+        return controller ? controller.getDebugMode() : false;
+      },
+      set debugMode(value) {
+        const controller = this._controllers.get('render');
+        if (controller && controller.setDebugMode) {
+          controller.setDebugMode(value);
+        }
+      },
+      get smoothing() {
+        const controller = this._controllers.get('render');
+        return controller ? controller.getSmoothing() : true;
+      },
+      set smoothing(value) {
+        const controller = this._controllers.get('render');
+        if (controller && controller.setSmoothing) {
+          controller.setSmoothing(value);
+        }
+      },
+      get visible() {
+        return this.rendering.isVisible();
+      },
+      set visible(value) {
+        this.rendering.setVisible(value);
+      },
+      get opacity() {
+        return this.rendering.getOpacity();
+      },
+      set opacity(value) {
+        this.rendering.setOpacity(value);
+      }
+    };
+  }
+
+  /**
+   * Chainable API methods for fluent interface
+   * Allows chaining like entity.chain.highlight().effect().render()
+   */
+  get chain() {
+    if (!this._chainAPI) {
+      this._chainAPI = {
+        highlight: (type = 'selected') => {
+          if (this.highlight[type]) {
+            this.highlight[type]();
+          }
+          return this._chainAPI;
+        },
+        effect: (effectType, options = {}) => {
+          this.effects.add({ type: effectType, ...options });
+          return this._chainAPI;
+        },
+        render: () => {
+          this.render();
+          return this._chainAPI;
+        },
+        update: () => {
+          this.update();
+          return this._chainAPI;
+        },
+        setPosition: (x, y) => {
+          this.setPosition(x, y);
+          return this._chainAPI;
+        },
+        setSize: (width, height) => {
+          this.setSize(width, height);
+          return this._chainAPI;
+        },
+        // End chain and return entity
+        entity: () => this
+      };
+    }
+    return this._chainAPI;
+  }
+
+  // --- Selenium Testing Getters ---
+
+  /**
+   * Get entity job name (for Selenium validation)
+   * @returns {string|null} Current job name
+   */
+  getJobName() {
+    return this._JobName || null;
+  }
+
+  /**
+   * Get entity type (for Selenium validation)
+   * @returns {string} Entity type
+   */
+  getEntityType() {
+    return this._type || 'Unknown';
+  }
+
+  /**
+   * Get entity faction (for Selenium validation)
+   * @returns {string} Entity faction
+   */
+  getFaction() {
+    return this._faction || 'neutral';
+  }
+
+  /**
+   * Get current state from state machine (for Selenium validation)
+   * @returns {string|null} Current entity state
+   */
+  getCurrentState() {
+    if (!this._stateMachine) return null;
+    return this._stateMachine.primaryState || null;
+  }
+
+  /**
+   * Check if entity is selected (for Selenium validation)
+   * @returns {boolean} True if entity is selected
+   */
+  isSelected() {
+    return this._isSelected || false;
+  }
+
+  /**
+   * Check if entity is active (for Selenium validation)
+   * @returns {boolean} True if entity is active
+   */
+  isActive() {
+    return this._isActive;
+  }
+
+  /**
+   * Get render controller validation data (for Selenium validation)
+   * @returns {Object|null} Render controller validation data
+   */
+  getRenderValidationData() {
+    const renderController = this._controllers.get('render');
+    if (!renderController || !renderController.getValidationData) return null;
+    return renderController.getValidationData();
+  }
+
+  /**
+   * Get complete entity validation data (for Selenium validation)
+   * @returns {Object} Complete validation data for testing
+   */
+  getValidationData() {
+    return {
+      id: this._id,
+      type: this.getEntityType(),
+      jobName: this.getJobName(),
+      faction: this.getFaction(),
+      currentState: this.getCurrentState(),
+      isSelected: this.isSelected(),
+      isActive: this.isActive(),
+      position: this.getPosition(),
+      size: this.getSize(),
+      hasSprite: this.hasImage(),
+      renderData: this.getRenderValidationData(),
+      controllers: Array.from(this._controllers.keys()),
+      timestamp: new Date().toISOString()
+    };
+  }
+
   // --- Cleanup ---
   /** Mark entity inactive; controllers will be released for GC. */
   destroy() { this._isActive = false; }
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) { module.exports = Entity; }
+if (typeof module !== 'undefined' && module.exports) { module.exports = Entity; }

@@ -93,6 +93,6 @@ if (typeof window !== 'undefined') {
 }
 
 // Node/CommonJS exports
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = { isVector, isVector2D, isVector3D, isP5Vector, getVectorType };
 }

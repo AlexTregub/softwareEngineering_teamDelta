@@ -120,10 +120,9 @@ class AntManager {
    * }
    */
   getAntObject(antIndex) {
-    // Use global ants array
+    // Use global ants array - now returns direct ant objects
     if (typeof ants === 'undefined' || !ants[antIndex]) return null;
-    let antObj = ants[antIndex].antObject ? ants[antIndex].antObject : ants[antIndex];
-    return antObj;
+    return ants[antIndex];
   }
 
   /**
@@ -239,6 +238,6 @@ class AntManager {
 }
 
 // Export for Node.js compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntManager;
 }
