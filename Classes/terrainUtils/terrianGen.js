@@ -117,6 +117,9 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     // Texture Properties
     this._materialSet = 'grass'; // Used for storage of randomization. Initialized as default value for now
     this._weight = 1;
+
+    this._coordSysUpdateId = -1; // Used for render conversion optimizations
+    this._coordSysPos = NONE;
   }
  
 
@@ -200,10 +203,12 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
   render2(coordSys) {
     // coordSys.setViewCornerBC([0,0]);
-    let pixelPos = coordSys.convPosToCanvas([this._x,this._y]);
-
+    if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
+      this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
+    }
+    
     noSmooth();
-    TERRAIN_MATERIALS_RANGED[this._materialSet][1](pixelPos[0],pixelPos[1],this._squareSize);
+    TERRAIN_MATERIALS_RANGED[this._materialSet][1](this._coordSysPos[0],this._coordSysPos[1],this._squareSize);
     smooth();
   }
 }

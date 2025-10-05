@@ -164,6 +164,63 @@ class camRenderConverter {
         ]; // Canvas center in pixels.
 
         this._tileSize = tileSize;
+
+        let tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
+            // (this._canvasCenter[0]%TILE_SIZE != 0) ? floor(this._canvasCenter[0]/TILE_SIZE)+1 : this._canvasCenter[0]/TILE_SIZE,
+            // (this._canvasCenter[1]%TILE_SIZE != 0) ? floor(this._canvasCenter[1]/TILE_SIZE)+1 : this._canvasCenter[1]/TILE_SIZE
+            this._canvasCenter[0]/this._tileSize,
+            this._canvasCenter[1]/this._tileSize
+        ];
+        this._viewSpan = [
+            [ // TL (-x,+y)
+                this._camPosition[0]-tileOffsets[0],
+                this._camPosition[1]+tileOffsets[1]
+            ],
+            [ // BR (+x,-y)
+                this._camPosition[0]+tileOffsets[0],
+                this._camPosition[1]-tileOffsets[1]
+            ]
+        ];
+
+        this._updateId = 0; // Incrementing this will trigger updates in tiles, MUST BE DONE
+    }
+
+    //// State modifier
+    setCenterPos(pos) {
+        ++this._updateId;
+
+        this._camPosition = pos;
+    }
+
+    setCanvasSize(sizePair) {
+        ++this._updateId;
+
+        this._canvasSize = sizePair;
+        this._canvasCenter = [
+            this._canvasSize[0]/2,
+            this._canvasSize[1]/2
+        ]; // Canvas center in pixels.
+
+        let tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
+            this._canvasCenter[0]/this._tileSize,
+            this._canvasCenter[1]/this._tileSize
+        ];
+        this._viewSpan = [
+            [ // TL (-x,+y)
+                this._camPosition[0]-tileOffsets[0],
+                this._camPosition[1]+tileOffsets[1]
+            ],
+            [ // BR (+x,-y)
+                this._camPosition[0]+tileOffsets[0],
+                this._camPosition[1]-tileOffsets[1]
+            ]
+        ];
+    }
+
+    setTileSize(size) {
+        ++this._updateId;
+
+        this._tileSize = size;
     }
 
     //// Util
@@ -209,36 +266,37 @@ class camRenderConverter {
 
     //// Conversions
     convPosToCanvas(input) {
-        let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
-        let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
-        let third = this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
-        return third;
+        // 'Proper' conversion:
+        // let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
+        // let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
+        // let third = this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
+        
+        // (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0]
+        // return third;
+        return [
+            (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0],
+            (input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
+        ];
     }
 
     convCanvasToPos(input) { // Invert pos->canvas calc
-        let thirdInv = this.posSub(input,this._canvasCenter);
-        let secondInv = this.scalMul(thirdInv,1/this._tileSize);
-        let firstInv = this.posAdd(secondInv,this._camPosition);
-        return firstInv;
-    }
-
-    getViewSpan() {
-        let tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
-            // (this._canvasCenter[0]%TILE_SIZE != 0) ? floor(this._canvasCenter[0]/TILE_SIZE)+1 : this._canvasCenter[0]/TILE_SIZE,
-            // (this._canvasCenter[1]%TILE_SIZE != 0) ? floor(this._canvasCenter[1]/TILE_SIZE)+1 : this._canvasCenter[1]/TILE_SIZE
-            this._canvasCenter[0]/this._tileSize,
-            this._canvasCenter[1]/this._tileSize
-        ];
+        // let thirdInv = this.posSub(input,this._canvasCenter);
+        // let secondInv = this.scalMul(thirdInv,1/this._tileSize);
+        // let firstInv = this.posAdd(secondInv,this._camPosition)
+        // return firstInv;
 
         return [
-            [ // TL (-x,+y)
-                this._camPosition[0]-tileOffsets[0],
-                this._camPosition[1]+tileOffsets[1]
-            ],
-            [ // BR (+x,-y)
-                this._camPosition[0]+tileOffsets[0],
-                this._camPosition[1]-tileOffsets[1]
-            ]
+            (input[0] - this._canvasCenter[0])/this._tileSize + this._camPosition[0],
+            (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
         ];
+    }
+
+    // Get info:
+    getViewSpan() {
+        return this._viewSpan;
+    }
+
+    getUpdateId() {
+        return this._updateId;
     }
 }

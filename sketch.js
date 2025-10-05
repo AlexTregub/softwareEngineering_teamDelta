@@ -186,6 +186,9 @@ function draw() {
     }
 
     drawUI();
+
+    // Mouse -> Grid Position
+    console.log(MAP2.renderConversion.convCanvasToPos([mouseX,mouseY]));
   }
 
   // --- FADE OVERLAY (works in both menu + game) ---
