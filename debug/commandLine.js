@@ -14,27 +14,92 @@ let scrollOffset = 0; // For scrolling through output
 let devConsoleEnabled = false;
 
 // Console capture - creates a copy mechanism without overriding the original console.log
-let originalConsoleLog = console.log;
+// Keep references to original console methods so we can restore them later.
+const _originalConsole = (function() {
+  const m = {};
+  ['log', 'info', 'warn', 'error', 'debug'].forEach(k => { m[k] = console[k]; });
+  return m;
+})();
 
-// Create a custom logger that captures output for the in-game console
+// Capture configuration and state
+const ConsoleCapture = {
+  enabled: false,
+  captureAll: false, // when true capture regardless of commandLineActive
+  maxEntries: 100,
+  mirrorToConsole: true
+};
+
+// Format arguments into a single string (simple safe serializer)
+function _formatConsoleArgs(args) {
+  return args.map(arg => {
+    try {
+      if (typeof arg === 'string') return arg;
+      if (arg instanceof Error) return `${arg.message}\n${arg.stack}`;
+      if (typeof arg === 'object') return JSON.stringify(arg);
+      return String(arg);
+    } catch (e) {
+      return String(arg);
+    }
+  }).join(' ');
+}
+
+// Start capturing console output. This wraps console methods but preserves
+// original behavior. Call stopConsoleCapture() to restore originals.
+function startConsoleCapture({ captureAll = false, maxEntries = 100, mirrorToConsole = true } = {}) {
+  if (ConsoleCapture.enabled) return; // already enabled
+  ConsoleCapture.enabled = true;
+  ConsoleCapture.captureAll = !!captureAll;
+  ConsoleCapture.maxEntries = Number.isInteger(maxEntries) ? maxEntries : 100;
+  ConsoleCapture.mirrorToConsole = !!mirrorToConsole;
+
+  ['log', 'info', 'warn', 'error', 'debug'].forEach(level => {
+    console[level] = function(...args) {
+      // Always call original method first to preserve console behavior
+      try { _originalConsole[level].apply(console, args); } catch (e) { /* swallow */ }
+
+      // Build message string and capture conditionally
+      try {
+        const message = _formatConsoleArgs(args);
+        if (ConsoleCapture.captureAll || commandLineActive) {
+          const entry = `[${level.toUpperCase()}] ${message}`;
+          consoleOutput.unshift(entry);
+          if (consoleOutput.length > ConsoleCapture.maxEntries) consoleOutput.length = ConsoleCapture.maxEntries;
+        }
+      } catch (e) { /* swallow */ }
+
+      // Optionally do not mirror to console (rare); default is mirrored above
+    };
+  });
+}
+
+// Stop capturing and restore original console methods
+function stopConsoleCapture() {
+  if (!ConsoleCapture.enabled) return;
+  ConsoleCapture.enabled = false;
+  ['log', 'info', 'warn', 'error', 'debug'].forEach(level => {
+    try { console[level] = _originalConsole[level]; } catch (e) { /* swallow */ }
+  });
+}
+
+// Convenience: one-off capture function that preserves original behavior
 function captureConsoleOutput(...args) {
-  // Always call the original console.log first
-  originalConsoleLog.apply(console, args);
-  
-  // Capture for in-game console if active
+  // Mirror to real console first
+  try { _originalConsole.log.apply(console, args); } catch (e) { /* ignore */ }
+
+  // Capture if active
   if (commandLineActive) {
-    let message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+    let message = _formatConsoleArgs(args);
     consoleOutput.unshift(message);
-    if (consoleOutput.length > 100) consoleOutput.pop();
+    if (consoleOutput.length > 100) consoleOutput.length = 100;
   }
 }
 
-// Optional: Create a game-specific logger that always captures
+// Optional: Create a game-specific logger that always captures (and mirrors)
 function gameLog(...args) {
-  originalConsoleLog.apply(console, args);
-  let message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+  try { _originalConsole.log.apply(console, args); } catch (e) { /* ignore */ }
+  let message = _formatConsoleArgs(args);
   consoleOutput.unshift(message);
-  if (consoleOutput.length > 100) consoleOutput.pop();
+  if (consoleOutput.length > 100) consoleOutput.length = 100;
 }
 
 /**

@@ -136,10 +136,6 @@ class UILayerRenderer {
       if (this.debugUI.entityInspector.enabled) {
         this.renderEntityInspector();
       }
-
-      if (this.debugUI.debugConsole.enabled && this.debugUI.debugConsole.visible) {
-        this.renderDebugConsole();
-      }
     }
   }
 
@@ -1004,8 +1000,7 @@ class UILayerRenderer {
   }
 
   toggleDebugConsole() {
-    this.debugUI.debugConsole.visible = !this.debugUI.debugConsole.visible;
-    this.debugUI.debugConsole.enabled = true; // Enable debug console when toggling visibility
+    toggleDevConsole();
   }
 
   // Minimap API

@@ -107,7 +107,6 @@ class UIController {
           this.toggleEntityInspector();
           return true;
         case 51: // Ctrl+Shift+3
-          this.toggleDebugConsole();
           return true;
         case 52: // Ctrl+Shift+4
           this.toggleMinimap();
@@ -313,12 +312,12 @@ class UIController {
    */
   toggleDebugConsole() {
     // Use existing debug console system from debug/testing.js
-    if (typeof toggleDevConsole === 'function') {
+    /*if (typeof toggleDevConsole === 'function') {
       toggleDevConsole();
       console.log('UIController: Using existing debug console system');
-    } else if (this.uiRenderer && typeof this.uiRenderer.toggleDebugConsole === 'function') {
+    } else if (this.uiRenderer && typeof this.uiRenderer.toggleDebugConsole === 'function') { */
       this.uiRenderer.toggleDebugConsole();
-    }
+    //}
   }
 
   /**

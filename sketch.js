@@ -361,11 +361,6 @@ function debugRender() {
  * @param {number} gridHeight - Height of the grid in tiles
  */
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
-  // Only render grid if dev console is enabled
-  if (typeof devConsoleEnabled === 'undefined' || !devConsoleEnabled) {
-    return;
-  }
-
   push();
   stroke(255, 255, 0, 100); // Semi-transparent yellow
   strokeWeight(1);

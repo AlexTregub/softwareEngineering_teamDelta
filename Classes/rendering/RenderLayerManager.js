@@ -300,12 +300,13 @@ class RenderLayerManager {
     }
     
     // Render existing debug console if active
-    if (typeof drawCommandLine === 'function' && typeof isCommandLineActive === 'function' && isCommandLineActive()) {
+    if (isCommandLineActive()) {
       drawCommandLine();
     }
-    
+
+
     // Render dev console indicator if enabled
-    if (typeof drawDevConsoleIndicator === 'function' && typeof isDevConsoleEnabled === 'function' && isDevConsoleEnabled()) {
+    if (isDevConsoleEnabled()) {
       drawDevConsoleIndicator();
     }
     

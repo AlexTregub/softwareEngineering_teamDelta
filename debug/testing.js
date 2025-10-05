@@ -152,7 +152,8 @@ function handleDebugConsoleKeys(keyCode, key) {
   
   // Open command line with Enter key (only when dev console is enabled)
   if (devConsoleEnabled && keyCode === 13 && !isCommandLineActive()) { // 13 is ENTER
-    openCommandLine();
+    if (!isCommandLineActive()) {startConsoleCapture(); openCommandLine();}
+    if (isCommandLineActive()) {stopConsoleCapture(); openCommandLine();}
     return true;
   }
   

@@ -313,39 +313,6 @@ function runAntStateCoverageTest(selectedAnt = null, verbose = false) {
   return report;
 }
 
-
-function antSmTest() {
-    // Create state machine for an ant
-    let antSM = new AntStateMachine();
-    
-    // Set states
-    antSM.setPrimaryState("MOVING");
-    antSM.setCombatModifier("IN_COMBAT");
-    antSM.setTerrainModifier("IN_MUD");
-    
-    if (devConsoleEnabled) {
-      console.log(antSM.getFullState()); // "MOVING_IN_COMBAT_IN_MUD"
-      
-      // Check capabilities
-      console.log(antSM.canPerformAction("move")); // true
-      console.log(antSM.canPerformAction("attack")); // true
-    }
-    
-    // Set callback for state changes
-    antSM.setStateChangeCallback((oldState, newState) => {
-      if (devConsoleEnabled) {
-        console.log(`Ant state changed from ${oldState} to ${newState}`);
-      }
-    });
-    
-    // Reset to idle
-    antSM.reset(); // "Ant state changed from MOVING_IN_COMBAT_IN_MUD to IDLE"
-    if (devConsoleEnabled) {
-      antSM.printState();
-      console.log(antSM.getStateSummary());
-    }
-}
-
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntStateMachine;
