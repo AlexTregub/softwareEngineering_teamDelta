@@ -8,7 +8,8 @@ let yCount = 32;
 let tileSize = 32; // Adds up to canvas dimensions
 
 // let PERLIN_RANGE = 10;
-let PERLIN_SCALE = 0.08;
+// let PERLIN_SCALE = 0.08;
+let PERLIN_SCALE = 10;
 
 ////// TERRAIN
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION

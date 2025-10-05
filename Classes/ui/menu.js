@@ -141,14 +141,14 @@ function updateMenu() {
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS")) {
     // Dynamic re-gen of terrain: every 10 sec, similar to setup()
-    if (!GameState.isFadingTransition()) {
-      SEED = hour()*minute()*floor(second()/10);
-      MAP2.randomize(SEED);
-    }
+    // if (!GameState.isFadingTransition()) {
+    //   SEED = hour()*minute()*floor(second()/10);
+    //   MAP2.randomize(SEED);
+    // }
     MAP2.render();
     
     AntsUpdate();
-    drawMenu();
+    // drawMenu();
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {

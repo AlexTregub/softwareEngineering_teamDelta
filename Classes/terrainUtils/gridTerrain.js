@@ -199,6 +199,7 @@ class camRenderConverter {
     //// Conversions
     convPosToCanvas(input) {
         let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
+        first[1]*=-1; // Invert rendering on y axis.
         let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
         let third = this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
         return third;

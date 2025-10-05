@@ -1,8 +1,8 @@
 let CANVAS_X = 800; // Default 800
 let CANVAS_Y = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
-const CHUNKS_X = 20;
-const CHUNKS_Y = 20;
+const CHUNKS_X = 5;
+const CHUNKS_Y = 5;
 
 const NONE = '\0'; 
 
@@ -111,7 +111,7 @@ function setup() {
   MAP2.randomize(SEED);
   MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
 
-  MAP2.renderConversion._camPosition = [-72,88]; // MOVEMENT OF VIEW EXAMPLE
+  // MAP2.renderConversion._camPosition = [-72,88]; // MOVEMENT OF VIEW EXAMPLE
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
@@ -174,10 +174,10 @@ function draw() {
 
   // --- PLAYING ---
   if (GameState.isInGame()) {
-    MAP2.renderConversion._camPosition = [ // MOVEMENT OF VIEW EXAMPLE
-      MAP2.renderConversion._camPosition[0]+0.1,
-      MAP2.renderConversion._camPosition[1]-0.1,
-    ];
+    // MAP2.renderConversion._camPosition = [ // MOVEMENT OF VIEW EXAMPLE
+    //   MAP2.renderConversion._camPosition[0]+0.1,
+    //   MAP2.renderConversion._camPosition[1]-0.1,
+    // ];
 
     MAP2.render();
     Ants_Update();
