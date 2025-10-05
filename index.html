@@ -57,6 +57,9 @@
     <script src="Classes/systems/ui/DraggablePanelSystem.js"></script>
     <script src="Classes/systems/ui/AntControlPanel.js"></script>
     
+    <!-- UI Selection Box System -->
+    <script src="Classes/systems/ui/UISelectionBoxIntegration.js"></script>
+    
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
     <script src="Classes/managers/AntManager.js"></script>
@@ -74,6 +77,7 @@
     <script src="Classes/controllers/MouseInputController.js"></script>
     <script src="Classes/controllers/KeyboardInputController.js"> </script>
     <script src="Classes/controllers/SelectionBoxController.js"></script>
+    <script src="Classes/controllers/UISelectionController.js"></script>
     <script src="Classes/controllers/InventoryController.js"></script>
     <script src="Classes/controllers/AntUtilities.js"></script>
 
@@ -98,8 +102,12 @@
    <script src="debug/UniversalDebugger.js"></script>
    <script src="debug/EntityDebugManager.js"></script>
    <script src="debug/debuggerDemo.js"></script>
-
-    <!-- Ant Classes - Load in proper order -->
+    <script src="debug/selectionBoxDebug.js"></script>
+    <script src="debug/emergencySelection.js"></script>
+    <script src="debug/selectionRenderDebug.js"></script>
+    <script src="debug/finalizeSelection.js"></script>
+    <script src="debug/mouseEventDebug.js"></script>
+    <script src="debug/selectionStateMachine.js"></script>    <!-- Ant Classes - Load in proper order -->
     <script src="Classes/ants/JobComponent.js"></script>
     <script src="Classes/ants/ants.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
@@ -115,6 +123,7 @@
     <script src="test/unit/selectionBox.test.js"></script>
     <script src="test/unit/selectionBox.integration.test.js"></script>
     <script src="test/unit/controllerIntegration.browser.test.js"></script>
+    <script src="test/unit/UISelectionBoxTest.js"></script>
     <script src="debug/tracing.js"></script>
     <script src="test/integration/manual-highlight-debug.js"></script>
 

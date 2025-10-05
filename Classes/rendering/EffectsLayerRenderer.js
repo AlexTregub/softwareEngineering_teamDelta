@@ -23,6 +23,24 @@ class EffectsLayerRenderer {
     this.activeVisualEffects = [];
     this.activeAudioEffects = [];
 
+    // Selection Box State
+    this.selectionBox = {
+      active: false,
+      startX: 0,
+      startY: 0,
+      endX: 0,
+      endY: 0,
+      color: [0, 200, 255], // Cyan selection color
+      strokeWidth: 2,
+      fillAlpha: 30,
+      entities: [], // Entities currently highlighted by selection box
+      callbacks: {
+        onStart: null,
+        onUpdate: null,
+        onEnd: null
+      }
+    };
+
     // Effect types registry
     this.effectTypes = new Map([
       // Combat Effects
@@ -39,6 +57,7 @@ class EffectsLayerRenderer {
       ['SELECTION_SPARKLE', { type: 'particle', category: 'interactive', duration: 1500 }],
       ['MOVEMENT_TRAIL', { type: 'particle', category: 'interactive', duration: 1000 }],
       ['GATHERING_SPARKLE', { type: 'particle', category: 'interactive', duration: 800 }],
+      ['SELECTION_BOX', { type: 'ui', category: 'selection', duration: -1 }], // Interactive selection box
       
       // Visual Effects
       ['SCREEN_SHAKE', { type: 'visual', category: 'screen', duration: 300 }],
@@ -90,6 +109,9 @@ class EffectsLayerRenderer {
       this.updateVisualEffects();
       this.renderVisualEffects();
     }
+
+    // Render selection box (UI effect layer)
+    this.renderSelectionBox();
 
     // Update audio effects (no rendering needed)
     if (this.config.enableAudioEffects) {
@@ -645,6 +667,229 @@ class EffectsLayerRenderer {
   }
 
   /**
+   * SELECTION BOX SYSTEM
+   */
+  
+  /**
+   * Start a selection box at the given position
+   * @param {number} x - Start X position
+   * @param {number} y - Start Y position
+   * @param {Object} options - Configuration options
+   */
+  startSelectionBox(x, y, options = {}) {
+    this.selectionBox.active = true;
+    this.selectionBox.startX = x;
+    this.selectionBox.startY = y;
+    this.selectionBox.endX = x;
+    this.selectionBox.endY = y;
+    
+    // Apply custom styling
+    if (options.color) this.selectionBox.color = options.color;
+    if (options.strokeWidth) this.selectionBox.strokeWidth = options.strokeWidth;
+    if (options.fillAlpha) this.selectionBox.fillAlpha = options.fillAlpha;
+    
+    // Set callbacks
+    if (options.onStart) this.selectionBox.callbacks.onStart = options.onStart;
+    if (options.onUpdate) this.selectionBox.callbacks.onUpdate = options.onUpdate;
+    if (options.onEnd) this.selectionBox.callbacks.onEnd = options.onEnd;
+    
+    // Call start callback
+    if (this.selectionBox.callbacks.onStart) {
+      this.selectionBox.callbacks.onStart(x, y);
+    }
+    
+    return this;
+  }
+  
+  /**
+   * Update the selection box end position
+   * @param {number} x - Current X position
+   * @param {number} y - Current Y position
+   */
+  updateSelectionBox(x, y) {
+    if (!this.selectionBox.active) return this;
+    
+    this.selectionBox.endX = x;
+    this.selectionBox.endY = y;
+    
+    // Update entities within selection box
+    this.updateSelectionBoxEntities();
+    
+    // Call update callback
+    if (this.selectionBox.callbacks.onUpdate) {
+      const bounds = this.getSelectionBoxBounds();
+      this.selectionBox.callbacks.onUpdate(bounds, this.selectionBox.entities);
+    }
+    
+    return this;
+  }
+  
+  /**
+   * End the selection box and return selected entities
+   * @returns {Array} Array of entities within the selection box
+   */
+  endSelectionBox() {
+    if (!this.selectionBox.active) return [];
+    
+    const selectedEntities = [...this.selectionBox.entities];
+    const bounds = this.getSelectionBoxBounds();
+    
+    // Call end callback before clearing
+    if (this.selectionBox.callbacks.onEnd) {
+      this.selectionBox.callbacks.onEnd(bounds, selectedEntities);
+    }
+    
+    // Clear selection box state
+    this.selectionBox.active = false;
+    this.selectionBox.entities = [];
+    this.selectionBox.callbacks = { onStart: null, onUpdate: null, onEnd: null };
+    
+    return selectedEntities;
+  }
+  
+  /**
+   * Cancel the selection box without triggering end callback
+   */
+  cancelSelectionBox() {
+    this.selectionBox.active = false;
+    this.selectionBox.entities = [];
+    this.selectionBox.callbacks = { onStart: null, onUpdate: null, onEnd: null };
+    return this;
+  }
+  
+  /**
+   * Get the current selection box bounds
+   * @returns {Object} Bounds with x1, y1, x2, y2, width, height
+   */
+  getSelectionBoxBounds() {
+    if (!this.selectionBox.active) return null;
+    
+    const x1 = Math.min(this.selectionBox.startX, this.selectionBox.endX);
+    const x2 = Math.max(this.selectionBox.startX, this.selectionBox.endX);
+    const y1 = Math.min(this.selectionBox.startY, this.selectionBox.endY);
+    const y2 = Math.max(this.selectionBox.startY, this.selectionBox.endY);
+    
+    return {
+      x1, y1, x2, y2,
+      width: x2 - x1,
+      height: y2 - y1,
+      area: (x2 - x1) * (y2 - y1)
+    };
+  }
+  
+  /**
+   * Set the entities list for selection box collision detection
+   * @param {Array} entities - Array of entities to check against
+   */
+  setSelectionEntities(entities) {
+    this.selectionBox.entityList = entities || [];
+    return this;
+  }
+  
+  /**
+   * Update entities within the selection box bounds
+   * @private
+   */
+  updateSelectionBoxEntities() {
+    if (!this.selectionBox.entityList) return;
+    
+    const bounds = this.getSelectionBoxBounds();
+    this.selectionBox.entities = [];
+    
+    for (const entity of this.selectionBox.entityList) {
+      if (this.isEntityInSelectionBox(entity, bounds)) {
+        this.selectionBox.entities.push(entity);
+      }
+    }
+  }
+  
+  /**
+   * Check if an entity is within the selection box bounds
+   * @param {Object} entity - Entity to check
+   * @param {Object} bounds - Selection box bounds
+   * @returns {boolean} True if entity is within bounds
+   * @private
+   */
+  isEntityInSelectionBox(entity, bounds) {
+    // Get entity position and size using various property names
+    const pos = (entity && typeof entity.getPosition === 'function') ? entity.getPosition() : 
+                (entity && entity.sprite && entity.sprite.pos) || 
+                { x: entity?.posX || entity?.x || 0, y: entity?.posY || entity?.y || 0 };
+                
+    const size = (entity && typeof entity.getSize === 'function') ? entity.getSize() : 
+                 (entity && entity.sprite && entity.sprite.size) || 
+                 { x: entity?.sizeX || entity?.width || 20, y: entity?.sizeY || entity?.height || 20 };
+    
+    // Check if entity overlaps with selection box
+    const entityX1 = pos.x;
+    const entityY1 = pos.y;
+    const entityX2 = pos.x + size.x;
+    const entityY2 = pos.y + size.y;
+    
+    return !(entityX2 < bounds.x1 || entityX1 > bounds.x2 || 
+             entityY2 < bounds.y1 || entityY1 > bounds.y2);
+  }
+  
+  /**
+   * Render the selection box
+   * @private
+   */
+  renderSelectionBox() {
+    if (!this.selectionBox.active) return;
+    
+    const bounds = this.getSelectionBoxBounds();
+    if (!bounds || bounds.width < 1 || bounds.height < 1) return;
+    
+    push();
+    
+    // Draw selection box rectangle
+    stroke(this.selectionBox.color[0], this.selectionBox.color[1], this.selectionBox.color[2]);
+    strokeWeight(this.selectionBox.strokeWidth);
+    
+    // Semi-transparent fill
+    fill(this.selectionBox.color[0], this.selectionBox.color[1], this.selectionBox.color[2], this.selectionBox.fillAlpha);
+    
+    rect(bounds.x1, bounds.y1, bounds.width, bounds.height);
+    
+    // Draw selection corners for better visual feedback
+    this.drawSelectionCorners(bounds);
+    
+    pop();
+  }
+  
+  /**
+   * Draw corner indicators for the selection box
+   * @param {Object} bounds - Selection box bounds
+   * @private
+   */
+  drawSelectionCorners(bounds) {
+    const cornerSize = 8;
+    const cornerThickness = 3;
+    
+    push();
+    stroke(this.selectionBox.color[0], this.selectionBox.color[1], this.selectionBox.color[2]);
+    strokeWeight(cornerThickness);
+    
+    // Top-left corner
+    line(bounds.x1, bounds.y1, bounds.x1 + cornerSize, bounds.y1);
+    line(bounds.x1, bounds.y1, bounds.x1, bounds.y1 + cornerSize);
+    
+    // Top-right corner
+    line(bounds.x2 - cornerSize, bounds.y1, bounds.x2, bounds.y1);
+    line(bounds.x2, bounds.y1, bounds.x2, bounds.y1 + cornerSize);
+    
+    // Bottom-left corner
+    line(bounds.x1, bounds.y2 - cornerSize, bounds.x1, bounds.y2);
+    line(bounds.x1, bounds.y2, bounds.x1 + cornerSize, bounds.y2);
+    
+    // Bottom-right corner
+    line(bounds.x2 - cornerSize, bounds.y2, bounds.x2, bounds.y2);
+    line(bounds.x2, bounds.y2 - cornerSize, bounds.x2, bounds.y2);
+    
+    pop();
+  }
+
+  /**
    * CONVENIENCE METHODS
    */
   // Combat Effects
@@ -668,6 +913,11 @@ class EffectsLayerRenderer {
 
   gatheringSparkle(x, y, options = {}) {
     return this.addEffect('GATHERING_SPARKLE', { x, y, ...options });
+  }
+
+  // Selection Box Effects
+  selectionBox(x, y, options = {}) {
+    return this.startSelectionBox(x, y, options);
   }
 
   // Visual Effects

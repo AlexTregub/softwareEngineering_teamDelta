@@ -580,23 +580,14 @@ function antsRender() {
   
   // Render all ants in a single pass for better performance
   for (let i = 0; i < ants.length; i++) {
-    if (ants[i] && typeof ants[i].render === "function") {
       // Check if ant should be rendered (not culled, active, etc.)
-      if (ants[i].isActive !== false) { // Default to true if property doesn't exist
-        // Start individual entity tracking
-        if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
-          g_performanceMonitor.startEntityRender(ants[i]);
-        }
-        
+      if (ants[i].isActive()) {
+        g_performanceMonitor.startEntityRender(ants[i]);        
         ants[i].render();
-        
-        // End individual entity tracking
-        if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
-          g_performanceMonitor.endEntityRender();
+        g_performanceMonitor.endEntityRender();
         }
-      }
     }
-  }
+  
   
   // End render phase tracking and finalize performance data
   if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {

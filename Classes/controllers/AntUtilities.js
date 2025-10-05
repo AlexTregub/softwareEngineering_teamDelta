@@ -371,6 +371,11 @@ class AntUtilities {
         g_tileInteractionManager.addObject(newAnt, 'ant');
       }
 
+      // Update UI Selection Box entities
+      if (typeof updateUISelectionEntities !== 'undefined') {
+        updateUISelectionEntities();
+      }
+
       return newAnt;
     } catch (error) {
       console.error('Error spawning ant:', error);

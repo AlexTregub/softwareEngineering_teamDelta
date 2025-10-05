@@ -11,6 +11,7 @@ const NONE = '\0';
 let g_mouseController;
 let g_keyboardController;
 let g_selectionBoxController;
+let g_uiSelectionController; // UI Effects Layer Selection Controller
 let g_tileInteractionManager; // Efficient tile-based interaction system
 // --- WORLD GENERATION ---
 let g_seed;
@@ -89,6 +90,28 @@ function setup() {
   if (typeof initializeAntControlPanel !== 'undefined') {
     initializeAntControlPanel();
   }
+  
+  // Initialize UI Selection Controller for effects layer selection box
+  // This must happen after RenderManager.initialize() creates the EffectsRenderer
+  setTimeout(() => {
+    console.log('🎯 Initializing UI Selection Controller...');
+    
+    // Check if required components exist
+    if (typeof UISelectionController !== 'undefined' && typeof window.EffectsRenderer !== 'undefined') {
+      g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
+      console.log('✅ UISelectionController created successfully');
+      
+      // Initialize the selection box system
+      if (typeof initializeUISelectionBox !== 'undefined') {
+        initializeUISelectionBox();
+      }
+    } else {
+      console.error('❌ Required components not available:');
+      console.log('UISelectionController available:', typeof UISelectionController !== 'undefined');
+      console.log('EffectsRenderer available:', typeof window.EffectsRenderer !== 'undefined');
+      console.log('window.EffectsRenderer object:', window.EffectsRenderer);
+    }
+  }, 200);
 }
 
 /**
