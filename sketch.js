@@ -109,9 +109,10 @@ function setup() {
   // New, Improved, and Chunked Terrain
   MAP2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,SEED,CHUNK_SIZE,TILE_SIZE,[CANVAS_X,CANVAS_Y]);
   MAP2.randomize(SEED);
-  MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  // MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER..
+  // MAP2.renderConversion._camPosition = [-72,-72]; // MOVEMENT OF VIEW EXAMPLE
 
-  MAP2.renderConversion._camPosition = [-72,88]; // MOVEMENT OF VIEW EXAMPLE
+  MAP2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
@@ -142,6 +143,10 @@ function setup() {
   // let temp2 = new Grid(8,8,[0,0]);
   // temp2.print();
   // print(temp2.infoStr());
+  // Test conversions
+  // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([10,10])));
+  // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([0,0])));
+  // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([-10,-10])));
 }
 
 // Global Currency Counter
@@ -174,10 +179,10 @@ function draw() {
 
   // --- PLAYING ---
   if (GameState.isInGame()) {
-    MAP2.renderConversion._camPosition = [ // MOVEMENT OF VIEW EXAMPLE
-      MAP2.renderConversion._camPosition[0]+0.1,
-      MAP2.renderConversion._camPosition[1]-0.1,
-    ];
+    // MAP2.renderConversion._camPosition = [ // MOVEMENT OF VIEW EXAMPLE
+    //   MAP2.renderConversion._camPosition[0]+0.1,
+    //   MAP2.renderConversion._camPosition[1]+0.1,
+    // ];
 
     MAP2.render();
     Ants_Update();
@@ -195,6 +200,9 @@ function draw() {
     }
 
     drawUI();
+
+    // Mouse -> Grid Position
+    console.log(MAP2.renderConversion.convCanvasToPos([mouseX,mouseY]));
   }
 
   // --- FADE OVERLAY (works in both menu + game) ---
