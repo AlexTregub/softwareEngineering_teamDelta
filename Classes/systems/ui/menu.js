@@ -1,6 +1,6 @@
 // Concise Menu System for Ant Game - Uses GameStateManager
 let menuButtons = [];
-let titleY = -100, titleTargetY, titleSpeed = 9;
+let titleY = -50, titleTargetY, titleSpeed = 9;
 let menuButton;
 let playButton;
 let optionButton;
@@ -16,7 +16,7 @@ let menuHeader = null;
 // window.menuLayoutData = { debugRects:[], groupRects:[], centers:[], debugImgs:[], headerTop }
 // global vertical offset (px) to move the menu up/down. Negative moves up.
 // default offset and persisted storage key
-const DEFAULT_MENU_YOFFSET = -50;
+const DEFAULT_MENU_YOFFSET = -100;
 const MENU_YOFFSET_KEY = 'antgame.menuYOffset';
 
 // load persisted offset if available, otherwise fall back to default
@@ -42,24 +42,23 @@ const initialMenuYOffset = DEFAULT_MENU_YOFFSET;
 // Button configurations for each menu state
 const MENU_CONFIGS = {
   MENU: [
-    { x: 0, y: -100, w: 200, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: 0, y: -40,  w: 200, h: 100, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
-    { x: 0, y: 20,   w: 200, h: 100, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
-    { x: 0, y: 120,  w: 100, h: 50, text: "Credits",    style: 'purple',  action: () => alert("Game by Team Delta!") },
-    { x: 10,   y: 120,  w: 100, h: 50, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
+    { x: -10, y: -200, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
+    { x: -10, y: -10,  w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
+    { x: -10, y: 70,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
+    { x: -60, y: 100, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
+    { x: 0,   y: 100,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
-    { x: 0, y: -100, w: 200, h: 50, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
-    { x: 0, y: -40,  w: 200, h: 50, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
-    { x: 0, y: 20,   w: 200, h: 50, text: "Controls",      style: 'default', action: () => console.log("Controls") },
-    { x: 0, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
+    { x: -113, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
+    { x: -113, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
+    { x: -113, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => console.log("Controls") },
+    { x: 9,   y: 148,  w: 145, h: 70, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ],
   DEBUG: [
     { x: -100, y: -100, w: 200, h: 50, text: "Check Mouse Over", style: 'warning', action: () => console.log("Audio Settings") },
     { x: -100, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ]
 };
-
 function menuPreload(){
   g_menuFont = loadFont("Images/Assets/Terraria.TTF");
   menuImage = loadImage("Images/Assets/Menu/ants_logo3.png");
@@ -131,6 +130,15 @@ function startGameTransition() {
     GameState.startFadeTransition("out");
 }
 
+// --- Title drop + floating animation ---
+let easing = 0.07;
+titleY += (titleTargetY - titleY) * easing;
+
+// Add a slow downward drift
+titleY += 0.2; // tweak this value for speed of float-down
+
+let floatOffset = sin(frameCount * 0.03) * 5;
+
 // Main menu render function
 function drawMenu() {
     textAlign(CENTER, CENTER);
@@ -145,8 +153,8 @@ function drawMenu() {
     // If we have a header laid out by the container, draw it centered at its computed position.
     if (menuHeader && menuHeader.img) {
       const hx = g_canvasX / 2;
-      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset;
-      image(menuHeader.img, hx, hy, menuHeader.w, menuHeader.h);
+      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset + 70;
+      image(menuHeader.img, hx, hy, menuHeader.w + 150, menuHeader.h + 100);
     } else if (menuImage) {
       // fallback to previous large logo behavior if header wasn't provided
       image(menuImage, g_canvasX / 2, (titleY - 50) + floatOffset, 700, 700);
