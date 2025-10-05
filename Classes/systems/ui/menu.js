@@ -62,7 +62,7 @@ const MENU_CONFIGS = {
 
 function menuPreload(){
   g_menuFont = loadFont("Images/Assets/Terraria.TTF");
-  menuImage = loadImage("Images/Assets/Menu/ant_logo1.png");
+  menuImage = loadImage("Images/Assets/Menu/ants_logo3.png");
   playButton = loadImage("Images/Assets/Menu/play_button.png");
   optionButton = loadImage("Images/Assets/Menu/options_button.png");
   exitButton = loadImage("Images/Assets/Menu/exit_button.png");
@@ -201,4 +201,5 @@ function renderMenu() {
   }
   return false;
 }
+
 
