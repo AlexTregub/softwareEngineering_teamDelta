@@ -17,7 +17,7 @@ class Grid {
 
         this._spanEnabled = (spanTopLeft == NONE) ? false : true; // Conditional statements are valid
         this._spanTopLeft = spanTopLeft; // spanTopleft = (x,y), 
-        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]+this._sizeY]; // Automatically set spanBotRight 
+        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]-this._sizeY]; // Automatically set spanBotRight 
         
         this._objLoc = objLoc; // (x,y) GRID object location, not necs.
 
@@ -39,14 +39,14 @@ class Grid {
     convRelToArrPos(pos) { // Convert relative span position to array position 
         return [
             pos[0] - this._spanTopLeft[0],
-            pos[1] - this._spanTopLeft[1]
+            -pos[1] + this._spanTopLeft[1]
         ];
     }
 
     convArrToRelPos(pos) { // Convert array position to relative span position 
         return [
             this._spanTopLeft[0] + pos[0],
-            this._spanTopLeft[1] + pos[1]
+            this._spanTopLeft[1] - pos[1]
         ];
     }
 
@@ -134,6 +134,21 @@ class Grid {
         }
     }
 
+    toString() {
+        let line = "";
+        for (let i = 0; i < this._sizeArr; ++i) {
+            line += (this.rawArray[i] + ',');
+
+            if (i % this._sizeX == this._sizeX-1) {
+                // print(line);
+                line += ";\n";
+                continue;
+            }
+        }
+
+        return line;
+    }
+
     infoStr() {
         return "Grid#"+this._gridId+"_[size:("+this._sizeX+','+this._sizeY+"),span:"+this._spanEnabled+",(("+this._spanTopLeft+"),("+this._spanBotRight+")),loc:"+this._objLoc+']';
     }
@@ -182,7 +197,7 @@ class Grid {
         // If selected: copy over
         if (oldDataPos != NONE) { // Assuming we want to retain data:
             for (let j = 0; j < this._sizeArr; ++j) { // j is old array access
-                let pos2dOld = this.convToSqaure(j); // Gets OLD position
+                let pos2dOld = this.convToSquare(j); // Gets OLD position
                 let pos2dNew = [
                     oldDataPos[0] + pos2dOld[0],
                     oldDataPos[1] + pos2dOld[1]
@@ -201,7 +216,7 @@ class Grid {
             this._spanTopLeft[0] = this._spanTopLeft[0] - oldDataPos[0];
             this._spanTopLeft[1] = this._spanTopLeft[1] - oldDataPos[1];
 
-            this._spanBotRight = [this._spanTopLeft[0]+newSize[0], this._spanTopLeft[1]+newSize[1]];
+            this._spanBotRight = [this._spanTopLeft[0]+newSize[0], this._spanTopLeft[1]-newSize[1]];
         }
 
         // Update Size
@@ -219,7 +234,7 @@ class Grid {
         this._spanEnabled = true;
         this._spanTopLeft = topLeftPos;
 
-        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]+this._sizeY]; // Automatically set spanBotRight 
+        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]-this._sizeY]; // Automatically set spanBotRight 
     }
 
     // Grid-object position

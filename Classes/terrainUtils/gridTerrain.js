@@ -40,7 +40,8 @@ class gridTerrain {
             // this._centerChunkX - this._gridSizeX,
             // this._centerChunkY - this._gridSizeY
             -this._centerChunkX,
-            -this._centerChunkY
+            // this._centerChunkY
+            this._gridSizeY-this._centerChunkY
         ];
 
         this._chunkSize = chunkSize; // Chunk size (in tiles)
@@ -115,6 +116,8 @@ class gridTerrain {
     }
 
     render() {
+        let chunksSkipped = 0;
+
         let viewSpan = this.renderConversion.getViewSpan();
         let chunkSpan = [
             [ // -x,+y TL
@@ -132,6 +135,7 @@ class gridTerrain {
             let chunkLoc = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
             if (chunkLoc[0] < chunkSpan[0][0] || chunkLoc[0] > chunkSpan[1][0] || chunkLoc[1] > chunkSpan[0][1] || chunkLoc[1] < chunkSpan[1][1]) {
                 // console.log("Chunk "+i+'/'+chunkLoc+" skipped.");
+                chunksSkipped += 1;
                 continue;
             }
 
@@ -139,6 +143,8 @@ class gridTerrain {
                 this.chunkArray.rawArray[i].tileData.rawArray[j].render2(this.renderConversion);
             }
         }
+
+        console.log("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
     }
 
     randomize(seed=this._seed) {

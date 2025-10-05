@@ -129,6 +129,20 @@ function setup() {
   Ants_Spawn(10);
   // Resources_Spawn(20);
 
+  // Grid new functionality testing:
+  // let temp = new Grid(8,8,[5,5]);
+  // temp.print();
+  // print(temp.infoStr());
+
+  // MAP2.chunkArray.print();
+  // print(MAP2.chunkArray.infoStr());
+
+  // testGridUtil();
+  // testGridResizeAndConsequences();
+
+  // let temp2 = new Grid(8,8,[0,0]);
+  // temp2.print();
+  // print(temp2.infoStr());
   // Test conversions
   // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([10,10])));
   // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([0,0])));

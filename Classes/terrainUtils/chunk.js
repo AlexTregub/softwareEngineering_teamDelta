@@ -75,4 +75,8 @@ class Chunk {
             this.tileData.rawArray[i].render2(coordSys);
         }
     }
+
+    toString() {
+        return this.tileData.toString();
+    }
 }
