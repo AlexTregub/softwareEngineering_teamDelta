@@ -64,12 +64,20 @@ class DraggablePanel {
       minimized: config.minimized || false
     };
     
-    // Button management (initialized AFTER state)
-    this.buttons = [];
-    this.initializeButtons();
+  // Load persisted position if enabled BEFORE creating buttons so
+  // buttons are constructed at the correct, persisted location and
+  // don't briefly render at the default config position.
+  this.loadPersistedState();
 
-    // Load persisted position if enabled
-    this.loadPersistedState();
+  // Button management (initialized AFTER state is final)
+  this.buttons = [];
+  this.initializeButtons();
+
+  // Immediately ensure button instances use the (possibly) loaded
+  // persisted position. This prevents a single-frame artifact where
+  // buttons appear at the initial config position and then jump to
+  // the persisted position on the first update cycle.
+  this.updateButtonPositions();
 
         // Log creation success (only for debug mode)
     if (devConsoleEnabled) {
@@ -514,6 +522,38 @@ class DraggablePanel {
     this.state.minimized = !this.state.minimized;
     this.saveState();
 
+  }
+
+  /**
+   * Show the panel.
+   *
+   * Sets the panel to visible, cancels any active drag state and persists the
+   * change. This is a no-op if the panel is already visible.
+   *
+   * @returns {void}
+   */
+  show() {
+    if (this.state.visible) return;
+    this.state.visible = true;
+    // If the panel was hidden while being dragged, ensure drag is cleared.
+    this.isDragging = false;
+    this.saveState();
+  }
+
+  /**
+   * Hide the panel.
+   *
+   * Sets the panel to hidden, cancels any active drag state and persists the
+   * change. This is a no-op if the panel is already hidden.
+   *
+   * @returns {void}
+   */
+  hide() {
+    if (!this.state.visible) return;
+    this.state.visible = false;
+    // Ensure dragging stops when the panel is hidden.
+    this.isDragging = false;
+    this.saveState();
   }
 
   /**

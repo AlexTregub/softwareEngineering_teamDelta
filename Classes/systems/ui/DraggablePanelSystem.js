@@ -13,6 +13,14 @@
 async function initializeDraggablePanelSystem() {
   try {
 
+    // Idempotency guard: avoid initializing twice (setup() and initializeWorld() both
+    // called this previously). If a manager already exists and is initialized, just
+    // reuse it to prevent duplicate panel creation and double rendering.
+    if (typeof window !== 'undefined' && window.draggablePanelManager && window.draggablePanelManager.isInitialized) {
+      console.log('ℹ️ DraggablePanelSystem already initialized — skipping duplicate init');
+      return true;
+    }
+
     
     // Check if DraggablePanelManager is available
     if (typeof DraggablePanelManager === 'undefined') {

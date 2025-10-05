@@ -545,9 +545,7 @@ class ButtonGroupManager {
    * @param {Object} renderContext - Optional rendering context/settings
    */
   render(renderContext = {}) {
-    if (!this.isInitialized) {
-      return;
-    }
+    if (!this.isInitialized) { return; }
 
     // Render each active button group
     for (const [groupId, groupEntry] of this.activeGroups) {

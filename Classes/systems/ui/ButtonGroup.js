@@ -781,39 +781,22 @@ class ButtonGroup {
       this.debugRenderCount = true; // Only log once
     }
     
-    // Use p5.js functions for rendering (if available)
-    if (typeof push === 'function') {
-      push();
-      
-      // Apply transparency
-      if (typeof tint === 'function') {
-        tint(255, this.state.transparency * 255);
-      }
-      
-      // Render background if configured
-      this.renderBackground();
-      
-      // Render all buttons
-      this.buttons.forEach((btn, index) => {
-        if (btn.render && typeof btn.render === 'function') {
-          btn.render();
-        } else {
-          console.warn(`🚨 Button ${index} in group ${this.config.id} has no render method`);
-        }
-      });
-      
-      // Render drag handles if draggable and being dragged
-      if (this.config.behavior?.draggable && this.isDragging) {
-        this.renderDragIndicator();
-      }
-      
-      if (typeof pop === 'function') {
-        pop();
-      }
-    } else {
-      console.warn(`🚨 p5.js push() function not available for ButtonGroup ${this.config.id}`);
-    }
+    push();
+    
+    // Apply transparency
+    tint(255, this.state.transparency * 255);
+    
+    // Render background if configured
+    this.renderBackground();
+    
+    // Render all buttons
+    this.buttons.forEach((btn, index) => { btn.render(); });
+    
+    // Render drag handles if draggable and being dragged
+    if (this.config.behavior?.draggable && this.isDragging) { this.renderDragIndicator(); }
+    pop();
   }
+  
 
   /**
    * Render background for the button group

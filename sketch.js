@@ -1,3 +1,4 @@
+
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
@@ -166,6 +167,19 @@ function draw() {
   // g_map2.renderDirect();
 
   // Use the new layered rendering system
+  // Update legacy draggable panels BEFORE rendering so the render pipeline
+  // sees the latest panel positions (avoids a pre-update render that leaves
+  // a ghost image of the previous frame's positions).
+  if (GameState.getState() === 'PLAYING') {
+    try {
+      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+        updateDraggablePanels();
+      }
+    } catch (error) {
+      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
+    }
+  }
+
   if (RenderManager && RenderManager.isInitialized) {
     RenderManager.render(GameState.getState());
   }
@@ -178,18 +192,12 @@ function draw() {
       console.error('❌ Error updating button group system:', error);
     }
   }
-  
-  // Update legacy draggable panels (only during PLAYING gamestate)  
-  if (GameState.getState() === 'PLAYING') {
-    try {
-      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
-        updateDraggablePanels();
-        renderDraggablePanels();
-      }
-    } catch (error) {
-      console.error('❌ Error updating legacy draggable panels:', error);
-    }
-  }
+
+  // Note: rendering of draggable panels is handled via RenderManager's
+  // ui_game layer (DraggablePanelManager integrates into the render layer).
+  // We intentionally do NOT call renderDraggablePanels() here to avoid a
+  // second draw pass within the same frame which would leave a ghost of
+  // the pre-update positions.
 }
 
 /**
