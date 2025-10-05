@@ -1,5 +1,5 @@
 ///// CHUNK of TERRAIN made of GRID of TILES
-const CHUNK_SIZE=1; // size in Tiles
+const CHUNK_SIZE=8; // size in Tiles
 
 class Chunk {
     constructor(chunkPos,spanTLPos,size=CHUNK_SIZE,tileSize=TILE_SIZE) { // spanTLPos should be a known rounded value. We will automatically offset items as needed. 
