@@ -142,7 +142,8 @@ function initializeWorld() {
   g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
   g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
    // Initialize the render layer manager if not already done
-    RenderManager.initialize();
+  RenderManager.initialize();
+  initializeDraggablePanelSystem();
  
 }
 
@@ -182,8 +183,8 @@ function draw() {
   if (GameState.getState() === 'PLAYING') {
     try {
       if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
-        updateDraggablePanels(GameState.getState());
-        renderDraggablePanels(GameState.getState());
+        updateDraggablePanels();
+        renderDraggablePanels();
       }
     } catch (error) {
       console.error('❌ Error updating legacy draggable panels:', error);

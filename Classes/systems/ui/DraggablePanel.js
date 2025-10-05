@@ -57,16 +57,16 @@ class DraggablePanel {
     this.isDragging = false;
     this.dragOffset = { x: 0, y: 0 };
     
-    // Button management
-    this.buttons = [];
-    this.initializeButtons();
-    
-    // Position state with persistence
+    // Position state with persistence (MUST be initialized before buttons)
     this.state = {
       position: { ...this.config.position },
       visible: config.visible !== false,
       minimized: config.minimized || false
     };
+    
+    // Button management (initialized AFTER state)
+    this.buttons = [];
+    this.initializeButtons();
 
     // Load persisted position if enabled
     this.loadPersistedState();

@@ -1,14 +1,19 @@
 /**
- * @fileoverview DraggablePanelManager - Manages multiple draggable UI panels
- * Coordinates with Universal Button System for unified UI interaction
- * 
+ * @fileoverview DraggablePanelManager - Complete draggable UI panel system
+ * @module DraggablePanelManager
  * @author Software Engineering Team Delta - David Willman  
- * @version 1.0.0
+ * @version 2.0.0
+ * @see {@link docs/api/DraggablePanelManager.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Panel system reference
  */
 
 /**
- * DraggablePanelManager - Centralized management for draggable UI panels
- * Works alongside the Universal Button System for comprehensive UI management
+ * Comprehensive draggable panel management system with render integration.
+ * 
+ * **Features**: Panel lifecycle, render integration, game state visibility, button management
+ * 
+ * @class DraggablePanelManager
+ * @see {@link docs/api/DraggablePanelManager.md} Full documentation and examples
  */
 class DraggablePanelManager {
   /**
@@ -26,11 +31,21 @@ class DraggablePanelManager {
     // Track which panel is currently being dragged (for proper isolation)
     this.currentlyDragging = null;
     
-
+    // Panel visibility by game state (from Integration class)
+    this.stateVisibility = {
+      'MENU': [],
+      'PLAYING': ['tools', 'resources', 'stats'],
+      'PAUSED': ['tools', 'resources', 'stats'],
+      'DEBUG_MENU': ['tools', 'resources', 'stats', 'debug'],
+      'GAME_OVER': ['stats']
+    };
+    
+    // Current game state for visibility management
+    this.gameState = 'MENU';
   }
 
   /**
-   * Initialize the panel manager
+   * Initialize the panel manager and register with render pipeline
    */
   initialize() {
     if (this.isInitialized) {
@@ -38,8 +53,175 @@ class DraggablePanelManager {
       return;
     }
 
-    this.isInitialized = true;
+    // Create default game panels
+    this.createDefaultPanels();
+    
+    // Register with RenderLayerManager if available
+    if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
+      // Hook into the UI_GAME layer renderer
+      const originalUIRenderer = g_renderLayerManager.layerRenderers.get('ui_game');
+      
+      g_renderLayerManager.layerRenderers.set('ui_game', (gameState) => {
+        // Call original UI renderer first
+        if (originalUIRenderer) {
+          originalUIRenderer(gameState);
+        }
+        
+        // Then render our panels
+        this.renderPanels(gameState);
+      });
+      
+      console.log('✅ DraggablePanelManager integrated into render pipeline');
+    } else {
+      console.warn('⚠️ RenderLayerManager not found - panels will need manual rendering');
+    }
 
+    this.isInitialized = true;
+  }
+
+  /**
+   * Create the default example panels
+   */
+  createDefaultPanels() {
+    // Tools Panel (vertical layout)
+    this.panels.set('tools', new DraggablePanel({
+      id: 'tools-panel',
+      title: 'Game Tools',
+      position: { x: 20, y: 80 },
+      size: { width: 140, height: 180 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 5,
+        buttonWidth: 120,
+        buttonHeight: 28,
+        items: [
+          {
+            caption: 'Spawn Ant',
+            onClick: () => this.spawnAnt(),
+            style: ButtonStyles.SUCCESS
+          },
+          {
+            caption: 'Clear Ants',
+            onClick: () => this.clearAnts(),
+            style: ButtonStyles.DANGER
+          },
+          {
+            caption: 'Pause/Play',
+            onClick: () => this.togglePause(),
+            style: ButtonStyles.WARNING
+          },
+          {
+            caption: 'Debug Info',
+            onClick: () => this.toggleDebug(),
+            style: ButtonStyles.PURPLE
+          }
+        ]
+      }
+    }));
+
+    // Resources Panel (grid layout)
+    this.panels.set('resources', new DraggablePanel({
+      id: 'resources-panel',
+      title: 'Resources',
+      position: { x: 180, y: 80 },
+      size: { width: 180, height: 150 },
+      buttons: {
+        layout: 'grid',
+        columns: 2,
+        spacing: 8,
+        buttonWidth: 70,
+        buttonHeight: 40,
+        items: [
+          {
+            caption: 'Wood',
+            onClick: () => this.selectResource('wood'),
+            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#8B4513' }
+          },
+          {
+            caption: 'Food', 
+            onClick: () => this.selectResource('food'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },
+          {
+            caption: 'Stone',
+            onClick: () => this.selectResource('stone'),
+            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#696969' }
+          },
+          {
+            caption: 'Info',
+            onClick: () => this.showResourceInfo(),
+            style: ButtonStyles.PURPLE
+          }
+        ]
+      }
+    }));
+
+    // Stats Panel (with mixed content and horizontal buttons)
+    this.panels.set('stats', new DraggablePanel({
+      id: 'stats-panel',
+      title: 'Game Statistics',
+      position: { x: 380, y: 80 },
+      size: { width: 200, height: 160 },
+      buttons: {
+        layout: 'horizontal',
+        spacing: 5,
+        buttonWidth: 60,
+        buttonHeight: 25,
+        items: [
+          {
+            caption: 'Save',
+            onClick: () => this.saveGame(),
+            style: ButtonStyles.SUCCESS
+          },
+          {
+            caption: 'Load',
+            onClick: () => this.loadGame(),
+            style: ButtonStyles.DEFAULT
+          },
+          {
+            caption: 'Reset',
+            onClick: () => this.resetGame(),
+            style: ButtonStyles.DANGER
+          }
+        ]
+      }
+    }));
+
+    // Debug Panel (only shown in debug mode)
+    this.panels.set('debug', new DraggablePanel({
+      id: 'debug-panel',
+      title: 'Debug Controls',
+      position: { x: 600, y: 80 },
+      size: { width: 160, height: 200 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 3,
+        buttonWidth: 140,
+        buttonHeight: 25,
+        items: [
+          {
+            caption: 'Toggle Rendering',
+            onClick: () => this.toggleRendering(),
+            style: ButtonStyles.WARNING
+          },
+          {
+            caption: 'Performance',
+            onClick: () => this.togglePerformance(),
+            style: ButtonStyles.PURPLE
+          },
+          {
+            caption: 'Entity Debug',
+            onClick: () => this.toggleEntityDebug(),
+            style: ButtonStyles.DEFAULT
+          },
+          {
+            caption: 'Console Log',
+            onClick: () => this.dumpConsole(),
+            style: ButtonStyles.DANGER
+          }
+        ]
+      }
+    }));
   }
 
   /**
@@ -339,6 +521,206 @@ class DraggablePanelManager {
   isPanelVisible(panelId) {
     const panel = this.panels.get(panelId);
     return panel ? panel.isVisible() : false;
+  }
+
+  /**
+   * Render all visible panels based on current game state
+   */
+  renderPanels(gameState) {
+    // Update current game state
+    if (gameState && gameState !== this.gameState) {
+      this.gameState = gameState;
+    }
+    
+    // Get panels that should be visible for current state
+    const visiblePanelIds = this.stateVisibility[this.gameState] || [];
+    
+    // Update panel visibility
+    for (const [panelId, panel] of this.panels) {
+      const shouldBeVisible = visiblePanelIds.includes(panelId);
+      if (shouldBeVisible && !panel.isVisible()) {
+        panel.show();
+      } else if (!shouldBeVisible && panel.isVisible()) {
+        panel.hide();
+      }
+    }
+    
+    // Render all visible panels
+    for (const panel of this.panels.values()) {
+      if (panel.isVisible()) {
+        panel.render();
+      }
+    }
+  }
+
+  /**
+   * Update game state and adjust panel visibility
+   */
+  updateGameState(newState) {
+    if (this.gameState !== newState) {
+      this.gameState = newState;
+      console.log(`🎮 Panel visibility updated for state: ${newState}`);
+    }
+  }
+
+  // =============================================================================
+  // GAME ACTION METHODS (Button Callbacks)
+  // =============================================================================
+
+  /**
+   * Spawn a new ant at mouse position or default location
+   */
+  spawnAnt() {
+    console.log('🐜 Spawning new ant...');
+    // TODO: Integrate with actual ant spawning system
+    if (typeof g_antManager !== 'undefined' && g_antManager) {
+      // Use mouse position if available, otherwise center of screen
+      const spawnX = mouseX || width / 2;
+      const spawnY = mouseY || height / 2;
+      g_antManager.spawnAnt({ x: spawnX, y: spawnY });
+    } else {
+      console.warn('⚠️ AntManager not found');
+    }
+  }
+
+  /**
+   * Clear all ants from the game
+   */
+  clearAnts() {
+    console.log('🧹 Clearing all ants...');
+    if (typeof g_antManager !== 'undefined' && g_antManager) {
+      g_antManager.clearAllAnts();
+    } else {
+      console.warn('⚠️ AntManager not found');
+    }
+  }
+
+  /**
+   * Toggle game pause state
+   */
+  togglePause() {
+    console.log('⏯️ Toggling pause state...');
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+      g_gameStateManager.togglePause();
+    } else {
+      console.warn('⚠️ GameStateManager not found');
+    }
+  }
+
+  /**
+   * Toggle debug information display
+   */
+  toggleDebug() {
+    console.log('🔧 Toggling debug mode...');
+    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+      g_uiDebugManager.toggleDebug();
+    } else {
+      console.warn('⚠️ UIDebugManager not found');
+    }
+  }
+
+  /**
+   * Select a resource type for interaction
+   */
+  selectResource(resourceType) {
+    console.log(`📦 Selected resource: ${resourceType}`);
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
+      g_resourceManager.selectResource(resourceType);
+    } else {
+      console.warn('⚠️ ResourceManager not found');
+    }
+  }
+
+  /**
+   * Show resource information panel
+   */
+  showResourceInfo() {
+    console.log('ℹ️ Showing resource information...');
+    // TODO: Integrate with resource info system
+  }
+
+  /**
+   * Save current game state
+   */
+  saveGame() {
+    console.log('💾 Saving game...');
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+      g_gameStateManager.saveGame();
+    } else {
+      console.warn('⚠️ GameStateManager not found');
+    }
+  }
+
+  /**
+   * Load saved game state
+   */
+  loadGame() {
+    console.log('📁 Loading game...');
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+      g_gameStateManager.loadGame();
+    } else {
+      console.warn('⚠️ GameStateManager not found');
+    }
+  }
+
+  /**
+   * Reset game to initial state
+   */
+  resetGame() {
+    console.log('🔄 Resetting game...');
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+      g_gameStateManager.resetGame();
+    } else {
+      console.warn('⚠️ GameStateManager not found');
+    }
+  }
+
+  /**
+   * Toggle rendering system on/off
+   */
+  toggleRendering() {
+    console.log('🎨 Toggling rendering system...');
+    if (typeof g_renderController !== 'undefined' && g_renderController) {
+      g_renderController.toggleRendering();
+    } else {
+      console.warn('⚠️ RenderController not found');
+    }
+  }
+
+  /**
+   * Toggle performance monitoring
+   */
+  togglePerformance() {
+    console.log('📊 Toggling performance monitor...');
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+      g_performanceMonitor.toggle();
+    } else {
+      console.warn('⚠️ PerformanceMonitor not found');
+    }
+  }
+
+  /**
+   * Toggle entity debug visualization
+   */
+  toggleEntityDebug() {
+    console.log('🔍 Toggling entity debug...');
+    if (typeof g_entityDebugManager !== 'undefined' && g_entityDebugManager) {
+      g_entityDebugManager.toggle();
+    } else {
+      console.warn('⚠️ EntityDebugManager not found');
+    }
+  }
+
+  /**
+   * Dump debug information to console
+   */
+  dumpConsole() {
+    console.log('📝 Dumping debug information...');
+    console.table({
+      'Panel Manager': this.getStatus(),
+      'Game State': this.gameState,
+      'Visible Panels': this.stateVisibility[this.gameState]
+    });
   }
 
   /**
