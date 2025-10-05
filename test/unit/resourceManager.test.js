@@ -310,7 +310,7 @@ testSuite.test("should handle null global resource array in processDropOff", () 
 testSuite.run();
 
 // Export for module compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     ResourceManager,
     MockEntity

@@ -65,7 +65,7 @@ function temporarilyDisableOldSelection() {
   console.log('⏸️ TEMPORARILY DISABLING OLD SELECTION');
   console.log('======================================\n');
   
-  if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+  if (g_selectionBoxController) {
     console.log('Found g_selectionBoxController - disabling...');
     
     // Store original methods

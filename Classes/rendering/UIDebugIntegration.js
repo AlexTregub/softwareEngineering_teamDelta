@@ -272,11 +272,11 @@ class UILayerRendererDebugIntegration {
    * Handle window resize - update UI element constraints
    */
   handleResize() {
-    if (typeof g_uiDebugManager === 'undefined' || !g_uiDebugManager) return;
+    if (typeof window.g_uiDebugManager === 'undefined' || !window.g_uiDebugManager) return;
 
     // Update minimap default position
     const newMinimapX = width - 130;
-    g_uiDebugManager.updateElementBounds('ui_minimap', {
+    window.g_uiDebugManager.updateElementBounds('ui_minimap', {
       x: this.debugPositions.minimap.x || newMinimapX,
       y: this.debugPositions.minimap.y || 10,
       width: 120,
@@ -286,7 +286,7 @@ class UILayerRendererDebugIntegration {
     // Update toolbar default position  
     const newToolbarX = (width - 300) / 2;
     const newToolbarY = height - 70;
-    g_uiDebugManager.updateElementBounds('ui_toolbar', {
+    window.g_uiDebugManager.updateElementBounds('ui_toolbar', {
       x: this.debugPositions.toolbar.x || newToolbarX,
       y: this.debugPositions.toolbar.y || newToolbarY,
       width: 300,
@@ -302,7 +302,7 @@ function initializeUIDebugSystem() {
   //   window.g_uiDebugManager = new UIDebugManager();
   //   
   //   // Enable/disable based on development mode
-  //   if (typeof DEV_MODE !== 'undefined' && DEV_MODE) {
+  //   if (DEV_MODE) {
   //     window.g_uiDebugManager.enable();
   //   }
   //   

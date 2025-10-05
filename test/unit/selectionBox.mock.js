@@ -98,7 +98,7 @@ function handleMouseReleased(entities, selectedEntity, moveSelectedEntityToTile,
   }
 }
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     handleMousePressed,
     handleMouseDragged,

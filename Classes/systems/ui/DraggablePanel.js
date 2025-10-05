@@ -41,12 +41,25 @@ class DraggablePanel {
         constrainToScreen: config.behavior?.constrainToScreen !== false,
         ...config.behavior
       },
-      content: config.content || {}
+      content: config.content || {},
+      buttons: {
+        items: config.buttons?.items || [],
+        layout: config.buttons?.layout || 'vertical', // 'vertical', 'horizontal', 'grid'
+        spacing: config.buttons?.spacing || 5,
+        buttonHeight: config.buttons?.buttonHeight || 30,
+        buttonWidth: config.buttons?.buttonWidth || 120,
+        columns: config.buttons?.columns || 2, // for grid layout
+        ...config.buttons
+      }
     };
 
     // Drag state (copied from ButtonGroup.js)
     this.isDragging = false;
     this.dragOffset = { x: 0, y: 0 };
+    
+    // Button management
+    this.buttons = [];
+    this.initializeButtons();
     
     // Position state with persistence
     this.state = {
@@ -59,8 +72,70 @@ class DraggablePanel {
     this.loadPersistedState();
 
         // Log creation success (only for debug mode)
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       console.log(`🪟 DraggablePanel '${this.config.id}' created at (${this.state.position.x}, ${this.state.position.y})`);
+    }
+  }
+
+  /**
+   * Initialize buttons from configuration
+   */
+  initializeButtons() {
+    this.buttons = [];
+    
+    this.config.buttons.items.forEach((buttonConfig, index) => {
+      const position = this.calculateButtonPosition(index);
+      
+      const button = new Button(
+        position.x,
+        position.y,
+        buttonConfig.width || this.config.buttons.buttonWidth,
+        buttonConfig.height || this.config.buttons.buttonHeight,
+        buttonConfig.caption || `Button ${index + 1}`,
+        {
+          ...ButtonStyles.DEFAULT,
+          ...buttonConfig.style,
+          onClick: buttonConfig.onClick,
+          image: buttonConfig.image
+        }
+      );
+      
+      this.buttons.push(button);
+    });
+  }
+
+  /**
+   * Calculate button position based on layout
+   */
+  calculateButtonPosition(index) {
+    const baseX = this.state.position.x + this.config.style.padding;
+    const baseY = this.state.position.y + this.config.style.titleBarHeight + this.config.style.padding;
+    const spacing = this.config.buttons.spacing;
+    const buttonWidth = this.config.buttons.buttonWidth;
+    const buttonHeight = this.config.buttons.buttonHeight;
+    
+    switch (this.config.buttons.layout) {
+      case 'horizontal':
+        return {
+          x: baseX + (index * (buttonWidth + spacing)),
+          y: baseY
+        };
+        
+      case 'grid':
+        const cols = this.config.buttons.columns;
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        return {
+          x: baseX + (col * (buttonWidth + spacing)),
+          y: baseY + (row * (buttonHeight + spacing))
+        };
+        
+      case 'vertical':
+      default:
+        return {
+          x: baseX,
+          y: baseY + (index * (buttonHeight + spacing))
+        };
     }
   }
 
@@ -118,9 +193,22 @@ class DraggablePanel {
    * @param {boolean} mousePressed - Whether mouse button is currently pressed
    */
   update(mouseX, mouseY, mousePressed) {
-    if (!this.state.visible || !this.config.behavior.draggable) return;
+    if (!this.state.visible) return;
     
-    this.handleDragging(mouseX, mouseY, mousePressed);
+    // Update button positions when panel moves
+    this.updateButtonPositions();
+    
+    // Update button interactions (only if not dragging panel)
+    if (!this.isDragging) {
+      this.buttons.forEach(button => {
+        button.update(mouseX, mouseY, mousePressed);
+      });
+    }
+    
+    // Handle panel dragging
+    if (this.config.behavior.draggable) {
+      this.handleDragging(mouseX, mouseY, mousePressed);
+    }
   }
 
   /**
@@ -178,8 +266,8 @@ class DraggablePanel {
     // Constrain to screen bounds if enabled
     if (this.config.behavior.constrainToScreen) {
       const canvas = { 
-        width: (typeof window !== 'undefined' && window.innerWidth) || 1200, 
-        height: (typeof window !== 'undefined' && window.innerHeight) || 800 
+        width: (window.innerWidth) || 1200, 
+        height: (window.innerHeight) || 800 
       };
       
       constrainedX = Math.max(0, Math.min(constrainedX, canvas.width - this.config.size.width));
@@ -189,8 +277,8 @@ class DraggablePanel {
     // Apply snap to edges if enabled
     if (this.config.behavior.snapToEdges) {
       const canvas = { 
-        width: (typeof window !== 'undefined' && window.innerWidth) || 1200, 
-        height: (typeof window !== 'undefined' && window.innerHeight) || 800 
+        width: (window.innerWidth) || 1200, 
+        height: (window.innerHeight) || 800 
       };
       const snapThreshold = 20; // pixels
       
@@ -214,6 +302,16 @@ class DraggablePanel {
     }
     
     return { x: constrainedX, y: constrainedY };
+  }
+
+  /**
+   * Update button positions when panel moves
+   */
+  updateButtonPositions() {
+    this.buttons.forEach((button, index) => {
+      const position = this.calculateButtonPosition(index);
+      button.setPosition(position.x, position.y);
+    });
   }
 
   /**
@@ -263,8 +361,13 @@ class DraggablePanel {
       this.renderTitleBar();
       
       // Draw content area
-      if (!this.state.minimized && contentRenderer) {
-        this.renderContent(contentRenderer);
+      if (!this.state.minimized) {
+        if (contentRenderer) {
+          this.renderContent(contentRenderer);
+        }
+        
+        // Draw buttons
+        this.renderButtons();
       }
       
       // Draw drag indicator if being dragged
@@ -368,6 +471,15 @@ class DraggablePanel {
   }
 
   /**
+   * Render buttons in the panel
+   */
+  renderButtons() {
+    this.buttons.forEach(button => {
+      button.render();
+    });
+  }
+
+  /**
    * Render visual indicator when panel is being dragged
    */
   renderDragIndicator() {
@@ -432,6 +544,55 @@ class DraggablePanel {
    */
   isVisible() {
     return this.state.visible;
+  }
+
+  /**
+   * Add a button to the panel
+   * 
+   * @param {Object} buttonConfig - Button configuration
+   */
+  addButton(buttonConfig) {
+    this.config.buttons.items.push(buttonConfig);
+    this.initializeButtons();
+  }
+
+  /**
+   * Remove a button by index
+   * 
+   * @param {number} index - Index of button to remove
+   */
+  removeButton(index) {
+    if (index >= 0 && index < this.config.buttons.items.length) {
+      this.config.buttons.items.splice(index, 1);
+      this.initializeButtons();
+    }
+  }
+
+  /**
+   * Clear all buttons
+   */
+  clearButtons() {
+    this.config.buttons.items = [];
+    this.buttons = [];
+  }
+
+  /**
+   * Get button by index
+   * 
+   * @param {number} index - Button index
+   * @returns {Button|null} Button instance or null
+   */
+  getButton(index) {
+    return this.buttons[index] || null;
+  }
+
+  /**
+   * Get all buttons
+   * 
+   * @returns {Array} Array of button instances
+   */
+  getButtons() {
+    return [...this.buttons];
   }
 
   /**

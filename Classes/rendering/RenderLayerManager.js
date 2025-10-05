@@ -275,13 +275,12 @@ class RenderLayerManager {
     }
     
     // UI Debug System rendering disabled
-    // if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+    // if (g_uiDebugManager) {
     //   g_uiDebugManager.render();
     // }
     
     // Render existing PerformanceMonitor if enabled
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && 
-        g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled &&
+    if (g_performanceMonitor && g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled &&
         typeof g_performanceMonitor.render === 'function') {
       g_performanceMonitor.render();
     }
@@ -417,8 +416,7 @@ class RenderLayerManager {
     }
     
     // Check if Universal Button Group System is available
-    if (typeof window !== 'undefined' && 
-        window.buttonGroupManager && 
+    if (window.buttonGroupManager && 
         typeof window.buttonGroupManager.render === 'function') {
       
       try {

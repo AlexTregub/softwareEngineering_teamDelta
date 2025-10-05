@@ -40,7 +40,7 @@ class EntityRenderer {
     const startTime = performance.now();
     
     // Start preparation phase tracking
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+    if (g_performanceMonitor) {
       g_performanceMonitor.startRenderPhase('preparation');
     }
     
@@ -54,7 +54,7 @@ class EntityRenderer {
     this.collectEntities(gameState);
     
     // End preparation, start culling phase
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+    if (g_performanceMonitor) {
       g_performanceMonitor.endRenderPhase();
       g_performanceMonitor.startRenderPhase('culling');
     }
@@ -65,7 +65,7 @@ class EntityRenderer {
     }
     
     // End culling, start rendering phase
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+    if (g_performanceMonitor) {
       g_performanceMonitor.endRenderPhase();
       g_performanceMonitor.startRenderPhase('rendering');
     }
@@ -78,7 +78,7 @@ class EntityRenderer {
     this.renderGroup(this.renderGroups.FOREGROUND);
     
     // End rendering phase, start post-processing
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+    if (g_performanceMonitor) {
       g_performanceMonitor.endRenderPhase();
       g_performanceMonitor.startRenderPhase('postProcessing');
     }
@@ -87,7 +87,7 @@ class EntityRenderer {
     this.stats.renderTime = performance.now() - startTime;
     
     // Record entity stats in performance monitor and finalize
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+    if (g_performanceMonitor) {
       g_performanceMonitor.recordEntityStats(
         this.stats.totalEntities,
         this.stats.renderedEntities, 
@@ -287,7 +287,7 @@ class EntityRenderer {
       try {
         if (entityData.entity && entityData.entity.render) {
           // Start entity performance tracking
-          if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+          if (g_performanceMonitor) {
             g_performanceMonitor.startEntityRender(entityData.entity);
           }
           
@@ -295,7 +295,7 @@ class EntityRenderer {
           this.stats.renderedEntities++;
           
           // End entity performance tracking
-          if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+          if (g_performanceMonitor) {
             g_performanceMonitor.endEntityRender();
           }
         }
@@ -303,7 +303,7 @@ class EntityRenderer {
         console.warn('EntityRenderer: Error rendering entity:', error);
         
         // End tracking even on error
-        if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+        if (g_performanceMonitor) {
           g_performanceMonitor.endEntityRender();
         }
       }

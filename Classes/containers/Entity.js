@@ -684,4 +684,4 @@ class Entity {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) { module.exports = Entity; }
+if (typeof module !== 'undefined' && module.exports) { module.exports = Entity; }

@@ -274,7 +274,7 @@ function handleSpawnCommand(args) {
   }
   const actualSpawned = ants.length - startingCount;
   console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${ants.length}`);
-  if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) g_selectionBoxController.entities = ants;
+  if (g_selectionBoxController) g_selectionBoxController.entities = ants;
 }
 
 /**

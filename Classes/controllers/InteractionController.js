@@ -214,7 +214,7 @@ class InteractionController {
         
       case 'CENTER':
         // Middle click - debug info
-        if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+        if (devConsoleEnabled) {
           console.log("Entity debug info:", this._entity.debugState?.());
         }
         break;
@@ -397,6 +397,6 @@ class InteractionController {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = InteractionController;
 }

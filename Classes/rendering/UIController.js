@@ -64,13 +64,13 @@ class UIController {
     const isCtrlPressed = (event && event.ctrlKey) || 
                          (typeof keyIsDown !== 'undefined' && typeof CONTROL !== 'undefined' && keyIsDown(CONTROL)) ||
                          (typeof keyIsDown !== 'undefined' && keyIsDown(17)) || // 17 is Ctrl keyCode fallback
-                         (typeof window !== 'undefined' && window.event && window.event.ctrlKey);
+                         (window.event && window.event.ctrlKey);
 
     // Check if Shift key is pressed through multiple methods
     const isShiftPressed = (event && event.shiftKey) ||
                           (typeof keyIsDown !== 'undefined' && typeof SHIFT !== 'undefined' && keyIsDown(SHIFT)) ||
                           (typeof keyIsDown !== 'undefined' && keyIsDown(16)) || // 16 is Shift keyCode fallback
-                          (typeof window !== 'undefined' && window.event && window.event.shiftKey);
+                          (window.event && window.event.shiftKey);
 
     // Handle Shift+N - Universal UI Toggle
     if (isShiftPressed && !isCtrlPressed && keyCode === 78) { // Shift+N
@@ -256,7 +256,7 @@ class UIController {
    */
   togglePerformanceOverlay() {
     // Use existing PerformanceMonitor system
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
+    if (g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
       const currentState = g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled;
       g_performanceMonitor.setDebugDisplay(!currentState);
       console.log('UIController: Performance Monitor', !currentState ? 'ENABLED' : 'DISABLED');
@@ -306,7 +306,7 @@ class UIController {
    * Game State Management Methods
    */
   startGame() {
-    if (typeof GameState !== 'undefined' && GameState.startGame) {
+    if (GameState && GameState.startGame) {
       console.log('UIController: Starting game (MENU -> PLAYING state)');
       GameState.startGame();
     } else {
@@ -319,7 +319,7 @@ class UIController {
    */
   toggleAllUI() {
     // Toggle all draggable panels
-    if (typeof window !== 'undefined' && window.draggablePanelManager) {
+    if (window && window.draggablePanelManager) {
       const panelCount = window.draggablePanelManager.getPanelCount();
       const visibleCount = window.draggablePanelManager.getVisiblePanelCount();
       

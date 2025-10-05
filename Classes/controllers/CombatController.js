@@ -202,6 +202,6 @@ class CombatController {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = CombatController;
 }

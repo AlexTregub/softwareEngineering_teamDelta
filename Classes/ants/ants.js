@@ -215,7 +215,7 @@ class ant extends Entity {
 
   // Find nearest DropoffLocation and move to its center. Returns true if a target was found.
   _goToNearestDropoff() {
-    const list = (typeof window !== 'undefined' && window.dropoffs) ? window.dropoffs :
+    const list = (window && window.dropoffs) ? window.dropoffs :
                  (typeof dropoffs !== 'undefined' ? dropoffs : []);
     if (!Array.isArray(list) || list.length === 0) return false;
     const pos = this.getPosition();
@@ -253,7 +253,7 @@ class ant extends Entity {
           if (this._targetDropoff.depositResource(r)) deposited++;
         } else if (this._targetDropoff.inventory && typeof this._targetDropoff.inventory.addResource === 'function') {
           if (this._targetDropoff.inventory.addResource(r)) deposited++;
-        } else if (typeof resources !== 'undefined' && Array.isArray(resources)) {
+        } else if (resources && Array.isArray(resources)) {
           resources.push(r); deposited++;
         }
       }
@@ -539,7 +539,7 @@ function antsSpawn(numToSpawn, faction = "neutral") {
     newAnt.update();
     
     // Register ant with TileInteractionManager for efficient mouse detection
-    if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
+    if (g_tileInteractionManager) {
       g_tileInteractionManager.addObject(newAnt, 'ant');
     }
   }
@@ -551,7 +551,7 @@ function antsUpdate() {
     if (ants[i] && typeof ants[i].update === "function") {
       // Store previous position for TileInteractionManager updates
       let prevPos = null;
-      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && ants[i]) {
+      if (g_tileInteractionManager && ants[i]) {
         const currentPos = ants[i].getPosition ? ants[i].getPosition() : (ants[i].sprite ? ants[i].sprite.pos : null);
         if (currentPos) {
           prevPos = { x: currentPos.x, y: currentPos.y };
@@ -561,7 +561,7 @@ function antsUpdate() {
       ants[i].update();
       
       // Update TileInteractionManager with new position if ant moved
-      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && ants[i] && prevPos) {
+      if (g_tileInteractionManager && ants[i] && prevPos) {
         const newPos = ants[i].getPosition ? ants[i].getPosition() : (ants[i].sprite ? ants[i].sprite.pos : null);
         if (newPos && (newPos.x !== prevPos.x || newPos.y !== prevPos.y)) {
           g_tileInteractionManager.updateObjectPosition(ants[i], newPos.x, newPos.y);
@@ -574,7 +574,7 @@ function antsUpdate() {
 // --- Render All Ants (Separated from Updates) ---
 function antsRender() {
   // Start render phase tracking for legacy rendering
-  if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+  if (g_performanceMonitor) {
     g_performanceMonitor.startRenderPhase('rendering');
   }
   
@@ -590,7 +590,7 @@ function antsRender() {
   
   
   // End render phase tracking and finalize performance data
-  if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
+  if (g_performanceMonitor) {
     g_performanceMonitor.endRenderPhase();
     g_performanceMonitor.recordEntityStats(ants.length, ants.length, 0, { ant: ants.length });
     g_performanceMonitor.finalizeEntityPerformance();
@@ -607,7 +607,7 @@ function antsUpdateAndRender() {
 
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = { 
     ant, 
     antsSpawn, 

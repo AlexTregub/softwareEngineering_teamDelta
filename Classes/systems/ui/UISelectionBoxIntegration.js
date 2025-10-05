@@ -47,7 +47,7 @@ function updateUISelectionEntities() {
   
   // Get all current ants
   const selectableAnts = [];
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+  if (ants && Array.isArray(ants)) {
     for (const ant of ants) {
       if (ant && ant.antObject) {
         selectableAnts.push(ant.antObject);
@@ -70,7 +70,7 @@ function onUISelectionStart(x, y, entities) {
   console.log(`🎯 Selection started at (${x}, ${y})`);
   
   // Clear existing selections on ants
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+  if (ants && Array.isArray(ants)) {
     for (const ant of ants) {
       const antObj = ant.antObject || ant;
       if (antObj && antObj.isSelected !== undefined) {
@@ -97,7 +97,7 @@ function onUISelectionUpdate(bounds, entitiesInBox) {
   if (!bounds) return;
   
   // Update hover states for entities
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+  if (ants && Array.isArray(ants)) {
     for (const ant of ants) {
       const antObj = ant.antObject || ant;
       if (antObj && antObj.isBoxHovered !== undefined) {
@@ -122,7 +122,7 @@ function onUISelectionEnd(bounds, selectedEntities) {
   console.log(`🎯 Selection ended: ${selectedEntities.length} entities selected`);
   
   // Set selection state on ants
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+  if (ants && Array.isArray(ants)) {
     for (const ant of ants) {
       const antObj = ant.antObject || ant;
       if (antObj) {
@@ -172,7 +172,7 @@ function onUISelectionClick(x, y, button, clickedEntity) {
   
   if (clickedEntity) {
     // Single entity selection
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+    if (ants && Array.isArray(ants)) {
       for (const ant of ants) {
         const antObj = ant.antObject || ant;
         if (antObj) {
@@ -195,7 +195,7 @@ function onUISelectionClick(x, y, button, clickedEntity) {
     }
   } else {
     // Clicked empty space - deselect all
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+    if (ants && Array.isArray(ants)) {
       for (const ant of ants) {
         const antObj = ant.antObject || ant;
         if (antObj && antObj.isSelected !== undefined) {
@@ -232,7 +232,7 @@ function clearUISelection() {
   g_uiSelectionController.clearSelection();
   
   // Clear ant selection states
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+  if (ants && Array.isArray(ants)) {
     for (const ant of ants) {
       const antObj = ant.antObject || ant;
       if (antObj && antObj.isSelected !== undefined) {
@@ -268,7 +268,7 @@ function getUISelectionDebugInfo() {
   return {
     controller: g_uiSelectionController.getDebugInfo(),
     selectedAnts: getUISelectedAnts().length,
-    totalAnts: (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : 0,
+    totalAnts: (ants && Array.isArray(ants)) ? ants.length : 0,
     effectsRenderer: typeof window.EffectsRenderer !== 'undefined'
   };
 }

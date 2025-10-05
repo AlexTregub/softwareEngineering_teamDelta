@@ -308,7 +308,7 @@ function debugUISelection() {
     console.log('❌ Debug function not available');
   }
   
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     console.log('🎛️ Controller Status:', g_uiSelectionController.getDebugInfo());
   }
   
@@ -327,7 +327,7 @@ if (typeof window !== 'undefined') {
   
   // Run tests after a delay to ensure system is ready
   setTimeout(() => {
-    if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+    if (g_uiSelectionController) {
       console.log('🧪 Running UI Selection Box Tests...');
       const testSuite = new UISelectionBoxTest();
       testSuite.runAllTests();

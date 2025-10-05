@@ -132,9 +132,9 @@ async function initializeDraggablePanelSystem() {
  */
 function renderResourceDisplayContent(contentArea, style) {
   // Get current resource values
-  const wood = (typeof g_resourceList !== 'undefined' && g_resourceList.wood) ? g_resourceList.wood.length : 0;
-  const food = (typeof g_resourceList !== 'undefined' && g_resourceList.food) ? g_resourceList.food.length : 0;
-  const population = (typeof ants !== 'undefined') ? ants.length : 0;
+  const wood = (g_resourceList && g_resourceList.wood) ? g_resourceList.wood.length : 0;
+  const food = (g_resourceList && g_resourceList.food) ? g_resourceList.food.length : 0;
+  const population = ants ? ants.length : 0;
   
   // Render resource text
   if (typeof text === 'function') {
@@ -181,7 +181,7 @@ function renderPerformanceMonitorContent(contentArea, style) {
     yOffset += lineHeight;
     
     // Memory usage (if available)
-    if (typeof performance !== 'undefined' && performance.memory) {
+    if (performance && performance.memory) {
       const memoryMB = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1);
       text(`Memory: ${memoryMB}MB`, contentArea.x, contentArea.y + yOffset);
       yOffset += lineHeight;
@@ -216,18 +216,18 @@ function renderDebugInfoContent(contentArea, style) {
     yOffset += lineHeight;
     
     // Entity counts
-    if (typeof ants !== 'undefined' && ants) {
+    if (ants) {
       text(`Ants: ${ants.length || 0}`, contentArea.x, contentArea.y + yOffset);
       yOffset += lineHeight;
     }
     
-    if (typeof g_resourceList !== 'undefined' && g_resourceList && g_resourceList.resources) {
+    if (g_resourceList && g_resourceList.resources) {
       text(`Resources: ${g_resourceList.resources.length || 0}`, contentArea.x, contentArea.y + yOffset);
       yOffset += lineHeight;
     }
     
     // Layer toggles info (compact version)
-    if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
+    if (g_renderLayerManager) {
       yOffset += 5; // Extra spacing
       text('Layer Toggles (Shift+Key):', contentArea.x, contentArea.y + yOffset);
       yOffset += lineHeight;
@@ -296,7 +296,7 @@ function setupPanelKeyboardShortcuts() {
  */
 function coordinateWithUIRenderer() {
   // Try to access the UILayerRenderer instance and disable static performance overlay
-  if (typeof window !== 'undefined' && window.uiLayerRenderer) {
+  if (window.uiLayerRenderer) {
     // Disable the static performance overlay since we're using draggable panels
     if (window.uiLayerRenderer.debugUI && window.uiLayerRenderer.debugUI.performanceOverlay) {
       window.uiLayerRenderer.debugUI.performanceOverlay.enabled = false;
@@ -306,7 +306,7 @@ function coordinateWithUIRenderer() {
   
   // If UILayerRenderer isn't available yet, set up a delayed check
   setTimeout(() => {
-    if (typeof window !== 'undefined' && window.uiLayerRenderer && 
+    if (window.uiLayerRenderer && 
         window.uiLayerRenderer.debugUI && window.uiLayerRenderer.debugUI.performanceOverlay) {
       window.uiLayerRenderer.debugUI.performanceOverlay.enabled = false;
       console.log('✅ Static performance overlay disabled (delayed) - using draggable panel');
@@ -318,7 +318,7 @@ function coordinateWithUIRenderer() {
  * Update draggable panels (call this from your main draw loop)
  */
 function updateDraggablePanels() {
-  if (window.draggablePanelManager && typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined') {
+  if (window.draggablePanelManager && mouseX !== undefined && mouseY !== undefined) {
     const isPressed = typeof mouseIsPressed !== 'undefined' ? mouseIsPressed : false;
     window.draggablePanelManager.update(mouseX, mouseY, isPressed);
   }

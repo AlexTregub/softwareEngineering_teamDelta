@@ -9,7 +9,7 @@ function debugSelectionStateMachine() {
   
   // Check initial state
   console.log('📊 Initial State Check:');
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     const controller = g_uiSelectionController;
     console.log('UISelectionController state:', {
       isSelecting: controller.isSelecting,
@@ -30,7 +30,7 @@ function debugSelectionStateMachine() {
   console.log('\n🎭 Installing State Transition Monitoring...');
   
   // Monitor UISelectionController state changes
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     const controller = g_uiSelectionController;
     
     // Wrap handleMousePressed
@@ -171,7 +171,7 @@ function quickStateReset() {
   console.log('🔄 QUICK STATE RESET');
   console.log('====================\n');
   
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     console.log('Resetting UISelectionController state...');
     g_uiSelectionController.isSelecting = false;
     g_uiSelectionController.dragStartPos = null;

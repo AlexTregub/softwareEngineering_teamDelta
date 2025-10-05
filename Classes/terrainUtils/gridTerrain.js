@@ -373,7 +373,7 @@ class gridTerrain {
      */
     _shouldUseCache() {
         // Allow runtime disabling of cache for debugging
-        if (typeof window !== 'undefined' && window.DISABLE_TERRAIN_CACHE) {
+        if (window && window.DISABLE_TERRAIN_CACHE) {
             return false;
         }
         return true;
@@ -462,7 +462,7 @@ function checkTerrainCacheStatus() {
 
 function enableTerrainCache() {
     window.DISABLE_TERRAIN_CACHE = false;
-    if (typeof g_map2 !== 'undefined' && g_map2) {
+    if (g_map2) {
         g_map2.invalidateCache();
         console.log('Terrain cache enabled');
     }
@@ -474,7 +474,7 @@ function disableTerrainCache() {
 }
 
 function forceTerrainCacheRegeneration() {
-    if (typeof g_map2 !== 'undefined' && g_map2) {
+    if (g_map2) {
         g_map2.invalidateCache();
         console.log('Terrain cache regeneration forced');
     }

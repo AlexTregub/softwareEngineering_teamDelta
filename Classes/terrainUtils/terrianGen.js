@@ -41,7 +41,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
   switch (materialName) {
     case 'moss_0':
     case 'moss_1':
-      if (typeof MOSS_IMAGE !== 'undefined' && MOSS_IMAGE) {
+      if (MOSS_IMAGE) {
         ctx.image(MOSS_IMAGE, x, y, size, size);
       } else {
         // Fallback color for moss
@@ -52,7 +52,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
       break;
       
     case 'stone':
-      if (typeof STONE_IMAGE !== 'undefined' && STONE_IMAGE) {
+      if (STONE_IMAGE) {
         ctx.image(STONE_IMAGE, x, y, size, size);
       } else {
         // Fallback color for stone
@@ -63,7 +63,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
       break;
       
     case 'dirt':
-      if (typeof DIRT_IMAGE !== 'undefined' && DIRT_IMAGE) {
+      if (DIRT_IMAGE) {
         ctx.image(DIRT_IMAGE, x, y, size, size);
       } else {
         // Fallback color for dirt
@@ -74,7 +74,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
       break;
       
     case 'grass':
-      if (typeof GRASS_IMAGE !== 'undefined' && GRASS_IMAGE) {
+      if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
       } else {
         // Fallback color for grass
@@ -86,7 +86,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
       
     default:
       // Unknown material - use default grass appearance
-      if (typeof GRASS_IMAGE !== 'undefined' && GRASS_IMAGE) {
+      if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
       } else {
         ctx.fill(100, 150, 100);

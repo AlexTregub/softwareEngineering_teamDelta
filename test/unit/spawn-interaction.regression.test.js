@@ -438,7 +438,7 @@ console.log('- Validated multiple spawn cycles maintain functionality');
 console.log('- Checked faction-based spawning doesn\'t break selection');
 
 // Export for use in main test suite
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     testSuite,
     mockSpawnCommand,

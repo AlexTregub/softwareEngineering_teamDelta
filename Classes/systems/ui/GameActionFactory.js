@@ -223,7 +223,7 @@ function handleDebugAction(handler, parameters, gameContext) {
     case 'debug.spawnAnt':
       console.log('🐜 Spawning test ant');
       // Spawn a test ant
-      if (typeof g_antManager !== 'undefined' && g_antManager) {
+      if (g_antManager) {
         try {
           // You'll need to implement this based on your ant spawning logic
           console.log('🐜 Ant spawned successfully');
@@ -294,7 +294,7 @@ function handleToolbarAction(handler, parameters, gameContext) {
       console.log(`🔧 Selecting toolbar tool: ${tool} (index: ${index})`);
       
       // Update UILayerRenderer's active tool if available
-      if (typeof window !== 'undefined' && window.UIRenderer && window.UIRenderer.hudElements) {
+      if (window.UIRenderer && window.UIRenderer.hudElements) {
         window.UIRenderer.hudElements.toolbar.activeButton = index;
         console.log(`✅ Updated active toolbar button to index ${index}`);
       }
@@ -385,7 +385,7 @@ function handleKillAction(handler, parameters, gameContext) {
           }
           
           // Update selection controller if available
-          if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+          if (g_selectionBoxController) {
             g_selectionBoxController.entities = ants;
           }
           
@@ -422,7 +422,7 @@ function handlePlacementAction(handler, parameters, gameContext) {
           return true;
         }
         // Fallback to direct dropoffUI access
-        else if (typeof dropoffUI !== 'undefined' && dropoffUI) {
+        else if (dropoffUI) {
           dropoffUI.placing = true;
           console.log('✅ Dropoff placement mode activated via legacy system');
           return true;

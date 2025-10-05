@@ -43,7 +43,7 @@ function debugMouseEventFlow() {
   console.log('💡 Try clicking - you should see mouse event logs');
   
   // Also check if MouseInputController is getting events
-  if (typeof g_mouseController !== 'undefined' && g_mouseController) {
+  if (g_mouseController) {
     console.log('\nStep 2: Testing MouseInputController...');
     
     const controller = g_mouseController;
@@ -75,7 +75,7 @@ function debugMouseEventFlow() {
   }
   
   // Check if UISelectionController handlers are registered
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     console.log('\nStep 3: Checking UISelectionController registration...');
     
     const controller = g_uiSelectionController;
@@ -123,7 +123,7 @@ function bypassEventSystemTest() {
     }
     
     // Directly call UISelectionController
-    if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+    if (g_uiSelectionController) {
       dragStart = { x: mouseX, y: mouseY };
       isDragging = false;
       
@@ -180,7 +180,7 @@ function bypassEventSystemTest() {
       originalMouseReleased();
     }
     
-    if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+    if (g_uiSelectionController) {
       if (isDragging) {
         console.log('🚀 BYPASS: Ending selection...');
         
@@ -224,7 +224,7 @@ function quickMouseTest() {
     let testActive = true;
     
     const updateSelection = () => {
-      if (testActive && typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined') {
+      if (testActive && mouseX !== undefined && mouseY !== undefined) {
         window.EffectsRenderer.startSelectionBox(100, 100);
         window.EffectsRenderer.updateSelectionBox(mouseX, mouseY);
         console.log('🎯 Test selection updated to mouse position:', mouseX, mouseY);

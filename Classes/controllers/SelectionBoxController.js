@@ -124,7 +124,7 @@
       pop();
     }
 
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       for (var i = 0; i < this._selectedEntities.length; i++) {
         var entity = this._selectedEntities[i];
         try {

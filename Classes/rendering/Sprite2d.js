@@ -36,6 +36,6 @@ class Sprite2D {
     pop();
   }
 }
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = Sprite2D;
 }

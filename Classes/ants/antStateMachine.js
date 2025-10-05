@@ -224,7 +224,7 @@ class AntStateMachine {
 
   // Debug: Print current state
   printState() {
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       console.log(`AntStateMachine State: ${this.getFullState()}`);
       console.log(`  Primary: ${this.primaryState}`);
       console.log(`  Combat: ${this.combatModifier || "None"}`);
@@ -323,7 +323,7 @@ function antSmTest() {
     antSM.setCombatModifier("IN_COMBAT");
     antSM.setTerrainModifier("IN_MUD");
     
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       console.log(antSM.getFullState()); // "MOVING_IN_COMBAT_IN_MUD"
       
       // Check capabilities
@@ -333,20 +333,20 @@ function antSmTest() {
     
     // Set callback for state changes
     antSM.setStateChangeCallback((oldState, newState) => {
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      if (devConsoleEnabled) {
         console.log(`Ant state changed from ${oldState} to ${newState}`);
       }
     });
     
     // Reset to idle
     antSM.reset(); // "Ant state changed from MOVING_IN_COMBAT_IN_MUD to IDLE"
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       antSM.printState();
       console.log(antSM.getStateSummary());
     }
 }
 
 // Export for use in other files
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntStateMachine;
 }

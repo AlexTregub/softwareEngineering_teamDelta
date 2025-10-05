@@ -272,7 +272,7 @@ class ShareholderDemo {
     }
     
     // Clear resources
-    if (typeof g_resourceList !== 'undefined' && g_resourceList.clear) {
+    if (g_resourceList && g_resourceList.clear) {
       g_resourceList.clear();
     }
     
@@ -291,14 +291,14 @@ class ShareholderDemo {
     this.currentPhase = 'Stopping Spawners';
     
     // Stop ant spawning systems if they exist
-    if (typeof window !== 'undefined' && window.spawnControlsManager) {
+    if (window && window.spawnControlsManager) {
       if (typeof window.spawnControlsManager.stopAllSpawning === 'function') {
         window.spawnControlsManager.stopAllSpawning();
       }
     }
     
     // Stop resource spawning
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager.stopSpawning) {
+    if (g_resourceManager && g_resourceManager.stopSpawning) {
       g_resourceManager.stopSpawning();
     }
     
@@ -321,7 +321,7 @@ class ShareholderDemo {
     this.currentPhase = 'Hiding UI';
     
     // Hide draggable panels
-    if (typeof window !== 'undefined' && window.draggablePanelManager) {
+    if (window && window.draggablePanelManager) {
       // Hide all panels by iterating through them
       for (const [panelId, panel] of window.draggablePanelManager.panels) {
         window.draggablePanelManager.hidePanel(panelId);
@@ -329,7 +329,7 @@ class ShareholderDemo {
     }
     
     // Hide button groups (except our demo group)
-    if (typeof window !== 'undefined' && window.buttonGroupManager) {
+    if (window && window.buttonGroupManager) {
       const allGroups = window.buttonGroupManager.groups;
       for (const [groupId, group] of allGroups) {
         if (groupId !== 'demo-testing') {

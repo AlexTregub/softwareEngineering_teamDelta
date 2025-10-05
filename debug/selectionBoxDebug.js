@@ -20,9 +20,9 @@ function debugSelectionBox() {
   // Check RenderLayerManager
   console.log('🎨 RENDER SYSTEM:');
   console.log('RenderManager class:', typeof RenderManager !== 'undefined' ? '✅' : '❌');
-  console.log('RenderManager initialized:', (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) ? '✅' : '❌');
+  console.log('RenderManager initialized:', (RenderManager && RenderManager.isInitialized) ? '✅' : '❌');
   
-  if (typeof RenderManager !== 'undefined' && RenderManager.layerRenderers) {
+  if (RenderManager && RenderManager.layerRenderers) {
     console.log('Effects layer registered:', RenderManager.layerRenderers.has('effects') ? '✅' : '❌');
     console.log('Disabled layers:', Array.from(RenderManager.disabledLayers || []));
   }
@@ -42,7 +42,7 @@ function debugSelectionBox() {
   }
 
   // Check UISelectionController details
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     console.log('🎛️ UI SELECTION CONTROLLER:');
     const debugInfo = g_uiSelectionController.getDebugInfo();
     console.log('Debug info:', debugInfo);
@@ -50,7 +50,7 @@ function debugSelectionBox() {
   }
 
   // Check mouse controller
-  if (typeof g_mouseController !== 'undefined' && g_mouseController) {
+  if (g_mouseController) {
     console.log('🖱️ MOUSE CONTROLLER:');
     console.log('Click handlers:', g_mouseController.clickHandlers?.length || 0);
     console.log('Drag handlers:', g_mouseController.dragHandlers?.length || 0);
@@ -68,7 +68,7 @@ function debugSelectionBox() {
   // Check ant system
   console.log('🐜 ANT SYSTEM:');
   console.log('ants array available:', typeof ants !== 'undefined' ? '✅' : '❌');
-  console.log('ants count:', (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : 'N/A');
+  console.log('ants count:', (ants && Array.isArray(ants)) ? ants.length : 'N/A');
   console.log('');
 
   // Provide suggestions
@@ -151,7 +151,7 @@ function quickSelectionTest() {
   console.log('3. Look for a cyan selection box');
   
   // Enable debug logging for selection events
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     const originalCallbacks = { ...g_uiSelectionController.callbacks };
     
     g_uiSelectionController.setCallbacks({

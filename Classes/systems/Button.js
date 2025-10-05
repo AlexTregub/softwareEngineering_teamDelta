@@ -483,7 +483,7 @@ function createMenuButton(x, y, width, height, caption, style = 'default', click
 }
 
 // Export for Node.js compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = Button;
   module.exports.ButtonStyles = ButtonStyles;
   module.exports.createMenuButton = createMenuButton;

@@ -27,8 +27,8 @@ function initDropoffUI() {
   });
   
   // Register with UI Debug System if available
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
-    g_uiDebugManager.registerElement(
+  if (window.g_uiDebugManager) {
+    window.g_uiDebugManager.registerElement(
       'dropoff-placement-button',
       { x: 0, y: 0, width: 140, height: 34 },
       (x, y) => {

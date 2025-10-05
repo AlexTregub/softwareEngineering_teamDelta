@@ -55,7 +55,7 @@ class InventoryController {
     this.slots[index] = null;
     if (typeof res.drop === 'function') res.drop();
     // Place back on ground near owner when requested and global resources exists
-    if (dropToGround && typeof resources !== 'undefined' && Array.isArray(resources)) {
+    if (dropToGround && resources && Array.isArray(resources)) {
       const ox = (this.owner && (this.owner.posX ?? this.owner.getPosition?.().x)) || 0;
       const oy = (this.owner && (this.owner.posY ?? this.owner.getPosition?.().y)) || 0;
       if (typeof res.posX !== 'undefined') { res.posX = ox + random(-10,10); res.posY = oy + random(-10,10); }

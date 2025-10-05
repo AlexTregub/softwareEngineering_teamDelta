@@ -362,17 +362,17 @@ class AntUtilities {
       newAnt.assignJob(jobName, imageToUse);
 
       // Add to global ants array if it exists
-      if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      if (ants && Array.isArray(ants)) {
         ants.push(newAnt);
       }
 
       // Register with TileInteractionManager if available
-      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
+      if (g_tileInteractionManager) {
         g_tileInteractionManager.addObject(newAnt, 'ant');
       }
 
       // Update UI Selection Box entities
-      if (typeof updateUISelectionEntities !== 'undefined') {
+      if (updateUISelectionEntities) {
         updateUISelectionEntities();
       }
 
@@ -680,6 +680,6 @@ function moveSelectedEntitiesToTile(mx, my, tileSize) {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntUtilities;
 }

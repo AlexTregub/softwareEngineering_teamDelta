@@ -89,7 +89,7 @@ class TerrainController {
     let terrainType = "DEFAULT";
     
     // Integration with terrain system (if available)
-    if (typeof g_gridMap !== 'undefined' && g_gridMap) {
+    if (g_gridMap) {
       try {
         const tileSize = window.tileSize || 32;
         const tileX = Math.floor(pos.x / tileSize);
@@ -294,6 +294,6 @@ class TerrainController {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = TerrainController;
 }

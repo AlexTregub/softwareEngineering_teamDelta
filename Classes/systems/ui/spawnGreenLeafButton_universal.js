@@ -26,8 +26,7 @@ function initSpawnGreenLeafButton() {
   console.log('🔄 Initializing Spawn Green Leaf Button (Universal Button System)');
   
   // Check if Universal Button System is available
-  if (typeof window !== 'undefined' && 
-      window.buttonGroupManager && 
+  if (window.buttonGroupManager && 
       typeof window.buttonGroupManager.loadConfiguration === 'function') {
     
     // The button is now configured via JSON in legacy-conversions.json
@@ -53,8 +52,7 @@ function initSpawnGreenLeafButton() {
  * Update the spawn leaf button text with current count
  */
 function updateSpawnLeafButtonText() {
-  if (typeof window !== 'undefined' && 
-      window.buttonGroupManager && 
+  if (window.buttonGroupManager && 
       typeof window.buttonGroupManager.updateButtonText === 'function') {
     
     const newText = `Spawn ${spawnLeafUI.count} leaves`;
@@ -124,7 +122,7 @@ function spawnGreenLeaves(n = 10) {
   console.log(`✅ Spawned ${spawned} greenLeaf resource(s). Total resources: ${resources.length}`);
   
   // Update resource counters if available
-  if (typeof window !== 'undefined' && window.buttonGroupManager) {
+  if (window && window.buttonGroupManager) {
     // Trigger resource counter updates if they exist
     try {
       if (typeof updateResourceDisplays === 'function') {

@@ -150,8 +150,7 @@ class UILayerRenderer {
   renderCurrencyDisplay() {
     // Currency display is now rendered by the Draggable Panel System
     // Check if the draggable panel manager is available
-    if (typeof window !== 'undefined' && 
-        window.draggablePanelManager && 
+    if (window.draggablePanelManager && 
         typeof window.draggablePanelManager.getPanel === 'function') {
       
       const resourcePanel = window.draggablePanelManager.getPanel('resource-display');
@@ -180,8 +179,8 @@ class UILayerRenderer {
     textSize(16);
     
     // Get current resource values
-    const wood = (typeof g_resourceList !== 'undefined' && g_resourceList.wood) ? g_resourceList.wood.length : 0;
-    const food = (typeof g_resourceList !== 'undefined' && g_resourceList.food) ? g_resourceList.food.length : 0;
+    const wood = (g_resourceList && g_resourceList.wood) ? g_resourceList.wood.length : 0;
+    const food = (g_resourceList && g_resourceList.food) ? g_resourceList.food.length : 0;
     const population = (typeof ants !== 'undefined') ? ants.length : 0;
     
     text(`Wood: ${wood}`, 20, 25);
@@ -194,8 +193,7 @@ class UILayerRenderer {
   renderToolbar() {
     // The toolbar is now rendered by the Universal Button System
     // Check if the ui-toolbar button group is loaded and visible
-    if (typeof window !== 'undefined' && 
-        window.buttonGroupManager && 
+    if (window.buttonGroupManager && 
         typeof window.buttonGroupManager.getActiveGroupCount === 'function') {
       
       const activeGroups = window.buttonGroupManager.getActiveGroupCount();
@@ -288,7 +286,7 @@ class UILayerRenderer {
     rect(minimapX + 2, minimapY + 2, size - 4, size - 4);
     
     // Ant positions (if available)
-    if (typeof ants !== 'undefined' && ants.length > 0) {
+    if (ants && ants.length > 0) {
       fill(255, 0, 0);
       for (let ant of ants) {
         if (ant && ant.x !== undefined && ant.y !== undefined) {
@@ -410,7 +408,7 @@ class UILayerRenderer {
    */
   renderPerformanceOverlay() {
     // Check if draggable panel system is available
-    if (typeof window !== 'undefined' && window.draggablePanelManager) {
+    if (window && window.draggablePanelManager) {
       // Draggable panel system is active - don't render static overlay
       return;
     }
@@ -749,8 +747,8 @@ class UILayerRenderer {
       maxPopulation = gameState.stats.maxPopulation || 25;
     } else {
       // Fallback to global game variables
-      wood = (typeof g_resourceList !== 'undefined' && g_resourceList.wood) ? g_resourceList.wood.length : 0;
-      food = (typeof g_resourceList !== 'undefined' && g_resourceList.food) ? g_resourceList.food.length : 0;
+      wood = (g_resourceList && g_resourceList.wood) ? g_resourceList.wood.length : 0;
+      food = (g_resourceList && g_resourceList.food) ? g_resourceList.food.length : 0;
       population = (typeof ants !== 'undefined') ? ants.length : 0;
     }
     

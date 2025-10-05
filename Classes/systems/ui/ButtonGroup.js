@@ -457,8 +457,8 @@ class ButtonGroup {
     
     // Use mock canvas dimensions for testing, real dimensions for runtime
     const canvas = { 
-      width: (typeof window !== 'undefined' && window.innerWidth) || 1200, 
-      height: (typeof window !== 'undefined' && window.innerHeight) || 800 
+      width: (window.innerWidth) || 1200, 
+      height: (window.innerHeight) || 800 
     };
     
     console.log(`🖼️ [${this.config.id}] Canvas dimensions:`, canvas);
@@ -667,8 +667,8 @@ class ButtonGroup {
     // Apply snap to edges if enabled
     if (this.config.behavior?.snapToEdges) {
       const canvas = { 
-        width: (typeof window !== 'undefined' && window.innerWidth) || 1200, 
-        height: (typeof window !== 'undefined' && window.innerHeight) || 800 
+        width: (window.innerWidth) || 1200, 
+        height: (window.innerHeight) || 800 
       };
       const snapThreshold = 20; // pixels
       

@@ -62,7 +62,7 @@ try {
     const button = createMenuButton(0, 0, Controls.width, Controls.height, cfg.label, 'default', () => {});
     
     // Register with UI Debug System
-    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+    if (g_uiDebugManager) {
       const elementId = `spawn-control-${cfg.label.replace(/[^a-zA-Z0-9]/g, '')}`;
       g_uiDebugManager.registerElement(
         elementId,
@@ -95,7 +95,7 @@ try {
   const dropoffButton = createMenuButton(0, 0, 140, 34, "Place Dropoff", 'default', () => {});
   
   // Register with UI Debug System
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+  if (g_uiDebugManager) {
     g_uiDebugManager.registerElement(
       'dropoff-placement-button',
       { x: 0, y: 0, width: 140, height: 34 },
@@ -122,7 +122,7 @@ try {
 console.log('Test 4: Testing Menu Debug Panel Integration...');
 try {
   // Register debug panel with UI Debug System
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+  if (g_uiDebugManager) {
     g_uiDebugManager.registerElement(
       'menu-debug-panel',
       { x: 8, y: 500, width: 400, height: 100 },

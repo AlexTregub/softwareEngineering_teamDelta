@@ -11,7 +11,7 @@ function emergencySelectionSetup() {
   
   // Step 0: Check if we already have a working system
   console.log('Step 0: Checking existing system...');
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     console.log('✅ UISelectionController exists');
     
     // Check if it has handlers registered
@@ -128,7 +128,7 @@ function emergencySelectionSetup() {
   
   // Step 4: Set up entities (ants)
   console.log('\nStep 4: Setting up selectable entities...');
-  if (success && typeof ants !== 'undefined' && Array.isArray(ants)) {
+  if (success && ants && Array.isArray(ants)) {
     const selectableAnts = [];
     for (const ant of ants) {
       if (ant && ant.antObject) {
@@ -194,7 +194,7 @@ function testMouseEventFlow() {
   
   // Test 2: Check global mouse controller
   console.log('\nTest 2: Global mouse controller...');
-  if (typeof g_mouseController !== 'undefined' && g_mouseController) {
+  if (g_mouseController) {
     console.log('✅ g_mouseController exists');
     console.log(`Handler counts: click=${g_mouseController.clickHandlers.length}, drag=${g_mouseController.dragHandlers.length}, release=${g_mouseController.releaseHandlers.length}`);
   } else {
@@ -203,7 +203,7 @@ function testMouseEventFlow() {
   
   // Test 3: Check UISelectionController connection
   console.log('\nTest 3: UISelectionController mouse connection...');
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     console.log('✅ g_uiSelectionController exists');
     console.log('Mouse controller reference:', g_uiSelectionController.mouseController === g_mouseController ? 'SAME ✅' : 'DIFFERENT ❌');
     console.log('Selection enabled:', g_uiSelectionController.config.enableSelection);
@@ -275,7 +275,7 @@ function forceEnableAndTest() {
   emergencySelectionSetup();
   
   // Force enable selection
-  if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController) {
+  if (g_uiSelectionController) {
     g_uiSelectionController.updateConfig({ enableSelection: true });
     console.log('✅ Selection force-enabled');
     

@@ -804,6 +804,6 @@ class RenderController {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (module && module.exports) {
   module.exports = RenderController;
 }

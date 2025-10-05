@@ -180,7 +180,7 @@ if (typeof window !== 'undefined') {
 // Auto-run integration test only if dev console is enabled
 setTimeout(() => {
   if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && 
-      typeof ants !== 'undefined' && ants && ants.length > 0) {
+      ants && ants.length > 0) {
     console.log("🎮 Game loaded - running automatic selection box integration test");
     testRealSelectionBoxIntegration();
   }

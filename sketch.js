@@ -61,19 +61,15 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   
-  // UI Debug System disabled
-  // if (typeof UIDebugManager !== 'undefined' && typeof g_uiDebugManager === 'undefined') {
-  //   window.g_uiDebugManager = new UIDebugManager();
-  // }
+  // UI Debug System initialization
+  // Create global UI Debug Manager instance
+  // Disabled to avoid conflicts with other UI systems
+  //
+  window.g_uiDebugManager = new UIDebugManager();
+  g_uiDebugManager = window.g_uiDebugManager; // Make globally available
   
   // Initialize dropoff UI if present (creates the Place Dropoff button)
   window.initDropoffUI();
-  // Do not force spawn UI visible here; spawn UI is dev-console-only by default.
-  
-  // UI elements debug integration disabled
-  // if (typeof initializeAllUIElements === 'function') {
-  //   setTimeout(initializeAllUIElements, 200);
-  // }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
@@ -86,6 +82,11 @@ function setup() {
   // Initialize Draggable Panel System
   initializeDraggablePanelSystem();
   
+  // Initialize Enhanced Draggable Panels with Button Arrays
+  if (typeof initializeDraggablePanels !== 'undefined') {
+    initializeDraggablePanels();
+  }
+  
   // Initialize ant control panel for spawning and state management
   if (typeof initializeAntControlPanel !== 'undefined') {
     initializeAntControlPanel();
@@ -97,12 +98,12 @@ function setup() {
     console.log('🎯 Initializing UI Selection Controller...');
     
     // Check if required components exist
-    if (typeof UISelectionController !== 'undefined' && typeof window.EffectsRenderer !== 'undefined') {
+    if (UISelectionController && window.EffectsRenderer) {
       g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
       console.log('✅ UISelectionController created successfully');
       
       // Initialize the selection box system
-      if (typeof initializeUISelectionBox !== 'undefined') {
+      if (initializeUISelectionBox) {
         initializeUISelectionBox();
       }
     } else {
@@ -142,6 +143,7 @@ function initializeWorld() {
   g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
    // Initialize the render layer manager if not already done
     RenderManager.initialize();
+ 
 }
 
 
@@ -163,13 +165,12 @@ function draw() {
   // g_map2.renderDirect();
 
   // Use the new layered rendering system
-  if (typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
+  if (RenderManager && RenderManager.isInitialized) {
     RenderManager.render(GameState.getState());
   }
 
   // Update button groups (rendering handled by RenderLayerManager)
-  if (window.buttonGroupManager && 
-      typeof window.buttonGroupManager.update === 'function') {
+  if (window.buttonGroupManager) {
     try {
       window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
     } catch (error) {
@@ -177,21 +178,24 @@ function draw() {
     }
   }
   
-  // Update draggable panels (only during PLAYING gamestate)
-  if (typeof updateDraggablePanels === 'function' && GameState.getState() === 'PLAYING') {
+  // Update enhanced draggable panels with button arrays
+  if (typeof updateDraggablePanels !== 'undefined') {
     try {
-      updateDraggablePanels();
+      updateDraggablePanels(GameState.getState());
     } catch (error) {
-      console.error('❌ Error updating draggable panels:', error);
+      console.error('❌ Error updating enhanced draggable panels:', error);
     }
   }
   
-  // Render draggable panels (only during PLAYING gamestate)
-  if (typeof renderDraggablePanels === 'function' && GameState.getState() === 'PLAYING') {
+  // Update legacy draggable panels (only during PLAYING gamestate)  
+  if (GameState.getState() === 'PLAYING') {
     try {
-      renderDraggablePanels();
+      if (typeof updateDraggablePanels !== updateDraggablePanels) { // Avoid double call
+        updateDraggablePanels();
+        renderDraggablePanels();
+      }
     } catch (error) {
-      console.error('❌ Error rendering draggable panels:', error);
+      console.error('❌ Error updating legacy draggable panels:', error);
     }
   }
 }
@@ -216,7 +220,7 @@ function handleMouseEvent(type, ...args) {
  */
 function mousePressed() {
   // Handle UI Debug Manager mouse events first
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
     const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
     if (handled) return;
   }
@@ -237,7 +241,7 @@ function mousePressed() {
 
 function mouseDragged() {
   // Handle UI Debug Manager drag events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
   handleMouseEvent('handleMouseDragged', mouseX, mouseY);
@@ -245,7 +249,7 @@ function mouseDragged() {
 
 function mouseReleased() {
   // Handle UI Debug Manager release events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
   }
   handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
@@ -273,7 +277,7 @@ function handleKeyEvent(type, ...args) {
  */
 function keyPressed() {
   // Handle UI shortcuts first (Ctrl+Shift combinations)
-  if (typeof window !== 'undefined' && window.UIManager && window.UIManager.handleKeyPress) {
+  if (window.UIManager && window.UIManager.handleKeyPress) {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
     if (handled) {
       return; // UI shortcut was handled, don't process further
@@ -281,7 +285,7 @@ function keyPressed() {
   }
   
   // Handle render layer toggles (Shift + C/V/B/N/M)
-  if (keyIsDown(SHIFT) && typeof RenderManager !== 'undefined' && RenderManager.isInitialized) {
+  if (keyIsDown(SHIFT) && RenderManager && RenderManager.isInitialized) {
     let handled = false;
     
     switch (key.toLowerCase()) {

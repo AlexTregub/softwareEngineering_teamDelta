@@ -57,7 +57,7 @@ function _pushMenuYOffsetHistory(val) {
  */
 function initMenuDebugUI() {
   // Register debug panel with UI Debug System if available
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+  if (g_uiDebugManager) {
     g_uiDebugManager.registerElement(
       'menu-debug-panel',
       { x: 8, y: (typeof g_canvasY !== 'undefined' ? g_canvasY : 600) - 108, width: 400, height: 100 },

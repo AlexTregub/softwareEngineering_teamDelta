@@ -77,7 +77,7 @@ function initializeAntControlPanel() {
     }, 1000);
 
     // Add keyboard shortcut to toggle panel (Shift+N)
-    if (typeof g_keyboardController !== 'undefined' && g_keyboardController) {
+    if (g_keyboardController) {
       g_keyboardController.onKeyPress((keyCode, key) => {
         if (keyPressed && keyCode === 78 && (keyIsDown(SHIFT)) && !(keyIsDown(CONTROL))) { // Shift+N
           antControlPanel.toggleVisibility();
@@ -170,7 +170,7 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   }
 
   // Show selected ants count
-  if (typeof ants !== 'undefined' && typeof AntUtilities !== 'undefined') {
+  if (ants && AntUtilities) {
     const selectedCount = AntUtilities.getSelectedAnts(ants).length;
     fill(255, 255, 0);
     text(`Selected: ${selectedCount}`, x, currentY + buttonHeight + 10);
