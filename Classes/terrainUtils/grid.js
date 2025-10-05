@@ -39,7 +39,7 @@ class Grid {
     convRelToArrPos(pos) { // Convert relative span position to array position 
         return [
             pos[0] - this._spanTopLeft[0],
-            pos[1] + this._spanTopLeft[1]
+            -pos[1] + this._spanTopLeft[1]
         ];
     }
 
@@ -197,7 +197,7 @@ class Grid {
         // If selected: copy over
         if (oldDataPos != NONE) { // Assuming we want to retain data:
             for (let j = 0; j < this._sizeArr; ++j) { // j is old array access
-                let pos2dOld = this.convToSqaure(j); // Gets OLD position
+                let pos2dOld = this.convToSquare(j); // Gets OLD position
                 let pos2dNew = [
                     oldDataPos[0] + pos2dOld[0],
                     oldDataPos[1] + pos2dOld[1]

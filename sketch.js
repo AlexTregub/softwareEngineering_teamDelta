@@ -135,6 +135,13 @@ function setup() {
 
   MAP2.chunkArray.print();
   print(MAP2.chunkArray.infoStr());
+
+  testGridUtil();
+  testGridResizeAndConsequences();
+
+  let temp2 = new Grid(8,8,[0,0]);
+  temp2.print();
+  print(temp2.infoStr());
 }
 
 // Global Currency Counter
