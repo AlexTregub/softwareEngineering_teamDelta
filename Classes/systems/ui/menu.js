@@ -49,10 +49,10 @@ const MENU_CONFIGS = {
     { x: 0,   y: 100,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
-    { x: -113, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
-    { x: -113, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
-    { x: -113, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => console.log("Controls") },
-    { x: 9,   y: 148,  w: 145, h: 70, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
+    { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
+    { x: -10, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
+    { x: -10, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => console.log("Controls") },
+    { x: 60,   y: 148,  w: 145, h: 70, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ],
   DEBUG: [
     { x: -100, y: -100, w: 200, h: 50, text: "Check Mouse Over", style: 'warning', action: () => console.log("Audio Settings") },
