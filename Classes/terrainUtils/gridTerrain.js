@@ -279,9 +279,18 @@ class camRenderConverter {
         
         // (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0]
         // return third;
+
+        // Handling inverted y:
+        // let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
+        // first[1]*=-1; // Invert rendering on y axis.
+        // let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
+        // let third = this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
+        
+        // return third;
+
         return [
             (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0],
-            (input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
+            -1*(input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
         ];
     }
 
@@ -293,7 +302,8 @@ class camRenderConverter {
 
         return [
             (input[0] - this._canvasCenter[0])/this._tileSize + this._camPosition[0],
-            (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
+            // (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
+            (input[1] - this._canvasCenter[1])/-this._tileSize + this._camPosition[1]
         ];
     }
 
