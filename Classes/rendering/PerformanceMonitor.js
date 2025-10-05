@@ -1,17 +1,19 @@
 /**
- * PerformanceMonitor - Centralized performance tracking and debug display
- * Provides comprehensive pe        // Debug display settings
-        this.debugDisplay = {
-            enabled: false,
-            position: { x: 10, y: 10 },
-            width: 280,
-            height: 300,
-            backgroundColor: [0, 0, 0, 150],
-            textColor: [0, 255, 0, 255],
-            fontSize: 12 analysis for the rendering system
- * 
+ * @fileoverview PerformanceMonitor - Centralized performance tracking and debug display
+ * @module PerformanceMonitor
  * @author Software Engineering Team Delta - David Willman
  * @version 1.0.0
+ * @see {@link docs/api/PerformanceMonitor.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Performance monitoring reference
+ */
+
+/**
+ * Comprehensive performance tracking and debug display for the rendering system.
+ * 
+ * **Features**: FPS tracking, memory monitoring, layer timing, entity statistics
+ * 
+ * @class PerformanceMonitor
+ * @see {@link docs/api/PerformanceMonitor.md} Full documentation and examples
  */
 
 // Default thresholds exported for reuse

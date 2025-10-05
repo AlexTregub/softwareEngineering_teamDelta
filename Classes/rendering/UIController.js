@@ -1,15 +1,24 @@
-// UIController - Easy-to-use API for controlling the UI system
-// Integrates with existing debug systems from debug/ folder
-// 
-// Keyboard Shortcuts:
-// - Ctrl+Shift+1: Toggle Performance Monitor (uses existing PerformanceMonitor.js)
-// - Ctrl+Shift+2: Toggle Entity Debug (uses existing EntityDebugManager.js)
-// - Ctrl+Shift+3: Toggle Debug Console (uses existing debug/testing.js)
-// - Ctrl+Shift+4: Toggle Minimap
-// - Ctrl+Shift+5: Start Game (MENU -> PLAYING state)
-// - ` (backtick): Toggle Debug Console (existing system from debug/commandLine.js)
-//
+/**
+ * @fileoverview UIController - Centralized UI system controller with keyboard shortcuts
+ * @module UIController
+ * @see {@link docs/api/UIController.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Keyboard shortcuts reference
+ */
+
+/**
+ * Easy-to-use API for controlling the UI system.
+ * Integrates with existing debug systems and provides keyboard shortcuts.
+ * 
+ * **Quick Shortcuts**: Ctrl+Shift+1-5, Backtick for debug console
+ * 
+ * @class UIController
+ * @see {@link docs/api/UIController.md} Full documentation and examples
+ */
 class UIController {
+  /**
+   * Creates new UIController instance with default keyboard bindings.
+   * @constructor
+   */
   constructor() {
     this.uiRenderer = null;
     this.initialized = false;
@@ -24,7 +33,8 @@ class UIController {
   }
 
   /**
-   * Initialize the UI controller with the UI renderer
+   * Initialize UI controller and set up keyboard controls.
+   * @returns {boolean} True if successful, false if UIRenderer unavailable
    */
   initialize() {
     this.uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
@@ -46,7 +56,8 @@ class UIController {
   }
 
   /**
-   * Set up keyboard controls for UI features
+   * Set up keyboard event bindings.
+   * @private
    */
   setupKeyboardControls() {
     // Note: Keyboard integration is handled via g_keyboardController.onKeyPress() in sketch.js setup()
@@ -55,7 +66,15 @@ class UIController {
   }
 
   /**
-   * Handle key press events
+   * Process keyboard shortcuts for UI controls.
+   * 
+   * **Main Shortcuts**: Shift+N (toggle all), Ctrl+Shift+1-5 (individual), ` (console)
+   * 
+   * @param {number} keyCode - The key code pressed
+   * @param {string} key - The key character
+   * @param {Event} [event] - Optional keyboard event
+   * @returns {boolean} True if key was handled, false otherwise
+   * @see {@link docs/api/UIController.md#keyboard-shortcuts} Complete shortcut list
    */
   handleKeyPress(keyCode, key, event = null) {
     if (!this.initialized) return false;
@@ -81,19 +100,19 @@ class UIController {
     // Handle Ctrl+Shift key combinations (kept for legacy)
     if (isCtrlPressed && isShiftPressed) {
       switch(keyCode) {
-        case 49: // Ctrl+Shift+1 - Performance Overlay
+        case 49: // Ctrl+Shift+1
           this.togglePerformanceOverlay();
           return true;
-        case 50: // Ctrl+Shift+2 - Entity Inspector  
+        case 50: // Ctrl+Shift+2
           this.toggleEntityInspector();
           return true;
-        case 51: // Ctrl+Shift+3 - Debug Console
+        case 51: // Ctrl+Shift+3
           this.toggleDebugConsole();
           return true;
-        case 52: // Ctrl+Shift+4 - Minimap
+        case 52: // Ctrl+Shift+4
           this.toggleMinimap();
           return true;
-        case 53: // Ctrl+Shift+5 - Start Game
+        case 53: // Ctrl+Shift+5
           this.startGame();
           return true;
       }
@@ -252,7 +271,9 @@ class UIController {
   }
 
   /**
-   * Debug UI toggle methods
+   * Toggle performance overlay - Shows FPS, memory usage, render stats.
+   * **Shortcut**: Ctrl+Shift+1
+   * @see {@link docs/api/UIController.md#togglePerformanceOverlay} Advanced configuration
    */
   togglePerformanceOverlay() {
     // Use existing PerformanceMonitor system
@@ -265,6 +286,10 @@ class UIController {
     }
   }
 
+  /**
+   * Toggle entity inspector - Shows detailed entity information and debug overlays.
+   * **Shortcut**: Ctrl+Shift+2
+   */
   toggleEntityInspector() {
     // Use existing entity debug system from debug/EntityDebugManager.js
     if (typeof getEntityDebugManager === 'function') {
@@ -282,6 +307,10 @@ class UIController {
     }
   }
 
+  /**
+   * Toggle debug console - Command line interface for debugging.
+   * **Shortcuts**: Ctrl+Shift+3 or ` (backtick)
+   */
   toggleDebugConsole() {
     // Use existing debug console system from debug/testing.js
     if (typeof toggleDevConsole === 'function') {
@@ -292,6 +321,10 @@ class UIController {
     }
   }
 
+  /**
+   * Toggle minimap display.
+   * **Shortcut**: Ctrl+Shift+4
+   */
   toggleMinimap() {
     if (this.uiRenderer) {
       if (this.uiRenderer.hudElements.minimap.enabled) {
@@ -305,6 +338,21 @@ class UIController {
   /**
    * Game State Management Methods
    */
+  /**
+   * Start the game - Transitions from MENU to PLAYING state.
+   * 
+   * **Shortcut**: Ctrl+Shift+5
+   * 
+   * @description
+   * Delegates to GameState.startGame() to handle world initialization, 
+   * UI setup, and state transitions.
+   * 
+   * @example
+   * uiController.startGame(); // Manual start
+   * // Or press Ctrl+Shift+5
+   * 
+   * @see {@link docs/api/UIController.md#startGame} Complete documentation
+   */
   startGame() {
     if (GameState && GameState.startGame) {
       console.log('UIController: Starting game (MENU -> PLAYING state)');
@@ -315,54 +363,66 @@ class UIController {
   }
 
   /**
-   * Toggle all UI panels visibility (Shift+N)
+   * Toggle visibility of all UI panels.
+   * 
+   * **Shortcut**: Shift+N
+   * 
+   * @description
+   * Smart toggle - shows all panels if any are hidden, hides all if all are visible.
+   * Manages draggable panels, performance overlay, debug console, and minimap.
+   * 
+   * @example
+   * uiController.toggleAllUI(); // Manual toggle
+   * // Or press Shift+N
+   * 
+   * @see {@link docs/api/UIController.md#toggleAllUI} Complete documentation
    */
   toggleAllUI() {
     // Toggle all draggable panels
     if (window && window.draggablePanelManager) {
-      const panelCount = window.draggablePanelManager.getPanelCount();
-      const visibleCount = window.draggablePanelManager.getVisiblePanelCount();
-      
-      // If ALL panels are visible, hide all. Otherwise, show all.
-      const shouldShow = visibleCount < panelCount;
-      
-      if (shouldShow) {
-        // Show all panels
-        if (typeof window.showAntControlPanel === 'function') window.showAntControlPanel();
-        if (window.draggablePanelManager.hasPanel('resource-display')) {
-          window.draggablePanelManager.showPanel('resource-display');
+        const panelCount = window.draggablePanelManager.getPanelCount();
+        const visibleCount = window.draggablePanelManager.getVisiblePanelCount();
+        
+        // If ALL panels are visible, hide all. Otherwise, show all.
+        const shouldShow = visibleCount < panelCount;
+        
+        if (shouldShow) {
+            // Show all panels
+            if (typeof window.showAntControlPanel === 'function') window.showAntControlPanel();
+            if (window.draggablePanelManager.hasPanel('resource-display')) {
+                window.draggablePanelManager.showPanel('resource-display');
+            }
+            if (window.draggablePanelManager.hasPanel('performance-monitor')) {
+                window.draggablePanelManager.showPanel('performance-monitor');
+            }
+            if (window.draggablePanelManager.hasPanel('debug-info')) {
+                window.draggablePanelManager.showPanel('debug-info');
+            }
+            this.showPerformanceOverlay();
+            this.showEntityInspector();
+            this.showDebugConsole();
+            this.showMinimap();
+            console.log('👁️ All UI panels shown');
+        } else {
+            // Hide all panels
+            if (typeof window.hideAntControlPanel === 'function') window.hideAntControlPanel();
+            if (window.draggablePanelManager.hasPanel('resource-display')) {
+                window.draggablePanelManager.hidePanel('resource-display');
+            }
+            if (window.draggablePanelManager.hasPanel('performance-monitor')) {
+                window.draggablePanelManager.hidePanel('performance-monitor');
+            }
+            if (window.draggablePanelManager.hasPanel('debug-info')) {
+                window.draggablePanelManager.hidePanel('debug-info');
+            }
+            this.hidePerformanceOverlay();
+            this.hideEntityInspector();
+            this.hideDebugConsole();
+            this.hideMinimap();
+            console.log('🙈 All UI panels hidden');
         }
-        if (window.draggablePanelManager.hasPanel('performance-monitor')) {
-          window.draggablePanelManager.showPanel('performance-monitor');
-        }
-        if (window.draggablePanelManager.hasPanel('debug-info')) {
-          window.draggablePanelManager.showPanel('debug-info');
-        }
-        this.showPerformanceOverlay();
-        this.showEntityInspector();
-        this.showDebugConsole();
-        this.showMinimap();
-        console.log('👁️ All UI panels shown');
-      } else {
-        // Hide all panels
-        if (typeof window.hideAntControlPanel === 'function') window.hideAntControlPanel();
-        if (window.draggablePanelManager.hasPanel('resource-display')) {
-          window.draggablePanelManager.hidePanel('resource-display');
-        }
-        if (window.draggablePanelManager.hasPanel('performance-monitor')) {
-          window.draggablePanelManager.hidePanel('performance-monitor');
-        }
-        if (window.draggablePanelManager.hasPanel('debug-info')) {
-          window.draggablePanelManager.hidePanel('debug-info');
-        }
-        this.hidePerformanceOverlay();
-        this.hideEntityInspector();
-        this.hideDebugConsole();
-        this.hideMinimap();
-        console.log('🙈 All UI panels hidden');
-      }
     } else {
-      console.warn('⚠️ DraggablePanelManager not available for UI toggle');
+        console.warn('⚠️ DraggablePanelManager not available for UI toggle');
     }
   }
 

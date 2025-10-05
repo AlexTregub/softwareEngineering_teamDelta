@@ -1,8 +1,17 @@
 /**
- * EntityAccessor - Standardized entity position/size access
+ * @fileoverview EntityAccessor - Standardized entity position/size access
+ * @module EntityAccessor
+ * @see {@link docs/api/EntityAccessor.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Entity accessor reference
+ */
+
+/**
+ * Standardized entity property access with consistent fallback chains.
  * 
- * Eliminates duplicate accessor logic between RenderController and EntityLayerRenderer
- * Provides consistent, optimized entity property access across all rendering systems
+ * **Purpose**: Eliminates duplicate accessor logic across rendering systems
+ * 
+ * @class EntityAccessor
+ * @see {@link docs/api/EntityAccessor.md} Full documentation and examples
  */
 class EntityAccessor {
   

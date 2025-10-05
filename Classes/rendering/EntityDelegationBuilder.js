@@ -1,4 +1,18 @@
-// EntityDelegationBuilder - Utility for automatically generating delegation methods
+/**
+ * @fileoverview EntityDelegationBuilder - Utility for automatically generating delegation methods
+ * @module EntityDelegationBuilder
+ * @see {@link docs/api/EntityDelegationBuilder.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Delegation pattern reference
+ */
+
+/**
+ * Utility for automatically generating delegation methods to eliminate code repetition.
+ * 
+ * **Purpose**: Creates delegation methods on class prototypes for controller patterns
+ * 
+ * @class EntityDelegationBuilder
+ * @see {@link docs/api/EntityDelegationBuilder.md} Full documentation and examples
+ */
 class EntityDelegationBuilder {
   /**
    * Create delegation methods on a class prototype

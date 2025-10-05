@@ -1,7 +1,17 @@
 /**
- * EntityRenderer - Enhanced rendering system for dynamic game entities
+ * @fileoverview EntityLayerRenderer - Enhanced rendering system for dynamic game entities
+ * @module EntityLayerRenderer
+ * @see {@link docs/api/EntityLayerRenderer.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Entity rendering reference
+ */
+
+/**
+ * Enhanced rendering system for dynamic game entities with depth sorting and culling.
  * 
- * Dependencies: EntityAccessor.js (for standardized entity position/size access)  
+ * **Features**: Render groups, depth sorting, frustum culling, batch rendering
+ * 
+ * @class EntityRenderer
+ * @see {@link docs/api/EntityLayerRenderer.md} Full documentation and examples
  */
 class EntityRenderer {
   constructor() {

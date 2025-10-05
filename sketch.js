@@ -178,21 +178,12 @@ function draw() {
     }
   }
   
-  // Update enhanced draggable panels with button arrays
-  if (typeof updateDraggablePanels !== 'undefined') {
-    try {
-      updateDraggablePanels(GameState.getState());
-    } catch (error) {
-      console.error('❌ Error updating enhanced draggable panels:', error);
-    }
-  }
-  
   // Update legacy draggable panels (only during PLAYING gamestate)  
   if (GameState.getState() === 'PLAYING') {
     try {
-      if (typeof updateDraggablePanels !== updateDraggablePanels) { // Avoid double call
-        updateDraggablePanels();
-        renderDraggablePanels();
+      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+        updateDraggablePanels(GameState.getState());
+        renderDraggablePanels(GameState.getState());
       }
     } catch (error) {
       console.error('❌ Error updating legacy draggable panels:', error);

@@ -1,11 +1,19 @@
 /**
- * UILayerRenderer Integration with Universal UI Debug System
- * 
- * This file shows how to integrate existing UI elements with the new UIDebugManager
- * for universal drag-and-drop repositioning and debug visualization.
- * 
+ * @fileoverview UIDebugIntegration - Integration layer for UIDebugManager
+ * @module UIDebugIntegration
  * @author Software Engineering Team Delta - David Willman
  * @version 1.0.0
+ * @see {@link docs/api/UIDebugIntegration.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Debug integration reference
+ */
+
+/**
+ * Integration examples for UIDebugManager with existing UI systems.
+ * 
+ * **Purpose**: Shows drag-and-drop repositioning integration patterns
+ * 
+ * @class UILayerRendererDebugIntegration
+ * @see {@link docs/api/UIDebugIntegration.md} Full documentation and examples
  */
 
 // Example integration for UILayerRenderer class

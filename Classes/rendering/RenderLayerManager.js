@@ -1,4 +1,18 @@
-// RenderLayerManager - Centralized layered rendering system
+/**
+ * @fileoverview RenderLayerManager - Centralized layered rendering system
+ * @module RenderLayerManager
+ * @see {@link docs/api/RenderLayerManager.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Layer system reference
+ */
+
+/**
+ * Manages rendering layers from terrain to UI with performance optimization.
+ * 
+ * **Layers**: TERRAIN → ENTITIES → EFFECTS → UI_GAME → UI_DEBUG → UI_MENU
+ * 
+ * @class RenderLayerManager
+ * @see {@link docs/api/RenderLayerManager.md} Full documentation and examples
+ */
 class RenderLayerManager {
   constructor() {
     // Rendering layers in order (bottom to top)

@@ -1,8 +1,17 @@
 /**
- * RenderController - Standardizes rendering, highlighting, and visual effects
- * Provides consintation across all entities
+ * @fileoverview RenderController - Standardized rendering, highlighting, and visual effects
+ * @module RenderController
+ * @see {@link docs/api/RenderController.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Rendering system reference
+ */
+
+/**
+ * Provides consistent rendering, highlighting, and visual effects for all entities.
  * 
- * Dependencies: EntityAccessor.js (for standardized entity position/size access)
+ * **Key Features**: Highlight states, animations, visual effects, debug rendering
+ * 
+ * @class RenderController
+ * @see {@link docs/api/RenderController.md} Full documentation and examples
  */
 class RenderController {
   constructor(entity) {

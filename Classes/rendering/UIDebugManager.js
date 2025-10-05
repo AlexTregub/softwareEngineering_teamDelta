@@ -1,15 +1,19 @@
 /**
- * UIDebugManager - Universal UI element positioning and debugging system
- * 
- * Provides interactive debugging for ANY UI element in the game with:
- * - Click-and-drag repositioning (X & Y axis)
- * - Bounding box visualization 
- * - Position persistence across sessions
- * - Screen boundary constraints
- * - Integration with existing rendering pipeline
- * 
+ * @fileoverview UIDebugManager - Universal UI element positioning and debugging system
+ * @module UIDebugManager
  * @author Software Engineering Team Delta - David Willman
  * @version 1.0.0
+ * @see {@link docs/api/UIDebugManager.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} UI debugging reference
+ */
+
+/**
+ * Interactive debugging for UI elements with drag repositioning and visualization.
+ * 
+ * **Features**: Click-drag positioning, bounding boxes, position persistence
+ * 
+ * @class UIDebugManager
+ * @see {@link docs/api/UIDebugManager.md} Full documentation and examples
  */
 
 class UIDebugManager {

@@ -1,4 +1,18 @@
-// EffectsLayerRenderer - Advanced particle and visual effects system
+/**
+ * @fileoverview EffectsLayerRenderer - Advanced particle and visual effects system
+ * @module EffectsLayerRenderer
+ * @see {@link docs/api/EffectsLayerRenderer.md} Complete API documentation
+ * @see {@link docs/quick-reference.md} Effects rendering reference
+ */
+
+/**
+ * Advanced particle and visual effects system with pooling and performance scaling.
+ * 
+ * **Features**: Particle pools, audio effects, performance scaling, effect types
+ * 
+ * @class EffectsLayerRenderer
+ * @see {@link docs/api/EffectsLayerRenderer.md} Full documentation and examples
+ */
 class EffectsLayerRenderer {
   constructor() {
     this.config = {
