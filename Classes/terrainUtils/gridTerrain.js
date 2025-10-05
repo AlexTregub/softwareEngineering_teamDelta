@@ -195,6 +195,18 @@ class camRenderConverter {
         ];
     }
 
+    // Calculate offset to align gridTerrain with canvas 0,0.
+    alignToCanvas() {
+        let alignPos = this.convCanvasToPos([0,0]); // Fixed reference
+        // console.log(alignPos);
+
+        let alignOffsetX = floor(alignPos[0]) - alignPos[0];
+        let alignOffsetY = floor(alignPos[1]) - alignPos[1];
+        // console.log(alignOffsetX,alignOffsetY);
+
+        this._camPosition = [alignOffsetX,alignOffsetY];
+    }
+
     //// Conversions
     convPosToCanvas(input) {
         let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
