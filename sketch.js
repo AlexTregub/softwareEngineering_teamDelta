@@ -127,6 +127,11 @@ function setup() {
  
   Ants_Spawn(10);
   // Resources_Spawn(20);
+
+  // Test conversions
+  console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([10,10])));
+  console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([0,0])));
+  console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([-10,-10])));
 }
 
 // Global Currency Counter
