@@ -84,6 +84,11 @@ function setup() {
   
   // Initialize Draggable Panel System
   initializeDraggablePanelSystem();
+  
+  // Initialize ant control panel for spawning and state management
+  if (typeof initializeAntControlPanel !== 'undefined') {
+    initializeAntControlPanel();
+  }
 }
 
 /**

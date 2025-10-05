@@ -28,6 +28,74 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
   'grass' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
 };
 
+/**
+ * Context-aware material renderer - renders materials to any p5.js context
+ * This respects existing material definitions while enabling cache rendering
+ * without global function overrides
+ */
+function renderMaterialToContext(materialName, x, y, size, context) {
+  // Handle the context parameter - default to global if not provided
+  const ctx = context || window;
+  
+  // Known material mappings (based on TERRAIN_MATERIALS_RANGED above)
+  switch (materialName) {
+    case 'moss_0':
+    case 'moss_1':
+      if (typeof MOSS_IMAGE !== 'undefined' && MOSS_IMAGE) {
+        ctx.image(MOSS_IMAGE, x, y, size, size);
+      } else {
+        // Fallback color for moss
+        ctx.fill(85, 107, 47);
+        ctx.noStroke();
+        ctx.rect(x, y, size, size);
+      }
+      break;
+      
+    case 'stone':
+      if (typeof STONE_IMAGE !== 'undefined' && STONE_IMAGE) {
+        ctx.image(STONE_IMAGE, x, y, size, size);
+      } else {
+        // Fallback color for stone
+        ctx.fill(128, 128, 128);
+        ctx.noStroke();
+        ctx.rect(x, y, size, size);
+      }
+      break;
+      
+    case 'dirt':
+      if (typeof DIRT_IMAGE !== 'undefined' && DIRT_IMAGE) {
+        ctx.image(DIRT_IMAGE, x, y, size, size);
+      } else {
+        // Fallback color for dirt
+        ctx.fill(139, 69, 19);
+        ctx.noStroke();
+        ctx.rect(x, y, size, size);
+      }
+      break;
+      
+    case 'grass':
+      if (typeof GRASS_IMAGE !== 'undefined' && GRASS_IMAGE) {
+        ctx.image(GRASS_IMAGE, x, y, size, size);
+      } else {
+        // Fallback color for grass
+        ctx.fill(34, 139, 34);
+        ctx.noStroke();
+        ctx.rect(x, y, size, size);
+      }
+      break;
+      
+    default:
+      // Unknown material - use default grass appearance
+      if (typeof GRASS_IMAGE !== 'undefined' && GRASS_IMAGE) {
+        ctx.image(GRASS_IMAGE, x, y, size, size);
+      } else {
+        ctx.fill(100, 150, 100);
+        ctx.noStroke();
+        ctx.rect(x, y, size, size);
+      }
+  }
+}
+
 
 function terrainPreloader(){
   GRASS_IMAGE = loadImage('Images/16x16 Tiles/grass.png');

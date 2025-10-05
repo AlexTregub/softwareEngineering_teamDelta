@@ -321,6 +321,27 @@ class DraggablePanelManager {
   }
 
   /**
+   * Check if a panel exists
+   * 
+   * @param {string} panelId - Panel identifier
+   * @returns {boolean} True if panel exists
+   */
+  hasPanel(panelId) {
+    return this.panels.has(panelId);
+  }
+
+  /**
+   * Check if a specific panel is visible
+   * 
+   * @param {string} panelId - Panel identifier
+   * @returns {boolean} True if panel exists and is visible
+   */
+  isPanelVisible(panelId) {
+    const panel = this.panels.get(panelId);
+    return panel ? panel.isVisible() : false;
+  }
+
+  /**
    * Dispose of the panel manager and cleanup resources
    */
   dispose() {

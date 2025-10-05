@@ -51,7 +51,7 @@ class UIController {
   setupKeyboardControls() {
     // Note: Keyboard integration is handled via g_keyboardController.onKeyPress() in sketch.js setup()
     // The handleKeyPress method below processes the actual key combinations
-    console.log('UIController keyboard shortcuts: Ctrl+Shift+1 (Performance Monitor), Ctrl+Shift+2 (Entity Debug), Ctrl+Shift+3 (Debug Console), Ctrl+Shift+4 (Minimap), Ctrl+Shift+5 (Start Game), ` (Command Line)');
+    console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
   }
 
   /**
@@ -72,7 +72,13 @@ class UIController {
                           (typeof keyIsDown !== 'undefined' && keyIsDown(16)) || // 16 is Shift keyCode fallback
                           (typeof window !== 'undefined' && window.event && window.event.shiftKey);
 
-    // Handle Ctrl+Shift key combinations
+    // Handle Shift+N - Universal UI Toggle
+    if (isShiftPressed && !isCtrlPressed && keyCode === 78) { // Shift+N
+      this.toggleAllUI();
+      return true;
+    }
+
+    // Handle Ctrl+Shift key combinations (kept for legacy)
     if (isCtrlPressed && isShiftPressed) {
       switch(keyCode) {
         case 49: // Ctrl+Shift+1 - Performance Overlay
@@ -309,6 +315,58 @@ class UIController {
   }
 
   /**
+   * Toggle all UI panels visibility (Shift+N)
+   */
+  toggleAllUI() {
+    // Toggle all draggable panels
+    if (typeof window !== 'undefined' && window.draggablePanelManager) {
+      const panelCount = window.draggablePanelManager.getPanelCount();
+      const visibleCount = window.draggablePanelManager.getVisiblePanelCount();
+      
+      // If ALL panels are visible, hide all. Otherwise, show all.
+      const shouldShow = visibleCount < panelCount;
+      
+      if (shouldShow) {
+        // Show all panels
+        if (typeof window.showAntControlPanel === 'function') window.showAntControlPanel();
+        if (window.draggablePanelManager.hasPanel('resource-display')) {
+          window.draggablePanelManager.showPanel('resource-display');
+        }
+        if (window.draggablePanelManager.hasPanel('performance-monitor')) {
+          window.draggablePanelManager.showPanel('performance-monitor');
+        }
+        if (window.draggablePanelManager.hasPanel('debug-info')) {
+          window.draggablePanelManager.showPanel('debug-info');
+        }
+        this.showPerformanceOverlay();
+        this.showEntityInspector();
+        this.showDebugConsole();
+        this.showMinimap();
+        console.log('👁️ All UI panels shown');
+      } else {
+        // Hide all panels
+        if (typeof window.hideAntControlPanel === 'function') window.hideAntControlPanel();
+        if (window.draggablePanelManager.hasPanel('resource-display')) {
+          window.draggablePanelManager.hidePanel('resource-display');
+        }
+        if (window.draggablePanelManager.hasPanel('performance-monitor')) {
+          window.draggablePanelManager.hidePanel('performance-monitor');
+        }
+        if (window.draggablePanelManager.hasPanel('debug-info')) {
+          window.draggablePanelManager.hidePanel('debug-info');
+        }
+        this.hidePerformanceOverlay();
+        this.hideEntityInspector();
+        this.hideDebugConsole();
+        this.hideMinimap();
+        console.log('🙈 All UI panels hidden');
+      }
+    } else {
+      console.warn('⚠️ DraggablePanelManager not available for UI toggle');
+    }
+  }
+
+  /**
    * Entity selection and inspection
    */
   selectEntityForInspection(entity) {
@@ -341,6 +399,65 @@ class UIController {
   hidePauseMenu() {
     if (this.uiRenderer) {
       this.uiRenderer.menuSystems.pauseMenu.active = false;
+    }
+  }
+
+  /**
+   * Individual UI panel show/hide methods for toggleAllUI
+   */
+  showPerformanceOverlay() {
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
+      g_performanceMonitor.setDebugDisplay(true);
+    }
+  }
+
+  hidePerformanceOverlay() {
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
+      g_performanceMonitor.setDebugDisplay(false);
+    }
+  }
+
+  showEntityInspector() {
+    if (typeof getEntityDebugManager === 'function') {
+      const manager = getEntityDebugManager();
+      if (manager && typeof manager.enableGlobalDebug === 'function') {
+        manager.enableGlobalDebug();
+      }
+    }
+  }
+
+  hideEntityInspector() {
+    if (typeof getEntityDebugManager === 'function') {
+      const manager = getEntityDebugManager();
+      if (manager && typeof manager.disableGlobalDebug === 'function') {
+        manager.disableGlobalDebug();
+      }
+    }
+  }
+
+  showDebugConsole() {
+    // Debug console is typically shown via existing systems
+    if (typeof showDevConsole === 'function') {
+      showDevConsole();
+    }
+  }
+
+  hideDebugConsole() {
+    // Debug console is typically hidden via existing systems
+    if (typeof hideDevConsole === 'function') {
+      hideDevConsole();
+    }
+  }
+
+  showMinimap() {
+    if (this.uiRenderer && this.uiRenderer.hudElements && this.uiRenderer.hudElements.minimap) {
+      this.uiRenderer.hudElements.minimap.enabled = true;
+    }
+  }
+
+  hideMinimap() {
+    if (this.uiRenderer && this.uiRenderer.hudElements && this.uiRenderer.hudElements.minimap) {
+      this.uiRenderer.hudElements.minimap.enabled = false;
     }
   }
 

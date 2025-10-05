@@ -13,16 +13,29 @@ let scrollOffset = 0; // For scrolling through output
 // DEV CONSOLE STATE (shared with testing.js)
 let devConsoleEnabled = false;
 
-// Console capture - overrides console.log to capture messages for the in-game console.
+// Console capture - creates a copy mechanism without overriding the original console.log
 let originalConsoleLog = console.log;
-console.log = function(...args) {
+
+// Create a custom logger that captures output for the in-game console
+function captureConsoleOutput(...args) {
+  // Always call the original console.log first
   originalConsoleLog.apply(console, args);
+  
+  // Capture for in-game console if active
   if (commandLineActive) {
     let message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
     consoleOutput.unshift(message);
     if (consoleOutput.length > 100) consoleOutput.pop();
   }
-};
+}
+
+// Optional: Create a game-specific logger that always captures
+function gameLog(...args) {
+  originalConsoleLog.apply(console, args);
+  let message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+  consoleOutput.unshift(message);
+  if (consoleOutput.length > 100) consoleOutput.pop();
+}
 
 /**
  * handleUIDebugCommand
@@ -127,7 +140,7 @@ function handleCommandLineInput() {
     commandInput = ""; commandHistoryIndex = -1; scrollOffset = 0;
   } else if (keyCode === 27) { // ESCAPE
     commandLineActive = false; commandInput = ""; commandHistoryIndex = -1;
-    console.log("💻 Command line cancelled.");
+    captureConsoleOutput("💻 Command line cancelled.");
   } else if (keyIsDown(8)) { // BACKSPACE
     commandInput = commandInput.slice(0, -1);
   } else if (keyCode === 38) { // UP_ARROW
@@ -164,14 +177,14 @@ function handleCommandLineScroll() {
  * @param {string} command - Raw command input from the command line UI.
  */
 function executeCommand(command) {
-  console.log(`💻 > ${command}`);
+  captureConsoleOutput(`💻 > ${command}`);
   const parts = command.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
   const cmd = (parts[0] || '').toLowerCase();
   const args = parts.slice(1).map(s => s.replace(/^"|"$/g, ''));
   switch (cmd) {
     case 'help': showCommandHelp(); break;
     case 'spawn': handleSpawnCommand(args); break;
-    case 'clear': consoleOutput = []; scrollOffset = 0; console.log("💻 Console cleared."); break;
+    case 'clear': consoleOutput = []; scrollOffset = 0; captureConsoleOutput("💻 Console cleared."); break;
     case 'debug': handleDebugCommand(args); break;
     case 'select': handleSelectCommand(args); break;
     case 'kill': handleKillCommand(args); break;
@@ -435,7 +448,7 @@ function drawCommandLine() {
  * Activates the command line UI if dev console is enabled.
  * @returns {boolean} true when opened.
  */
-function openCommandLine() { if (devConsoleEnabled && !commandLineActive) { commandLineActive = true; commandInput = ""; console.log("💻 Command line activated. Type 'help' for available commands."); return true; } return false; }
+function openCommandLine() { if (devConsoleEnabled && !commandLineActive) { commandLineActive = true; commandInput = ""; captureConsoleOutput("💻 Command line activated. Type 'help' for available commands."); return true; } return false; }
 
 /** closeCommandLine - Deactivate command line and reset input. */
 function closeCommandLine() { commandLineActive = false; commandInput = ""; commandHistoryIndex = -1; }
@@ -443,13 +456,17 @@ function closeCommandLine() { commandLineActive = false; commandInput = ""; comm
 /** isCommandLineActive - Returns true if the command line UI is active. */
 function isCommandLineActive() { return commandLineActive; }
 
-// Debug: Ensure the function is available globally
+// Export functions globally for other scripts to use
 if (typeof window !== 'undefined') {
   window.isCommandLineActive = isCommandLineActive;
+  window.gameLog = gameLog; // Always captures to in-game console
+  window.captureConsoleOutput = captureConsoleOutput; // Captures only when console active
+  window.openCommandLine = openCommandLine;
+  window.closeCommandLine = closeCommandLine;
 }
 
-// Debug: Log that the file loaded successfully
-console.log('✅ commandLine.js loaded successfully, isCommandLineActive function available');
+// Debug: Log that the file loaded successfully (using original console.log to avoid circular capture)
+originalConsoleLog('✅ commandLine.js loaded successfully with non-intrusive console capture');
 
 /**
  * handlePerformanceCommand

@@ -273,36 +273,13 @@ class gridTerrain {
             const material = tile._materialSet || 'grass';
             
             if (typeof TERRAIN_MATERIALS_RANGED !== 'undefined' && TERRAIN_MATERIALS_RANGED[material]) {
-                // Store current p5.js context
-                const currentFillFunc = fill;
-                const currentStrokeFunc = stroke;
-                const currentNoStrokeFunc = noStroke;
-                const currentImageFunc = image;
-                const currentRectFunc = rect;
-                const currentNoSmoothFunc = noSmooth;
-                const currentSmoothFunc = smooth;
-                
-                // Temporarily override p5.js functions to draw to cache
-                window.fill = (...args) => this._terrainCache.fill(...args);
-                window.stroke = (...args) => this._terrainCache.stroke(...args);
-                window.noStroke = () => this._terrainCache.noStroke();
-                window.image = (...args) => this._terrainCache.image(...args);
-                window.rect = (...args) => this._terrainCache.rect(...args);
-                window.noSmooth = () => this._terrainCache.noSmooth();
-                window.smooth = () => this._terrainCache.smooth();
-                
-                try {
-                    // Call the material's render function
-                    TERRAIN_MATERIALS_RANGED[material][1](cachePos[0], cachePos[1], this._tileSize);
-                } finally {
-                    // Restore original p5.js functions
-                    window.fill = currentFillFunc;
-                    window.stroke = currentStrokeFunc;
-                    window.noStroke = currentNoStrokeFunc;
-                    window.image = currentImageFunc;
-                    window.rect = currentRectFunc;
-                    window.noSmooth = currentNoSmoothFunc;
-                    window.smooth = currentSmoothFunc;
+                // CLEAN APPROACH: Use context-aware renderer (no global overrides!)
+                if (typeof renderMaterialToContext === 'function') {
+                    // Use the new context-aware renderer that respects existing material definitions
+                    renderMaterialToContext(material, cachePos[0], cachePos[1], this._tileSize, this._terrainCache);
+                } else {
+                    // Fallback: Direct cache rendering if context renderer not available
+                    this._renderMaterialDirectToCache(material, cachePos[0], cachePos[1], this._tileSize);
                 }
             } else {
                 // Fallback: draw a default colored tile

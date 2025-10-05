@@ -259,19 +259,23 @@ function setupPanelKeyboardShortcuts() {
       
       // Handle panel shortcuts
       if (window.draggablePanelManager) {
-        // Ctrl+Shift+1: Toggle Performance Monitor
+        // Shift+N: Toggle All UI Panels (handled by UIController now)
+        if (keyCode === 78 && keyIsDown(SHIFT) && !keyIsDown(CONTROL)) { // 'N' key
+          // Let UIController handle this via g_keyboardController
+          return;
+        }
+        
+        // Keep individual toggles for legacy (Ctrl+Shift+1-3)
         if (keyCode === 49 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '1' key
           const visible = window.draggablePanelManager.togglePanel('performance-monitor');
           console.log(`Performance Monitor ${visible ? 'ENABLED' : 'DISABLED'}`);
         }
         
-        // Ctrl+Shift+2: Toggle Resource Display
         if (keyCode === 50 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '2' key
           const visible = window.draggablePanelManager.togglePanel('resource-display');
           console.log(`Resource Display ${visible ? 'ENABLED' : 'DISABLED'}`);
         }
         
-        // Ctrl+Shift+3: Toggle Debug Info
         if (keyCode === 51 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '3' key
           const visible = window.draggablePanelManager.togglePanel('debug-info');
           console.log(`Debug Info ${visible ? 'ENABLED' : 'DISABLED'}`);

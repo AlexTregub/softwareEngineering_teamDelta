@@ -147,10 +147,10 @@ class AntUtilities {
         if (ant._selectionController) {
           ant._selectionController.setSelected(true);
         } else if (ant.isSelected !== undefined) {
-          antObj.isSelected = true;
+          ant.isSelected = true;
         }
         
-        selectedAnt = antObj;
+        selectedAnt = ant;
         break;
       }
     }
@@ -307,6 +307,175 @@ class AntUtilities {
     }
   }
 
+    // --- Spawning Functions ---
+
+  /**
+   * Spawn ant with specific job, faction, and optional custom image
+   * @param {number} x - Spawn X coordinate
+   * @param {number} y - Spawn Y coordinate
+   * @param {string} jobName - Job type from JobComponent
+   * @param {string} faction - Faction name (red, blue, neutral)
+   * @param {Object} customImage - Optional custom image (uses job default if null)
+   * @returns {Object} Spawned ant object
+   */
+  static spawnAnt(x, y, jobName = "Scout", faction = "neutral", customImage = null) {
+    if (typeof JobComponent === 'undefined') {
+      console.warn('JobComponent not available for spawning');
+      return null;
+    }
+
+    // Validate job name
+    const availableJobs = JobComponent.getAllJobs();
+    if (!availableJobs.includes(jobName)) {
+      console.warn(`Invalid job name: ${jobName}. Using Scout.`);
+      jobName = "Scout";
+    }
+
+    // Validate faction
+    const validFactions = ["red", "blue", "neutral"];
+    if (!validFactions.includes(faction)) {
+      console.warn(`Invalid faction: ${faction}. Using neutral.`);
+      faction = "neutral";
+    }
+
+    // Determine image to use
+    let imageToUse = customImage;
+    if (!imageToUse && typeof JobImages !== 'undefined') {
+      imageToUse = JobImages[jobName] || JobImages["Scout"];
+    }
+    if (!imageToUse && typeof antBaseSprite !== 'undefined') {
+      imageToUse = antBaseSprite;
+    }
+
+    try {
+      // Create ant using existing ant constructor
+      const newAnt = new ant(
+        x, y,
+        20, 20, // Default size
+        30, 0,   // Movement speed, rotation
+        imageToUse,
+        jobName,
+        faction
+      );
+
+      // Assign job using component system
+      newAnt.assignJob(jobName, imageToUse);
+
+      // Add to global ants array if it exists
+      if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+        ants.push(newAnt);
+      }
+
+      // Register with TileInteractionManager if available
+      if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
+        g_tileInteractionManager.addObject(newAnt, 'ant');
+      }
+
+      return newAnt;
+    } catch (error) {
+      console.error('Error spawning ant:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Spawn multiple ants of the same type
+   * @param {number} count - Number of ants to spawn
+   * @param {string} jobName - Job type
+   * @param {string} faction - Faction name
+   * @param {number} centerX - Center X for formation
+   * @param {number} centerY - Center Y for formation
+   * @param {number} radius - Spawn radius
+   * @returns {Array} Array of spawned ants
+   */
+  static spawnMultipleAnts(count, jobName = "Scout", faction = "neutral", centerX = 400, centerY = 400, radius = 50) {
+    const spawnedAnts = [];
+    const angleStep = (2 * Math.PI) / count;
+
+    for (let i = 0; i < count; i++) {
+      const angle = i * angleStep;
+      const spawnX = centerX + Math.cos(angle) * radius;
+      const spawnY = centerY + Math.sin(angle) * radius;
+
+      const ant = this.spawnAnt(spawnX, spawnY, jobName, faction);
+      if (ant) {
+        spawnedAnts.push(ant);
+      }
+    }
+
+    return spawnedAnts;
+  }
+
+  // --- State Management Functions ---
+
+  /**
+   * Change state of all selected ants
+   * @param {Array} ants - Array of all ants
+   * @param {string} primaryState - New primary state
+   * @param {string} combatModifier - Optional combat modifier
+   * @param {string} terrainModifier - Optional terrain modifier
+   */
+  static changeSelectedAntsState(ants, primaryState, combatModifier = null, terrainModifier = null) {
+    const selectedAnts = this.getSelectedAnts(ants);
+    
+    if (selectedAnts.length === 0) {
+      console.log('No ants selected for state change');
+      return;
+    }
+
+    let changedCount = 0;
+    for (const ant of selectedAnts) {
+      if (ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
+        const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
+        if (success) {
+          changedCount++;
+        }
+      }
+    }
+
+    console.log(`Changed state of ${changedCount} ants to ${primaryState}`);
+  }
+
+  /**
+   * Set all selected ants to IDLE state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsIdle(ants) {
+    this.changeSelectedAntsState(ants, "IDLE", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to GATHERING state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsGathering(ants) {
+    this.changeSelectedAntsState(ants, "GATHERING", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to PATROL state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsPatrol(ants) {
+    this.changeSelectedAntsState(ants, "PATROL", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to combat state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsCombat(ants) {
+    this.changeSelectedAntsState(ants, "MOVING", "IN_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set all selected ants to BUILDING state
+   * @param {Array} ants - Array of all ants
+   */
+  static setSelectedAntsBuilding(ants) {
+    this.changeSelectedAntsState(ants, "BUILDING", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
   // --- Utility Functions ---
 
   /**
@@ -402,13 +571,13 @@ class AntUtilities {
         // Count moving
         const isMoving = ant._movementController ? 
           ant._movementController.getIsMoving() : 
-          (antObj.isMoving || false);
+          (ant.isMoving || false);
         if (isMoving) movingCount++;
         
         // Count in combat
-        const inCombat = antObj._combatController ? 
-          antObj._combatController.isInCombat() : 
-          (antObj.isInCombat && antObj.isInCombat());
+        const inCombat = ant._combatController ? 
+          ant._combatController.isInCombat() : 
+          (ant.isInCombat && ant.isInCombat());
         if (inCombat) combatCount++;
       }
     }

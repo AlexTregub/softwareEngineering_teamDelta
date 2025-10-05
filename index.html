@@ -55,6 +55,7 @@
     <script src="Classes/systems/ui/DraggablePanel.js"></script>
     <script src="Classes/systems/ui/DraggablePanelManager.js"></script>
     <script src="Classes/systems/ui/DraggablePanelSystem.js"></script>
+    <script src="Classes/systems/ui/AntControlPanel.js"></script>
     
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
@@ -82,7 +83,7 @@
     <!-- Universal Button System Integration -->
     <script src="Classes/systems/ui/dropoffButton_universal.js"></script>
     <script src="Classes/systems/ui/spawnGreenLeafButton_universal.js"></script>
-    <script src="Classes/systems/ui/spawnControlsUI_universal.js"></script>
+    <script src="Classes/systems/ui/spawnKillUI.js"></script>
     
     <!-- Legacy fallbacks (commented out - kept for reference) -->
     <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
@@ -111,11 +112,11 @@
     <script src="Classes/testing/ShareholderDemo.js"></script>
 
     <!-- Testing suites, comment these out for final build -->
-    <script src="test/selectionBox.test.js"></script>
-    <script src="test/selectionBox.integration.test.js"></script>
-    <script src="test/controllerIntegration.browser.test.js"></script>
+    <script src="test/unit/selectionBox.test.js"></script>
+    <script src="test/unit/selectionBox.integration.test.js"></script>
+    <script src="test/unit/controllerIntegration.browser.test.js"></script>
     <script src="debug/tracing.js"></script>
-    <script src="test/manual-highlight-debug.js"></script>
+    <script src="test/integration/manual-highlight-debug.js"></script>
 
     <script src="Classes/terrainUtils/chunk.js"></script>
     <script src="Classes/terrainUtils/coordinateSystem.js"></script>
@@ -125,7 +126,8 @@
   </head>
 
   <body>
-    <script src="test/debugPickup.js"></script>
+    <script src="test/integration/debugPickup.js"></script>
+    <script src="demo_ant_enhancements.js"></script>
     <script src="sketch.js"></script>
   </body>
 </html>
