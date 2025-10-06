@@ -147,6 +147,7 @@ function setup() {
   // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([10,10])));
   // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([0,0])));
   // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([-10,-10])));
+  // testGridBulk();
 }
 
 // Global Currency Counter

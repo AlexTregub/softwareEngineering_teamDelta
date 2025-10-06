@@ -258,7 +258,7 @@ class camRenderConverter {
         ];
     }
 
-    // Calculate offset to align gridTerrain with canvas 0,0.
+    // Calculate offset to align gridTerrain with canvas 0,0. Always works, will not move screen more than 1 tile.
     alignToCanvas() {
         let alignPos = this.convCanvasToPos([0,0]); // Fixed reference
         // console.log(alignPos);
