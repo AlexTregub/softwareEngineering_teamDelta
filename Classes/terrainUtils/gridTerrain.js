@@ -28,6 +28,7 @@ ______________________(-0.5,0.5)........
 ______________________...........(7.5,-7.5)
 */
 
+// Currently fixed-size terrain.
 class gridTerrain {
     constructor(gridSizeX,gridSizeY,seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[CANVAS_X,CANVAS_Y]) {
         this._gridSizeX = gridSizeX;
@@ -36,11 +37,8 @@ class gridTerrain {
         this._centerChunkX = floor((this._gridSizeX-1)/2);
         this._centerChunkY = floor((this._gridSizeY-1)/2);
         
-        this._gridSpanTL = [ // Chunk positions
-            // this._centerChunkX - this._gridSizeX,
-            // this._centerChunkY - this._gridSizeY
+        this._gridSpanTL = [ // Chunk positions, assigned for proper y-axis
             -this._centerChunkX,
-            // this._centerChunkY
             this._gridSizeY-this._centerChunkY
         ];
 
@@ -65,13 +63,7 @@ class gridTerrain {
         let len = this.chunkArray.getSize()[0]*this.chunkArray.getSize()[1];
         for (let i = 0; i < len; ++i) {
             let chunkPosition = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
-            // print(chunkPosition);
-            // print(
-            //     [
-            //         chunkPosition[0]*this._chunkSize,
-            //         chunkPosition[1]*this._chunkSize
-            //     ]
-            // );
+            
             this.chunkArray.rawArray[i] = new Chunk(chunkPosition,
                 [
                     chunkPosition[0]*this._chunkSize,
@@ -115,10 +107,10 @@ class gridTerrain {
         print("Render center:",this.renderConversion.convPosToCanvas([0,0]));
     }
 
-    render() {
+    render(converter=this.renderConversion) {
         let chunksSkipped = 0;
 
-        let viewSpan = this.renderConversion.getViewSpan();
+        let viewSpan = converter.getViewSpan();
         let chunkSpan = [
             [ // -x,+y TL
                 (viewSpan[0][0]%this._chunkSize != 0) ? floor(viewSpan[0][0]/this._chunkSize)-1 : viewSpan[0][0]/this._chunkSize,
@@ -140,7 +132,7 @@ class gridTerrain {
             }
 
             for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) {
-                this.chunkArray.rawArray[i].tileData.rawArray[j].render2(this.renderConversion);
+                this.chunkArray.rawArray[i].tileData.rawArray[j].render2(converter); // Avoids copies
             }
         }
 
@@ -189,6 +181,7 @@ class camRenderConverter {
         ];
 
         this._updateId = 0; // Incrementing this will trigger updates in tiles, MUST BE DONE
+        // this._updateId = random()
     }
 
     //// State modifier
@@ -227,6 +220,10 @@ class camRenderConverter {
         ++this._updateId;
 
         this._tileSize = size;
+    }
+
+    forceTileUpdate() { // Use for custom rendering of map. If used for first time, will ALWAYS cause update, then, has low probability to fail.
+        this._updateId = random(Number.MIN_SAFE_INTEGER,-1);
     }
 
     //// Util
