@@ -1,0 +1,390 @@
+{
+  "meta": {
+    "name": "Settings and Configuration",
+    "description": "User interface for game settings, preferences, and configuration",
+    "version": "1.0.0",
+    "lastModified": "2024-12-19"
+  },
+  "groups": [
+    {
+      "id": "graphics-settings",
+      "name": "Graphics Settings",
+      "layout": {
+        "type": "vertical",
+        "position": {
+          "x": "left",
+          "y": "center",
+          "offsetX": 50,
+          "offsetY": -50
+        },
+        "spacing": 10,
+        "padding": {
+          "top": 15,
+          "right": 20,
+          "bottom": 15,
+          "left": 20
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 0.95,
+        "visible": true,
+        "background": {
+          "color": [40, 50, 60, 200],
+          "cornerRadius": 10
+        }
+      },
+      "behavior": {
+        "draggable": false,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": false,
+        "storageKey": "graphics-settings"
+      },
+      "conditions": {
+        "gameState": "settings"
+      },
+      "buttons": [
+        {
+          "id": "quality-low",
+          "text": "Low Quality",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "graphics.setQuality",
+            "parameters": {
+              "quality": "low"
+            }
+          },
+          "tooltip": "Set graphics quality to low (better performance)"
+        },
+        {
+          "id": "quality-medium",
+          "text": "Medium Quality",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "graphics.setQuality",
+            "parameters": {
+              "quality": "medium"
+            }
+          },
+          "tooltip": "Set graphics quality to medium (balanced)"
+        },
+        {
+          "id": "quality-high",
+          "text": "High Quality",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "graphics.setQuality",
+            "parameters": {
+              "quality": "high"
+            }
+          },
+          "tooltip": "Set graphics quality to high (best visuals)"
+        },
+        {
+          "id": "fullscreen-toggle",
+          "text": "Toggle Fullscreen",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "graphics.toggleFullscreen"
+          },
+          "tooltip": "Switch between windowed and fullscreen mode",
+          "hotkey": "F11"
+        }
+      ]
+    },
+    {
+      "id": "audio-settings",
+      "name": "Audio Settings",
+      "layout": {
+        "type": "vertical",
+        "position": {
+          "x": "center",
+          "y": "center",
+          "offsetX": 0,
+          "offsetY": -50
+        },
+        "spacing": 10,
+        "padding": {
+          "top": 15,
+          "right": 20,
+          "bottom": 15,
+          "left": 20
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 0.95,
+        "visible": true,
+        "background": {
+          "color": [60, 40, 50, 200],
+          "cornerRadius": 10
+        }
+      },
+      "behavior": {
+        "draggable": false,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": false,
+        "storageKey": "audio-settings"
+      },
+      "conditions": {
+        "gameState": "settings"
+      },
+      "buttons": [
+        {
+          "id": "master-volume",
+          "text": "Master: 100%",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "audio.adjustMasterVolume"
+          },
+          "tooltip": "Adjust master volume level"
+        },
+        {
+          "id": "sfx-volume",
+          "text": "SFX: 80%",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "audio.adjustSFXVolume"
+          },
+          "tooltip": "Adjust sound effects volume"
+        },
+        {
+          "id": "music-volume",
+          "text": "Music: 60%",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "audio.adjustMusicVolume"
+          },
+          "tooltip": "Adjust background music volume"
+        },
+        {
+          "id": "mute-toggle",
+          "text": "Mute All",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "audio.toggleMute"
+          },
+          "tooltip": "Mute/unmute all audio",
+          "hotkey": "M"
+        }
+      ]
+    },
+    {
+      "id": "control-settings",
+      "name": "Control Settings",
+      "layout": {
+        "type": "vertical",
+        "position": {
+          "x": "right",
+          "y": "center",
+          "offsetX": -50,
+          "offsetY": -50
+        },
+        "spacing": 10,
+        "padding": {
+          "top": 15,
+          "right": 20,
+          "bottom": 15,
+          "left": 20
+        }
+      },
+      "appearance": {
+        "scale": 1.0,
+        "transparency": 0.95,
+        "visible": true,
+        "background": {
+          "color": [50, 60, 40, 200],
+          "cornerRadius": 10
+        }
+      },
+      "behavior": {
+        "draggable": false,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": false,
+        "storageKey": "control-settings"
+      },
+      "conditions": {
+        "gameState": "settings"
+      },
+      "buttons": [
+        {
+          "id": "mouse-sensitivity",
+          "text": "Mouse: Normal",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "controls.adjustMouseSensitivity"
+          },
+          "tooltip": "Adjust mouse sensitivity"
+        },
+        {
+          "id": "camera-speed",
+          "text": "Camera: Fast",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "controls.adjustCameraSpeed"
+          },
+          "tooltip": "Adjust camera movement speed"
+        },
+        {
+          "id": "edge-scrolling",
+          "text": "Edge Scroll: On",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "setting",
+            "handler": "controls.toggleEdgeScrolling"
+          },
+          "tooltip": "Enable/disable screen edge scrolling"
+        },
+        {
+          "id": "key-bindings",
+          "text": "Key Bindings",
+          "size": {
+            "width": 120,
+            "height": 40
+          },
+          "action": {
+            "type": "ui",
+            "handler": "ui.showKeyBindings"
+          },
+          "tooltip": "Configure keyboard shortcuts"
+        }
+      ]
+    },
+    {
+      "id": "settings-navigation",
+      "name": "Settings Navigation",
+      "layout": {
+        "type": "horizontal",
+        "position": {
+          "x": "center",
+          "y": "bottom",
+          "offsetX": 0,
+          "offsetY": -50
+        },
+        "spacing": 20,
+        "padding": {
+          "top": 15,
+          "right": 25,
+          "bottom": 15,
+          "left": 25
+        }
+      },
+      "appearance": {
+        "scale": 1.1,
+        "transparency": 0.9,
+        "visible": true,
+        "background": {
+          "color": [45, 45, 55, 220],
+          "cornerRadius": 8
+        }
+      },
+      "behavior": {
+        "draggable": false,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": false,
+        "storageKey": "settings-nav"
+      },
+      "conditions": {
+        "gameState": "settings"
+      },
+      "buttons": [
+        {
+          "id": "apply-settings",
+          "text": "Apply",
+          "size": {
+            "width": 90,
+            "height": 45
+          },
+          "action": {
+            "type": "setting",
+            "handler": "settings.apply"
+          },
+          "tooltip": "Apply current settings",
+          "hotkey": "Enter"
+        },
+        {
+          "id": "reset-defaults",
+          "text": "Reset",
+          "size": {
+            "width": 90,
+            "height": 45
+          },
+          "action": {
+            "type": "setting",
+            "handler": "settings.resetDefaults"
+          },
+          "tooltip": "Reset all settings to defaults"
+        },
+        {
+          "id": "cancel-settings",
+          "text": "Cancel",
+          "size": {
+            "width": 90,
+            "height": 45
+          },
+          "action": {
+            "type": "ui",
+            "handler": "ui.cancelSettings"
+          },
+          "tooltip": "Cancel changes and return to menu",
+          "hotkey": "Escape"
+        }
+      ]
+    }
+  ]
+}
