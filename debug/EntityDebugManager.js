@@ -97,7 +97,11 @@ class EntityDebugManager {
       window.addEventListener('keydown', this._keyDownHandler);
       this._listenersAttached = true;
 
-      console.log('EntityDebugManager: Event listeners attached');
+      if (typeof globalThis.logNormal === 'function') {
+        globalThis.logNormal('EntityDebugManager: Event listeners attached');
+      } else {
+        console.log('EntityDebugManager: Event listeners attached');
+      }
     }
   }
 
@@ -200,7 +204,11 @@ class EntityDebugManager {
       this._colorIndex++;
     }
     
-    console.log(`EntityDebugManager: Registered entity ${entity.type} (${entity.id})`);
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose(`EntityDebugManager: Registered entity ${entity.type} (${entity.id})`);
+    } else {
+      console.log(`EntityDebugManager: Registered entity ${entity.type} (${entity.id})`);
+    }
   }
 
   /**
@@ -1170,7 +1178,11 @@ class EntityDebugManager {
 function initializeEntityDebugManager() {
   if (typeof window !== 'undefined' && !window.EntityDebugManager) {
     window.EntityDebugManager = new EntityDebugManager();
-    console.log('EntityDebugManager: Global instance initialized');
+    if (typeof globalThis.logNormal === 'function') {
+      globalThis.logNormal('EntityDebugManager: Global instance initialized');
+    } else {
+      console.log('EntityDebugManager: Global instance initialized');
+    }
     return window.EntityDebugManager;
   }
   return window?.EntityDebugManager || null;

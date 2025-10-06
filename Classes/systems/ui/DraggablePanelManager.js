@@ -34,9 +34,9 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': [],
-      'PLAYING': ['tools', 'resources', 'stats'],
-      'PAUSED': ['tools', 'resources', 'stats'],
-      'DEBUG_MENU': ['tools', 'resources', 'stats', 'debug'],
+      'PLAYING': ['ant_spawn'],
+      'PAUSED': ['ant_spawn'],
+      'DEBUG_MENU': ['ant_spawn'],
       'GAME_OVER': ['stats']
     };
     
@@ -46,6 +46,8 @@ class DraggablePanelManager {
 
   /**
    * Initialize the panel manager and register with render pipeline
+   * @returns {void}
+   * @memberof DraggablePanelManager
    */
   initialize() {
     if (this.isInitialized) {
@@ -71,7 +73,11 @@ class DraggablePanelManager {
         this.renderPanels(gameState);
       });
       
-      console.log('✅ DraggablePanelManager integrated into render pipeline');
+      if (typeof globalThis.logVerbose === 'function') {
+        globalThis.logVerbose('✅ DraggablePanelManager integrated into render pipeline');
+      } else {
+        console.log('✅ DraggablePanelManager integrated into render pipeline');
+      }
     } else {
       console.warn('⚠️ RenderLayerManager not found - panels will need manual rendering');
     }
@@ -83,28 +89,59 @@ class DraggablePanelManager {
    * Create the default example panels
    */
   createDefaultPanels() {
-    // Tools Panel (vertical layout)
-    this.panels.set('tools', new DraggablePanel({
-      id: 'tools-panel',
-      title: 'Game Tools',
+    // Ant Spawn Panel (vertical layout with ant spawning options)
+    this.panels.set('ant_spawn', new DraggablePanel({
+      id: 'ant-Spawn-panel',
+      title: 'Ant Government Population Manager (🐜)',
       position: { x: 20, y: 80 },
-      size: { width: 140, height: 180 },
+      size: { width: 140, height: 280 },
+      scale: 1.0, // Initial scale
       buttons: {
         layout: 'vertical',
-        spacing: 5,
+        spacing: 3,
         buttonWidth: 120,
-        buttonHeight: 28,
+        buttonHeight: 24,
         items: [
           {
-            caption: 'Spawn Ant',
-            onClick: () => this.spawnAnt(),
+            caption: 'Spawn 1 Ant',
+            onClick: () => this.spawnAnts(1),
             style: ButtonStyles.SUCCESS
           },
           {
-            caption: 'Clear Ants',
-            onClick: () => this.clearAnts(),
+            caption: 'Spawn 10 Ants',
+            onClick: () => this.spawnAnts(10),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#32CD32' }
+          },
+          {
+            caption: 'Spawn 100 Ants',
+            onClick: () => this.spawnAnts(100),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },
+          {
+            caption: 'Spawn 1000 Ants (Don\'t do this!)',
+            onClick: () => this.spawnAnts(1000),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
+          },
+          {
+            caption: 'Kill 1 Ant',
+            onClick: () => this.killAnts(1),
             style: ButtonStyles.DANGER
           },
+          {
+            caption: 'Kill 10 Ants',
+            onClick: () => this.killAnts(10),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#DC143C' }
+          },
+          {
+            caption: 'Kill 100 Ants',
+            onClick: () => this.killAnts(100),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#B22222' }
+          },
+          {
+            caption: 'Clear All Ants',
+            onClick: () => this.clearAnts(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
+          }/*,
           {
             caption: 'Pause/Play',
             onClick: () => this.togglePause(),
@@ -114,15 +151,15 @@ class DraggablePanelManager {
             caption: 'Debug Info',
             onClick: () => this.toggleDebug(),
             style: ButtonStyles.PURPLE
-          }
+          }*/
         ]
       }
     }));
 
     // Resources Panel (grid layout)
     this.panels.set('resources', new DraggablePanel({
-      id: 'resources-panel',
-      title: 'Resources',
+      id: 'resources-spawn-panel',
+      title: 'Resource Spawner',
       position: { x: 180, y: 80 },
       size: { width: 180, height: 150 },
       buttons: {
@@ -134,24 +171,24 @@ class DraggablePanelManager {
         items: [
           {
             caption: 'Wood',
-            onClick: () => this.selectResource('wood'),
+            onClick: () => this.selectResource('stick'),
             style: { ...ButtonStyles.DEFAULT, backgroundColor: '#8B4513' }
           },
           {
-            caption: 'Food', 
-            onClick: () => this.selectResource('food'),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+            caption: 'Leaves',
+            onClick: () => this.selectResource('leaves'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#11cd5cff' }
           },
           {
             caption: 'Stone',
             onClick: () => this.selectResource('stone'),
             style: { ...ButtonStyles.DEFAULT, backgroundColor: '#696969' }
-          },
+          }/*,
           {
             caption: 'Info',
             onClick: () => this.showResourceInfo(),
             style: ButtonStyles.PURPLE
-          }
+          }*/
         ]
       }
     }));
@@ -192,7 +229,7 @@ class DraggablePanelManager {
       id: 'debug-panel',
       title: 'Debug Controls',
       position: { x: 600, y: 80 },
-      size: { width: 160, height: 200 },
+      size: { width: 160, height: 320 },
       buttons: {
         layout: 'vertical',
         spacing: 3,
@@ -213,6 +250,31 @@ class DraggablePanelManager {
             caption: 'Entity Debug',
             onClick: () => this.toggleEntityDebug(),
             style: ButtonStyles.DEFAULT
+          },
+          {
+            caption: 'Scale Up (+)',
+            onClick: () => this.scaleUp(),
+            style: ButtonStyles.SUCCESS
+          },
+          {
+            caption: 'Scale Down (-)',
+            onClick: () => this.scaleDown(),
+            style: ButtonStyles.WARNING
+          },
+          {
+            caption: 'Reset Scale',
+            onClick: () => this.resetScale(),
+            style: ButtonStyles.DEFAULT
+          },
+          {
+            caption: 'Responsive Scale',
+            onClick: () => this.toggleResponsiveScaling(),
+            style: ButtonStyles.PURPLE
+          },
+          {
+            caption: 'Apply Responsive',
+            onClick: () => this.applyResponsiveScaling(true),
+            style: ButtonStyles.SUCCESS
           },
           {
             caption: 'Console Log',
@@ -276,6 +338,8 @@ class DraggablePanelManager {
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position
    * @param {boolean} mousePressed - Whether mouse is currently pressed
+   * @returns {void}
+   * @memberof DraggablePanelManager
    */
   update(mouseX, mouseY, mousePressed) {
     if (!this.isInitialized) return;
@@ -334,7 +398,9 @@ class DraggablePanelManager {
   /**
    * Render all visible panels
    * 
-   * @param {Object} contentRenderers - Map of panel ID to content renderer functions
+   * @param {Object} [contentRenderers={}] - Map of panel ID to content renderer functions
+   * @returns {void}
+   * @memberof DraggablePanelManager
    */
   render(contentRenderers = {}) {
     if (!this.isInitialized) return;
@@ -474,6 +540,7 @@ class DraggablePanelManager {
    * When enabled, all panels follow each other when one is dragged
    * 
    * @returns {boolean} New panel train mode state
+   * @memberof DraggablePanelManager
    */
   togglePanelTrainMode() {
     this.debugMode.panelTrainMode = !this.debugMode.panelTrainMode;
@@ -501,6 +568,56 @@ class DraggablePanelManager {
     const status = this.debugMode.panelTrainMode ? 'ENABLED' : 'DISABLED';
     console.log(`🚂 Panel Train Mode ${status}`);
   }
+
+  /**
+   * Set global scale for all panels
+   * 
+   * @param {number} scale - Scale factor (0.5 to 2.0)
+   */
+  setGlobalScale(scale) {
+    this.globalScale = Math.max(this.minScale, Math.min(this.maxScale, scale));
+    
+    // Apply scale to all panels
+    for (const panel of this.panels.values()) {
+      if (typeof panel.setScale === 'function') {
+        panel.setScale(this.globalScale);
+      }
+    }
+    
+    console.log(`🔍 Global panel scale set to ${this.globalScale.toFixed(2)}x`);
+  }
+
+  /**
+   * Get current global scale
+   * 
+   * @returns {number} Current global scale factor
+   */
+  getGlobalScale() {
+    return this.globalScale;
+  }
+
+  /**
+   * Scale panels up by 10%
+   */
+  scaleUp() {
+    this.setGlobalScale(this.globalScale * 1.1);
+  }
+
+  /**
+   * Scale panels down by 10%
+   */
+  scaleDown() {
+    this.setGlobalScale(this.globalScale / 1.1);
+  }
+
+  /**
+   * Reset scale to default (1.0)
+   */
+  resetScale() {
+    this.setGlobalScale(1.0);
+  }
+
+
 
   /**
    * Check if a panel exists
@@ -568,19 +685,128 @@ class DraggablePanelManager {
   // =============================================================================
 
   /**
-   * Spawn a new ant at mouse position or default location
+   * Spawn multiple ants at random positions or near mouse
    */
-  spawnAnt() {
-    console.log('🐜 Spawning new ant...');
-    // TODO: Integrate with actual ant spawning system
-    if (typeof g_antManager !== 'undefined' && g_antManager) {
-      // Use mouse position if available, otherwise center of screen
-      const spawnX = mouseX || width / 2;
-      const spawnY = mouseY || height / 2;
-      g_antManager.spawnAnt({ x: spawnX, y: spawnY });
-    } else {
-      console.warn('⚠️ AntManager not found');
+  spawnAnts(count = 1) {
+    console.log(`🐜 Spawning ${count} ant(s)...`);
+    
+    let spawned = 0;
+    
+    // Try multiple spawning methods until we find one that works
+    const spawnMethods = [
+      // Method 1: Try g_antManager
+      () => {
+        if (typeof g_antManager !== 'undefined' && g_antManager && typeof g_antManager.spawnAnt === 'function') {
+          for (let i = 0; i < count; i++) {
+            const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+            const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+            g_antManager.spawnAnt({ x: spawnX, y: spawnY });
+            spawned++;
+          }
+          return true;
+        }
+        return false;
+      },
+      
+      // Method 2: Try global ants array
+      () => {
+        if (typeof ants !== 'undefined' && Array.isArray(ants) && typeof Ant !== 'undefined') {
+          for (let i = 0; i < count; i++) {
+            const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+            const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+            const newAnt = new Ant(spawnX, spawnY);
+            ants.push(newAnt);
+            spawned++;
+          }
+          return true;
+        }
+        return false;
+      },
+      
+      // Method 4: Try command line spawning system
+      () => {
+        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+          const initialAntCount = ants.length;
+          try {
+            // Use the command line spawn system which creates proper ant objects
+            executeCommand(`spawn ${count} ant player`);
+            spawned = ants.length - initialAntCount;
+            return spawned > 0;
+          } catch (error) {
+            console.warn('⚠️ Command line spawn method failed:', error.message);
+            return false;
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of spawnMethods) {
+      if (method()) {
+        console.log(`✅ Successfully spawned ${spawned} ant(s)`);
+        return;
+      }
     }
+    
+    console.warn('⚠️ Could not spawn ants - no compatible ant system found');
+  }
+  
+  /**
+   * Kill/remove multiple ants from the game
+   */
+  killAnts(count = 1) {
+    console.log(`💀 Killing ${count} ant(s)...`);
+    
+    let killed = 0;
+    
+    // Try multiple removal methods
+    const killMethods = [
+      // Method 1: Try g_antManager
+      () => {
+        if (typeof g_antManager !== 'undefined' && g_antManager && typeof g_antManager.removeAnts === 'function') {
+          killed = g_antManager.removeAnts(count);
+          return killed > 0;
+        }
+        return false;
+      },
+      
+      // Method 2: Try global ants array
+      () => {
+        if (typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) {
+          const toRemove = Math.min(count, ants.length);
+          ants.splice(-toRemove, toRemove); // Remove from end
+          killed = toRemove;
+          return true;
+        }
+        return false;
+      },
+      
+      // Method 3: Try temp ants
+      () => {
+        if (typeof globalThis !== 'undefined' && globalThis.tempAnts && Array.isArray(globalThis.tempAnts)) {
+          const toRemove = Math.min(count, globalThis.tempAnts.length);
+          globalThis.tempAnts.splice(-toRemove, toRemove);
+          killed = toRemove;
+          return true;
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of killMethods) {
+      if (method()) {
+        console.log(`✅ Successfully killed ${killed} ant(s)`);
+        return;
+      }
+    }
+    
+    console.warn('⚠️ Could not kill ants - no ants found or no compatible ant system');
   }
 
   /**
@@ -588,22 +814,39 @@ class DraggablePanelManager {
    */
   clearAnts() {
     console.log('🧹 Clearing all ants...');
-    if (typeof g_antManager !== 'undefined' && g_antManager) {
-      g_antManager.clearAllAnts();
-    } else {
-      console.warn('⚠️ AntManager not found');
+    
+    let cleared = 0;
+    
+    // Try multiple clearing methods
+    if (typeof g_antManager !== 'undefined' && g_antManager && typeof g_antManager.clearAllAnts === 'function') {
+      cleared += g_antManager.clearAllAnts();
     }
+    
+    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      cleared += ants.length;
+      ants.length = 0; // Clear the array
+    }
+    
+    if (typeof globalThis !== 'undefined' && globalThis.tempAnts && Array.isArray(globalThis.tempAnts)) {
+      cleared += globalThis.tempAnts.length;
+      globalThis.tempAnts.length = 0;
+    }
+    
+    console.log(`✅ Cleared ${cleared} ant(s)`);
   }
 
   /**
    * Toggle game pause state
    */
   togglePause() {
-    console.log('⏯️ Toggling pause state...');
-    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+    globalThis.logNormal('⏯️ Toggling pause state...');
+    
+    // Try multiple pause methods
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.togglePause === 'function') {
       g_gameStateManager.togglePause();
+      globalThis.logNormal('✅ Game pause toggled via GameStateManager');
     } else {
-      console.warn('⚠️ GameStateManager not found');
+      console.warn('⚠️ No pause system available');
     }
   }
 
@@ -612,10 +855,40 @@ class DraggablePanelManager {
    */
   toggleDebug() {
     console.log('🔧 Toggling debug mode...');
-    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager) {
+    
+    // Try multiple debug systems
+    let debugToggled = false;
+    
+    // Method 1: Try g_uiDebugManager
+    if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && typeof g_uiDebugManager.toggleDebug === 'function') {
       g_uiDebugManager.toggleDebug();
-    } else {
-      console.warn('⚠️ UIDebugManager not found');
+      debugToggled = true;
+    }
+    
+    // Method 2: Try global debug test runner
+    if (typeof globalThis !== 'undefined' && typeof globalThis.toggleDebugTestRunner === 'function') {
+      globalThis.toggleDebugTestRunner();
+      debugToggled = true;
+    }
+    
+    // Method 3: Try global verbosity toggle
+    if (typeof globalThis !== 'undefined' && typeof globalThis.toggleVerbosity === 'function') {
+      globalThis.toggleVerbosity();
+      debugToggled = true;
+    }
+    
+    // Method 4: Simple global debug flag toggle
+    if (!debugToggled) {
+      if (typeof globalThis.debugMode === 'undefined') {
+        globalThis.debugMode = false;
+      }
+      globalThis.debugMode = !globalThis.debugMode;
+      console.log(`✅ Global debug mode ${globalThis.debugMode ? 'enabled' : 'disabled'}`);
+      debugToggled = true;
+    }
+    
+    if (!debugToggled) {
+      console.warn('⚠️ No debug system available');
     }
   }
 
@@ -624,10 +897,10 @@ class DraggablePanelManager {
    */
   selectResource(resourceType) {
     console.log(`📦 Selected resource: ${resourceType}`);
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.selectResource === 'function') {
       g_resourceManager.selectResource(resourceType);
     } else {
-      console.warn('⚠️ ResourceManager not found');
+      console.warn('⚠️ ResourceManager not found or selectResource method not available');
     }
   }
 
@@ -644,10 +917,23 @@ class DraggablePanelManager {
    */
   saveGame() {
     console.log('💾 Saving game...');
-    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+    
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.saveGame === 'function') {
       g_gameStateManager.saveGame();
+      console.log('✅ Game saved via GameStateManager');
     } else {
-      console.warn('⚠️ GameStateManager not found');
+      // Fallback: Save basic game state to localStorage
+      try {
+        const gameState = {
+          timestamp: Date.now(),
+          antCount: (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : 0,
+          resourceCount: (typeof g_resourceManager !== 'undefined' && g_resourceManager) ? g_resourceManager.getResourceList().length : 0
+        };
+        localStorage.setItem('gameState', JSON.stringify(gameState));
+        console.log('✅ Basic game state saved to localStorage');
+      } catch (e) {
+        console.warn('⚠️ Could not save game state:', e.message);
+      }
     }
   }
 
@@ -656,10 +942,24 @@ class DraggablePanelManager {
    */
   loadGame() {
     console.log('📁 Loading game...');
-    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+    
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.loadGame === 'function') {
       g_gameStateManager.loadGame();
+      console.log('✅ Game loaded via GameStateManager');
     } else {
-      console.warn('⚠️ GameStateManager not found');
+      // Fallback: Load from localStorage
+      try {
+        const savedState = localStorage.getItem('gameState');
+        if (savedState) {
+          const gameState = JSON.parse(savedState);
+          console.log('📋 Found saved game state:', gameState);
+          console.log('✅ Basic game state loaded from localStorage');
+        } else {
+          console.log('ℹ️ No saved game state found');
+        }
+      } catch (e) {
+        console.warn('⚠️ Could not load game state:', e.message);
+      }
     }
   }
 
@@ -668,10 +968,17 @@ class DraggablePanelManager {
    */
   resetGame() {
     console.log('🔄 Resetting game...');
-    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager) {
+    
+    if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.resetGame === 'function') {
       g_gameStateManager.resetGame();
+      console.log('✅ Game reset via GameStateManager');
     } else {
-      console.warn('⚠️ GameStateManager not found');
+      // Fallback: Manual reset
+      this.clearAnts();
+      if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.clearAllResources === 'function') {
+        g_resourceManager.clearAllResources();
+      }
+      console.log('✅ Basic game reset completed');
     }
   }
 

@@ -242,4 +242,20 @@ testSuite.test("CollisionBox2D methods should modify the original (mutable patte
 });
 
 // Run all tests
-testSuite.run();
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('CollisionBox2D Tests', () => {
+    testSuite.run();
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running CollisionBox2D tests...');
+  testSuite.run();
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 CollisionBox2D tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: run tests if no global test runner
+  testSuite.run();
+}

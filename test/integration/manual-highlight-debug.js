@@ -248,17 +248,46 @@ function debugHighlightingSystem() {
   return results;
 }
 
-// Auto-run if ShareholderDemo is available
+// Integration with global test runner
 if (typeof window !== 'undefined') {
   window.debugHighlightingSystem = debugHighlightingSystem;
   
-  // Run automatically after a short delay to ensure everything is loaded
-  setTimeout(() => {
-    if (typeof window.startShareholderDemo === 'function') {
-      console.log('🔍 Auto-running highlighting system debug...');
-      debugHighlightingSystem();
+  // Register with global test runner
+  if (typeof globalThis !== 'undefined' && typeof globalThis.registerTest === 'function') {
+    globalThis.registerTest('Highlighting System Debug', debugHighlightingSystem);
+    
+    // Check if tests should run automatically
+    if (typeof globalThis.shouldRunTests === 'function' && globalThis.shouldRunTests()) {
+      // Run automatically after a short delay to ensure everything is loaded
+      setTimeout(() => {
+        if (typeof window.startShareholderDemo === 'function') {
+          if (typeof globalThis.logNormal === 'function') {
+            globalThis.logNormal('🔍 Auto-running highlighting system debug...');
+          } else if (globalThis.globalDebugVerbosity >= 2) {
+            console.log('🔍 Auto-running highlighting system debug...');
+          }
+          debugHighlightingSystem();
+        } else {
+          if (typeof globalThis.logQuiet === 'function') {
+            globalThis.logQuiet('⏳ ShareholderDemo not ready. Run debugHighlightingSystem() manually.');
+          } else if (globalThis.globalDebugVerbosity >= 1) {
+            console.log('⏳ ShareholderDemo not ready. Run debugHighlightingSystem() manually.');
+          }
+        }
+      }, 3000);
     } else {
-      console.log('⏳ ShareholderDemo not ready. Run debugHighlightingSystem() manually.');
+      if (typeof globalThis.logQuiet === 'function') {
+        globalThis.logQuiet('🔍 Highlighting System Debug tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+      } else if (globalThis.globalDebugVerbosity >= 1) {
+        console.log('🔍 Highlighting System Debug tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+      }
     }
-  }, 3000);
+  } else {
+    // Fallback behavior when global test runner is not available
+    if (typeof globalThis.logQuiet === 'function') {
+      globalThis.logQuiet('🔍 Highlighting System Debug available. Run debugHighlightingSystem() manually.');
+    } else if (globalThis.globalDebugVerbosity >= 1) {
+      console.log('🔍 Highlighting System Debug available. Run debugHighlightingSystem() manually.');
+    }
+  }
 }

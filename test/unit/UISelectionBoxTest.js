@@ -317,6 +317,29 @@ function debugUISelection() {
   }
 }
 
+// Test runner function for global test runner
+function runUISelectionBoxTests() {
+  if (g_uiSelectionController) {
+    console.log('🧪 Running UI Selection Box Tests...');
+    const testSuite = new UISelectionBoxTest();
+    testSuite.runAllTests();
+    
+    if (testSuite.failed === 0) {
+      console.log('🎉 All UI Selection Box tests passed!');
+      console.log('💡 Try: testSelectionBoxVisual() for interactive testing');
+    }
+    return { passed: testSuite.passed, failed: testSuite.failed };
+  } else {
+    console.log('⚠️ UI Selection Box system not ready - tests skipped');
+    return { passed: 0, failed: 1, skipped: true };
+  }
+}
+
+// Register with global test runner
+if (typeof globalThis !== 'undefined' && typeof globalThis.registerTest === 'function') {
+  globalThis.registerTest('UI Selection Box Tests', runUISelectionBoxTests);
+}
+
 // Auto-run basic tests when loaded
 if (typeof window !== 'undefined') {
   // Export test functions
@@ -324,20 +347,19 @@ if (typeof window !== 'undefined') {
   window.testSelectionBoxVisual = testSelectionBoxVisual;
   window.testSelectionWithAnts = testSelectionWithAnts;
   window.debugUISelection = debugUISelection;
+  window.runUISelectionBoxTests = runUISelectionBoxTests;
   
-  // Run tests after a delay to ensure system is ready
+  // Run tests after a delay to ensure system is ready (only if enabled)
   setTimeout(() => {
-    if (g_uiSelectionController) {
-      console.log('🧪 Running UI Selection Box Tests...');
-      const testSuite = new UISelectionBoxTest();
-      testSuite.runAllTests();
-      
-      if (testSuite.failed === 0) {
-        console.log('🎉 All UI Selection Box tests passed!');
-        console.log('💡 Try: testSelectionBoxVisual() for interactive testing');
+    if (typeof globalThis.shouldRunTests === 'function') {
+      if (globalThis.shouldRunTests()) {
+        runUISelectionBoxTests();
+      } else {
+        globalThis.logNormal('🧪 UI Selection Box tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
       }
     } else {
-      console.log('⚠️ UI Selection Box system not ready - tests skipped');
+      // Legacy behavior when global test runner is not available
+      runUISelectionBoxTests();
     }
   }, 2000);
 }

@@ -175,12 +175,20 @@ class Button {
       strokeWeight(this.borderWidth || 2);
       rect(0, 0, this.width, this.height, this.cornerRadius || 5);
 
-      // Text
+      // Text with word wrapping
       fill(this.textColor || 'white');
       noStroke();
       textFont(this.fontFamily);
       textSize(this.fontSize);
-      text(this.caption, 0, 0);
+      
+      // Enable text wrapping if available
+      if (typeof textWrap === 'function') {
+        textWrap(WORD);
+      }
+      
+      // Wrap text to fit button width
+      const wrappedText = this.wrapTextToFit(this.caption, this.width - 10, this.fontSize);
+      text(wrappedText, 0, 0);
       pop();
     }
   
@@ -222,6 +230,15 @@ class Button {
    */
   setCaption(newCaption) {
     this.caption = newCaption;
+  }
+  
+  /**
+   * Alternative method name for compatibility
+   * 
+   * @param {string} newText - New button text
+   */
+  setText(newText) {
+    this.caption = newText;
   }
 
   /**
@@ -334,6 +351,86 @@ class Button {
         border: this.borderColor
       }
     };
+  }
+
+  /**
+   * Wrap text to fit within button width
+   * 
+   * @param {string} text - Text to wrap
+   * @param {number} maxWidth - Maximum width in pixels
+   * @param {number} fontSize - Font size for measurement
+   * @returns {string} Wrapped text with line breaks
+   */
+  wrapTextToFit(text, maxWidth, fontSize) {
+    if (typeof textWidth !== 'function') {
+      return text; // Fallback if textWidth is not available
+    }
+    
+    // Store current text settings
+    const currentFont = textFont();
+    const currentSize = textSize();
+    
+    // Set font for measurement
+    if (this.fontFamily) textFont(this.fontFamily);
+    textSize(fontSize);
+    
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    
+    for (let word of words) {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const testWidth = textWidth(testLine);
+      
+      if (testWidth > maxWidth && currentLine !== '') {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    // Restore previous text settings
+    if (currentFont) textFont(currentFont);
+    if (currentSize) textSize(currentSize);
+    
+    return lines.join('\n');
+  }
+
+  /**
+   * Calculate the required height for wrapped text
+   * 
+   * @param {string} text - Text to measure
+   * @param {number} maxWidth - Maximum width in pixels
+   * @param {number} fontSize - Font size
+   * @returns {number} Required height in pixels
+   */
+  calculateWrappedTextHeight(text, maxWidth, fontSize) {
+    const wrappedText = this.wrapTextToFit(text, maxWidth, fontSize);
+    const lines = wrappedText.split('\n').length;
+    const lineHeight = fontSize * 1.2; // Standard line height multiplier
+    return lines * lineHeight;
+  }
+
+  /**
+   * Auto-resize button height to fit wrapped text
+   * 
+   * @param {number} padding - Internal padding for text
+   */
+  autoResizeForText(padding = 10) {
+    const textWidth = this.width - padding;
+    const requiredHeight = this.calculateWrappedTextHeight(this.caption, textWidth, this.fontSize);
+    const newHeight = Math.max(35, requiredHeight + padding); // Minimum height of 35px
+    
+    if (newHeight !== this.height) {
+      this.setSize(this.width, newHeight);
+      return true; // Height changed
+    }
+    return false; // No change needed
   }
 }
 

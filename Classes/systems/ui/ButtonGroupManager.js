@@ -130,12 +130,25 @@ class ButtonGroupManager {
 
 
     // Create button group using real ButtonGroup class
-    console.log(`🚀 ButtonGroupManager about to create ButtonGroup for: ${config.id}`);
-    console.log(`   Config:`, config);
-    console.log(`   ActionFactory:`, this.actionFactory);
+    if (typeof globalThis.logDebug === 'function') {
+      globalThis.logDebug(`🚀 ButtonGroupManager about to create ButtonGroup for: ${config.id}`);
+    } else if (globalThis.globalDebugVerbosity >= 4) {
+      console.log(`🚀 ButtonGroupManager about to create ButtonGroup for: ${config.id}`);
+    }
+    if (typeof globalThis.logDebug === 'function') {
+      globalThis.logDebug(`   Config:`, config);
+      globalThis.logDebug(`   ActionFactory:`, this.actionFactory);
+    } else if (globalThis.globalDebugVerbosity >= 4) {
+      console.log(`   Config:`, config);
+      console.log(`   ActionFactory:`, this.actionFactory);
+    }
     
     const buttonGroup = new ButtonGroup(config, this.actionFactory);
-    console.log(`✅ ButtonGroupManager ButtonGroup created successfully for: ${config.id}`);
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose(`✅ ButtonGroupManager ButtonGroup created successfully for: ${config.id}`);
+    } else {
+      console.log(`✅ ButtonGroupManager ButtonGroup created successfully for: ${config.id}`);
+    }
     
     // Register in active groups
     this.activeGroups.set(config.id, {
@@ -354,6 +367,7 @@ class ButtonGroupManager {
 
   /**
    * Trigger global save operation for all groups with persistence
+   * Saves both group configurations and individual group states
    * 
    * @returns {Object} Save operation results
    */
@@ -361,25 +375,89 @@ class ButtonGroupManager {
     const results = {
       successful: 0,
       failed: 0,
-      errors: []
+      errors: [],
+      configurationsSaved: 0,
+      statesSaved: 0
     };
 
-    for (const [groupId, entry] of this.activeGroups) {
-      try {
-        const buttonGroup = entry.instance;
-        
-        // Use real ButtonGroup persistence API
-        if (typeof buttonGroup.saveState === 'function') {
-          buttonGroup.saveState();
-          results.successful++;
+    try {
+      // Step 1: Save group configurations for recreation
+      const groupConfigurations = {};
+      
+      for (const [groupId, entry] of this.activeGroups) {
+        try {
+          // Save the original configuration
+          groupConfigurations[groupId] = {
+            config: entry.config,
+            createdAt: entry.createdAt,
+            metadata: {
+              version: '1.0.0',
+              savedAt: Date.now()
+            }
+          };
+          results.configurationsSaved++;
+        } catch (error) {
+          console.error(`❌ Failed to save configuration for group ${groupId}:`, error);
+          results.errors.push({
+            groupId: groupId,
+            error: error.message,
+            phase: 'configuration_save'
+          });
         }
-      } catch (error) {
-        results.failed++;
-        results.errors.push({
-          groupId: groupId,
-          error: error.message
-        });
       }
+      
+      // Save configurations to localStorage
+      const savedGroupsKey = 'buttonGroupManager_savedGroups';
+      localStorage.setItem(savedGroupsKey, JSON.stringify(groupConfigurations));
+      console.log(`💾 Saved ${results.configurationsSaved} button group configurations`);
+
+      // Step 2: Save individual group states
+      for (const [groupId, entry] of this.activeGroups) {
+        try {
+          const buttonGroup = entry.instance;
+          
+          // Use real ButtonGroup persistence API
+          if (typeof buttonGroup.saveState === 'function') {
+            buttonGroup.saveState();
+            results.statesSaved++;
+            results.successful++;
+          }
+          // Fallback: save basic state to localStorage
+          else {
+            const groupState = {
+              position: buttonGroup.state ? { x: buttonGroup.state.position.x, y: buttonGroup.state.position.y } : null,
+              transparency: buttonGroup.state ? buttonGroup.state.transparency : 1.0,
+              visible: typeof buttonGroup.isVisible === 'function' ? buttonGroup.isVisible() : true,
+              scale: buttonGroup.state ? buttonGroup.state.scale : 1.0,
+              savedAt: Date.now()
+            };
+            
+            const groupStateKey = `buttonGroup_${groupId}_state`;
+            localStorage.setItem(groupStateKey, JSON.stringify(groupState));
+            results.statesSaved++;
+            results.successful++;
+          }
+          
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            groupId: groupId,
+            error: error.message,
+            phase: 'state_save'
+          });
+        }
+      }
+
+      console.log(`✅ Save complete: ${results.configurationsSaved} configurations saved, ${results.statesSaved} states saved`);
+      
+    } catch (error) {
+      console.error('❌ Failed to save button groups:', error);
+      results.failed++;
+      results.errors.push({
+        groupId: 'global',
+        error: error.message,
+        phase: 'global_save'
+      });
     }
 
     return results;
@@ -387,6 +465,7 @@ class ButtonGroupManager {
 
   /**
    * Trigger global load operation for all groups with persistence
+   * Loads saved button group configurations and recreates the groups
    * 
    * @returns {Object} Load operation results
    */
@@ -394,25 +473,189 @@ class ButtonGroupManager {
     const results = {
       successful: 0,
       failed: 0,
+      errors: [],
+      groupsRecreated: 0,
+      groupsRestored: 0
+    };
+
+    try {
+      // Step 1: Load saved group configurations from localStorage
+      const savedGroupsKey = 'buttonGroupManager_savedGroups';
+      const savedGroupsData = localStorage.getItem(savedGroupsKey);
+      
+      if (savedGroupsData) {
+        const savedConfigurations = JSON.parse(savedGroupsData);
+        console.log(`🔄 Loading ${Object.keys(savedConfigurations).length} saved button group configurations...`);
+        
+        // Step 2: Recreate groups from saved configurations
+        for (const [groupId, savedConfig] of Object.entries(savedConfigurations)) {
+          try {
+            // Only recreate if group doesn't already exist
+            if (!this.activeGroups.has(groupId)) {
+              const buttonGroup = this.createButtonGroup(savedConfig.config);
+              results.groupsRecreated++;
+              console.log(`✅ Recreated button group: ${groupId}`);
+            }
+            results.successful++;
+          } catch (error) {
+            console.error(`❌ Failed to recreate group ${groupId}:`, error);
+            results.failed++;
+            results.errors.push({
+              groupId: groupId,
+              error: error.message,
+              phase: 'recreation'
+            });
+          }
+        }
+      } else {
+        console.log('ℹ️ No saved button group configurations found');
+      }
+
+      // Step 3: Load individual group state for existing groups
+      for (const [groupId, entry] of this.activeGroups) {
+        try {
+          const buttonGroup = entry.instance;
+          
+          // Use real ButtonGroup persistence API
+          if (typeof buttonGroup.loadPersistedState === 'function') {
+            buttonGroup.loadPersistedState();
+            results.groupsRestored++;
+            console.log(`🔄 Restored state for group: ${groupId}`);
+          }
+          
+          // Also try to load from localStorage if method not available
+          else {
+            const groupStateKey = `buttonGroup_${groupId}_state`;
+            const savedState = localStorage.getItem(groupStateKey);
+            
+            if (savedState) {
+              const state = JSON.parse(savedState);
+              
+              // Apply saved state to button group
+              if (state.position && typeof buttonGroup.setPosition === 'function') {
+                buttonGroup.setPosition(state.position.x, state.position.y);
+              }
+              if (state.transparency !== undefined && typeof buttonGroup.setTransparency === 'function') {
+                buttonGroup.setTransparency(state.transparency);
+              }
+              if (state.visible !== undefined && typeof buttonGroup.setVisible === 'function') {
+                buttonGroup.setVisible(state.visible);
+              }
+              if (state.scale !== undefined && typeof buttonGroup.setScale === 'function') {
+                buttonGroup.setScale(state.scale);
+              }
+              
+              results.groupsRestored++;
+              console.log(`🔄 Restored state from localStorage for group: ${groupId}`);
+            }
+          }
+          
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            groupId: groupId,
+            error: error.message,
+            phase: 'state_restoration'
+          });
+        }
+      }
+
+      console.log(`✅ Load complete: ${results.groupsRecreated} groups recreated, ${results.groupsRestored} groups restored`);
+      
+    } catch (error) {
+      console.error('❌ Failed to load button groups:', error);
+      results.failed++;
+      results.errors.push({
+        groupId: 'global',
+        error: error.message,
+        phase: 'global_load'
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Clear all saved button group data from localStorage
+   * 
+   * @returns {Object} Clear operation results
+   */
+  clearAllSavedData() {
+    const results = {
+      configurationsCleared: 0,
+      statesCleared: 0,
+      keysRemoved: [],
       errors: []
     };
 
-    for (const [groupId, entry] of this.activeGroups) {
-      try {
-        const buttonGroup = entry.instance;
-        
-        // Use real ButtonGroup persistence API
-        if (typeof buttonGroup.loadPersistedState === 'function') {
-          buttonGroup.loadPersistedState();
-          results.successful++;
-        }
-      } catch (error) {
-        results.failed++;
-        results.errors.push({
-          groupId: groupId,
-          error: error.message
-        });
+    try {
+      // Clear main group configurations
+      const savedGroupsKey = 'buttonGroupManager_savedGroups';
+      if (localStorage.getItem(savedGroupsKey)) {
+        localStorage.removeItem(savedGroupsKey);
+        results.configurationsCleared++;
+        results.keysRemoved.push(savedGroupsKey);
       }
+
+      // Clear individual group states
+      const allKeys = Object.keys(localStorage);
+      for (const key of allKeys) {
+        if (key.startsWith('buttonGroup_') && key.endsWith('_state')) {
+          localStorage.removeItem(key);
+          results.statesCleared++;
+          results.keysRemoved.push(key);
+        }
+      }
+
+      console.log(`🗑️ Cleared saved data: ${results.configurationsCleared} configurations, ${results.statesCleared} states`);
+      
+    } catch (error) {
+      console.error('❌ Failed to clear saved data:', error);
+      results.errors.push(error.message);
+    }
+
+    return results;
+  }
+
+  /**
+   * Check if there is saved button group data available
+   * 
+   * @returns {Object} Information about available saved data
+   */
+  checkSavedData() {
+    const results = {
+      hasConfigurations: false,
+      configurationCount: 0,
+      hasStates: false,
+      stateCount: 0,
+      availableGroups: []
+    };
+
+    try {
+      // Check for saved configurations
+      const savedGroupsKey = 'buttonGroupManager_savedGroups';
+      const savedGroupsData = localStorage.getItem(savedGroupsKey);
+      
+      if (savedGroupsData) {
+        const savedConfigurations = JSON.parse(savedGroupsData);
+        results.hasConfigurations = true;
+        results.configurationCount = Object.keys(savedConfigurations).length;
+        results.availableGroups = Object.keys(savedConfigurations);
+      }
+
+      // Check for individual group states
+      const allKeys = Object.keys(localStorage);
+      for (const key of allKeys) {
+        if (key.startsWith('buttonGroup_') && key.endsWith('_state')) {
+          results.stateCount++;
+        }
+      }
+      results.hasStates = results.stateCount > 0;
+
+      console.log(`📊 Saved data check: ${results.configurationCount} configurations, ${results.stateCount} states available`);
+      
+    } catch (error) {
+      console.error('❌ Failed to check saved data:', error);
     }
 
     return results;

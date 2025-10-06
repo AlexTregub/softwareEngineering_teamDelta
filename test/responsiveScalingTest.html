@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Panel Scaling Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #333;
+            color: white;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-size: 14px;
+        }
+        
+        .controls h3 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+        
+        .controls button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px;
+            background: #555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .controls button:hover {
+            background: #666;
+        }
+        
+        .controls .active {
+            background: #4CAF50;
+        }
+        
+        .info {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div class="controls">
+        <h3>📱 Responsive Panel Test</h3>
+        <button onclick="setCanvasSize(800, 600)">800x600 (SVGA)</button>
+        <button onclick="setCanvasSize(1280, 720)">1280x720 (HD)</button>
+        <button onclick="setCanvasSize(1920, 1080)" class="active">1920x1080 (FHD)</button>
+        <button onclick="setCanvasSize(2560, 1440)">2560x1440 (QHD)</button>
+        <button onclick="setCanvasSize(3840, 2160)">3840x2160 (4K)</button>
+        <hr>
+        <button onclick="toggleFullscreen()">Toggle Fullscreen</button>
+        <button onclick="resetToWindow()">Fit to Window</button>
+        <hr>
+        <button onclick="showScaleInfo()">Show Scale Info</button>
+    </div>
+    
+    <div class="info" id="info-panel">
+        <strong>Canvas:</strong> <span id="canvas-size">Loading...</span><br>
+        <strong>Scale:</strong> <span id="scale-info">Loading...</span><br>
+        <strong>Status:</strong> <span id="status-info">Initializing...</span>
+    </div>
+
+    <!-- Include p5.js -->
+    <script src="../libraries/p5.min.js"></script>
+    
+    <!-- Include the game classes -->
+    <script src="../Classes/systems/Button.js"></script>
+    <script src="../Classes/systems/ui/DraggablePanel.js"></script>
+    <script src="../Classes/systems/ui/DraggablePanelManager.js"></script>
+    
+    <!-- Include the example -->
+    <script src="../docs/usageExamples/responsiveScalingExample.js"></script>
+    
+    <script>
+        // Global variables
+        let panelManager;
+        let canvas;
+        let currentCanvasSize = { width: 1920, height: 1080 };
+        
+        function setup() {
+            // Create canvas and attach to container
+            canvas = createCanvas(currentCanvasSize.width, currentCanvasSize.height);
+            canvas.parent('canvas-container');
+            
+            // Initialize panel manager with responsive scaling
+            panelManager = setupResponsiveScalingExample();
+            
+            // Add the resolution test panel
+            const testPanel = createResolutionTestPanel();
+            panelManager.addPanel(testPanel);
+            
+            updateInfoPanel();
+        }
+        
+        function draw() {
+            // Background
+            background(45, 52, 64);
+            
+            // Update panels
+            panelManager.update(mouseX, mouseY, mouseIsPressed);
+            
+            // Render panels
+            panelManager.render();
+            
+            // Draw grid for reference
+            drawReferenceGrid();
+            
+            // Update info panel periodically
+            if (frameCount % 60 === 0) {
+                updateInfoPanel();
+            }
+        }
+        
+        function drawReferenceGrid() {
+            stroke(255, 255, 255, 30);
+            strokeWeight(1);
+            
+            // Vertical lines
+            for (let x = 0; x < width; x += 100) {
+                line(x, 0, x, height);
+            }
+            
+            // Horizontal lines
+            for (let y = 0; y < height; y += 100) {
+                line(0, y, width, y);
+            }
+            
+            // Center lines
+            stroke(255, 255, 255, 80);
+            line(width / 2, 0, width / 2, height);
+            line(0, height / 2, width, height / 2);
+        }
+        
+        // Control functions
+        function setCanvasSize(w, h) {
+            currentCanvasSize = { width: w, height: h };
+            resizeCanvas(w, h);
+            
+            // Update active button
+            document.querySelectorAll('.controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateInfoPanel();
+            
+            console.log(`Canvas resized to ${w}x${h}`);
+        }
+        
+        function toggleFullscreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
+        }
+        
+        function resetToWindow() {
+            currentCanvasSize = { width: windowWidth, height: windowHeight };
+            resizeCanvas(windowWidth, windowHeight);
+            updateInfoPanel();
+        }
+        
+        function showScaleInfo() {
+            if (panelManager) {
+                const info = panelManager.getResponsiveScalingInfo();
+                alert(`Responsive Scaling Info:
+                
+Current Resolution: ${info.currentResolution.width} x ${info.currentResolution.height}
+Base Resolution: ${info.baseResolution.width} x ${info.baseResolution.height}
+
+Scale Factor X: ${info.scaleFactorX.toFixed(3)}
+Scale Factor Y: ${info.scaleFactorY.toFixed(3)}
+Final Scale: ${info.finalScale.toFixed(3)}
+
+Global Scale: ${info.currentGlobalScale.toFixed(3)}
+Responsive Enabled: ${info.enabled}`);
+            }
+        }
+        
+        function updateInfoPanel() {
+            if (panelManager) {
+                const info = panelManager.getResponsiveScalingInfo();
+                
+                document.getElementById('canvas-size').textContent = 
+                    `${width}x${height}`;
+                
+                document.getElementById('scale-info').textContent = 
+                    `${info.finalScale.toFixed(2)}x (${info.enabled ? 'Responsive' : 'Manual'})`;
+                
+                document.getElementById('status-info').textContent = 
+                    `Base: ${info.baseResolution.width}x${info.baseResolution.height}`;
+            }
+        }
+        
+        // Handle window resize
+        function windowResized() {
+            if (currentCanvasSize.width === windowWidth && currentCanvasSize.height === windowHeight) {
+                resizeCanvas(windowWidth, windowHeight);
+                updateInfoPanel();
+            }
+        }
+        
+        // Handle mouse events for panels
+        function mousePressed() {
+            if (panelManager) {
+                return panelManager.handleMousePressed(mouseX, mouseY);
+            }
+            return false;
+        }
+        
+        function mouseDragged() {
+            if (panelManager) {
+                return panelManager.handleMouseDragged(mouseX, mouseY);
+            }
+            return false;
+        }
+        
+        function mouseReleased() {
+            if (panelManager) {
+                return panelManager.handleMouseReleased(mouseX, mouseY);
+            }
+            return false;
+        }
+        
+        // Keyboard shortcuts
+        function keyPressed() {
+            switch (key) {
+                case '1': setCanvasSize(800, 600); break;
+                case '2': setCanvasSize(1280, 720); break;
+                case '3': setCanvasSize(1920, 1080); break;
+                case '4': setCanvasSize(2560, 1440); break;
+                case '5': setCanvasSize(3840, 2160); break;
+                case 'f': case 'F': toggleFullscreen(); break;
+                case 'r': case 'R': resetToWindow(); break;
+                case 'i': case 'I': showScaleInfo(); break;
+            }
+        }
+        
+        console.log('📱 Responsive Panel Scaling Test Loaded');
+        console.log('Use number keys 1-5 to change resolution, F for fullscreen, R to reset, I for info');
+    </script>
+</body>
+</html>
