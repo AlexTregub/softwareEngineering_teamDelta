@@ -57,13 +57,13 @@ function wander(grid, node, travelled, ant, state){
         Wanders around aimlessly (Takes the shortest path?)
         Leaves pheromone related to its current task
   */
-  if(node.scents != [] && !avoidSmellCheck){
+  if(node.scents.length > 0 && !ant.avoidSmellCheck){
     let result = tryTrack(node.scents, ant.speciesName, travelled);
-    if(result = 0){
+    if(result === 0){
       ant.avoidSmellCheck = true; //this should be implemented into Ant class. Ants stop checking smell (at least temp) once test failed
       return findBestNeighbor(grid, node, travelled);
     }
-    else if(result = 1){
+    else if(result === 1){
       ant.tracking = true; //This should be implemented into Ant class. Ants immediately go to tracking when following pheromones.
       return track();
     }
@@ -128,36 +128,43 @@ function tryTrack(scents, antType, failedTrailTypes){
         followForageTrail = 0.05;
         followFarmTrail = 0;
         followEnemyTrail = 0.05;
+        break;
     case "Scout":
         followBuildTrail = 0.25;
         followForageTrail = 0.25;
         followFarmTrail = 0.25;
         followEnemyTrail = 0.25;
+        break;
     case "Farmer":
         followBuildTrail = 0;
         followForageTrail = 0.1;
         followFarmTrail = 0.85;
         followEnemyTrail = 0.05;
+        break;
     case "Warrior":
         followBuildTrail = 0;
         followForageTrail = 0.2;
         followFarmTrail = 0;
         followEnemyTrail = 1;
+        break;
     case "Spitter":
         followBuildTrail = 0;
         followForageTrail = 0.2;
         followFarmTrail = 0;
         followEnemyTrail = 1;
+        break;
     case "DeLozier":
         followBuildTrail = 0;
         followForageTrail = 0;
         followFarmTrail = 0;
         followEnemyTrail = 0;
+        break;
     default:
         followBuildTrail = 0;
         followForageTrail = 0.75;
         followFarmTrail = 0;
         followEnemyTrail = 0.25;
+        break;
   } //Switch statement for different ant types
     /*Different pheromone types
         Should be built on two factors: faction(enemy,neutral) and purpose
