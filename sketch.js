@@ -21,6 +21,7 @@ let g_map2;
 let g_gridMap;
 let g_coordsy;
 // --- UI ---
+let g_menuFont;
 // --- IDK! ----
 let g_recordingPath;
 
@@ -60,7 +61,7 @@ function setup() {
   });
 
   initializeMenu();  // Initialize the menu system
-  renderpipelineInit();
+  renderPipelineInit();
 }
 
 /**

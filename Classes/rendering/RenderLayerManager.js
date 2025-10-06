@@ -537,7 +537,8 @@ class RenderLayerManager {
   }
 }
 
-function renderpipelineInit() {
+
+function renderPipelineInit() {
 // UI Debug System initialization
   // Create global UI Debug Manager instance
   // Disabled to avoid conflicts with other UI systems
@@ -601,6 +602,7 @@ function renderpipelineInit() {
     }
   }, 200);
 }
+
 
 // Create global instance
 const RenderManager = new RenderLayerManager();
