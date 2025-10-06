@@ -186,11 +186,12 @@ function draw() {
     // ];
 
     // Basic window-size check:
-    if (CANVAS_X != windowWidth || CANVAS_Y != windowHeight) {
-      MAP2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
-      CANVAS_X = windowWidth;
-      CANVAS_Y = windowHeight;
-    }
+    // if (CANVAS_X != windowWidth || CANVAS_Y != windowHeight) {
+    //   MAP2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+    //   CANVAS_X = windowWidth;
+    //   CANVAS_Y = windowHeight;
+    //   background(0);
+    // }
 
     MAP2.render();
     Ants_Update();
@@ -256,3 +257,13 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
 // Dev console indicator moved to debug/testing.js
 
 // Command line drawing moved to debug/commandLine.js
+
+// Dynamic window resizing:
+function windowResized() {
+  MAP2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+  CANVAS_X = windowWidth;
+  CANVAS_Y = windowHeight;
+  // background(0);
+
+  resizeCanvas(CANVAS_X,CANVAS_Y);
+}
