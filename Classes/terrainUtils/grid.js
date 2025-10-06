@@ -3,6 +3,20 @@
 ///// Treat _ as private, else as public.
 let GRID_ID = 0;
 
+//// GRID UTILS:
+function convertToGrid(data,sizeX,sizeY) { // Convert raw array into grid format.
+    let temp = new Grid(sizeX,sizeY);
+    
+    // Copy data:
+    for (let i = 0; i < sizeX*sizeY; ++i) {
+        temp.rawArray[i] = data[i];
+    }
+
+    return temp;
+}
+
+
+//// GRID:
 class Grid {
     constructor(sizeX,sizeY,spanTopLeft=NONE,objLoc=[0,0]) { // Only Size needed
         // Array size config
@@ -81,19 +95,19 @@ class Grid {
         return this.getRangeNeighborhoodGrid(arrayPos,radius).rawArray;
     }
 
-    convertToGrid(data,sizeX,sizeY) { // Convert raw array into grid format.
-        let temp = new Grid(sizeX,sizeY);
+    // convertToGrid(data,sizeX,sizeY) { // Convert raw array into grid format.
+    //     let temp = new Grid(sizeX,sizeY);
         
-        // Copy data:
-        for (let i = 0; i < sizeX*sizeY; ++i) {
-            temp.rawArray[i] = data[i];
-        }
+    //     // Copy data:
+    //     for (let i = 0; i < sizeX*sizeY; ++i) {
+    //         temp.rawArray[i] = data[i];
+    //     }
 
-        return temp;
-    }
+    //     return temp;
+    // }
 
     getRangeGrid(tlArrayPos,brArrayPos) { // NO CHECKS, DO NOT TORTURE KITTENS
-        return this.convertToGrid(
+        return convertToGrid(
             this.getRangeData(tlArrayPos,brArrayPos),
             brArrayPos[0]-tlArrayPos[0],
             brArrayPos[1]-tlArrayPos[1]

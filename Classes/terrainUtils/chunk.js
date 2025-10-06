@@ -49,7 +49,7 @@ class Chunk {
     }
 
     //// Passed through Grid functions
-    // Utils:
+    // Utils: No OOB checks
     convToFlat(pos) {
         return this.tileData.convToFlat(pos);
     }
@@ -63,14 +63,13 @@ class Chunk {
         return this.tileData.convArrToRelPos(pos);
     }
 
-    // Bulk:
+    // Bulk: Range functions do not have OOB checks, Neighborhood handles OOB automatically.
     getRangeData(tlArrayPos,brArrayPos) {
         return this.tileData.getRangeData(tlArrayPos,brArrayPos);
     }
     getRangeNeighborhoodData(arrayPos,radius) {
         return this.tileData.getRangeNeighborhoodData(arrayPos,radius);
     }
-    //...
     getRangeGrid(tlArrayPos,brArrayPos) {
         return this.tileData.getRangeGrid(tlArrayPos,brArrayPos);
     }
@@ -78,7 +77,7 @@ class Chunk {
         return this.tileData.getRangeNeighborhoodGrid(arrayPos,radius);
     }
 
-    // Access
+    // Access: OOB warning messages in console. Search for lines with "Grid#" (infoStr() returns)
     getArrPos(pos) {
         return this.tileData.getArrPos(pos);
     }
@@ -96,7 +95,6 @@ class Chunk {
     print() {
         this.tileData.print();
     }
-    // ...
     infoStr() {
         return this.tileData.infoStr();
     }
@@ -105,19 +103,17 @@ class Chunk {
     getSize() {
         return this.tileData.getSize();
     }
-    //...
     getSpanRange() {
         return this.tileData.getSpanRange();
     }
-    //...
     getObjPos() {
         return this.tileData.getObjPos();
     }
-    //...
     getGridId() {
         return this.tileData.getGridId();
     }
-    
+
+    // Reset, properties kept.
     clear() {
         this.tileData.clear();
 
