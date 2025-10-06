@@ -3,23 +3,23 @@ const CHUNK_SIZE=8; // size in Tiles
 
 class Chunk {
     constructor(chunkPos,spanTLPos,size=CHUNK_SIZE,tileSize=TILE_SIZE) { // spanTLPos should be a known rounded value. We will automatically offset items as needed. 
-        this.tileData = new Grid(size,size,spanTLPos,chunkPos); // Public, can access through chunk.tileData.*
+        this._chunkPos = chunkPos;
+        this._spanTLPos = spanTLPos;
+        this._size = size;
+        this._tileSize = tileSize;
+        
+        this.tileData = new Grid(this._size,this._size,this._spanTLPos,this._chunkPos); // Public, can access through chunk.tileData.*
 
         // Fill grid with Tile:
-        let len = size*size;
+        let len = this._size*this._size;
         for (let i = 0; i < len; ++i) {
             let gridPos = this.tileData.convArrToRelPos(this.tileData.convToSquare(i)); // i -> square -> span
             this.tileData.rawArray[i] = new Tile(gridPos[0]-0.5,gridPos[1]-0.5,tileSize); // Now storing GRID-RENDER position TL render corner (offset), instead of PIXEL position. Raw access for efficiency
         }
     }
 
+    //// Additional chunk functionality
     randomize(posOffset) {
-        // Set chunk-seed (arbitrary, ideally shouldnt have collision)
-        // randomSeed(
-        //     // sign(x)((seed^x)/y) for chunkPos x,y .
-        //     Math.sign(this.tileData.getObjPos()[0])*pow(seed,abs(this.tileData.getObjPos()[0])+0.5)/(this.tileData.getObjPos()[1]+0.5)
-        // );
-
         let width = this.tileData.getSize()[0]; // ASSUMED SQUARE
         let len = width*width;
         for (let i = 0; i < len; ++i) {
@@ -32,38 +32,6 @@ class Chunk {
             this.tileData.rawArray[i].randomizePerlin(position); // Picks from random material
             // print(this.tileData.getSpanRange());
         }
-
-        // Dirt clustering -> not of latest method, using previous idea of neighbors
-        // for (let i = 0; i < len; ++i) {
-        //     let iPos = this.tileData.convToSquare(i);
-        //     let countDirt = 0;
-
-        //     // Get 4 neighbors, without OOB
-        //     if (iPos[0]+1 < width && iPos[0]+1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0]+1,iPos[1]]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-        //     if (iPos[0]-1 < width && iPos[0]-1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0]-1,iPos[1]]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-        //     if (iPos[1]+1 < width && iPos[1]+1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0],iPos[1]+1]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-        //     if (iPos[1]-1 < width && iPos[1]-1 >= 0) {
-        //         if (this.tileData.getArrPos([iPos[0],iPos[1]-1]).getMaterial() == 'dirt') {
-        //             ++countDirt;
-        //         }
-        //     }
-
-        //     if (random() < (countDirt/4)) {
-        //         this.tileData.rawArray[i].setMaterial('dirt');
-        //     }
-        // }
     }
 
     render(coordSys) { // Render through coordinate system
@@ -78,5 +46,88 @@ class Chunk {
 
     toString() {
         return this.tileData.toString();
+    }
+
+    //// Passed through Grid functions
+    // Utils:
+    convToFlat(pos) {
+        return this.tileData.convToFlat(pos);
+    }
+    convToSquare(z) {
+        return this.tileData.convToSquare(z);
+    }
+    convRelToArrPos(pos) {
+        return this.tileData.convRelToArrPos(pos);
+    }
+    convArrToRelPos(pos) {
+        return this.tileData.convArrToRelPos(pos);
+    }
+
+    // Bulk:
+    getRangeData(tlArrayPos,brArrayPos) {
+        return this.tileData.getRangeData(tlArrayPos,brArrayPos);
+    }
+    getRangeNeighborhoodData(arrayPos,radius) {
+        return this.tileData.getRangeNeighborhoodData(arrayPos,radius);
+    }
+    //...
+    getRangeGrid(tlArrayPos,brArrayPos) {
+        return this.tileData.getRangeGrid(tlArrayPos,brArrayPos);
+    }
+    getRangeNeighborhoodGrid(arrayPos,radius) {
+        return this.tileData.getRangeNeighborhoodGrid(arrayPos,radius);
+    }
+
+    // Access
+    getArrPos(pos) {
+        return this.tileData.getArrPos(pos);
+    }
+    setArrPos(pos,obj) {
+        return this.tileData.setArrPos(pos,obj);
+    }
+    get(relPos) {
+        return this.tileData.get(relPos);
+    }
+    set(relPos,obj) {
+        return this.tileData.set(relPos,obj);
+    }
+
+    // Debug 
+    print() {
+        this.tileData.print();
+    }
+    // ...
+    infoStr() {
+        return this.tileData.infoStr();
+    }
+
+    // Info of struct, modification restricted.
+    getSize() {
+        return this.tileData.getSize();
+    }
+    //...
+    getSpanRange() {
+        return this.tileData.getSpanRange();
+    }
+    //...
+    getObjPos() {
+        return this.tileData.getObjPos();
+    }
+    //...
+    getGridId() {
+        return this.tileData.getGridId();
+    }
+    
+    clear() {
+        this.tileData.clear();
+
+        this.tileData = new Grid(this._size,this._size,this._spanTLPos,this._chunkPos); // Public, can access through chunk.tileData.*
+
+        // Fill grid with Tile:
+        let len = this._size*this._size;
+        for (let i = 0; i < len; ++i) {
+            let gridPos = this.tileData.convArrToRelPos(this.tileData.convToSquare(i)); // i -> square -> span
+            this.tileData.rawArray[i] = new Tile(gridPos[0]-0.5,gridPos[1]-0.5,tileSize); // Now storing GRID-RENDER position TL render corner (offset), instead of PIXEL position. Raw access for efficiency
+        }
     }
 }
