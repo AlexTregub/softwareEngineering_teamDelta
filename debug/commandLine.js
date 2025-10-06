@@ -531,7 +531,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Debug: Log that the file loaded successfully (using original console.log to avoid circular capture)
-originalConsoleLog('✅ commandLine.js loaded successfully with non-intrusive console capture');
+// originalConsoleLog('✅ commandLine.js loaded successfully with non-intrusive console capture');
 
 /**
  * handlePerformanceCommand

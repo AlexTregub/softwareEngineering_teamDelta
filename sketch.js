@@ -392,10 +392,10 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
 
 // Dynamic window resizing:
 function windowResized() {
-  MAP2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
-  CANVAS_X = windowWidth;
-  CANVAS_Y = windowHeight;
+  g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
   // background(0);
 
-  resizeCanvas(CANVAS_X,CANVAS_Y);
+  resizeCanvas(g_canvasX,g_canvasY);
 }

@@ -135,7 +135,7 @@ titleY += (titleTargetY - titleY) * easing;
 // Add a slow downward drift
 titleY += 0.2; // tweak this value for speed of float-down
 
-let floatOffset = sin(frameCount * 0.03) * 5;
+// let floatOffset = sin(frameCount * 0.03) * 5;
 
 // Main menu render function
 function drawMenu() {

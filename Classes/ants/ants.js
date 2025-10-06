@@ -22,7 +22,7 @@ function antsPreloader() {
     Builder: loadImage('Images/Ants/gray_ant_builder.png'),
     Scout: loadImage('Images/Ants/gray_ant_scout.png'),
     Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
-    Warrior: loadImage('Images/Ants/gray_ant_warrior.png'),
+    // Warrior: loadImage('Images/Ants/gray_ant_warrior.png'),
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
     DeLozier: loadImage('Images/Ants/greg.jpg')
   };
