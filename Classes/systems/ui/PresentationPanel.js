@@ -408,7 +408,7 @@ function renderSprintImageInMenu() {
     }
     
     const imgX = g_canvasX/2;
-    const imgY = (g_canvasY - imgHeight);
+    const imgY = g_canvasY/2;
 
     image(sprint5Image, imgX, imgY, imgWidth, imgHeight);
     
