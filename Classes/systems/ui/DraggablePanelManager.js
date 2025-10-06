@@ -34,9 +34,9 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': [],
-      'PLAYING': ['tools', 'resources', 'stats'],
-      'PAUSED': ['tools', 'resources', 'stats'],
-      'DEBUG_MENU': ['tools', 'resources', 'stats', 'debug'],
+      'PLAYING': ['ant_spawn'],
+      'PAUSED': ['ant_spawn'],
+      'DEBUG_MENU': ['ant_spawn'],
       'GAME_OVER': ['stats']
     };
     
@@ -89,12 +89,13 @@ class DraggablePanelManager {
    * Create the default example panels
    */
   createDefaultPanels() {
-    // Tools Panel (vertical layout with ant spawning options)
-    this.panels.set('tools', new DraggablePanel({
-      id: 'tools-panel',
-      title: 'Ant Control',
+    // Ant Spawn Panel (vertical layout with ant spawning options)
+    this.panels.set('ant_spawn', new DraggablePanel({
+      id: 'ant-Spawn-panel',
+      title: 'Ant Government Population Manager (🐜)',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
+      scale: 1.0, // Initial scale
       buttons: {
         layout: 'vertical',
         spacing: 3,
@@ -117,6 +118,11 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
           },
           {
+            caption: 'Spawn 1000 Ants (Don\'t do this!)',
+            onClick: () => this.spawnAnts(1000),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
+          },
+          {
             caption: 'Kill 1 Ant',
             onClick: () => this.killAnts(1),
             style: ButtonStyles.DANGER
@@ -135,7 +141,7 @@ class DraggablePanelManager {
             caption: 'Clear All Ants',
             onClick: () => this.clearAnts(),
             style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
-          },
+          }/*,
           {
             caption: 'Pause/Play',
             onClick: () => this.togglePause(),
@@ -145,15 +151,15 @@ class DraggablePanelManager {
             caption: 'Debug Info',
             onClick: () => this.toggleDebug(),
             style: ButtonStyles.PURPLE
-          }
+          }*/
         ]
       }
     }));
 
     // Resources Panel (grid layout)
     this.panels.set('resources', new DraggablePanel({
-      id: 'resources-panel',
-      title: 'Resources',
+      id: 'resources-spawn-panel',
+      title: 'Resource Spawner',
       position: { x: 180, y: 80 },
       size: { width: 180, height: 150 },
       buttons: {
@@ -165,24 +171,24 @@ class DraggablePanelManager {
         items: [
           {
             caption: 'Wood',
-            onClick: () => this.selectResource('wood'),
+            onClick: () => this.selectResource('stick'),
             style: { ...ButtonStyles.DEFAULT, backgroundColor: '#8B4513' }
           },
           {
-            caption: 'Food', 
-            onClick: () => this.selectResource('food'),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+            caption: 'Leaves',
+            onClick: () => this.selectResource('leaves'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#11cd5cff' }
           },
           {
             caption: 'Stone',
             onClick: () => this.selectResource('stone'),
             style: { ...ButtonStyles.DEFAULT, backgroundColor: '#696969' }
-          },
+          }/*,
           {
             caption: 'Info',
             onClick: () => this.showResourceInfo(),
             style: ButtonStyles.PURPLE
-          }
+          }*/
         ]
       }
     }));
@@ -223,7 +229,7 @@ class DraggablePanelManager {
       id: 'debug-panel',
       title: 'Debug Controls',
       position: { x: 600, y: 80 },
-      size: { width: 160, height: 200 },
+      size: { width: 160, height: 320 },
       buttons: {
         layout: 'vertical',
         spacing: 3,
@@ -244,6 +250,31 @@ class DraggablePanelManager {
             caption: 'Entity Debug',
             onClick: () => this.toggleEntityDebug(),
             style: ButtonStyles.DEFAULT
+          },
+          {
+            caption: 'Scale Up (+)',
+            onClick: () => this.scaleUp(),
+            style: ButtonStyles.SUCCESS
+          },
+          {
+            caption: 'Scale Down (-)',
+            onClick: () => this.scaleDown(),
+            style: ButtonStyles.WARNING
+          },
+          {
+            caption: 'Reset Scale',
+            onClick: () => this.resetScale(),
+            style: ButtonStyles.DEFAULT
+          },
+          {
+            caption: 'Responsive Scale',
+            onClick: () => this.toggleResponsiveScaling(),
+            style: ButtonStyles.PURPLE
+          },
+          {
+            caption: 'Apply Responsive',
+            onClick: () => this.applyResponsiveScaling(true),
+            style: ButtonStyles.SUCCESS
           },
           {
             caption: 'Console Log',
@@ -537,6 +568,56 @@ class DraggablePanelManager {
     const status = this.debugMode.panelTrainMode ? 'ENABLED' : 'DISABLED';
     console.log(`🚂 Panel Train Mode ${status}`);
   }
+
+  /**
+   * Set global scale for all panels
+   * 
+   * @param {number} scale - Scale factor (0.5 to 2.0)
+   */
+  setGlobalScale(scale) {
+    this.globalScale = Math.max(this.minScale, Math.min(this.maxScale, scale));
+    
+    // Apply scale to all panels
+    for (const panel of this.panels.values()) {
+      if (typeof panel.setScale === 'function') {
+        panel.setScale(this.globalScale);
+      }
+    }
+    
+    console.log(`🔍 Global panel scale set to ${this.globalScale.toFixed(2)}x`);
+  }
+
+  /**
+   * Get current global scale
+   * 
+   * @returns {number} Current global scale factor
+   */
+  getGlobalScale() {
+    return this.globalScale;
+  }
+
+  /**
+   * Scale panels up by 10%
+   */
+  scaleUp() {
+    this.setGlobalScale(this.globalScale * 1.1);
+  }
+
+  /**
+   * Scale panels down by 10%
+   */
+  scaleDown() {
+    this.setGlobalScale(this.globalScale / 1.1);
+  }
+
+  /**
+   * Reset scale to default (1.0)
+   */
+  resetScale() {
+    this.setGlobalScale(1.0);
+  }
+
+
 
   /**
    * Check if a panel exists
