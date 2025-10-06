@@ -1,240 +1,374 @@
-let CANVAS_X = 800; // Default 800
-let CANVAS_Y = 800; // Default 800
+
+// --- GRID SYSTEM ---
+let g_canvasX = 800; // Default 800
+let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
 
 const NONE = '\0'; 
 
-let SEED;
-let MAP;
-let MAP2;
+// --- CONTROLLER DECLARATIONS ---
+let g_mouseController;
+let g_keyboardController;
+let g_selectionBoxController;
+let g_uiSelectionController; // UI Effects Layer Selection Controller
+let g_tileInteractionManager; // Efficient tile-based interaction system
+// --- WORLD GENERATION ---
+let g_seed;
+let g_map;
+let g_map2;
+let g_gridMap;
+let g_coordsy;
+// --- UI ---
+// --- IDK! ----
+let g_recordingPath;
 
-let GRIDMAP;
-let COORDSY;
-let font;
-let recordingPath;
-let menuImage;
-let playButton;
-let optionButton;
-let exitButton;
-let infoButton;
-let debugButton;
-
+/**
+ * preload
+ * -------
+ * Preloads game assets and resources used during runtime.
+ * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
+ * Assigns loaded assets to globals consumed by rendering and game systems.
+ */
 function preload(){
-  test_stats();
-  terrainPreloader()
-  Ants_Preloader()
+  terrainPreloader();
+  menuPreload();
+  antsPreloader();
   resourcePreLoad();
-  font = loadFont("Images/Assets/Terraria.TTF");
-  menuImage = loadImage("Images/Assets/Menu/ant_logo1.png");
-  playButton = loadImage("Images/Assets/Menu/play_button.png");
-  optionButton = loadImage("Images/Assets/Menu/options_button.png");
-  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
-  infoButton = loadImage("Images/Assets/Menu/info_button.png");
-  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
-  videoButton = loadImage("Images/Assets/Menu/vs_button.png");
-  audioButton = loadImage("Images/Assets/Menu/as_button.png");
-  controlButton = loadImage("Images/Assets/Menu/controls_button.png");
-  backButton = loadImage("Images/Assets/Menu/back_button.png");
-}
-
-// MOUSE INTERACTIONS
-function mousePressed() {
-  if (isInGame()) {  // only allow ant interactions in game
-    if (typeof handleMousePressed === 'function') {
-      handleMousePressed(
-        ants,
-        mouseX,
-        mouseY,
-        Ant_Click_Control,
-        selectedAnt,
-        moveSelectedAntToTile,
-        TILE_SIZE,
-        mouseButton
-      );
-    }
-  }
-
-  // Handle menu button clicks
-  if (isInMenu() || isInOptions()) {
-    if (typeof handleMenuClick === 'function') {
-      handleMenuClick();
-    }
-  }
 }
 
 
-function mouseDragged() {
-  if (isInGame() && typeof handleMouseDragged === 'function') {
-    handleMouseDragged(mouseX, mouseY, ants);
-  }
-}
+function setup() {
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
+  createCanvas(g_canvasX, g_canvasY);
+  initializeWorld();
 
-function mouseReleased() {
-  if (isInGame() && typeof handleMouseReleased === 'function') {
-    handleMouseReleased(ants, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
-  }
-}
+  // Initialize TileInteractionManager for efficient mouse input handling
+  g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
-// Debug functionality moved to debug/testing.js
+  // --- Initialize Controllers ---
+  g_mouseController = new MouseInputController();
+  g_keyboardController = new KeyboardInputController();
+  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
 
-// KEYBOARD INTERACTIONS
-function keyPressed() {
-  // Handle all debug-related keys (command line, dev console, test hotkeys)
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
-    return; // Debug key was handled, don't process further
+  // Connect keyboard controller for general input handling
+  g_keyboardController.onKeyPress((keyCode, key) => {
+    // UI shortcuts are now handled directly in keyPressed() function
+    // This maintains compatibility with existing game input systems
+  });
+
+  initializeMenu();  // Initialize the menu system
+  
+  // UI Debug System initialization
+  // Create global UI Debug Manager instance
+  // Disabled to avoid conflicts with other UI systems
+  //
+  window.g_uiDebugManager = new UIDebugManager();
+  g_uiDebugManager = window.g_uiDebugManager; // Make globally available
+  
+  // Initialize dropoff UI if present (creates the Place Dropoff button)
+  window.initDropoffUI();
+
+  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
+  try {
+      g_resourceManager.forceSpawn();
+  } catch (e) { /* non-fatal; spawner will populate via interval */ }
+
+  // Initialize Universal Button Group System
+  initializeUniversalButtonSystem();
+  
+  // Initialize Draggable Panel System
+  initializeDraggablePanelSystem();
+  
+  // Initialize Enhanced Draggable Panels with Button Arrays
+  if (typeof initializeDraggablePanels !== 'undefined') {
+    initializeDraggablePanels();
   }
   
-  if (keyCode === ESCAPE) {
-    if (typeof deselectAllEntities === 'function') {
-      deselectAllEntities();
-    }
+  // Initialize ant control panel for spawning and state management
+  if (typeof initializeAntControlPanel !== 'undefined') {
+    initializeAntControlPanel();
   }
+  
+  // Initialize UI Selection Controller for effects layer selection box
+  // This must happen after RenderManager.initialize() creates the EffectsRenderer
+  setTimeout(() => {
+    console.log('🎯 Initializing UI Selection Controller...');
+    
+    // Check if required components exist
+    if (UISelectionController && window.EffectsRenderer) {
+      g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
+      console.log('✅ UISelectionController created successfully');
+      
+      // Initialize the selection box system
+      if (initializeUISelectionBox) {
+        initializeUISelectionBox();
+      }
+    } else {
+      console.error('❌ Required components not available:');
+      console.log('UISelectionController available:', typeof UISelectionController !== 'undefined');
+      console.log('EffectsRenderer available:', typeof window.EffectsRenderer !== 'undefined');
+      console.log('window.EffectsRenderer object:', window.EffectsRenderer);
+    }
+  }, 200);
 }
 
-// Command line functionality has been moved to debug/commandLine.js
+/**
+ * initializeWorld
+ * ----------------
+ * Encapsulates the world and map initialization that was previously inlined
+ * inside setup(). Keeps setup() concise and makes the initialization reusable
+ * for tests or reset logic.
+ */
+function initializeWorld() {
 
-////// MAIN
-function setup() {
-  CANVAS_X = windowWidth;
-  CANVAS_Y = windowHeight;
-  createCanvas(CANVAS_X, CANVAS_Y);
+  g_seed = hour()*minute()*floor(second()/10);
 
-  SEED = hour()*minute()*floor(second()/10);
-
-  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
-  // MAP.randomize(SEED); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
+  g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
+  // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
   
   // New, Improved, and Chunked Terrain
-  MAP2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,SEED,CHUNK_SIZE,TILE_SIZE,[CANVAS_X,CANVAS_Y]);
-  MAP2.randomize(SEED);
-  // MAP2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER..
-  // MAP2.renderConversion._camPosition = [-72,-72]; // MOVEMENT OF VIEW EXAMPLE
-
-  MAP2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
+  // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
+  g_map2.randomize(g_seed);
+  g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
-  GRIDMAP = new PathMap(MAP);
-  COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
-  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-
-  
-
-  initializeMenu();  // Initialize the menu system
-  setupTests(); // Call test functions from AntStateMachine branch
+  g_gridMap = new PathMap(g_map);
+  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
+  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+   // Initialize the render layer manager if not already done
+  RenderManager.initialize();
+  initializeDraggablePanelSystem();
  
-  Ants_Spawn(10);
-  // Resources_Spawn(20);
-
-  // Grid new functionality testing:
-  // let temp = new Grid(8,8,[5,5]);
-  // temp.print();
-  // print(temp.infoStr());
-
-  // MAP2.chunkArray.print();
-  // print(MAP2.chunkArray.infoStr());
-
-  // testGridUtil();
-  // testGridResizeAndConsequences();
-
-  // let temp2 = new Grid(8,8,[0,0]);
-  // temp2.print();
-  // print(temp2.infoStr());
-  // Test conversions
-  // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([10,10])));
-  // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([0,0])));
-  // console.log(MAP2.renderConversion.convCanvasToPos(MAP2.renderConversion.convPosToCanvas([-10,-10])));
-  // testGridBulk();
 }
 
-// Global Currency Counter
-function drawUI() {
-  push(); 
-  textFont(font); 
-  textSize(24);
-  fill(255);  // white text
-  textAlign(LEFT, TOP);
-  text("Food: " + globalResource.length, 10, 10);
-  pop();
-}
 
-function setupTests() {
-  // Any test functions can be called here
-  // e.g. antSMtest();
-  antSMtest(); // Test Ant State Machine
-}
-
+/**
+ * draw
+ * ----
+ * Main rendering loop for the game.
+ * 
+ * Invokes the rendering pipeline in three distinct stages:
+ *   1. mapRender   - Draws the g_map background and debug grid.
+ *   2. fieldRender - Renders all dynamic game entities and resources.
+ *   3. uiRender    - Draws user interface elements and overlays.
+ * 
+ * Ensures proper visual stacking and separation between foundational layers,
+ * interactive entities, and UI components. Called automatically by p5.js each frame.
+ */
 function draw() {
-  background(0);
+  // background(0);
+  // g_map2.renderDirect();
 
-  // --- UPDATE MENU STATE ---
-  updateMenu();
-
-  // --- MENU / OPTIONS ---
-  if (renderMenu()) {
-    return; // menu rendered, stop here
+  // Use the new layered rendering system
+  // Update legacy draggable panels BEFORE rendering so the render pipeline
+  // sees the latest panel positions (avoids a pre-update render that leaves
+  // a ghost image of the previous frame's positions).
+  if (GameState.getState() === 'PLAYING') {
+    try {
+      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+        updateDraggablePanels();
+      }
+    } catch (error) {
+      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
+    }
   }
 
-  // --- PLAYING ---
+  if (RenderManager && RenderManager.isInitialized) {
+    RenderManager.render(GameState.getState());
+  }
+
+  // Update button groups (rendering handled by RenderLayerManager)
+  if (window.buttonGroupManager) {
+    try {
+      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+    } catch (error) {
+      console.error('❌ Error updating button group system:', error);
+    }
+  }
+
+  // Note: rendering of draggable panels is handled via RenderManager's
+  // ui_game layer (DraggablePanelManager integrates into the render layer).
+  // We intentionally do NOT call renderDraggablePanels() here to avoid a
+  // second draw pass within the same frame which would leave a ghost of
+  // the pre-update positions.
+}
+
+/**
+ * handleMouseEvent
+ * ----------------
+ * Delegates mouse events to the mouse controller if the game is in an active state.
+ * @param {string} type - The mouse event type (e.g., 'handleMousePressed').
+ * @param {...any} args - Arguments to pass to the controller handler.
+ */
+function handleMouseEvent(type, ...args) {
   if (GameState.isInGame()) {
-    // MAP2.renderConversion._camPosition = [ // MOVEMENT OF VIEW EXAMPLE
-    //   MAP2.renderConversion._camPosition[0]+0.1,
-    //   MAP2.renderConversion._camPosition[1]+0.1,
-    // ];
-
-    // Basic window-size check:
-    // if (CANVAS_X != windowWidth || CANVAS_Y != windowHeight) {
-    //   MAP2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
-    //   CANVAS_X = windowWidth;
-    //   CANVAS_Y = windowHeight;
-    //   background(0);
-    // }
-
-    MAP2.render();
-    Ants_Update();
-    resourceList.drawAll();
-
-    if (typeof drawSelectionBox === 'function') drawSelectionBox();
-    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
-
-    if (typeof drawDevConsoleIndicator === 'function') {
-      drawDevConsoleIndicator();
-    }
-  
-    if (typeof drawCommandLine === 'function') {
-      drawCommandLine();
-    }
-
-    drawUI();
-
-    // Mouse -> Grid Position
+    g_mouseController[type](...args);
     console.log(MAP2.renderConversion.convCanvasToPos([mouseX,mouseY]));
   }
+}
 
-  // --- FADE OVERLAY (works in both menu + game) ---
-  if (GameState.isFadingTransition()) {
-    const fadeAlpha = GameState.getFadeAlpha();
-    if (fadeAlpha > 0) {
-      fill(255, fadeAlpha);
-      rect(0, 0, CANVAS_X, CANVAS_Y);
+/**
+ * mousePressed
+ * ------------
+ * Handles mouse press events by delegating to the mouse controller.
+ */
+function mousePressed() {
+  // Handle UI Debug Manager mouse events first
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+    const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
+    if (handled) return;
+  }
+  
+  // Handle Universal Button Group System clicks
+  if (window.buttonGroupManager && 
+      typeof window.buttonGroupManager.handleClick === 'function') {
+    try {
+      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
+      if (handled) return; // Button was clicked, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling button click:', error);
     }
-    GameState.updateFade(10);
+  }
+  
+  handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton);
+}
+
+function mouseDragged() {
+  // Handle UI Debug Manager drag events
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+    g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
+  }
+  handleMouseEvent('handleMouseDragged', mouseX, mouseY);
+}
+
+function mouseReleased() {
+  // Handle UI Debug Manager release events
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+    g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
+  }
+  handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+}
+
+// KEYBOARD INTERACTIONS
+
+/**
+ * handleKeyEvent
+ * --------------
+ * Delegates keyboard events to the appropriate handler if the game is in an active state.
+ * @param {string} type - The key event type (e.g., 'handleKeyPressed').
+ * @param {...any} args - Arguments to pass to the handler.
+ */
+function handleKeyEvent(type, ...args) {
+  if (GameState.isInGame() && typeof g_keyboardController[type] === 'function') {
+    g_keyboardController[type](...args);
   }
 }
 
+/**
+ * keyPressed
+ * ----------
+ * Handles key press events, prioritizing debug keys and ESC for selection clearing.
+ */
+function keyPressed() {
+  // Handle UI shortcuts first (Ctrl+Shift combinations)
+  if (window.UIManager && window.UIManager.handleKeyPress) {
+    const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
+    if (handled) {
+      return; // UI shortcut was handled, don't process further
+    }
+  }
+  
+  // Handle render layer toggles (Shift + C/V/B/N/M)
+  if (keyIsDown(SHIFT) && RenderManager && RenderManager.isInitialized) {
+    let handled = false;
+    
+    switch (key.toLowerCase()) {
+      case 'c': // Shift+C - Toggle TERRAIN layer
+        RenderManager.toggleLayer('terrain');
+        handled = true;
+        break;
+      case 'v': // Shift+V - Toggle ENTITIES layer
+        RenderManager.toggleLayer('entities');
+        handled = true;
+        break;
+      case 'b': // Shift+B - Toggle EFFECTS layer
+        RenderManager.toggleLayer('effects');
+        handled = true;
+        break;
+      case 'n': // Shift+N - Toggle UI_GAME layer
+        RenderManager.toggleLayer('ui_game');
+        handled = true;
+        break;
+      case 'm': // Shift+M - Toggle UI_DEBUG layer
+        RenderManager.toggleLayer('ui_debug');
+        handled = true;
+        break;
+      case ',': // Shift+, - Toggle UI_MENU layer (comma key)
+        RenderManager.toggleLayer('ui_menu');
+        handled = true;
+        break;
+      case '.': // Shift+. - Enable all layers (period key)
+        RenderManager.enableAllLayers();
+        handled = true;
+        break;
+    }
+    
+    if (handled) {
+      // Display current layer states
+      console.log('🔧 Layer States:', RenderManager.getLayerStates());
+      return; // Layer toggle was handled, don't process further
+    }
+  }
+  
+  // Handle all debug-related keys (unified debug system handles both console and UI debug)
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug key was handled, don't process further
+  }
+  if (keyCode === ESCAPE && g_selectionBoxController) {
+    g_selectionBoxController.deselectAll();
+    return;
+  }
+  handleKeyEvent('handleKeyPressed', keyCode, key);
+}
 
+// DEBUG RENDERING FUNCTIONS
+// These functions provide basic debug visualization capability
+
+/**
+ * debugRender
+ * -----------
+ * Debug rendering function - now using draggable panels instead of static overlay.
+ * The debug information is now displayed in the Debug Info draggable panel.
+ */
+function debugRender() {
+  // Debug info is now handled by the Debug Info draggable panel
+  // No static debug rendering needed here anymore
+  return;
+}
+
+/**
+ * drawDebugGrid
+ * -------------
+ * Draws a debug grid overlay for tile-based debugging.
+ * @param {number} tileSize - Size of each tile in pixels
+ * @param {number} gridWidth - Width of the grid in tiles
+ * @param {number} gridHeight - Height of the grid in tiles
+ */
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
-  stroke(100, 100, 100, 100); // light gray grid lines
+  push();
+  stroke(255, 255, 0, 100); // Semi-transparent yellow
   strokeWeight(1);
   noFill();
 
-  for (let x = 0; x < gridWidth; x++) {
-    for (let y = 0; y < gridHeight; y++) {
-      rect(x * tileSize, y * tileSize, tileSize, tileSize);
-    }
+  // Draw vertical grid lines
+  for (let x = 0; x <= gridWidth * tileSize; x += tileSize) {
+    line(x, 0, x, gridHeight * tileSize);
   }
 
   // Highlight tile under mouse
@@ -252,11 +386,9 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
+
+  pop();
 }
-
-// Dev console indicator moved to debug/testing.js
-
-// Command line drawing moved to debug/commandLine.js
 
 // Dynamic window resizing:
 function windowResized() {

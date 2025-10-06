@@ -300,7 +300,7 @@ function getType(variable) {
  * @module TracingUtilities
  * @exports {Object} An object containing all tracing utility functions and regex patterns
  */
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = { 
     getCurrentCallStack, 
     getFunction,

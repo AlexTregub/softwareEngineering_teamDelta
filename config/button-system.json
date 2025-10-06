@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "name": "Universal Button Group System Configuration",
+    "description": "Master configuration for all button groups in the game",
+    "version": "1.0.0",
+    "author": "Software Engineering Team Delta",
+    "lastModified": "2024-12-19"
+  },
+  "system": {
+    "performance": {
+      "enableCulling": true,
+      "enableObjectPooling": true,
+      "enableQuadTree": false,
+      "maxVisibleGroups": 10,
+      "cullDistance": 50
+    },
+    "persistence": {
+      "enableGlobalSave": true,
+      "autoSaveInterval": 30000,
+      "storagePrefix": "ubgs_"
+    },
+    "rendering": {
+      "enableBackgrounds": true,
+      "enableAnimations": true,
+      "enableTooltips": true,
+      "debugMode": false
+    },
+    "interaction": {
+      "enableHotkeys": true,
+      "enableDragging": true,
+      "enableTooltips": true,
+      "tooltipDelay": 1000
+    }
+  },
+  "configFiles": [
+    {
+      "name": "Main Menu Groups",
+      "path": "./button-groups/main-menu.json",
+      "gameStates": ["menu", "loading"],
+      "priority": 1,
+      "loadOnStartup": true
+    },
+    {
+      "name": "Gameplay Groups",
+      "path": "./button-groups/gameplay.json",
+      "gameStates": ["playing", "paused"],
+      "priority": 2,
+      "loadOnStartup": false
+    },
+    {
+      "name": "Settings Groups",
+      "path": "./button-groups/settings.json",
+      "gameStates": ["settings"],
+      "priority": 3,
+      "loadOnStartup": false
+    }
+  ],
+  "gameStates": {
+    "menu": {
+      "description": "Main menu state",
+      "enabledFeatures": ["navigation", "settings", "exit"],
+      "disabledFeatures": ["gameplay", "entities", "resources"]
+    },
+    "loading": {
+      "description": "Game loading state",
+      "enabledFeatures": ["progress"],
+      "disabledFeatures": ["interaction", "navigation"]
+    },
+    "playing": {
+      "description": "Active gameplay state",
+      "enabledFeatures": ["entities", "resources", "controls", "debug"],
+      "disabledFeatures": ["menu-navigation"]
+    },
+    "paused": {
+      "description": "Paused gameplay state",
+      "enabledFeatures": ["menu", "save", "settings"],
+      "disabledFeatures": ["entity-actions", "movement"]
+    },
+    "settings": {
+      "description": "Settings configuration state",
+      "enabledFeatures": ["configuration", "navigation"],
+      "disabledFeatures": ["gameplay", "entities"]
+    }
+  },
+  "actionTypes": {
+    "gameState": {
+      "description": "Actions that change game state",
+      "handlers": ["game.start", "game.pause", "game.save", "game.load", "game.exit"]
+    },
+    "entity": {
+      "description": "Actions that affect game entities",
+      "handlers": ["entity.move", "entity.attack", "entity.gather", "entity.build"]
+    },
+    "ui": {
+      "description": "User interface actions",
+      "handlers": ["ui.showMenu", "ui.showSettings", "ui.showGameMenu", "ui.showResourceDetails"]
+    },
+    "setting": {
+      "description": "Configuration and settings actions",
+      "handlers": ["graphics.setQuality", "audio.adjustVolume", "controls.adjustSensitivity"]
+    },
+    "debug": {
+      "description": "Development and debugging actions",
+      "handlers": ["debug.toggleGrid", "debug.toggleFPS", "debug.spawnAnt"]
+    },
+    "info": {
+      "description": "Information display actions",
+      "handlers": ["ui.showVersionInfo", "ui.showResourceDetails"]
+    },
+    "system": {
+      "description": "System-level actions",
+      "handlers": ["game.exit", "system.restart"]
+    }
+  },
+  "defaultStyles": {
+    "button": {
+      "backgroundColor": "#4CAF50",
+      "hoverColor": "#45a049",
+      "activeColor": "#3d8b40",
+      "textColor": "#ffffff",
+      "borderColor": "#2d6930",
+      "borderWidth": 1,
+      "fontSize": 14,
+      "fontFamily": "Arial, sans-serif"
+    },
+    "group": {
+      "backgroundColor": "rgba(45, 45, 55, 0.8)",
+      "borderColor": "rgba(100, 100, 120, 0.6)",
+      "borderWidth": 1,
+      "cornerRadius": 8,
+      "shadowColor": "rgba(0, 0, 0, 0.3)",
+      "shadowBlur": 10
+    }
+  },
+  "validation": {
+    "requiredFields": ["id", "name", "layout", "buttons"],
+    "maxButtonsPerGroup": 20,
+    "maxGroupsPerState": 10,
+    "minButtonSize": { "width": 20, "height": 20 },
+    "maxButtonSize": { "width": 300, "height": 100 }
+  }
+}
