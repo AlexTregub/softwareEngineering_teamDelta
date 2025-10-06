@@ -33,11 +33,12 @@ class DraggablePanelManager {
     
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
-      'MENU': [],
+      'MENU': ['presentation-control'],
       'PLAYING': ['ant_spawn'],
       'PAUSED': ['ant_spawn'],
       'DEBUG_MENU': ['ant_spawn'],
-      'GAME_OVER': ['stats']
+      'GAME_OVER': ['stats'],
+      'KANBAN': ['presentation-kanban-transition']
     };
     
     // Current game state for visibility management

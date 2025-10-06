@@ -37,6 +37,11 @@ function preload(){
   menuPreload();
   antsPreloader();
   resourcePreLoad();
+  
+  // Load presentation assets
+  if (typeof loadPresentationAssets !== 'undefined') {
+    loadPresentationAssets();
+  }
 }
 
 
@@ -106,6 +111,13 @@ function initializeWorld() {
 
 function draw() {
   if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+
+  updatePresentationPanels(GameState.getState());
+
+  // Update presentation panels for state-based visibility
+  if (typeof updatePresentationPanels !== 'undefined') {
+    updatePresentationPanels(GameState.getState());
+  }
 
   RenderManager.render(GameState.getState());
 }
@@ -225,6 +237,14 @@ function keyPressed() {
         break;
       case '.': // Shift+. - Enable all layers (period key)
         RenderManager.enableAllLayers();
+        handled = true;
+        break;
+      case 'z': // Shift+1 - Toggle Sprint 5 image in menu
+        if (typeof toggleSprintImageInMenu !== 'undefined') {
+          toggleSprintImageInMenu();
+        } else {
+          console.warn('toggleSprintImageInMenu function not available');
+        }
         handled = true;
         break;
     }
