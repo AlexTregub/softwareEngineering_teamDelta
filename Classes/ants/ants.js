@@ -351,7 +351,11 @@ class ant extends Entity {
       }
     }
    }
-  
+
+   _renderBoxHover() {
+    this._renderController.highlightBoxHover();
+  }
+
   _updateEnemyDetection() {
     // Check for enemies periodically
     if (frameCount - this._lastEnemyCheck > this._enemyCheckInterval) {
@@ -370,6 +374,9 @@ class ant extends Entity {
     // Add ant-specific rendering
     this._renderHealthBar();
     this._renderResourceIndicator();
+    if (this.isBoxHovered) {
+      this._renderBoxHover();
+    }
   }
 
   _renderHealthBar() {

@@ -131,6 +131,9 @@ class RenderLayerManager {
       case 'OPTIONS':
         return [this.layers.TERRAIN, this.layers.UI_MENU];
         
+      case 'KANBAN':
+        return [this.layers.TERRAIN, this.layers.UI_MENU];
+        
       case 'DEBUG_MENU':
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_DEBUG, this.layers.UI_MENU];
         
@@ -344,6 +347,26 @@ class RenderLayerManager {
    * MENU UI LAYER - Menu system and transitions
    */
   renderMenuUILayer(gameState) {
+    // Handle Kanban presentation state
+    if (gameState === 'KANBAN') {
+      if (typeof renderKanbanPresentation !== 'undefined') {
+        renderKanbanPresentation();
+      } else {
+        // Fallback rendering if PresentationPanel.js not loaded
+        background(20, 20, 30);
+        fill(255, 0, 0);
+        textAlign(LEFT, TOP);
+        textSize(24);
+        text('05:00', 20, 20);
+        
+        fill(255);
+        textAlign(CENTER, CENTER);
+        textSize(32);
+        text('Presentation', width / 2, height / 2);
+      }
+      return;
+    }
+    
     // Use comprehensive UI renderer for menu states
     const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
                       (typeof global !== 'undefined') ? global.UIRenderer : null;
@@ -362,6 +385,11 @@ class RenderLayerManager {
           renderMenu();
         }
       }
+    }
+    
+    // Render Sprint 5 image overlay if enabled and in MENU state
+    if (gameState === 'MENU' && typeof renderSprintImageInMenu !== 'undefined') {
+      renderSprintImageInMenu();
     }
   }
   
@@ -570,6 +598,11 @@ function renderPipelineInit() {
   // Initialize ant control panel for spawning and state management
   if (typeof initializeAntControlPanel !== 'undefined') {
     initializeAntControlPanel();
+  }
+  
+  // Initialize presentation panels for menu and kanban states
+  if (typeof initializePresentationPanels !== 'undefined') {
+    initializePresentationPanels();
   }
   
   // Initialize UI Selection Controller for effects layer selection box

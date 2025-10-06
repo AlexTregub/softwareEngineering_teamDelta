@@ -389,6 +389,22 @@ class Entity {
         const controller = this._controllers.get('render');
         return controller ? controller.highlightBoxHover() : null;
       },
+      resourceHover: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightResource() : null;
+      },
+      spinning: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightSpin() : null;
+      },
+      slowSpin: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightSlowSpin() : null;
+      },
+      fastSpin: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightFastSpin() : null;
+      },
       combat: () => {
         const controller = this._controllers.get('render');
         return controller ? controller.highlightCombat() : null;
