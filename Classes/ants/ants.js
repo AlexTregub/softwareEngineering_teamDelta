@@ -19,11 +19,11 @@ function antsPreloader() {
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   JobImages = {
-    Builder: loadImage('Images/Ants/blue_ant.png'),
-    Scout: loadImage('Images/Ants/gray_ant.png'),
-    Farmer: loadImage('Images/Ants/brown_ant.png'),
-    Warrior: loadImage('Images/Ants/blue_ant.png'),
-    Spitter: loadImage('Images/Ants/gray_ant.png'),
+    Builder: loadImage('Images/Ants/gray_ant_builder.png'),
+    Scout: loadImage('Images/Ants/gray_ant_scout.png'),
+    Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
+    Warrior: loadImage('Images/Ants/gray_ant_warrior.png'),
+    Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
     DeLozier: loadImage('Images/Ants/greg.jpg')
   };
   initializeAntManager();
