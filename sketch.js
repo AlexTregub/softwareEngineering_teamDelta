@@ -185,6 +185,13 @@ function draw() {
     //   MAP2.renderConversion._camPosition[1]+0.1,
     // ];
 
+    // Basic window-size check:
+    if (CANVAS_X != windowWidth || CANVAS_Y != windowHeight) {
+      MAP2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+      CANVAS_X = windowWidth;
+      CANVAS_Y = windowHeight;
+    }
+
     MAP2.render();
     Ants_Update();
     resourceList.drawAll();
