@@ -185,26 +185,47 @@ function demonstrateAntEnhancements() {
   return true;
 }
 
-// Auto-run demonstration when script loads (with delay to ensure systems are ready)
+// Integration with global test runner
 if (typeof window !== 'undefined') {
   // Browser environment
   window.demonstrateAntEnhancements = demonstrateAntEnhancements;
   
-  // Auto-run after page load with delay
-  setTimeout(() => {
-    if (typeof AntUtilities !== 'undefined') {
-      demonstrateAntEnhancements();
-    } else {
-      console.log('⏳ Waiting for AntUtilities to load...');
+  // Register with global test runner
+  if (typeof globalThis !== 'undefined' && typeof globalThis.registerTest === 'function') {
+    globalThis.registerTest('Ant Enhancements Demo', demonstrateAntEnhancements);
+    
+    // Check if tests should run automatically
+    if (typeof globalThis.shouldRunTests === 'function' && globalThis.shouldRunTests()) {
+      // Auto-run after page load with delay
       setTimeout(() => {
         if (typeof AntUtilities !== 'undefined') {
           demonstrateAntEnhancements();
         } else {
-          console.log('❌ AntUtilities not available for demonstration');
+          console.log('⏳ Waiting for AntUtilities to load...');
+          setTimeout(() => {
+            if (typeof AntUtilities !== 'undefined') {
+              demonstrateAntEnhancements();
+            } else {
+              console.log('❌ AntUtilities not available for demonstration');
+            }
+          }, 2000);
         }
-      }, 2000);
+      }, 1000);
+    } else {
+      if (typeof globalThis.logQuiet === 'function') {
+        globalThis.logQuiet('🎮 Ant Enhancements Demo available but disabled. Use enableTests() to enable or runTests() to run manually.');
+      } else {
+        console.log('🎮 Ant Enhancements Demo available but disabled. Use enableTests() to enable or runTests() to run manually.');
+      }
     }
-  }, 1000);
+  } else {
+    // Fallback behavior when global test runner is not available
+    if (typeof globalThis.logQuiet === 'function') {
+      globalThis.logQuiet('🎮 Ant Enhancements Demo available. Run demonstrateAntEnhancements() manually.');
+    } else {
+      console.log('🎮 Ant Enhancements Demo available. Run demonstrateAntEnhancements() manually.');
+    }
+  }
 } else {
   // Node.js environment  
   module.exports = { demonstrateAntEnhancements };

@@ -588,19 +588,40 @@ async function initializeUniversalButtonSystem() {
 
     }
     
-    console.log('🎮 Universal Button Group System initialized successfully');
-    console.log('📊 System status:', {
-      hasUpdate: typeof window.buttonGroupManager.update === 'function',
-      hasRender: typeof window.buttonGroupManager.render === 'function',
-      isInitialized: window.buttonGroupManager.isInitialized,
-      activeGroups: window.buttonGroupManager.getActiveGroupCount()
-    });
+    if (typeof globalThis.logNormal === 'function') {
+      globalThis.logNormal('🎮 Universal Button Group System initialized successfully');
+    } else {
+      console.log('🎮 Universal Button Group System initialized successfully');
+    }
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('📊 System status:', {
+        hasUpdate: typeof window.buttonGroupManager.update === 'function',
+        hasRender: typeof window.buttonGroupManager.render === 'function',
+        isInitialized: window.buttonGroupManager.isInitialized,
+        activeGroups: window.buttonGroupManager.getActiveGroupCount()
+      });
+    } else {
+      console.log('📊 System status:', {
+        hasUpdate: typeof window.buttonGroupManager.update === 'function',
+        hasRender: typeof window.buttonGroupManager.render === 'function',
+        isInitialized: window.buttonGroupManager.isInitialized,
+        activeGroups: window.buttonGroupManager.getActiveGroupCount()
+      });
+    }
     
     // Debug: Monitor current game state
     if (typeof window.GameState !== 'undefined') {
-      console.log('🎯 Current game state:', window.GameState.getState());
+      if (typeof globalThis.logVerbose === 'function') {
+        globalThis.logVerbose('🎯 Current game state:', window.GameState.getState());
+      } else {
+        console.log('🎯 Current game state:', window.GameState.getState());
+      }
     }
-    console.log('🔗 State bridge active: currentGameState will be set by RenderLayerManager');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('🔗 State bridge active: currentGameState will be set by RenderLayerManager');
+    } else {
+      console.log('🔗 State bridge active: currentGameState will be set by RenderLayerManager');
+    }
     
     return true;
     

@@ -18,19 +18,19 @@ class ButtonGroup {
    * @param {Object} actionFactory - Factory for executing button actions
    */
   constructor(config, actionFactory) {
-    console.log(`🏗️ ButtonGroup constructor starting for ${config?.id || 'unknown'}`);
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`🏗️ ButtonGroup constructor starting for ${config?.id || 'unknown'}`);
     
     try {
       // Validate required parameters
       if (!config || typeof config !== 'object') {
         throw new Error('ButtonGroup requires a valid configuration object');
       }
-      console.log(`✅ ButtonGroup config validation passed for ${config.id}`);
+      if (globalThis.globalDebugVerbosity >= 4) console.log(`✅ ButtonGroup config validation passed for ${config.id}`);
       
       if (!actionFactory || typeof actionFactory.executeAction !== 'function') {
         throw new Error('ButtonGroup requires a valid actionFactory with executeAction method');
       }
-      console.log(`✅ ButtonGroup actionFactory validation passed for ${config.id}`);
+      if (globalThis.globalDebugVerbosity >= 4) console.log(`✅ ButtonGroup actionFactory validation passed for ${config.id}`);
 
       this.config = config;
       this.actionFactory = actionFactory;
@@ -38,7 +38,7 @@ class ButtonGroup {
       this.isDragging = false;
       this.isResizing = false;
       this.dragOffset = { x: 0, y: 0 };
-      console.log(`✅ ButtonGroup basic properties set for ${config.id}`);
+      if (globalThis.globalDebugVerbosity >= 4) console.log(`✅ ButtonGroup basic properties set for ${config.id}`);
       
       // Runtime state (will be persisted)
       this.state = {
@@ -47,12 +47,12 @@ class ButtonGroup {
         transparency: config.appearance?.transparency || 1.0,
         visible: config.appearance?.visible !== false
       };
-      console.log(`✅ ButtonGroup state initialized for ${config.id}`);
+      if (globalThis.globalDebugVerbosity >= 4) console.log(`✅ ButtonGroup state initialized for ${config.id}`);
 
       // Initialize the button group
-      console.log(`🚀 ButtonGroup about to call initialize() for ${config.id}`);
+      if (globalThis.globalDebugVerbosity >= 4) console.log(`🚀 ButtonGroup about to call initialize() for ${config.id}`);
       this.initialize();
-      console.log(`✅ ButtonGroup initialize() completed for ${config.id}`);
+      if (globalThis.globalDebugVerbosity >= 4) console.log(`✅ ButtonGroup initialize() completed for ${config.id}`);
     } catch (error) {
       console.error(`❌ ButtonGroup constructor failed for ${config?.id || 'unknown'}:`, error);
       throw error;
@@ -64,13 +64,13 @@ class ButtonGroup {
    * Loads persisted state and creates buttons
    */
   initialize() {
-    console.log('[DEBUG] ButtonGroup.initialize() called for:', this.config.id);
+    if (globalThis.globalDebugVerbosity >= 4) console.log('[DEBUG] ButtonGroup.initialize() called for:', this.config.id);
     this.loadPersistedState();
-    console.log('[DEBUG] ButtonGroup.initialize() - after loadPersistedState');
+    if (globalThis.globalDebugVerbosity >= 4) console.log('[DEBUG] ButtonGroup.initialize() - after loadPersistedState');
     this.createButtons();
-    console.log('[DEBUG] ButtonGroup.initialize() - after createButtons, buttons count:', this.buttons.length);
+    if (globalThis.globalDebugVerbosity >= 4) console.log('[DEBUG] ButtonGroup.initialize() - after createButtons, buttons count:', this.buttons.length);
     this.calculatePosition();
-    console.log('[DEBUG] ButtonGroup.initialize() - completed');
+    if (globalThis.globalDebugVerbosity >= 4) console.log('[DEBUG] ButtonGroup.initialize() - completed');
   }
 
   /**
@@ -109,7 +109,7 @@ class ButtonGroup {
         }
       }
     } catch (e) {
-      console.warn(`Failed to load persisted state for group ${this.config.id}:`, e.message);
+      if (globalThis.globalDebugVerbosity >= 0)  console.warn(`Failed to load persisted state for group ${this.config.id}:`, e.message);
     }
   }
 
@@ -144,16 +144,16 @@ class ButtonGroup {
    * Create button instances from configuration
    */
   createButtons() {
-    console.log(`🚀 Starting createButtons for group ${this.config.id}`);
+    if (globalThis.globalDebugVerbosity >= 4) console.log(`🚀 Starting createButtons for group ${this.config.id}`);
     this.buttons = [];
     
     // Validate that buttons configuration exists and is an array
     if (!this.config.buttons || !Array.isArray(this.config.buttons)) {
-      console.warn(`ButtonGroup ${this.config.id} has no buttons configuration`, this.config);
+      if (globalThis.globalDebugVerbosity >= 2) console.warn(`ButtonGroup ${this.config.id} has no buttons configuration`, this.config);
       return;
     }
     
-    console.log(`🔧 Creating buttons for group ${this.config.id}:`, {
+    if (globalThis.globalDebugVerbosity >= 4)   console.log(`🔧 Creating buttons for group ${this.config.id}:`, {
       configButtons: this.config.buttons.length,
       buttonStylesAvailable: typeof ButtonStyles !== 'undefined',
       dynamicStyleExists: typeof ButtonStyles !== 'undefined' && ButtonStyles.DYNAMIC !== undefined
@@ -161,7 +161,7 @@ class ButtonGroup {
     
     for (const btnConfig of this.config.buttons) {
       if (!this.shouldShowButton(btnConfig)) {
-        console.log(`⏭️ Skipping button ${btnConfig.id} - conditions not met`);
+        if (globalThis.globalDebugVerbosity >= 2) console.log(`⏭️ Skipping button ${btnConfig.id} - conditions not met`);
         continue;
       }
       
@@ -169,8 +169,8 @@ class ButtonGroup {
         // Create button with scaled dimensions
         const scaledWidth = (btnConfig.size?.width || 60) * this.state.scale;
         const scaledHeight = (btnConfig.size?.height || 45) * this.state.scale;
-        
-        console.log(`🔨 Creating button ${btnConfig.id}:`, {
+
+        if (globalThis.globalDebugVerbosity >= 4) console.log(`🔨 Creating button ${btnConfig.id}:`, {
           text: btnConfig.text,
           size: { width: scaledWidth, height: scaledHeight },
           buttonClassAvailable: typeof Button !== 'undefined'
@@ -193,13 +193,13 @@ class ButtonGroup {
         btn.hotkey = btnConfig.hotkey;
         
         this.buttons.push(btn);
-        console.log(`✅ Button ${btnConfig.id} created successfully`);
+        if (globalThis.globalDebugVerbosity >= 2) console.log(`✅ Button ${btnConfig.id} created successfully`);
       } catch (error) {
         console.error(`❌ Failed to create button ${btnConfig.id || 'unnamed'} in group ${this.config.id}:`, error.message, error);
       }
     }
-    
-    console.log(`🎯 ButtonGroup ${this.config.id} created ${this.buttons.length} buttons`);
+
+    if (globalThis.globalDebugVerbosity >= 2) console.log(`🎯 ButtonGroup ${this.config.id} created ${this.buttons.length} buttons`);
   }
 
   /**
@@ -211,18 +211,18 @@ class ButtonGroup {
   shouldShowButton(btnConfig) {
     // Always show buttons without conditions
     if (!btnConfig.conditions || typeof btnConfig.conditions !== 'object') {
-      console.log(`✅ Button ${btnConfig.id} has no conditions - showing`);
+      if (globalThis.globalDebugVerbosity >= 1) console.log(`✅ Button ${btnConfig.id} has no conditions - showing`);
       return true;
     }
     
-    console.log(`🔍 Checking conditions for button ${btnConfig.id}:`, btnConfig.conditions);
+    if (globalThis.globalDebugVerbosity >= 2) console.log(`🔍 Checking conditions for button ${btnConfig.id}:`, btnConfig.conditions);
     
     // Check game state condition
     if (btnConfig.conditions.gameState) {
       const currentGameState = this.getCurrentGameState();
-      console.log(`🎮 Game state check: current='${currentGameState}', required='${btnConfig.conditions.gameState}'`);
+      if (globalThis.globalDebugVerbosity >= 3) console.log(`🎮 Game state check: current='${currentGameState}', required='${btnConfig.conditions.gameState}'`);
       if (currentGameState !== btnConfig.conditions.gameState) {
-        console.log(`❌ Button ${btnConfig.id} hidden - game state mismatch`);
+        if (globalThis.globalDebugVerbosity >= 1) console.log(`❌ Button ${btnConfig.id} hidden - game state mismatch`);
         return false;
       }
     }
@@ -230,9 +230,9 @@ class ButtonGroup {
     // Check minimum resources condition
     if (btnConfig.conditions.minimumResources) {
       const hasResources = this.checkMinimumResources(btnConfig.conditions.minimumResources);
-      console.log(`💰 Resource check for ${btnConfig.id}: ${hasResources}`);
+      if (globalThis.globalDebugVerbosity >= 1) console.log(`💰 Resource check for ${btnConfig.id}: ${hasResources}`);
       if (!hasResources) {
-        console.log(`❌ Button ${btnConfig.id} hidden - insufficient resources`);
+        if (globalThis.globalDebugVerbosity >= 1) console.log(`❌ Button ${btnConfig.id} hidden - insufficient resources`);
         return false;
       }
     }
@@ -240,14 +240,14 @@ class ButtonGroup {
     // Check selection requirement
     if (btnConfig.conditions.hasSelection) {
       const hasSelection = this.checkHasSelection();
-      console.log(`🎯 Selection check for ${btnConfig.id}: ${hasSelection}`);
+      if (globalThis.globalDebugVerbosity >= 1) console.log(`🎯 Selection check for ${btnConfig.id}: ${hasSelection}`);
       if (!hasSelection) {
-        console.log(`❌ Button ${btnConfig.id} hidden - no selection`);
+        if (globalThis.globalDebugVerbosity >= 1) console.log(`❌ Button ${btnConfig.id} hidden - no selection`);
         return false;
       }
     }
-    
-    console.log(`✅ Button ${btnConfig.id} passed all condition checks`);
+
+    if (globalThis.globalDebugVerbosity >= 1) console.log(`✅ Button ${btnConfig.id} passed all condition checks`);
     return true;
   }
 
@@ -262,8 +262,8 @@ class ButtonGroup {
                   window.gameState || 
                   (window.state && window.state.current) || 
                   'unknown';
-    
-    console.log(`🎮 getCurrentGameState() result: '${state}' (sources: currentGameState=${window.currentGameState}, gameState=${window.gameState}, state.current=${window.state?.current})`);
+
+    if (globalThis.globalDebugVerbosity >= 1) console.log(`🎮 getCurrentGameState() result: '${state}' (sources: currentGameState=${window.currentGameState}, gameState=${window.gameState}, state.current=${window.state?.current})`);
     return state;
   }
 
@@ -301,16 +301,18 @@ class ButtonGroup {
    */
   handleButtonClick(btnConfig, button) {
     try {
-      console.log(`🎯 Button Group Action: ${btnConfig.id} in group ${this.config.id}`);
-      
+      if (globalThis.globalDebugVerbosity >= 1) console.log(`🎯 Button Group Action: ${btnConfig.id} in group ${this.config.id}`);
+      if (!btnConfig || !btnConfig.id) {
+        throw new Error('Button configuration missing id');
+      }
       // Execute the action using the action factory
       const success = this.actionFactory.executeAction(btnConfig, this.getGameContext());
       
       if (!success) {
-        console.warn(`Action execution failed for button ${btnConfig.id}`);
+        if (globalThis.globalDebugVerbosity >= 1) console.warn(`Action execution failed for button ${btnConfig.id}`);
       }
     } catch (error) {
-      console.error(`Error handling button click for ${btnConfig.id}:`, error.message);
+      if (globalThis.globalDebugVerbosity >= 1) console.error(`Error handling button click for ${btnConfig.id}:`, error.message);
     }
   }
 
@@ -442,12 +444,12 @@ class ButtonGroup {
    * Calculate and apply positioning to buttons based on layout configuration
    */
   calculatePosition() {
-    console.log(`🧮 [${this.config.id}] Starting calculatePosition()`);
-    
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`🧮 [${this.config.id}] Starting calculatePosition()`);
+
     const pos = this.config.layout?.position || { x: 'center', y: 'center' };
     const padding = this.config.layout?.padding || { top: 0, right: 0, bottom: 0, left: 0 };
-    
-    console.log(`📐 [${this.config.id}] Position config:`, {
+
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`📐 [${this.config.id}] Position config:`, {
       x: pos.x,
       y: pos.y,
       offsetX: pos.offsetX,
@@ -460,14 +462,13 @@ class ButtonGroup {
       width: (window.innerWidth) || 1200, 
       height: (window.innerHeight) || 800 
     };
-    
-    console.log(`🖼️ [${this.config.id}] Canvas dimensions:`, canvas);
+
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`🖼️ [${this.config.id}] Canvas dimensions:`, canvas);
     
     // First, layout buttons at origin to calculate bounds
     this.layoutButtons(0, 0);
     const bounds = this.getBounds();
-    
-    console.log(`📦 [${this.config.id}] Calculated bounds:`, bounds);
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`📦 [${this.config.id}] Calculated bounds:`, bounds);
     
     // Calculate base position based on bounds
     let x = 0, y = 0;
@@ -489,9 +490,9 @@ class ButtonGroup {
       default: 
         x = parseFloat(pos.x) || 0;
     }
-    
-    console.log(`➡️ [${this.config.id}] Base X calculation: anchor='${pos.x}' canvas.width=${canvas.width} bounds.width=${bounds.width} -> x=${x}`);
-    
+
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`➡️ [${this.config.id}] Base X calculation: anchor='${pos.x}' canvas.width=${canvas.width} bounds.width=${bounds.width} -> x=${x}`);
+
     switch (pos.y) {
       case 'top': 
         y = padding.top || 0; 
@@ -509,22 +510,22 @@ class ButtonGroup {
       default: 
         y = parseFloat(pos.y) || 0;
     }
-    
-    console.log(`⬇️ [${this.config.id}] Base Y calculation: anchor='${pos.y}' canvas.height=${canvas.height} bounds.height=${bounds.height} -> y=${y}`);
-    
+
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`⬇️ [${this.config.id}] Base Y calculation: anchor='${pos.y}' canvas.height=${canvas.height} bounds.height=${bounds.height} -> y=${y}`);
+
     // Apply offsets
     const preOffsetX = x;
     const preOffsetY = y;
     x += pos.offsetX || 0;
     y += pos.offsetY || 0;
-    
-    console.log(`🎯 [${this.config.id}] After offsets: (${preOffsetX} + ${pos.offsetX || 0}, ${preOffsetY} + ${pos.offsetY || 0}) = (${x}, ${y})`);
-    
+
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`🎯 [${this.config.id}] After offsets: (${preOffsetX} + ${pos.offsetX || 0}, ${preOffsetY} + ${pos.offsetY || 0}) = (${x}, ${y})`);
+
     // Set the group's position state
     this.state.position.x = x;
     this.state.position.y = y;
-    
-    console.log(`✅ [${this.config.id}] Final position set: (${x}, ${y})`);
+
+    if (globalThis.globalDebugVerbosity >= 3) console.log(`✅ [${this.config.id}] Final position set: (${x}, ${y})`);
     
     // Update button positions using layout system with final position
     this.layoutButtons(x, y);
@@ -768,7 +769,7 @@ class ButtonGroup {
     
     // Debug logging for button rendering issues
     if (this.config.id === 'game-controls' && this.debugRenderCount !== true) {
-      console.log(`🎨 ButtonGroup ${this.config.id} rendering:`, {
+      if (globalThis.globalDebugVerbosity >= 3) console.log(`🎨 ButtonGroup ${this.config.id} rendering:`, {
         buttonsCount: this.buttons.length,
         visible: this.state.visible,
         transparency: this.state.transparency,
@@ -776,7 +777,7 @@ class ButtonGroup {
         pushAvailable: typeof push === 'function'
       });
       if (this.buttons.length > 0) {
-        console.log(`🔘 First button:`, this.buttons[0].getDebugInfo ? this.buttons[0].getDebugInfo() : this.buttons[0]);
+        if (globalThis.globalDebugVerbosity >= 3) console.log(`🔘 First button:`, this.buttons[0].getDebugInfo ? this.buttons[0].getDebugInfo() : this.buttons[0]);
       }
       this.debugRenderCount = true; // Only log once
     }

@@ -108,6 +108,14 @@ class RenderLayerManager {
       const layerEnd = performance.now();
       this.renderStats.layerTimes[layerName] = layerEnd - layerStart;
     }
+    // Update button groups (rendering handled by RenderLayerManager)
+    if (window.buttonGroupManager) {
+      try {
+        window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+      } catch (error) {
+        console.error('❌ Error updating button group system:', error);
+      }
+    }
     
     // Update performance stats
     this.renderStats.frameCount++;
@@ -527,6 +535,71 @@ class RenderLayerManager {
   enableAllLayers() {
     this.disabledLayers.clear();
   }
+}
+
+function renderpipelineInit() {
+// UI Debug System initialization
+  // Create global UI Debug Manager instance
+  // Disabled to avoid conflicts with other UI systems
+  //
+  window.g_uiDebugManager = new UIDebugManager();
+  g_uiDebugManager = window.g_uiDebugManager; // Make globally available
+  
+  // Initialize dropoff UI if present (creates the Place Dropoff button)
+  window.initDropoffUI();
+
+  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
+  try {
+      if (g_resourceManager && typeof g_resourceManager.forceSpawn === 'function') {
+        g_resourceManager.forceSpawn();
+      }
+  } catch (e) { /* non-fatal; spawner will populate via interval */ }
+
+  // Initialize Universal Button Group System
+  initializeUniversalButtonSystem();
+  
+  // Initialize Draggable Panel System
+  initializeDraggablePanelSystem();
+  
+  // Initialize Enhanced Draggable Panels with Button Arrays
+  if (typeof initializeDraggablePanels !== 'undefined') {
+    initializeDraggablePanels();
+  }
+  
+  // Initialize ant control panel for spawning and state management
+  if (typeof initializeAntControlPanel !== 'undefined') {
+    initializeAntControlPanel();
+  }
+  
+  // Initialize UI Selection Controller for effects layer selection box
+  // This must happen after RenderManager.initialize() creates the EffectsRenderer
+  setTimeout(() => {
+    if (typeof globalThis.logNormal === 'function') {
+      globalThis.logNormal('🎯 Initializing UI Selection Controller...');
+    } else {
+      console.log('🎯 Initializing UI Selection Controller...');
+    }
+    
+    // Check if required components exist
+    if (UISelectionController && window.EffectsRenderer) {
+      g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
+      if (typeof globalThis.logVerbose === 'function') {
+        globalThis.logVerbose('✅ UISelectionController created successfully');
+      } else {
+        console.log('✅ UISelectionController created successfully');
+      }
+      
+      // Initialize the selection box system
+      if (initializeUISelectionBox) {
+        initializeUISelectionBox();
+      }
+    } else {
+      console.error('❌ Required components not available:');
+      console.log('UISelectionController available:', typeof UISelectionController !== 'undefined');
+      console.log('EffectsRenderer available:', typeof window.EffectsRenderer !== 'undefined');
+      console.log('window.EffectsRenderer object:', window.EffectsRenderer);
+    }
+  }, 200);
 }
 
 // Create global instance

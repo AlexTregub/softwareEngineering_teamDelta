@@ -1,0 +1,38 @@
+# Third-party libraries
+libraries/
+libraries/**
+*.min.js
+**/*.min.js
+
+# Dependencies
+node_modules/
+node_modules/**
+
+# Generated files
+.git/
+.git/**
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+.tmp/
+*.tmp
+
+# IDE files
+.vscode/
+.idea/
+
+# Images and assets (no linting needed)
+Images/
+Images/**
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+
+# Ignore folder
+ignore/
+ignore/**

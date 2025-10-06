@@ -380,10 +380,29 @@ suite.test('Memory efficiency - object creation', () => {
   suite.assertVectorEqual(sprites[1].pos, { x: 1, y: 1 }, 'Sprites should have independent positions');
 });
 
-// Run all tests
-if (require.main === module) {
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('Sprite2D Tests', () => {
+    const success = suite.run();
+    return success;
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running Sprite2D tests...');
   const success = suite.run();
-  process.exit(success ? 0 : 1);
+  if (typeof process !== 'undefined') {
+    process.exit(success ? 0 : 1);
+  }
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 Sprite2D tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: Run all tests
+  if (require.main === module) {
+    const success = suite.run();
+    process.exit(success ? 0 : 1);
+  }
 }
 
 module.exports = { TestSuite, Sprite2D };

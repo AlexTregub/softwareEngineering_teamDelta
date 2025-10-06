@@ -23,16 +23,28 @@ let dropoffUI = {
  * Initialize dropoff UI - now with Universal Button System integration
  */
 function initDropoffUI() {
-  console.log('🔄 Initializing Dropoff UI (Universal Button System)');
+  if (typeof globalThis.logNormal === 'function') {
+    globalThis.logNormal('🔄 Initializing Dropoff UI (Universal Button System)');
+  } else {
+    console.log('🔄 Initializing Dropoff UI (Universal Button System)');
+  }
   
   // Check if Universal Button System is available
   if (window.buttonGroupManager && 
       typeof window.buttonGroupManager.loadConfiguration === 'function') {
     
-    console.log('✅ Dropoff UI integrated with Universal Button System');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Dropoff UI integrated with Universal Button System');
+    } else {
+      console.log('✅ Dropoff UI integrated with Universal Button System');
+    }
     dropoffUI.usingUniversalSystem = true;
   } else {
-    console.log('⚠️ Universal Button System not available, using legacy fallback');
+    if (typeof globalThis.logQuiet === 'function') {
+      globalThis.logQuiet('⚠️ Universal Button System not available, using legacy fallback');
+    } else {
+      console.log('⚠️ Universal Button System not available, using legacy fallback');
+    }
     initLegacyDropoffUI();
     dropoffUI.usingUniversalSystem = false;
   }

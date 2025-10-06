@@ -235,11 +235,18 @@ function handleCommandLineScroll() {
 }
 
 /**
- * executeCommand
- * --------------
  * Parse and execute a single command string entered in the debug console.
- * - Supports quoted args, normalizes command to lowercase, maps to handler functions.
- * @param {string} command - Raw command input from the command line UI.
+ * Supports quoted args, normalizes command to lowercase, maps to handler functions.
+ * 
+ * Available commands: help, spawn, clear, debug, select, kill, teleport, info, test, perf, ui, train
+ * 
+ * @param {string} command - Raw command input from the command line UI
+ * @returns {void}
+ * @global
+ * @example
+ * executeCommand("spawn 10 ant blue");
+ * executeCommand("teleport 100 200");  
+ * executeCommand("ui toggle");
  */
 function executeCommand(command) {
   captureConsoleOutput(`💻 > ${command}`);
@@ -508,12 +515,22 @@ function drawCommandLine() {
 }
 
 /**
- * openCommandLine
- * ---------------
  * Activates the command line UI if dev console is enabled.
- * @returns {boolean} true when opened.
+ * Opens the visual debug console for entering commands interactively.
+ * 
+ * @returns {boolean} True if command line was successfully opened, false if already open or dev console disabled
+ * @global
+ * @see executeCommand
  */
-function openCommandLine() { if (devConsoleEnabled && !commandLineActive) { commandLineActive = true; commandInput = ""; captureConsoleOutput("💻 Command line activated. Type 'help' for available commands."); return true; } return false; }
+function openCommandLine() { 
+  if (devConsoleEnabled && !commandLineActive) { 
+    commandLineActive = true; 
+    commandInput = ""; 
+    captureConsoleOutput("💻 Command line activated. Type 'help' for available commands."); 
+    return true; 
+  } 
+  return false; 
+}
 
 /** closeCommandLine - Deactivate command line and reset input. */
 function closeCommandLine() { commandLineActive = false; commandInput = ""; commandHistoryIndex = -1; }
@@ -531,7 +548,9 @@ if (typeof window !== 'undefined') {
 }
 
 // Debug: Log that the file loaded successfully (using original console.log to avoid circular capture)
-originalConsoleLog('✅ commandLine.js loaded successfully with non-intrusive console capture');
+if (globalThis.globalDebugVerbosity >= 1) {
+  console.log('✅ commandLine.js loaded successfully with non-intrusive console capture');
+}
 
 /**
  * handlePerformanceCommand

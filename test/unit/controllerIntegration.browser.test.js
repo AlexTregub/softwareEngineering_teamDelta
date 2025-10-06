@@ -178,7 +178,8 @@ function runControllerIntegrationTest() {
 }
 
 // Instructions for running this test
-console.log(`
+if (globalThis.globalDebugVerbosity >= 1) {
+  console.log(`
 🧪 Ant Controller Integration Test
 
 To run this test:
@@ -190,12 +191,29 @@ To run this test:
 This will test that all the new controller abstractions work properly
 in the actual game environment with full p5.js context.
 `);
+  }
 
-// Auto-run if in browser environment with game loaded
-if (typeof ant !== 'undefined' && typeof MovementController !== 'undefined') {
-  // Wait a bit for everything to load, then run test
-  setTimeout(() => {
-    console.log('🎮 Game environment detected, running controller integration test...');
-    runControllerIntegrationTest();
-  }, 1000);
+// Register with global test runner
+if (typeof globalThis !== 'undefined' && typeof globalThis.registerTest === 'function') {
+  globalThis.registerTest('Controller Integration Test', runControllerIntegrationTest);
+} else {
+  // Fallback: Auto-run if in browser environment with game loaded and tests are enabled
+  if (typeof ant !== 'undefined' && typeof MovementController !== 'undefined') {
+    // Wait a bit for everything to load, then run test
+    setTimeout(() => {
+      // Only run if global test runner is enabled or not available (legacy behavior)
+      if (typeof globalThis.shouldRunTests === 'function') {
+        if (globalThis.shouldRunTests()) {
+          console.log('🎮 Game environment detected, running controller integration test...');
+          runControllerIntegrationTest();
+        } else {
+          console.log('🎮 Game environment detected, but tests are disabled. Use enableTests() to enable or runTests() to run manually.');
+        }
+      } else {
+        // Legacy behavior when global test runner is not available
+        console.log('🎮 Game environment detected, running controller integration test...');
+        runControllerIntegrationTest();
+      }
+    }, 1000);
+  }
 }
