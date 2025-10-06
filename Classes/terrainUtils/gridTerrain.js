@@ -1,7 +1,38 @@
 ///// TERRAIN is GRID of CHUNK is GRID of TILE 
 ///// TODO: Define functionality + update coordinate system
-/*
 
+//// Position utilities
+function posAdd(a,b) { // = a + b
+    return [
+        a[0] + b[0],
+        a[1] + b[1]
+    ];
+}
+
+function posSub(a,b) { // = a - b (pairwise)
+    return [
+        a[0]-b[0],
+        a[1]-b[1]
+    ];
+}
+
+function posNeg(a) {// = -a
+    return [
+        -a[0],
+        -a[1]
+    ];
+}
+
+function posMul(a,c) { // = a*c (Scalar)
+    return [
+        a[0]*c,
+        a[1]*c
+    ];
+}
+
+
+//// CHUNKED-TERRAIN
+/*
 eg: (chunks)
 (-1,-1)(0,-1)(1,-1)
 (-1,0) (0,0) (1,0)
@@ -227,33 +258,7 @@ class camRenderConverter {
     }
 
     //// Util
-    posAdd(a,b) { // = a + b
-        return [
-            a[0] + b[0],
-            a[1] + b[1]
-        ];
-    }
-
-    posSub(a,b) { // = a - b (pairwise)
-        return [
-            a[0]-b[0],
-            a[1]-b[1]
-        ];
-    }
-
-    posNeg(a) {// = -a
-        return [
-            -a[0],
-            -a[1]
-        ];
-    }
-
-    scalMul(a,c) { // = a*c
-        return [
-            a[0]*c,
-            a[1]*c
-        ];
-    }
+    // ...
 
     // Calculate offset to align gridTerrain with canvas 0,0. Always works, will not move screen more than 1 tile.
     alignToCanvas() {
