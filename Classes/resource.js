@@ -465,7 +465,11 @@ class Resource extends Entity {
   render() {
     super.render();
     // Apply hover highlight in the modern path using enhanced API
-    this.applyHighlight();
+    if (this.isMouseOver(mouseX, mouseY)) {
+      this.highlight.spinning();
+    } else {
+      this.highlight.clear();
+    }
   }
 
   isMouseOver(mx, my) {
@@ -477,19 +481,10 @@ class Resource extends Entity {
     // Try to use the enhanced API first (Phase 3 feature)
     if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
       // Use InteractionController for hover detection if available
-      const interactionController = this.getController('interaction');
-      const isHovered = interactionController ? 
-        interactionController.isMouseOver() : 
-        this.isMouseOver(mouseX, mouseY);
-
-      if (isHovered) {
         this.highlight.hover();
-        return;
-      }
+    } else {
+      verboseLog("No hover effect available");
     }
-
-    // Fallback to manual highlight drawing if enhanced API not available
-    this.drawManualHighlight();
   }
 
   drawManualHighlight() {
