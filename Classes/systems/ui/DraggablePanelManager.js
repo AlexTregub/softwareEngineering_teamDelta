@@ -34,9 +34,9 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control'],
-      'PLAYING': ['ant_spawn'],
-      'PAUSED': ['ant_spawn'],
-      'DEBUG_MENU': ['ant_spawn'],
+      'PLAYING': ['ant_spawn', 'health_controls'],
+      'PAUSED': ['ant_spawn', 'health_controls'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls'],
       'GAME_OVER': ['stats'],
       'KANBAN': ['presentation-kanban-transition']
     };
@@ -220,6 +220,62 @@ class DraggablePanelManager {
             caption: 'Reset',
             onClick: () => this.resetGame(),
             style: ButtonStyles.DANGER
+          }
+        ]
+      }
+    }));
+
+    // Health Management Panel (horizontal layout with health controls)
+    this.panels.set('health_controls', new DraggablePanel({
+      id: 'health-controls-panel',
+      title: 'Health & Selection Manager 💚',
+      position: { x: 20, y: 400 },
+      size: { width: 560, height: 100 },
+      buttons: {
+        layout: 'horizontal',
+        spacing: 5,
+        buttonWidth: 65,
+        buttonHeight: 30,
+        items: [
+          {
+            caption: 'Select All',
+            onClick: () => this.selectAllAnts(),
+            style: { ...ButtonStyles.PURPLE, backgroundColor: '#9932CC' }
+          },
+          {
+            caption: 'Damage 10',
+            onClick: () => this.damageSelectedAnts(10),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF6B6B' }
+          },
+          {
+            caption: 'Damage 25',
+            onClick: () => this.damageSelectedAnts(25),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF4757' }
+          },
+          {
+            caption: 'Damage 50',
+            onClick: () => this.damageSelectedAnts(50),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF3742' }
+          },
+          {
+            caption: 'Heal 10',
+            onClick: () => this.healSelectedAnts(10),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#32CD32' }
+          },
+          {
+            caption: 'Heal 25',
+            onClick: () => this.healSelectedAnts(25),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#20B2AA' }
+          },
+          {
+            caption: 'Heal 50',
+            onClick: () => this.healSelectedAnts(50),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },
+          {
+            caption: 'Deselect',
+            onClick: () => this.deselectAllAnts(),
+            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#808080' }
           }
         ]
       }
@@ -1017,6 +1073,270 @@ class DraggablePanelManager {
     } else {
       console.warn('⚠️ EntityDebugManager not found');
     }
+  }
+
+  /**
+   * Select all ants in the game
+   */
+  selectAllAnts() {
+    console.log('🎯 Selecting all ants...');
+    
+    // Try multiple selection methods
+    const selectionMethods = [
+      // Method 1: Use executeCommand (debug console system)
+      () => {
+        if (typeof executeCommand === 'function') {
+          try {
+            executeCommand('select all');
+            return true;
+          } catch (error) {
+            console.warn('⚠️ Command selection method failed:', error.message);
+            return false;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Use AntUtilities
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+          if (typeof AntUtilities.selectAllAnts === 'function') {
+            AntUtilities.selectAllAnts(ants);
+            return true;
+          } else if (typeof AntUtilities.getSelectedAnts === 'function') {
+            // Manually select all ants
+            ants.forEach(ant => {
+              if (ant && typeof ant.isSelected !== 'undefined') {
+                ant.isSelected = true;
+              }
+            });
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 3: Direct ant array manipulation
+      () => {
+        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+          let selected = 0;
+          ants.forEach(ant => {
+            if (ant && typeof ant.isSelected !== 'undefined') {
+              ant.isSelected = true;
+              selected++;
+            }
+          });
+          if (selected > 0) {
+            console.log(`✅ Selected ${selected} ants directly`);
+            return true;
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of selectionMethods) {
+      if (method()) return;
+    }
+    
+    console.warn('⚠️ Could not select ants - no compatible selection system found');
+  }
+
+  /**
+   * Deselect all ants in the game
+   */
+  deselectAllAnts() {
+    console.log('🎯 Deselecting all ants...');
+    
+    // Try multiple deselection methods
+    const deselectionMethods = [
+      // Method 1: Use executeCommand (debug console system)
+      () => {
+        if (typeof executeCommand === 'function') {
+          try {
+            executeCommand('select none');
+            return true;
+          } catch (error) {
+            console.warn('⚠️ Command deselection method failed:', error.message);
+            return false;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Use AntUtilities
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+          if (typeof AntUtilities.deselectAllAnts === 'function') {
+            AntUtilities.deselectAllAnts(ants);
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 3: Direct ant array manipulation
+      () => {
+        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+          let deselected = 0;
+          ants.forEach(ant => {
+            if (ant && typeof ant.isSelected !== 'undefined') {
+              ant.isSelected = false;
+              deselected++;
+            }
+          });
+          if (deselected > 0) {
+            console.log(`✅ Deselected ${deselected} ants directly`);
+            return true;
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of deselectionMethods) {
+      if (method()) return;
+    }
+    
+    console.warn('⚠️ Could not deselect ants - no compatible selection system found');
+  }
+
+  /**
+   * Damage selected ants by specified amount
+   */
+  damageSelectedAnts(amount) {
+    console.log(`💥 Damaging selected ants by ${amount} HP...`);
+    
+    // Try multiple damage methods
+    const damageMethods = [
+      // Method 1: Use executeCommand (debug console system)
+      () => {
+        if (typeof executeCommand === 'function') {
+          try {
+            executeCommand(`damage ${amount}`);
+            return true;
+          } catch (error) {
+            console.warn('⚠️ Command damage method failed:', error.message);
+            return false;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Direct ant manipulation with AntUtilities
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
+          let damaged = 0;
+          selectedAnts.forEach(ant => {
+            if (ant && typeof ant.takeDamage === 'function') {
+              ant.takeDamage(amount);
+              damaged++;
+            }
+          });
+          if (damaged > 0) {
+            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP`);
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 3: Direct ant array damage
+      () => {
+        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+          let damaged = 0;
+          ants.forEach(ant => {
+            if (ant && ant.isSelected && typeof ant.takeDamage === 'function') {
+              ant.takeDamage(amount);
+              damaged++;
+            }
+          });
+          if (damaged > 0) {
+            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP directly`);
+            return true;
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of damageMethods) {
+      if (method()) return;
+    }
+    
+    console.warn('⚠️ Could not damage ants - no selected ants or compatible damage system found');
+  }
+
+  /**
+   * Heal selected ants by specified amount
+   */
+  healSelectedAnts(amount) {
+    console.log(`💚 Healing selected ants by ${amount} HP...`);
+    
+    // Try multiple healing methods
+    const healMethods = [
+      // Method 1: Use executeCommand (debug console system)
+      () => {
+        if (typeof executeCommand === 'function') {
+          try {
+            executeCommand(`heal ${amount}`);
+            return true;
+          } catch (error) {
+            console.warn('⚠️ Command heal method failed:', error.message);
+            return false;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Direct ant manipulation with AntUtilities
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
+          let healed = 0;
+          selectedAnts.forEach(ant => {
+            if (ant && typeof ant.heal === 'function') {
+              ant.heal(amount);
+              healed++;
+            }
+          });
+          if (healed > 0) {
+            console.log(`✅ Healed ${healed} selected ants by ${amount} HP`);
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 3: Direct ant array healing
+      () => {
+        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+          let healed = 0;
+          ants.forEach(ant => {
+            if (ant && ant.isSelected && typeof ant.heal === 'function') {
+              ant.heal(amount);
+              healed++;
+            }
+          });
+          if (healed > 0) {
+            console.log(`✅ Healed ${healed} selected ants by ${amount} HP directly`);
+            return true;
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of healMethods) {
+      if (method()) return;
+    }
+    
+    console.warn('⚠️ Could not heal ants - no selected ants or compatible heal system found');
   }
 
   /**

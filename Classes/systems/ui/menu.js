@@ -128,23 +128,17 @@ function startGameTransition() {
     GameState.startFadeTransition("out");
 }
 
-// --- Title drop + floating animation ---
-let easing = 0.07;
-titleY += (titleTargetY - titleY) * easing;
-
-// Add a slow downward drift
-titleY += 0.2; // tweak this value for speed of float-down
-
-let floatOffset = Math.sin(frameCount * 0.03) * 5;
-
 // Main menu render function
 function drawMenu() {
-    textAlign(CENTER, CENTER);
-  
-    // --- Title drop animation ---
+    // --- Title drop + floating animation ---
     let easing = 0.07;
     titleY += (titleTargetY - titleY) * easing;
+
+    // Add a slow downward drift
+    titleY += 0.2; // tweak this value for speed of float-down
+
     let floatOffset = Math.sin(frameCount * 0.03) * 5;
+    textAlign(CENTER, CENTER);
   
     // Draw logo instead of plain text
     imageMode(CENTER);

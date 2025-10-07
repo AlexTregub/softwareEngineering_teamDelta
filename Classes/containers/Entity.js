@@ -108,7 +108,8 @@ class Entity {
       'interaction': typeof InteractionController !== 'undefined' ? InteractionController : null,
       'combat': typeof CombatController !== 'undefined' ? CombatController : null,
       'terrain': typeof TerrainController !== 'undefined' ? TerrainController : null,
-      'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null
+      'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null,
+      'health': typeof HealthController !== 'undefined' ? HealthController : null
     };
 
     Object.entries(availableControllers).forEach(([name, ControllerClass]) => {

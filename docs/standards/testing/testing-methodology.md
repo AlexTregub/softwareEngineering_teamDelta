@@ -13,18 +13,19 @@ We use **Gherkin syntax with Behave framework** for all testing. This approach f
 ## Testing Principles
 
 ### 1. User-Centric Testing
+
 - Tests describe actual user workflows and scenarios
 - Focus on "What the user wants to accomplish" not "How the code works"
 - Use business language that stakeholders can understand
 
 ### 2. Behavior-Driven Development (BDD) with Gherkin
+
 - **Feature files** (`.feature`) describe user stories and acceptance criteria
 - **Step definitions** implement the actual test logic
 - **Scenarios** represent specific use cases within features
 
 ### 3. Testing Structure
 
-```
 test/
 ├── behavioral/
 │   ├── features/           # Gherkin feature files
@@ -38,11 +39,11 @@ test/
 │   └── support/            # Test helpers and configuration
 │       ├── world.js
 │       └── hooks.js
-```
 
 ## Gherkin Feature File Format
 
 ### Standard Template
+
 ```gherkin
 Feature: [Feature Name]
   As a [user type]
@@ -72,6 +73,7 @@ Feature: [Feature Name]
 ```
 
 ### Example: Button Group Management
+
 ```gherkin
 Feature: Universal Button Group System
   As a UI developer
@@ -102,6 +104,7 @@ Feature: Universal Button Group System
 ## Step Definition Guidelines
 
 ### 1. Reusable Steps
+
 Write steps that can be shared across multiple features:
 
 ```javascript
@@ -117,6 +120,7 @@ Given('I have a horizontal button group with 3 blue buttons', function() {
 ```
 
 ### 2. Clear State Management
+
 Use the World object to maintain test state between steps:
 
 ```javascript
@@ -142,6 +146,7 @@ Then('the buttons should be arranged horizontally', function() {
 ```
 
 ### 3. Assertion Patterns
+
 Focus on user-observable outcomes, not internal implementation:
 
 ```javascript
@@ -160,6 +165,7 @@ Then('the ButtonGroup.state.visible property should be true', function() {
 ## Deprecated Patterns (Do Not Use)
 
 ### ❌ Technical BDD Unit Tests
+
 ```javascript
 // OLD STYLE - Do not use
 testSuite.test("ButtonGroup constructor should validate configuration object", () => {
@@ -169,6 +175,7 @@ testSuite.test("ButtonGroup constructor should validate configuration object", (
 ```
 
 ### ❌ Method-Level Testing
+
 ```javascript
 // OLD STYLE - Do not use  
 testSuite.test("calculatePosition() should return correct x,y coordinates", () => {
@@ -180,6 +187,7 @@ testSuite.test("calculatePosition() should return correct x,y coordinates", () =
 ## Test Execution
 
 ### Running All Tests
+
 ```bash
 npm run test:behave
 # or
@@ -187,11 +195,13 @@ npx cucumber-js test/behavioral/features/
 ```
 
 ### Running Specific Features
+
 ```bash
 npx cucumber-js test/behavioral/features/ui_management.feature
 ```
 
 ### Running with Tags
+
 ```gherkin
 @ui @critical
 Scenario: Critical button interaction
@@ -205,18 +215,23 @@ npx cucumber-js --tags "@ui and @critical"
 ## Quality Standards
 
 ### 1. Scenario Independence
+
 Each scenario should be completely independent and runnable in any order.
 
 ### 2. Clear Given-When-Then Structure
+
 - **Given**: Set up the initial state (data, configuration, context)
 - **When**: Perform the action being tested (user interaction, system event)
 - **Then**: Verify the expected outcome (what changed, what's visible)
 
 ### 3. User Language
+
 Write scenarios using language that end users and business stakeholders would understand.
 
 ### 4. Comprehensive Coverage
+
 Each feature should cover:
+
 - Happy path scenarios (normal successful usage)
 - Edge cases (boundary conditions, empty states)
 - Error scenarios (invalid input, system failures)
@@ -225,6 +240,7 @@ Each feature should cover:
 ## Migration from Old Tests
 
 ### Conversion Process
+
 1. **Identify user scenarios** from existing technical tests
 2. **Group related tests** into logical features
 3. **Rewrite using Gherkin syntax** focusing on user goals
@@ -232,6 +248,7 @@ Each feature should cover:
 5. **Remove old BDD unit test files** once converted
 
 ### Example Conversion
+
 ```javascript
 // OLD: Technical unit test
 testSuite.test("handleDragging should update position during active drag", () => {
@@ -264,6 +281,7 @@ Scenario: User drags button group to new position
 ## Conclusion
 
 This methodology ensures our tests:
+
 - Focus on user value and business requirements
 - Are readable by both technical and non-technical team members
 - Provide living documentation of system behavior
