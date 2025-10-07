@@ -14,6 +14,11 @@ let g_keyboardController;
 let g_selectionBoxController;
 let g_uiSelectionController; // UI Effects Layer Selection Controller
 let g_tileInteractionManager; // Efficient tile-based interaction system
+
+// --- ANT GROUP MANAGEMENT SYSTEM ---
+let g_antGroupManager;       // Core group management
+let g_antGroupDisplayPanel;  // UI panel for group display
+let g_antManager;           // Reference to existing ant manager
 // --- WORLD GENERATION ---
 let g_seed;
 let g_map;
@@ -65,6 +70,9 @@ function setup() {
     // This maintains compatibility with existing game input systems
   });
 
+  // --- Initialize Ant Group Management System ---
+  initializeAntGroupManagement();
+
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 }
@@ -101,6 +109,87 @@ function initializeWorld() {
 }
 
 /**
+ * initializeAntGroupManagement
+ * ----------------------------
+ * Initialize the ant group management system including core manager,
+ * keyboard integration, and UI panel display.
+ */
+function initializeAntGroupManagement() {
+  try {
+    console.log('🐜 Initializing Ant Group Management System...');
+
+    // Initialize core group manager
+    g_antGroupManager = new AntGroupManager();
+    const groupInitSuccess = g_antGroupManager.initialize();
+    
+    if (!groupInitSuccess) {
+      console.error('❌ Failed to initialize AntGroupManager');
+      return false;
+    }
+
+    // Get reference to existing ant manager
+    if (typeof AntManager !== 'undefined') {
+      g_antManager = new AntManager(); // Create if needed
+    }
+
+    // Initialize keyboard integration
+    const keyboardSuccess = g_keyboardController.initializeGroupManagement(
+      g_antGroupManager,
+      GameState,  // Game state manager
+      g_antManager // Ant manager
+    );
+
+    if (!keyboardSuccess) {
+      console.error('❌ Failed to initialize keyboard group integration');
+      return false;
+    }
+
+    // Initialize UI panel (after draggable panel system is ready)
+    setTimeout(() => {
+      initializeGroupDisplayPanel();
+    }, 100); // Small delay to ensure draggable panel system is ready
+
+    console.log('✅ Ant Group Management System initialized successfully');
+    return true;
+
+  } catch (error) {
+    console.error('❌ Error initializing Ant Group Management System:', error);
+    return false;
+  }
+}
+
+/**
+ * initializeGroupDisplayPanel
+ * ----------------------------
+ * Initialize the UI panel for group display. Called after a small delay
+ * to ensure the draggable panel system is ready.
+ */
+function initializeGroupDisplayPanel() {
+  try {
+    // Check if draggable panel manager is available
+    if (typeof window !== 'undefined' && window.draggablePanelManager) {
+      g_antGroupDisplayPanel = new AntGroupDisplayPanel(
+        g_antGroupManager,
+        window.draggablePanelManager
+      );
+
+      const panelSuccess = g_antGroupDisplayPanel.initialize();
+      
+      if (panelSuccess) {
+        console.log('✅ Ant Group Display Panel initialized');
+      } else {
+        console.error('❌ Failed to initialize Ant Group Display Panel');
+      }
+    } else {
+      console.warn('⚠️ Draggable panel manager not available, retrying in 200ms');
+      setTimeout(initializeGroupDisplayPanel, 200);
+    }
+  } catch (error) {
+    console.error('❌ Error initializing Group Display Panel:', error);
+  }
+}
+
+/**
  * draw
  * ----
  * Main rendering loop for the game.
@@ -110,7 +199,14 @@ function initializeWorld() {
  */
 
 function draw() {
-  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+  if (GameState.getState() === 'PLAYING') {  
+    updateDraggablePanels(); 
+    
+    // Update ant group display panel
+    if (g_antGroupDisplayPanel) {
+      g_antGroupDisplayPanel.update(mouseX, mouseY, mouseIsPressed);
+    }
+  }
 
   updatePresentationPanels(GameState.getState());
 
@@ -256,6 +352,20 @@ function keyPressed() {
     }
   }
   
+  // Handle ant group management keys (Ctrl+1-9 assign, 1-9 select)
+  if (g_keyboardController && g_keyboardController.groupIntegrationEnabled) {
+    const modifiers = {
+      ctrlKey: keyIsDown(CONTROL),
+      shiftKey: keyIsDown(SHIFT),
+      altKey: keyIsDown(ALT)
+    };
+    
+    const groupHandled = g_keyboardController.handleKeyPressedWithGroups(keyCode, key, modifiers);
+    if (groupHandled) {
+      return; // Group key was handled, don't process further
+    }
+  }
+
   // Handle all debug-related keys (unified debug system handles both console and UI debug)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
