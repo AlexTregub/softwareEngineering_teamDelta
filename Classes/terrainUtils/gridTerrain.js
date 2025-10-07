@@ -66,6 +66,7 @@ class gridTerrain {
     constructor(gridSizeX,gridSizeY,g_seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[g_canvasX,g_canvasY]) {
         this._gridSizeX = gridSizeX;
         this._gridSizeY = gridSizeY;
+        this._gridChunkCount = this._gridSizeX * this._gridSizeY;
         
         this._centerChunkX = floor((this._gridSizeX-1)/2);
         this._centerChunkY = floor((this._gridSizeY-1)/2);
@@ -93,8 +94,8 @@ class gridTerrain {
         this._gridTileSpan[1] = this._gridTileSpan[1]*this._chunkSize;
 
         // Allocate chunks... (will allocate tiles...)
-        let len = this.chunkArray.getSize()[0]*this.chunkArray.getSize()[1];
-        for (let i = 0; i < len; ++i) {
+        // let len = this.chunkArray.getSize()[0]*this.chunkArray.getSize()[1];
+        for (let i = 0; i < this._gridChunkCount; ++i) {
             let chunkPosition = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
             
             this.chunkArray.rawArray[i] = new Chunk(chunkPosition,
@@ -114,7 +115,7 @@ class gridTerrain {
         // Get info (extracting from generated grid for consistency):
         this._tileSpan = [
             this.chunkArray.rawArray[0].tileData.getSpanRange()[0],
-            this.chunkArray.rawArray[len - 1].tileData.getSpanRange()[1]
+            this.chunkArray.rawArray[this._gridChunkCount - 1].tileData.getSpanRange()[1]
         ];
 
         this._tileSpanRange = [
@@ -150,6 +151,7 @@ class gridTerrain {
         // Use caching system for performance optimization
         if (!this._shouldUseCache()) {
             console.log('GridTerrain: Caching disabled, using direct rendering');
+            // this.renderConversion.forceTileUpdate();  // Improves performance, leaves inconsistent framerate.
             this.renderDirect();
             return;
         }
@@ -438,7 +440,7 @@ class gridTerrain {
      * @public
      */
     renderDirect(converter=this.renderConversion) {
-        let chunksSkipped = 0;
+        let chunksRendered = 0;
 
         let viewSpan = converter.getViewSpan();
         let chunkSpan = [
@@ -452,21 +454,31 @@ class gridTerrain {
             ]
         ];
 
-        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
-            // Cull rendering of un-viewable chunks
-            let chunkLoc = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
-            if (chunkLoc[0] < chunkSpan[0][0] || chunkLoc[0] > chunkSpan[1][0] || chunkLoc[1] > chunkSpan[0][1] || chunkLoc[1] < chunkSpan[1][1]) {
-                // console.log("Chunk "+i+'/'+chunkLoc+" skipped.");
-                chunksSkipped += 1;
-                continue;
-            }
+        // for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
+        //     // Cull rendering of un-viewable chunks
+        //     let chunkLoc = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
+        //     if (chunkLoc[0] < chunkSpan[0][0] || chunkLoc[0] > chunkSpan[1][0] || chunkLoc[1] > chunkSpan[0][1] || chunkLoc[1] < chunkSpan[1][1]) {
+        //         // console.log("Chunk "+i+'/'+chunkLoc+" skipped.");
+        //         chunksSkipped += 1;
+        //         continue;
+        //     }
 
-            for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) {
-                this.chunkArray.rawArray[i].tileData.rawArray[j].render2(converter); // Avoids copies
+        //     for (let j = 0; j < this._chunkSize*this._chunkSize; ++j) {
+        //         this.chunkArray.rawArray[i].tileData.rawArray[j].render2(converter); // Avoids copies
+        //     }
+        // }
+        
+        // Only access chunks which need to be rendered, reduce array access at cost of position conversions
+        // Verify indices, seem ok.
+        for (let y = chunkSpan[1][1]; y <= chunkSpan[0][1]; ++y) {
+            for (let x = chunkSpan[0][0]; x <= chunkSpan[1][0]; ++x) { // Potentially works with < , not necessarily correct.
+                this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
+                ++chunksRendered;
             }
         }
 
-        console.log("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
+        // console.log("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
+        console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
     
     }
 
