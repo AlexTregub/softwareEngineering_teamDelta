@@ -92,7 +92,7 @@ function initializeWorld() {
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
-  g_gridMap = new PathMap(g_map);
+  g_gridMap = new PathMap(g_map2);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();

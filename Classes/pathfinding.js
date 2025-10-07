@@ -10,13 +10,17 @@ class PathMap{
   constructor(terrain){
     this._terrain = terrain; //Requires terrain(for weight, objects, etc.)
     this._grid = new Grid( //Makes Grid for easy tile storage/access
-      terrain._xCount, //Size of terrain to match
-      terrain._yCount,
+      // terrain._xCount, //Size of terrain to match
+      // terrain._yCount,
+      terrain._tileSpanRange[0],
+      terrain._tileSpanRange[1],
       [0,0],
       [0,0]
     );
-    for(let y = 0; y < terrain._yCount; y++){
-      for(let x = 0; x < terrain._xCount; x++){
+
+    this._gridSize = this._grid.getSize();
+    for(let y = 0; y < this._gridSize[1]; y++){ 
+      for(let x = 0; x < this._gridSize[0]; x++){
         let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
         this._grid.setArrPos([x, y], node); //Stores tile in grid
       }

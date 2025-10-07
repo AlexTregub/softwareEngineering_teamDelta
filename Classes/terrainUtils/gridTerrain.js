@@ -120,7 +120,8 @@ class gridTerrain {
 
         this._tileSpanRange = [
             this._tileSpan[1][0] - this._tileSpan[0][0],
-            this._tileSpan[1][1] - this._tileSpan[0][1]
+            // this._tileSpan[1][1] - this._tileSpan[0][1]
+            this._tileSpan[0][1] - this._tileSpan[1][1] // Updated order for flipped y-axis
         ]
 
         // Canvas conversions handler
