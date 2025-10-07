@@ -85,9 +85,10 @@ function initializeWorld() {
   
   // New, Improved, and Chunked Terrain
   // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
-  g_map2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
@@ -120,6 +121,42 @@ function draw() {
   }
 
   RenderManager.render(GameState.getState());
+  // background(0);
+  // g_map2.renderDirect();
+
+  // Use the new layered rendering system
+  // Update legacy draggable panels BEFORE rendering so the render pipeline
+  // sees the latest panel positions (avoids a pre-update render that leaves
+  // a ghost image of the previous frame's positions).
+  if (GameState.getState() === 'PLAYING') {
+    try {
+      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+        updateDraggablePanels();
+      }
+    } catch (error) {
+      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
+    }
+  }
+
+  if (RenderManager && RenderManager.isInitialized) {
+    RenderManager.render(GameState.getState());
+    console.log(frameRate());
+  }
+
+  // Update button groups (rendering handled by RenderLayerManager)
+  if (window.buttonGroupManager) {
+    try {
+      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+    } catch (error) {
+      console.error('❌ Error updating button group system:', error);
+    }
+  }
+
+  // Note: rendering of draggable panels is handled via RenderManager's
+  // ui_game layer (DraggablePanelManager integrates into the render layer).
+  // We intentionally do NOT call renderDraggablePanels() here to avoid a
+  // second draw pass within the same frame which would leave a ghost of
+  // the pre-update positions.
 }
 
 /**
@@ -132,6 +169,7 @@ function draw() {
 function handleMouseEvent(type, ...args) {
   if (GameState.isInGame()) {
     g_mouseController[type](...args);
+    console.log(MAP2.renderConversion.convCanvasToPos([mouseX,mouseY]));
   }
 }
 
@@ -301,10 +339,31 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     line(x, 0, x, gridHeight * tileSize);
   }
 
-  // Draw horizontal grid lines  
-  for (let y = 0; y <= gridHeight * tileSize; y += tileSize) {
-    line(0, y, gridWidth * tileSize, y);
+  // Highlight tile under mouse
+  const tileX = Math.floor(mouseX / tileSize);
+  const tileY = Math.floor(mouseY / tileSize);
+  fill(255, 255, 0, 50); // transparent yellow
+  noStroke();
+  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+
+  // Highlight selected ant's current tile
+  if (selectedAnt) {
+    const antTileX = Math.floor(selectedAnt.posX / tileSize);
+    const antTileY = Math.floor(selectedAnt.posY / tileSize);
+    fill(0, 255, 0, 80); // transparent green
+    noStroke();
+    rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
 
   pop();
+}
+
+// Dynamic window resizing:
+function windowResized() {
+  g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
+  // background(0);
+
+  resizeCanvas(g_canvasX,g_canvasY);
 }
