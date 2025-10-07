@@ -209,6 +209,10 @@ class gridTerrain {
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
 
+        // CONVERSIONS HAVE FAILED.
+        console.log(access)
+        console.log(this.chunkArray.convRelToArrPos(access[0]))
+        console.log(chunkRawAccess)
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
     }
 
