@@ -437,6 +437,6 @@ class CollisionBox2D {
 }
 
 // Export for Node.js compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = CollisionBox2D;
 }

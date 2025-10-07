@@ -1,0 +1,123 @@
+{
+  "timestamp": "2025-10-03T18:43:31.953593",
+  "total_features": 3,
+  "total_scenarios": 9,
+  "passed_scenarios": 9,
+  "failed_scenarios": 0,
+  "skipped_scenarios": 0,
+  "features": [
+    {
+      "name": "Universal Button System",
+      "scenarios": [
+        {
+          "name": "ButtonGroupManager Initialization",
+          "status": "passed",
+          "details": {
+            "exists": true,
+            "hasActiveGroups": true,
+            "hasCreateMethod": true
+          }
+        },
+        {
+          "name": "Button Group Creation",
+          "status": "passed",
+          "details": {
+            "hasButtons": true,
+            "hasGroups": true,
+            "totalButtons": 1,
+            "totalGroups": 1
+          }
+        },
+        {
+          "name": "Button Click Functionality",
+          "status": "passed",
+          "details": {
+            "button": {
+              "found": true,
+              "height": 30,
+              "width": 80,
+              "x": 60,
+              "y": 60
+            },
+            "action": {
+              "result": {
+                "success": true
+              },
+              "success": true
+            }
+          }
+        },
+        {
+          "name": "Button Drag Functionality",
+          "status": "passed",
+          "details": {
+            "draggableGroups": 1,
+            "hasDraggableGroups": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Render Pipeline System",
+      "scenarios": [
+        {
+          "name": "RenderLayerManager Initialization",
+          "status": "passed",
+          "details": {
+            "exists": true,
+            "hasDisabledLayers": true,
+            "hasLayers": true,
+            "hasToggleLayer": true,
+            "uiDebugExists": true
+          }
+        },
+        {
+          "name": "Layer Toggle Functionality",
+          "status": "passed",
+          "details": {
+            "afterSecondToggle": false,
+            "afterToggle": true,
+            "backToOriginal": true,
+            "firstToggleWorked": true,
+            "initialState": false,
+            "secondToggleWorked": true
+          }
+        },
+        {
+          "name": "Layer State Persistence",
+          "status": "passed",
+          "details": {
+            "disabledCorrectly": true,
+            "disabledCountConsistent": true,
+            "enabledCorrectly": true,
+            "persistedDisabled": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "End-to-End Integration",
+      "scenarios": [
+        {
+          "name": "Complete Debug Button Workflow",
+          "status": "passed",
+          "details": {
+            "actionSucceeded": true,
+            "backToOriginal": true,
+            "initialState": true,
+            "secondActionSucceeded": true,
+            "stateChanged": true
+          }
+        },
+        {
+          "name": "System Error Recovery",
+          "status": "passed",
+          "details": {
+            "errorHandled": true,
+            "systemStable": true
+          }
+        }
+      ]
+    }
+  ]
+}
