@@ -72,30 +72,15 @@ class TaskLibrary {
 
 
   collectItem(item){
-
+    //ant is commanded to dropoff item at task base/dropoff box
   }
   
   completeTask(task){
-    
+    //if item collected === item in task... check it off as complete
   }
   
+  rewardCount(reward){
+    //take in the reward and convert it to game currency
+  }
  
 }
-
-
-
- //add in statement to avoid duplicates
-  //just a place holder for now
-  //a more detailed implementation will include minimum requirements for the task list
-  function assignTask(numberOfTasks){
-  let arrTask = []
-  for (let i = 0; i < numberOfTasks; i++){
-    let newTask = random(availableTasks);
-    arrTask.push(newTask)
-  }
-  return arrTask;
-  }
-
-  function completeTask(task){
-  
-  }
