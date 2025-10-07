@@ -1,8 +1,11 @@
+
+
 // Expose movement functions globally for browser usage
 if (typeof window !== 'undefined') {
   window.moveSelectedEntityToTile = moveSelectedEntityToTile;
   window.moveSelectedEntitiesToTile = moveSelectedEntitiesToTile;
 }
+
 /**
  * AntUtilities - Static utility methods for ant operations and group management
  */
@@ -130,7 +133,6 @@ class AntUtilities {
    */
   static selectAntUnderMouse(ants, mouseX, mouseY, clearOthers = true) {
     if (!ants || ants.length === 0) return null;
-    
     let selectedAnt = null;
     
     // Clear other selections if requested
