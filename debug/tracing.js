@@ -145,7 +145,7 @@ function IncorrectParamPassed(expectedParam, offendingParam) {
  */
 function deprecatedWarning(replacementFunction) {
     if (typeof replacementFunction === "function") {
-        console.warn(`${getFunctionName(2)} is deprecated. Use ${replacementFunction.name}() instead.`);
+        //console.warn(`${getFunctionName(2)} is deprecated. Use ${replacementFunction.name}() instead.`);
         paramInfo(replacementFunction)
     return replacementFunction.apply(null, arguments.length > 1 ? Array.prototype.slice.call(arguments, 1) : []);
     } else {

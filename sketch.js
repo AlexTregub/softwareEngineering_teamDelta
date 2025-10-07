@@ -157,8 +157,8 @@ function mousePressed() {
       console.error('❌ Error handling button click:', error);
     }
   }
-  
-  handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton);
+
+  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
 function mouseDragged() {
