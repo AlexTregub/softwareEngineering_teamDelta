@@ -2,9 +2,10 @@
 
 ## 🚫 RED FLAGS - Weak Test Patterns
 
-### Immediate Rejection Criteria:
+### Immediate Rejection Criteria
+
 - **Loop Counter Tests**: `expect(counter).to.equal(5)`
-- **Basic Math Tests**: `expect(minValue).to.be.lessThan(maxValue)` 
+- **Basic Math Tests**: `expect(minValue).to.be.lessThan(maxValue)`
 - **Language Feature Tests**: Testing `.some()`, `.forEach()`, array methods
 - **Arbitrary Thresholds**: Magic numbers not from system config
 - **Manual Re-implementation**: Writing own logic instead of testing system APIs
@@ -21,7 +22,8 @@
 
 ## ✅ STRONG TEST PATTERNS
 
-### Must-Have Elements:
+### Must-Have Elements
+
 1. **System API Usage**: `system.getWarnings()` not `array.some()`
 2. **System Thresholds**: Use system's 50ms, not arbitrary 30ms  
 3. **Business Logic**: Test requirements, not mechanics
@@ -30,16 +32,18 @@
 6. **Statistical Rigor**: Proper calculations for trend/pattern analysis
 7. **🖥️ Headless Browsers**: ALL browser tests must run headless
 
-## Quick Test Quality Check:
+## Quick Test Quality Check
 
 **Ask these 3 questions:**
+
 1. **"Does this test use the real system API?"** If no → weak test
 2. **"Would this test catch a real bug?"** If no → weak test  
 3. **"Am I testing system behavior or test logic?"** If test logic → weak test
 
-## Examples from Our Fixes:
+## Examples from Our Fixes
 
-### ❌ BEFORE (Weak):
+### ❌ BEFORE (Weak)
+
 ```javascript
 expect(memoryIncreases).to.equal(5); // Counting loops
 expect(hasSpikes).to.be.true; // Testing .some() method  
@@ -55,7 +59,8 @@ expected(true).to.be.true; // Placeholder test
 const isVisible = entityRenderer.isEntityInViewport(entity); // Missing expectation
 ```
 
-### ✅ AFTER (Strong):
+### ✅ AFTER (Strong)
+
 ```javascript
 expect(warnings).to.include('Memory usage increasing: Possible memory leak'); // Real API
 expect(performanceMonitor.metrics.worstFrameTime).to.be.greaterThan(50); // Real threshold
@@ -65,6 +70,7 @@ expect(coefficientOfVariation).to.be.greaterThan(0.3); // Statistical analysis
 ## Running Tally: **Latest Achievement: 77/77 BDD tests passing + 5 New RED FLAGS Identified**
 
 ### Recent Success (October 2025): RenderController Enhancement
+
 ✅ **Implemented 4 missing animation methods** for advanced visual effects  
 ✅ **Fixed all private method testing** - now uses public APIs and behavioral validation  
 ✅ **Enhanced debug system** - comprehensive state reporting with performance metrics  

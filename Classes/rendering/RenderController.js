@@ -43,12 +43,12 @@ class RenderController {
       HOVER: {
         color: [255, 255, 0, 200], // White with transparency
         strokeWeight: 2,
-        style: "outline"
+        style: "pulse"
       },
       BOX_HOVERED: {
         color: [0, 255, 50, 100], // Green with transparence
         strokeWeight: 2,
-        style: "outline"
+        style: "pulse"
       },
       COMBAT: {
         color: [255, 0, 0], // Red

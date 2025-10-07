@@ -32,6 +32,11 @@ class ResourceManager {
     this.resources = []; // Resources currently being carried
     this.isDroppingOff = false; // Whether ant is currently dropping off resources
     this.isAtMaxCapacity = false; // Whether ant has reached max capacity
+    
+    // Selection/interaction state
+    this.selectedResourceType = null; // Currently selected resource type for interaction
+    this.highlightSelectedType = true; // Whether to highlight selected resource type
+    this.focusedCollection = false; // Whether to only collect selected resource type
   }
 
   /**
@@ -131,15 +136,24 @@ class ResourceManager {
 
   /**
    * Scans for nearby resources and attempts to collect them.
-   * Uses the global g_resourceList to find available resources.
+   * Uses the global resource system to find available resources.
    */
   checkForNearbyResources() {
-    // Check if g_resourceList is available globally
-    if (typeof g_resourceList === 'undefined' || !g_resourceList.getResourceList) {
-      return;
-    }
+    // Check if g_resourceManager (ResourceSystemManager) is available globally
+    let resourceSystem = null;
+    let fruits = [];
 
-    const fruits = g_resourceList.getResourceList();
+    // Try new ResourceSystemManager first
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getResourceList === 'function') {
+      resourceSystem = g_resourceManager;
+      fruits = g_resourceManager.getResourceList();
+    }
+    // Fallback to old g_resourceList for compatibility
+    else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.getResourceList === 'function') {
+      fruits = g_resourceList.getResourceList();
+    } else {
+      return; // No resource system available
+    }
 
     // If the resource list is an array (common case), iterate backwards so we can splice safely
     if (Array.isArray(fruits)) {
@@ -155,14 +169,27 @@ class ResourceManager {
         const yDifference = Math.abs(Math.floor(ry - (this.parentEntity.posY || (this.parentEntity.getPosition && this.parentEntity.getPosition().y))));
 
         if (xDifference <= this.collectionRange && yDifference <= this.collectionRange) {
+          // Check if focused collection is enabled and if so, only collect selected type
+          if (this.focusedCollection && this.selectedResourceType) {
+            const resourceType = resource.type || resource._type || resource.resourceType;
+            if (resourceType !== this.selectedResourceType) {
+              continue; // Skip resources that don't match selected type
+            }
+          }
+          
           // Try to collect the resource
           if (this.addResource(resource)) {
             // Notify the resource it's being picked up if it supports that API
             if (resource && typeof resource.pickUp === 'function') {
               try { resource.pickUp(this.parentEntity); } catch (e) { /* best-effort */ }
             }
-            // Remove from global list
-            fruits.splice(i, 1);
+            // Remove from resource system
+            if (resourceSystem && typeof resourceSystem.removeResource === 'function') {
+              resourceSystem.removeResource(resource);
+            } else {
+              // Fallback to array splice for old system
+              fruits.splice(i, 1);
+            }
           }
 
           if (this.isAtMaxLoad()) {
@@ -204,6 +231,118 @@ class ResourceManager {
           }
         }
       }
+    }
+  }
+
+  /**
+   * Selects a resource type for focused interaction.
+   * This allows the UI to highlight or filter resources of a specific type.
+   *
+   * @param {string} resourceType - The type of resource to select ('wood', 'food', 'stone', etc.)
+   */
+  selectResource(resourceType) {
+    const previousSelection = this.selectedResourceType;
+    this.selectedResourceType = resourceType;
+    
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose(`ResourceManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
+    } else {
+      console.log(`ResourceManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
+    }
+    
+    // Notify global resource system if available
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.setSelectedType === 'function') {
+      g_resourceManager.setSelectedType(resourceType);
+    } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.setSelectedType === 'function') {
+      g_resourceList.setSelectedType(resourceType);
+    }
+  }
+
+  /**
+   * Gets the currently selected resource type.
+   *
+   * @returns {string|null} The selected resource type, or null if none selected
+   */
+  getSelectedResourceType() {
+    return this.selectedResourceType;
+  }
+
+  /**
+   * Clears the current resource type selection.
+   */
+  clearResourceSelection() {
+    const previousSelection = this.selectedResourceType;
+    this.selectedResourceType = null;
+    
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose(`ResourceManager: Cleared resource selection (was: ${previousSelection})`);
+    } else {
+      console.log(`ResourceManager: Cleared resource selection (was: ${previousSelection})`);
+    }
+    
+    // Notify global resource system if available
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.setSelectedType === 'function') {
+      g_resourceManager.setSelectedType(null);
+    } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.setSelectedType === 'function') {
+      g_resourceList.setSelectedType(null);
+    }
+  }
+
+  /**
+   * Checks if a specific resource type is currently selected.
+   *
+   * @param {string} resourceType - The resource type to check
+   * @returns {boolean} True if the specified type is selected
+   */
+  isResourceTypeSelected(resourceType) {
+    return this.selectedResourceType === resourceType;
+  }
+
+  /**
+   * Gets all resources of the currently selected type from the global resource list.
+   *
+   * @returns {Array} Array of resources matching the selected type
+   */
+  getSelectedTypeResources() {
+    if (!this.selectedResourceType) {
+      return [];
+    }
+    
+    // Try new ResourceSystemManager first
+    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getSelectedTypeResources === 'function') {
+      return g_resourceManager.getSelectedTypeResources();
+    }
+    
+    // Fallback to old system
+    if (typeof g_resourceList === 'undefined' || !g_resourceList.getResourceList) {
+      return [];
+    }
+    
+    const allResources = g_resourceList.getResourceList();
+    if (!Array.isArray(allResources)) {
+      return [];
+    }
+    
+    return allResources.filter(resource => {
+      if (!resource) return false;
+      const resourceType = resource.type || resource._type || resource.resourceType;
+      return resourceType === this.selectedResourceType;
+    });
+  }
+
+  /**
+   * Focuses collection on the selected resource type only.
+   * When enabled, the entity will only collect resources of the selected type.
+   *
+   * @param {boolean} focusEnabled - Whether to enable focused collection
+   */
+  setFocusedCollection(focusEnabled) {
+    this.focusedCollection = focusEnabled;
+    
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose(`ResourceManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
+    } else {
+      console.log(`ResourceManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
     }
   }
 

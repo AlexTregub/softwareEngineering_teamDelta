@@ -37,6 +37,11 @@ function preload(){
   menuPreload();
   antsPreloader();
   resourcePreLoad();
+  
+  // Load presentation assets
+  if (typeof loadPresentationAssets !== 'undefined') {
+    loadPresentationAssets();
+  }
 }
 
 
@@ -61,59 +66,7 @@ function setup() {
   });
 
   initializeMenu();  // Initialize the menu system
-  
-  // UI Debug System initialization
-  // Create global UI Debug Manager instance
-  // Disabled to avoid conflicts with other UI systems
-  //
-  window.g_uiDebugManager = new UIDebugManager();
-  g_uiDebugManager = window.g_uiDebugManager; // Make globally available
-  
-  // Initialize dropoff UI if present (creates the Place Dropoff button)
-  window.initDropoffUI();
-
-  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
-  try {
-      g_resourceManager.forceSpawn();
-  } catch (e) { /* non-fatal; spawner will populate via interval */ }
-
-  // Initialize Universal Button Group System
-  initializeUniversalButtonSystem();
-  
-  // Initialize Draggable Panel System
-  initializeDraggablePanelSystem();
-  
-  // Initialize Enhanced Draggable Panels with Button Arrays
-  if (typeof initializeDraggablePanels !== 'undefined') {
-    initializeDraggablePanels();
-  }
-  
-  // Initialize ant control panel for spawning and state management
-  if (typeof initializeAntControlPanel !== 'undefined') {
-    initializeAntControlPanel();
-  }
-  
-  // Initialize UI Selection Controller for effects layer selection box
-  // This must happen after RenderManager.initialize() creates the EffectsRenderer
-  setTimeout(() => {
-    console.log('🎯 Initializing UI Selection Controller...');
-    
-    // Check if required components exist
-    if (UISelectionController && window.EffectsRenderer) {
-      g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
-      console.log('✅ UISelectionController created successfully');
-      
-      // Initialize the selection box system
-      if (initializeUISelectionBox) {
-        initializeUISelectionBox();
-      }
-    } else {
-      console.error('❌ Required components not available:');
-      console.log('UISelectionController available:', typeof UISelectionController !== 'undefined');
-      console.log('EffectsRenderer available:', typeof window.EffectsRenderer !== 'undefined');
-      console.log('window.EffectsRenderer object:', window.EffectsRenderer);
-    }
-  }, 200);
+  renderPipelineInit();
 }
 
 /**
@@ -144,60 +97,29 @@ function initializeWorld() {
   g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
-  initializeDraggablePanelSystem();
  
 }
-
 
 /**
  * draw
  * ----
  * Main rendering loop for the game.
- * 
- * Invokes the rendering pipeline in three distinct stages:
- *   1. mapRender   - Draws the g_map background and debug grid.
- *   2. fieldRender - Renders all dynamic game entities and resources.
- *   3. uiRender    - Draws user interface elements and overlays.
- * 
- * Ensures proper visual stacking and separation between foundational layers,
- * interactive entities, and UI components. Called automatically by p5.js each frame.
+ * uses the RenderManager to render the current game state.
+ * Also updates draggable panels if in the PLAYING state.
+ * Called automatically by p5.js at the frame rate.
  */
+
 function draw() {
-  // background(0);
-  // g_map2.renderDirect();
+  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
 
-  // Use the new layered rendering system
-  // Update legacy draggable panels BEFORE rendering so the render pipeline
-  // sees the latest panel positions (avoids a pre-update render that leaves
-  // a ghost image of the previous frame's positions).
-  if (GameState.getState() === 'PLAYING') {
-    try {
-      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
-        updateDraggablePanels();
-      }
-    } catch (error) {
-      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
-    }
+  updatePresentationPanels(GameState.getState());
+
+  // Update presentation panels for state-based visibility
+  if (typeof updatePresentationPanels !== 'undefined') {
+    updatePresentationPanels(GameState.getState());
   }
 
-  if (RenderManager && RenderManager.isInitialized) {
-    RenderManager.render(GameState.getState());
-  }
-
-  // Update button groups (rendering handled by RenderLayerManager)
-  if (window.buttonGroupManager) {
-    try {
-      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
-    } catch (error) {
-      console.error('❌ Error updating button group system:', error);
-    }
-  }
-
-  // Note: rendering of draggable panels is handled via RenderManager's
-  // ui_game layer (DraggablePanelManager integrates into the render layer).
-  // We intentionally do NOT call renderDraggablePanels() here to avoid a
-  // second draw pass within the same frame which would leave a ghost of
-  // the pre-update positions.
+  RenderManager.render(GameState.getState());
 }
 
 /**
@@ -235,8 +157,8 @@ function mousePressed() {
       console.error('❌ Error handling button click:', error);
     }
   }
-  
-  handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton);
+
+  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
 function mouseDragged() {
@@ -315,6 +237,14 @@ function keyPressed() {
         break;
       case '.': // Shift+. - Enable all layers (period key)
         RenderManager.enableAllLayers();
+        handled = true;
+        break;
+      case 'z': // Shift+1 - Toggle Sprint 5 image in menu
+        if (typeof toggleSprintImageInMenu !== 'undefined') {
+          toggleSprintImageInMenu();
+        } else {
+          console.warn('toggleSprintImageInMenu function not available');
+        }
         handled = true;
         break;
     }

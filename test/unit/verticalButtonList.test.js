@@ -35,8 +35,23 @@ testSuite.test('Groups configs by y and returns debug arrays', () => {
   testSuite.assertEqual(layout.header, null);
 });
 
-// Run tests
-testSuite.run();
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('VerticalButtonList Tests', () => {
+    testSuite.run();
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running VerticalButtonList tests...');
+  testSuite.run();
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 VerticalButtonList tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: run tests if no global test runner
+  testSuite.run();
+}
 
 // cleanup
 env.teardown();

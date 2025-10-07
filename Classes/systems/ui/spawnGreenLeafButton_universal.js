@@ -23,7 +23,12 @@ let spawnLeafUI = {
  * Now integrates with Universal Button System
  */
 function initSpawnGreenLeafButton() {
-  console.log('🔄 Initializing Spawn Green Leaf Button (Universal Button System)');
+  // Use verbose logging for initialization details
+  if (typeof globalThis.logVerbose === 'function') {
+    globalThis.logVerbose('🔄 Initializing Spawn Green Leaf Button (Universal Button System)');
+  } else {
+    console.log('🔄 Initializing Spawn Green Leaf Button (Universal Button System)');
+  }
   
   // Check if Universal Button System is available
   if (window.buttonGroupManager && 
@@ -33,11 +38,20 @@ function initSpawnGreenLeafButton() {
     // Update the button text to reflect current count
     updateSpawnLeafButtonText();
     
-    console.log('✅ Spawn leaf button integrated with Universal Button System');
+    // Use verbose logging for successful integration
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Spawn leaf button integrated with Universal Button System');
+    } else {
+      console.log('✅ Spawn leaf button integrated with Universal Button System');
+    }
     spawnLeafUI.usingUniversalSystem = true;
   } else {
-    // Fallback to legacy implementation
-    console.log('⚠️ Universal Button System not available, using legacy fallback');
+    // Fallback to legacy implementation - use normal logging for warnings
+    if (typeof globalThis.logNormal === 'function') {
+      globalThis.logNormal('⚠️ Universal Button System not available, using legacy fallback');
+    } else {
+      console.log('⚠️ Universal Button System not available, using legacy fallback');
+    }
     initLegacySpawnGreenLeafButton();
     spawnLeafUI.usingUniversalSystem = false;
   }

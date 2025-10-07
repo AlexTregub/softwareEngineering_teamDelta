@@ -128,7 +128,11 @@ class gridTerrain {
         
         // Check if cache needs regeneration
         if (!this._cacheValid || this._viewportChanged() || !this._terrainCache) {
-            console.log(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
+            if (typeof globalThis.logNormal === 'function') {
+              globalThis.logNormal(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
+            } else {
+              console.log(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
+            }
             this._generateTerrainCache();
         }
 
@@ -150,7 +154,11 @@ class gridTerrain {
      */
     _generateTerrainCache() {
         try {
-            console.log('GridTerrain: Generating terrain cache...');
+            if (typeof globalThis.logNormal === 'function') {
+              globalThis.logNormal('GridTerrain: Generating terrain cache...');
+            } else {
+              console.log('GridTerrain: Generating terrain cache...');
+            }
             
             // Use current canvas dimensions (g_canvasX, g_canvasY) instead of stored _canvasSize
             const currentCanvasWidth = typeof g_canvasX !== 'undefined' ? g_canvasX : this._canvasSize[0];
@@ -162,7 +170,11 @@ class gridTerrain {
             const terrainWidth = totalTilesX * this._tileSize;
             const terrainHeight = totalTilesY * this._tileSize;
             
-            console.log(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
+            if (typeof globalThis.logVerbose === 'function') {
+              globalThis.logVerbose(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
+            } else {
+              console.log(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
+            }
             
             // Safely create off-screen graphics buffer - use current canvas size for viewport-based caching
             if (this._terrainCache) {
@@ -204,7 +216,11 @@ class gridTerrain {
             };
             this._lastCameraPosition = [...this.renderConversion._camPosition];
             
-            console.log('GridTerrain: Terrain cache generated successfully');
+            if (typeof globalThis.logNormal === 'function') {
+              globalThis.logNormal('GridTerrain: Terrain cache generated successfully');
+            } else {
+              console.log('GridTerrain: Terrain cache generated successfully');
+            }
             
         } catch (error) {
             console.error('GridTerrain: Error generating terrain cache:', error);
@@ -333,7 +349,11 @@ class gridTerrain {
      */
     invalidateCache() {
         this._cacheValid = false;
-        console.log('GridTerrain: Cache invalidated manually');
+        if (typeof globalThis.logNormal === 'function') {
+          globalThis.logNormal('GridTerrain: Cache invalidated manually');
+        } else {
+          console.log('GridTerrain: Cache invalidated manually');
+        }
     }
 
     /**

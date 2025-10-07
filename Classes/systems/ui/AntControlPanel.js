@@ -49,25 +49,42 @@ function initializeAntControlPanel() {
       contentFunction: renderAntControlPanelContent
     });
 
-    console.log('✅ Ant Control Panel created');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Ant Control Panel created');
+    } else {
+      console.log('✅ Ant Control Panel created');
+    }
     
     // Ensure panel is visible and force update
     if (antControlPanel && typeof antControlPanel.setVisible === 'function') {
       antControlPanel.setVisible(true);
-      console.log('✅ Ant Control Panel visibility explicitly set to true');
+      if (typeof globalThis.logVerbose === 'function') {
+        globalThis.logVerbose('✅ Ant Control Panel visibility explicitly set to true');
+      } else {
+        console.log('✅ Ant Control Panel visibility explicitly set to true');
+      }
     }
     
     // Log panel manager state for debugging
     if (window.draggablePanelManager) {
-      console.log(`📊 Panel Manager Stats: ${window.draggablePanelManager.getPanelCount()} panels registered`);
-      console.log(`👁️ Visible panels: ${window.draggablePanelManager.getVisiblePanelCount()}`);
+      if (typeof globalThis.logVerbose === 'function') {
+        globalThis.logVerbose(`📊 Panel Manager Stats: ${window.draggablePanelManager.getPanelCount()} panels registered`);
+        globalThis.logVerbose(`👁️ Visible panels: ${window.draggablePanelManager.getVisiblePanelCount()}`);
+      } else {
+        console.log(`📊 Panel Manager Stats: ${window.draggablePanelManager.getPanelCount()} panels registered`);
+        console.log(`👁️ Visible panels: ${window.draggablePanelManager.getVisiblePanelCount()}`);
+      }
     }
 
     // Delayed visibility check and force show (in case of initialization timing issues)
     setTimeout(() => {
       if (window.draggablePanelManager && window.draggablePanelManager.hasPanel('ant-control')) {
         const isVisible = window.draggablePanelManager.isPanelVisible('ant-control');
-        console.log(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
+        if (typeof globalThis.logVerbose === 'function') {
+          globalThis.logVerbose(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
+        } else {
+          console.log(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
+        }
         
         if (!isVisible) {
           console.log('⚡ Panel was not visible, forcing visibility...');

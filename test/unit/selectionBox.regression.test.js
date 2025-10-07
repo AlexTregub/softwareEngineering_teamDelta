@@ -479,4 +479,20 @@ suite.test('REGRESSION: Function existence validation', () => {
 });
 
 // Run all regression tests
-suite.run();
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('Selection Box Regression Tests', () => {
+    suite.run();
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running Selection Box regression tests...');
+  suite.run();
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 Selection Box Regression tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: run tests if no global test runner
+  suite.run();
+}

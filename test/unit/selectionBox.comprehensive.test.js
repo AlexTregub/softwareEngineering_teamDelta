@@ -456,4 +456,20 @@ suite.test('Empty Selection Box Handling', () => {
 });
 
 // Run all tests
-suite.run();
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('Selection Box Comprehensive Tests', () => {
+    suite.run();
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running Selection Box comprehensive tests...');
+  suite.run();
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 Selection Box Comprehensive tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: run tests if no global test runner
+  suite.run();
+}

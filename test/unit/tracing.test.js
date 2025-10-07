@@ -483,10 +483,26 @@ suite.test('deprecatedWarning and paramInfo integration workflow', () => {
   console.log = originalLog;
 });
 
-// Run the test suite if this file is executed directly
-if (require.main === module) {
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('Tracing Tests', () => {
+    const success = suite.run();
+    return success;
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running Tracing tests...');
   const success = suite.run();
-  process.exit(success ? 0 : 1);
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 Tracing tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: Run the test suite if this file is executed directly
+  if (require.main === module) {
+    const success = suite.run();
+    process.exit(success ? 0 : 1);
+  }
 }
 
 module.exports = suite;

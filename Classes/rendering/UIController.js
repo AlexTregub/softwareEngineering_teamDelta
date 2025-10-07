@@ -47,7 +47,11 @@ class UIController {
       // Enable performance overlay by default in development
       this.uiRenderer.debugUI.performanceOverlay.enabled = true;
       
-      console.log('UIController initialized successfully');
+      if (typeof globalThis.logNormal === 'function') {
+        globalThis.logNormal('UIController initialized successfully');
+      } else {
+        console.log('UIController initialized successfully');
+      }
       return true;
     } else {
       console.warn('UIController: UIRenderer not available');
@@ -62,7 +66,11 @@ class UIController {
   setupKeyboardControls() {
     // Note: Keyboard integration is handled via g_keyboardController.onKeyPress() in sketch.js setup()
     // The handleKeyPress method below processes the actual key combinations
-    console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
+    if (typeof globalThis.logNormal === 'function') {
+      globalThis.logNormal('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
+    } else {
+      console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
+    }
   }
 
   /**

@@ -272,7 +272,9 @@ class ShareholderDemo {
     }
     
     // Clear resources
-    if (g_resourceList && g_resourceList.clear) {
+    if (g_resourceManager && typeof g_resourceManager.clearAllResources === 'function') {
+      g_resourceManager.clearAllResources();
+    } else if (g_resourceList && g_resourceList.clear) {
       g_resourceList.clear();
     }
     
@@ -298,7 +300,7 @@ class ShareholderDemo {
     }
     
     // Stop resource spawning
-    if (g_resourceManager && g_resourceManager.stopSpawning) {
+    if (g_resourceManager && typeof g_resourceManager.stopSpawning === 'function') {
       g_resourceManager.stopSpawning();
     }
     
@@ -642,7 +644,11 @@ let shareholderDemo = null;
  */
 function initializeShareholderDemo() {
   shareholderDemo = new ShareholderDemo();
-  console.log('🎭 Shareholder Demo system initialized');
+  if (typeof globalThis.logNormal === 'function') {
+    globalThis.logNormal('🎭 Shareholder Demo system initialized');
+  } else {
+    console.log('🎭 Shareholder Demo system initialized');
+  }
 }
 
 /**
@@ -659,16 +665,23 @@ function startShareholderDemo() {
 if (typeof window !== 'undefined') {
   window.startShareholderDemo = startShareholderDemo;
   window.initializeShareholderDemo = initializeShareholderDemo;
-  
-  console.log('🎯 ShareholderDemo: Functions exposed to window scope');
-  console.log('📊 startShareholderDemo available:', typeof window.startShareholderDemo === 'function');
-  
+
+  if (globalDebugVerbosity >= 1) {
+    console.log('🎯 ShareholderDemo: Functions exposed to window scope');
+    console.log('📊 startShareholderDemo available:', typeof window.startShareholderDemo === 'function');
+    console.log('📊 initializeShareholderDemo available:', typeof window.initializeShareholderDemo === 'function');
+  }
+
   // Auto-initialize when script loads
   window.addEventListener('load', () => {
-    console.log('🚀 ShareholderDemo: Window loaded, initializing...');
+    if (globalDebugVerbosity >= 1) {
+      console.log('🚀 ShareholderDemo: Window loaded, initializing...');
+    }
     // Delay initialization to ensure other systems are loaded
     setTimeout(() => {
-      console.log('⏰ ShareholderDemo: Delayed initialization starting...');
+      if (globalDebugVerbosity >= 1) {
+        console.log('⏰ ShareholderDemo: Delayed initialization starting...');
+      }
       initializeShareholderDemo();
     }, 1000);
   });

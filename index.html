@@ -35,6 +35,7 @@
     <script src="Classes/systems/text/textRenderer.js"></script>
 
     <!-- Core Systems -->
+    <script src="Classes/managers/ResourceSystemManager.js"></script>
     <script src="Classes/resource.js"></script>
     <script src="Classes/resources.js"></script>
     <script src="Classes/managers/ResourceManager.js"></script>
@@ -56,6 +57,7 @@
     <script src="Classes/systems/ui/DraggablePanelManager.js"></script>
     <script src="Classes/systems/ui/DraggablePanelSystem.js"></script>
     <script src="Classes/systems/ui/AntControlPanel.js"></script>
+    <script src="Classes/systems/ui/PresentationPanel.js"></script>
     
     <!-- UI Selection Box System -->
     <script src="Classes/systems/ui/UISelectionBoxIntegration.js"></script>
@@ -67,6 +69,7 @@
     <script src="Classes/pathfinding.js"></script>
 
     <!-- Controller System - Load all controllers before ant classes -->
+    <script src="Classes/controllers/CameraController.js"></script>
     <script src="Classes/controllers/MovementController.js"></script>
     <script src="Classes/controllers/TaskManager.js"></script>
     <script src="Classes/controllers/CombatController.js"></script>
@@ -79,6 +82,8 @@
     <script src="Classes/controllers/SelectionBoxController.js"></script>
     <script src="Classes/controllers/UISelectionController.js"></script>
     <script src="Classes/controllers/InventoryController.js"></script>
+    <!-- HealthController.js manages the health state and logic for entities; added to support entity health tracking and updates. -->
+    <script src="Classes/controllers/HealthController.js"></script>
     <script src="Classes/controllers/AntUtilities.js"></script>
 
 
@@ -108,9 +113,7 @@
    <script src="debug/EntityDebugManager.js"></script>
    <script src="debug/debuggerDemo.js"></script>
     <script src="debug/selectionBoxDebug.js"></script>
-    <script src="debug/emergencySelection.js"></script>
     <script src="debug/selectionRenderDebug.js"></script>
-    <script src="debug/finalizeSelection.js"></script>
     <script src="debug/mouseEventDebug.js"></script>
     <script src="debug/selectionStateMachine.js"></script>    <!-- Ant Classes - Load in proper order -->
     <script src="Classes/ants/JobComponent.js"></script>
@@ -118,7 +121,12 @@
     <script src="Classes/ants/antStateMachine.js"></script>
     <script src="Classes/ants/Queen.js"></script>
     <script src="debug/commandLine.js"></script>
+    <script src="debug/verboseLogger.js"></script>
+    <script src="debug/globalTestRunner.js"></script>
     <script src="debug/testing.js"></script>
+    
+    <!-- Resource System Integration Test -->
+    <script src="test/integration/resourceSystemManagerIntegration.test.js"></script>
     
     <!-- Shareholder Demo System -->
     <script src="Classes/testing/ShareholderDemo.js"></script>
