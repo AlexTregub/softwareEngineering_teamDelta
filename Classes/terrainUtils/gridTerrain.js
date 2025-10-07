@@ -134,6 +134,18 @@ class gridTerrain {
         this._lastCameraPosition = [0, 0];     // Track camera movement
     }
 
+    //// Functionality
+    randomize(g_seed=this._seed) {
+        noiseSeed(g_seed);
+
+        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
+            this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
+        }
+        
+        // Invalidate cache when terrain data changes
+        this.invalidateCache();
+    }
+
     printDebug() {
         print("gridTerrain debug:");
         print("Chunk span:",this._gridSizeX,',',this._gridSizeY,"; Center chunk:",this._centerChunkX,',',this._centerChunkY)
@@ -148,6 +160,67 @@ class gridTerrain {
         print("Render center:",this.renderConversion.convPosToCanvas([0,0]));
     }
 
+    //// Utils
+    convRelToAccess(pos) { // Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
+        let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize)-1;
+        let chunkY = pos[1]%this._chunkSize == 0 ? pos[1]/this._chunkSize : floor(pos[1]/this._chunkSize)+1;
+
+        let relX = pos[0] - chunkX*this._chunkSize;
+        let relY = chunkY*this._chunkSize - pos[1];
+
+        return [
+            [chunkX,chunkY],
+            [relX,relY]
+        ]
+    }
+
+    convArrToAccess(pos) { // Converts legacy array position -> chunk (0,0 indexed) + relative, 2d format.
+        // Assumes position is from (0,0) with old format.
+        let chunkX = floor(pos[0]/this._chunkSize); // 2 -> 0.* -> chunk at 0,y
+        let chunkY = floor(pos[1]/this._chunkSize);
+        
+        let relX = pos[0] - chunkX*this._chunkSize; // Will not round, allow for float positions
+        let relY = pos[1] - chunkY*this._chunkSize;
+
+        return [
+            [chunkX,chunkY],
+            [relX,relY]
+        ]
+    }
+
+    //// Access - similar to grid functions
+    // Assumes indexed from (0,0)
+    getArrPos(pos) {
+        let access = this.convArrToAccess(pos);
+        let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
+
+        return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
+    }
+
+    setArrPos(pos,obj) {
+        let access = this.convArrToAccess(pos);
+        let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
+
+        return this.chunkArray.rawArray[chunkRawAccess].setArrPos(access[1],obj);
+    }
+
+    // Assumes indexed from TL position (_tileSpan[0])
+    get(relPos) {
+        let access = this.convRelToAccess(relPos);
+        let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
+
+        return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
+    }
+
+    set(relPos,obj) {
+        let access = this.convRelToAccess(relPos);
+        let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
+
+        return this.chunkArray.rawArray[chunkRawAccess].setArrPos(access[1],obj);
+    }
+
+
+    //// Rendering (+ pipeline)
     render() {
         // Use caching system for performance optimization
         if (!this._shouldUseCache()) {
@@ -510,17 +583,6 @@ class gridTerrain {
         // console.log("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
         console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
     
-    }
-
-    randomize(g_seed=this._seed) {
-        noiseSeed(g_seed);
-
-        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
-            this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
-        }
-        
-        // Invalidate cache when terrain data changes
-        this.invalidateCache();
     }
 };
 

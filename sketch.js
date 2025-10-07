@@ -88,6 +88,8 @@ function initializeWorld() {
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
+
+  g_map2.printDebug();
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
