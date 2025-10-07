@@ -1,9 +1,9 @@
 # softwareEngineering_teamDelta
+
 Team contrib repo for Software Engineering course with Dr. Delozier (CS33901)
 
 ## 📁 Project Structure
 
-```
 ├── Classes/                 # Core game classes and systems
 │   ├── ants/               # Ant-related classes (ant, Job, state machine)
 │   ├── containers/         # Base entity classes (Entity, StatsContainer)
@@ -15,26 +15,48 @@ Team contrib repo for Software Engineering course with Dr. Delozier (CS33901)
 │   ├── EntityDebugManager.js   # Global debug control and management
 │   ├── debuggerDemo.js         # Usage examples and console commands
 │   └── README.md               # Debugger documentation
-├── test/                   # Test suites
-│   ├── browser/            # Browser-based integration tests
-│   └── *.test.js           # Node.js unit tests
+├── test/                   # Comprehensive test suites
+│   ├── unit/               # Unit tests for individual components
+│   ├── integration/        # Integration tests for system interactions
+│   ├── bdd_new/            # Behavior-driven development tests
+│   ├── runAllJobTests.js   # Job system test suite
+│   ├── runAllUnitTests.js  # Comprehensive unit test runner
+│   └── runMasterTestSuite.js # Master test orchestration
 ├── docs/                   # Documentation and reports
 │   └── reports/            # Development reports and fixes
 ├── scripts/                # Utility scripts for development
 ├── Images/                 # Game assets and sprites
 └── libraries/              # External libraries (p5.js)
-```
 
-## 🧪 Testing
+## Testing
 
-### Node.js Tests
+### Quick Commands
+
 ```bash
-npm test                    # Run all tests
-npm run test:ant           # Run ant-specific tests
-npm run test:all           # Run comprehensive test suite
+npm test                    # Job system tests (recommended)
+npm run test:quick         # Job system + integration tests
+npm run test:all           # Full test suite (jobs + unit + integration + BDD)
+npm run test:master        # Master test orchestration with detailed reporting
 ```
+
+### Individual Test Categories
+
+```bash
+npm run test:jobs          # Job progression system (81 tests, 87.7% pass rate)
+npm run test:unit          # Unit tests for individual components  
+npm run test:integration   # System integration tests
+npm run test:bdd           # Behavior-driven development tests
+```
+
+### Test Architecture
+
+- **Unit Tests**: Core functionality testing
+- **Integration Tests**: System interaction testing
+- **Gameplay Tests**: Real-world scenario testing
+- **BDD Tests**: User behavior validation
 
 ### Browser Tests
+
 ```bash
 python -m http.server 8000                                    # Start server
 # Then visit:
@@ -53,16 +75,14 @@ python -m http.server 8000
 
 ### 🔍 Debug Controls
 
-The game includes a comprehensive entity debugging system:
-
 | Key | Action |
 |-----|--------|
 | **`** | Toggle debug for nearest entities |
 | **Shift + `** | Show ALL entity debuggers (up to 200) |
 | **Alt + `** | Hide all entity debuggers |
-| **Ctrl + `** | Cycle through selected entity debuggers |
 
 **Console Commands:**
+
 ```javascript
 setDebugLimit(50);           // Adjust debug limit
 forceShowAllDebuggers();     // Override all limits
@@ -79,7 +99,9 @@ demonstrateEntityDebugger(); // Run debug demo
 ## 🏗️ Architecture
 
 ### Entity-Controller Pattern
+
 This project uses a controller-based architecture for behavior management:
+
 - **Entity**: Base class with collision, sprite, and controller integration
 - **MovementController**: Handles pathfinding and movement logic
 - **TaskManager**: Manages priority-based task queues  
@@ -87,11 +109,13 @@ This project uses a controller-based architecture for behavior management:
 - **SelectionController**: Manages selection states and highlighting
 
 ### Debug System
+
 - **UniversalDebugger**: Runtime object introspection and visualization
 - **EntityDebugManager**: Global debug control with keyboard shortcuts
 - **Automatic Integration**: All entities get debuggers with zero configuration
 
 ### Key Features
+
 - **Hot-swappable debugging**: Toggle entity visualization on the fly
 - **Multi-strategy bounds detection**: Works with various object structures
 - **Performance optimized**: Smart limiting with override capabilities
