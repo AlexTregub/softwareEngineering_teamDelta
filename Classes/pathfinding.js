@@ -13,15 +13,17 @@ class PathMap{
       // terrain._xCount, //Size of terrain to match
       // terrain._yCount,
       terrain._tileSpanRange[0],
-      terrain._tileSpanRange[1],
+      terrain._tileSpanRange[1], // BAD IDEA TO USE PRIVATE VARS, fuck it we ball 
       [0,0],
       [0,0]
     );
 
+    console.log("Pathfinding using "+this._grid.infoStr());
+
     this._gridSize = this._grid.getSize();
     for(let y = 0; y < this._gridSize[1]; y++){ 
       for(let x = 0; x < this._gridSize[0]; x++){
-        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
+        let node = new Node(this._terrain.getArrPos([x,y]), x, y); //Makes tile out of Tile object
         this._grid.setArrPos([x, y], node); //Stores tile in grid
       }
     }
