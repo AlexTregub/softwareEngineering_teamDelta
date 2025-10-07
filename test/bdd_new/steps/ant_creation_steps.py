@@ -151,7 +151,7 @@ def step_spawn_multiple_ants_table(context, count):
     
     context.spawned_ants = result['createdAnts']
 
-@then('the ant should be created successfully')
+@then('the ant should be created successfully and exist in the ants array')
 def step_verify_ant_created(context):
     """Verify ant was created and exists in ants array"""
     result = context.browser.driver.execute_script("""
@@ -209,7 +209,8 @@ def step_verify_ant_job(context, expected_job):
             hasJob: ant && typeof ant.JobName !== 'undefined'
         };
     """)
-    
+    assert hasattr(context, 'spawn_result'), "Should have spawn result"
+    assert context.spawn_result['antJob'] == expected_job, f"Ant should have job {expected_job}, got {context.spawn_result['antJob']}"
     assert result['hasJob'], "Ant should have JobName property"
     assert result['jobName'] == expected_job, f"Expected job '{expected_job}', got '{result['jobName']}'"
 

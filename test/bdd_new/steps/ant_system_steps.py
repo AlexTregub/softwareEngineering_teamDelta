@@ -86,28 +86,8 @@ def step_call_ants_spawn(context, count):
     assert result['antsAdded'] == count, f"antsSpawn should add {count} ants, added {result['antsAdded']}"
     context.spawn_result = result
 
-@when('I call JobComponent.getAllJobs()')
-def step_call_get_all_jobs(context):
-    """Call the JobComponent.getAllJobs() method"""
-    result = context.browser.driver.execute_script("""
-        try {
-            const allJobs = JobComponent.getAllJobs();
-            
-            return {
-                success: true,
-                jobs: allJobs,
-                jobCount: allJobs ? allJobs.length : 0,
-                jobsType: typeof allJobs
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    """)
-    
-    assert result['success'], f"JobComponent.getAllJobs() should succeed: {result.get('error', '')}"
+# Removed duplicate - using step_call_get_all_jobs from job_component_system_steps.py instead
+# That implementation has better Array.isArray checking and context variable naming
     context.jobs_result = result
 
 @then('the ants array should contain {expected_count:d} ant')
