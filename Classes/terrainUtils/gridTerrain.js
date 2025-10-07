@@ -251,37 +251,44 @@ class gridTerrain {
      * Render all chunks to the cache buffer using a safer approach
      * @private
      */
-    _renderChunksToCache() {
+    _renderChunksToCache(converter=this.renderConversion) {
         // Set drawing context to the cache buffer
         this._terrainCache.push();
-
-        // Same optimization as in direct render
-        // let posSpan = this.renderConversion.getPosSpan(); // Get in position span
-        // let chunkSpan = [ // TL,BR range in chunkSpan
-        //     [
-        //         posSpan[0][0]%CHUNK_SIZE == 0 ? posSpan[0][0]/CHUNK_SIZE : floor(posSpan[0][0]/CHUNK_SIZE)+1,
-        //         posSpan[0][1]%CHUNK_SIZE == 0 ? posSpan[0][1]/CHUNK_SIZE : floor(posSpan[0][1]/CHUNK_SIZE)+1
-        //     ],
-        //     [
-        //         posSpan[1][0]%CHUNK_SIZE == 0 ? posSpan[1][0]/CHUNK_SIZE : floor(posSpan[1][0]/CHUNK_SIZE)+1,
-        //         posSpan[1][1]%CHUNK_SIZE == 0 ? posSpan[1][1]/CHUNK_SIZE : floor(posSpan[1][1]/CHUNK_SIZE)+1
-        //     ]
-        // ]
         
         // Render all terrain chunks directly using p5.Graphics methods
-        for (let i = 0; i < this._gridSizeX * this._gridSizeY; ++i) {
-            let chunkPos = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
-            // const chunk = this.chunkArray.rawArray[i];
-            
-            // Skip render of unseeable chunks
-            // if (chunkPos[0] < chunkSpan[0][0] || chunkPos[0] > chunkSpan[1][0] || chunkPos[1] < chunkSpan[1][1] || chunkPos[1] > chunkSpan[0][1]) {
-            //     console.log("skipped a chunk.");
-            //     continue;
-            // }
+        // for (let i = 0; i < this._gridSizeX * this._gridSizeY; ++i) {
+        //     // let chunkPos = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
 
-            for (let j = 0; j < this._chunkSize * this._chunkSize; ++j) {
-                // const tile = this.chunkArray.rawArray[i].tileData.rawArray[j];
-                this._renderTileToCache(this.chunkArray.rawArray[i].tileData.rawArray[j]);
+        //     for (let j = 0; j < this._chunkSize * this._chunkSize; ++j) {
+        //         // const tile = this.chunkArray.rawArray[i].tileData.rawArray[j];
+        //         this._renderTileToCache(this.chunkArray.rawArray[i].tileData.rawArray[j]);
+        //     }
+        // }
+
+        // Only render SOME chunks, should reduce cache's size -> better framerate.
+        let viewSpan = converter.getViewSpan();
+        let chunkSpan = [
+            [ // -x,+y TL
+                (viewSpan[0][0]%this._chunkSize != 0) ? floor(viewSpan[0][0]/this._chunkSize)-1 : viewSpan[0][0]/this._chunkSize,
+                (viewSpan[0][1]%this._chunkSize != 0) ? floor(viewSpan[0][1]/this._chunkSize)+1 : viewSpan[0][1]/this._chunkSize
+            ],
+            [ // +x,-y BR
+                (viewSpan[1][0]%this._chunkSize != 0) ? floor(viewSpan[1][0]/this._chunkSize)+1 : viewSpan[1][0]/this._chunkSize,
+                (viewSpan[1][1]%this._chunkSize != 0) ? floor(viewSpan[1][1]/this._chunkSize)-1 : viewSpan[1][1]/this._chunkSize
+            ]
+        ];
+
+        // Copied from renderDirect().
+        for (let y = chunkSpan[1][1]; y <= chunkSpan[0][1]; ++y) {
+            for (let x = chunkSpan[0][0]; x <= chunkSpan[1][0]; ++x) { // Potentially works with < , not necessarily correct.
+                // this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
+                
+                let chunkAccessPos = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]));
+                let accessLen = this._chunkSize*this._chunkSize;
+
+                for (let i = 0; i < accessLen; ++i) { // Potentially inefficient, using for caching only.
+                    this._renderTileToCache(this.chunkArray.rawArray[chunkAccessPos].tileData.rawArray[i])
+                }
             }
         }
         
@@ -293,7 +300,7 @@ class gridTerrain {
      * @param {Object} tile - The tile object to render
      * @private
      */
-    _renderTileToCache(tile) {
+    _renderTileToCache(tile,converter=this.renderConversion) {
         if (!tile || !this._terrainCache) return;
         
         try {
@@ -302,6 +309,7 @@ class gridTerrain {
             
             // Convert world position to cache buffer coordinates using cache render converter
             const cachePos = this._cacheRenderConverter.convPosToCanvas(tilePos);
+            // const cachePos = converter.convPosToCanvas(tilePos); // Using shared render converter?
             
             // Use tile's material to render correctly
             const material = tile._materialSet || 'grass';
@@ -318,6 +326,7 @@ class gridTerrain {
             } else {
                 // Fallback: draw a default colored tile
                 this._terrainCache.fill(100, 150, 100); // Default grass color
+                // this._terrainCache.fill(255, 0, 0); // Default grass color
                 this._terrainCache.noStroke();
                 this._terrainCache.rect(cachePos[0], cachePos[1], this._tileSize, this._tileSize);
             }
@@ -391,7 +400,7 @@ class gridTerrain {
             // Draw the cached terrain buffer directly to the main canvas
             // Since the cache is rendered with the same coordinate system,
             // we can draw it at (0,0) and it will align correctly
-            image(this._terrainCache, g_canvasX/2, g_canvasY/2);
+            image(this._terrainCache, g_canvasX/2, g_canvasY/2); 
             
         } catch (error) {
             console.error('GridTerrain: Error drawing cached terrain:', error);
