@@ -2,12 +2,6 @@
 
 This document establishes testing standards based on systematic analysis of weak tests encountered during the rendering pipeline test suite development. The goal is to ensure all tests provide **comprehensive validation** of system functi#### ✅ Strong Pattern: Real API Usage in Integration Tests
 
-```javascript
-// GOOD: Tests actual PerformanceMonitor spike detection system
-const warnings = performanceMonitor.getPerformanceWarnings();
-expect(warnings).to.include('Frame spikes detected: Check for performance bottlenecks');
-expected(performanceMonitor.metrics.worstFrameTime).to.be.greaterThan(50); rather than trivial assertions.
-
 > **Language Guidelines**: See [BDD_LANGUAGE_STYLE_GUIDE.md](./BDD_LANGUAGE_STYLE_GUIDE.md) for consistent, professional test language without unnecessary emphasis words.
 
 ## 🖥️ **BROWSER AUTOMATION REQUIREMENTS**
@@ -268,13 +262,13 @@ expect(coefficientOfVariation).to.be.greaterThan(0.3); // Validates actual insta
 ```javascript
 // BAD: Implements own spike detection instead of testing real system
 const hasSpikes = performanceMonitor.frameData.frameHistory.some(time => time > 30);
-expected(hasSpikes).to.be.true;
+expect(hasSpikes).to.be.true;
 
 // BAD: Manual rolling window simulation instead of testing real system
 for (let i = 0; i < 65; i++) {
     performanceMonitor.frameData.frameHistory[i % 60] = 16 + i * 0.1; // Manual modulo
 }
-expected(performanceMonitor.frameData.frameHistory.length).to.equal(60); // Tests 60 === 60
+expect(performanceMonitor.frameData.frameHistory.length).to.equal(60); // Tests 60 === 60
 ```
 
 #### ✅ Strong Pattern: Real API Usage with Performance Monitoring
@@ -282,13 +276,13 @@ expected(performanceMonitor.frameData.frameHistory.length).to.equal(60); // Test
 ```javascript
 // GOOD: Tests actual PerformanceMonitor spike detection system
 const warnings = performanceMonitor.getPerformanceWarnings();
-expected(warnings).to.include('Frame spikes detected: Check for performance bottlenecks');
-expected(performanceMonitor.metrics.worstFrameTime).to.be.greaterThan(50);
+expect(warnings).to.include('Frame spikes detected: Check for performance bottlenecks');
+expect(performanceMonitor.metrics.worstFrameTime).to.be.greaterThan(50);
 
 // GOOD: Tests real rolling window system with wraparound behavior
 performanceMonitor.frameData.frameTime = 20;
 performanceMonitor.updateFrameHistory(); // Uses real API
-expected(performanceMonitor.frameData.historyIndex).to.equal(1); // Validates real system state
+expect(performanceMonitor.frameData.historyIndex).to.equal(1); // Validates real system state
 
 **Standard**: Use appropriate statistical methods and domain-specific calculations for validation.
 

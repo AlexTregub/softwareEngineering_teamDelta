@@ -88,7 +88,6 @@ def step_call_ants_spawn(context, count):
 
 # Removed duplicate - using step_call_get_all_jobs from job_component_system_steps.py instead
 # That implementation has better Array.isArray checking and context variable naming
-    context.jobs_result = result
 
 @then('the ants array should contain {expected_count:d} ant')
 def step_ants_array_contains_count(context, expected_count):

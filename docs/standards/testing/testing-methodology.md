@@ -26,7 +26,6 @@ We use **Gherkin syntax with Behave framework** for all testing. This approach f
 
 ### 3. Testing Structure
 
-```mermaid
 test/
 ├── behavioral/
 │   ├── features/           # Gherkin feature files
@@ -40,7 +39,6 @@ test/
 │   └── support/            # Test helpers and configuration
 │       ├── world.js
 │       └── hooks.js
-```
 
 ## Gherkin Feature File Format
 

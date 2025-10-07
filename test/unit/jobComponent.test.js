@@ -7,7 +7,35 @@
 // Load the JobComponent class
 const JobComponent = require('../../Classes/ants/JobComponent.js');
 
-// Test suite setup using your established pattern
+/**
+ * @typedef {Object} TestResult
+ * @property {string} description - Description of the test case.
+ * @property {'PASS'|'FAIL'} status - Test result status.
+ * @property {string} [error] - Error message if the test failed.
+ */
+
+/**
+ * Custom test suite for JobComponent unit tests.
+ * Provides assertion methods and test result tracking.
+ * 
+ * Methods:
+ * - test(description, testFunction): Runs a test and records the result.
+ * - assertEqual(actual, expected, message): Asserts strict equality.
+ * - assertTrue(condition, message): Asserts a condition is true.
+ * - assertNotNull(value, message): Asserts value is not null or undefined.
+ * - assertArrayEquals(actual, expected, message): Asserts arrays are equal.
+ * - getSummary(): Returns summary of passed/failed/total tests.
+ * 
+ * @type {{
+ *   testResults: TestResult[],
+ *   test: function(string, function): void,
+ *   assertEqual: function(*, *, string=): void,
+ *   assertTrue: function(boolean, string=): void,
+ *   assertNotNull: function(*, string=): void,
+ *   assertArrayEquals: function(Array, Array, string=): void,
+ *   getSummary: function(): {passed: number, failed: number, total: number}
+ * }}
+ */
 const JobComponentTestSuite = {
   testResults: [],
   

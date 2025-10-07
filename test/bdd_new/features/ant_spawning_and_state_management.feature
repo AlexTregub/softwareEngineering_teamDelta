@@ -11,7 +11,7 @@ Feature: Ant Spawning and State Management
   Scenario: Spawn ant with valid job and faction
     Given the antsSpawn function is available
     When I spawn an ant with job "Scout" and faction "red" at position 100,100
-    Then the ant should be created successfully and exist in the ants array'
+    Then the ant should be created successfully and exist in the ants array
     And the ant should have job "Scout"
     And the ant should have faction "red"
     And the ant should be added to the ants array
