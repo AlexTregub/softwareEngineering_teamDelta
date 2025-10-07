@@ -1,11 +1,13 @@
 # BDD Test Language Style Guide
 
 ## Purpose
+
 This guide ensures consistent, professional language in BDD test files without unnecessary emphasis on implementation details.
 
 ## ✅ PREFERRED Language
 
 ### Feature Descriptions
+
 ```gherkin
 # ✅ Clean and direct
 Feature: Ant Creation and Properties
@@ -15,6 +17,7 @@ Feature: Component Integration Testing
 ```
 
 ### Scenario Titles
+
 ```gherkin
 # ✅ Functional focus
 Scenario: Single ant spawns using antsSpawn function
@@ -24,6 +27,7 @@ Scenario: Dependencies are available
 ```
 
 ### Step Definitions
+
 ```gherkin
 # ✅ Clear and straightforward
 Given the antsSpawn function is available
@@ -34,14 +38,16 @@ And the spawned ant should use the ant constructor
 
 ## ❌ AVOID Emphasis Language
 
-### Don't Use These Patterns:
+### Don't Use These Patterns
+
 - ~~"**REAL** antsSpawn function"~~ → `antsSpawn function`
 - ~~"**actual** ant constructor"~~ → `ant constructor`  
 - ~~"**genuine** system behavior"~~ → `system behavior`
 - ~~"**authentic** testing"~~ → `testing`
 - ~~"instead of **fake implementations**"~~ → (remove entirely)
 
-### Anti-Patterns to Avoid:
+### Anti-Patterns to Avoid
+
 ```gherkin
 # ❌ Unnecessary emphasis
 Feature: Ant Creation Using Real System APIs
@@ -53,6 +59,7 @@ Then the real ants array should contain actual ant objects
 ## Code Comments and Docstrings
 
 ### ✅ GOOD
+
 ```python
 """Call the antsSpawn function from the game system"""
 """Verify spawned ants use the ant constructor"""  
@@ -60,6 +67,7 @@ Then the real ants array should contain actual ant objects
 ```
 
 ### ❌ AVOID
+
 ```python
 """Call the REAL antsSpawn function from the actual game system"""
 """Verify spawned ants use the actual ant constructor - NO FAKE OBJECTS"""
@@ -77,6 +85,7 @@ Then the real ants array should contain actual ant objects
 ## Browser Configuration Requirements
 
 **ALL browser tests MUST use headless mode:**
+
 ```python
 # ✅ REQUIRED - Headless browser setup
 chrome_options = Options()
@@ -88,6 +97,7 @@ chrome_options.add_argument('--disable-gpu')
 ## Implementation Checklist
 
 When writing new tests:
+
 - [ ] Feature title is descriptive without qualifiers
 - [ ] Scenario names focus on functionality
 - [ ] Steps use clean, direct language
@@ -96,7 +106,8 @@ When writing new tests:
 - [ ] **Browser tests configured for headless mode**
 
 When reviewing tests:
-- [ ] Look for "real", "actual", "authentic", "genuine" 
+
+- [ ] Look for "real", "actual", "authentic", "genuine"
 - [ ] Check for "fake", "mock", "simulated" references
 - [ ] Ensure descriptions focus on behavior, not implementation
 - [ ] Verify professional tone throughout
@@ -105,12 +116,14 @@ When reviewing tests:
 ## Quick Reference
 
 **Replace these patterns:**
+
 - "real/actual/authentic" → (remove qualifier)
 - "fake/mock/simulated" → (remove entirely)  
 - "genuine system" → "system"
 - "instead of X" → (remove comparison)
 
 **Keep focus on:**
+
 - What the test validates
 - Expected system behavior  
 - Clear functional descriptions

@@ -90,7 +90,11 @@ class UIDebugManager {
     const loaded = this.loadElementPosition(element);
     
     this.registeredElements[elementId] = element;
-    console.log(`UIDebugManager: Registered element '${elementId}'`);
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose(`UIDebugManager: Registered element '${elementId}'`);
+    } else {
+      console.log(`UIDebugManager: Registered element '${elementId}'`);
+    }
     return true;
   }
 

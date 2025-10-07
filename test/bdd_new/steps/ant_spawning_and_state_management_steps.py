@@ -25,18 +25,8 @@ def step_ant_spawning_system_loaded(context):
     assert result['antClass'], "ant class must be available"
     assert result['antsArray'], "ants array must be available"
 
-@given('the JobComponent system is available')
-def step_job_component_available(context):
-    """Verify JobComponent system is loaded"""
-    result = context.driver.execute_script("""
-        return {
-            jobComponent: typeof JobComponent !== 'undefined',
-            getAllJobs: typeof JobComponent !== 'undefined' && typeof JobComponent.getAllJobs === 'function'
-        };
-    """)
-    
-    assert result['jobComponent'], "JobComponent must be available"
-    assert result['getAllJobs'], "JobComponent.getAllJobs function must be available"
+# Removed duplicate - using step_job_component_loaded from ant_system_steps.py instead
+# That implementation is more comprehensive and checks more JobComponent methods
 
 @given('the AntStateMachine system is available')
 def step_ant_state_machine_available(context):
@@ -279,17 +269,7 @@ def step_ant_created_successfully(context):
     assert context.spawn_result['success'], f"Ant creation should succeed: {context.spawn_result.get('error', '')}"
     assert context.spawn_result['antCreated'], "Ant object should be created"
 
-@then('the ant should have job "{expected_job}"')
-def step_ant_has_job(context, expected_job):
-    """Verify ant has expected job"""
-    assert hasattr(context, 'spawn_result'), "Should have spawn result"
-    assert context.spawn_result['antJob'] == expected_job, f"Ant should have job {expected_job}, got {context.spawn_result['antJob']}"
-
-@then('the ant should have faction "{expected_faction}"')
-def step_ant_has_faction(context, expected_faction):
-    """Verify ant has expected faction"""
-    assert hasattr(context, 'spawn_result'), "Should have spawn result"
-    assert context.spawn_result['antFaction'] == expected_faction, f"Ant should have faction {expected_faction}, got {context.spawn_result['antFaction']}"
+# Removed duplicate - using step_verify_ant_faction from ant_creation_steps.py instead
 
 @then('the ant should be added to the ants array')
 def step_ant_added_to_array(context):

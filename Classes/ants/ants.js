@@ -22,7 +22,7 @@ function antsPreloader() {
     Builder: loadImage('Images/Ants/gray_ant_builder.png'),
     Scout: loadImage('Images/Ants/gray_ant_scout.png'),
     Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
-    // Warrior: loadImage('Images/Ants/gray_ant_warrior.png'),
+    Warrior: loadImage('Images/Ants/gray_ant.png'), // We don't have a gray ant warrior
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
     DeLozier: loadImage('Images/Ants/greg.jpg')
   };
@@ -176,6 +176,7 @@ class ant extends Entity {
   get _transformController() { return this.getController('transform'); }
   get _terrainController() { return this.getController('terrain'); }
   get _interactionController() { return this.getController('interaction'); }
+  get _healthController() { return this.getController('health'); }
   
   // --- Property/Method Compatibility ---
   // Backwards-compatible posX/posY accessors used across unit/integration tests
@@ -268,7 +269,14 @@ class ant extends Entity {
  
    // --- Combat Methods ---
   takeDamage(amount) {
+    const oldHealth = this._health;
     this._health = Math.max(0, this._health - amount);
+    
+    // Notify health controller of damage
+    if (this._healthController && oldHealth > this._health) {
+      this._healthController.onDamage();
+    }
+    
     if (this._health <= 0) {
       this.die();
     }
@@ -316,6 +324,7 @@ class ant extends Entity {
     this._updateStateMachine();
     this._updateResourceManager();
     this._updateEnemyDetection();
+    this._updateHealthController();
     // If currently dropping off, check arrival each frame
     if (this._stateMachine && typeof this._stateMachine.isDroppingOff === 'function' && this._stateMachine.isDroppingOff()) {
       this._checkDropoffArrival();
@@ -351,7 +360,17 @@ class ant extends Entity {
       }
     }
    }
-  
+
+  _updateHealthController() {
+    if (this._healthController) {
+      this._healthController.update();
+    }
+  }
+
+   _renderBoxHover() {
+    this._renderController.highlightBoxHover();
+  }
+
   _updateEnemyDetection() {
     // Check for enemies periodically
     if (frameCount - this._lastEnemyCheck > this._enemyCheckInterval) {
@@ -368,24 +387,16 @@ class ant extends Entity {
     super.render();
 
     // Add ant-specific rendering
-    this._renderHealthBar();
+    if (this._healthController) {
+      this._healthController.render();
+    }
     this._renderResourceIndicator();
-  }
-
-  _renderHealthBar() {
-    if (this._health < this._maxHealth) {
-      const pos = this.getPosition();
-      const size = this.getSize();
-      
-      // Health bar background
-      fill(255, 0, 0);
-      rect(pos.x, pos.y - 8, size.x, 4);
-      
-      // Health bar foreground
-      fill(0, 255, 0);
-      rect(pos.x, pos.y - 8, (size.x * this._health) / this._maxHealth, 4);
+    if (this.isBoxHovered) {
+      this._renderBoxHover();
     }
   }
+
+
   
   _renderResourceIndicator() {
     const resourceCount = this.getResourceCount();

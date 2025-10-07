@@ -188,10 +188,35 @@ if (typeof window !== 'undefined') {
   window.forceInitializeSelection = forceInitializeSelection;
   window.quickSelectionTest = quickSelectionTest;
   
-  console.log('🛠️ Selection box debug tools loaded!');
-  console.log('Available commands:');
-  console.log('- debugSelectionBox() - Full diagnostic');
-  console.log('- manualTestSelection() - Force create selection box');
-  console.log('- forceInitializeSelection() - Force initialize system');
-  console.log('- quickSelectionTest() - Enable debug logging');
+  // Proper async initialization
+  (async function initializeDebugTools() {
+    if (globalThis.globalDebugVerbosity === undefined) {
+      await awaitDebugVerbosity(); // Actually wait for it
+    }
+    
+    // Now check verbosity after we know it's defined
+    if (globalThis.globalDebugVerbosity >= 1) {
+      if (typeof globalThis.logQuiet === 'function') {
+        globalThis.logQuiet('🛠️ Selection box debug tools loaded!');
+        globalThis.logQuiet('Available commands:');
+        globalThis.logQuiet('- debugSelectionBox() - Full diagnostic');
+        globalThis.logQuiet('- manualTestSelection() - Force create selection box');
+        globalThis.logQuiet('- forceInitializeSelection() - Force initialize system');
+        globalThis.logQuiet('- quickSelectionTest() - Enable debug logging');
+      } else {
+        console.log('🛠️ Selection box debug tools loaded!');
+        console.log('Available commands:');
+        console.log('- debugSelectionBox() - Full diagnostic');
+        console.log('- manualTestSelection() - Force create selection box');
+        console.log('- forceInitializeSelection() - Force initialize system');
+        console.log('- quickSelectionTest() - Enable debug logging');
+      }
+    }
+  })();
+}
+
+async function awaitDebugVerbosity() {
+  while (globalThis.globalDebugVerbosity === undefined) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
 }

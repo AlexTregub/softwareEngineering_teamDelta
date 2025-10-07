@@ -20,4 +20,20 @@ testSuite.test('Button uses provided background/hover/text/border colors', () =>
   testSuite.assertEqual(b.borderColor, '#B71C1C');
 });
 
-testSuite.run();
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('Button Style Tests', () => {
+    testSuite.run();
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running Button Style tests...');
+  testSuite.run();
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 Button Style tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: run tests if no global test runner
+  testSuite.run();
+}

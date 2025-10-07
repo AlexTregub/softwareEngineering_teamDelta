@@ -235,11 +235,18 @@ function handleCommandLineScroll() {
 }
 
 /**
- * executeCommand
- * --------------
  * Parse and execute a single command string entered in the debug console.
- * - Supports quoted args, normalizes command to lowercase, maps to handler functions.
- * @param {string} command - Raw command input from the command line UI.
+ * Supports quoted args, normalizes command to lowercase, maps to handler functions.
+ * 
+ * Available commands: help, spawn, clear, debug, select, kill, teleport, info, test, perf, ui, train
+ * 
+ * @param {string} command - Raw command input from the command line UI
+ * @returns {void}
+ * @global
+ * @example
+ * executeCommand("spawn 10 ant blue");
+ * executeCommand("teleport 100 200");  
+ * executeCommand("ui toggle");
  */
 function executeCommand(command) {
   captureConsoleOutput(`💻 > ${command}`);
@@ -263,6 +270,10 @@ function executeCommand(command) {
     case 'ui-debug': handleUIDebugCommand(args); break;
     case 'panel-train':
     case 'train': handlePanelTrainCommand(args); break;
+    case 'damage':
+    case 'hurt': handleDamageCommand(args); break;
+    case 'heal':
+    case 'health': handleHealCommand(args); break;
     default: console.log(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
   }
 }
@@ -285,6 +296,8 @@ function showCommandHelp() {
   console.log("  perf [toggle|stats] - Control performance monitor");
   console.log("  entity-perf [report|reset] - Entity performance analysis");
   console.log("  ui <toggle|enable|disable|reset|list> - Control UI Debug Manager");
+  console.log("  damage <amount> - Damage selected ants by amount");
+  console.log("  heal <amount> - Heal selected ants by amount");
   console.log("  🚂 train [on|off|toggle] - TRAIN MODE! Panels follow each other like train cars!");
   console.log("Examples:");
   console.log("  spawn 10 ant blue");
@@ -508,12 +521,22 @@ function drawCommandLine() {
 }
 
 /**
- * openCommandLine
- * ---------------
  * Activates the command line UI if dev console is enabled.
- * @returns {boolean} true when opened.
+ * Opens the visual debug console for entering commands interactively.
+ * 
+ * @returns {boolean} True if command line was successfully opened, false if already open or dev console disabled
+ * @global
+ * @see executeCommand
  */
-function openCommandLine() { if (devConsoleEnabled && !commandLineActive) { commandLineActive = true; commandInput = ""; captureConsoleOutput("💻 Command line activated. Type 'help' for available commands."); return true; } return false; }
+function openCommandLine() { 
+  if (devConsoleEnabled && !commandLineActive) { 
+    commandLineActive = true; 
+    commandInput = ""; 
+    captureConsoleOutput("💻 Command line activated. Type 'help' for available commands."); 
+    return true; 
+  } 
+  return false; 
+}
 
 /** closeCommandLine - Deactivate command line and reset input. */
 function closeCommandLine() { commandLineActive = false; commandInput = ""; commandHistoryIndex = -1; }
@@ -531,7 +554,9 @@ if (typeof window !== 'undefined') {
 }
 
 // Debug: Log that the file loaded successfully (using original console.log to avoid circular capture)
-// originalConsoleLog('✅ commandLine.js loaded successfully with non-intrusive console capture');
+if (globalThis.globalDebugVerbosity >= 1) {
+  console.log('✅ commandLine.js loaded successfully with non-intrusive console capture');
+}
 
 /**
  * handlePerformanceCommand
@@ -704,4 +729,104 @@ function handlePanelTrainCommand(args) {
       console.log("  train toggle - Switch between modes");
       console.log("  train status - Check current mode");
   }
+}
+
+/**
+ * handleDamageCommand
+ * -------------------
+ * Apply damage to selected ants for debugging health system.
+ * @param {string[]} args - Command arguments [amount]
+ */
+function handleDamageCommand(args) {
+  if (args.length === 0) {
+    console.log("❌ Usage: damage <amount>");
+    console.log("Example: damage 25 (damages selected ants by 25 HP)");
+    return;
+  }
+  
+  const amount = parseInt(args[0], 10);
+  if (isNaN(amount) || amount <= 0) {
+    console.log("❌ Damage amount must be a positive number");
+    return;
+  }
+  
+  // Get selected ants using AntUtilities if available, otherwise fall back to global selectedAnt
+  let selectedAnts = [];
+  if (typeof AntUtilities !== 'undefined' && AntUtilities.getSelectedAnts) {
+    selectedAnts = AntUtilities.getSelectedAnts(ants || []);
+  } else if (selectedAnt) {
+    selectedAnts = [selectedAnt];
+  }
+  
+  if (selectedAnts.length === 0) {
+    console.log("❌ No ants selected. Use 'select <index>' or 'select all' first.");
+    return;
+  }
+  
+  let damaged = 0;
+  selectedAnts.forEach(ant => {
+    if (ant && typeof ant.takeDamage === 'function') {
+      const oldHealth = ant._health || ant.health || 100;
+      ant.takeDamage(amount);
+      const newHealth = ant._health || ant.health || 100;
+      damaged++;
+      
+      // Show damage number effect if render controller is available
+      if (ant._renderController && typeof ant._renderController.showDamageNumber === 'function') {
+        ant._renderController.showDamageNumber(amount);
+      }
+    }
+  });
+  
+  console.log(`💥 Damaged ${damaged} selected ant(s) by ${amount} HP`);
+}
+
+/**
+ * handleHealCommand
+ * -----------------
+ * Apply healing to selected ants for debugging health system.
+ * @param {string[]} args - Command arguments [amount]
+ */
+function handleHealCommand(args) {
+  if (args.length === 0) {
+    console.log("❌ Usage: heal <amount>");
+    console.log("Example: heal 50 (heals selected ants by 50 HP)");
+    return;
+  }
+  
+  const amount = parseInt(args[0], 10);
+  if (isNaN(amount) || amount <= 0) {
+    console.log("❌ Heal amount must be a positive number");
+    return;
+  }
+  
+  // Get selected ants using AntUtilities if available, otherwise fall back to global selectedAnt
+  let selectedAnts = [];
+  if (typeof AntUtilities !== 'undefined' && AntUtilities.getSelectedAnts) {
+    selectedAnts = AntUtilities.getSelectedAnts(ants || []);
+  } else if (selectedAnt) {
+    selectedAnts = [selectedAnt];
+  }
+  
+  if (selectedAnts.length === 0) {
+    console.log("❌ No ants selected. Use 'select <index>' or 'select all' first.");
+    return;
+  }
+  
+  let healed = 0;
+  selectedAnts.forEach(ant => {
+    if (ant && typeof ant.heal === 'function') {
+      const oldHealth = ant._health || ant.health || 100;
+      ant.heal(amount);
+      const newHealth = ant._health || ant.health || 100;
+      healed++;
+      
+      // Show heal number effect if render controller is available
+      if (ant._renderController && typeof ant._renderController.showHealNumber === 'function') {
+        ant._renderController.showHealNumber(amount);
+      }
+    }
+  });
+  
+  console.log(`💚 Healed ${healed} selected ant(s) by ${amount} HP`);
 }

@@ -14,7 +14,11 @@ function initializeUISelectionBox() {
     return;
   }
   
-  console.log('🎯 Initializing UI Selection Box system...');
+  if (typeof globalThis.logNormal === 'function') {
+    globalThis.logNormal('🎯 Initializing UI Selection Box system...');
+  } else {
+    console.log('🎯 Initializing UI Selection Box system...');
+  }
   
   // Configure selection box appearance
   g_uiSelectionController.updateConfig({
@@ -35,8 +39,10 @@ function initializeUISelectionBox() {
   
   // Set selectable entities (ants by default)
   updateUISelectionEntities();
-  
-  console.log('✅ UI Selection Box system initialized');
+
+  if (globalDebugVerbosity >= 1) {
+    console.log('✅ UI Selection Box system initialized');
+  }
 }
 
 /**

@@ -36,8 +36,23 @@ testSuite.test('headerTop positions header above groups', () => {
   testSuite.assertTrue(Number.isFinite(layout.headerTop));
 });
 
-// Run
-testSuite.run();
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('VerticalButtonList Header Tests', () => {
+    testSuite.run();
+  });
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running VerticalButtonList header tests...');
+  testSuite.run();
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 VerticalButtonList Header tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: run tests if no global test runner
+  testSuite.run();
+}
 
 // cleanup
 env.teardown();

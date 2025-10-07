@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["DOM", "ES2020"],
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": false,
+    "noEmit": true,
+    "removeComments": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noResolve": true
+  },
+  "include": [
+    "sketch.js",
+    "demo_ant_enhancements.js",
+    "Classes/**/*.js",
+    "debug/**/*.js",
+    "scripts/**/*.js"
+  ],
+  "exclude": [
+    "node_modules/**/*",
+    "libraries/**/*",
+    "**/*.min.js",
+    "Images/**/*",
+    "ignore/**/*",
+    ".git/**/*",
+    "dist/**/*",
+    ".vscode/**/*",
+    "test/**/*"
+  ]
+}
