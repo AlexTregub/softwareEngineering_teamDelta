@@ -67,6 +67,11 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+  
+  // Initialize ant tooltip system
+  if (typeof initializeAntTooltipSystem !== 'undefined') {
+    initializeAntTooltipSystem();
+  }
 }
 
 /**
@@ -119,7 +124,17 @@ function draw() {
     updatePresentationPanels(GameState.getState());
   }
 
+  // Update ant tooltips (handles 2-second hover delay)
+  if (typeof updateAntTooltips !== 'undefined') {
+    updateAntTooltips();
+  }
+
   RenderManager.render(GameState.getState());
+  
+  // Render ant tooltips (must be after main rendering to appear on top)
+  if (typeof renderAntTooltips !== 'undefined') {
+    renderAntTooltips();
+  }
 }
 
 /**
@@ -175,6 +190,13 @@ function mouseReleased() {
     g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
   }
   handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+}
+
+function mouseMoved() {
+  // Update ant tooltips on mouse movement
+  if (typeof updateAntTooltips !== 'undefined') {
+    updateAntTooltips();
+  }
 }
 
 // KEYBOARD INTERACTIONS

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ant Tooltip System Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #2a2a2a;
+            color: white;
+        }
+        
+        .info {
+            background-color: #3a3a3a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            background-color: #1a4a1a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script src="../../libraries/p5.min.js"></script>
+    <script src="../../Classes/ants/JobComponent.js"></script>
+    <script src="../../Classes/systems/AntTooltipSystem.js"></script>
+</head>
+<body>
+    <div class="info">
+        <h1>🐜 Ant Tooltip System Demo</h1>
+        <div class="instructions">
+            <strong>Instructions:</strong> Hover over the colored squares (representing ants) for 2 seconds to see detailed tooltips!
+        </div>
+        <p>This demo shows the ant tooltip system with job progression, experience, and stats information.</p>
+    </div>
+
+    <script>
+        // Mock ants with different jobs and experience levels
+        let ants = [];
+        let tooltipSystem;
+        
+        function setup() {
+            createCanvas(800, 600);
+            
+            // Initialize tooltip system
+            initializeAntTooltipSystem();
+            
+            // Create some mock ants with different properties
+            ants = [
+                {
+                    antIndex: 1,
+                    jobName: 'Builder',
+                    x: 100, y: 150,
+                    width: 40, height: 40,
+                    _health: 120, _maxHealth: 150,
+                    _movementSpeed: 1.5, _damage: 12,
+                    _faction: 'player',
+                    isActive: true,
+                    _stateMachine: { getCurrentState: () => 'BUILDING' },
+                    isMouseOver: function(mx, my) {
+                        return mx >= this.x && mx <= this.x + this.width && 
+                               my >= this.y && my <= this.y + this.height;
+                    },
+                    getPosition: function() { return {x: this.x, y: this.y}; },
+                    getSize: function() { return {x: this.width, y: this.height}; }
+                },
+                {
+                    antIndex: 2,
+                    jobName: 'Warrior',
+                    x: 200, y: 150,
+                    width: 40, height: 40,
+                    _health: 95, _maxHealth: 180,
+                    _movementSpeed: 2.0, _damage: 25,
+                    _faction: 'player',
+                    isActive: true,
+                    _stateMachine: { getCurrentState: () => 'COMBAT' },
+                    isMouseOver: function(mx, my) {
+                        return mx >= this.x && mx <= this.x + this.width && 
+                               my >= this.y && my <= this.y + this.height;
+                    },
+                    getPosition: function() { return {x: this.x, y: this.y}; },
+                    getSize: function() { return {x: this.width, y: this.height}; }
+                },
+                {
+                    antIndex: 3,
+                    jobName: 'Scout',
+                    x: 300, y: 150,
+                    width: 40, height: 40,
+                    _health: 80, _maxHealth: 100,
+                    _movementSpeed: 3.0, _damage: 8,
+                    _faction: 'player',
+                    isActive: true,
+                    _stateMachine: { getCurrentState: () => 'PATROL' },
+                    isMouseOver: function(mx, my) {
+                        return mx >= this.x && mx <= this.x + this.width && 
+                               my >= this.y && my <= this.y + this.height;
+                    },
+                    getPosition: function() { return {x: this.x, y: this.y}; },
+                    getSize: function() { return {x: this.width, y: this.height}; }
+                },
+                {
+                    antIndex: 4,
+                    jobName: 'Farmer',
+                    x: 400, y: 150,
+                    width: 40, height: 40,
+                    _health: 100, _maxHealth: 100,
+                    _movementSpeed: 1.2, _damage: 5,
+                    _faction: 'player',
+                    isActive: true,
+                    _stateMachine: { getCurrentState: () => 'GATHERING' },
+                    _resourceManager: { 
+                        getCurrentLoad: () => 15,
+                        getMaxCapacity: () => 25
+                    },
+                    isMouseOver: function(mx, my) {
+                        return mx >= this.x && mx <= this.x + this.width && 
+                               my >= this.y && my <= this.y + this.height;
+                    },
+                    getPosition: function() { return {x: this.x, y: this.y}; },
+                    getSize: function() { return {x: this.width, y: this.height}; }
+                }
+            ];
+            
+            // Add some experience to the ants
+            if (typeof JobComponent !== 'undefined') {
+                JobComponent.addExperience(1, 0);      // Level 1 Builder
+                JobComponent.addExperience(2, 300);    // Level 3 Warrior
+                JobComponent.addExperience(3, 150);    // Level 2 Scout
+                JobComponent.addExperience(4, 1200);   // Level 5 Farmer (higher level for special abilities)
+            }
+        }
+        
+        function draw() {
+            background(60);
+            
+            // Update tooltips
+            updateAntTooltips();
+            
+            // Draw mock ants
+            for (let ant of ants) {
+                // Color based on job
+                switch(ant.jobName) {
+                    case 'Builder': fill(100, 150, 100); break;
+                    case 'Warrior': fill(150, 100, 100); break;
+                    case 'Scout': fill(100, 100, 150); break;
+                    case 'Farmer': fill(150, 150, 100); break;
+                    default: fill(100, 100, 100);
+                }
+                
+                // Highlight if hovered
+                if (antTooltipSystem && antTooltipSystem.hoveredAnt === ant) {
+                    stroke(255, 255, 100);
+                    strokeWeight(3);
+                } else {
+                    stroke(200);
+                    strokeWeight(1);
+                }
+                
+                rect(ant.x, ant.y, ant.width, ant.height);
+                
+                // Draw job label
+                fill(255);
+                textAlign(CENTER, CENTER);
+                textSize(10);
+                text(ant.jobName, ant.x + ant.width/2, ant.y + ant.height/2);
+            }
+            
+            // Draw instructions
+            fill(255);
+            textAlign(LEFT, TOP);
+            textSize(14);
+            text('Hover over the colored squares for 2 seconds to see ant details!', 50, 50);
+            text('Builder (Green) | Warrior (Red) | Scout (Blue) | Farmer (Yellow)', 50, 70);
+            
+            // Show hover timer if hovering
+            if (antTooltipSystem && antTooltipSystem.hoveredAnt && !antTooltipSystem.isVisible()) {
+                const elapsed = Date.now() - antTooltipSystem.hoverStartTime;
+                const remaining = Math.max(0, antTooltipSystem.tooltipDelay - elapsed);
+                fill(255, 255, 100);
+                textAlign(LEFT, TOP);
+                text(`Tooltip in: ${Math.ceil(remaining/1000)}s`, mouseX + 10, mouseY - 20);
+            }
+            
+            // Render tooltips
+            renderAntTooltips();
+        }
+        
+        // Add mouse move handler for smoother tooltip updates
+        function mouseMoved() {
+            updateAntTooltips();
+        }
+    </script>
+</body>
+</html>
