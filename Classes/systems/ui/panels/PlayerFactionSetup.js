@@ -64,11 +64,40 @@ class PlayerFactionSetup {
     
     // UI state
     this.nameInput = '';
-    this.colorSliders = {
-      r: 100,
-      g: 150,
-      b: 255
-    };
+    
+    // Initialize color sliders using the new Slider component
+    this.colorSliders = createSliderGroup([
+      {
+        label: 'Red',
+        value: 100,
+        min: 0,
+        max: 255,
+        color: [255, 0, 0],
+        onChange: (value) => {
+          this.playerData.color.r = value;
+        }
+      },
+      {
+        label: 'Green', 
+        value: 150,
+        min: 0,
+        max: 255,
+        color: [0, 255, 0],
+        onChange: (value) => {
+          this.playerData.color.g = value;
+        }
+      },
+      {
+        label: 'Blue',
+        value: 255,
+        min: 0,
+        max: 255,
+        color: [0, 0, 255],
+        onChange: (value) => {
+          this.playerData.color.b = value;
+        }
+      }
+    ]);
     
     // Create draggable panel
     this.panel = new DraggablePanel({
@@ -197,9 +226,9 @@ class PlayerFactionSetup {
         this.panel.addButton({
           caption: 'Reset Colors',
           onClick: () => {
-            this.colorSliders.r = 100;
-            this.colorSliders.g = 150;
-            this.colorSliders.b = 255;
+            this.colorSliders[0].setValue(100); // Red
+            this.colorSliders[1].setValue(150); // Green  
+            this.colorSliders[2].setValue(255); // Blue
             this.setupStepButtons();
           },
           style: { backgroundColor: '#FF9800', color: '#FFFFFF' }
@@ -275,14 +304,10 @@ class PlayerFactionSetup {
     // Update the draggable panel
     if (typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined' && typeof mouseIsPressed !== 'undefined') {
       this.panel.update(mouseX, mouseY, mouseIsPressed);
+      
+      // Update color sliders
+      updateSliderGroup(this.colorSliders, mouseX, mouseY, mouseIsPressed);
     }
-    
-    // Update color from sliders
-    this.playerData.color = {
-      r: this.colorSliders.r,
-      g: this.colorSliders.g,
-      b: this.colorSliders.b
-    };
   }
   
   /**
@@ -499,7 +524,13 @@ class PlayerFactionSetup {
     
     // Color preview circle
     const previewSize = 55;
-    fill(this.colorSliders.r, this.colorSliders.g, this.colorSliders.b);
+    const currentColor = {
+      r: this.colorSliders[0].getValue(),
+      g: this.colorSliders[1].getValue(), 
+      b: this.colorSliders[2].getValue()
+    };
+    
+    fill(currentColor.r, currentColor.g, currentColor.b);
     stroke(255, 255, 255);
     if (typeof strokeWeight === 'function') strokeWeight(2);
     if (typeof ellipse === 'function') {
@@ -510,22 +541,17 @@ class PlayerFactionSetup {
     fill(200, 200, 220);
     if (typeof textAlign === 'function') textAlign(CENTER, TOP);
     if (typeof textSize === 'function') textSize(style.fontSize - 1);
-    text(`RGB(${Math.round(this.colorSliders.r)}, ${Math.round(this.colorSliders.g)}, ${Math.round(this.colorSliders.b)})`, 
+    text(`RGB(${Math.round(currentColor.r)}, ${Math.round(currentColor.g)}, ${Math.round(currentColor.b)})`, 
          centerX, currentY + 65);
     
     currentY += 100;
     
-    // Color sliders section
+    // Color sliders section - use the new slider system
     const sliderSpacing = 40;
     const sliderWidth = contentArea.width - 50;
     
-    // Render sliders with better spacing
-    this.renderColorSlider('Red', leftMargin + 10, currentY, sliderWidth, 
-                          this.colorSliders.r, [255, 0, 0]);
-    this.renderColorSlider('Green', leftMargin + 10, currentY + sliderSpacing, sliderWidth, 
-                          this.colorSliders.g, [0, 255, 0]);
-    this.renderColorSlider('Blue', leftMargin + 10, currentY + sliderSpacing * 2, sliderWidth, 
-                          this.colorSliders.b, [0, 0, 255]);
+    // Render sliders using the new system
+    renderSliderGroup(this.colorSliders, leftMargin + 10, currentY, sliderWidth, sliderSpacing);
   }
   
   /**
@@ -564,7 +590,13 @@ class PlayerFactionSetup {
     
     // Color preview circle
     const previewSize = 50;
-    fill(this.colorSliders.r, this.colorSliders.g, this.colorSliders.b);
+    const currentColor = {
+      r: this.colorSliders[0].getValue(),
+      g: this.colorSliders[1].getValue(), 
+      b: this.colorSliders[2].getValue()
+    };
+    
+    fill(currentColor.r, currentColor.g, currentColor.b);
     stroke(255, 255, 255);
     if (typeof strokeWeight === 'function') strokeWeight(2);
     if (typeof ellipse === 'function') {
@@ -575,7 +607,7 @@ class PlayerFactionSetup {
     // Color values
     fill(180, 180, 200);
     if (typeof textSize === 'function') textSize(style.fontSize - 1);
-    text(`RGB(${Math.round(this.colorSliders.r)}, ${Math.round(this.colorSliders.g)}, ${Math.round(this.colorSliders.b)})`, 
+    text(`RGB(${Math.round(currentColor.r)}, ${Math.round(currentColor.g)}, ${Math.round(currentColor.b)})`, 
          centerX, currentY);
     
     currentY += 40;
@@ -592,63 +624,7 @@ class PlayerFactionSetup {
     text('Click "Create Faction!" to begin your ant empire!', centerX, currentY);
   }
   
-  /**
-   * Render a simplified color slider for the draggable panel
-   */
-  renderColorSlider(label, x, y, width, value, color) {
-    if (typeof text === 'undefined' || typeof fill === 'undefined' || typeof rect === 'undefined') return;
-    
-    // Label with value
-    fill(220, 220, 240);
-    if (typeof textAlign === 'function') textAlign(LEFT, CENTER);
-    if (typeof textSize === 'function') textSize(13);
-    text(`${label}:`, x, y);
-    
-    // Value display
-    fill(180, 180, 200);
-    if (typeof textAlign === 'function') textAlign(RIGHT, CENTER);
-    text(`${Math.round(value)}`, x + 80, y);
-    
-    // Slider track
-    const sliderX = x + 90;
-    const sliderY = y - 6;
-    const sliderWidth = width - 90;
-    const sliderHeight = 12;
-    
-    // Track background
-    fill(50, 50, 60);
-    stroke(100, 100, 120);
-    if (typeof strokeWeight === 'function') strokeWeight(1);
-    rect(sliderX, sliderY, sliderWidth, sliderHeight, 6);
-    
-    // Slider value bar
-    fill(...color, 180);
-    if (typeof noStroke === 'function') noStroke();
-    const valueWidth = (value / 255) * sliderWidth;
-    rect(sliderX, sliderY, valueWidth, sliderHeight, 6);
-    
-    // Slider handle
-    fill(255, 255, 255);
-    stroke(120, 120, 140);
-    if (typeof strokeWeight === 'function') strokeWeight(1);
-    const handleX = sliderX + valueWidth;
-    if (typeof ellipse === 'function') {
-      ellipse(handleX, y, 18);
-    }
-    
-    // Handle slider interaction (simplified)
-    if (typeof mouseIsPressed !== 'undefined' && mouseIsPressed && 
-        typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined' &&
-        mouseX >= sliderX && mouseX <= sliderX + sliderWidth && 
-        mouseY >= sliderY - 15 && mouseY <= sliderY + sliderHeight + 15) {
-      const newValue = ((mouseX - sliderX) / sliderWidth) * 255;
-      const clampedValue = Math.max(0, Math.min(255, newValue));
-      
-      if (label === 'Red') this.colorSliders.r = clampedValue;
-      else if (label === 'Green') this.colorSliders.g = clampedValue;
-      else if (label === 'Blue') this.colorSliders.b = clampedValue;
-    }
-  }
+
   
   // ===== STEP NAVIGATION =====
   
@@ -700,12 +676,19 @@ class PlayerFactionSetup {
    * Complete faction setup and create player faction
    */
   completeFactionSetup() {
+    // Get final color values from sliders
+    const finalColor = {
+      r: this.colorSliders[0].getValue(),
+      g: this.colorSliders[1].getValue(),
+      b: this.colorSliders[2].getValue()
+    };
+    
     // Create the player faction in the faction manager
     const factionManager = getFactionManager();
     if (factionManager) {
       const playerFactionId = factionManager.createFaction(
         this.playerData.name || this.nameInput,
-        this.playerData.color,
+        finalColor,
         'player',
         this.playerData.position
       );
@@ -743,7 +726,11 @@ class PlayerFactionSetup {
   getPlayerFactionData() {
     return {
       name: this.playerData.name || this.nameInput || 'Player Faction',
-      color: { ...this.playerData.color },
+      color: {
+        r: this.colorSliders[0].getValue(),
+        g: this.colorSliders[1].getValue(),
+        b: this.colorSliders[2].getValue()
+      },
       position: { ...this.playerData.position },
       type: 'player'
     };

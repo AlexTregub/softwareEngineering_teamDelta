@@ -42,28 +42,36 @@
     <script src="Classes/systems/CollisionBox2D.js"></script>
     <script src="Classes/systems/Button.js"></script>
     
-    <!-- Universal Button Group System -->
-    <script src="Classes/systems/ui/UIObjectPoolManager.js"></script>
-    <script src="Classes/systems/ui/UIQuadTree.js"></script>
-    <script src="Classes/systems/ui/UIVisibilityCuller.js"></script>
-    <script src="Classes/systems/ui/ButtonGroupConfigLoader.js"></script>
-    <script src="Classes/systems/ui/ButtonGroup.js"></script>
-    <script src="Classes/systems/ui/ButtonGroupManager.js"></script>
-    <script src="Classes/systems/ui/UniversalButtonSystem.js"></script>
-    <script src="Classes/systems/ui/GameActionFactory.js"></script>
+    <!-- UI Performance Systems -->
+    <script src="Classes/systems/ui/performance/UIObjectPoolManager.js"></script>
+    <script src="Classes/systems/ui/performance/UIQuadTree.js"></script>
+    <script src="Classes/systems/ui/performance/UIVisibilityCuller.js"></script>
     
-    <!-- Draggable Panel System -->
-    <script src="Classes/systems/ui/DraggablePanel.js"></script>
-    <script src="Classes/systems/ui/DraggablePanelManager.js"></script>
-    <script src="Classes/systems/ui/DraggablePanelSystem.js"></script>
-    <script src="Classes/systems/ui/AntControlPanel.js"></script>
-    <script src="Classes/systems/ui/PresentationPanel.js"></script>
+    <!-- UI System Managers -->
+    <script src="Classes/systems/ui/managers/ButtonGroupConfigLoader.js"></script>
+    <script src="Classes/systems/ui/managers/ButtonGroupManager.js"></script>
+    
+    <!-- UI Components -->
+    <script src="Classes/systems/ui/components/Slider.js"></script>
+    <script src="Classes/systems/ui/components/ButtonGroup.js"></script>
+    <script src="Classes/systems/ui/components/verticalButtonList.js"></script>
+    
+    <!-- UI Core Infrastructure -->
+    <script src="Classes/systems/ui/core/GameActionFactory.js"></script>
+    <script src="Classes/systems/ui/core/UniversalButtonSystem.js"></script>
+    <script src="Classes/systems/ui/core/DraggablePanel.js"></script>
+    <script src="Classes/systems/ui/core/DraggablePanelManager.js"></script>
+    <script src="Classes/systems/ui/core/DraggablePanelSystem.js"></script>
+    
+    <!-- UI Application Panels -->
+    <script src="Classes/systems/ui/panels/AntControlPanel.js"></script>
+    <script src="Classes/systems/ui/panels/PresentationPanel.js"></script>
     
     <!-- Ant Tooltip System -->
     <script src="Classes/systems/AntTooltipSystem.js"></script>
     
     <!-- UI Selection Box System -->
-    <script src="Classes/systems/ui/UISelectionBoxIntegration.js"></script>
+    <script src="Classes/systems/ui/managers/UISelectionBoxIntegration.js"></script>
     
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
@@ -71,7 +79,7 @@
     <!-- Faction System -->
     <script src="Classes/managers/FactionManager.js"></script>
     <script src="Classes/controllers/FactionController.js"></script>
-    <script src="Classes/systems/ui/PlayerFactionSetup.js"></script>
+    <script src="Classes/systems/ui/panels/PlayerFactionSetup.js"></script>
     <script src="Classes/systems/shapes/circle.js"></script>
     <script src="Classes/pathfinding.js"></script>
 
@@ -96,17 +104,16 @@
     <!-- <script src="Classes/coordinateSystem.js"></script> -->
     <script src="Classes/containers/DropoffLocation.js"></script>
     
-    <!-- Universal Button System Integration -->
-    <script src="Classes/systems/ui/dropoffButton_universal.js"></script>
-    <script src="Classes/systems/ui/spawnGreenLeafButton_universal.js"></script>
+    <!-- Legacy UI Integration (transitioning to Universal Button System) -->
+    <script src="Classes/systems/ui/legacy/dropoffButton_universal.js"></script>
+    <script src="Classes/systems/ui/legacy/spawnGreenLeafButton_universal.js"></script>
     
     <!-- Legacy fallbacks (commented out - kept for reference) -->
-    <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
-    <!-- <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script> -->
+    <!-- <script src="Classes/systems/ui/legacy/dropoffButton.js"></script> -->
+    <!-- <script src="Classes/systems/ui/legacy/spawnGreenLeafButton.js"></script> -->
     <!-- <script src="Classes/systems/ui/spawnControlsUI.js"></script> -->
     
-    <script src="Classes/systems/ui/verticalButtonList.js"></script>
-    <script src="Classes/systems/ui/menu.js"></script>
+    <script src="Classes/systems/ui/panels/menu.js"></script>
     <script src="debug/menu_debug.js"></script>
 
    <!-- Entity Debugging System -->

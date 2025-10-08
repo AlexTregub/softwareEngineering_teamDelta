@@ -11,6 +11,7 @@
  */
 
 /// <reference path="./draggable-panel-types.d.ts" />
+/// <reference path="./components/slider-types.d.ts" />
 
 // =============================================================================
 // GLOBAL INSTANCES - VS Code will auto-detect types from class files
