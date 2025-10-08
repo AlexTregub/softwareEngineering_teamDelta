@@ -1,3 +1,9 @@
+class StenchGrid{
+    addPheromone(x,y,antType,tag){
+        
+    }
+}
+
 class Stench{
     /*Pheromone class:
         Has state of pheromone: Combat, foraging, etc.

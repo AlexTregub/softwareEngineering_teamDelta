@@ -30,6 +30,7 @@ class Node{
     this._x = x;
     this._y = y;
     this.scents = []; //Collection of Pheromones
+    pheromoneGrid = new StenchGrid;
 
     this.id = `${x}-${y}`; //Used for easier access. Faster than searching 2D array
     this.assignWall();
@@ -45,8 +46,8 @@ class Node{
     }
   } 
   
-  addScent(){
-    
+  addScent(x, y, antType, tag){
+    pheromoneGrid[x][y].addPheromone(antType, tag); //Change it so Ant Class has one single array? that holds all info (allegience, )
   }
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }
@@ -191,7 +192,7 @@ function tryTrack(scents, antType, failedTrailTypes){
 
 function track(trailType){
   /*Tracking:
-      When an ant smells a related pheromone trail:
+      When an ant decides to follow a pheromone trail:
         Check surrounding tiles:
           Follow the strongest smell direction (Should lead to trail)
           Choose one if multiple are identical
@@ -206,4 +207,8 @@ function track(trailType){
         Wander nearby
         If nothing found, wander randomly
   */
+}
+
+function selectionChance(ant, scent){ //Used to select which pheromone to follow
+  
 }
