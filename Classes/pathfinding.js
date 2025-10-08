@@ -34,12 +34,23 @@ class PathMap{
 
     for (let y = this._grid._spanTopLeft[1]; y > this._grid._spanBotRight[1]; --y) { // Respect y axis
       for (let x = this._grid._spanTopLeft[0]; x < this._grid._spanBotRight[0]; ++x) {
-        let node = new Node(this._terrain.get([x,y]), x, y); //Makes tile out of Tile object
+        // let node = new Node(this._terrain.get([x,y]), x, y); //Makes tile out of Tile object
+        // this._grid.set([x.y],node);
+
+        // ?????
+        this._grid.set([x,y],new Node(this._terrain.get([x,y]), x, y));
+        // console.log(this._grid.get([x,y]));
       }
     }
 
-    for(let y = 0; y < terrain._yCount; y++){
-      for(let x = 0; x < terrain._xCount; x++){
+    for(let y = 0; y < this._terrain._tileSpanRange[0]; y++){
+      for(let x = 0; x < this._terrain._tileSpanRange[1]; x++){
+        // console.log([x,y]);
+        // console.log(this._grid.convToFlat([x,y]));
+        // console.log(this._grid.rawArray[this._grid.convToFlat([x,y])])
+
+        // console.log(this._grid.getArrPos([x,y]));
+        
         let node = this._grid.getArrPos([x,y]); //Makes tile out of Tile object
         node.setNeighbors(this._grid); //Stores tile in grid
       }
