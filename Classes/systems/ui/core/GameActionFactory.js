@@ -537,7 +537,7 @@ async function initializeUniversalButtonSystem() {
       
       // Try to load the legacy conversions configuration file
       try {
-        const response = await fetch('config/button-groups/legacy-conversions.json');
+        const response = await fetch('tools/configs/button-groups/legacy-conversions.json');
         if (response.ok) {
           const legacyConfig = await response.json();
 

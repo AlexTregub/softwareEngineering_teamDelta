@@ -12,10 +12,10 @@
     "sourceType": "module"
   },
   "ignorePatterns": [
-    "libraries/**",
+    "lib/**",
     "node_modules/**",
     "**/*.min.js",
-    "Images/**",
+    "assets/**",
     ".git/**",
     "ignore/**"
   ],

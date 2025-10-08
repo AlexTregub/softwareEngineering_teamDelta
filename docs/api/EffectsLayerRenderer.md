@@ -41,6 +41,7 @@ constructor() {
 ### `createParticleEffect(type, options)`
 
 **Parameters:**
+
 - `type` (string): Effect type ('combat', 'environment', 'interactive', 'magical')
 - `options` (Object): Effect configuration
 
@@ -49,6 +50,7 @@ Creates new particle effect with specified parameters.
 **Effect Types:**
 
 **Combat Effects:**
+
 ```javascript
 createParticleEffect('combat', {
   position: { x: 100, y: 100 },
@@ -61,6 +63,7 @@ createParticleEffect('combat', {
 ```
 
 **Environment Effects:**
+
 ```javascript
 createParticleEffect('environment', {
   position: { x: 200, y: 150 },
@@ -75,6 +78,7 @@ createParticleEffect('environment', {
 ### `updateParticles(deltaTime)`
 
 **Parameters:**
+
 - `deltaTime` (number): Time since last update in milliseconds
 
 Updates all active particle systems and removes expired particles.
@@ -88,6 +92,7 @@ Renders all active particles with appropriate blending modes and effects.
 ### `addScreenEffect(effectType, duration, options)`
 
 **Parameters:**
+
 - `effectType` (string): Screen effect type
 - `duration` (number): Effect duration in milliseconds
 - `options` (Object): Effect-specific options
@@ -95,6 +100,7 @@ Renders all active particles with appropriate blending modes and effects.
 Adds screen-space effects like flashes, fades, and overlays.
 
 **Screen Effect Types:**
+
 - **Flash**: Screen flash for impacts
 - **Fade**: Screen fade transitions  
 - **Shake**: Camera shake effects
@@ -103,6 +109,7 @@ Adds screen-space effects like flashes, fades, and overlays.
 ### `addEntityEffect(entity, effectType, options)`
 
 **Parameters:**
+
 - `entity` (Object): Target entity
 - `effectType` (string): Entity effect type
 - `options` (Object): Effect configuration
@@ -114,11 +121,13 @@ Attaches visual effects to specific entities.
 ### `setPerformanceLevel(level)`
 
 **Parameters:**
+
 - `level` (number): Performance level 0-3 (0=lowest, 3=highest)
 
 Adjusts effect quality and quantity based on performance requirements.
 
 **Performance Scaling:**
+
 ```javascript
 setPerformanceLevel(level) {
   switch (level) {
@@ -145,6 +154,7 @@ setPerformanceLevel(level) {
 ### `getParticleFromPool(type)`
 
 **Parameters:**
+
 - `type` (string): Particle pool type
 
 Retrieves recycled particle from pool or creates new one if pool empty.
@@ -152,6 +162,7 @@ Retrieves recycled particle from pool or creates new one if pool empty.
 ### `returnParticleToPool(particle, type)`
 
 **Parameters:**
+
 - `particle` (Object): Particle to recycle
 - `type` (string): Pool type
 
@@ -162,6 +173,7 @@ Returns expired particle to pool for reuse.
 ### `playEffectAudio(effectType, position)`
 
 **Parameters:**
+
 - `effectType` (string): Audio effect type
 - `position` (Object): 3D position for spatial audio
 
@@ -170,6 +182,7 @@ Plays audio effects synchronized with visual effects.
 ## Usage Examples
 
 ### Basic Effect Creation
+
 ```javascript
 const effectsRenderer = new EffectsLayerRenderer();
 
@@ -203,6 +216,7 @@ function createExplosion(x, y) {
 ```
 
 ### Performance-Adaptive Rendering
+
 ```javascript
 // Adjust effects based on FPS
 function updateEffectsQuality() {
@@ -223,12 +237,14 @@ function updateEffectsQuality() {
 ## TODO Enhancements
 
 ### Advanced Particle Features
+
 - **Physics Integration**: Collision detection for particles
 - **Particle Chains**: Linked particle behaviors  
 - **Emitter Systems**: Continuous particle emission
 - **Particle Attractors**: Gravity wells and force fields
 
 ### Enhanced Visual Effects
+
 - **Post-Processing**: Bloom, blur, and color grading
 - **Lighting Effects**: Dynamic lighting from particles
 - **Weather Systems**: Rain, snow, and atmospheric effects

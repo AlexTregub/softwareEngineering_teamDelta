@@ -15,6 +15,7 @@ The `EntityDelegationBuilder` class provides utility methods for automatically g
 #### `createDelegationMethods(entityClass, controllerProperty, methodList, namespace = null)`
 
 **Parameters:**
+
 - `entityClass` (Class): Target class to add methods to
 - `controllerProperty` (string): Property name of the controller
 - `methodList` (Array): Array of method names to delegate
@@ -23,6 +24,7 @@ The `EntityDelegationBuilder` class provides utility methods for automatically g
 Automatically creates delegation methods on the entity class prototype.
 
 **Implementation:**
+
 ```javascript
 static createDelegationMethods(entityClass, controllerProperty, methodList, namespace = null) {
   methodList.forEach(methodName => {
@@ -269,18 +271,21 @@ const AI_METHODS = ['setState', 'getState', 'update', 'setTarget'];
 ## TODO Enhancements
 
 ### Advanced Delegation Features
+
 - **Method Interception**: Pre/post hooks for delegated methods
 - **Conditional Delegation**: Delegate based on runtime conditions
 - **Chain Delegation**: Delegate through multiple controller layers
 - **Method Mapping**: Map method names during delegation
 
 ### Development Tools  
+
 - **Delegation Inspector**: Runtime visualization of delegation chains
 - **Performance Profiler**: Track delegation overhead and usage
 - **Auto-Documentation**: Generate documentation for delegated methods
 - **Type Safety**: TypeScript integration for type-safe delegation
 
 ### Error Enhancement
+
 - **Custom Error Handlers**: Configurable error handling strategies
 - **Fallback Methods**: Default implementations when controllers missing
 - **Delegation Validation**: Compile-time validation of delegation targets

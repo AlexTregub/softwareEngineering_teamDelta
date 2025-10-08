@@ -15,21 +15,22 @@
     "noResolve": true
   },
   "include": [
-    "sketch.js",
-    "demo_ant_enhancements.js",
+    "src/core/engine/sketch.js",
+    "tools/demo_ant_enhancements.js",
     "Classes/**/*.js",
-    "debug/**/*.js",
+    "src/**/*.js",
+    "tools/**/*.js",
     "scripts/**/*.js"
   ],
   "exclude": [
     "node_modules/**/*",
-    "libraries/**/*",
+    "lib/**/*",
     "**/*.min.js",
-    "Images/**/*",
+    "assets/**/*",
     "ignore/**/*",
     ".git/**/*",
     "dist/**/*",
     ".vscode/**/*",
-    "test/**/*"
+    "tests/**/*"
   ]
 }

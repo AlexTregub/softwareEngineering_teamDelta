@@ -49,11 +49,13 @@ constructor() {
 ### `renderAllLayers(gameState)`
 
 **Parameters:**
+
 - `gameState` (Object): Current game state with entity collections
 
 Main rendering method that processes all entity layers with performance optimization.
 
 **Implementation:**
+
 ```javascript
 renderAllLayers(gameState) {
   const startTime = performance.now();
@@ -102,6 +104,7 @@ renderAllLayers(gameState) {
 Collects entities from game state and categorizes them into render groups.
 
 **Entity Categorization:**
+
 ```javascript
 collectEntities(gameState) {
   // Collect ants
@@ -135,6 +138,7 @@ collectEntities(gameState) {
 Removes entities outside the viewport to improve performance.
 
 **Culling Algorithm:**
+
 ```javascript
 applyCulling() {
   Object.keys(this.renderGroups).forEach(groupName => {
@@ -167,6 +171,7 @@ isEntityVisible(entity) {
 Sorts entities within each group by depth for proper rendering order.
 
 **Sorting Implementation:**
+
 ```javascript
 depthSortGroups() {
   Object.values(this.renderGroups).forEach(group => {
@@ -191,11 +196,13 @@ depthSortGroups() {
 ### `renderEntity(entity)`
 
 **Parameters:**
+
 - `entity` (Object): Entity to render
 
 Renders a single entity with proper error handling and performance tracking.
 
 **Implementation:**
+
 ```javascript
 renderEntity(entity) {
   try {
@@ -230,6 +237,7 @@ renderEntity(entity) {
 Returns comprehensive rendering statistics for performance analysis.
 
 **Statistics Provided:**
+
 ```javascript
 {
   totalEntities: 150,
@@ -251,11 +259,13 @@ Returns comprehensive rendering statistics for performance analysis.
 ### `configure(options)`
 
 **Parameters:**
+
 - `options` (Object): Configuration options to update
 
 Updates renderer configuration with new options.
 
 **Configuration Properties:**
+
 - `enableDepthSorting`: Enable/disable depth sorting
 - `enableFrustumCulling`: Enable/disable viewport culling  
 - `enableBatching`: Enable/disable batch rendering
@@ -265,16 +275,19 @@ Updates renderer configuration with new options.
 ## TODO Enhancements
 
 ### Advanced Culling
+
 - **Hierarchical Culling**: Multi-level culling for complex scenes
 - **Occlusion Culling**: Skip entities hidden behind others
 - **Distance Culling**: Skip distant entities based on importance
 
 ### Batch Rendering
+
 - **Sprite Batching**: Group similar sprites for efficient rendering
 - **Instanced Rendering**: Use WebGL instancing for identical entities
 - **Dynamic Batching**: Automatically group compatible entities
 
 ### Performance Optimizations
+
 - **Level of Detail**: Reduce quality for distant entities
 - **Temporal Culling**: Skip rendering every N frames for some entities
 - **Adaptive Quality**: Adjust rendering quality based on performance

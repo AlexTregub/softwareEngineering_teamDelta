@@ -30,7 +30,7 @@ class UniversalButtonSystem {
       
       // Integration settings
       autoInitialize: options.autoInitialize !== false,
-      configPath: options.configPath || './config/button-system.json',
+      configPath: options.configPath || './tools/configs/button-system.json',
       
       // Rendering settings
       enableDebugRendering: options.enableDebugRendering || false,

@@ -61,17 +61,17 @@ const MENU_CONFIGS = {
   ]
 };
 function menuPreload(){
-  g_menuFont = loadFont("Images/Assets/Terraria.TTF");
-  menuImage = loadImage("Images/Assets/Menu/ants_logo3.png");
-  playButton = loadImage("Images/Assets/Menu/play_button.png");
-  optionButton = loadImage("Images/Assets/Menu/options_button.png");
-  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
-  infoButton = loadImage("Images/Assets/Menu/info_button.png");
-  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
-  videoButton = loadImage("Images/Assets/Menu/vs_button.png");
-  audioButton = loadImage("Images/Assets/Menu/as_button.png");
-  controlButton = loadImage("Images/Assets/Menu/controls_button.png");
-  backButton = loadImage("Images/Assets/Menu/back_button.png");
+  g_menuFont = loadFont("assets/fonts/Terraria.TTF");
+  menuImage = loadImage("assets/images/Menu/ants_logo3.png");
+  playButton = loadImage("assets/images/Menu/play_button.png");
+  optionButton = loadImage("assets/images/Menu/options_button.png");
+  exitButton = loadImage("assets/images/Menu/exit_button.png");
+  infoButton = loadImage("assets/images/Menu/info_button.png");
+  debugButton = loadImage("assets/images/Menu/debug_button.png");
+  videoButton = loadImage("assets/images/Menu/vs_button.png");
+  audioButton = loadImage("assets/images/Menu/as_button.png");
+  controlButton = loadImage("assets/images/Menu/controls_button.png");
+  backButton = loadImage("assets/images/Menu/back_button.png");
 }
 
 // Initialize menu system

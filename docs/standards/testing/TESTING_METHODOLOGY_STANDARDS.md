@@ -414,9 +414,9 @@ test/unified_bdd_tests/
 
 **Key Requirements:**
 
-- **Unified Location**: All BDD tests must be in `test/unified_bdd_tests/`
-- **Feature Files**: Located in `test/unified_bdd_tests/features/`
-- **Step Definitions**: Located in `test/unified_bdd_tests/steps/`
+- **Unified Location**: All BDD tests must be in `tests/e2e/`
+- **Feature Files**: Located in `tests/e2e/features/`
+- **Step Definitions**: Located in `tests/e2e/steps/`
 - **ChromeDriver Management**: Automatic via `webdriver-manager` package
 - **Environment Setup**: Managed through `environment.py` in steps directory
 
@@ -429,7 +429,7 @@ test/unified_bdd_tests/
 **Test Execution Command:**
 
 ```bash
-cd test/unified_bdd_tests
+cd tests/e2e
 python -m behave features/ --format pretty
 ```
 

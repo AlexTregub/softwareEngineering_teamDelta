@@ -319,7 +319,7 @@ function hideKanbanTransitionPanel() {
  */
 function loadPresentationAssets() {
   if (typeof loadImage !== 'undefined') {
-    sprint5Image = loadImage('Images/KanBan/Sprint 5.png', 
+    sprint5Image = loadImage('assets/images/KanBan/Sprint 5.png', 
       () => {
         console.log('✅ Sprint 5.png loaded successfully');
       },

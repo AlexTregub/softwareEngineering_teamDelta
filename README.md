@@ -1,6 +1,9 @@
-# softwareEngineering_teamDelta
+# 🐜 Ant Game - Reorganized Project Structure
 
-Team contrib repo for Software Engineering course with Dr. Delozier (CS33901)
+**Software Engineering Team Delta**  
+CS33901 with Dr. DeLozier
+
+> 🎉 **Project Reorganization Complete!** The codebase has been restructured for improved maintainability, scalability, and developer experience.
 
 ## 📁 Project Structure
 

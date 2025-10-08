@@ -1,4 +1,5 @@
 # Entity Rendering Analysis Report
+
 **Date:** December 2024  
 **Author:** GitHub Copilot  
 **Purpose:** Complete architectural analysis of entity rendering pipeline
@@ -388,21 +389,25 @@ flowchart TD
 ## 9. Key Technical Insights
 
 ### 9.1 Controller-Based Architecture
+
 - **Delegation Pattern**: Entity.render() delegates to RenderController when available
 - **Fallback Mechanism**: Falls back to _fallbackRender() for compatibility
 - **Separation of Concerns**: Rendering logic separated from entity logic
 
 ### 9.2 Multi-Layer Rendering
+
 - **Layer Hierarchy**: TERRAIN → ENTITIES → EFFECTS → UI_GAME → UI_DEBUG → UI_MENU
 - **State-Aware**: Different layers rendered based on game state
 - **Performance Tracking**: Per-layer render time measurement
 
 ### 9.3 Visual Effects System
+
 - **Highlight States**: Multiple highlight types with different visual styles
 - **State Indicators**: Visual symbols showing entity states above entities
 - **Animation Support**: Bob, pulse, and other animated effects
 
 ### 9.4 Performance Optimization
+
 - **Frustum Culling**: Only render entities within viewport bounds
 - **Depth Sorting**: Y-position based sorting for proper draw order
 - **Batching Ready**: Architecture supports future sprite batching optimization
@@ -411,14 +416,16 @@ flowchart TD
 
 ## 10. File Dependencies and Key Components
 
-### Core Rendering Files:
-- `Classes/containers/Entity.js` - Base entity class with controller delegation
-- `Classes/controllers/RenderController.js` - Advanced rendering and visual effects
-- `Classes/rendering/EntityLayerRenderer.js` - Entity collection and group rendering
-- `Classes/rendering/RenderLayerManager.js` - Multi-layer rendering coordination
-- `Classes/rendering/Sprite2D.js` - Basic sprite/image rendering
+### Core Rendering Files
 
-### Integration Points:
+- `src/core/entities/Entity.js` - Base entity class with controller delegation
+- `src/controllers/RenderController.js` - Advanced rendering and visual effects
+- `src/core/systems/EntityLayerRenderer.js` - Entity collection and group rendering
+- `src/core/systems/RenderLayerManager.js` - Multi-layer rendering coordination
+- `src/core/systems/Sprite2d.js` - Basic sprite/image rendering
+
+### Integration Points
+
 - `sketch.js` - Main render loop calling RenderLayerManager
 - Global arrays: `ants[]`, `g_resourceList` - Entity data sources
 - Performance monitoring integration

@@ -53,7 +53,7 @@ expect(renderController.getActiveEffects()).to.have.lengthOf(0);
 **What**: Ensure tests use actual system classes, not mocks
 **How**:
 
-- Load real classes: `require('./Classes/rendering/RenderController.js')`
+- Load real classes: `require('./src/controllers/RenderController.js')`
 - Create instances: `new RenderController()`
 - Test against actual behavior, not simulated behavior
 

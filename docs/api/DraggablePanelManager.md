@@ -7,8 +7,9 @@
 The `DraggablePanelManager` provides a complete solution for managing interactive UI panels in the ant simulation game. It handles panel lifecycle, render pipeline integration, game state visibility, and button management.
 
 ### Key Features
+
 - ✅ **Panel Management**: Add, remove, show/hide panels with Map-based storage
-- ✅ **Render Integration**: Automatic hookup with RenderLayerManager 
+- ✅ **Render Integration**: Automatic hookup with RenderLayerManager
 - ✅ **State Visibility**: Panels shown/hidden based on game state
 - ✅ **Button Systems**: Support for vertical, horizontal, and grid button layouts
 - ✅ **Debug Features**: Panel train mode 🚂 and comprehensive debugging
@@ -23,6 +24,7 @@ const panelManager = new DraggablePanelManager();
 ```
 
 Creates a new panel manager with:
+
 - Empty panel Map storage
 - Default state visibility configuration
 - Debug mode disabled
@@ -31,6 +33,7 @@ Creates a new panel manager with:
 ### Core Methods
 
 #### `initialize()`
+
 Initializes the panel manager and integrates with render pipeline.
 
 ```javascript
@@ -41,6 +44,7 @@ panelManager.initialize();
 ```
 
 #### `addPanel(panelId, config)`
+
 Adds a new draggable panel to the system.
 
 ```javascript
@@ -64,12 +68,14 @@ panelManager.addPanel('custom-panel', {
 ```
 
 **Parameters:**
+
 - `panelId` (string): Unique identifier for the panel
 - `config` (Object): Panel configuration object
 
 **Returns:** `DraggablePanel` instance
 
 #### `removePanel(panelId)`
+
 Removes a panel from the system.
 
 ```javascript
@@ -78,6 +84,7 @@ panelManager.removePanel('tools');
 ```
 
 #### `showPanel(panelId)` / `hidePanel(panelId)`
+
 Control individual panel visibility.
 
 ```javascript
@@ -88,6 +95,7 @@ panelManager.hidePanel('stats');   // Hide stats panel
 ### Game State Management
 
 #### `updateGameState(newState)`
+
 Updates the current game state and adjusts panel visibility.
 
 ```javascript
@@ -97,6 +105,7 @@ panelManager.updateGameState('PLAYING');
 ```
 
 **Supported Game States:**
+
 - `'MENU'`: No panels visible
 - `'PLAYING'`: tools, resources, stats panels
 - `'PAUSED'`: tools, resources, stats panels  
@@ -104,6 +113,7 @@ panelManager.updateGameState('PLAYING');
 - `'GAME_OVER'`: Only stats panel
 
 #### `renderPanels(gameState)`
+
 Renders all visible panels based on current game state.
 
 ```javascript
@@ -116,21 +126,25 @@ panelManager.renderPanels('PLAYING');
 The system creates four default panels:
 
 #### 1. Tools Panel (`'tools'`)
+
 - **Position**: (20, 80)
 - **Layout**: Vertical buttons
 - **Actions**: Spawn Ant, Clear Ants, Pause/Play, Debug Info
 
 #### 2. Resources Panel (`'resources'`)
-- **Position**: (180, 80) 
+
+- **Position**: (180, 80)
 - **Layout**: 2-column grid
 - **Actions**: Wood, Food, Stone selection, Resource Info
 
 #### 3. Stats Panel (`'stats'`)
+
 - **Position**: (380, 80)
 - **Layout**: Horizontal buttons
 - **Actions**: Save, Load, Reset game
 
 #### 4. Debug Panel (`'debug'`)
+
 - **Position**: (600, 80)
 - **Layout**: Vertical buttons  
 - **Actions**: Toggle Rendering, Performance, Entity Debug, Console Dump
@@ -168,6 +182,7 @@ panelManager.dumpConsole()         // Log debug info
 ### Debug Features
 
 #### Panel Train Mode 🚂
+
 Debug feature where panels follow each other when dragged:
 
 ```javascript
@@ -177,6 +192,7 @@ panelManager.isPanelTrainModeEnabled();  // Check status
 ```
 
 #### Status Information
+
 Get comprehensive status information:
 
 ```javascript
@@ -194,6 +210,7 @@ console.log(status);
 ### Integration Requirements
 
 #### Dependencies
+
 The panel manager integrates with these global systems:
 
 - `g_renderLayerManager`: For automatic rendering integration
@@ -225,6 +242,7 @@ g_renderLayerManager.layerRenderers.set('ui_game', (gameState) => {
 ### Button Layout Options
 
 #### Vertical Layout
+
 ```javascript
 buttons: {
   layout: 'vertical',
@@ -236,6 +254,7 @@ buttons: {
 ```
 
 #### Horizontal Layout  
+
 ```javascript
 buttons: {
   layout: 'horizontal', 
@@ -247,6 +266,7 @@ buttons: {
 ```
 
 #### Grid Layout
+
 ```javascript
 buttons: {
   layout: 'grid',
@@ -261,6 +281,7 @@ buttons: {
 ### Usage Examples
 
 #### Basic Setup
+
 ```javascript
 // Initialize the panel manager
 const panelManager = new DraggablePanelManager();
@@ -271,6 +292,7 @@ panelManager.initialize();
 ```
 
 #### Adding Custom Panel
+
 ```javascript
 // Add a custom control panel
 panelManager.addPanel('controls', {
@@ -300,6 +322,7 @@ panelManager.addPanel('controls', {
 ```
 
 #### State-Based Visibility
+
 ```javascript
 // Change game state - panels auto-adjust visibility
 panelManager.updateGameState('DEBUG_MENU');
@@ -310,6 +333,7 @@ panelManager.updateGameState('GAME_OVER');
 ```
 
 #### Manual Control
+
 ```javascript
 // Override state-based visibility
 panelManager.showPanel('debug');    // Force show debug panel
@@ -345,12 +369,14 @@ panelManager.showPanel('nonexistent'); // No error, just no action
 ### Migration Notes
 
 This version **replaces and combines** the previous separate:
+
 - `DraggablePanelManager.js` (core management)
 - `DraggablePanelIntegration.js` (render integration)
 
 **Breaking Changes:** None - all previous functionality maintained
 
 **New Features:**
+
 - ✅ Built-in render pipeline integration
 - ✅ Default game panels with working buttons  
 - ✅ State-based visibility management
@@ -359,6 +385,7 @@ This version **replaces and combines** the previous separate:
 ---
 
 ## See Also
+
 - [DraggablePanel.md](./DraggablePanel.md) - Individual panel API
 - [UIController.md](./UIController.md) - Main UI system  
 - [RenderLayerManager.md](./RenderLayerManager.md) - Render pipeline

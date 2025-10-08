@@ -19,7 +19,7 @@ class ButtonGroupConfigLoader {
    */
   constructor(options = {}) {
     this.options = {
-      basePath: options.basePath || './config/',
+      basePath: options.basePath || './tools/configs/',
       enableCaching: options.enableCaching !== false,
       enableValidation: options.enableValidation !== false,
       debugMode: options.debugMode || false,

@@ -13,6 +13,7 @@ The `EntityAccessor` class provides standardized entity property access with con
 ### `getPosition(entity)`
 
 **Parameters:**
+
 - `entity` (Object): Entity to query for position
 
 **Returns:** `{x, y}` - Position object
@@ -20,12 +21,14 @@ The `EntityAccessor` class provides standardized entity property access with con
 Retrieves entity position using standardized fallback chain.
 
 **Fallback Chain:**
+
 1. `entity.getPosition()` - Preferred method
 2. `entity.position` - Direct property  
 3. `entity._sprite.pos` / `entity.sprite.pos` - Sprite position
 4. `{posX, posY}` / `{x, y}` - Direct coordinates
 
 **Implementation:**
+
 ```javascript
 static getPosition(entity) {
   if (!entity) return { x: 0, y: 0 };
@@ -63,6 +66,7 @@ static getPosition(entity) {
 ### `getSize(entity)`
 
 **Parameters:**
+
 - `entity` (Object): Entity to query for size
 
 **Returns:** `{width, height}` - Size object
@@ -70,6 +74,7 @@ static getPosition(entity) {
 Retrieves entity size using standardized fallback chain.
 
 **Fallback Chain:**
+
 1. `entity.getSize()` - Preferred method
 2. `entity.size` - Direct property
 3. `entity._sprite.size` / `entity.sprite.size` - Sprite size
@@ -79,6 +84,7 @@ Retrieves entity size using standardized fallback chain.
 ### `getBounds(entity)`
 
 **Parameters:**
+
 - `entity` (Object): Entity to query
 
 **Returns:** `{x, y, width, height}` - Bounding rectangle
@@ -88,6 +94,7 @@ Combines position and size into bounding rectangle.
 ### `getRotation(entity)`
 
 **Parameters:**  
+
 - `entity` (Object): Entity to query
 
 **Returns:** `number` - Rotation in degrees
