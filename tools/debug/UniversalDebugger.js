@@ -8,6 +8,75 @@
  */
 
 /**
+ * @visualization
+ * // Visual overview (components and flow)
+
+                  +-----------------+
+                  |  targetObject   |  <- any game/entity object passed in
+                  +--------+--------+
+                           |
+                           v
+                  +-----------------+
+                  | UniversalDebug- |  constructor(target, config)
+                  |   ger instance  |
+                  +--+---+---+---+--+
+                     |   |   |   |
+    config --------->|   |   |   |<- graphToggles
+    performanceData->|   |   |   |
+    introspection-->-+   |   |   |
+                         |   |   |
+                  +------+   |   +-----------------+
+                  | _initialize()                 |
+                  |  - _performIntrospection()    |
+                  |  - _extractBoundingInfo()     |
+                  |  - _initializePerformance... |
+                  +------+---+--------------------+
+                         |   |
+       Runtime loop      |   |
+    (game engine / p5)   |   |
+   +----------------+    |   |
+   | update()       |<---+   +---> mouse input (click toggles)
+   | - refresh introspection    |
+   | - _updateFrequencyStats    |
+   | - _recordPerformance('update') 
+   +----------------+          
+           |
+           v
+   +----------------+       +------------------+
+   | render()       |<------+ boundingBox info |
+   | - _refresh...  |       +------------------+
+   | - _drawBoundingBox()    |
+   | - _drawPropertyPanel()  |
+   | - _drawPerformanceGraph() -> uses performanceData arrays
+   | - _recordPerformance('render')
+   +----------------+
+
+Key data structures:
+- this.target: the object being inspected
+- this.config: appearance & behavior options
+- this.introspectionData: cached properties/methods/getters/setters/constructor/prototype
+- this.boundingBox: {x,y,width,height,detected,source}
+- this.performanceData: {updateTimes[], renderTimes[], memoryUsage[], averages, peaks, fps}
+- this.graphToggles: controls which graphs are shown
+
+Interactions:
+- Constructor -> _initialize populates introspection & performance arrays
+- update() collects runtime stats and refreshes introspection
+- render() draws visual overlays and graphs using p5 drawing calls
+- Mouse clicks on graph toggles flip flags in graphToggles
+- getPerformanceData() / resetPerformanceData() expose controls for external UI
+
+Usage pattern:
+1. const dbg = new UniversalDebugger(entity, { graphWidth:200 });
+2. dbg.activate();
+3. In main loop: dbg.update(); dbg.render();
+
+Notes:
+- Designed to be embedded in a p5-style draw loop (uses push/pop, rect, text, etc.)
+- Performance history length controls memory/perf-data size (config.performanceHistoryLength)
+ */
+
+/**
  * Configuration object for debugger appearance and behavior.
  * @typedef {Object} DebuggerConfig
  * @property {string} borderColor - Color for bounding box outlines
@@ -48,16 +117,16 @@ class UniversalDebugger {
       autoRefresh: false,
       maxDepth: 3,
       fontSize: 12,
-      performanceHistoryLength: 60,  // Keep 60 frames of performance data
+      performanceHistoryLength: 3000,  // Keep 3000 frames of performance data
       graphWidth: 200,
-      graphHeight: 100,
-      ...config
+      graphHeight: 600,
+      ...(config || {})
     };
     
-    this.isActive = false;
-    this.introspectionData = null;
-    this.boundingBox = null;
-    this.debugUI = null;
+    this.isActive = false; // Debugger active state
+    this.introspectionData = null; // Cached introspection data for performance
+    this.boundingBox = null; // Current bounding box data
+    this.debugUI = null; // Debug UI elements container
     
     // Performance monitoring
     this.performanceData = {
@@ -326,7 +395,8 @@ class UniversalDebugger {
       ...Object.getOwnPropertyNames(obj),
       ...Object.keys(obj)
     ]);
-
+    // Example: Print all property names to the console
+    // console.log('Allprops:', Array.from(allProps));
     for (const propName of allProps) {
       try {
         const descriptor = Object.getOwnPropertyDescriptor(obj, propName);

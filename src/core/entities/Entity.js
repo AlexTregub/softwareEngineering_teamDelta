@@ -141,6 +141,7 @@ class Entity {
       selection.setSelectable(options.selectable);
     }
 
+    // TODO: combat and faction controllers have separate faction settings, need to be consistent
     const combat = this._controllers.get('combat');
     if (combat) {
       combat.setFaction(options.faction);

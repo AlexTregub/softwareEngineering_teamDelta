@@ -50,7 +50,8 @@
     "jsdom": "^22.1.0",
     "mocha": "^10.2.0",
     "puppeteer": "^24.23.0",
-    "selenium-webdriver": "^4.36.0"
+    "selenium-webdriver": "^4.36.0",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=14.0.0"

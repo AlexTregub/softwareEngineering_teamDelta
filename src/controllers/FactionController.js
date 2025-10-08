@@ -29,7 +29,7 @@ class FactionController {
       avoidNeutrals: false
     };
     
-    console.log(`🏴 FactionController initialized for entity (faction: ${this._factionId})`);
+    verboseLog(`🏴 FactionController initialized for entity (faction: ${this._factionId})`);
   }
   
   // ===== PUBLIC API =====
@@ -94,7 +94,7 @@ class FactionController {
       }
     }
     
-    console.log(`🏴 Entity faction changed: ${oldFaction} → ${factionId}`);
+    verboseLog(`🏴 Entity faction changed: ${oldFaction} → ${factionId}`);
   }
   
   /**

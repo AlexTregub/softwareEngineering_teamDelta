@@ -50,11 +50,13 @@ class ant extends Entity {
     // Ant-specific properties
     this._JobName = JobName;
     this._antIndex = antIndex++;
-    this.isBoxHovered = false;
+    this.isBoxHovered = false; // TODO: integrate with selection controller hover state
+    this._targetDropoff = null; // Current dropoff target when in DROPPING_OFF state
     
     // New job system (component-based)
+
+    // TODO: why do we have both this.job and this._JobName?
     this.job = null;  // Will hold JobComponent instance
-    this.jobName = JobName || "Scout";  // Direct job name access
     
     // Initialize StatsContainer system
     const initialPos = createVector(posX, posY);
@@ -75,17 +77,23 @@ class ant extends Entity {
     });
     
     // Faction and enemy tracking
-    this._faction = faction;
-    this._enemies = [];
-    this._lastEnemyCheck = 0;
-    this._enemyCheckInterval = 30; // frames
+    this._faction = faction; // TODO: unify with Entity faction?
+    this._enemies = []; // TODO: integrate with combat controller's enemy tracking
+    this._lastEnemyCheck = 0; // TODO: integrate with combat controller's enemy tracking
+    this._enemyCheckInterval = 30; // frames between enemy checks, TODO: integrate with combat controller's enemy tracking
     
     // Combat properties
-    this._health = 100;
-    this._maxHealth = 100;
-    this._damage = 10;
-    this._attackRange = 50;
+
+    this._damage = 10; // Default damage, TODO: integrate with combat controller
+    this._attackRange = 50; // Default attack range, TODO: integrate with combat controller
     
+    // Initialize health controller if not already present
+    if (!this._healthController) {
+      this._healthController = new HealthController(this);
+      this._health = this._healthController.health; // Default health, will be overridden by job stats, TODO: integrate with health controller
+      this._maxHealth = this._healthController.maxHealth; // Default max health, TODO: integrate with health controller
+    }
+
     // Set initial image if provided
     if (img && typeof img !== 'string') {
       this.setImage(img);
@@ -119,7 +127,7 @@ class ant extends Entity {
     }
     
     // Update job name properties
-    this.jobName = jobName;
+    this._JobName = jobName;
     this._JobName = jobName;  // Keep legacy property in sync
     
     // Set image if provided
@@ -165,7 +173,7 @@ class ant extends Entity {
   }
   
   getJobStats() {
-    return this.job ? this.job.stats : this._getFallbackJobStats(this.jobName);
+    return this.job ? this.job.stats : this._getFallbackJobStats(this._JobName);
   }
   
   // --- Controller Access for Test Compatibility ---
@@ -417,7 +425,7 @@ class ant extends Entity {
     return {
       ...baseInfo,
       antIndex: this._antIndex,
-      JobName: this.JobName,
+      JobName: this._JobName,
       currentState: this.getCurrentState(),
       health: `${this._health}/${this._maxHealth}`,
       resources: `${this.getResourceCount()}/${this.getMaxResources()}`,
