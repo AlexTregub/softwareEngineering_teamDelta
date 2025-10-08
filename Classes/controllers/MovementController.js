@@ -30,6 +30,21 @@ class MovementController {
    * @returns {boolean} - True if movement started successfully
    */
   moveToLocation(x, y) {
+    // if (x <= 0 || y <= 0) {
+    //   console.log("Specified a move to "+x+','+y);
+    // }
+
+//     Specified a move to -3.297185198440399,100.89604419608973 MovementController.js:34:15
+// In Grid#401_[size:(160,160),span:true,((-72,88),(88,-72)),loc:0,0] get access OutOfBounds. raw array pos (-1,3)
+
+// Specified a move to 735.8615865015428,-10.54164191214108 MovementController.js:34:15
+// In Grid#401_[size:(160,160),span:true,((-72,88),(88,-72)),loc:0,0] get access OutOfBounds. raw array pos (22,-1) p5.min.js:60787:38
+// In Grid#401_[size:(160,160),span:true,((-72,88),(88,-72)),loc:0,0] read past array. raw array pos (22,-1)
+
+    if (x < 0 || y < 0) {
+      return false;
+    }
+    
     // Check if entity's state machine allows movement
     if (this._entity._stateMachine && !this._entity._stateMachine.canPerformAction("move")) {
       return false;

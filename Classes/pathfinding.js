@@ -98,6 +98,7 @@ class Node{
         let nx = this._x + x;
         let ny = this._y + y; //Makes sure the sum is within bounds
         if (nx >= 0 && nx < grid._sizeX && ny >= 0 && ny < grid._sizeY){
+          // let neighbor = grid.getArrPos([nx,ny]);
           let neighbor = grid.getArrPos([nx,ny]);
           this.neighbors.push(neighbor);
         }
