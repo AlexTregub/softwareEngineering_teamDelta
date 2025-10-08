@@ -68,6 +68,15 @@ function setup() {
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
   
+  // Initialize faction systems
+  if (typeof initializeFactionManager !== 'undefined') {
+    initializeFactionManager();
+  }
+  
+  if (typeof initializePlayerFactionSetup !== 'undefined') {
+    initializePlayerFactionSetup();
+  }
+  
   // Initialize ant tooltip system
   if (typeof initializeAntTooltipSystem !== 'undefined') {
     initializeAntTooltipSystem();
@@ -131,6 +140,12 @@ function draw() {
 
   RenderManager.render(GameState.getState());
   
+  // Update and render faction setup (must be after main rendering to appear on top)
+  if (typeof g_playerFactionSetup !== 'undefined' && g_playerFactionSetup) {
+    g_playerFactionSetup.update();
+    g_playerFactionSetup.render();
+  }
+  
   // Render ant tooltips (must be after main rendering to appear on top)
   if (typeof renderAntTooltips !== 'undefined') {
     renderAntTooltips();
@@ -156,6 +171,13 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() {
+  // Handle faction setup mouse events first (highest priority)
+  if (typeof g_playerFactionSetup !== 'undefined' && g_playerFactionSetup && g_playerFactionSetup.isVisible()) {
+    // The draggable panel handles mouse clicks internally via update(), so we don't need to handle them here
+    // The panel's handleMouseDown() method is called from its update() method, which runs every frame
+    return; // Don't process other mouse events when faction setup is visible
+  }
+  
   // Handle UI Debug Manager mouse events first
   if (g_uiDebugManager && g_uiDebugManager.isActive) {
     const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
@@ -220,6 +242,12 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  // Handle faction setup keyboard input first (highest priority)
+  if (typeof g_playerFactionSetup !== 'undefined' && g_playerFactionSetup && g_playerFactionSetup.isVisible()) {
+    const handled = g_playerFactionSetup.handleKeyInput(key, keyCode);
+    if (handled) return;
+  }
+  
   // Handle UI shortcuts first (Ctrl+Shift combinations)
   if (window.UIManager && window.UIManager.handleKeyPress) {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);

@@ -109,7 +109,8 @@ class Entity {
       'combat': typeof CombatController !== 'undefined' ? CombatController : null,
       'terrain': typeof TerrainController !== 'undefined' ? TerrainController : null,
       'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null,
-      'health': typeof HealthController !== 'undefined' ? HealthController : null
+      'health': typeof HealthController !== 'undefined' ? HealthController : null,
+      'faction': typeof FactionController !== 'undefined' ? FactionController : null
     };
 
     Object.entries(availableControllers).forEach(([name, ControllerClass]) => {
@@ -131,13 +132,24 @@ class Entity {
    */
   _configureControllers(options) {
     const movement = this._controllers.get('movement');
-    movement.movementSpeed = options.movementSpeed;
+    if (movement) {
+      movement.movementSpeed = options.movementSpeed;
+    }
 
     const selection = this._controllers.get('selection');
-    selection.setSelectable(options.selectable);
+    if (selection) {
+      selection.setSelectable(options.selectable);
+    }
 
     const combat = this._controllers.get('combat');
-    combat.setFaction(options.faction);
+    if (combat) {
+      combat.setFaction(options.faction);
+    }
+
+    const faction = this._controllers.get('faction');
+    if (faction && options.faction) {
+      faction.setFactionId(options.faction);
+    }
   }
 
   // --- Controller Access Helper ---

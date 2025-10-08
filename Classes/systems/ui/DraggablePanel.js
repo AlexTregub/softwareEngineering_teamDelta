@@ -7,14 +7,132 @@
  */
 
 /**
+ * @typedef {Object} PanelPosition
+ * @property {number} x - X coordinate in pixels
+ * @property {number} y - Y coordinate in pixels
+ */
+
+/**
+ * @typedef {Object} PanelSize
+ * @property {number} width - Width in pixels
+ * @property {number} height - Height in pixels
+ */
+
+/**
+ * @typedef {Object} PanelStyle
+ * @property {number[]} backgroundColor - RGBA background color array [r, g, b, a]
+ * @property {number[]} titleColor - RGB title text color array [r, g, b]
+ * @property {number[]} textColor - RGB content text color array [r, g, b]
+ * @property {number[]} borderColor - RGB border color array [r, g, b]
+ * @property {number} titleBarHeight - Height of title bar in pixels
+ * @property {number} padding - Internal padding in pixels
+ * @property {number} cornerRadius - Corner radius for rounded corners
+ * @property {number} fontSize - Content font size in pixels
+ * @property {number} titleFontSize - Title font size in pixels
+ */
+
+/**
+ * @typedef {Object} PanelBehavior
+ * @property {boolean} draggable - Whether the panel can be dragged
+ * @property {boolean} persistent - Whether to save position to localStorage
+ * @property {boolean} snapToEdges - Whether to snap to screen edges when dragging
+ * @property {boolean} constrainToScreen - Whether to constrain panel to screen bounds
+ */
+
+/**
+ * @typedef {Object} ButtonConfig
+ * @property {string} caption - Button text
+ * @property {Function} onClick - Click handler function
+ * @property {Object} [style] - Button style overrides
+ * @property {string} [image] - Optional button image
+ * @property {number} [width] - Button width override
+ * @property {number} [height] - Button height override
+ */
+
+/**
+ * @typedef {Object} ButtonsConfig
+ * @property {ButtonConfig[]} items - Array of button configurations
+ * @property {'vertical'|'horizontal'|'grid'} layout - Button layout type
+ * @property {number} spacing - Spacing between buttons in pixels
+ * @property {number} buttonHeight - Default button height in pixels
+ * @property {number} buttonWidth - Default button width in pixels
+ * @property {number} [columns] - Number of columns for grid layout
+ */
+
+/**
+ * @typedef {Object} PanelConfig
+ * @property {string} id - Unique panel identifier
+ * @property {string} title - Panel title text
+ * @property {PanelPosition} position - Initial panel position
+ * @property {PanelSize} size - Panel dimensions
+ * @property {PanelStyle} [style] - Visual styling options
+ * @property {PanelBehavior} [behavior] - Behavioral options
+ * @property {ButtonsConfig} [buttons] - Button configuration
+ * @property {boolean} [visible] - Initial visibility state
+ * @property {boolean} [minimized] - Initial minimized state
+ */
+
+/**
+ * @typedef {Object} ContentArea
+ * @property {number} x - Content area X position
+ * @property {number} y - Content area Y position
+ * @property {number} width - Content area width
+ * @property {number} height - Content area height
+ */
+
+/**
+ * @typedef {Function} ContentRenderer
+ * @param {ContentArea} contentArea - Available content rendering area
+ * @param {PanelStyle} style - Panel style configuration
+ * @returns {void}
+ */
+
+/**
  * DraggablePanel - Makes any UI panel draggable with position persistence
- * Reuses the excellent drag logic from the Universal Button System
+ * Reuses the drag logic from the Universal Button System
+ * 
+ * @class DraggablePanel
+ * @example
+ * // Create a simple panel
+ * const panel = new DraggablePanel({
+ *   id: 'my-panel',
+ *   title: 'My Panel',
+ *   position: { x: 100, y: 100 },
+ *   size: { width: 300, height: 200 }
+ * });
+ * 
+ * @example
+ * // Create a panel with buttons
+ * const panel = new DraggablePanel({
+ *   id: 'button-panel',
+ *   title: 'Controls',
+ *   position: { x: 50, y: 50 },
+ *   size: { width: 200, height: 150 },
+ *   buttons: {
+ *     layout: 'vertical',
+ *     items: [
+ *       {
+ *         caption: 'Click Me',
+ *         onClick: () => console.log('Button clicked!')
+ *       }
+ *     ]
+ *   }
+ * });
  */
 class DraggablePanel {
   /**
    * Creates a new DraggablePanel instance
    * 
-   * @param {Object} config - Panel configuration
+   * @param {PanelConfig} config - Panel configuration object
+   * @param {string} config.id - Unique panel identifier for persistence
+   * @param {string} config.title - Panel title displayed in title bar
+   * @param {PanelPosition} config.position - Initial panel position {x, y}
+   * @param {PanelSize} config.size - Panel dimensions {width, height}
+   * @param {PanelStyle} [config.style] - Visual styling options
+   * @param {PanelBehavior} [config.behavior] - Behavioral options
+   * @param {ButtonsConfig} [config.buttons] - Button configuration
+   * @param {boolean} [config.visible=true] - Initial visibility state
+   * @param {boolean} [config.minimized=false] - Initial minimized state
    */
   constructor(config) {
     this.config = {
@@ -393,9 +511,19 @@ class DraggablePanel {
   }
 
   /**
-   * Render the panel
+   * Render the panel with optional custom content
    * 
-   * @param {Function} contentRenderer - Function to render panel content
+   * @param {ContentRenderer} [contentRenderer] - Optional function to render custom panel content
+   * @example
+   * // Render panel with custom content
+   * panel.render((contentArea, style) => {
+   *   fill(255);
+   *   text('Hello World!', contentArea.x, contentArea.y + 20);
+   * });
+   * 
+   * @example
+   * // Render panel with just buttons (no content renderer)
+   * panel.render();
    */
   render(contentRenderer) {
     if (!this.state.visible) return;
@@ -647,7 +775,18 @@ class DraggablePanel {
   /**
    * Add a button to the panel
    * 
-   * @param {Object} buttonConfig - Button configuration
+   * @param {ButtonConfig} buttonConfig - Button configuration object
+   * @param {string} buttonConfig.caption - Button text to display
+   * @param {Function} buttonConfig.onClick - Function called when button is clicked
+   * @param {Object} [buttonConfig.style] - Optional button style overrides
+   * @param {number} [buttonConfig.width] - Optional button width override
+   * @param {number} [buttonConfig.height] - Optional button height override
+   * @example
+   * panel.addButton({
+   *   caption: 'Save',
+   *   onClick: () => console.log('Saved!'),
+   *   style: { backgroundColor: '#4CAF50' }
+   * });
    */
   addButton(buttonConfig) {
     this.config.buttons.items.push(buttonConfig);

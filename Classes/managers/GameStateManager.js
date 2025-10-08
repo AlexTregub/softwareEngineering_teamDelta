@@ -14,6 +14,7 @@ class GameStateManager {
       MENU: "MENU",
       OPTIONS: "OPTIONS", 
       DEBUG_MENU: "DEBUG_MENU",
+      FACTION_SETUP: "FACTION_SETUP",
       PLAYING: "PLAYING",
       PAUSED: "PAUSED",
       GAME_OVER: "GAME_OVER",
@@ -73,17 +74,25 @@ class GameStateManager {
     this.fadeDirection = direction;
   }
 
-  stopFadeTransition() {
-    this.isFading = false;
+  stopFadeTransition(increment = 3) {
+    increment = increment * (deltaTime / (1000 / 60)); // Normalize to 60 FPS
+    if (this.fadeAlpha >= 655) {
+      this.fadeAlpha = 255;
+    }
+    this.fadeAlpha -= increment;
+    if (this.fadeAlpha <= 0) {
+      this.fadeAlpha = 0;
+      this.isFading = false;
+    }
   }
 
-  updateFade(increment = 5) {
+  updateFade(increment = 3) {
+    increment = increment * (deltaTime / (1000 / 60)); // Normalize to 60 FPS
     if (!this.isFading) return false;
   
     if (this.fadeDirection === "out") {
       this.fadeAlpha += increment;
-      if (this.fadeAlpha >= 255) {
-        this.fadeAlpha = 255;
+      if (this.fadeAlpha >= 655) {
         return true; // fade-out complete
       }
     } else { // fadeDirection === "in"
@@ -126,6 +135,7 @@ class GameStateManager {
   // Convenience methods for common states
   isInMenu = () => this.currentState === this.STATES.MENU;
   isInOptions = () => this.currentState === this.STATES.OPTIONS;
+  isInFactionSetup = () => this.currentState === this.STATES.FACTION_SETUP;
   isInGame = () => this.currentState === this.STATES.PLAYING;
   isPaused = () => this.currentState === this.STATES.PAUSED;
   isGameOver = () => this.currentState === this.STATES.GAME_OVER;
@@ -136,6 +146,7 @@ class GameStateManager {
   goToMenu = () => this.setState(this.STATES.MENU);
   goToOptions = () => this.setState(this.STATES.OPTIONS);
   goToDebug = () => this.setState(this.STATES.DEBUG_MENU);
+  goToFactionSetup = () => this.setState(this.STATES.FACTION_SETUP);
   startGame = () => { this.startFadeTransition(); return this.setState(this.STATES.PLAYING); };
   pauseGame = () => this.setState(this.STATES.PAUSED);
   resumeGame = () => this.setState(this.STATES.PLAYING);

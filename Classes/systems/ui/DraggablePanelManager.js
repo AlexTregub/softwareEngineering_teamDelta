@@ -13,11 +13,31 @@
  * **Features**: Panel lifecycle, render integration, game state visibility, button management
  * 
  * @class DraggablePanelManager
+ * @example
+ * // Create and initialize panel manager
+ * const manager = new DraggablePanelManager();
+ * manager.initialize();
+ * 
+ * // Add a panel
+ * const panel = manager.addPanel({
+ *   id: 'my-panel',
+ *   title: 'My Panel',
+ *   position: { x: 100, y: 100 },
+ *   size: { width: 300, height: 200 }
+ * });
+ * 
+ * // In game loop
+ * manager.update(mouseX, mouseY, mouseIsPressed);
+ * manager.render(contentRenderers);
+ * 
  * @see {@link docs/api/DraggablePanelManager.md} Full documentation and examples
  */
 class DraggablePanelManager {
   /**
    * Creates a new DraggablePanelManager instance
+   * Initializes empty panel collection and default settings
+   * 
+   * @constructor
    */
   constructor() {
     this.panels = new Map();

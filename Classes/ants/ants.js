@@ -100,6 +100,7 @@ class ant extends Entity {
   get resourceManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
   get faction() { return this._faction; }
+  set faction(value) { this._faction = value; }
   get health() { return this._health; }
   get maxHealth() { return this._maxHealth; }
   get damage() { return this._damage; }

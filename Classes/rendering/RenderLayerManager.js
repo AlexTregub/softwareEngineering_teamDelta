@@ -131,6 +131,9 @@ class RenderLayerManager {
       case 'OPTIONS':
         return [this.layers.TERRAIN, this.layers.UI_MENU];
         
+      case 'FACTION_SETUP':
+        return [this.layers.TERRAIN, this.layers.UI_MENU];
+        
       case 'KANBAN':
         return [this.layers.TERRAIN, this.layers.UI_MENU];
         
@@ -157,7 +160,7 @@ class RenderLayerManager {
    */
   renderTerrainLayer(gameState) {
     // Only render terrain for game states that need it
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS', 'FACTION_SETUP'].includes(gameState)) {
       return;
     }
     
@@ -379,11 +382,17 @@ class RenderLayerManager {
         updateMenu();
       }
       
-      // Render menu if in menu states
+      // Render menu if in menu states (but not during faction setup)
       if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
         if (renderMenu) {
           renderMenu();
         }
+      }
+      
+      // FACTION_SETUP state: Don't render legacy menu as faction setup panel handles its own UI
+      if (gameState === 'FACTION_SETUP') {
+        // Legacy menu rendering is intentionally skipped for faction setup
+        // The faction setup panel renders itself in sketch.js after the main rendering pipeline
       }
     }
     

@@ -10,6 +10,8 @@
  * - One-time setup, works forever
  */
 
+/// <reference path="./draggable-panel-types.d.ts" />
+
 // =============================================================================
 // GLOBAL INSTANCES - VS Code will auto-detect types from class files
 // =============================================================================
@@ -20,6 +22,13 @@
  * @type {DraggablePanelManager}
  */
 declare var draggablePanelManager;
+
+/**
+ * Global player faction setup instance
+ * @global
+ * @type {PlayerFactionSetup}
+ */
+declare var g_playerFactionSetup;
 
 /**
  * Global button group manager instance  

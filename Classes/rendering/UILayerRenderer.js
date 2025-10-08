@@ -98,6 +98,9 @@ class UILayerRenderer {
       case 'GAME_OVER':
         this.renderGameOverMenu();
         break;
+      case 'FACTION_SETUP':
+        // Don't render game UI during faction setup - the faction setup panel handles its own rendering
+        break;
       default:
         // Fallback - render minimal UI
         this.renderInGameUI();

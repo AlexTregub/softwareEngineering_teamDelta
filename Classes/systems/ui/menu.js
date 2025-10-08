@@ -124,8 +124,23 @@ function loadButtons() {
 
 // Start game with fade transition
 function startGameTransition() {
-    // Only start fade out, do NOT switch state yet
-    GameState.startFadeTransition("out");
+    // Check if player faction setup is needed
+    const factionSetup = getPlayerFactionSetup();
+    console.log('🏴 startGameTransition: factionSetup exists?', !!factionSetup);
+    console.log('🏴 startGameTransition: setup complete?', factionSetup ? factionSetup.isSetupComplete() : 'N/A');
+    
+    if (factionSetup && !factionSetup.isSetupComplete()) {
+        // Transition to faction setup state and show panel
+        console.log('🏴 startGameTransition: Transitioning to FACTION_SETUP state');
+        GameState.goToFactionSetup();
+        console.log('🏴 startGameTransition: Current state after transition:', GameState.getState());
+        factionSetup.show();
+        // Game will start automatically after faction setup completes
+    } else {
+        // Skip faction setup if already complete, go directly to game
+        console.log('🏴 startGameTransition: Skipping faction setup, starting game directly');
+        GameState.startFadeTransition("out");
+    }
 }
 
 // Main menu render function
@@ -169,15 +184,12 @@ function drawMenu() {
 // Update menu transitions
 function updateMenu() {
     if (GameState.isFadingTransition()) {
-      const fadeComplete = GameState.updateFade(10);
+      const fadeComplete = GameState.updateFade(3);
   
       if (fadeComplete) {
         if (GameState.fadeDirection === "out") {
           // Fade-out done → switch state to PLAYING
           GameState.setState("PLAYING", true); // skip callbacks if needed
-          GameState.startFadeTransition("in"); // start fade-in
-        } else {
-          // Fade-in done → stop fading
           GameState.stopFadeTransition();
         }
       }
@@ -186,11 +198,10 @@ function updateMenu() {
   }
 
 
-
-// Render complete menu system
-function renderMenu() {
-  if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
-    drawMenu()
+  // Render complete menu system
+  function renderMenu() {
+    if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
+      drawMenu();
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {

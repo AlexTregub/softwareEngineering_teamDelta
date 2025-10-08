@@ -16,6 +16,7 @@ class CombatController {
     this._combatActionState = CombatController._actionStates.NONE;
     this._lastEnemyCheck = 0;
     this._enemyCheckInterval = 100; // Check every 100ms for performance
+    this._proximityTracking = new Map(); // entity -> first_proximity_time
   }
   
   // --- Public API ---
@@ -28,6 +29,7 @@ class CombatController {
     if (now - this._lastEnemyCheck > this._enemyCheckInterval) {
       this.detectEnemies();
       this.updateCombatState();
+      this._cleanupProximityTracking();
       this._lastEnemyCheck = now;
     }
   }
@@ -107,6 +109,8 @@ class CombatController {
     // Access global ants array (this could be improved with dependency injection)
     if (typeof ants === 'undefined' || typeof antIndex === 'undefined') return;
     
+    // Get faction controller for advanced faction logic
+    const factionController = this._entity.getController ? this._entity.getController('faction') : null;
     const entityFaction = this._entity.faction || "neutral";
     
     // Check all other ants for enemies
@@ -114,12 +118,26 @@ class CombatController {
       if (!ants[i] || ants[i] === this._entity) continue;
       
       const otherAnt = ants[i];
+      const otherFaction = otherAnt.faction || "neutral";
       
-      // Skip if same faction or either is neutral
-      if (otherAnt.faction === entityFaction || 
-          entityFaction === "neutral" || 
-          otherAnt.faction === "neutral") {
-        continue;
+      // Use faction controller for advanced relationship checking
+      if (factionController) {
+        // Check if should attack on sight or after delay
+        const shouldAttackNow = factionController.shouldAttackOnSight(otherAnt);
+        const proximityTime = this._getProximityTime(otherAnt);
+        const shouldAttackDelayed = factionController.shouldAttackAfterDelay(otherAnt, proximityTime);
+        
+        if (!shouldAttackNow && !shouldAttackDelayed) {
+          continue;
+        }
+      } else {
+        // Fallback to simple faction logic
+        // Skip if same faction or either is neutral
+        if (otherFaction === entityFaction || 
+            entityFaction === "neutral" || 
+            otherFaction === "neutral") {
+          continue;
+        }
       }
       
       // Check distance
@@ -127,6 +145,17 @@ class CombatController {
       
       if (distance <= this._detectionRadius) {
         this._nearbyEnemies.push(otherAnt);
+        
+        // Trigger faction discovery if using faction system
+        if (factionController && typeof g_factionManager !== 'undefined' && g_factionManager) {
+          const myFactionId = factionController.getFactionId();
+          const otherFactionController = otherAnt.getController ? otherAnt.getController('faction') : null;
+          const otherFactionId = otherFactionController ? otherFactionController.getFactionId() : otherFaction;
+          
+          if (myFactionId && otherFactionId && myFactionId !== otherFactionId) {
+            g_factionManager.discoverFaction(myFactionId, otherFactionId);
+          }
+        }
       }
     }
   }
@@ -190,6 +219,36 @@ class CombatController {
       detectionRadius: this._detectionRadius,
       entityFaction: this._entity.faction || "neutral"
     };
+  }
+
+  /**
+   * Get how long an entity has been in proximity
+   * @param {Object} otherEntity - Other entity to check
+   * @returns {number} Time in milliseconds
+   */
+  _getProximityTime(otherEntity) {
+    const now = Date.now();
+    
+    if (!this._proximityTracking.has(otherEntity)) {
+      this._proximityTracking.set(otherEntity, now);
+      return 0;
+    }
+    
+    return now - this._proximityTracking.get(otherEntity);
+  }
+
+  /**
+   * Clear proximity tracking for entities no longer nearby
+   */
+  _cleanupProximityTracking() {
+    const currentNearbyEntities = new Set(this._nearbyEnemies);
+    
+    // Remove tracking for entities no longer nearby
+    for (const [entity, startTime] of this._proximityTracking.entries()) {
+      if (!currentNearbyEntities.has(entity)) {
+        this._proximityTracking.delete(entity);
+      }
+    }
   }
 
   /**
