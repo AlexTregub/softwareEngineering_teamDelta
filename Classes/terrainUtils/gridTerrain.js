@@ -162,7 +162,8 @@ class gridTerrain {
 
     //// Utils
     convRelToAccess(pos) { // Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
-        let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize)-1;
+        // let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize)-1;
+        let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize); // Not even I know why this works
         let chunkY = pos[1]%this._chunkSize == 0 ? pos[1]/this._chunkSize : floor(pos[1]/this._chunkSize)+1;
 
         let relX = pos[0] - chunkX*this._chunkSize;
@@ -209,10 +210,10 @@ class gridTerrain {
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
 
-        // CONVERSIONS HAVE FAILED.
-        console.log(access)
-        console.log(this.chunkArray.convRelToArrPos(access[0]))
-        console.log(chunkRawAccess)
+        // CONVERSIONS HAVE FAILED?
+        // console.log(access)
+        // console.log(this.chunkArray.convRelToArrPos(access[0]))
+        // console.log(chunkRawAccess)
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
     }
 

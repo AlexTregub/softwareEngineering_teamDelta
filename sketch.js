@@ -90,6 +90,15 @@ function initializeWorld() {
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
 
   g_map2.printDebug();
+
+  console.log(g_map2.chunkArray.rawArray[0].tileData.rawArray[0]);
+  console.log(g_map2.get(g_map2._tileSpan[0])); 
+  console.log("---");
+  console.log(g_map2.chunkArray.rawArray[g_map2._gridSizeX*g_map2._gridSizeY - 1].tileData.rawArray[CHUNK_SIZE*CHUNK_SIZE-1]);
+  let temp = g_map2._tileSpan[1];
+  console.log(temp);
+  temp[0] -= 1; temp[1] += 1; // TileSpan not inclusive.
+  console.log(g_map2.get(temp));
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
