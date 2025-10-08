@@ -179,7 +179,7 @@ VS Code can even auto-suggest imports:
 
 ```javascript
 // Type "DraggablePanelManager" and VS Code suggests:
-// import { DraggablePanelManager } from './Classes/systems/ui/DraggablePanelManager.js'
+// import { DraggablePanelManager } from './src/core/systems/ui/DraggablePanelManager.js'
 ```
 
 ---

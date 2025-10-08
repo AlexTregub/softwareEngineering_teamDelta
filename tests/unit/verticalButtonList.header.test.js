@@ -13,7 +13,7 @@ const testSuite = {
 const { setupVerticalEnvironment } = require('./testHelpers');
 // set up stubs before loading module
 const env = setupVerticalEnvironment({ imgWidth: 400, imgHeight: 200 });
-const VerticalButtonList = require('../../Classes/systems/ui/components/verticalButtonList.js');
+const VerticalButtonList = require('../../src/core/systems/ui/components/verticalButtonList.js');
 
 // create a fake image with width/height
 const fakeImg = { width: 400, height: 200 };

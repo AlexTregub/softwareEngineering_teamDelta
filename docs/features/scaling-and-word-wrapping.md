@@ -14,6 +14,7 @@ I've added comprehensive scaling and word wrapping capabilities to both the Drag
 ### DraggablePanelManager Enhancements
 
 #### Global Scaling Controls
+
 ```javascript
 const panelManager = new DraggablePanelManager();
 
@@ -28,6 +29,7 @@ const currentScale = panelManager.getGlobalScale();
 ```
 
 #### New Debug Panel Buttons
+
 - **Scale Up (+)**: Increase panel size by 10%
 - **Scale Down (-)**: Decrease panel size by 10%
 - **Reset Scale**: Return to normal (100%) size
@@ -35,6 +37,7 @@ const currentScale = panelManager.getGlobalScale();
 ### DraggablePanel Enhancements
 
 #### Individual Panel Scaling
+
 ```javascript
 const panel = new DraggablePanel({
   id: 'my-panel',
@@ -51,11 +54,13 @@ panel.resetScale();    // Reset to 100%
 ```
 
 #### Title Text Wrapping
+
 - Long panel titles automatically wrap to multiple lines
 - Wrapping respects panel width and scale factor
 - Uses p5.js `textWrap(WORD)` when available
 
 #### Scale-Aware Rendering
+
 - All elements (buttons, text, borders) scale proportionally
 - Button positions recalculate automatically
 - Maintains visual consistency at any scale
@@ -63,6 +68,7 @@ panel.resetScale();    // Reset to 100%
 ### Button Class Enhancements
 
 #### Text Wrapping
+
 ```javascript
 const button = new Button(x, y, width, height, 
   "This is a very long caption that will wrap automatically", 
@@ -74,6 +80,7 @@ const button = new Button(x, y, width, height,
 ```
 
 #### Enhanced Text Methods
+
 ```javascript
 button.setText("New text");           // Alternative to setCaption
 button.setCaption("Updated caption"); // Existing method
@@ -82,6 +89,7 @@ button.setCaption("Updated caption"); // Existing method
 ## 🎮 Usage Examples
 
 ### Basic Scaling Setup
+
 ```javascript
 // In your main sketch
 let panelManager;
@@ -106,6 +114,7 @@ function keyPressed() {
 ```
 
 ### Creating Scalable Panels
+
 ```javascript
 const scalablePanel = new DraggablePanel({
   id: 'test-panel',
@@ -132,18 +141,21 @@ const scalablePanel = new DraggablePanel({
 ## 🔧 Technical Implementation
 
 ### Scaling System
+
 - **Scale Range**: 0.5x to 2.0x (50% to 200%)
 - **Persistence**: Scale settings saved to localStorage
 - **Proportional**: All elements scale together (text, buttons, spacing, borders)
 - **Performance**: Efficient transform-based scaling
 
 ### Text Wrapping Algorithm
+
 1. **Measurement**: Uses p5.js `textWidth()` to measure text
 2. **Word-Based**: Wraps on word boundaries (not characters)
 3. **Adaptive**: Respects current font size and scaling
 4. **Fallback**: Gracefully handles missing p5.js functions
 
 ### Coordinate System
+
 - Scaling uses p5.js transform matrix
 - Hit detection accounts for scale factor
 - Button positioning recalculates on scale change
@@ -158,6 +170,7 @@ const scalablePanel = new DraggablePanel({
 ## 📝 Configuration Options
 
 ### Panel Configuration
+
 ```javascript
 {
   scale: 1.0,              // Initial scale factor
@@ -176,6 +189,7 @@ const scalablePanel = new DraggablePanel({
 ```
 
 ### Style Considerations
+
 - Text remains readable at all scale levels
 - Minimum scale prevents text from becoming unreadable
 - Maximum scale prevents panels from becoming too large
@@ -240,6 +254,6 @@ For practical examples of how to use these features, see:
 - `dynamicResizingExample.js` - Auto-resize demonstrations
 - Panel creation with scaling and wrapping enabled
 - Button configuration for optimal text display
-- `Classes/systems/ui/DraggablePanel.js` - Implementation details
+- `src/core/systems/ui/DraggablePanel.js` - Implementation details
 - `Classes/systems/Button.js` - Button text wrapping implementation
 - P5.js Typography documentation for `textWrap()` and `textWidth()`

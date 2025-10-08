@@ -18,7 +18,7 @@ The color sliders from `PlayerFactionSetup.js` have been abstracted into a reusa
 
 ### New Abstraction
 
-- **Location**: `Classes/systems/ui/components/Slider.js`
+- **Location**: `src/core/systems/ui/components/Slider.js`
 - **Purpose**: Generic slider component for any numeric input
 - **Benefits**:
   - ✅ **Reusable**: Can be used anywhere in the application
@@ -190,13 +190,13 @@ const animationSliders = createSliderGroup([
 
 #### New Files
 
-- `Classes/systems/ui/components/Slider.js` - Core slider component
+- `src/core/systems/ui/components/Slider.js` - Core slider component
 - `types/components/slider-types.d.ts` - TypeScript definitions
 - `docs/usageExamples/slider-examples.js` - Usage examples
 
 #### Modified Files
 
-- `Classes/systems/ui/PlayerFactionSetup.js` - Migrated to use new slider system
+- `src/core/systems/ui/PlayerFactionSetup.js` - Migrated to use new slider system
 - `types/global.d.ts` - Added slider type references
 - `index.html` - Updated script loading path to ui_components folder
 

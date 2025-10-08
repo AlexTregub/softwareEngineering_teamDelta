@@ -10,7 +10,7 @@ The Universal Button Group System provides a comprehensive, performance-optimize
 
 ```javascript
 // Import the system
-const UniversalButtonSystem = require('./Classes/systems/ui/UniversalButtonSystem.js');
+const UniversalButtonSystem = require('./src/core/systems/ui/UniversalButtonSystem.js');
 
 // Create and initialize the system
 const buttonSystem = new UniversalButtonSystem({

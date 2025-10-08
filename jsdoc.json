@@ -1,7 +1,7 @@
 {
   "source": {
     "include": [
-      "./Classes/systems/ui/",
+  "./src/core/systems/ui/",
       "./types/",
       "./README.md"
     ],

@@ -56,7 +56,7 @@ softwareEngineering_teamDelta/
 ├── 🔧 tools/                        # Development & build tools (NEW)
 ├── 📦 lib/                          # External libraries (MOVED)
 ├── 🎯 public/                       # Public web files (NEW)
-└── 🏗️ Classes/systems/ui/           # UI System (kept in place)
+└── 🏗️ src/core/systems/ui/           # UI System (moved to src)
 ```
 
 ## 🎯 **Key Benefits Achieved**
@@ -119,7 +119,7 @@ softwareEngineering_teamDelta/
 
 ### **UI System Status**
 
-- The UI system remains at `Classes/systems/ui/` due to file locks
+- The UI system was moved to `src/core/systems/ui/` as part of the reorganization
 - Already well-organized with 6-category structure
 - All paths updated correctly in HTML
 - Can be moved later if needed without affecting functionality

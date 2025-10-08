@@ -16,8 +16,8 @@ After analyzing the codebase structure and existing test files, I've identified 
 
 - `Classes/systems/Button.js` - Has comprehensive unit tests
 - `Classes/systems/CollisionBox2D.js` - Has unit tests
-- `Classes/systems/ui/ButtonGroup.js` - Has multiple test files
-- `Classes/systems/ui/verticalButtonList.js` - Has unit tests
+- `src/core/systems/ui/ButtonGroup.js` - Has multiple test files
+- `src/core/systems/ui/verticalButtonList.js` - Has unit tests
 - `Classes/managers/ResourceManager.js` - Has multiple test approaches
 - `Classes/controllers/AntUtilities.js` - Has enhanced unit tests
 - `Classes/ants/antStateMachine.js` - Has built-in coverage testing
@@ -65,21 +65,21 @@ After analyzing the codebase structure and existing test files, I've identified 
 ### **UI System Components** (15/20 files need tests)
 
 ```javascript
-❌ Classes/systems/ui/AntControlPanel.js        - Ant control interface
-❌ Classes/systems/ui/ButtonGroupConfigLoader.js - Config loading
-❌ Classes/systems/ui/ButtonGroupManager.js     - Button group management
-❌ Classes/systems/ui/DraggablePanel.js         - Panel drag functionality
-❌ Classes/systems/ui/DraggablePanelManager.js  - Panel management
-❌ Classes/systems/ui/DraggablePanelSystem.js   - Panel system coordination
-❌ Classes/systems/ui/dropoffButton.js          - Dropoff button logic
-❌ Classes/systems/ui/GameActionFactory.js      - Action creation
-❌ Classes/systems/ui/menu.js                   - Menu system
-❌ Classes/systems/ui/PresentationPanel.js      - Presentation interface
-❌ Classes/systems/ui/spawnGreenLeafButton.js   - Spawn button logic
-❌ Classes/systems/ui/UIObjectPoolManager.js    - Object pooling
-❌ Classes/systems/ui/UIQuadTree.js             - Spatial partitioning
-❌ Classes/systems/ui/UISelectionBoxIntegration.js - Selection integration
-❌ Classes/systems/ui/UniversalButtonSystem.js  - Universal button logic
+- ❌ src/core/systems/ui/AntControlPanel.js        - Ant control interface
+- ❌ src/core/systems/ui/ButtonGroupConfigLoader.js - Config loading
+- ❌ src/core/systems/ui/ButtonGroupManager.js     - Button group management
+- ❌ src/core/systems/ui/DraggablePanel.js         - Panel drag functionality
+- ❌ src/core/systems/ui/DraggablePanelManager.js  - Panel management
+- ❌ src/core/systems/ui/DraggablePanelSystem.js   - Panel system coordination
+- ❌ src/core/systems/ui/dropoffButton.js          - Dropoff button logic
+- ❌ src/core/systems/ui/GameActionFactory.js      - Action creation
+- ❌ src/core/systems/ui/menu.js                   - Menu system
+- ❌ src/core/systems/ui/PresentationPanel.js      - Presentation interface
+- ❌ src/core/systems/ui/spawnGreenLeafButton.js   - Spawn button logic
+- ❌ src/core/systems/ui/UIObjectPoolManager.js    - Object pooling
+- ❌ src/core/systems/ui/UIQuadTree.js             - Spatial partitioning
+- ❌ src/core/systems/ui/UISelectionBoxIntegration.js - Selection integration
+- ❌ src/core/systems/ui/UniversalButtonSystem.js  - Universal button logic
 ```
 
 ### **Controller Classes** (8/15 files need tests)
@@ -133,7 +133,7 @@ After analyzing the codebase structure and existing test files, I've identified 
 ❌ Classes/systems/FramebufferManager.js - Framebuffer management
 ❌ Classes/systems/shapes/circle.js      - Circle geometry
 ❌ Classes/systems/text/textRenderer.js  - Text rendering
-❌ Classes/systems/ui/UIVisibilityCuller.js - Visibility optimization
+- ❌ src/core/systems/ui/UIVisibilityCuller.js - Visibility optimization
 ```
 
 ---

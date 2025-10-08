@@ -6,6 +6,8 @@ This document describes the reorganized UI system structure for the Ant Game pro
 
 ```text
 Classes/systems/ui/
+
+NOTE: This folder was moved to `src/core/systems/ui/` during the reorganization. The files here may be an archived copy kept for safety. Please use `src/core/systems/ui/` for the active source.
 ├── core/                    # Core UI infrastructure & frameworks
 ├── components/              # Reusable UI components
 ├── panels/                  # Application-specific panels & windows

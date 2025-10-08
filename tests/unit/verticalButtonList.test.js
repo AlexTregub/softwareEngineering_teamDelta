@@ -14,7 +14,7 @@ const testSuite = {
 const { setupVerticalEnvironment } = require('./testHelpers');
 // set up stubs before loading the module
 const env = setupVerticalEnvironment({ imgWidth: 64, imgHeight: 32 });
-const VerticalButtonList = require('../../Classes/systems/ui/components/verticalButtonList.js');
+const VerticalButtonList = require('../../src/core/systems/ui/components/verticalButtonList.js');
 
 testSuite.test('Groups configs by y and returns debug arrays', () => {
   const configs = [

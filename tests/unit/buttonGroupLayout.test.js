@@ -10,7 +10,7 @@
 // Test dependencies
 global.CollisionBox2D = require('../../src/core/systems/CollisionBox2D.js');
 global.Button = require('../../src/core/systems/Button.js');
-const ButtonGroup = require('../../Classes/systems/ui/components/ButtonGroup.js');
+const ButtonGroup = require('../../src/core/systems/ui/components/ButtonGroup.js');
 
 // Simple test framework
 const testSuite = {

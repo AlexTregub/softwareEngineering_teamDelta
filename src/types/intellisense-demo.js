@@ -19,7 +19,7 @@ function intelliSenseDemo() {
   // executeCommand("help");   // ← Shows: (command: string) => void with full description!
   // openCommandLine();   // ← Shows: () => boolean with description!
   
-  // ✨ DRAGGABLE PANEL MANAGER (from Classes/systems/ui/DraggablePanelManager.js) 
+  // ✨ DRAGGABLE PANEL MANAGER (from src/core/systems/ui/DraggablePanelManager.js) 
   // Try typing these and see the enhanced JSDoc:
   
   //draggablePanelManager.   // ← Shows: togglePanel, update, render, etc.
