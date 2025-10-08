@@ -19,6 +19,8 @@ class Sprite2D {
     this.pos = pos.copy ? pos.copy() : createVector(pos.x, pos.y); // p5.Vector
     this.size = size.copy ? size.copy() : createVector(size.x, size.y); // p5.Vector
     this.rotation = rotation;
+    this.flipX = false;
+    this.flipY = false;
   }
 
   setImage(img) { this.img = img; }
@@ -39,6 +41,7 @@ class Sprite2D {
     
     push();
     translate(this.pos.x + this.size.x / 2, this.pos.y + this.size.y / 2);
+    scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
     rotate(radians(this.rotation));
     imageMode(CENTER);
     
