@@ -11,8 +11,8 @@
     <script src="lib/p5/p5.min.js"></script>
     <script src="lib/p5/p5.sound.min.js"></script>
 
-        <!-- Type Checks -->
-     <script src="tools/debug/typeChecks/vectorCheck.js"></script>
+    <!-- Type Checks -->
+    <script src="tools/debug/typeChecks/vectorCheck.js"></script>
 
     <!-- Rendering System - Load First -->
     <script src="src/core/systems/EntityLayerRenderer.js"></script>
@@ -42,44 +42,51 @@
     <script src="src/core/systems/CollisionBox2D.js"></script>
     <script src="src/core/systems/Button.js"></script>
     
+    <!-- Signal System - Load Early -->
+    <script src="src/core/systems/SignalSystem.js"></script>
+    <!-- <script src="src/core/systems/EventBus.js"></script> -->
+    
   <!-- UI Performance Systems -->
-  <script src="src/core/systems/ui/performance/UIObjectPoolManager.js"></script>
-  <script src="src/core/systems/ui/performance/UIQuadTree.js"></script>
-  <script src="src/core/systems/ui/performance/UIVisibilityCuller.js"></script>
+  <script src="src/core/ui/performance/UIObjectPoolManager.js"></script>
+  <script src="src/core/ui/performance/UIQuadTree.js"></script>
+  <script src="src/core/ui/performance/UIVisibilityCuller.js"></script>
     
   <!-- UI System Managers -->
-  <script src="src/core/systems/ui/managers/ButtonGroupConfigLoader.js"></script>
-  <script src="src/core/systems/ui/managers/ButtonGroupManager.js"></script>
+  <script src="src/core/ui/managers/ButtonGroupConfigLoader.js"></script>
+  <script src="src/core/ui/managers/ButtonGroupManager.js"></script>
+  <script src="src/core/ui/managers/UISelectionBoxIntegration.js"></script>
     
   <!-- UI Components -->
-  <script src="src/core/systems/ui/components/Slider.js"></script>
-  <script src="src/core/systems/ui/components/ButtonGroup.js"></script>
-  <script src="src/core/systems/ui/components/verticalButtonList.js"></script>
+  <script src="src/core/ui/components/Slider.js"></script>
+  <script src="src/core/ui/components/ButtonGroup.js"></script>
+  <script src="src/core/ui/components/verticalButtonList.js"></script>
     
   <!-- UI Core Infrastructure -->
-  <script src="src/core/systems/ui/core/GameActionFactory.js"></script>
-  <script src="src/core/systems/ui/core/UniversalButtonSystem.js"></script>
-  <script src="src/core/systems/ui/core/DraggablePanel.js"></script>
-  <script src="src/core/systems/ui/core/DraggablePanelManager.js"></script>
-  <script src="src/core/systems/ui/core/DraggablePanelSystem.js"></script>
+  <script src="src/core/ui/core/GameActionFactory.js"></script>
+  <script src="src/core/ui/core/UniversalButtonSystem.js"></script>
+  <script src="src/core/ui/core/DraggablePanel.js"></script>
+  <script src="src/core/ui/core/DraggablePanelManager.js"></script>
+  <script src="src/core/ui/core/DraggablePanelSystem.js"></script>
     
   <!-- UI Application Panels -->
-  <script src="src/core/systems/ui/panels/AntControlPanel.js"></script>
-  <script src="src/core/systems/ui/panels/PresentationPanel.js"></script>
+  <script src="src/core/ui/panels/AntControlPanel.js"></script>
+  <script src="src/core/ui/panels/PresentationPanel.js"></script>
+  <script src="src/core/ui/panels/PlayerFactionSetup.js"></script>
     
     <!-- Ant Tooltip System -->
     <script src="src/core/systems/AntTooltipSystem.js"></script>
     
-  <!-- UI Selection Box System -->
-  <script src="src/core/systems/ui/managers/UISelectionBoxIntegration.js"></script>
-    
     <script src="src/core/managers/TileInteractionManager.js"></script>
     <script src="src/core/managers/GameStateManager.js"></script>
     <script src="src/core/managers/AntManager.js"></script>
+    
+    <!-- Enhanced Entities - Temporarily commented out to resolve conflicts -->
+    <!-- <script src="src/entities/EnhancedAnt.js"></script> -->
+    <!-- <script src="src/managers/SignalEnhancedResourceManager.js"></script> -->
+    
     <!-- Faction System -->
     <script src="src/core/managers/FactionManager.js"></script>
     <script src="src/controllers/FactionController.js"></script>
-  <script src="src/core/systems/ui/panels/PlayerFactionSetup.js"></script>
     <script src="src/core/systems/shapes/circle.js"></script>
     <script src="src/game/ai/pathfinding.js"></script>
 
@@ -101,30 +108,29 @@
     <script src="src/controllers/HealthController.js"></script>
     <script src="src/controllers/AntUtilities.js"></script>
 
-    <!-- <script src="src/core/systems/coordinateSystem.js"></script> -->
     <script src="src/core/entities/DropoffLocation.js"></script>
     
   <!-- Legacy UI Integration (transitioning to Universal Button System) -->
-  <script src="src/core/systems/ui/legacy/dropoffButton_universal.js"></script>
-  <script src="src/core/systems/ui/legacy/spawnGreenLeafButton_universal.js"></script>
+  <script src="src/core/ui/legacy/dropoffButton_universal.js"></script>
+  <script src="src/core/ui/legacy/spawnGreenLeafButton_universal.js"></script>
     
     <!-- Legacy fallbacks (commented out - kept for reference) -->
-  <!-- Legacy fallbacks (commented out - kept for reference) -->
-  <!-- <script src="src/core/systems/ui/legacy/dropoffButton.js"></script> -->
-  <!-- <script src="src/core/systems/ui/legacy/spawnGreenLeafButton.js"></script> -->
-    <!-- <script src="src/core/systems/spawnControlsUI.js"></script> -->
+  <!-- <script src="src/core/ui/legacy/dropoffButton.js"></script> -->
+  <!-- <script src="src/core/ui/legacy/spawnGreenLeafButton.js"></script> -->
     
-  <script src="src/core/systems/ui/panels/menu.js"></script>
+    <script src="src/core/ui/panels/menu.js"></script>
     <script src="tools/debug/menu_debug.js"></script>
 
-   <!-- Entity Debugging System -->
-   <script src="tools/debug/UniversalDebugger.js"></script>
-   <script src="tools/debug/EntityDebugManager.js"></script>
-   <script src="tools/debug/debuggerDemo.js"></script>
+    <!-- Entity Debugging System -->
+    <script src="tools/debug/UniversalDebugger.js"></script>
+    <script src="tools/debug/EntityDebugManager.js"></script>
+    <script src="tools/debug/debuggerDemo.js"></script>
     <script src="tools/debug/selectionBoxDebug.js"></script>
     <script src="tools/debug/selectionRenderDebug.js"></script>
     <script src="tools/debug/mouseEventDebug.js"></script>
-    <script src="tools/debug/selectionStateMachine.js"></script>    <!-- Ant Classes - Load in proper order -->
+    <script src="tools/debug/selectionStateMachine.js"></script>
+    
+    <!-- Ant Classes - Load in proper order -->
     <script src="src/game/ants/JobComponent.js"></script>
     <script src="src/game/ants/ants.js"></script>
     <script src="src/game/ants/antStateMachine.js"></script>
@@ -152,11 +158,15 @@
     <script src="tools/debug/tracing.js"></script>
     <script src="tests/integration/manual-highlight-debug.js"></script>
 
+    <!-- World System -->
     <script src="src/game/world/chunk.js"></script>
     <script src="src/game/world/coordinateSystem.js"></script>
     <script src="src/game/world/grid.js"></script>
     <script src="src/game/world/gridTerrain.js"></script>
     <script src="src/game/world/terrianGen.js"></script>
+    
+    <!-- Game Integration Manager - Temporarily commented out to resolve conflicts -->
+    <!-- <script src="src/core/GameIntegrationManager.js"></script> -->
   </head>
 
   <body>

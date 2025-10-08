@@ -7,9 +7,7 @@
  * @version 1.0.0
  */
 
-const { EnhancedAnt } = require('../entities/EnhancedAnt.js');
-const { SignalEnhancedResourceManager } = require('../managers/SignalEnhancedResourceManager.js');
-const { eventBus } = require('../core/systems/EventBus.js');
+// Note: EnhancedAnt, SignalEnhancedResourceManager, and eventBus are available globally
 
 /**
  * Game Integration Manager

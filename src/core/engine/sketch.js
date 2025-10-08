@@ -14,6 +14,7 @@ let g_keyboardController;
 let g_selectionBoxController;
 let g_uiSelectionController; // UI Effects Layer Selection Controller
 let g_tileInteractionManager; // Efficient tile-based interaction system
+let g_uiDebugManager; // UI Debug Manager for interactive debugging
 // --- WORLD GENERATION ---
 let g_seed;
 let g_map;
@@ -59,6 +60,11 @@ function setup() {
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
+  
+  // Initialize UI Debug Manager
+  if (typeof UIDebugManager !== 'undefined') {
+    g_uiDebugManager = new UIDebugManager();
+  }
 
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {

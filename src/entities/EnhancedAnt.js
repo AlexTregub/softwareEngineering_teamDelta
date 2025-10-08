@@ -7,8 +7,7 @@
  * @version 1.0.0
  */
 
-const { GameObject, Signal } = require('../core/systems/SignalSystem.js');
-const { eventBus } = require('../core/systems/EventBus.js');
+// Note: GameObject, Signal, and eventBus are available globally from SignalSystem.js and EventBus.js
 
 /**
  * Enhanced Ant class with signal system integration

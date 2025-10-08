@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-const { Signal, Callable, GameObject } = require('./SignalSystem.js');
+// Note: Signal, Callable, and GameObject are available globally from SignalSystem.js
 
 /**
  * EventBus class providing simplified signal system access
