@@ -2,11 +2,13 @@
 let antToSpawn = 0;
 let antIndex = 0;
 let antSize;
+let queenSize;
 let ants = [];
 let globalResource = [];
 let antBaseSprite;
 let antbg;
 let hasDeLozier = false;
+let hasQueen = false;
 let selectedAnt = null;
 let JobImages = {};
 
@@ -16,6 +18,7 @@ let antManager = null;
 // --- Preload Images and manager ---
 function antsPreloader() {
   antSize = createVector(20, 20);
+  queenSize = createVector(30, 30);
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   JobImages = {
@@ -24,7 +27,8 @@ function antsPreloader() {
     Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
     Warrior: loadImage('Images/Ants/gray_ant.png'), // We don't have a gray ant warrior
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
-    DeLozier: loadImage('Images/Ants/greg.jpg')
+    DeLozier: loadImage('Images/Ants/greg.jpg'),
+    Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
   };
   initializeAntManager();
 }
@@ -159,6 +163,7 @@ class ant extends Entity {
       case "Warrior": return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
       case "Spitter": return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
       case "DeLozier": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+      case "Queen": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
       default: return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
     }
   }
@@ -515,14 +520,45 @@ class ant extends Entity {
 // --- Job Assignment Function ---
 function assignJob() {
   const JobList = ['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter'];
-  const specialJobList = ['DeLozier'];
-  const availableJobs = !hasDeLozier ? [...JobList, ...specialJobList] : JobList;
-  
+  const specialJobList = ['DeLozier',];
+
+  const availableSpecialJobs = [];
+  if (!hasDeLozier) availableSpecialJobs.push('DeLozier');
+  const availableJobs = [...JobList, ...availableSpecialJobs];
+
   const chosenJob = availableJobs[Math.floor(random(0, availableJobs.length))];
   if (chosenJob === "DeLozier") { 
     hasDeLozier = true; 
   }
   return chosenJob;
+}
+
+function spawnQueen(){
+  let JobName = 'Queen'
+  let sizeR = random(0, 15);
+  let newAnt = new ant(
+    random(0, 500), random(0, 500), 
+    queenSize.x + sizeR, 
+    queenSize.y + sizeR, 
+    30, 0,
+    antBaseSprite,
+    'Queen',
+    'Player'
+  );
+
+  newAnt = new QueenAnt(newAnt);
+
+  newAnt.assignJob(JobName, JobImages[JobName]);
+  ants.push(newAnt);
+  newAnt.update();
+
+  // Register ant with TileInteractionManager for efficient mouse detection
+  if (g_tileInteractionManager) {
+    g_tileInteractionManager.addObject(newAnt, 'ant');
+  }
+
+
+  return newAnt;
 }
 
 // --- Spawn Ants ---
@@ -580,6 +616,13 @@ function antsUpdate() {
       }
     }
   }
+}
+
+function getQueen(){
+  if(queenAnt){
+    return queenAnt;
+  }
+  return false;
 }
 
 // --- Render All Ants (Separated from Updates) ---
