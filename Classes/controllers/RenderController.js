@@ -160,6 +160,24 @@ class RenderController {
       } else {
         noSmooth();
       }
+      
+      // TODO: These should NOT be here, this is a stop gap while I figure out a bug
+      //    All of these should be calling a renderManger singleton, registering with the renderer,
+      //    then then renderer will draw that object(s) to the screen
+      if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+
+      updatePresentationPanels(GameState.getState());
+
+      // Update presentation panels for state-based visibility
+      if (typeof updatePresentationPanels !== 'undefined') {
+        updatePresentationPanels(GameState.getState());
+      }
+
+      // Update ant tooltips (handles 2-second hover delay)
+      if (typeof updateAntTooltips !== 'undefined') {
+        updateAntTooltips();
+     } 
+     // End rhe TODO here,
 
       // Render the main entity
       this.renderEntity();
@@ -176,6 +194,11 @@ class RenderController {
       // Render debug information
       if (this._debugMode) {
         this.renderDebugInfo();
+      }
+
+      // TODO: The is the same isue as above.
+      if (typeof renderAntTooltips !== 'undefined') {
+        renderAntTooltips();
       }
       
       // Update and render effects

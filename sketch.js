@@ -124,31 +124,12 @@ function initializeWorld() {
  */
 
 function draw() {
-  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
-
-  updatePresentationPanels(GameState.getState());
-
-  // Update presentation panels for state-based visibility
-  if (typeof updatePresentationPanels !== 'undefined') {
-    updatePresentationPanels(GameState.getState());
-  }
-
-  // Update ant tooltips (handles 2-second hover delay)
-  if (typeof updateAntTooltips !== 'undefined') {
-    updateAntTooltips();
-  }
-
   RenderManager.render(GameState.getState());
   
   // Update and render faction setup (must be after main rendering to appear on top)
   if (typeof g_playerFactionSetup !== 'undefined' && g_playerFactionSetup) {
     g_playerFactionSetup.update();
     g_playerFactionSetup.render();
-  }
-  
-  // Render ant tooltips (must be after main rendering to appear on top)
-  if (typeof renderAntTooltips !== 'undefined') {
-    renderAntTooltips();
   }
 }
 

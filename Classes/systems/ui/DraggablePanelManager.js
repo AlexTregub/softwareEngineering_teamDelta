@@ -7,6 +7,7 @@
  * @see {@link docs/quick-reference.md} Panel system reference
  */
 
+
 /**
  * Comprehensive draggable panel management system with render integration.
  * 
@@ -52,6 +53,7 @@ class DraggablePanelManager {
     this.currentlyDragging = null;
     
     // Panel visibility by game state (from Integration class)
+    // TODO: Make this configurable and allow external objects to add their panels to this list.
     this.stateVisibility = {
       'MENU': ['presentation-control'],
       'PLAYING': ['ant_spawn', 'health_controls'],
@@ -455,6 +457,7 @@ class DraggablePanelManager {
     }
 
     // Update only the currently dragging panel, or all panels if none are dragging
+    // TODO: This is updating every panel, regardless.
     for (const panel of this.panels.values()) {
       if (!this.currentlyDragging || panel.config.id === this.currentlyDragging) {
         panel.update(mouseX, mouseY, mousePressed);
@@ -768,69 +771,18 @@ class DraggablePanelManager {
     console.log(`🐜 Spawning ${count} ant(s)...`);
     
     let spawned = 0;
-    
-    // Try multiple spawning methods until we find one that works
-    const spawnMethods = [
-      // Method 1: Try g_antManager
-      () => {
-        if (typeof g_antManager !== 'undefined' && g_antManager && typeof g_antManager.spawnAnt === 'function') {
-          for (let i = 0; i < count; i++) {
-            const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-            const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-            g_antManager.spawnAnt({ x: spawnX, y: spawnY });
-            spawned++;
-          }
-          return true;
-        }
-        return false;
-      },
-      
-      // Method 2: Try global ants array
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants) && typeof Ant !== 'undefined') {
-          for (let i = 0; i < count; i++) {
-            const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-            const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-            const newAnt = new Ant(spawnX, spawnY);
-            ants.push(newAnt);
-            spawned++;
-          }
-          return true;
-        }
-        return false;
-      },
-      
-      // Method 4: Try command line spawning system
-      () => {
-        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
-          const initialAntCount = ants.length;
-          try {
-            // Use the command line spawn system which creates proper ant objects
-            executeCommand(`spawn ${count} ant player`);
-            spawned = ants.length - initialAntCount;
-            return spawned > 0;
-          } catch (error) {
-            console.warn('⚠️ Command line spawn method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
+         
+    // use the commandline system to spawn ants. lets keep this uniform
+    if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+        const initialAntCount = ants.length;
+        // Use the command line spawn system which creates proper ant objects
+        executeCommand(`spawn ${count} ant player`);
+        spawned = ants.length - initialAntCount;
+        return spawned > 0;
+      } else {
+        console.warn('⚠️ Command line spawn method failed:', error.message);
+        return 0;
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of spawnMethods) {
-      if (method()) {
-        console.log(`✅ Successfully spawned ${spawned} ant(s)`);
-        return;
-      }
-    }
-    
-    console.warn('⚠️ Could not spawn ants - no compatible ant system found');
   }
   
   /**

@@ -115,6 +115,7 @@
     return this._entities;
   };
 
+  // usage example 
   SelectionBoxController.prototype.draw = function () {
     if (this._isSelecting && this._selectionStart && this._selectionEnd) {
       push();
@@ -124,7 +125,7 @@
       pop();
     }
 
-    if (devConsoleEnabled) {
+    if (devConsoleEnabled || true) {
       for (var i = 0; i < this._selectedEntities.length; i++) {
         var entity = this._selectedEntities[i];
         try {
