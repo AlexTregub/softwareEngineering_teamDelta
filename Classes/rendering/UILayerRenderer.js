@@ -117,6 +117,7 @@ class UILayerRenderer {
   renderInGameUI() {
     if (this.config.enableHUD) {
       this.renderHUDElements();
+      updateDraggablePanels();
     }
 
     if (this.config.enableSelectionBox && this.interactionUI.selectionBox.active) {
@@ -130,6 +131,10 @@ class UILayerRenderer {
     if (this.interactionUI.contextMenu.active) {
       this.renderContextMenu();
     }
+
+    if (typeof updateAntTooltips !== 'undefined') {
+        updateAntTooltips();
+     } 
 
     if (this.config.enableDebugUI) {
       if (this.debugUI.performanceOverlay.enabled) {

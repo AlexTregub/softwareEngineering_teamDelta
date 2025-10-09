@@ -154,6 +154,12 @@ class RenderController {
    */
   render() {
     this._safeRender(() => {
+
+            // TODO: These should NOT be here, this is a stop gap while I figure out a bug
+      //    All of these should be calling a renderManger singleton, registering with the renderer,
+      //    then then renderer will draw that object(s) to the screen
+      if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+
       // Set smoothing preference
       if (this._smoothing) {
         smooth();
@@ -161,23 +167,16 @@ class RenderController {
         noSmooth();
       }
       
-      // TODO: These should NOT be here, this is a stop gap while I figure out a bug
+                  // TODO: These should NOT be here, this is a stop gap while I figure out a bug
       //    All of these should be calling a renderManger singleton, registering with the renderer,
       //    then then renderer will draw that object(s) to the screen
-      if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
 
-      updatePresentationPanels(GameState.getState());
+      //updatePresentationPanels(GameState.getState());
 
       // Update presentation panels for state-based visibility
-      if (typeof updatePresentationPanels !== 'undefined') {
-        updatePresentationPanels(GameState.getState());
-      }
-
-      // Update ant tooltips (handles 2-second hover delay)
-      if (typeof updateAntTooltips !== 'undefined') {
-        updateAntTooltips();
-     } 
-     // End rhe TODO here,
+      //if (typeof updatePresentationPanels !== 'undefined') {
+     //   updatePresentationPanels(GameState.getState());
+     // }
 
       // Render the main entity
       this.renderEntity();
