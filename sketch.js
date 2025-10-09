@@ -1,4 +1,3 @@
-
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
@@ -67,7 +66,7 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
-}
+  }
 
 /**
  * initializeWorld
@@ -120,6 +119,7 @@ function draw() {
   }
 
   RenderManager.render(GameState.getState());
+
 }
 
 /**
