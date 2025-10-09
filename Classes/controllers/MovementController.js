@@ -327,6 +327,11 @@ class MovementController {
       return false;
     }
 
+    // Allow entities to opt out (e.g., Queen)
+    if (this._entity && this._entity.disableSkitter) {
+      return false;
+    }
+
     // Only skitter if idle and out of combat
     if (this._entity._stateMachine) {
       const canMove = this._entity._stateMachine.canPerformAction("move");

@@ -18,6 +18,8 @@ class QueenAnt extends ant {
     this.ants = []; // ants under her command
     this.coolDown = false;
     this.showCommandRadius = false;
+    // Queen should not perform idle random skitter movements
+    this.disableSkitter = true;
   }
 
   // --- ANT MANAGEMENT ---
