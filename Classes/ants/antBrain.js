@@ -1,8 +1,9 @@
+const hungry = 100;
+const starving = 160;
+const death = 200;
+
 class AntBrain{
     constructor(antType){
-        const hungry = 100;
-        const starving = 160;
-        const death = 200;
         let flag_ = "";
         let hunger = 0;
         let followBuildTrail;
