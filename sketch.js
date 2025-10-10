@@ -31,6 +31,7 @@ function preload(){
   menuPreload();
   antsPreloader();
   resourcePreLoad();
+  preloadPauseImages();
 }
 
 
@@ -163,6 +164,9 @@ function uiRender(){
   // Render spawn/delete UI (canvas-based) if available
   if (typeof window.renderSpawnUI === 'function') {
     window.renderSpawnUI();
+  }
+  if (typeof window.renderPauseMenuUI === 'function') {
+    window.renderPauseMenuUI();
   }
   // Draw dropoff UI (button, placement preview) after other UI elements
   if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
