@@ -521,6 +521,24 @@ class gridTerrain {
         // Invalidate cache when terrain data changes
         this.invalidateCache();
     }
+
+    getTileAt(tileX, tileY) {
+        // Calculate which chunk the tile belongs to.
+        const chunkX = Math.floor(tileX / this._chunkSize);
+        const chunkY = Math.floor(tileY / this._chunkSize);
+
+        // Access the chunk from the chunkArray grid
+        const chunk = this.chunkArray.get([chunkX, chunkY]);
+
+        // If the chunk exists, get the tile from its internal grid.
+        if (chunk) {
+            const tile = chunk.get([tileX, tileY]);
+            return tile;
+        }
+
+        // If the chunk doesn't exist, there is no tile
+        return null;
+    }
 };
 
 // Global functions to control and monitor terrain cache from console

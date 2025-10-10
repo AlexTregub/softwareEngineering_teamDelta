@@ -233,6 +233,32 @@ function handleKeyEvent(type, ...args) {
  * ----------
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
+
+// TEMPORARY
+function tempTests() {
+    // --- Test getTileAt() ---
+    console.log("--- Running getTileAt() Tests ---");
+    let tile1 = g_map2.getTileAt(0, 0);
+    console.log("Test 1 (0, 0):", tile1);
+    let tile2 = g_map2.getTileAt(-5, 3);
+    console.log("Test 2 (-5, -3):", tile2);
+    let tile3 = g_map2.getTileAt(8,8);
+    console.log("Test 3 (8, 8): ", tile3);
+    let tile4 = g_map2.getTileAt(6,8);
+    console.log("Test 4 (6, 8): ", tile4);
+    let tile5 = g_map2.getTileAt(10,8);
+    console.log("Test 5 (10, 8): ", tile5);
+    //let tile4 = g_map2.getTileAt(999, 999);
+    //console.log("Test 4 (999, 999):", tile4);
+    //console.log("--- getTileAt() Tests Complete ---");
+
+    // --- Test turnToFarmland() ---
+    //console.log("--- Calling turnToFarmland() ---");
+    //g_tileInteractionManager.turnToFarmland(0, 0);
+    //g_tileInteractionManager.turnToFarmland(5, 5, 10, 8);
+    //g_tileInteractionManager.turnToFarmland(-3, -3, -1, -1);
+}
+
 function keyPressed() {
   // Handle UI shortcuts first (Ctrl+Shift combinations)
   if (window.UIManager && window.UIManager.handleKeyPress) {
@@ -241,6 +267,11 @@ function keyPressed() {
       return; // UI shortcut was handled, don't process further
     }
   }
+
+  // TEMPORARY
+  if (key === 't') { // t for test
+        tempTests();
+    }
   
   // Handle render layer toggles (Shift + C/V/B/N/M)
   if (keyIsDown(SHIFT) && RenderManager && RenderManager.isInitialized) {
