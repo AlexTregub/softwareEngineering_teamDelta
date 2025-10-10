@@ -412,7 +412,7 @@ class DraggablePanelManager {
   }
 
   /**
-   * Update all panels for mouse interaction
+   * Update all panels for mouse interaction (PERFORMANCE OPTIMIZED)
    * 
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position
@@ -423,19 +423,41 @@ class DraggablePanelManager {
   update(mouseX, mouseY, mousePressed) {
     if (!this.isInitialized) return;
 
+    // Initialize optimization state if needed
+    if (!this._optimized) {
+      this._optimized = true;
+      this._lastMousePosition = { x: -1, y: -1 };
+      this._mouseMovementThreshold = 2; // Only update if mouse moved more than 2 pixels
+      this._skipUpdateFrames = 0; // Skip updates for static panels
+    }
+    
+    // Check if mouse moved significantly
+    const mouseMoved = Math.abs(mouseX - this._lastMousePosition.x) > this._mouseMovementThreshold ||
+                      Math.abs(mouseY - this._lastMousePosition.y) > this._mouseMovementThreshold;
+    
+    // Skip updates if mouse hasn't moved and no panels are being dragged
+    if (!mouseMoved && !mousePressed && !this.currentlyDragging && this._skipUpdateFrames < 5) {
+      this._skipUpdateFrames++;
+      return;
+    }
+    
+    // Reset skip counter
+    this._skipUpdateFrames = 0;
+    this._lastMousePosition = { x: mouseX, y: mouseY };
+
     if (this.debugMode.panelTrainMode) {
       // 🚂 PANEL TRAIN MODE: All panels follow the leader!
       this.updatePanelTrainMode(mouseX, mouseY, mousePressed);
     } else {
       // Normal mode: Proper drag isolation (only one panel drags at a time)
-      this.updateNormalMode(mouseX, mouseY, mousePressed);
+      this.updateNormalModeOptimized(mouseX, mouseY, mousePressed);
     }
   }
 
   /**
-   * Normal update mode with proper drag isolation
+   * Optimized normal update mode with proper drag isolation
    */
-  updateNormalMode(mouseX, mouseY, mousePressed) {
+  updateNormalModeOptimized(mouseX, mouseY, mousePressed) {
     // If mouse is released, clear the currently dragging panel
     if (!mousePressed) {
       this.currentlyDragging = null;
@@ -456,11 +478,30 @@ class DraggablePanelManager {
       }
     }
 
-    // Update only the currently dragging panel, or all panels if none are dragging
-    // TODO: This is updating every panel, regardless.
-    for (const panel of this.panels.values()) {
-      if (!this.currentlyDragging || panel.config.id === this.currentlyDragging) {
-        panel.update(mouseX, mouseY, mousePressed);
+    // PERFORMANCE FIX: Only update the currently dragging panel, or panels near the mouse
+    if (this.currentlyDragging) {
+      // Only update the dragging panel
+      const draggingPanel = this.panels.get(this.currentlyDragging);
+      if (draggingPanel) {
+        draggingPanel.update(mouseX, mouseY, mousePressed);
+      }
+    } else {
+      // When not dragging, only update panels near the mouse cursor
+      for (const panel of this.panels.values()) {
+        if (panel.state.visible) {
+          // Check if mouse is near this panel (with some padding for interaction)
+          const padding = 50;
+          const bounds = {
+            x: panel.state.position.x - padding,
+            y: panel.state.position.y - padding,
+            width: panel.config.size.width + padding * 2,
+            height: (panel.state.minimized ? panel.calculateTitleBarHeight() : panel.config.size.height) + padding * 2
+          };
+          
+          if (panel.isPointInBounds(mouseX, mouseY, bounds)) {
+            panel.update(mouseX, mouseY, mousePressed);
+          }
+        }
       }
     }
   }

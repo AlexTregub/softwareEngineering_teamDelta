@@ -115,6 +115,13 @@ class UILayerRenderer {
    * Render in-game UI elements
    */
   renderInGameUI() {
+
+    if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+    
+    if (typeof updatePresentationPanels !== 'undefined') {
+       updatePresentationPanels(GameState.getState());
+     }
+     
     if (this.config.enableHUD) {
       this.renderHUDElements();
       updateDraggablePanels();
@@ -131,10 +138,6 @@ class UILayerRenderer {
     if (this.interactionUI.contextMenu.active) {
       this.renderContextMenu();
     }
-
-    if (typeof updateAntTooltips !== 'undefined') {
-        updateAntTooltips();
-     } 
 
     if (this.config.enableDebugUI) {
       if (this.debugUI.performanceOverlay.enabled) {

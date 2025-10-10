@@ -8,6 +8,10 @@
  */
 
 class FactionController {
+  // PERFORMANCE: Global static cache to reduce controller lookups across ALL faction controllers
+  static _globalFactionCache = new Map(); // entity -> factionId
+  static _globalControllerCache = new Map(); // entity -> factionController
+  static _globalCacheCleanupCounter = 0;
   constructor(entity) {
     this._entity = entity;
     this._factionId = entity.faction || entity._faction || 'neutral';
@@ -20,14 +24,18 @@ class FactionController {
     this._discoveryCheckInterval = 2000; // Check for new factions every 2 seconds
     this._discoveryRange = 120; // Range for discovering other factions
     
-    // Behavioral modifiers based on faction relationships
+    // Behavioral modifiers based on faction relationships (NON-COMBAT)
     this._behaviorModifiers = {
-      attackOnSight: true,
-      shareResources: false,
-      assistInCombat: false,
-      defendTerritory: true,
-      avoidNeutrals: false
+      shareResources: false,        // Share resources with allies
+      defendTerritory: true,        // Defend faction territory
+      avoidNeutrals: false,        // Avoid neutral entities
+      cooperateWithAllies: true,    // Work together with allied factions
+      respectBorders: true         // Respect other faction territories
     };
+    
+    // PERFORMANCE: Cache for other entities' faction controllers
+    this._controllerCache = new Map(); // entity -> factionController
+    this._cacheCleanupCounter = 0;
     
     console.log(`🏴 FactionController initialized for entity (faction: ${this._factionId})`);
   }
@@ -98,48 +106,41 @@ class FactionController {
   }
   
   /**
-   * Check if should attack another entity based on faction relationships
-   * @param {Object} otherEntity - Other entity to check
-   * @returns {boolean} True if should attack on sight
+   * Check if this entity's faction is hostile to another entity's faction
+   * (Used by CombatController to determine combat eligibility)
+   * @param {Object} otherEntity - Entity to check
+   * @returns {boolean} True if factions are hostile to each other
    */
-  shouldAttackOnSight(otherEntity) {
+  areFactionsHostile(otherEntity) {
     const otherFaction = this._getEntityFaction(otherEntity);
     if (!otherFaction || otherFaction === this._factionId) return false;
     
     const factionManager = getFactionManager();
-    if (!factionManager) return this._fallbackCombatLogic(otherFaction);
+    if (!factionManager) return this._fallbackHostilityCheck(otherFaction);
     
     const relationshipTier = factionManager.getRelationshipTier(this._factionId, otherFaction);
     
-    // Attack enemies on sight
-    if (relationshipTier === 'ENEMY' || relationshipTier === 'BLOOD_ENEMY') {
-      return true;
-    }
-    
-    return false;
+    // Hostile relationships that could lead to combat
+    return relationshipTier === 'ENEMY' || relationshipTier === 'BLOOD_ENEMY';
   }
-  
+
   /**
-   * Check if should attack after proximity delay (for neutral factions)
-   * @param {Object} otherEntity - Other entity to check
-   * @param {number} proximityTime - How long entities have been in proximity (ms)
-   * @returns {boolean} True if should attack after delay
+   * Get the hostility level between factions (for combat intensity decisions)
+   * @param {Object} otherEntity - Entity to check
+   * @returns {string} Hostility level: 'BLOOD_ENEMY', 'ENEMY', 'NEUTRAL', 'ALLY', etc.
    */
-  shouldAttackAfterDelay(otherEntity, proximityTime) {
+  getHostilityLevel(otherEntity) {
     const otherFaction = this._getEntityFaction(otherEntity);
-    if (!otherFaction || otherFaction === this._factionId) return false;
+    if (!otherFaction) return 'NEUTRAL';
+    if (otherFaction === this._factionId) return 'SAME_FACTION';
     
     const factionManager = getFactionManager();
-    if (!factionManager) return false;
-    
-    const relationshipTier = factionManager.getRelationshipTier(this._factionId, otherFaction);
-    
-    // Neutral factions attack after prolonged proximity (5 seconds)
-    if (relationshipTier === 'NEUTRAL' && proximityTime > 5000) {
-      return true;
+    if (!factionManager) {
+      // Simple fallback logic
+      return (otherFaction === 'neutral' || this._factionId === 'neutral') ? 'NEUTRAL' : 'ENEMY';
     }
     
-    return false;
+    return factionManager.getRelationshipTier(this._factionId, otherFaction);
   }
   
   /**
@@ -160,27 +161,22 @@ class FactionController {
   }
   
   /**
-   * Check if should assist another entity in combat
+   * Check if should assist another entity (non-combat decision)
+   * This is about resource sharing, territory defense, etc. - not combat assistance
    * @param {Object} allyEntity - Potential ally to assist
-   * @param {Object} enemyEntity - Enemy they're fighting
-   * @returns {boolean} True if should assist
+   * @returns {boolean} True if should provide assistance
    */
-  shouldAssistInCombat(allyEntity, enemyEntity) {
+  shouldAssistAlly(allyEntity) {
     const allyFaction = this._getEntityFaction(allyEntity);
-    const enemyFaction = this._getEntityFaction(enemyEntity);
-    
-    if (!allyFaction || !enemyFaction) return false;
-    if (allyFaction === enemyFaction) return false; // They're same faction, no assist needed
+    if (!allyFaction) return false;
     
     const factionManager = getFactionManager();
     if (!factionManager) return allyFaction === this._factionId; // Only assist same faction
     
     const allyRelationship = factionManager.getRelationshipTier(this._factionId, allyFaction);
-    const enemyRelationship = factionManager.getRelationshipTier(this._factionId, enemyFaction);
     
-    // Assist allies against enemies
-    return (allyRelationship === 'ALLIED' || allyFaction === this._factionId) &&
-           (enemyRelationship === 'ENEMY' || enemyRelationship === 'BLOOD_ENEMY');
+    // Assist allies and same faction members
+    return allyRelationship === 'ALLIED' || allyFaction === this._factionId;
   }
   
   /**
@@ -232,8 +228,13 @@ class FactionController {
     const factionManager = getFactionManager();
     if (!factionManager) return false;
     
-    // Check if target can receive gifts
-    const targetController = targetEntity.getController ? targetEntity.getController('faction') : null;
+    // Check if target can receive gifts (use cached lookup)
+    let targetController = this._controllerCache.get(targetEntity);
+    if (targetController === undefined) {
+      targetController = targetEntity.getController ? targetEntity.getController('faction') : null;
+      this._controllerCache.set(targetEntity, targetController);
+    }
+    
     if (targetController && !targetController.canReceiveGifts(this._factionId)) {
       return false;
     }
@@ -278,15 +279,46 @@ class FactionController {
   // ===== PRIVATE METHODS =====
   
   /**
-   * Get faction ID from another entity
+   * Get faction ID from another entity (MEGA PERFORMANCE OPTIMIZED WITH GLOBAL CACHING)
    * @param {Object} entity - Entity to check
    * @returns {string|null} Faction ID or null
    */
   _getEntityFaction(entity) {
     if (!entity) return null;
     
-    // Try faction controller first
-    const factionController = entity.getController ? entity.getController('faction') : null;
+    // PERFORMANCE BOOST: Check global faction cache first (fastest path)
+    const cachedFaction = FactionController._globalFactionCache.get(entity);
+    if (cachedFaction !== undefined) {
+      return cachedFaction;
+    }
+    
+    // PERFORMANCE: Use global controller cache
+    let factionController = FactionController._globalControllerCache.get(entity);
+    if (factionController === undefined) {
+      // Try to get controller, but don't fail if it doesn't exist
+      factionController = entity.getController ? entity.getController('faction') : null;
+      FactionController._globalControllerCache.set(entity, factionController);
+    }
+    
+    // Get faction ID and cache it globally for super-fast future lookups
+    let factionId = null;
+    if (factionController) {
+      factionId = factionController.getFactionId();
+    } else {
+      // Fallback to direct faction property
+      factionId = entity.faction || entity._faction || 'neutral';
+    }
+    
+    // Cache the result globally for all controllers to use
+    FactionController._globalFactionCache.set(entity, factionId);
+    
+    // Global cache cleanup (less frequent since it's shared)
+    FactionController._globalCacheCleanupCounter++;
+    if (FactionController._globalCacheCleanupCounter > 200) {
+      this._cleanupGlobalCache();
+      FactionController._globalCacheCleanupCounter = 0;
+    }
+    
     if (factionController) {
       return factionController.getFactionId();
     }
@@ -400,15 +432,72 @@ class FactionController {
   }
   
   /**
-   * Fallback combat logic when FactionManager is not available
+   * Fallback hostility check when FactionManager is not available
    * @param {string} otherFaction - Other faction ID
-   * @returns {boolean} Whether to attack
+   * @returns {boolean} Whether factions are hostile
    */
-  _fallbackCombatLogic(otherFaction) {
-    // Simple fallback: attack if different faction and not neutral
-    return otherFaction !== 'neutral' && this._factionId !== 'neutral';
+  _fallbackHostilityCheck(otherFaction) {
+    // Simple fallback: different non-neutral factions are potentially hostile
+    return otherFaction !== 'neutral' && this._factionId !== 'neutral' && otherFaction !== this._factionId;
   }
   
+  /**
+   * Clean up cached controller references to prevent memory leaks
+   * PERFORMANCE: Removes stale controller references
+   */
+  _cleanupControllerCache() {
+    // Only keep references to entities that still exist and are active
+    const entitiesToKeep = new Set();
+    
+    if (typeof ants !== 'undefined') {
+      for (const ant of ants) {
+        if (ant && ant._isActive) {
+          entitiesToKeep.add(ant);
+        }
+      }
+    }
+    
+    // Remove stale entries
+    for (const [entity] of this._controllerCache.entries()) {
+      if (!entitiesToKeep.has(entity)) {
+        this._controllerCache.delete(entity);
+      }
+    }
+  }
+
+  /**
+   * Clean up global caches to prevent memory leaks
+   * PERFORMANCE: Shared cleanup for all faction controllers
+   */
+  _cleanupGlobalCache() {
+    // Only keep references to entities that still exist and are active
+    const entitiesToKeep = new Set();
+    
+    if (typeof ants !== 'undefined') {
+      for (const ant of ants) {
+        if (ant && ant._isActive) {
+          entitiesToKeep.add(ant);
+        }
+      }
+    }
+    
+    // Clean up global faction cache
+    for (const [entity] of FactionController._globalFactionCache.entries()) {
+      if (!entitiesToKeep.has(entity)) {
+        FactionController._globalFactionCache.delete(entity);
+      }
+    }
+    
+    // Clean up global controller cache
+    for (const [entity] of FactionController._globalControllerCache.entries()) {
+      if (!entitiesToKeep.has(entity)) {
+        FactionController._globalControllerCache.delete(entity);
+      }
+    }
+    
+    console.log(`🧹 Cleaned global faction caches (${FactionController._globalFactionCache.size} factions, ${FactionController._globalControllerCache.size} controllers)`);
+  }
+
   /**
    * Get debug information
    * @returns {Object} Debug information
@@ -420,7 +509,8 @@ class FactionController {
       isInOwnTerritory: this.isInOwnTerritory(),
       encroachingTerritory: this.getEncroachingTerritory(),
       behaviorsModifiers: this._behaviorModifiers,
-      discoveryRange: this._discoveryRange
+      discoveryRange: this._discoveryRange,
+      controllerCacheSize: this._controllerCache.size
     };
   }
 }

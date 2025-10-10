@@ -89,6 +89,8 @@ class Entity {
     }
   }
 
+
+
   // --- Controller Initialization ---
   /**
    * Initialize available controllers and register them in a Map.
@@ -110,7 +112,8 @@ class Entity {
       'terrain': typeof TerrainController !== 'undefined' ? TerrainController : null,
       'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null,
       'health': typeof HealthController !== 'undefined' ? HealthController : null,
-      'faction': typeof FactionController !== 'undefined' ? FactionController : null
+      'faction': typeof FactionController !== 'undefined' ? FactionController : null,
+      'tooltip': typeof TooltipController !== 'undefined' ? TooltipController : null
     };
 
     Object.entries(availableControllers).forEach(([name, ControllerClass]) => {
@@ -141,14 +144,26 @@ class Entity {
       selection.setSelectable(options.selectable);
     }
 
-    const combat = this._controllers.get('combat');
-    if (combat) {
-      combat.setFaction(options.faction);
-    }
-
+    // RESPONSIBILITY SEPARATION: Faction is now managed only by FactionController
     const faction = this._controllers.get('faction');
     if (faction && options.faction) {
       faction.setFactionId(options.faction);
+    }
+
+    const tooltip = this._controllers.get('tooltip');
+    if (tooltip) {
+      if (options.tooltipEnabled !== undefined) {
+        tooltip.setEnabled(options.tooltipEnabled);
+      }
+      if (options.tooltipDelay !== undefined) {
+        tooltip.setDelay(options.tooltipDelay);
+      }
+      if (options.customTooltipData !== undefined) {
+        tooltip.setCustomData(options.customTooltipData);
+      }
+      if (options.tooltipStyle !== undefined) {
+        tooltip.setStyle(options.tooltipStyle);
+      }
     }
   }
 
@@ -705,6 +720,75 @@ class Entity {
       controllers: Array.from(this._controllers.keys()),
       timestamp: new Date().toISOString()
     };
+  }
+
+  // --- Tooltip System Integration ---
+  /**
+   * Get custom tooltip data for this entity
+   * Override this method in subclasses to provide entity-specific tooltip information
+   * NOTE: This should NOT call the tooltip controller to avoid recursion
+   * @returns {Array} Array of tooltip line objects with text and style properties
+   */
+  getTooltipData() {
+    // Return empty array by default - subclasses should override this
+    // DO NOT call tooltip controller here to avoid infinite recursion
+    return [];
+  }
+  
+  /**
+   * Enable or disable tooltips for this entity
+   * @param {boolean} enabled - Whether tooltips should be shown
+   */
+  setTooltipEnabled(enabled) {
+    return this._delegate('tooltip', 'setEnabled', enabled);
+  }
+  
+  /**
+   * Check if tooltips are enabled for this entity
+   * @returns {boolean} True if tooltips are enabled
+   */
+  isTooltipEnabled() {
+    return this._delegate('tooltip', 'isEnabled') || false;
+  }
+  
+  /**
+   * Set custom tooltip data for this entity
+   * @param {Array|Function} data - Array of tooltip lines or function that returns them
+   */
+  setCustomTooltipData(data) {
+    return this._delegate('tooltip', 'setCustomData', data);
+  }
+  
+  /**
+   * Set tooltip delay for this entity
+   * @param {number} delay - Delay in milliseconds
+   */
+  setTooltipDelay(delay) {
+    return this._delegate('tooltip', 'setDelay', delay);
+  }
+  
+  /**
+   * Get tooltip delay for this entity
+   * @returns {number} Delay in milliseconds
+   */
+  getTooltipDelay() {
+    return this._delegate('tooltip', 'getDelay') || 500;
+  }
+  
+  /**
+   * Get tooltip hover state information
+   * @returns {Object} Hover state data
+   */
+  getTooltipHoverState() {
+    return this._delegate('tooltip', 'getHoverState') || { isHovered: false };
+  }
+  
+  /**
+   * Get name for tooltip display
+   * @returns {string} Display name
+   */
+  getName() {
+    return this._type || 'Entity';
   }
 
   // --- Cleanup ---

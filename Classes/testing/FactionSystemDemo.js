@@ -141,12 +141,13 @@ function demonstrateFactionControllerIntegration() {
       const otherAnts = ants.filter((other, otherIndex) => otherIndex !== index);
       otherAnts.forEach((otherWrapper, otherIndex) => {
         const otherAnt = otherWrapper.antObject || otherWrapper;
-        const shouldAttack = factionController.shouldAttackOnSight(otherAnt);
-        const shouldAssist = factionController.shouldAssistInCombat(otherAnt, ant);
+        // Updated to use new responsibility separation
+        const isHostile = factionController.areFactionsHostile(otherAnt);
+        const shouldAssist = factionController.shouldAssistAlly(otherAnt);
         
-        if (shouldAttack || shouldAssist) {
+        if (isHostile || shouldAssist) {
           const otherFaction = otherAnt._faction || otherAnt.faction || 'unknown';
-          console.log(`  💥 Ant ${index} → Ant ${otherIndex} (${otherFaction}): Attack=${shouldAttack}, Assist=${shouldAssist}`);
+          console.log(`  💥 Ant ${index} → Ant ${otherIndex} (${otherFaction}): Hostile=${isHostile}, Assist=${shouldAssist}`);
         }
       });
     } else {

@@ -343,8 +343,8 @@ class DraggablePanel {
   }
 
   /**
-   * Update method for handling mouse interaction and dragging
-   * Based on ButtonGroup.js drag handling
+   * Update method for handling mouse interaction and dragging (PERFORMANCE OPTIMIZED)
+   * Based on ButtonGroup.js drag handling with performance improvements
    * 
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position  
@@ -353,26 +353,67 @@ class DraggablePanel {
   update(mouseX, mouseY, mousePressed) {
     if (!this.state.visible) return;
     
-    // Check if content needs resizing (this happens once per frame maximum)
-    if (!this._lastResizeCheck || Date.now() - this._lastResizeCheck > 100) {
-      this.autoResizeToFitContent();
-      this._lastResizeCheck = Date.now();
+    // Initialize optimization state if needed
+    if (!this._optimized) {
+      this._optimized = true;
+      this._isDirty = true;
+      this._lastPosition = { x: this.state.position.x, y: this.state.position.y };
+      this._lastSize = { width: this.config.size.width, height: this.config.size.height };
+      this._lastVisibility = this.state.visible;
+      this._lastMinimized = this.state.minimized;
+      this._buttonPositionsValid = false;
     }
     
-    // Update button positions when panel moves
-    this.updateButtonPositions();
+    // Check if panel has moved or changed size
+    const positionChanged = this.state.position.x !== this._lastPosition.x || 
+                           this.state.position.y !== this._lastPosition.y;
+    const sizeChanged = this.config.size.width !== this._lastSize.width || 
+                       this.config.size.height !== this._lastSize.height;
+    const visibilityChanged = this.state.visible !== this._lastVisibility ||
+                             this.state.minimized !== this._lastMinimized;
     
-    // Update button interactions (only if not dragging panel)
+    // Mark as dirty if anything changed
+    if (positionChanged || sizeChanged || visibilityChanged) {
+      this._isDirty = true;
+      this._buttonPositionsValid = false;
+      
+      // Update cached values
+      this._lastPosition = { x: this.state.position.x, y: this.state.position.y };
+      this._lastSize = { width: this.config.size.width, height: this.config.size.height };
+      this._lastVisibility = this.state.visible;
+      this._lastMinimized = this.state.minimized;
+    }
+    
+    // Only resize check every 500ms instead of 100ms, and only if dirty
+    const now = Date.now();
+    if (this._isDirty && (!this._lastResizeCheck || now - this._lastResizeCheck > 500)) {
+      this.autoResizeToFitContent();
+      this._lastResizeCheck = now;
+    }
+    
+    // Only update button positions if panel moved or buttons are invalid
+    if (!this._buttonPositionsValid) {
+      this.updateButtonPositions();
+      this._buttonPositionsValid = true;
+    }
+    
+    // Update button interactions (only if not dragging panel and mouse is in panel area)
     if (!this.isDragging) {
-      this.buttons.forEach(button => {
-        button.update(mouseX, mouseY, mousePressed);
-      });
+      const inPanelArea = this.isMouseInPanel(mouseX, mouseY);
+      if (inPanelArea) {
+        this.buttons.forEach(button => {
+          button.update(mouseX, mouseY, mousePressed);
+        });
+      }
     }
     
     // Handle panel dragging
     if (this.config.behavior.draggable) {
       this.handleDragging(mouseX, mouseY, mousePressed);
     }
+    
+    // Clear dirty flag
+    this._isDirty = false;
   }
 
   /**
@@ -508,6 +549,23 @@ class DraggablePanel {
            x <= bounds.x + bounds.width &&
            y >= bounds.y && 
            y <= bounds.y + bounds.height;
+  }
+
+  /**
+   * Check if mouse is within panel area (performance optimization helper)
+   * 
+   * @param {number} mouseX - Mouse X coordinate
+   * @param {number} mouseY - Mouse Y coordinate
+   * @returns {boolean} True if mouse is within panel bounds
+   */
+  isMouseInPanel(mouseX, mouseY) {
+    const bounds = {
+      x: this.state.position.x,
+      y: this.state.position.y,
+      width: this.config.size.width,
+      height: this.state.minimized ? this.calculateTitleBarHeight() : this.config.size.height
+    };
+    return this.isPointInBounds(mouseX, mouseY, bounds);
   }
 
   /**

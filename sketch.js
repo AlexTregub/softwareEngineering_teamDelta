@@ -77,9 +77,9 @@ function setup() {
     initializePlayerFactionSetup();
   }
   
-  // Initialize ant tooltip system
-  if (typeof initializeAntTooltipSystem !== 'undefined') {
-    initializeAntTooltipSystem();
+  // Initialize entity tooltip system
+  if (typeof initializeEntityTooltips !== 'undefined') {
+    initializeEntityTooltips();
   }
 }
 
@@ -130,6 +130,11 @@ function draw() {
   if (typeof g_playerFactionSetup !== 'undefined' && g_playerFactionSetup) {
     g_playerFactionSetup.update();
     g_playerFactionSetup.render();
+  }
+  
+  // Render entity tooltips (must be after main rendering to appear on top)
+  if (typeof renderEntityTooltips !== 'undefined') {
+    renderEntityTooltips();
   }
 }
 
@@ -196,9 +201,9 @@ function mouseReleased() {
 }
 
 function mouseMoved() {
-  // Update ant tooltips on mouse movement
-  if (typeof updateAntTooltips !== 'undefined') {
-    updateAntTooltips();
+  // Update entity tooltips on mouse movement
+  if (typeof updateEntityTooltips !== 'undefined') {
+    updateEntityTooltips(mouseX, mouseY);
   }
 }
 

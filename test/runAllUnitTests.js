@@ -167,11 +167,7 @@ async function runAllUnitTests() {
     runTestSuite('Tracing Tests', tracingTests);
   }
   
-  // Ant Tooltip System Tests
-  const tooltipTests = safeRequire('../test/unit/antTooltipSystem.test.js', 'antTooltipSystem.test.js');
-  if (tooltipTests) {
-    runTestSuite('Ant Tooltip System Tests', tooltipTests);
-  }
+
   
   // Discover and run any other test files
   console.log('🔍 ADDITIONAL UNIT TESTS');
