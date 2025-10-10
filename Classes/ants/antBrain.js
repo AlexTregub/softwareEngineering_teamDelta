@@ -1,61 +1,63 @@
-let hunger;
-const hungry = 100;
-const starving = 160;
-const death = 200;
-let flag_;
-
 class AntBrain{
     constructor(antType){
-        hunger = 0;
-        flag_ = "";
-        let job = antType;
+        const hungry = 100;
+        const starving = 160;
+        const death = 200;
+        let flag_ = "";
+        let hunger = 0;
         let followBuildTrail;
         let followForageTrail;
         let followFarmTrail;
         let followEnemyTrail;
         let followBossTrail = 1;
+        let penalizedTrails = [];
+        setPriority(antType, 1);
+    }
+
+    setPriority(antType, mult){
+        job = antType;
         switch (job) {
             case "Builder":
-                followBuildTrail = 0.9;
-                followForageTrail = 0.05;
-                followFarmTrail = 0;
-                followEnemyTrail = 0.05;
+                this.followBuildTrail = 0.9 * mult;
+                this.followForageTrail = 0.05 * mult;
+                this.followFarmTrail = 0 * mult;
+                this.followEnemyTrail = 0.05 * mult;
                 break;
             case "Scout":
-                followBuildTrail = 0.25;
-                followForageTrail = 0.25;
-                followFarmTrail = 0.25;
-                followEnemyTrail = 0.25;
+                this.followBuildTrail = 0.25 * mult;
+                this.followForageTrail = 0.25 * mult;
+                this.followFarmTrail = 0.25 * mult;
+                this.followEnemyTrail = 0.25 * mult;
                 break;
             case "Farmer":
-                followBuildTrail = 0;
-                followForageTrail = 0.1;
-                followFarmTrail = 0.85;
-                followEnemyTrail = 0.05;
+                this.followBuildTrail = 0 * mult;
+                this.followForageTrail = 0.1 * mult;
+                this.followFarmTrail = 0.85 * mult;
+                this.followEnemyTrail = 0.05 * mult;
                 break;
             case "Warrior":
-                followBuildTrail = 0;
-                followForageTrail = 0.2;
-                followFarmTrail = 0;
-                followEnemyTrail = 1;
+                this.followBuildTrail = 0 * mult;
+                this.followForageTrail = 0.2 * mult;
+                this.followFarmTrail = 0 * mult;
+                this.followEnemyTrail = 1 * mult;
                 break;
             case "Spitter":
-                followBuildTrail = 0;
-                followForageTrail = 0.2;
-                followFarmTrail = 0;
-                followEnemyTrail = 1;
+                this.followBuildTrail = 0 * mult;
+                this.followForageTrail = 0.2 * mult;
+                this.followFarmTrail = 0 * mult;
+                this.followEnemyTrail = 1 * mult;
                 break;
             case "DeLozier":
-                followBuildTrail = 0;
-                followForageTrail = 0;
-                followFarmTrail = 0;
-                followEnemyTrail = 0;
+                this.followBuildTrail = 0 * mult;
+                this.followForageTrail = 0 * mult;
+                this.followFarmTrail = 0 * mult;
+                this.followEnemyTrail = 0 * mult;
                 break;
             default:
-                followBuildTrail = 0;
-                followForageTrail = 0.75;
-                followFarmTrail = 0;
-                followEnemyTrail = 0.25;
+                this.followBuildTrail = 0 * mult;
+                this.followForageTrail = 0.75 * mult;
+                this.followFarmTrail = 0 * mult;
+                this.followEnemyTrail = 0.25 * mult;
                 break;
         }
     }
@@ -69,18 +71,30 @@ class AntBrain{
         */
     }
 
-    checkTrail(pheromoneType){
+    checkTrail(pheromone, penaltyList, priorityList){
         /*Check Trail:
             Checks a trail using trail type and ant type. Generates number from 0-1. If it falls in the bounds, the ant follows the path, else sets to ignore that type until next state change (maybe make it dynamic (-50% chance))
         */
+       let priority = priorityList[somevaluerepresentativeofthelargerprioritywhole];
+       let penalty = penaltyList[somevaluerepresentativeofthelargerprioritywhole];
+       let num = Math.random();
+       let comparison = (pheromone.strength/pheromone.initial) * priority * penalty;
+       if(comparison < num){
+        return true;
+       }
+       return false;
     }
 
     modifyPriorityTrails(){
         switch(flag_){
             case "reset":
+                this.setPriority(this.antType, 1); //Change from antType to actual name
             case "hungry":
+                this.setPriority(this.antType, 0.5);
+                followForageTrail = 1;
             case "starving":
-
+                this.setPriority(this.antType, 0);
+                followForageTrail = 2;
         }
     }
 }
@@ -94,16 +108,17 @@ function internalTimer(){
 }
 
 function checkHunger(){
+    hunger++;
     //Checks hunger meter every second
-    if(hunger = 100){
+    if(hunger === 100){
         flag_ = "hungry";
         runFlagState();
     }
-    if(hunger = 160){
+    if(hunger === 160){
         flag_ = "starving";
         runFlagState();
     }
-    if(hunger = 200){
+    if(hunger === 200){
         flag_ = "death";
         runFlagState();
     }
