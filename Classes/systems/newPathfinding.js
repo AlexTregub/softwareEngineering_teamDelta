@@ -117,56 +117,7 @@ function tryTrack(scents, antType, failedTrailTypes){
       If ant rejects pheromone, return 0 to have wander run wander. This should set an ant flag to 'false' so the ant continues to make its own path using wander instead of constant smelling.
       If smelled trail type failed before, ignore. If unsmelled before, run calc.
   */
-  let job = antType;
-  let followBuildTrail;
-  let followForageTrail;
-  let followFarmTrail;
-  let followEnemyTrail;
-  let followBossTrail = 1;
-  switch (job) {
-    case "Builder":
-        followBuildTrail = 0.9;
-        followForageTrail = 0.05;
-        followFarmTrail = 0;
-        followEnemyTrail = 0.05;
-        break;
-    case "Scout":
-        followBuildTrail = 0.25;
-        followForageTrail = 0.25;
-        followFarmTrail = 0.25;
-        followEnemyTrail = 0.25;
-        break;
-    case "Farmer":
-        followBuildTrail = 0;
-        followForageTrail = 0.1;
-        followFarmTrail = 0.85;
-        followEnemyTrail = 0.05;
-        break;
-    case "Warrior":
-        followBuildTrail = 0;
-        followForageTrail = 0.2;
-        followFarmTrail = 0;
-        followEnemyTrail = 1;
-        break;
-    case "Spitter":
-        followBuildTrail = 0;
-        followForageTrail = 0.2;
-        followFarmTrail = 0;
-        followEnemyTrail = 1;
-        break;
-    case "DeLozier":
-        followBuildTrail = 0;
-        followForageTrail = 0;
-        followFarmTrail = 0;
-        followEnemyTrail = 0;
-        break;
-    default:
-        followBuildTrail = 0;
-        followForageTrail = 0.75;
-        followFarmTrail = 0;
-        followEnemyTrail = 0.25;
-        break;
-  } //Switch statement for different ant types
+   //Switch statement for different ant types
     /*Different pheromone types
         Should be built on two factors: faction(enemy,neutral) and purpose
         Purposes:

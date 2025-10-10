@@ -2,12 +2,62 @@ let hunger;
 const hungry = 100;
 const starving = 160;
 const death = 200;
-let flag;
+let flag_;
 
 class AntBrain{
-    constructor(){
+    constructor(antType){
         hunger = 0;
-        flag = "";
+        flag_ = "";
+        let job = antType;
+        let followBuildTrail;
+        let followForageTrail;
+        let followFarmTrail;
+        let followEnemyTrail;
+        let followBossTrail = 1;
+        switch (job) {
+            case "Builder":
+                followBuildTrail = 0.9;
+                followForageTrail = 0.05;
+                followFarmTrail = 0;
+                followEnemyTrail = 0.05;
+                break;
+            case "Scout":
+                followBuildTrail = 0.25;
+                followForageTrail = 0.25;
+                followFarmTrail = 0.25;
+                followEnemyTrail = 0.25;
+                break;
+            case "Farmer":
+                followBuildTrail = 0;
+                followForageTrail = 0.1;
+                followFarmTrail = 0.85;
+                followEnemyTrail = 0.05;
+                break;
+            case "Warrior":
+                followBuildTrail = 0;
+                followForageTrail = 0.2;
+                followFarmTrail = 0;
+                followEnemyTrail = 1;
+                break;
+            case "Spitter":
+                followBuildTrail = 0;
+                followForageTrail = 0.2;
+                followFarmTrail = 0;
+                followEnemyTrail = 1;
+                break;
+            case "DeLozier":
+                followBuildTrail = 0;
+                followForageTrail = 0;
+                followFarmTrail = 0;
+                followEnemyTrail = 0;
+                break;
+            default:
+                followBuildTrail = 0;
+                followForageTrail = 0.75;
+                followFarmTrail = 0;
+                followEnemyTrail = 0.25;
+                break;
+        }
     }
 
     decideState(){
@@ -17,6 +67,21 @@ class AntBrain{
                 Needs an emergency state change
                 Finished previous state
         */
+    }
+
+    checkTrail(pheromoneType){
+        /*Check Trail:
+            Checks a trail using trail type and ant type. Generates number from 0-1. If it falls in the bounds, the ant follows the path, else sets to ignore that type until next state change (maybe make it dynamic (-50% chance))
+        */
+    }
+
+    modifyPriorityTrails(){
+        switch(flag_){
+            case "reset":
+            case "hungry":
+            case "starving":
+
+        }
     }
 }
 
@@ -31,15 +96,15 @@ function internalTimer(){
 function checkHunger(){
     //Checks hunger meter every second
     if(hunger = 100){
-        flag = "hungry";
+        flag_ = "hungry";
         runFlagState();
     }
     if(hunger = 160){
-        flag = "starving";
+        flag_ = "starving";
         runFlagState();
     }
     if(hunger = 200){
-        flag = "death";
+        flag_ = "death";
         runFlagState();
     }
 }
@@ -47,22 +112,22 @@ function checkHunger(){
 function resetHunger(){
     //Resets hunger once fed (change to use variable if food has different values of saturation)
     hunger = 0;
-    flag = "reset";
+    flag_ = "reset";
     runFlagState();
 }
 
 function runFlagState(){
-    if(flag === "hungry"){
-        modifyPriorityTrails(flag);
+    if(flag_ === "hungry"){
+        modifyPriorityTrails();
     }
-    if(flag === "starving"){
-        modifyPriorityTrails(flag);
+    if(flag_ === "starving"){
+        modifyPriorityTrails();
     }
-    if(flag === "death"){
-
+    if(flag_ === "death"){
+        //killAnt
     }
     if(flag === "reset"){
-        modifyPriorityTrails(flag);
-        flag = "";
+        modifyPriorityTrails();
+        flag_ = "";
     }
 }
