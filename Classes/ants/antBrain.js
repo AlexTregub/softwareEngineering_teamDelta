@@ -80,7 +80,7 @@ class AntBrain{
        let penalty = penaltyList[somevaluerepresentativeofthelargerprioritywhole];
        let num = Math.random();
        let comparison = (pheromone.strength/pheromone.initial) * priority * penalty;
-       if(comparison < num){
+       if(num < comparison){
         return true;
        }
        return false;
@@ -92,10 +92,10 @@ class AntBrain{
                 this.setPriority(this.antType, 1); //Change from antType to actual name
             case "hungry":
                 this.setPriority(this.antType, 0.5);
-                followForageTrail = 1;
+                this.followForageTrail = 1;
             case "starving":
                 this.setPriority(this.antType, 0);
-                followForageTrail = 2;
+                this.followForageTrail = 2;
         }
     }
 }
