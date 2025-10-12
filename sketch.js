@@ -117,7 +117,6 @@ function draw() {
   if (typeof updatePresentationPanels !== 'undefined') {
     updatePresentationPanels(GameState.getState());
   }
-
   RenderManager.render(GameState.getState());
   // background(0);
   // g_map2.renderDirect();
@@ -155,6 +154,8 @@ function draw() {
   // We intentionally do NOT call renderDraggablePanels() here to avoid a
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
+
+
 }
 
 /**

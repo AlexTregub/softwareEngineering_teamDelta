@@ -74,6 +74,9 @@ class ant extends Entity {
       this._onStateChange(oldState, newState);
     });
     
+    // Initialize Gather State behavior
+    this._gatherState = new GatherState(this);
+    
     // Faction and enemy tracking
     this._faction = faction;
     this._enemies = [];
@@ -99,6 +102,7 @@ class ant extends Entity {
   get StatsContainer() { return this._stats; }
   get resourceManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
+  get gatherState() { return this._gatherState; }
   get faction() { return this._faction; }
   get health() { return this._health; }
   get maxHealth() { return this._maxHealth; }
@@ -312,6 +316,33 @@ class ant extends Entity {
   }
   dropAllResources() { return this._resourceManager?.dropAllResources() || []; }
   
+  // --- Gather State Methods ---
+  /**
+   * Start autonomous gathering behavior
+   */
+  startGathering() {
+    if (this._stateMachine) {
+      this._stateMachine.setPrimaryState("GATHERING");
+    }
+  }
+  
+  /**
+   * Stop gathering and return to idle
+   */
+  stopGathering() {
+    if (this._stateMachine) {
+      this._stateMachine.setPrimaryState("IDLE");
+    }
+  }
+  
+  /**
+   * Check if ant is currently in gathering state
+   * @returns {boolean} True if ant is gathering
+   */
+  isGathering() {
+    return this._stateMachine?.isGathering() || false;
+  }
+  
   // --- Update Override ---
   update() {
     if (!this.isActive) return;
@@ -341,6 +372,18 @@ class ant extends Entity {
   _updateStateMachine() {
     if (this._stateMachine) {
       this._stateMachine.update();
+      
+      // Update gather state behavior if ant is in GATHERING state
+      if (this._stateMachine.isGathering && this._stateMachine.isGathering() && this._gatherState) {
+        if (!this._gatherState.isActive) {
+          console.log(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
+          this._gatherState.enter();
+        }
+        this._gatherState.update();
+      } else if (this._gatherState && this._gatherState.isActive) {
+        console.log(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
+        this._gatherState.exit();
+      }
     }
   }
   
@@ -413,6 +456,8 @@ class ant extends Entity {
   // --- Debug Override ---
   getDebugInfo() {
     const baseInfo = super.getDebugInfo();
+    const gatherInfo = this._gatherState ? this._gatherState.getDebugInfo() : { isActive: false };
+    
     return {
       ...baseInfo,
       antIndex: this._antIndex,
@@ -421,7 +466,8 @@ class ant extends Entity {
       health: `${this._health}/${this._maxHealth}`,
       resources: `${this.getResourceCount()}/${this.getMaxResources()}`,
       faction: this._faction,
-      enemies: this._enemies.length
+      enemies: this._enemies.length,
+      gathering: gatherInfo
     };
   }
   

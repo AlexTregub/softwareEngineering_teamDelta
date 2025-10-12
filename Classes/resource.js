@@ -456,6 +456,14 @@ class Resource extends Entity {
     return new Resource(x, y, 20, 20, { resourceType: 'mapleLeaf' });
   }
 
+  static createStick(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stick' });
+  }
+
+  static createStone(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stone' });
+  }
+
   get type() { return this._resourceType; }
   get resourceType() { return this._resourceType; }
   get isCarried() { return !!this._isCarried; }

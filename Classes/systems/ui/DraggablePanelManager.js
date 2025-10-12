@@ -294,39 +294,9 @@ class DraggablePanelManager {
         buttonHeight: 25,
         items: [
           {
-            caption: 'Toggle Rendering',
-            onClick: () => this.toggleRendering(),
-            style: ButtonStyles.WARNING
-          },
-          {
-            caption: 'Performance',
-            onClick: () => this.togglePerformance(),
-            style: ButtonStyles.PURPLE
-          },
-          {
-            caption: 'Entity Debug',
-            onClick: () => this.toggleEntityDebug(),
-            style: ButtonStyles.DEFAULT
-          },
-          {
-            caption: 'Scale Up (+)',
-            onClick: () => this.scaleUp(),
-            style: ButtonStyles.SUCCESS
-          },
-          {
-            caption: 'Scale Down (-)',
-            onClick: () => this.scaleDown(),
-            style: ButtonStyles.WARNING
-          },
-          {
             caption: 'Reset Scale',
             onClick: () => this.resetScale(),
             style: ButtonStyles.DEFAULT
-          },
-          {
-            caption: 'Responsive Scale',
-            onClick: () => this.toggleResponsiveScaling(),
-            style: ButtonStyles.PURPLE
           },
           // --- Ant State Control Buttons ---
           {
@@ -337,6 +307,11 @@ class DraggablePanelManager {
           {
             caption: 'Set Gathering',
             onClick: () => this.setSelectedAntsGathering(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },          
+          {
+            caption: 'Gathering Visuals',
+            onClick: () => g_gatherDebugRenderer.toggle(),
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
           },
           {
@@ -1401,14 +1376,6 @@ class DraggablePanelManager {
   }
 
   /**
-   * Set selected ants to GATHERING state
-   */
-  setSelectedAntsGathering() {
-    console.log('🍃 Setting selected ants to GATHERING state...');
-    this._setSelectedAntsState('GATHERING', 'OUT_OF_COMBAT', 'DEFAULT');
-  }
-
-  /**
    * Set selected ants to PATROL state
    */
   setSelectedAntsPatrol() {
@@ -1430,6 +1397,21 @@ class DraggablePanelManager {
   setSelectedAntsBuilding() {
     console.log('🏗️ Setting selected ants to BUILDING state...');
     this._setSelectedAntsState('BUILDING', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to GATHERING state for autonomous resource collection
+   */
+  setSelectedAntsGathering() {
+    console.log('🔍 Setting selected ants to GATHERING state (7-grid radius)...');
+    if (typeof AntUtilities !== 'undefined' && AntUtilities.setSelectedAntsGathering && typeof ants !== 'undefined' && Array.isArray(ants)) {
+      const count = AntUtilities.setSelectedAntsGathering(ants);
+      console.log(`✅ Set ${count} ants to autonomous gathering mode`);
+    } else {
+      console.warn('AntUtilities.setSelectedAntsGathering not available - using fallback');
+      // Fallback to basic state setting
+      this._setSelectedAntsState('GATHERING', 'OUT_OF_COMBAT', 'DEFAULT');
+    }
   }
 
   /**

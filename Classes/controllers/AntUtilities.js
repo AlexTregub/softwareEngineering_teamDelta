@@ -535,6 +535,61 @@ class AntUtilities {
     this.changeSelectedAntsState(ants, "BUILDING", "OUT_OF_COMBAT", "DEFAULT");
   }
 
+  /**
+   * Set selected ants to GATHERING state for autonomous resource collection
+   * @param {Array} ants - Array of all ants
+   * @returns {number} Number of ants set to gathering state
+   */
+  static setSelectedAntsGathering(ants) {
+    const selected = this.getSelectedAnts(ants);
+    let gatheringCount = 0;
+    
+    selected.forEach(ant => {
+      if (ant._stateMachine && ant._stateMachine.canPerformAction('gather')) {
+        ant._stateMachine.setPrimaryState('GATHERING');
+        gatheringCount++;
+      }
+    });
+    
+    console.log(`🔍 Set ${gatheringCount} ants to GATHERING state (7-grid radius)`);
+    this.synchronizeSelections(ants);
+    return gatheringCount;
+  }
+
+  /**
+   * Get ants currently in gathering state
+   * @param {Array} ants - Array of all ants
+   * @returns {Array} Array of ants in gathering state
+   */
+  static getGatheringAnts(ants) {
+    if (!ants) return [];
+    
+    return ants.filter(ant => {
+      return ant && ant._stateMachine && ant._stateMachine.isGathering && ant._stateMachine.isGathering();
+    });
+  }
+
+  /**
+   * Stop gathering for selected ants (return to idle)
+   * @param {Array} ants - Array of all ants
+   * @returns {number} Number of ants stopped from gathering
+   */
+  static stopSelectedAntsGathering(ants) {
+    const selected = this.getSelectedAnts(ants);
+    let stoppedCount = 0;
+    
+    selected.forEach(ant => {
+      if (ant._stateMachine && ant._stateMachine.isGathering && ant._stateMachine.isGathering()) {
+        ant._stateMachine.setPrimaryState('IDLE');
+        stoppedCount++;
+      }
+    });
+    
+    console.log(`⏹️ Stopped ${stoppedCount} ants from gathering`);
+    this.synchronizeSelections(ants);
+    return stoppedCount;
+  }
+
   // --- Utility Functions ---
 
   /**
