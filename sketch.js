@@ -194,6 +194,17 @@ function mousePressed() {
     }
   }
 
+  // Handle DraggablePanel mouse events
+  if (window.draggablePanelManager && 
+      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
+    try {
+      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (handled) return; // Panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling draggable panel mouse events:', error);
+    }
+  }
+
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 

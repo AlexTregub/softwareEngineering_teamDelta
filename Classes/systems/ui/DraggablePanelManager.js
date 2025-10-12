@@ -33,12 +33,12 @@ class DraggablePanelManager {
     
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
-      'MENU': ['presentation-control'],
-      'PLAYING': ['ant_spawn', 'health_controls'],
-      'PAUSED': ['ant_spawn', 'health_controls'],
-      'DEBUG_MENU': ['ant_spawn', 'health_controls'],
-      'GAME_OVER': ['stats'],
-      'KANBAN': ['presentation-kanban-transition']
+      'MENU': ['presentation-control', 'debug'],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug'],
+      'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
+      'GAME_OVER': ['stats', 'debug'],
+      'KANBAN': ['presentation-kanban-transition', 'debug']
     };
     
     // Current game state for visibility management
@@ -286,7 +286,7 @@ class DraggablePanelManager {
       id: 'debug-panel',
       title: 'Debug Controls',
       position: { x: 600, y: 80 },
-      size: { width: 160, height: 320 },
+      size: { width: 160, height: 450 },
       buttons: {
         layout: 'vertical',
         spacing: 3,
@@ -327,6 +327,32 @@ class DraggablePanelManager {
             caption: 'Responsive Scale',
             onClick: () => this.toggleResponsiveScaling(),
             style: ButtonStyles.PURPLE
+          },
+          // --- Ant State Control Buttons ---
+          {
+            caption: 'Set Idle',
+            onClick: () => this.setSelectedAntsIdle(),
+            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#808080' }
+          },
+          {
+            caption: 'Set Gathering',
+            onClick: () => this.setSelectedAntsGathering(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },
+          {
+            caption: 'Set Patrol',
+            onClick: () => this.setSelectedAntsPatrol(),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FFA500' }
+          },
+          {
+            caption: 'Set Combat',
+            onClick: () => this.setSelectedAntsCombat(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#DC143C' }
+          },
+          {
+            caption: 'Set Building',
+            onClick: () => this.setSelectedAntsBuilding(),
+            style: { ...ButtonStyles.PRIMARY, backgroundColor: '#4169E1' }
           },
           {
             caption: 'Apply Responsive',
@@ -450,6 +476,31 @@ class DraggablePanelManager {
     for (const panel of this.panels.values()) {
       panel.update(mouseX, mouseY, mousePressed);
     }
+  }
+
+  /**
+   * Handle mouse events for all panels and return if any consumed the event
+   * 
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position
+   * @param {boolean} mousePressed - Whether mouse button is currently pressed
+   * @returns {boolean} True if any panel consumed the mouse event
+   */
+  handleMouseEvents(mouseX, mouseY, mousePressed) {
+    if (!this.isInitialized) return false;
+    
+    // Update all panels and check if any consumed the mouse event
+    // Process panels in reverse order (topmost panels first)
+    const panelArray = Array.from(this.panels.values()).reverse();
+    
+    for (const panel of panelArray) {
+      if (panel.update(mouseX, mouseY, mousePressed)) {
+        // Panel consumed the event, no need to check other panels
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   /**
@@ -1339,13 +1390,154 @@ class DraggablePanelManager {
     console.warn('⚠️ Could not heal ants - no selected ants or compatible heal system found');
   }
 
+  // --- Ant State Control Methods ---
+
+  /**
+   * Set selected ants to IDLE state
+   */
+  setSelectedAntsIdle() {
+    console.log('😴 Setting selected ants to IDLE state...');
+    this._setSelectedAntsState('IDLE', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to GATHERING state
+   */
+  setSelectedAntsGathering() {
+    console.log('🍃 Setting selected ants to GATHERING state...');
+    this._setSelectedAntsState('GATHERING', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to PATROL state
+   */
+  setSelectedAntsPatrol() {
+    console.log('🚶 Setting selected ants to PATROL state...');
+    this._setSelectedAntsState('PATROL', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to combat state
+   */
+  setSelectedAntsCombat() {
+    console.log('⚔️ Setting selected ants to COMBAT state...');
+    this._setSelectedAntsState('MOVING', 'IN_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to BUILDING state
+   */
+  setSelectedAntsBuilding() {
+    console.log('🏗️ Setting selected ants to BUILDING state...');
+    this._setSelectedAntsState('BUILDING', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Internal method to set ant states using multiple fallback approaches
+   * @param {string} primaryState - Primary state to set
+   * @param {string} combatModifier - Combat modifier to set
+   * @param {string} terrainModifier - Terrain modifier to set
+   */
+  _setSelectedAntsState(primaryState, combatModifier, terrainModifier) {
+    // Method 1: Use AntUtilities if available
+    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+      if (typeof AntUtilities.changeSelectedAntsState === 'function') {
+        AntUtilities.changeSelectedAntsState(ants, primaryState, combatModifier, terrainModifier);
+        
+        // Synchronize selection systems after successful state change
+        if (typeof AntUtilities.synchronizeSelections === 'function') {
+          AntUtilities.synchronizeSelections(ants);
+        }
+        return;
+      }
+      
+      // Method 2: Use specific AntUtilities method based on state
+      const stateMethodMap = {
+        'IDLE': 'setSelectedAntsIdle',
+        'GATHERING': 'setSelectedAntsGathering', 
+        'PATROL': 'setSelectedAntsPatrol',
+        'BUILDING': 'setSelectedAntsBuilding'
+      };
+      
+      const methodName = stateMethodMap[primaryState];
+      if (methodName && typeof AntUtilities[methodName] === 'function') {
+        AntUtilities[methodName](ants);
+        
+        // Synchronize selection systems after successful state change
+        if (typeof AntUtilities.synchronizeSelections === 'function') {
+          AntUtilities.synchronizeSelections(ants);
+        }
+        return;
+      }
+      
+      // Method 3: Manual state change using AntUtilities.getSelectedAnts
+      if (typeof AntUtilities.getSelectedAnts === 'function') {
+        const selectedAnts = AntUtilities.getSelectedAnts(ants);
+        let changedCount = 0;
+        
+        selectedAnts.forEach(ant => {
+          if (ant && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
+            const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
+            if (success) changedCount++;
+          }
+        });
+        
+        if (changedCount > 0) {
+          console.log(`✅ Changed state of ${changedCount} ants to ${primaryState}`);
+          return;
+        }
+      }
+    }
+    
+    // Method 4: Direct ant array manipulation (fallback)
+    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      let changedCount = 0;
+      
+      ants.forEach(ant => {
+        // Check if ant is selected
+        const isSelected = ant._selectionController ? 
+          ant._selectionController.isSelected() : 
+          (ant.isSelected || false);
+          
+        if (isSelected && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
+          const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
+          if (success) changedCount++;
+        }
+      });
+      
+      if (changedCount > 0) {
+        console.log(`✅ Changed state of ${changedCount} ants to ${primaryState} (direct manipulation)`);
+        
+        // Synchronize selection systems after successful state change
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.synchronizeSelections === 'function') {
+          AntUtilities.synchronizeSelections(ants);
+        }
+        return;
+      }
+    }
+    
+    console.warn(`⚠️ Could not change ant states - no selected ants found or compatible state system unavailable`);
+    
+    // After any state change attempt, synchronize the selection systems
+    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+      if (typeof AntUtilities.synchronizeSelections === 'function') {
+        AntUtilities.synchronizeSelections(ants);
+      }
+    }
+  }
+
   /**
    * Dump debug information to console
    */
   dumpConsole() {
     console.log('📝 Dumping debug information...');
     console.table({
-      'Panel Manager': this.getStatus(),
+      'Panel Manager': {
+        initialized: this.isInitialized,
+        panelCount: this.panels.size,
+        currentlyDragging: this.currentlyDragging ? this.currentlyDragging.config.id : 'none',
+        trainMode: this.debugMode.panelTrainMode
+      },
       'Game State': this.gameState,
       'Visible Panels': this.stateVisibility[this.gameState]
     });
