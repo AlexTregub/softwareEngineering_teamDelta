@@ -1,17 +1,20 @@
-const hungry = 100;
-const starving = 160;
-const death = 200;
+const HUNGRY = 100;
+const STARVING = 160;
+const DEATH = 200;
 
 class AntBrain{
     constructor(antType){
+        this.antType = antType;
         let flag_ = "";
         let hunger = 0;
-        let followBuildTrail;
-        let followForageTrail;
-        let followFarmTrail;
-        let followEnemyTrail;
+
+        let followBuildTrail = 0;
+        let followForageTrail = 0;
+        let followFarmTrail = 0;
+        let followEnemyTrail = 0;
         let followBossTrail = 1;
         let penalizedTrails = [];
+
         setPriority(antType, 1);
     }
 
@@ -87,63 +90,71 @@ class AntBrain{
     }
 
     modifyPriorityTrails(){
-        switch(flag_){
+        switch(this.flag_){
             case "reset":
                 this.setPriority(this.antType, 1); //Change from antType to actual name
+                break;
             case "hungry":
                 this.setPriority(this.antType, 0.5);
                 this.followForageTrail = 1;
+                break;
             case "starving":
                 this.setPriority(this.antType, 0);
                 this.followForageTrail = 2;
+                break;
         }
     }
-}
 
-function internalTimer(){
-    /*Internal Timer:
-        Internal Timer uses deltatime to make a 1-second clock. At every second, hunger (and other constantly ticking things) will increment.
-        This will also check functions for flags. For instance, if hunger hits a threshold, prioritize food/change path priority
-    */
-   checkHunger();
-}
+    checkHunger(){
+        this.hunger++;
+        //Checks hunger meter every second
+        if(hunger === HUNGRY){
+            flag_ = "hungry";
+            runFlagState();
+        }
+        if(hunger === STARVING){
+            flag_ = "starving";
+            runFlagState();
+        }
+        if(hunger === DEATH){
+            flag_ = "death";
+            runFlagState();
+        }
+    }
 
-function checkHunger(){
-    hunger++;
-    //Checks hunger meter every second
-    if(hunger === 100){
-        flag_ = "hungry";
-        runFlagState();
+    resetHunger(){
+        //Resets hunger once fed (change to use variable if food has different values of saturation)
+        hunger = 0;
+        flag_ = "reset";
+        this.runFlagState();
     }
-    if(hunger === 160){
-        flag_ = "starving";
-        runFlagState();
+    runFlagState(){
+        switch(this.flag_){
+        case "hungry":
+            modifyPriorityTrails();
+            break;
+        case "starving":
+            modifyPriorityTrails();
+            break;
+        case "death":
+            //killAnt
+            break;
+        case "reset":
+            modifyPriorityTrails();
+            flag_ = "";
+            break;
+        }
     }
-    if(hunger === 200){
-        flag_ = "death";
-        runFlagState();
-    }
-}
 
-function resetHunger(){
-    //Resets hunger once fed (change to use variable if food has different values of saturation)
-    hunger = 0;
-    flag_ = "reset";
-    runFlagState();
-}
+    update(deltaTime){
+        this.internalTimer(deltaTime);
+    }
 
-function runFlagState(){
-    if(flag_ === "hungry"){
-        modifyPriorityTrails();
-    }
-    if(flag_ === "starving"){
-        modifyPriorityTrails();
-    }
-    if(flag_ === "death"){
-        //killAnt
-    }
-    if(flag === "reset"){
-        modifyPriorityTrails();
-        flag_ = "";
+    internalTimer(deltaTime){
+        this._accumulator = (this._accumulator || 0) + deltaTime;
+        if (this._accumulator >= 1) { // every second
+            this._accumulator = 0;
+            this.checkHunger();
+        }
     }
 }

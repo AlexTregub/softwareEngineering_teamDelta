@@ -51,7 +51,7 @@ class ant extends Entity {
     this._JobName = JobName;
     this._antIndex = antIndex++;
     this.isBoxHovered = false;
-    this.brain = new AntBrain;
+    this.brain = new AntBrain(_JobName);
     
     // New job system (component-based)
     this.job = null;  // Will hold JobComponent instance
