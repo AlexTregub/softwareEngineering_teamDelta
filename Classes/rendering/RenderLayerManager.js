@@ -397,6 +397,7 @@ class RenderLayerManager {
    * Pause overlay rendering
    */
   renderPauseOverlay() {
+    /*
     fill(0, 0, 0, 150);
     rect(0, 0, g_canvasX, g_canvasY);
     
@@ -406,6 +407,7 @@ class RenderLayerManager {
     text("PAUSED", g_canvasX / 2, g_canvasY / 2);
     textSize(24);
     text("Press ESC to resume", g_canvasX / 2, g_canvasY / 2 + 60);
+    */
   }
   
   /**
@@ -575,7 +577,7 @@ function renderPipelineInit() {
   g_uiDebugManager = window.g_uiDebugManager; // Make globally available
   
   // Initialize dropoff UI if present (creates the Place Dropoff button)
-  window.initDropoffUI();
+  //window.initDropoffUI();
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
