@@ -61,7 +61,7 @@ function wander(grid, node, travelled, ant, state){
   if(node.scents.length > 0 && !ant.avoidSmellCheck){
     let result = tryTrack(node.scents, ant.speciesName, travelled);
     if(result === 0){
-      ant.avoidSmellCheck = true; //this should be implemented into Ant class. Ants stop checking smell (at least temp) once test failed
+      //ant.avoidSmellCheck = true; //this should be implemented into Ant class. Ants stop checking smell (at least temp) once test failed
       return findBestNeighbor(grid, node, travelled);
     }
     else if(result != 0){
