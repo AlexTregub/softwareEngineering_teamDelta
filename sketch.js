@@ -1,3 +1,4 @@
+
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
@@ -33,13 +34,7 @@ let queenAnt;
  * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
  * Assigns loaded assets to globals consumed by rendering and game systems.
  */
-let SEED;
 let MAP;
-
-let GRIDMAP;
-let COORDSY;
-let font;
-let recordingPath;
 let cameraX = 0;
 let cameraY = 0;
 let cameraPanSpeed = 10;
@@ -181,21 +176,9 @@ function draw() {
     scale(cameraZoom);
     translate(-cameraX, -cameraY);
 
-    Ants_Update();
-    resourceList.drawAll();
-
     if (typeof drawSelectionBox === 'function') drawSelectionBox();
-    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
 
     pop();
-
-    if (typeof drawDevConsoleIndicator === 'function') {
-      drawDevConsoleIndicator();
-    }
-  
-    if (typeof drawCommandLine === 'function') {
-      drawCommandLine();
-    }
     updateCamera();
     
     const playerQueen = getQueen();
@@ -238,7 +221,13 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() {  
-  // Handle Universal Button Group System clicks
+  // Handle UI Debug Manager mouse events first
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+    const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
+    if (handled) return;
+  }
+
+    // Handle Universal Button Group System clicks
   if (window.buttonGroupManager && 
       typeof window.buttonGroupManager.handleClick === 'function') {
     try {
@@ -315,240 +304,6 @@ function keyPressed() {
     }
   }
 
-  if ((key === 'f' || key === 'F') && isInGame()) {
-    toggleCameraFollow();
-  }
-
-  if (isInGame()) {
-    if (key === '-' || key === '_' || keyCode === 189 || keyCode === 109) {
-      setCameraZoom(cameraZoom / CAMERA_ZOOM_STEP);
-    } else if (key === '=' || key === '+' || keyCode === 187 || keyCode === 107) {
-      setCameraZoom(cameraZoom * CAMERA_ZOOM_STEP);
-    }
-  }
-}
-
-function getPrimarySelectedEntity() {
-  if (typeof antManager !== 'undefined' &&
-      antManager &&
-      typeof antManager.getSelectedAnt === 'function') {
-    const managed = antManager.getSelectedAnt();
-    if (managed) {
-      return managed;
-    }
-  }
-
-  if (typeof selectedAnt !== 'undefined' && selectedAnt) {
-    return selectedAnt;
-  }
-
-  return null;
-}
-
-function getEntityWorldCenter(entity) {
-  if (!entity) return null;
-
-  const pos = typeof entity.getPosition === 'function'
-    ? entity.getPosition()
-    : (entity.sprite?.pos ?? { x: entity.posX ?? 0, y: entity.posY ?? 0 });
-
-  const size = typeof entity.getSize === 'function'
-    ? entity.getSize()
-    : (entity.sprite?.size ?? { x: entity.sizeX ?? TILE_SIZE, y: entity.sizeY ?? TILE_SIZE });
-
-  const posX = pos?.x ?? pos?.[0] ?? 0;
-  const posY = pos?.y ?? pos?.[1] ?? 0;
-  const sizeX = size?.x ?? size?.[0] ?? TILE_SIZE;
-  const sizeY = size?.y ?? size?.[1] ?? TILE_SIZE;
-
-  return {
-    x: posX + sizeX / 2,
-    y: posY + sizeY / 2
-  };
-}
-
-function getMapPixelDimensions() {
-  if (!MAP) {
-    return { width: CANVAS_X, height: CANVAS_Y };
-  }
-
-  const width = MAP._xCount ? MAP._xCount * TILE_SIZE : CANVAS_X;
-  const height = MAP._yCount ? MAP._yCount * TILE_SIZE : CANVAS_Y;
-
-  return { width, height };
-}
-
-function clampCameraToBounds() {
-  const { width, height } = getMapPixelDimensions();
-  const viewWidth = CANVAS_X / cameraZoom;
-  const viewHeight = CANVAS_Y / cameraZoom;
-
-  let minX = 0;
-  let maxX = width - viewWidth;
-  if (viewWidth >= width) {
-    const excessX = viewWidth - width;
-    minX = -excessX / 2;
-    maxX = excessX / 2;
-  } else {
-    maxX = Math.max(0, maxX);
-  }
-
-  let minY = 0;
-  let maxY = height - viewHeight;
-  if (viewHeight >= height) {
-    const excessY = viewHeight - height;
-    minY = -excessY / 2;
-    maxY = excessY / 2;
-  } else {
-    maxY = Math.max(0, maxY);
-  }
-
-  cameraX = constrain(cameraX, minX, maxX);
-  cameraY = constrain(cameraY, minY, maxY);
-
-  if (COORDSY && typeof COORDSY.setViewCornerBC === 'function') {
-    COORDSY.setViewCornerBC([cameraX, cameraY]);
-  }
-}
-
-function centerCameraOn(worldX, worldY) {
-  const viewWidth = CANVAS_X / cameraZoom;
-  const viewHeight = CANVAS_Y / cameraZoom;
-
-  cameraX = worldX - viewWidth / 2;
-  cameraY = worldY - viewHeight / 2;
-
-  clampCameraToBounds();
-}
-
-function centerCameraOnEntity(entity) {
-  const center = getEntityWorldCenter(entity);
-  if (center) {
-    centerCameraOn(center.x, center.y);
-  }
-}
-
-function screenToWorld(px = mouseX, py = mouseY, zoomOverride) {
-  const zoom = typeof zoomOverride === 'number' ? zoomOverride : cameraZoom;
-
-  return {
-    x: cameraX + px / zoom,
-    y: cameraY + py / zoom
-  };
-}
-
-function getWorldMousePosition(px = mouseX, py = mouseY, zoomOverride) {
-  return screenToWorld(px, py, zoomOverride);
-}
-
-function worldToScreen(worldX, worldY) {
-  return {
-    x: (worldX - cameraX) * cameraZoom,
-    y: (worldY - cameraY) * cameraZoom
-  };
-}
-
-function setCameraZoom(targetZoom, focusX = CANVAS_X / 2, focusY = CANVAS_Y / 2) {
-  const clampedZoom = constrain(targetZoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
-  if (clampedZoom === cameraZoom) {
-    return false;
-  }
-
-  const currentZoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
-  const focusWorld = screenToWorld(focusX, focusY, currentZoom);
-
-  cameraZoom = clampedZoom;
-  cameraX = focusWorld.x - focusX / cameraZoom;
-  cameraY = focusWorld.y - focusY / cameraZoom;
-
-  clampCameraToBounds();
-
-  if (cameraFollowEnabled) {
-    const target = cameraFollowTarget || getPrimarySelectedEntity();
-    if (target) {
-      centerCameraOnEntity(target);
-    } else {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-    }
-  }
-
-  return true;
-}
-
-function toggleCameraFollow() {
-  const target = getPrimarySelectedEntity();
-
-  if (cameraFollowEnabled) {
-    if (!target || target === cameraFollowTarget) {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-      return;
-    }
-  }
-
-  if (target) {
-    cameraFollowEnabled = true;
-    cameraFollowTarget = target;
-    centerCameraOnEntity(target);
-  }
-}
-
-function updateCamera() {
-  if (!isInGame()) return;
-
-  const left = keyIsDown(LEFT_ARROW) || keyIsDown(65);
-  const right = keyIsDown(RIGHT_ARROW) || keyIsDown(68);
-  const up = keyIsDown(UP_ARROW) || keyIsDown(87);
-  const down = keyIsDown(DOWN_ARROW) || keyIsDown(83);
-  const manualInput = left || right || up || down;
-
-  if (manualInput) {
-    if (cameraFollowEnabled) {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-    }
-
-    const panStep = cameraPanSpeed / cameraZoom;
-    switch (manualInput){
-      case left: cameraX -= panStep;
-      case right: cameraX += panStep;
-      case up: cameraY -= panStep;
-      case down: cameraY += panStep;
-    }
-
-    clampCameraToBounds();
-  } else if (cameraFollowEnabled) {
-    const primary = getPrimarySelectedEntity();
-    const target = primary || cameraFollowTarget;
-    if (target) {
-      cameraFollowTarget = target;
-      centerCameraOnEntity(target);
-    } else {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-    }
-  }
-
-  if (typeof originalConsoleLog === 'function') {
-    originalConsoleLog(cameraX, cameraY);
-  }
-}
-
-function mouseWheel(event) {
-  if (!isInGame()) { return true; }
-
-  const wheelDelta = event?.deltaY ?? 0;
-  if (wheelDelta === 0) { return false; }
-
-  const zoomFactor = wheelDelta > 0 ? (1 / CAMERA_ZOOM_STEP) : CAMERA_ZOOM_STEP;
-  const targetZoom = cameraZoom * zoomFactor;
-  setCameraZoom(targetZoom, mouseX, mouseY);
-
-  return false;
-}
-
-function maybeADuplicateIDK(){
   // Handle UI shortcuts first (Ctrl+Shift combinations)
   if (window.UIManager && window.UIManager.handleKeyPress) {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
@@ -630,11 +385,255 @@ function maybeADuplicateIDK(){
     return;
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
+
+  if ((key === 'f' || key === 'F') && isInGame()) {
+    toggleCameraFollow();
+  }
+
+  if (GameState.isInGame()) {
+    if (key === '-' || key === '_' || keyCode === 189 || keyCode === 109) {
+      setCameraZoom(cameraZoom / CAMERA_ZOOM_STEP);
+    } else if (key === '=' || key === '+' || keyCode === 187 || keyCode === 107) {
+      setCameraZoom(cameraZoom * CAMERA_ZOOM_STEP);
+    }
+  }
 }
+
+function getPrimarySelectedEntity() {
+  if (typeof antManager !== 'undefined' &&
+      antManager &&
+      typeof antManager.getSelectedAnt === 'function') {
+    const managed = antManager.getSelectedAnt();
+    if (managed) {
+      return managed;
+    }
+  }
+
+  if (typeof selectedAnt !== 'undefined' && selectedAnt) {
+    return selectedAnt;
+  }
+
+  return null;
+}
+
+function getEntityWorldCenter(entity) {
+  if (!entity) return null;
+
+  const pos = typeof entity.getPosition === 'function'
+    ? entity.getPosition()
+    : (entity.sprite?.pos ?? { x: entity.posX ?? 0, y: entity.posY ?? 0 });
+
+  const size = typeof entity.getSize === 'function'
+    ? entity.getSize()
+    : (entity.sprite?.size ?? { x: entity.sizeX ?? TILE_SIZE, y: entity.sizeY ?? TILE_SIZE });
+
+  const posX = pos?.x ?? pos?.[0] ?? 0;
+  const posY = pos?.y ?? pos?.[1] ?? 0;
+  const sizeX = size?.x ?? size?.[0] ?? TILE_SIZE;
+  const sizeY = size?.y ?? size?.[1] ?? TILE_SIZE;
+
+  return {
+    x: posX + sizeX / 2,
+    y: posY + sizeY / 2
+  };
+}
+
+function getMapPixelDimensions() {
+  if (!MAP) {
+    return { width: g_canvasX, height: g_canvasY };
+  }
+
+  const width = MAP._xCount ? MAP._xCount * TILE_SIZE : g_canvasX;
+  const height = MAP._yCount ? MAP._yCount * TILE_SIZE : g_canvasY;
+
+  return { width, height };
+}
+
+function clampCameraToBounds() {
+  const { width, height } = getMapPixelDimensions();
+  const viewWidth = g_canvasX / cameraZoom;
+  const viewHeight = g_canvasY / cameraZoom;
+
+  let minX = 0;
+  let maxX = width - viewWidth;
+  if (viewWidth >= width) {
+    const excessX = viewWidth - width;
+    minX = -excessX / 2;
+    maxX = excessX / 2;
+  } else {
+    maxX = Math.max(0, maxX);
+  }
+
+  let minY = 0;
+  let maxY = height - viewHeight;
+  if (viewHeight >= height) {
+    const excessY = viewHeight - height;
+    minY = -excessY / 2;
+    maxY = excessY / 2;
+  } else {
+    maxY = Math.max(0, maxY);
+  }
+
+  cameraX = constrain(cameraX, minX, maxX);
+  cameraY = constrain(cameraY, minY, maxY);
+
+  if (COORDSY && typeof COORDSY.setViewCornerBC === 'function') {
+    COORDSY.setViewCornerBC([cameraX, cameraY]);
+  }
+}
+
+function centerCameraOn(worldX, worldY) {
+  const viewWidth = g_canvasX / cameraZoom;
+  const viewHeight = g_canvasY / cameraZoom;
+
+  cameraX = worldX - viewWidth / 2;
+  cameraY = worldY - viewHeight / 2;
+
+  clampCameraToBounds();
+}
+
+function centerCameraOnEntity(entity) {
+  const center = getEntityWorldCenter(entity);
+  if (center) {
+    centerCameraOn(center.x, center.y);
+  }
+}
+
+function screenToWorld(px = mouseX, py = mouseY, zoomOverride) {
+  const zoom = typeof zoomOverride === 'number' ? zoomOverride : cameraZoom;
+
+  return {
+    x: cameraX + px / zoom,
+    y: cameraY + py / zoom
+  };
+}
+
+function getWorldMousePosition(px = mouseX, py = mouseY, zoomOverride) {
+  return screenToWorld(px, py, zoomOverride);
+}
+
+function worldToScreen(worldX, worldY) {
+  return {
+    x: (worldX - cameraX) * cameraZoom,
+    y: (worldY - cameraY) * cameraZoom
+  };
+}
+
+function setCameraZoom(targetZoom, focusX = g_canvasX / 2, focusY = g_canvasY / 2) {
+  const clampedZoom = constrain(targetZoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+  if (clampedZoom === cameraZoom) {
+    return false;
+  }
+
+  const currentZoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
+  const focusWorld = screenToWorld(focusX, focusY, currentZoom);
+
+  cameraZoom = clampedZoom;
+  cameraX = focusWorld.x - focusX / cameraZoom;
+  cameraY = focusWorld.y - focusY / cameraZoom;
+
+  clampCameraToBounds();
+
+  if (cameraFollowEnabled) {
+    const target = cameraFollowTarget || getPrimarySelectedEntity();
+    if (target) {
+      centerCameraOnEntity(target);
+    } else {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+    }
+  }
+
+  return true;
+}
+
+function toggleCameraFollow() {
+  const target = getPrimarySelectedEntity();
+
+  if (cameraFollowEnabled) {
+    if (!target || target === cameraFollowTarget) {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+      return;
+    }
+  }
+
+  if (target) {
+    cameraFollowEnabled = true;
+    cameraFollowTarget = target;
+    centerCameraOnEntity(target);
+  }
+}
+
+function updateCamera() {
+  if (!GameState.isInGame()) return;
+
+  const left = keyIsDown(LEFT_ARROW) || keyIsDown(65);
+  const right = keyIsDown(RIGHT_ARROW) || keyIsDown(68);
+  const up = keyIsDown(UP_ARROW) || keyIsDown(87);
+  const down = keyIsDown(DOWN_ARROW) || keyIsDown(83);
+  const manualInput = left || right || up || down;
+
+  if (manualInput) {
+    if (cameraFollowEnabled) {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+    }
+
+    const panStep = cameraPanSpeed / cameraZoom;
+    switch (manualInput){
+      case left: cameraX -= panStep;
+      case right: cameraX += panStep;
+      case up: cameraY -= panStep;
+      case down: cameraY += panStep;
+    }
+
+    clampCameraToBounds();
+  } else if (cameraFollowEnabled) {
+    const primary = getPrimarySelectedEntity();
+    const target = primary || cameraFollowTarget;
+    if (target) {
+      cameraFollowTarget = target;
+      centerCameraOnEntity(target);
+    } else {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+    }
+  }
+
+  if (typeof originalConsoleLog === 'function') {
+    originalConsoleLog(cameraX, cameraY);
+  }
+}
+
+function mouseWheel(event) {
+  if (!isInGame()) { return true; }
+
+  const wheelDelta = event?.deltaY ?? 0;
+  if (wheelDelta === 0) { return false; }
+
+  const zoomFactor = wheelDelta > 0 ? (1 / CAMERA_ZOOM_STEP) : CAMERA_ZOOM_STEP;
+  const targetZoom = cameraZoom * zoomFactor;
+  setCameraZoom(targetZoom, mouseX, mouseY);
+
+  return false;
+}
+  
 
 // DEBUG RENDERING FUNCTIONS
 // These functions provide basic debug visualization capability
 
+/**
+ * debugRender
+ * -----------
+ * Debug rendering function - now using draggable panels instead of static overlay.
+ * The debug information is now displayed in the Debug Info draggable panel.
+ */
+function debugRender() {
+  // Debug info is now handled by the Debug Info draggable panel
+  // No static debug rendering needed here anymore
+  return;
+}
 
 /**
  * drawDebugGrid
@@ -645,6 +644,7 @@ function maybeADuplicateIDK(){
  * @param {number} gridHeight - Height of the grid in tiles
  */
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
+  push();
   stroke(100, 100, 100, 100); // light gray grid lines
   const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
   strokeWeight(1 / zoom);
