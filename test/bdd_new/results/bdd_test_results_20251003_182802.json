@@ -1,0 +1,107 @@
+{
+  "timestamp": "2025-10-03T18:27:47.920490",
+  "total_features": 3,
+  "total_scenarios": 9,
+  "passed_scenarios": 6,
+  "failed_scenarios": 3,
+  "skipped_scenarios": 0,
+  "features": [
+    {
+      "name": "Universal Button System",
+      "scenarios": [
+        {
+          "name": "ButtonGroupManager Initialization",
+          "status": "passed",
+          "details": {
+            "exists": true,
+            "hasActiveGroups": true,
+            "hasCreateMethod": true
+          }
+        },
+        {
+          "name": "Button Group Creation",
+          "status": "passed",
+          "details": {
+            "hasButtons": true,
+            "hasGroups": true,
+            "totalButtons": 1,
+            "totalGroups": 1
+          }
+        },
+        {
+          "name": "Button Click Functionality",
+          "status": "passed",
+          "details": {
+            "button": {
+              "found": true,
+              "height": 30,
+              "width": 80,
+              "x": 60,
+              "y": 60
+            },
+            "action": {
+              "result": false,
+              "success": true
+            }
+          }
+        },
+        {
+          "name": "Button Drag Functionality",
+          "status": "passed",
+          "details": {
+            "draggableGroups": 1,
+            "hasDraggableGroups": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Render Pipeline System",
+      "scenarios": [
+        {
+          "name": "RenderLayerManager Initialization",
+          "status": "passed",
+          "details": {
+            "exists": true,
+            "hasDisabledLayers": true,
+            "hasLayers": true,
+            "hasToggleLayer": true,
+            "uiDebugExists": true
+          }
+        },
+        {
+          "name": "Layer Toggle Functionality",
+          "status": "passed",
+          "details": {
+            "afterSecondToggle": true,
+            "afterToggle": false,
+            "backToOriginal": true,
+            "firstToggleWorked": true,
+            "initialState": true,
+            "secondToggleWorked": true
+          }
+        },
+        {
+          "name": "Layer State Persistence",
+          "status": "failed",
+          "error": "Message: javascript error: window.g_renderLayerManager.disableLayer is not a function\n  (Session info: chrome=140.0.7339.210)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff763dafc95+79861]\n\tGetHandleVerifier [0x0x7ff763dafcf0+79952]\n\t(No symbol) [0x0x7ff763b2cada]\n\t(No symbol) [0x0x7ff763b3461a]\n\t(No symbol) [0x0x7ff763b37a51]\n\t(No symbol) [0x0x7ff763bd630b]\n\t(No symbol) [0x0x7ff763bacada]\n\t(No symbol) [0x0x7ff763bd4f8b]\n\t(No symbol) [0x0x7ff763bac8b3]\n\t(No symbol) [0x0x7ff763b75272]\n\t(No symbol) [0x0x7ff763b76043]\n\tGetHandleVerifier [0x0x7ff76406b9cd+2946349]\n\tGetHandleVerifier [0x0x7ff764065c4a+2922410]\n\tGetHandleVerifier [0x0x7ff7640859d7+3052855]\n\tGetHandleVerifier [0x0x7ff763dcaa7e+189918]\n\tGetHandleVerifier [0x0x7ff763dd2a1f+222591]\n\tGetHandleVerifier [0x0x7ff763db8ab4+116244]\n\tGetHandleVerifier [0x0x7ff763db8c69+116681]\n\tGetHandleVerifier [0x0x7ff763d9f048+11176]\n\tBaseThreadInitThunk [0x0x7ffad4f8e8d7+23]\n\tRtlUserThreadStart [0x0x7ffad6b28d9c+44]\n"
+        }
+      ]
+    },
+    {
+      "name": "End-to-End Integration",
+      "scenarios": [
+        {
+          "name": "Complete Debug Button Workflow",
+          "status": "failed",
+          "error": "Debug action should succeed"
+        },
+        {
+          "name": "System Error Recovery",
+          "status": "failed",
+          "error": "System should remain stable after error"
+        }
+      ]
+    }
+  ]
+}

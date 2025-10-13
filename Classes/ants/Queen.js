@@ -11,7 +11,7 @@ class Queen {
 
   // Add an ant to this queen's command
   addAnt(ant) {
-    ant.faction = this.faction;
+    ant._faction = this.faction;
     this.ants.push(ant);
   }
 
@@ -26,10 +26,29 @@ class Queen {
   // Send command to all ants in range
   broadcastCommand(command) {
     for (const ant of this.ants) {
-      const distance = dist(this.position.x, this.position.y, ant.posX, ant.posY);
+      const pos = ant.getPosition();
+      const distance = dist(this.position.x, this.position.y, pos.x, pos.y);
       if (distance <= this.commandRadius) {
-        ant.addCommand(command);
+        this._sendCommandToAnt(ant, command);
       }
+    }
+  }
+  
+  // Helper method to send command to individual ant
+  _sendCommandToAnt(ant, command) {
+    switch (command.type) {
+      case "MOVE":
+        ant.moveToLocation(command.x, command.y);
+        break;
+      case "GATHER":
+        ant.addTask({ type: "GATHER", priority: 1 });
+        break;
+      case "ATTACK":
+        ant.addTask({ type: "ATTACK", target: command.target, priority: 2 });
+        break;
+      case "RETURN":
+        ant.addTask({ type: "RETURN", priority: 1 });
+        break;
     }
   }
 
@@ -57,10 +76,10 @@ class Queen {
 
   // Get status of all ants under command
   getAntStatus() {
-    return this.ants.map(ant => ({
+    return this.ants.g_map(ant => ({
       antIndex: ant.antIndex,
       state: ant.getCurrentState(),
-      position: { x: ant.posX, y: ant.posY },
+      position: ant.getPosition(),
       isInCombat: ant.isInCombat(),
       commandQueueLength: ant.commandQueue.length
     }));
@@ -111,6 +130,6 @@ class Queen {
 }
 
 // Export for use in other files
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = Queen;
 }

@@ -13,9 +13,11 @@ class GameStateManager {
     this.STATES = {
       MENU: "MENU",
       OPTIONS: "OPTIONS", 
+      DEBUG_MENU: "DEBUG_MENU",
       PLAYING: "PLAYING",
       PAUSED: "PAUSED",
-      GAME_OVER: "GAME_OVER"
+      GAME_OVER: "GAME_OVER",
+      KAN_BAN: "KANBAN"
     };
   }
 
@@ -37,29 +39,20 @@ class GameStateManager {
     if (!skipCallbacks) {
       this.executeCallbacks(newState, this.previousState);
     }
-
     return true;
   }
 
   // Get previous state
-  getPreviousState() {
-    return this.previousState;
-  }
+  getPreviousState = () => this.previousState;
 
   // Check if current state matches
-  isState(state) {
-    return this.currentState === state;
-  }
+  isState = (state) => this.currentState === state;
 
   // Check if any of the provided states match current
-  isAnyState(...states) {
-    return states.includes(this.currentState);
-  }
+  isAnyState = (...states) => states.includes(this.currentState);
 
   // Validate state
-  isValidState(state) {
-    return Object.values(this.STATES).includes(state);
-  }
+  isValidState = (state) => Object.values(this.STATES).includes(state);
 
   // Transition fade management
   getFadeAlpha() {
@@ -131,51 +124,23 @@ class GameStateManager {
   }
 
   // Convenience methods for common states
-  isInMenu() {
-    return this.currentState === this.STATES.MENU;
-  }
-
-  isInOptions() {
-    return this.currentState === this.STATES.OPTIONS;
-  }
-
-  isInGame() {
-    return this.currentState === this.STATES.PLAYING;
-  }
-
-  isPaused() {
-    return this.currentState === this.STATES.PAUSED;
-  }
-
-  isGameOver() {
-    return this.currentState === this.STATES.GAME_OVER;
-  }
+  isInMenu = () => this.currentState === this.STATES.MENU;
+  isInOptions = () => this.currentState === this.STATES.OPTIONS;
+  isInGame = () => this.currentState === this.STATES.PLAYING;
+  isPaused = () => this.currentState === this.STATES.PAUSED;
+  isGameOver = () => this.currentState === this.STATES.GAME_OVER;
+  isDebug = () => this.currentState === this.STATES.DEBUG_MENU;
+  isKanban = () => this.currentState === this.STATES.KAN_BAN;
 
   // Transition methods
-  goToMenu() {
-    return this.setState(this.STATES.MENU);
-  }
-
-  goToOptions() {
-    return this.setState(this.STATES.OPTIONS);
-  }
-
-  startGame() {
-    this.startFadeTransition();
-    return this.setState(this.STATES.PLAYING);
-  }
-
-  pauseGame() {
-    return this.setState(this.STATES.PAUSED);
-  }
-
-  resumeGame() {
-    return this.setState(this.STATES.PLAYING);
-  }
-
-  endGame() {
-    return this.setState(this.STATES.GAME_OVER);
-  }
+  goToMenu = () => this.setState(this.STATES.MENU);
+  goToOptions = () => this.setState(this.STATES.OPTIONS);
+  goToDebug = () => this.setState(this.STATES.DEBUG_MENU);
+  startGame = () => { this.startFadeTransition(); return this.setState(this.STATES.PLAYING); };
+  pauseGame = () => this.setState(this.STATES.PAUSED);
+  resumeGame = () => this.setState(this.STATES.PLAYING);
+  endGame = () => this.setState(this.STATES.GAME_OVER);
+  goToKanban = () => this.setState(this.STATES.KAN_BAN);
 
   // Reset to initial state
   reset() {
@@ -200,3 +165,10 @@ class GameStateManager {
 
 // Create global instance
 const GameState = new GameStateManager();
+
+// Make globally available
+if (typeof window !== 'undefined') {
+  window.GameState = GameState;
+} else if (typeof global !== 'undefined') {
+  global.GameState = GameState;
+}

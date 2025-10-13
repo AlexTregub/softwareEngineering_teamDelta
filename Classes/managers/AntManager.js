@@ -94,6 +94,7 @@ class AntManager {
         if (resetSelection === false) {
           this.setSelectedAnt(null);
         }
+        // If resetSelection is false, keep the ant selected
       }
     } else {
       // Use global IncorrectParamPassed function for error reporting
@@ -133,14 +134,14 @@ class AntManager {
    * @example
    * const antObj = antManager.getAntObject(5);
    * if (antObj) {
-   *   console.log('Ant position:', antObj.posX, antObj.posY);
+   *   const pos = antObj.getPosition();
+   *   console.log('Ant position:', pos.x, pos.y);
    * }
    */
   getAntObject(antIndex) {
-    // Use global ants array
+    // Use global ants array - now returns direct ant objects
     if (typeof ants === 'undefined' || !ants[antIndex]) return null;
-    let antObj = ants[antIndex].antObject ? ants[antIndex].antObject : ants[antIndex];
-    return antObj;
+    return ants[antIndex];
   }
 
   /**
@@ -150,7 +151,8 @@ class AntManager {
    * @example
    * const selected = antManager.getSelectedAnt();
    * if (selected) {
-   *   console.log('Selected ant at:', selected.posX, selected.posY);
+   *   const pos = selected.getPosition();
+   *   console.log('Selected ant at:', pos.x, pos.y);
    * }
    */
   getSelectedAnt() {
@@ -215,7 +217,7 @@ class AntManager {
       hasSelectedAnt: this.selectedAnt !== null,
       selectedAntIndex: this.selectedAnt ? this.selectedAnt.antIndex : null,
       selectedAntPosition: this.selectedAnt ? 
-        { x: this.selectedAnt.posX, y: this.selectedAnt.posY } : null
+        this.selectedAnt.getPosition() : null
     };
   }
 
@@ -258,6 +260,6 @@ class AntManager {
 }
 
 // Export for Node.js compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntManager;
 }

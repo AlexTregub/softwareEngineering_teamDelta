@@ -1,11 +1,8 @@
 // Resource Globals
-let resources = [];
-let resourceIndex = 0;
-let stickImg;
-let leafImg;
+
 
 // Proload Images
-function Resources_Preloader() {
+function resourcesPreloader() {
     stickImg = loadImage("Images/Resources/stick.png") // placeholder image right now
     leafImg = loadImage("Images/Resources/leaf.webp")  // placeholder image right now
 }
