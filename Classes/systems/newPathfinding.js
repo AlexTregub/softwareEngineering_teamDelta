@@ -64,13 +64,13 @@ function wander(grid, node, travelled, ant, state){
       ant.avoidSmellCheck = true; //this should be implemented into Ant class. Ants stop checking smell (at least temp) once test failed
       return findBestNeighbor(grid, node, travelled);
     }
-    else if(result === 1){
-      ant.tracking = true; //This should be implemented into Ant class. Ants immediately go to tracking when following pheromones.
+    else if(result != 0){
+      ant.pathType = result; //This should be implemented into Ant class. Ants immediately go to tracking when following pheromones.
       return track();
     }
   }
   else{ //If no scent, wander to shortest tile
-    node.addScent(state);
+    node.addScent(state, this._faction);
     return findBestNeighbor(grid, node, travelled); //Implement travelled so it holds all previously travelled tiles in current journey. Resets once task finished. Make a Set
   }
   //May turn this into separate function like findBestNeighbor. If no pheromone, run findBestNeighbor for next move.
@@ -110,7 +110,7 @@ function intuitiveWander(){
 
 }
 
-function tryTrack(scents, antType, failedTrailTypes){ //Probably won't need last two
+function tryTrack(scents, ant){ //Probably won't need last two
   /*Try Track
       Ant tries to check pheromones. Depending on ant type and state, higher chance for certain path following.
       If ant likes path, return 1 to have wander run track(). This should set an ant flag to true so that track is always run instead of wander when following trail.
@@ -131,12 +131,11 @@ function tryTrack(scents, antType, failedTrailTypes){ //Probably won't need last
     */
   for(let i = 0; i < scents.length; i++){
     let scent = scents[i];
-    if(this.brain.checkTrail(scent)){
-      this.pathType = scent.name;
-      this.track(pathType);
-      break;
+    if(ant.brain.checkTrail(scent)){
+      return scent.name;
     }
   }
+  return 0;
 }
 
 ////Problem: When an ant breaks off from a path to optimize, how do we make sure it doesn't just wander randomly again? Keep moving in same direction
@@ -160,8 +159,4 @@ function track(trailType){
         If nothing found, wander randomly
   */
  
-}
-
-function selectionChance(ant, scent){ //Used to select which pheromone to follow
-  
 }
