@@ -175,7 +175,7 @@ function draw() {
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
     }
-  }
+  }}
 
 
   // Note: rendering of draggable panels is handled via RenderManager's
