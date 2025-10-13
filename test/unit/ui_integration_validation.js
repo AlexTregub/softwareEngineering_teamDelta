@@ -4,7 +4,11 @@
  */
 
 // Mock p5.js environment
-global.document = { readyState: 'complete' };
+global.document = {
+  createElement: (tag) => ({ tagName: tag }),
+  body: { appendChild: () => {} },
+  readyState: 'complete'
+};
 global.window = global;
 global.setTimeout = setTimeout;
 
@@ -36,9 +40,11 @@ global.createMenuButton = function(x, y, w, h, label, style, action) {
   };
 };
 
-console.log('🧪 Running UI Integration Validation Test...\n');
+// Define the main test function
+function runUIIntegrationValidationTest() {
+  console.log('🧪 Running UI Integration Validation Test...\n');
 
-// Test 1: Initialize UI Debug Manager
+  // Test 1: Initialize UI Debug Manager
 console.log('Test 1: Initializing UI Debug Manager...');
 global.g_uiDebugManager = new UIDebugManager();
 console.log('✅ UI Debug Manager initialized successfully\n');
@@ -175,10 +181,27 @@ g_uiDebugManager.saveElementPosition('dropoff-placement-button', { x: 200, y: 10
 const loadedPosition = g_uiDebugManager.loadElementPosition('dropoff-placement-button');
 console.log(`Saved and loaded position:`, loadedPosition);
 
-console.log('\n🎉 All UI Integration Tests Completed Successfully!');
-console.log('\n📋 Summary:');
-console.log(`• ${elementCount} UI elements successfully integrated`);
-console.log('• Position updates working');
-console.log('• Debug mode toggle working');
-console.log('• Position persistence working');
-console.log('• All UI elements compatible with Universal UI Debug System');
+  console.log('\n🎉 All UI Integration Tests Completed Successfully!');
+  console.log('\n📋 Summary:');
+  console.log(`• ${elementCount} UI elements successfully integrated`);
+  console.log('• Position updates working');
+  console.log('• Debug mode toggle working');
+  console.log('• Position persistence working');
+  console.log('• All UI elements compatible with Universal UI Debug System');
+}
+
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('UI Integration Validation Tests', runUIIntegrationValidationTest);
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running UI Integration Validation tests...');
+  runUIIntegrationValidationTest();
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 UI Integration Validation tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+} else {
+  // Fallback: run tests immediately if no global test runner
+  runUIIntegrationValidationTest();
+}

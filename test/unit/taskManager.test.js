@@ -17,9 +17,11 @@ if (classMatch) {
   throw new Error('Could not find TaskManager class definition');
 }
 
-console.log('🚀 Starting TaskManager Test Suite');
-console.log('\n==================================================');
-console.log('🧪 Running TaskManager Test Suite...');
+// Define the main test function
+function runTaskManagerTests() {
+  console.log('🚀 Starting TaskManager Test Suite');
+  console.log('\n==================================================');
+  console.log('🧪 Running TaskManager Test Suite...');
 
 let testsRun = 0;
 let testsPassed = 0;
@@ -230,12 +232,35 @@ test('Queue management - Clear and status', () => {
   if (!hasTasks) throw new Error('Queue should have tasks');
 });
 
-console.log(`\n📊 Test Results: ${testsPassed} passed, ${testsRun - testsPassed} failed`);
+  console.log(`\n📊 Test Results: ${testsPassed} passed, ${testsRun - testsPassed} failed`);
 
-if (testsPassed === testsRun) {
-  console.log('🎉 All tests passed!');
-  process.exit(0);
+  if (testsPassed === testsRun) {
+    console.log('🎉 All tests passed!');
+    return true;
+  } else {
+    console.log('💥 Some tests failed');
+    return false;
+  }
+}
+
+// Register with global test runner and run conditionally
+if (typeof globalThis !== 'undefined' && globalThis.registerTest) {
+  globalThis.registerTest('TaskManager Tests', runTaskManagerTests);
+}
+
+// Auto-run if tests are enabled
+if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests && globalThis.shouldRunTests()) {
+  console.log('🧪 Running TaskManager tests...');
+  const success = runTaskManagerTests();
+  if (typeof process !== 'undefined') {
+    process.exit(success ? 0 : 1);
+  }
+} else if (typeof globalThis !== 'undefined' && globalThis.shouldRunTests) {
+  console.log('🧪 TaskManager tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
 } else {
-  console.log('💥 Some tests failed');
-  process.exit(1);
+  // Fallback: run tests immediately if no global test runner
+  const success = runTaskManagerTests();
+  if (typeof process !== 'undefined') {
+    process.exit(success ? 0 : 1);
+  }
 }

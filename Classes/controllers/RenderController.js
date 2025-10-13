@@ -16,6 +16,7 @@ class RenderController {
     // Animation properties
     this._bobOffset = Math.random() * Math.PI * 2; // Random bob start
     this._pulseOffset = Math.random() * Math.PI * 2; // Random pulse start
+    this._spinOffset = Math.random() * Math.PI * 2; // Random spin start
     
     // Rendering settings
     this._smoothing = false; // Pixel art style by default
@@ -34,7 +35,7 @@ class RenderController {
         style: "outline"
       },
       BOX_HOVERED: {
-        color: [0, 255, 50, 100], // Green with transparence
+        color: [0, 255, 0, 150], // Green with transparency
         strokeWeight: 2,
         style: "outline"
       },
@@ -54,9 +55,24 @@ class RenderController {
         style: "outline"
       },
       RESOURCE: {
-        color: [255, 165, 0], // Orange
+        color: [255, 255, 255, 200], // White with transparency
         strokeWeight: 2,
         style: "bob"
+      },
+      SPINNING: {
+        color: [0, 255, 255, 200], // Cyan with transparency
+        strokeWeight: 2,
+        style: "spin"
+      },
+      SLOW_SPINNING: {
+        color: [255, 0, 255, 200], // Magenta with transparency
+        strokeWeight: 2,
+        style: "slowSpin"
+      },
+      FAST_SPINNING: {
+        color: [50, 125, 125, 200], // Teal with transparency
+        strokeWeight: 2,
+        style: "fastSpin"
       }
     };
 
@@ -89,13 +105,15 @@ class RenderController {
    * Update animation offsets for smooth visual effects
    */
   _updateAnimations() {
-    // Update bob and pulse offsets for smooth animation
+    // Update bob, pulse, and spin offsets for smooth animation
     this._bobOffset += 0.1;
     this._pulseOffset += 0.08;
+    this._spinOffset += 0.05;
     
     // Keep offsets in reasonable range
     if (this._bobOffset > Math.PI * 4) this._bobOffset -= Math.PI * 4;
     if (this._pulseOffset > Math.PI * 4) this._pulseOffset -= Math.PI * 4;
+    if (this._spinOffset > Math.PI * 4) this._spinOffset -= Math.PI * 4;
   }
 
   // --- Helper Methods ---
@@ -265,6 +283,7 @@ class RenderController {
    */
   highlightBoxHover() {
     this.setHighlight("BOX_HOVERED");
+    this.renderOutlineHighlight(this.getEntityPosition(), this.getEntitySize(), this._highlightColor, 2);
   }
 
   /**
@@ -272,6 +291,22 @@ class RenderController {
    */
   highlightCombat() {
     this.setHighlight("COMBAT");
+  }
+
+  highlightResource() {
+    this.setHighlight("RESOURCE");
+  }
+
+  highlightSpin() {
+    this.setHighlight("SPINNING");
+  }
+
+  highlightSlowSpin() {
+    this.setHighlight("SLOW_SPINNING");
+  }
+
+  highlightFastSpin() {
+    this.setHighlight("FAST_SPINNING");
   }
 
   /**
@@ -418,25 +453,42 @@ class RenderController {
       case "bob":
         this.renderBobHighlight(pos, size, color, highlightType.strokeWeight);
         break;
+      case "spin":
+        this.renderSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        break;
+      case "slow_spin":
+        this.renderSlowSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        break;
+      case "fast_spin":
+        this.renderFastSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        break;
     }
   }
 
   /**
    * Render outline highlight
    */
-  renderOutlineHighlight(pos, size, color, strokeWeightValue) {
+  renderOutlineHighlight(pos, size, color, strokeWeightValue, rotation = 0) {
     // Ensure p5.js functions are available
     if (typeof stroke !== 'function' || typeof strokeWeight !== 'function') {
       console.warn('RenderController: p5.js functions not available');
       return;
     }
     
+    push(); // Save current transformation matrix
     stroke(...color);
     strokeWeight(strokeWeightValue);
     noFill();
-    rect(pos.x - strokeWeightValue, pos.y - strokeWeightValue, 
+    
+    // Apply rotation around the entity's center
+    translate(pos.x + size.x / 2, pos.y + size.y / 2);
+    rotate(rotation);
+    translate(-size.x / 2, -size.y / 2);
+    
+    rect(-strokeWeightValue, -strokeWeightValue, 
          size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
     noStroke();
+    pop(); // Restore transformation matrix
   }
 
   /**
@@ -465,6 +517,50 @@ class RenderController {
     
     const bobbedPos = { x: pos.x, y: pos.y + bob };
     this.renderOutlineHighlight(bobbedPos, size, color, strokeWeight);
+  }
+
+  /**
+   * Render spinning highlight (normal speed)
+   */
+  renderSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.002; // Normal spin speed
+    const rotation = time % (Math.PI * 2);
+    
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
+  }
+
+  /**
+   * Render slow spinning highlight
+   */
+  renderSlowSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.001; // Slow spin speed
+    const rotation = time % (Math.PI * 2);
+    
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
+  }
+
+  /**
+   * Render fast spinning highlight
+   */
+  renderFastSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.005; // Fast spin speed
+    const rotation = time % (Math.PI * 2);
+    
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
+  }
+
+  /**
+   * Render fast spinning highlight
+   */
+  renderFastSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.005; // Fast spin speed
+    const rotation = time % (Math.PI * 2);
+
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
   }
 
   /**

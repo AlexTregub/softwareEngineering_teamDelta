@@ -375,6 +375,11 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
+// Register with global test runner
+if (typeof globalThis !== 'undefined' && typeof globalThis.registerTest === 'function') {
+  globalThis.registerTest('Selection Box Tests', runSelectionBoxTests);
+}
+
 // Auto-run tests if this file is loaded directly
 if (typeof window !== 'undefined') {
   // Add to global scope for browser console access

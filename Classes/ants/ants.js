@@ -2,11 +2,13 @@
 let antToSpawn = 0;
 let antIndex = 0;
 let antSize;
+let queenSize;
 let ants = [];
 let globalResource = [];
 let antBaseSprite;
 let antbg;
 let hasDeLozier = false;
+let hasQueen = false;
 let selectedAnt = null;
 let JobImages = {};
 
@@ -16,15 +18,17 @@ let antManager = null;
 // --- Preload Images and manager ---
 function antsPreloader() {
   antSize = createVector(20, 20);
+  queenSize = createVector(30, 30);
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   JobImages = {
-    Builder: loadImage('Images/Ants/blue_ant.png'),
-    Scout: loadImage('Images/Ants/gray_ant.png'),
-    Farmer: loadImage('Images/Ants/brown_ant.png'),
-    Warrior: loadImage('Images/Ants/blue_ant.png'),
-    Spitter: loadImage('Images/Ants/gray_ant.png'),
-    DeLozier: loadImage('Images/Ants/greg.jpg')
+    Builder: loadImage('Images/Ants/gray_ant_builder.png'),
+    Scout: loadImage('Images/Ants/gray_ant_scout.png'),
+    Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
+    Warrior: loadImage('Images/Ants/gray_ant.png'), // We don't have a gray ant warrior
+    Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
+    DeLozier: loadImage('Images/Ants/greg.jpg'),
+    Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
   };
   initializeAntManager();
 }
@@ -53,6 +57,9 @@ class ant extends Entity {
     this.isBoxHovered = false;
     this.brain = new AntBrain(_JobName);
     this.pathType = null;
+    this._idleTimer = 0;
+    this._idleTimerTimeout = 1;
+
     
     // New job system (component-based)
     this.job = null;  // Will hold JobComponent instance
@@ -75,6 +82,9 @@ class ant extends Entity {
     this._stateMachine.setStateChangeCallback((oldState, newState) => {
       this._onStateChange(oldState, newState);
     });
+    
+    // Initialize Gather State behavior
+    this._gatherState = new GatherState(this);
     
     // Faction and enemy tracking
     this._faction = faction;
@@ -101,6 +111,7 @@ class ant extends Entity {
   get StatsContainer() { return this._stats; }
   get resourceManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
+  get gatherState() { return this._gatherState; }
   get faction() { return this._faction; }
   get health() { return this._health; }
   get maxHealth() { return this._maxHealth; }
@@ -161,6 +172,7 @@ class ant extends Entity {
       case "Warrior": return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
       case "Spitter": return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
       case "DeLozier": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+      case "Queen": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
       default: return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
     }
   }
@@ -178,6 +190,7 @@ class ant extends Entity {
   get _transformController() { return this.getController('transform'); }
   get _terrainController() { return this.getController('terrain'); }
   get _interactionController() { return this.getController('interaction'); }
+  get _healthController() { return this.getController('health'); }
   
   // --- Property/Method Compatibility ---
   // Backwards-compatible posX/posY accessors used across unit/integration tests
@@ -270,7 +283,14 @@ class ant extends Entity {
  
    // --- Combat Methods ---
   takeDamage(amount) {
+    const oldHealth = this._health;
     this._health = Math.max(0, this._health - amount);
+    
+    // Notify health controller of damage
+    if (this._healthController && oldHealth > this._health) {
+      this._healthController.onDamage();
+    }
+    
     if (this._health <= 0) {
       this.die();
     }
@@ -306,6 +326,33 @@ class ant extends Entity {
   }
   dropAllResources() { return this._resourceManager?.dropAllResources() || []; }
   
+  // --- Gather State Methods ---
+  /**
+   * Start autonomous gathering behavior
+   */
+  startGathering() {
+    if (this._stateMachine) {
+      this._stateMachine.setPrimaryState("GATHERING");
+    }
+  }
+  
+  /**
+   * Stop gathering and return to idle
+   */
+  stopGathering() {
+    if (this._stateMachine) {
+      this._stateMachine.setPrimaryState("IDLE");
+    }
+  }
+  
+  /**
+   * Check if ant is currently in gathering state
+   * @returns {boolean} True if ant is gathering
+   */
+  isGathering() {
+    return this._stateMachine?.isGathering() || false;
+  }
+  
   // --- Update Override ---
   update() {
     if (!this.isActive) return;
@@ -318,6 +365,7 @@ class ant extends Entity {
     this._updateStateMachine();
     this._updateResourceManager();
     this._updateEnemyDetection();
+    this._updateHealthController();
     // If currently dropping off, check arrival each frame
     if (this._stateMachine && typeof this._stateMachine.isDroppingOff === 'function' && this._stateMachine.isDroppingOff()) {
       this._checkDropoffArrival();
@@ -334,6 +382,28 @@ class ant extends Entity {
   _updateStateMachine() {
     if (this._stateMachine) {
       this._stateMachine.update();
+      
+      // Update gather state behavior if ant is in GATHERING state
+      if (this._stateMachine.getCurrentState() == "GATHERING" && this._stateMachine.isGathering() && this._gatherState) {
+        if (!this._gatherState.isActive) {
+          //console.log(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
+          this._gatherState.enter() 
+        }
+        if (this._gatherState.update()) {this.stateMachine.beginIdle();};
+      } else if (this._gatherState && this._gatherState.isActive) {
+        //console.log(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
+        this._gatherState.exit();
+        
+      }
+    }
+   if (this._stateMachine.getCurrentState() === "IDLE") {
+    // deltaTime from p5.js is in milliseconds — convert to seconds.
+    const dt = (typeof deltaTime !== 'undefined') ? deltaTime / 1000 : (1 / 60); // fallback ~16.67ms
+    this._idleTimer += dt;
+  } else {
+    this._idleTimer = 0;
+  }if (this._stateMachine.getCurrentState() == "IDLE" && this._idleTimer >= this._idleTimerTimeout) {
+      this._stateMachine.ResumePreferredState()
     }
   }
   
@@ -353,7 +423,17 @@ class ant extends Entity {
       }
     }
    }
-  
+
+  _updateHealthController() {
+    if (this._healthController) {
+      this._healthController.update();
+    }
+  }
+
+   _renderBoxHover() {
+    this._renderController.highlightBoxHover();
+  }
+
   _updateEnemyDetection() {
     // Check for enemies periodically
     if (frameCount - this._lastEnemyCheck > this._enemyCheckInterval) {
@@ -370,24 +450,16 @@ class ant extends Entity {
     super.render();
 
     // Add ant-specific rendering
-    this._renderHealthBar();
+    if (this._healthController) {
+      this._healthController.render();
+    }
     this._renderResourceIndicator();
-  }
-
-  _renderHealthBar() {
-    if (this._health < this._maxHealth) {
-      const pos = this.getPosition();
-      const size = this.getSize();
-      
-      // Health bar background
-      fill(255, 0, 0);
-      rect(pos.x, pos.y - 8, size.x, 4);
-      
-      // Health bar foreground
-      fill(0, 255, 0);
-      rect(pos.x, pos.y - 8, (size.x * this._health) / this._maxHealth, 4);
+    if (this.isBoxHovered) {
+      this._renderBoxHover();
     }
   }
+
+
   
   _renderResourceIndicator() {
     const resourceCount = this.getResourceCount();
@@ -404,6 +476,8 @@ class ant extends Entity {
   // --- Debug Override ---
   getDebugInfo() {
     const baseInfo = super.getDebugInfo();
+    const gatherInfo = this._gatherState ? this._gatherState.getDebugInfo() : { isActive: false };
+    
     return {
       ...baseInfo,
       antIndex: this._antIndex,
@@ -412,7 +486,8 @@ class ant extends Entity {
       health: `${this._health}/${this._maxHealth}`,
       resources: `${this.getResourceCount()}/${this.getMaxResources()}`,
       faction: this._faction,
-      enemies: this._enemies.length
+      enemies: this._enemies.length,
+      gathering: gatherInfo
     };
   }
   
@@ -506,14 +581,45 @@ class ant extends Entity {
 // --- Job Assignment Function ---
 function assignJob() {
   const JobList = ['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter'];
-  const specialJobList = ['DeLozier'];
-  const availableJobs = !hasDeLozier ? [...JobList, ...specialJobList] : JobList;
-  
+  const specialJobList = ['DeLozier',];
+
+  const availableSpecialJobs = [];
+  if (!hasDeLozier) availableSpecialJobs.push('DeLozier');
+  const availableJobs = [...JobList, ...availableSpecialJobs];
+
   const chosenJob = availableJobs[Math.floor(random(0, availableJobs.length))];
   if (chosenJob === "DeLozier") { 
     hasDeLozier = true; 
   }
   return chosenJob;
+}
+
+function spawnQueen(){
+  let JobName = 'Queen'
+  let sizeR = random(0, 15);
+  let newAnt = new ant(
+    random(0, 500), random(0, 500), 
+    queenSize.x + sizeR, 
+    queenSize.y + sizeR, 
+    30, 0,
+    antBaseSprite,
+    'Queen',
+    'Player'
+  );
+
+  newAnt = new QueenAnt(newAnt);
+
+  newAnt.assignJob(JobName, JobImages[JobName]);
+  ants.push(newAnt);
+  newAnt.update();
+
+  // Register ant with TileInteractionManager for efficient mouse detection
+  if (g_tileInteractionManager) {
+    g_tileInteractionManager.addObject(newAnt, 'ant');
+  }
+
+
+  return newAnt;
 }
 
 // --- Spawn Ants ---
@@ -571,6 +677,13 @@ function antsUpdate() {
       }
     }
   }
+}
+
+function getQueen(){
+  if(queenAnt){
+    return queenAnt;
+  }
+  return false;
 }
 
 // --- Render All Ants (Separated from Updates) ---

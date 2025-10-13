@@ -105,8 +105,23 @@ function getFunctionName(callStackLevel) {
  * }
  */
 function IncorrectParamPassed(expectedParam, offendingParam) {
-    let callingFunc = getFunctionName(2)
-    let offendingFunc = getFunctionName(3)
+    let i = 2;
+
+    let callingFunc = getFunctionName(i);
+    let offendingFunc = getFunctionName(i+1);
+
+    callingFunc = callingFunc.trimStart();
+    offendingFunc = offendingFunc.trimStart();
+
+    while (callingFunc.includes("IncorrectParamPassed")){
+      i++;
+      callingFunc = getFunctionName(i);
+      offendingFunc = getFunctionName(i+1);
+      callingFunc = callingFunc.trimStart();
+      offendingFunc = offendingFunc.trimStart();
+    }
+
+    
     console.error (`${callingFunc}: Incorrect Param passed` + 
         ` from ${offendingFunc}.` +
         `\nExpecting Type ${getType(expectedParam)},` +
@@ -145,7 +160,7 @@ function IncorrectParamPassed(expectedParam, offendingParam) {
  */
 function deprecatedWarning(replacementFunction) {
     if (typeof replacementFunction === "function") {
-        console.warn(`${getFunctionName(2)} is deprecated. Use ${replacementFunction.name}() instead.`);
+        //console.warn(`${getFunctionName(2)} is deprecated. Use ${replacementFunction.name}() instead.`);
         paramInfo(replacementFunction)
     return replacementFunction.apply(null, arguments.length > 1 ? Array.prototype.slice.call(arguments, 1) : []);
     } else {

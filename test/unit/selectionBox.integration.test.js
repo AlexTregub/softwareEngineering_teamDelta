@@ -177,11 +177,27 @@ if (typeof window !== 'undefined') {
   window.testSelectionScenarios = testSelectionScenarios;
 }
 
-// Auto-run integration test only if dev console is enabled
+// Register with global test runner
+if (typeof globalThis !== 'undefined' && typeof globalThis.registerTest === 'function') {
+  globalThis.registerTest('Selection Box Integration Tests', testRealSelectionBoxIntegration);
+}
+
+// Auto-run integration test only if enabled and dev console is enabled
 setTimeout(() => {
-  if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && 
-      ants && ants.length > 0) {
-    console.log("🎮 Game loaded - running automatic selection box integration test");
-    testRealSelectionBoxIntegration();
+  if (typeof globalThis.shouldRunTests === 'function') {
+    if (globalThis.shouldRunTests() && typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && 
+        ants && ants.length > 0) {
+      globalThis.logNormal("🎮 Game loaded - running automatic selection box integration test");
+      testRealSelectionBoxIntegration();
+    } else if (!globalThis.shouldRunTests()) {
+      globalThis.logNormal("🎮 Selection Box Integration tests available but disabled. Use enableTests() to enable or runTests() to run manually.");
+    }
+  } else {
+    // Legacy behavior when global test runner is not available
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled && 
+        ants && ants.length > 0) {
+      globalThis.logNormal("🎮 Game loaded - running automatic selection box integration test");
+      testRealSelectionBoxIntegration();
+    }
   }
 }, 2000); // Wait 2 seconds for game to initialize

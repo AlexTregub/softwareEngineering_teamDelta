@@ -201,25 +201,6 @@ class UILayerRenderer {
   }
 
   renderToolbar() {
-    // The toolbar is now rendered by the Universal Button System
-    // Check if the ui-toolbar button group is loaded and visible
-    if (window.buttonGroupManager && 
-        typeof window.buttonGroupManager.getActiveGroupCount === 'function') {
-      
-      const activeGroups = window.buttonGroupManager.getActiveGroupCount();
-      
-      if (activeGroups === 0) {
-        // Fallback to original toolbar if Universal Button System is not active
-        this.renderFallbackToolbar();
-      } else {
-        // Otherwise, the Universal Button System handles toolbar rendering
-      }
-    } else {
-      // Fallback to original toolbar
-      this.renderFallbackToolbar();
-      // Fallback to original toolbar
-      this.renderFallbackToolbar();
-    }
   }
 
   renderFallbackToolbar() {

@@ -108,7 +108,8 @@ class Entity {
       'interaction': typeof InteractionController !== 'undefined' ? InteractionController : null,
       'combat': typeof CombatController !== 'undefined' ? CombatController : null,
       'terrain': typeof TerrainController !== 'undefined' ? TerrainController : null,
-      'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null
+      'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null,
+      'health': typeof HealthController !== 'undefined' ? HealthController : null
     };
 
     Object.entries(availableControllers).forEach(([name, ControllerClass]) => {
@@ -388,6 +389,22 @@ class Entity {
       boxHover: () => {
         const controller = this._controllers.get('render');
         return controller ? controller.highlightBoxHover() : null;
+      },
+      resourceHover: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightResource() : null;
+      },
+      spinning: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightSpin() : null;
+      },
+      slowSpin: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightSlowSpin() : null;
+      },
+      fastSpin: () => {
+        const controller = this._controllers.get('render');
+        return controller ? controller.highlightFastSpin() : null;
       },
       combat: () => {
         const controller = this._controllers.get('render');

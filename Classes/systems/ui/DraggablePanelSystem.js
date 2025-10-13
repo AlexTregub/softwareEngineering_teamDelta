@@ -1,6 +1,9 @@
 /**
  * @fileoverview Draggable Panel System Initialization
- * Sets up draggable panels for UI elements like resource display and performance monitor
+ * Sets up draggable panels for UI el    });
+    
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Debug info panel created');s like resource display and performance monitor
  * 
  * @author Software Engineering Team Delta - David Willman
  * @version 1.0.0
@@ -31,11 +34,19 @@ async function initializeDraggablePanelSystem() {
     
     // Create panel manager instance
     window.draggablePanelManager = new DraggablePanelManager();
-    console.log('✅ DraggablePanelManager instance created');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ DraggablePanelManager instance created');
+    } else {
+      console.log('✅ DraggablePanelManager instance created');
+    }
     
     // Initialize the manager
     window.draggablePanelManager.initialize();
-    console.log('✅ DraggablePanelManager initialized');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ DraggablePanelManager initialized');
+    } else {
+      console.log('✅ DraggablePanelManager initialized');
+    }
     
     // Create the resource display panel
     const resourceDisplayPanel = window.draggablePanelManager.addPanel({
@@ -59,7 +70,12 @@ async function initializeDraggablePanelSystem() {
         snapToEdges: true
       }
     });
-    console.log('✅ Resource display panel created');
+    
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Resource display panel created');
+    } else {
+      console.log('✅ Resource display panel created');
+    }
     
     // Create the performance monitor panel
     const performancePanel = window.draggablePanelManager.addPanel({
@@ -84,7 +100,12 @@ async function initializeDraggablePanelSystem() {
       },
       visible: true // Start visible, can be toggled with Ctrl+Shift+1
     });
-    console.log('✅ Performance monitor panel created');
+    
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Performance monitor panel created');
+    } else {
+      console.log('✅ Performance monitor panel created');
+    }
     
     // Create the debug info panel
     const debugInfoPanel = window.draggablePanelManager.addPanel({
@@ -109,7 +130,11 @@ async function initializeDraggablePanelSystem() {
       },
       visible: true // Start visible, can be toggled with Ctrl+Shift+3
     });
-    console.log('✅ Debug info panel created');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Debug info panel created');
+    } else {
+      console.log('✅ Debug info panel created');
+    }
     
     // Set up content renderers
     window.draggablePanelContentRenderers = {
@@ -117,16 +142,28 @@ async function initializeDraggablePanelSystem() {
       'performance-monitor': renderPerformanceMonitorContent,
       'debug-info': renderDebugInfoContent
     };
-    console.log('✅ Panel content renderers configured');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Panel content renderers configured');
+    } else {
+      console.log('✅ Panel content renderers configured');
+    }
     
     // Add keyboard shortcuts for toggling panels
     setupPanelKeyboardShortcuts();
-    console.log('✅ Panel keyboard shortcuts configured');
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('✅ Panel keyboard shortcuts configured');
+    } else {
+      console.log('✅ Panel keyboard shortcuts configured');
+    }
     
     // Coordinate with UILayerRenderer to avoid double rendering
     coordinateWithUIRenderer();
     
-    console.log('🎉 Draggable Panel System initialization complete!');
+    if (typeof globalThis.logNormal === 'function') {
+      globalThis.logNormal('🎉 Draggable Panel System initialization complete!');
+    } else {
+      console.log('🎉 Draggable Panel System initialization complete!');
+    }
     return true;
     
   } catch (error) {
@@ -139,9 +176,20 @@ async function initializeDraggablePanelSystem() {
  * Content renderer for the resource display panel
  */
 function renderResourceDisplayContent(contentArea, style) {
-  // Get current resource values
-  const wood = (g_resourceList && g_resourceList.wood) ? g_resourceList.wood.length : 0;
-  const food = (g_resourceList && g_resourceList.food) ? g_resourceList.food.length : 0;
+  // Get current resource values from the new resource system
+  let wood = 0, food = 0;
+  
+  if (g_resourceManager && typeof g_resourceManager.getResourcesByType === 'function') {
+    wood = g_resourceManager.getResourcesByType('wood').length;
+    food = g_resourceManager.getResourcesByType('food').length + 
+           g_resourceManager.getResourcesByType('greenLeaf').length + 
+           g_resourceManager.getResourcesByType('mapleLeaf').length;
+  } else if (g_resourceList && g_resourceList.wood) {
+    // Fallback to old system
+    wood = g_resourceList.wood.length;
+    food = g_resourceList.food.length;
+  }
+  
   const population = ants ? ants.length : 0;
   
   // Render resource text
@@ -229,7 +277,11 @@ function renderDebugInfoContent(contentArea, style) {
       yOffset += lineHeight;
     }
     
-    if (g_resourceList && g_resourceList.resources) {
+    // Resources count from new system
+    if (g_resourceManager && typeof g_resourceManager.getResourceList === 'function') {
+      text(`Resources: ${g_resourceManager.getResourceList().length || 0}`, contentArea.x, contentArea.y + yOffset);
+      yOffset += lineHeight;
+    } else if (g_resourceList && g_resourceList.resources) {
       text(`Resources: ${g_resourceList.resources.length || 0}`, contentArea.x, contentArea.y + yOffset);
       yOffset += lineHeight;
     }

@@ -110,17 +110,24 @@ class DraggablePanel {
       
       this.buttons.push(button);
     });
+    
+    // Auto-resize panel to fit content
+    this.autoResizeToFitContent();
   }
 
   /**
    * Calculate button position based on layout
    */
   calculateButtonPosition(index) {
-    const baseX = this.state.position.x + this.config.style.padding;
-    const baseY = this.state.position.y + this.config.style.titleBarHeight + this.config.style.padding;
-    const spacing = this.config.buttons.spacing;
-    const buttonWidth = this.config.buttons.buttonWidth;
-    const buttonHeight = this.config.buttons.buttonHeight;
+    const scale = 1.0;
+    const titleBarHeight = this.calculateTitleBarHeight();
+    const baseX = this.state.position.x + (this.config.style.padding * scale);
+    const baseY = this.state.position.y + titleBarHeight + (this.config.style.padding * scale);
+    const spacing = this.config.buttons.spacing * scale;
+    const buttonWidth = this.config.buttons.buttonWidth * scale;
+    
+    // Use actual button height if available, otherwise use config default
+    const buttonHeight = this.buttons[index] ? this.buttons[index].height : (this.config.buttons.buttonHeight * scale);
     
     switch (this.config.buttons.layout) {
       case 'horizontal':
@@ -133,16 +140,40 @@ class DraggablePanel {
         const cols = this.config.buttons.columns;
         const row = Math.floor(index / cols);
         const col = index % cols;
+        
+        // Calculate cumulative height for previous rows
+        let yOffset = 0;
+        for (let r = 0; r < row; r++) {
+          let maxHeightInRow = 0;
+          for (let c = 0; c < cols; c++) {
+            const btnIndex = r * cols + c;
+            if (btnIndex < this.buttons.length) {
+              maxHeightInRow = Math.max(maxHeightInRow, this.buttons[btnIndex].height);
+            }
+          }
+          yOffset += maxHeightInRow + spacing;
+        }
+        
         return {
           x: baseX + (col * (buttonWidth + spacing)),
-          y: baseY + (row * (buttonHeight + spacing))
+          y: baseY + yOffset
         };
         
       case 'vertical':
       default:
+        // Calculate cumulative height for previous buttons
+        let cumulativeHeight = 0;
+        for (let i = 0; i < index; i++) {
+          if (this.buttons[i]) {
+            cumulativeHeight += this.buttons[i].height + spacing;
+          } else {
+            cumulativeHeight += buttonHeight + spacing;
+          }
+        }
+        
         return {
           x: baseX,
-          y: baseY + (index * (buttonHeight + spacing))
+          y: baseY + cumulativeHeight
         };
     }
   }
@@ -166,6 +197,7 @@ class DraggablePanel {
         if (typeof data.minimized === 'boolean') {
           this.state.minimized = data.minimized;
         }
+
       }
     } catch (e) {
       console.warn(`Failed to load persisted state for panel ${this.config.id}:`, e.message);
@@ -193,30 +225,70 @@ class DraggablePanel {
   }
 
   /**
+   * Check if mouse is over this panel (including title bar and content area)
+   * 
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position
+   * @returns {boolean} True if mouse is over the panel
+   */
+  isMouseOver(mouseX, mouseY) {
+    if (!this.state.visible) return false;
+    
+    const height = this.state.minimized ? this.calculateTitleBarHeight() : this.config.size.height;
+    const panelBounds = {
+      x: this.state.position.x,
+      y: this.state.position.y,
+      width: this.config.size.width,
+      height: height
+    };
+    
+    return this.isPointInBounds(mouseX, mouseY, panelBounds);
+  }
+
+  /**
    * Update method for handling mouse interaction and dragging
    * Based on ButtonGroup.js drag handling
    * 
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position  
    * @param {boolean} mousePressed - Whether mouse button is currently pressed
+   * @returns {boolean} True if mouse event was consumed by this panel
    */
   update(mouseX, mouseY, mousePressed) {
-    if (!this.state.visible) return;
+    if (!this.state.visible) return false;
+    
+    // Check if mouse is over this panel
+    const mouseOverPanel = this.isMouseOver(mouseX, mouseY);
+    
+    // Check if content needs resizing (this happens once per frame maximum)
+    if (!this._lastResizeCheck || Date.now() - this._lastResizeCheck > 100) {
+      this.autoResizeToFitContent();
+      this._lastResizeCheck = Date.now();
+    }
     
     // Update button positions when panel moves
     this.updateButtonPositions();
     
     // Update button interactions (only if not dragging panel)
+    let buttonConsumedEvent = false;
     if (!this.isDragging) {
       this.buttons.forEach(button => {
-        button.update(mouseX, mouseY, mousePressed);
+        const consumed = button.update(mouseX, mouseY, mousePressed);
+        if (consumed) buttonConsumedEvent = true;
       });
     }
     
     // Handle panel dragging
+    let dragConsumedEvent = false;
     if (this.config.behavior.draggable) {
+      const wasDragging = this.isDragging;
       this.handleDragging(mouseX, mouseY, mousePressed);
+      // If we started dragging or were already dragging, consume the event
+      dragConsumedEvent = this.isDragging || wasDragging;
     }
+    
+    // Return true if mouse is over panel and we consumed the event
+    return mouseOverPanel && (buttonConsumedEvent || dragConsumedEvent);
   }
 
   /**
@@ -328,11 +400,14 @@ class DraggablePanel {
    * @returns {Object} Bounds object with x, y, width, height properties
    */
   getTitleBarBounds() {
+    const scale = 1.0;
+    const titleBarHeight = this.calculateTitleBarHeight();
+    
     return {
       x: this.state.position.x,
       y: this.state.position.y,
-      width: this.config.size.width,
-      height: this.config.style.titleBarHeight
+      width: this.config.size.width * scale,
+      height: titleBarHeight
     };
   }
 
@@ -398,16 +473,19 @@ class DraggablePanel {
       fill(...this.config.style.backgroundColor);
       if (typeof stroke === 'function') {
         stroke(...this.config.style.borderColor);
-        strokeWeight(1);
+        strokeWeight(1 * 1.0);
       }
       
-      const height = this.state.minimized ? this.config.style.titleBarHeight : this.config.size.height;
+      const scale = 1.0;
+      const titleBarHeight = this.calculateTitleBarHeight();
+      const height = this.state.minimized ? titleBarHeight : (this.config.size.height * scale);
+      
       rect(
         this.state.position.x, 
         this.state.position.y, 
-        this.config.size.width, 
+        this.config.size.width * scale, 
         height, 
-        this.config.style.cornerRadius
+        this.config.style.cornerRadius * scale
       );
     }
   }
@@ -417,6 +495,9 @@ class DraggablePanel {
    */
   renderTitleBar() {
     if (typeof fill === 'function' && typeof text === 'function') {
+      const scale = 1.0;
+      const titleBarHeight = this.calculateTitleBarHeight();
+      
       // Title bar background (slightly different color)
       const titleBg = this.config.style.backgroundColor.slice();
       titleBg[3] = Math.min(255, titleBg[3] + 50); // Slightly lighter
@@ -426,30 +507,41 @@ class DraggablePanel {
         rect(
           this.state.position.x, 
           this.state.position.y, 
-          this.config.size.width, 
-          this.config.style.titleBarHeight,
-          this.config.style.cornerRadius, this.config.style.cornerRadius, 0, 0
+          this.config.size.width * scale, 
+          titleBarHeight,
+          this.config.style.cornerRadius * scale, this.config.style.cornerRadius * scale, 0, 0
         );
       }
       
-      // Title text
+      // Title text with word wrapping
       fill(...this.config.style.titleColor);
-      if (typeof textAlign === 'function') textAlign(LEFT, CENTER);
-      if (typeof textSize === 'function') textSize(this.config.style.titleFontSize);
+      if (typeof textAlign === 'function') textAlign(LEFT, TOP);
+      if (typeof textSize === 'function') textSize(this.config.style.titleFontSize * scale);
+      
+      // Enable text wrapping if available in p5.js
+      if (typeof textWrap === 'function') {
+        textWrap(WORD);
+      }
+      
+      const titleText = this.wrapText(
+        this.config.title, 
+        (this.config.size.width * scale) - (this.config.style.padding * scale * 3), // Leave room for minimize button
+        this.config.style.titleFontSize * scale
+      );
       
       text(
-        this.config.title,
-        this.state.position.x + this.config.style.padding,
-        this.state.position.y + this.config.style.titleBarHeight / 2
+        titleText,
+        this.state.position.x + (this.config.style.padding * scale),
+        this.state.position.y + (this.config.style.padding * scale / 2)
       );
       
       // Minimize/maximize button (simple indicator)
-      const buttonX = this.state.position.x + this.config.size.width - 20;
-      const buttonY = this.state.position.y + this.config.style.titleBarHeight / 2;
+      const buttonX = this.state.position.x + (this.config.size.width * scale) - (20 * scale);
+      const buttonY = this.state.position.y + titleBarHeight / 2;
       
       fill(150, 150, 150);
       if (typeof textAlign === 'function') textAlign(CENTER, CENTER);
-      if (typeof textSize === 'function') textSize(12);
+      if (typeof textSize === 'function') textSize(12 * scale);
       text(this.state.minimized ? '+' : '−', buttonX, buttonY);
     }
   }
@@ -597,6 +689,22 @@ class DraggablePanel {
   }
 
   /**
+   * Update button text and trigger layout recalculation
+   * 
+   * @param {number} buttonIndex - Index of button to update
+   * @param {string} newText - New text for the button
+   */
+  updateButtonText(buttonIndex, newText) {
+    if (buttonIndex >= 0 && buttonIndex < this.buttons.length) {
+      this.buttons[buttonIndex].setCaption(newText);
+      this.config.buttons.items[buttonIndex].caption = newText;
+      
+      // Trigger auto-resize
+      this.autoResizeToFitContent();
+    }
+  }
+
+  /**
    * Remove a button by index
    * 
    * @param {number} index - Index of button to remove
@@ -642,6 +750,178 @@ class DraggablePanel {
    */
   isDragActive() {
     return this.isDragging;
+  }
+
+
+
+  /**
+   * Wrap text to fit within specified width
+   * 
+   * @param {string} text - Text to wrap
+   * @param {number} maxWidth - Maximum width in pixels
+   * @param {number} fontSize - Font size for measurement
+   * @returns {string} Wrapped text with line breaks
+   */
+  wrapText(text, maxWidth, fontSize) {
+    if (typeof textWidth !== 'function') {
+      return text; // Fallback if textWidth is not available
+    }
+    
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    
+    // Set text size for measurement
+    if (typeof textSize === 'function') {
+      textSize(fontSize);
+    }
+    
+    for (let word of words) {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const testWidth = textWidth(testLine);
+      
+      if (testWidth > maxWidth && currentLine !== '') {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines.join('\n');
+  }
+
+  /**
+   * Calculate the required height for the title bar with wrapped text
+   * 
+   * @returns {number} Required title bar height
+   */
+  calculateTitleBarHeight() {
+    const scale = 1.0;
+    const maxWidth = (this.config.size.width * scale) - (this.config.style.padding * scale * 3);
+    const fontSize = this.config.style.titleFontSize * scale;
+    
+    if (typeof textWidth !== 'function') {
+      return this.config.style.titleBarHeight * scale;
+    }
+    
+    // Set font for measurement
+    if (typeof textSize === 'function') {
+      textSize(fontSize);
+    }
+    
+    const wrappedText = this.wrapText(this.config.title, maxWidth, fontSize);
+    const lines = wrappedText.split('\n').length;
+    const lineHeight = fontSize * 1.2;
+    const titleHeight = lines * lineHeight;
+    
+    // Ensure minimum height and add padding
+    const minHeight = this.config.style.titleBarHeight * scale;
+    return Math.max(minHeight, titleHeight + (this.config.style.padding * scale));
+  }
+
+  /**
+   * Auto-resize buttons to fit their text content
+   */
+  autoResizeButtons() {
+    let layoutChanged = false;
+    
+    this.buttons.forEach((button, index) => {
+      if (typeof button.autoResizeForText === 'function') {
+        const changed = button.autoResizeForText(10 * 1.0);
+        if (changed) {
+          layoutChanged = true;
+        }
+      }
+    });
+    
+    if (layoutChanged) {
+      this.updateButtonPositions();
+    }
+  }
+
+  /**
+   * Calculate the total content height needed for all buttons
+   * 
+   * @returns {number} Required content height
+   */
+  calculateContentHeight() {
+    if (this.buttons.length === 0) {
+      return this.config.size.height;
+    }
+    
+    const scale = 1.0;
+    const spacing = this.config.buttons.spacing * scale;
+    const padding = this.config.style.padding * scale;
+    
+    let totalHeight = padding * 2; // Top and bottom padding
+    
+    if (this.config.buttons.layout === 'vertical') {
+      // Sum all button heights plus spacing
+      for (let i = 0; i < this.buttons.length; i++) {
+        totalHeight += this.buttons[i].height;
+        if (i < this.buttons.length - 1) {
+          totalHeight += spacing;
+        }
+      }
+    } else if (this.config.buttons.layout === 'grid') {
+      // Calculate grid rows and use maximum button height per row
+      const cols = this.config.buttons.columns || 2;
+      const rows = Math.ceil(this.buttons.length / cols);
+      
+      for (let row = 0; row < rows; row++) {
+        let maxHeightInRow = 0;
+        for (let col = 0; col < cols; col++) {
+          const buttonIndex = row * cols + col;
+          if (buttonIndex < this.buttons.length) {
+            maxHeightInRow = Math.max(maxHeightInRow, this.buttons[buttonIndex].height);
+          }
+        }
+        totalHeight += maxHeightInRow;
+        if (row < rows - 1) {
+          totalHeight += spacing;
+        }
+      }
+    } else { // horizontal
+      // Use the maximum button height
+      const maxButtonHeight = Math.max(...this.buttons.map(b => b.height));
+      totalHeight += maxButtonHeight;
+    }
+    
+    return totalHeight;
+  }
+
+  /**
+   * Auto-resize the entire panel to fit its content
+   */
+  autoResizeToFitContent() {
+    // First, auto-resize buttons
+    this.autoResizeButtons();
+    
+    // Calculate new dimensions
+    const scale = 1.0;
+    const titleBarHeight = this.calculateTitleBarHeight();
+    const contentHeight = this.calculateContentHeight();
+    const newPanelHeight = titleBarHeight + contentHeight;
+    
+    // Update panel size if significantly different
+    const currentScaledHeight = this.config.size.height * scale;
+    const heightDifference = Math.abs(newPanelHeight - currentScaledHeight);
+    
+    if (heightDifference > 5) { // Only resize if difference is notable
+      this.config.size.height = newPanelHeight / scale; // Store unscaled size
+      this.config.style.titleBarHeight = titleBarHeight / scale; // Store unscaled title height
+      
+      // Update button positions after resize
+      this.updateButtonPositions();
+      
+      // Save the new size
+      this.saveState();
+    }
   }
 }
 

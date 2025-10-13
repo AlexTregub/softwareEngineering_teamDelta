@@ -3,6 +3,20 @@
 ///// Treat _ as private, else as public.
 let GRID_ID = 0;
 
+//// GRID UTILS:
+function convertToGrid(data,sizeX,sizeY) { // Convert raw array into grid format.
+    let temp = new Grid(sizeX,sizeY);
+    
+    // Copy data:
+    for (let i = 0; i < sizeX*sizeY; ++i) {
+        temp.rawArray[i] = data[i];
+    }
+
+    return temp;
+}
+
+
+//// GRID:
 class Grid {
     constructor(sizeX,sizeY,spanTopLeft=NONE,objLoc=[0,0]) { // Only Size needed
         // Array size config
@@ -17,7 +31,7 @@ class Grid {
 
         this._spanEnabled = (spanTopLeft == NONE) ? false : true; // Conditional statements are valid
         this._spanTopLeft = spanTopLeft; // spanTopleft = (x,y), 
-        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]+this._sizeY]; // Automatically set spanBotRight 
+        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]-this._sizeY]; // Automatically set spanBotRight 
         
         this._objLoc = objLoc; // (x,y) GRID object location, not necs.
 
@@ -39,17 +53,78 @@ class Grid {
     convRelToArrPos(pos) { // Convert relative span position to array position 
         return [
             pos[0] - this._spanTopLeft[0],
-            pos[1] - this._spanTopLeft[1]
+            -pos[1] + this._spanTopLeft[1]
         ];
     }
 
     convArrToRelPos(pos) { // Convert array position to relative span position 
         return [
             this._spanTopLeft[0] + pos[0],
-            this._spanTopLeft[1] + pos[1]
+            this._spanTopLeft[1] - pos[1]
         ];
     }
 
+
+    //// Bulk data access:
+    // Inclusive range. Both TL and BR included in return
+    getRangeData(tlArrayPos,brArrayPos) { // NO CHECKS, DO NOT TORTURE KITTENS AND PASS OOB VALUES
+        let collect = [];
+        // console.log(tlArrayPos,brArrayPos);
+
+        for (let j = tlArrayPos[1]; j <= brArrayPos[1]; ++j) {
+            for (let i = tlArrayPos[0]; i <= brArrayPos[0]; ++i) {
+                // console.log(this.rawArray[this.convToFlat([i,j])])
+                collect.push(this.rawArray[this.convToFlat([i,j])]);
+            }
+        }
+
+        return collect;
+    }
+
+    getRangeNeighborhoodData(arrayPos,radius) { // Gets neighborhood around points.
+        // // Configure range:
+        // let tlPos = []; let brPos = [];
+        // tlPos[0] = arrayPos[0] - radius > 0 ? arrayPos[0] - radius : 0;
+        // tlPos[1] = arrayPos[1] - radius > 0 ? arrayPos[1] - radius : 0;
+
+        // brPos[0] = arrayPos[0] + radius < this._sizeX ? arrayPos[0] + radius : this._sizeX-1;
+        // brPos[1] = arrayPos[1] + radius < this._sizeY ? arrayPos[1] + radius : this._sizeY-1;
+
+        // return this.getRangeData(tlPos,brPos);
+
+        return this.getRangeNeighborhoodGrid(arrayPos,radius).rawArray;
+    }
+
+    // convertToGrid(data,sizeX,sizeY) { // Convert raw array into grid format.
+    //     let temp = new Grid(sizeX,sizeY);
+        
+    //     // Copy data:
+    //     for (let i = 0; i < sizeX*sizeY; ++i) {
+    //         temp.rawArray[i] = data[i];
+    //     }
+
+    //     return temp;
+    // }
+
+    getRangeGrid(tlArrayPos,brArrayPos) { // NO CHECKS, DO NOT TORTURE KITTENS
+        return convertToGrid(
+            this.getRangeData(tlArrayPos,brArrayPos),
+            brArrayPos[0]-tlArrayPos[0],
+            brArrayPos[1]-tlArrayPos[1]
+        );
+    }
+
+    getRangeNeighborhoodGrid(arrayPos,radius) {
+        // Copy of size info from getRangeNeighborhoodGrid
+        let tlPos = []; let brPos = [];
+        tlPos[0] = arrayPos[0] - radius > 0 ? arrayPos[0] - radius : 0;
+        tlPos[1] = arrayPos[1] - radius > 0 ? arrayPos[1] - radius : 0;
+
+        brPos[0] = arrayPos[0] + radius < this._sizeX ? arrayPos[0] + radius : this._sizeX-1;
+        brPos[1] = arrayPos[1] + radius < this._sizeY ? arrayPos[1] + radius : this._sizeY-1;
+        
+        return this.getRangeGrid(tlPos,brPos);
+    }
 
 
     //// Access data (unrestricted, allows errors/out of bounds for perf., refactor once usage known)
@@ -134,6 +209,21 @@ class Grid {
         }
     }
 
+    toString() {
+        let line = "";
+        for (let i = 0; i < this._sizeArr; ++i) {
+            line += (this.rawArray[i] + ',');
+
+            if (i % this._sizeX == this._sizeX-1) {
+                // print(line);
+                line += ";\n";
+                continue;
+            }
+        }
+
+        return line;
+    }
+
     infoStr() {
         return "Grid#"+this._gridId+"_[size:("+this._sizeX+','+this._sizeY+"),span:"+this._spanEnabled+",(("+this._spanTopLeft+"),("+this._spanBotRight+")),loc:"+this._objLoc+']';
     }
@@ -182,7 +272,7 @@ class Grid {
         // If selected: copy over
         if (oldDataPos != NONE) { // Assuming we want to retain data:
             for (let j = 0; j < this._sizeArr; ++j) { // j is old array access
-                let pos2dOld = this.convToSqaure(j); // Gets OLD position
+                let pos2dOld = this.convToSquare(j); // Gets OLD position
                 let pos2dNew = [
                     oldDataPos[0] + pos2dOld[0],
                     oldDataPos[1] + pos2dOld[1]
@@ -201,7 +291,7 @@ class Grid {
             this._spanTopLeft[0] = this._spanTopLeft[0] - oldDataPos[0];
             this._spanTopLeft[1] = this._spanTopLeft[1] - oldDataPos[1];
 
-            this._spanBotRight = [this._spanTopLeft[0]+newSize[0], this._spanTopLeft[1]+newSize[1]];
+            this._spanBotRight = [this._spanTopLeft[0]+newSize[0], this._spanTopLeft[1]-newSize[1]];
         }
 
         // Update Size
@@ -219,7 +309,7 @@ class Grid {
         this._spanEnabled = true;
         this._spanTopLeft = topLeftPos;
 
-        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]+this._sizeY]; // Automatically set spanBotRight 
+        this._spanBotRight = [spanTopLeft[0]+this._sizeX, spanTopLeft[1]-this._sizeY]; // Automatically set spanBotRight 
     }
 
     // Grid-object position
@@ -317,4 +407,25 @@ function testGridResizeAndConsequences() {
     //...
     testObj.clear();
     print(testObj.infoStr());
+}
+
+function testGridBulk() {
+    let size = [10,10];
+    let test = new Grid(size[0],size[1],[0,0]);
+
+    for (let i = 0; i < size[0]*size[1]; ++i) {
+        test.rawArray[i] = i;
+    }
+
+    console.log(test.getArrPos([9,0]));
+    console.log(test.getArrPos([10,0])); // OOB
+
+    let testPos = [4,4];
+    for (let j = 0; j < size[0]; ++j) {
+        console.log(test.getRangeNeighborhoodData(testPos,j))
+    }
+
+    let test1 = test.convertToGrid(test.getRangeNeighborhoodData([1,1],1),3,3); // Size must be known
+    print(test1);
+    print(test1.infoStr())
 }

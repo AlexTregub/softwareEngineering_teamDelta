@@ -19,11 +19,13 @@ let g_seed;
 let g_map;
 let g_map2;
 let g_gridMap;
-let g_coordsy;
 // --- UI ---
 let g_menuFont;
 // --- IDK! ----
 let g_recordingPath;
+// -- Queen ---
+let queenAnt;
+
 
 /**
  * preload
@@ -37,6 +39,11 @@ function preload(){
   menuPreload();
   antsPreloader();
   resourcePreLoad();
+  
+  // Load presentation assets
+  if (typeof loadPresentationAssets !== 'undefined') {
+    loadPresentationAssets();
+  }
 }
 
 
@@ -61,59 +68,7 @@ function setup() {
   });
 
   initializeMenu();  // Initialize the menu system
-  
-  // UI Debug System initialization
-  // Create global UI Debug Manager instance
-  // Disabled to avoid conflicts with other UI systems
-  //
-  window.g_uiDebugManager = new UIDebugManager();
-  g_uiDebugManager = window.g_uiDebugManager; // Make globally available
-  
-  // Initialize dropoff UI if present (creates the Place Dropoff button)
-  window.initDropoffUI();
-
-  // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
-  try {
-      g_resourceManager.forceSpawn();
-  } catch (e) { /* non-fatal; spawner will populate via interval */ }
-
-  // Initialize Universal Button Group System
-  initializeUniversalButtonSystem();
-  
-  // Initialize Draggable Panel System
-  initializeDraggablePanelSystem();
-  
-  // Initialize Enhanced Draggable Panels with Button Arrays
-  if (typeof initializeDraggablePanels !== 'undefined') {
-    initializeDraggablePanels();
-  }
-  
-  // Initialize ant control panel for spawning and state management
-  if (typeof initializeAntControlPanel !== 'undefined') {
-    initializeAntControlPanel();
-  }
-  
-  // Initialize UI Selection Controller for effects layer selection box
-  // This must happen after RenderManager.initialize() creates the EffectsRenderer
-  setTimeout(() => {
-    console.log('🎯 Initializing UI Selection Controller...');
-    
-    // Check if required components exist
-    if (UISelectionController && window.EffectsRenderer) {
-      g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
-      console.log('✅ UISelectionController created successfully');
-      
-      // Initialize the selection box system
-      if (initializeUISelectionBox) {
-        initializeUISelectionBox();
-      }
-    } else {
-      console.error('❌ Required components not available:');
-      console.log('UISelectionController available:', typeof UISelectionController !== 'undefined');
-      console.log('EffectsRenderer available:', typeof window.EffectsRenderer !== 'undefined');
-      console.log('window.EffectsRenderer object:', window.EffectsRenderer);
-    }
-  }, 200);
+  renderPipelineInit();
 }
 
 /**
@@ -132,37 +87,42 @@ function initializeWorld() {
   
   // New, Improved, and Chunked Terrain
   // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
-  g_map2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
   g_gridMap = new PathMap(g_map);
-  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
-  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+  
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
-  initializeDraggablePanelSystem();
- 
+  queenAnt = spawnQueen();
 }
-
 
 /**
  * draw
  * ----
  * Main rendering loop for the game.
- * 
- * Invokes the rendering pipeline in three distinct stages:
- *   1. mapRender   - Draws the g_map background and debug grid.
- *   2. fieldRender - Renders all dynamic game entities and resources.
- *   3. uiRender    - Draws user interface elements and overlays.
- * 
- * Ensures proper visual stacking and separation between foundational layers,
- * interactive entities, and UI components. Called automatically by p5.js each frame.
+ * uses the RenderManager to render the current game state.
+ * Also updates draggable panels if in the PLAYING state.
+ * Called automatically by p5.js at the frame rate.
  */
+
 function draw() {
+  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+
+  updatePresentationPanels(GameState.getState());
+
+  // Update presentation panels for state-based visibility
+  if (typeof updatePresentationPanels !== 'undefined') {
+    updatePresentationPanels(GameState.getState());
+  }
+  RenderManager.render(GameState.getState());
+
+
   // background(0);
   // g_map2.renderDirect();
 
@@ -182,8 +142,12 @@ function draw() {
 
   if (RenderManager && RenderManager.isInitialized) {
     RenderManager.render(GameState.getState());
+    // console.log(frameRate());
   }
-
+      // Render debug visualization for ant gathering (overlays on top)
+  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
+    g_gatherDebugRenderer.render();
+  }
   // Update button groups (rendering handled by RenderLayerManager)
   if (window.buttonGroupManager) {
     try {
@@ -191,13 +155,29 @@ function draw() {
     } catch (error) {
       console.error('❌ Error updating button group system:', error);
     }
+
+    
   }
+
+  if (GameState.getState() === 'PLAYING') {
+    const playerQueen = getQueen();
+    if (playerQueen) {
+      // WASD key codes: W=87 A=65 S=83 D=68
+      if (keyIsDown(87)) playerQueen.move("w");
+      if (keyIsDown(65)) playerQueen.move("a");
+      if (keyIsDown(83)) playerQueen.move("s");
+      if (keyIsDown(68)) playerQueen.move("d");
+    }
+  }
+
 
   // Note: rendering of draggable panels is handled via RenderManager's
   // ui_game layer (DraggablePanelManager integrates into the render layer).
   // We intentionally do NOT call renderDraggablePanels() here to avoid a
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
+
+
 }
 
 /**
@@ -210,6 +190,7 @@ function draw() {
 function handleMouseEvent(type, ...args) {
   if (GameState.isInGame()) {
     g_mouseController[type](...args);
+    console.log(g_map2.renderConversion.convCanvasToPos([mouseX,mouseY]));
   }
 }
 
@@ -235,8 +216,19 @@ function mousePressed() {
       console.error('❌ Error handling button click:', error);
     }
   }
-  
-  handleMouseEvent('handleMousePressed', mouseX, mouseY, mouseButton);
+
+  // Handle DraggablePanel mouse events
+  if (window.draggablePanelManager && 
+      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
+    try {
+      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (handled) return; // Panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling draggable panel mouse events:', error);
+    }
+  }
+
+  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
 function mouseDragged() {
@@ -269,6 +261,10 @@ function handleKeyEvent(type, ...args) {
     g_keyboardController[type](...args);
   }
 }
+
+
+
+
 
 /**
  * keyPressed
@@ -317,6 +313,15 @@ function keyPressed() {
         RenderManager.enableAllLayers();
         handled = true;
         break;
+      case 'z': // Shift+1 - Toggle Sprint 5 image in menu
+        if (typeof toggleSprintImageInMenu !== 'undefined') {
+          toggleSprintImageInMenu();
+        } else {
+          console.warn('toggleSprintImageInMenu function not available');
+        }
+        handled = true;
+        break;
+        break;        
     }
     
     if (handled) {
@@ -325,7 +330,20 @@ function keyPressed() {
       return; // Layer toggle was handled, don't process further
     }
   }
-  
+
+    // --- Queen Movement (Using WASD) ---
+  let playerQueen = getQueen();
+  if (typeof playerQueen !== "undefined" && playerQueen instanceof QueenAnt) {
+    if (key.toLowerCase() === 'r') {
+      playerQueen.emergencyRally();
+      return;
+    } 
+    if (key.toLowerCase() === 'm') {
+      playerQueen.gatherAntsAt(mouseX, mouseY);
+      return;
+    }
+  }
+
   // Handle all debug-related keys (unified debug system handles both console and UI debug)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
@@ -371,10 +389,31 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     line(x, 0, x, gridHeight * tileSize);
   }
 
-  // Draw horizontal grid lines  
-  for (let y = 0; y <= gridHeight * tileSize; y += tileSize) {
-    line(0, y, gridWidth * tileSize, y);
+  // Highlight tile under mouse
+  const tileX = Math.floor(mouseX / tileSize);
+  const tileY = Math.floor(mouseY / tileSize);
+  fill(255, 255, 0, 50); // transparent yellow
+  noStroke();
+  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+
+  // Highlight selected ant's current tile
+  if (selectedAnt) {
+    const antTileX = Math.floor(selectedAnt.posX / tileSize);
+    const antTileY = Math.floor(selectedAnt.posY / tileSize);
+    fill(0, 255, 0, 80); // transparent green
+    noStroke();
+    rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
 
   pop();
+}
+
+// Dynamic window resizing:
+function windowResized() {
+  g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
+  // background(0);
+
+  resizeCanvas(g_canvasX,g_canvasY);
 }
