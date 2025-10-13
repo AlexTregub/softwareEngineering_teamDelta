@@ -20,7 +20,7 @@ class ResourceManager {
    * @param {number} parentEntity.posX - X position of the entity
    * @param {number} parentEntity.posY - Y position of the entity
    * @param {Function} [parentEntity.moveToLocation] - Optional movement function
-   * @param {number} [maxCapacity=2] - Maximum number of resources the entity can carry
+   * @param {number} [maxCapacity=6] - Maximum number of resources the entity can carry
    * @param {number} [collectionRange=25] - Range in pixels for resource detection
    */
   constructor(parentEntity, maxCapacity = 2, collectionRange = 25) {

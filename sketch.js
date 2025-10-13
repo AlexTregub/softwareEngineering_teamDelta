@@ -23,6 +23,9 @@ let g_gridMap;
 let g_menuFont;
 // --- IDK! ----
 let g_recordingPath;
+// -- Queen ---
+let queenAnt;
+
 
 /**
  * preload
@@ -96,7 +99,7 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
- 
+  queenAnt = spawnQueen();
 }
 
 /**
@@ -228,6 +231,10 @@ function handleKeyEvent(type, ...args) {
   }
 }
 
+
+
+
+
 /**
  * keyPressed
  * ----------
@@ -283,6 +290,7 @@ function keyPressed() {
         }
         handled = true;
         break;
+        break;        
     }
     
     if (handled) {
@@ -291,7 +299,29 @@ function keyPressed() {
       return; // Layer toggle was handled, don't process further
     }
   }
-  
+
+    // --- Queen Movement (Using WASD) ---
+  let playerQueen = getQueen();
+  if (typeof playerQueen !== "undefined" && playerQueen instanceof QueenAnt) {
+    switch (key.toLowerCase()) {
+      case 'w': playerQueen.move("w"); break;
+      case 'a': playerQueen.move("a"); break;
+      case 's': playerQueen.move("s"); break;
+      case 'd': playerQueen.move("d"); break;
+      case 'r': playerQueen.emergencyRally(); break;
+      case 'm': playerQueen.gatherAntsAt(mouseX, mouseY); break;
+    }
+
+    // --- Queen Commands ---
+    if (key.toLowerCase() === 'r') {
+      playerQueen.emergencyRally();
+    } 
+    // 
+    else if (key.toLowerCase() === 'm') {
+      playerQueen.gatherAntsAt(mouseX, mouseY);
+    }
+  }
+
   // Handle all debug-related keys (unified debug system handles both console and UI debug)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
