@@ -49,7 +49,8 @@ class Sprite2D {
     if (this.alpha && this.alpha < 255) {
       tint(255, this.alpha);
     }
-    
+    // TODO: fix all of the rendering to use the correct sprite pos.
+    //image(this.img, -this.size.x/2, -this.size.y/2, this.size.x, this.size.y);
     image(this.img, 0, 0, this.size.x, this.size.y);
     pop();
   }
