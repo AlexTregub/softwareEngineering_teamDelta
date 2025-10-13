@@ -486,18 +486,19 @@ class Resource extends Entity {
   }
 
   applyHighlight() {
-    // Try to use the enhanced API first (Phase 3 feature)
     if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
-      // Use InteractionController for hover detection if available
         this.highlight.hover();
     } else {
       verboseLog("No hover effect available");
     }
   }
 
+  // Not currently used
+  /**
+   * -- drawManualHighlight --
+   * 
+   */
   drawManualHighlight() {
-    // Use InteractionController for hover detection if available
-    const interactionController = this.getController('interaction');
     const isHovered = interactionController ? 
       interactionController.isMouseOver() : 
       this.isMouseOver(mouseX, mouseY);

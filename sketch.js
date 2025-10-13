@@ -118,6 +118,8 @@ function draw() {
     updatePresentationPanels(GameState.getState());
   }
   RenderManager.render(GameState.getState());
+
+
   // background(0);
   // g_map2.renderDirect();
 
@@ -139,7 +141,10 @@ function draw() {
     RenderManager.render(GameState.getState());
     // console.log(frameRate());
   }
-
+      // Render debug visualization for ant gathering (overlays on top)
+  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
+    g_gatherDebugRenderer.render();
+  }
   // Update button groups (rendering handled by RenderLayerManager)
   if (window.buttonGroupManager) {
     try {
@@ -147,6 +152,8 @@ function draw() {
     } catch (error) {
       console.error('❌ Error updating button group system:', error);
     }
+
+    
   }
 
   // Note: rendering of draggable panels is handled via RenderManager's

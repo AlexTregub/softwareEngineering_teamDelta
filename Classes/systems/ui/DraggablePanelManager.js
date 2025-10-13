@@ -315,6 +315,11 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
           },
           {
+            caption: 'Gathering All Lines',
+            onClick: () => g_gatherDebugRenderer.toggleAllLines(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },
+          {
             caption: 'Set Patrol',
             onClick: () => this.setSelectedAntsPatrol(),
             style: { ...ButtonStyles.WARNING, backgroundColor: '#FFA500' }

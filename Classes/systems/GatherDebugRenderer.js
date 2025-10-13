@@ -17,6 +17,7 @@ class GatherDebugRenderer {
     this.showResourceInfo = true;
     this.showDistances = true;
     this.showAntInfo = true;
+    this.showAllLines = false;
     
     // Visual styling
     this.rangeColor = [255, 255, 0, 80]; // Yellow with transparency
@@ -33,6 +34,13 @@ class GatherDebugRenderer {
   toggle() {
     this.enabled = !this.enabled;
     console.log(`🔍 Gather Debug Renderer: ${this.enabled ? 'ENABLED' : 'DISABLED'}`);
+  }
+
+    /**
+   * Toggles whether to show all lines or just the lines that are in range of resources
+   */
+  toggleAllLines() {
+    this.showAllLines = !this.showAllLines
   }
 
   /**
@@ -74,7 +82,7 @@ class GatherDebugRenderer {
     
     // Render resource information
     if (this.showResourceInfo) {
-      this.renderResourceInfo(resources);
+      renderResourceInfo(resources,this.textColor,this.resourceColor);
     }
     
     pop(); // Restore drawing state
@@ -127,66 +135,109 @@ class GatherDebugRenderer {
         const distance = Math.sqrt((antPos.x - resPos.x) ** 2 + (antPos.y - resPos.y) ** 2);
         const isInRange = distance <= gatherRadius;
 
-        if (!isInRange){        
-            // Draw line to resource
-            stroke(...this.lineColor);
-            strokeWeight(1);
-            line(antPos.x, antPos.y, resPos.x, resPos.y);
-            
+        if (isInRange || this.showAllLines){        
             // Distance label (midpoint of line)
             const midX = (antPos.x + resPos.x) / 2;
             const midY = (antPos.y + resPos.y) / 2;
-            
-            fill(isInRange ? [0, 255, 0] : [255, 0, 0]); // Green if in range, red if not
+
             noStroke();
             textAlign(CENTER, CENTER);
             textSize(8);
-            text(`${distance.toFixed(0)}px`, midX, midY);
-            text('✓ IN RANGE', midX, midY + 12);
+            if (isInRange){
+                push();
+                fill("green")
+                text(`${distance.toFixed(0)}px`, midX, midY);
+                text('✓ IN RANGE', midX, midY + 12);
+                pop();
+                drawLineBetweenEntities(antPos,resPos,"Green",1);
+            } else {
+                push();
+                fill("red")
+                text(`${distance.toFixed(0)}px`, midX, midY);
+                text('✖ IN RANGE', midX, midY + 12);
+                pop();
+                drawLineBetweenEntities(antPos,resPos,"White",1);
+            }
+            
         }
       });
     }
   }
+}
+
+// Create global instance
+if (typeof window !== 'undefined') {
+  window.g_gatherDebugRenderer = new GatherDebugRenderer();
+} else if (typeof global !== 'undefined') {
+  global.g_gatherDebugRenderer = new GatherDebugRenderer();
+}
+
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = GatherDebugRenderer;
+}
+
+/**
+ * Global utility function to draw lines between entities
+ * @param {Object} obj1Pos - Position of first entity {x, y}
+ * @param {Object} obj2Pos - Position of second entity {x, y}
+ * @param {Array} lineColor - RGB or RGBA color array [r, g, b] or [r, g, b, a]
+ * @param {number} lineWeight - Thickness of the line
+ */
+function drawLineBetweenEntities(obj1Pos, obj2Pos, lineColor, lineWeight) {
+  stroke(lineColor);
+  strokeWeight(lineWeight);
+  line(obj1Pos.x, obj1Pos.y, obj2Pos.x, obj2Pos.y);
+}
 
   /**
-   * Render information about all resources
-   * @param {Array} resources - Array of all resources
+   * Render information about all resources (debug overlay)
+   * @param {Array} resources - Array of resource objects that implement getPosition() and resourceType
+   * @param {Array} [textColor=this.textColor] - Optional text color array [r,g,b] or [r,g,b,a]
+   * @param {Array} [resourceColor=this.resourceColor] - Optional resource dot color array
    */
-  renderResourceInfo(resources) {
+function renderResourceInfo(resources,textColor,resourceColor) {
+    if (typeof resources || typeof textColor || typeof resourceColor === "undefined"){
+        if (typeof resources === "undefined") { IncorrectParamPassed([],resources )};
+        if (typeof textColor === "undefined") { IncorrectParamPassed([],textColor )};
+        if (typeof resourceColor === "undefined") { IncorrectParamPassed([],resourceColor )};
+        return;
+    }
     resources.forEach((resource, index) => {
-      const resPos = resource.getPosition();
-      
-      // Draw resource position
-      fill(...this.resourceColor);
-      noStroke();
-      ellipse(resPos.x, resPos.y, 6, 6);
-      
-      // Resource label
-      fill(...this.textColor);
-      textAlign(CENTER, BOTTOM);
-      textSize(10);
-      text(`${resource.resourceType || 'Resource'}`, resPos.x, resPos.y - 8);
-      text(`(${resPos.x.toFixed(0)}, ${resPos.y.toFixed(0)})`, resPos.x, resPos.y - 18);
+        const resPos = resource.getPosition();
+        
+        // Draw resource position
+        fill(resourceColor);
+        noStroke();
+        ellipse(resPos.x, resPos.y, 6, 6);
+        
+        // Resource label
+        fill(textColor);
+        textAlign(CENTER, BOTTOM);
+        textSize(10);
+        text(`${resource.resourceType || 'Resource'}`, resPos.x, resPos.y - 8);
+        text(`(${resPos.x.toFixed(0)}, ${resPos.y.toFixed(0)})`, resPos.x, resPos.y - 18);
     });
-    
+
     // Resource count in corner
-    fill(...this.textColor);
+    fill(textColor);
     textAlign(LEFT, TOP);
     textSize(14);
     text(`📦 Resources: ${resources.length}`, 10, 10);
-    
-    if (typeof ants !== 'undefined' && ants.length > 0) {
-      const gatheringAnts = ants.filter(ant => ant.state === 'GATHERING' || ant._gatherState);
-      text(`🐜 Gathering Ants: ${gatheringAnts.length}/${ants.length}`, 10, 30);
-    }
-  }
 
-  /**
-   * Create resources near a specific ant for testing
-   * @param {Object} ant - The ant to create resources near
-   * @param {number} count - Number of resources to create
-   */
-  createTestResourcesNearAnt(ant, count = 3) {
+    if (typeof ants !== 'undefined' && ants.length > 0) {
+        const gatheringAnts = ants.filter(ant => ant.state === 'GATHERING');
+        text(`🐜 Gathering Ants: ${gatheringAnts.length}/${ants.length}`, 10, 30);
+    }
+}
+
+
+/**
+ * Create resources near a specific ant for testing
+ * @param {Object} ant - The ant to create resources near
+ * @param {number} count - Number of resources to create
+ */
+function createTestResourcesNearAnt(ant, count = 3) {
     if (typeof g_resourceManager === 'undefined' || !g_resourceManager) {
       console.error('❌ g_resourceManager not available');
       return;
@@ -195,7 +246,7 @@ class GatherDebugRenderer {
     const antPos = ant.getPosition();
     const radius = 100; // Create within 100px of ant
     
-    console.log(`🧪 Creating ${count} test resources near ant at (${antPos.x.toFixed(0)}, ${antPos.y.toFixed(0)})`);
+    console.log(`Creating ${count} test resources near ant at (${antPos.x.toFixed(0)}, ${antPos.y.toFixed(0)})`);
     
     for (let i = 0; i < count; i++) {
       // Random position within radius
@@ -223,18 +274,5 @@ class GatherDebugRenderer {
       console.log(`  ✅ Created ${resource.resourceType} at (${x.toFixed(0)}, ${y.toFixed(0)})`);
     }
     
-    console.log(`🎯 Total resources now: ${g_resourceManager.getResourceList().length}`);
+    console.log(`total resources now: ${g_resourceManager.getResourceList().length}`);
   }
-}
-
-// Create global instance
-if (typeof window !== 'undefined') {
-  window.g_gatherDebugRenderer = new GatherDebugRenderer();
-} else if (typeof global !== 'undefined') {
-  global.g_gatherDebugRenderer = new GatherDebugRenderer();
-}
-
-// Export for module systems
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = GatherDebugRenderer;
-}
