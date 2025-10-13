@@ -235,6 +235,55 @@ class AntUtilities {
     return selected;
   }
 
+  /**
+   * Synchronize selection between individual ant.isSelected properties and SelectionBoxController
+   * This ensures both selection systems are consistent
+   * @param {Array} ants - Array of all ants
+   */
+  static synchronizeSelections(ants) {
+    if (!ants) return;
+    
+    // Get currently selected ants based on individual properties
+    const selectedAnts = this.getSelectedAnts(ants);
+    
+    // Update SelectionBoxController to match
+    const controller = typeof SelectionBoxController !== 'undefined' ? SelectionBoxController.getInstance() : null;
+    if (controller) {
+      // Clear the controller's selection
+      controller.deselectAll();
+      
+      // Set the controller's selected entities to match individual selections
+      if (selectedAnts.length > 0) {
+        selectedAnts.forEach(ant => {
+          ant.isSelected = true; // Ensure it's marked as selected
+        });
+        
+        // Update the controller's internal selected entities array
+        if (controller._selectedEntities) {
+          controller._selectedEntities = [...selectedAnts];
+        }
+      }
+    }
+    
+    // Update global selectedAnt if only one ant is selected
+    if (selectedAnts.length === 1) {
+      if (typeof selectedAnt !== 'undefined') {
+        selectedAnt = selectedAnts[0];
+      }
+      if (typeof antManager !== 'undefined' && antManager && antManager.setSelectedAnt) {
+        antManager.setSelectedAnt(selectedAnts[0]);
+      }
+    } else {
+      // Clear single selection if multiple or no ants selected
+      if (typeof selectedAnt !== 'undefined') {
+        selectedAnt = null;
+      }
+      if (typeof antManager !== 'undefined' && antManager && antManager.clearSelection) {
+        antManager.clearSelection();
+      }
+    }
+  }
+
   // --- Pathfinding Utilities ---
 
   /**
@@ -441,6 +490,9 @@ class AntUtilities {
     }
 
     console.log(`Changed state of ${changedCount} ants to ${primaryState}`);
+    
+    // Synchronize selection systems after state change
+    this.synchronizeSelections(ants);
   }
 
   /**
@@ -481,6 +533,61 @@ class AntUtilities {
    */
   static setSelectedAntsBuilding(ants) {
     this.changeSelectedAntsState(ants, "BUILDING", "OUT_OF_COMBAT", "DEFAULT");
+  }
+
+  /**
+   * Set selected ants to GATHERING state for autonomous resource collection
+   * @param {Array} ants - Array of all ants
+   * @returns {number} Number of ants set to gathering state
+   */
+  static setSelectedAntsGathering(ants) {
+    const selected = this.getSelectedAnts(ants);
+    let gatheringCount = 0;
+    
+    selected.forEach(ant => {
+      if (ant._stateMachine && ant._stateMachine.canPerformAction('gather')) {
+        ant._stateMachine.setPrimaryState('GATHERING');
+        gatheringCount++;
+      }
+    });
+    
+    console.log(`🔍 Set ${gatheringCount} ants to GATHERING state (7-grid radius)`);
+    this.synchronizeSelections(ants);
+    return gatheringCount;
+  }
+
+  /**
+   * Get ants currently in gathering state
+   * @param {Array} ants - Array of all ants
+   * @returns {Array} Array of ants in gathering state
+   */
+  static getGatheringAnts(ants) {
+    if (!ants) return [];
+    
+    return ants.filter(ant => {
+      return ant && ant._stateMachine && ant._stateMachine.isGathering && ant._stateMachine.isGathering();
+    });
+  }
+
+  /**
+   * Stop gathering for selected ants (return to idle)
+   * @param {Array} ants - Array of all ants
+   * @returns {number} Number of ants stopped from gathering
+   */
+  static stopSelectedAntsGathering(ants) {
+    const selected = this.getSelectedAnts(ants);
+    let stoppedCount = 0;
+    
+    selected.forEach(ant => {
+      if (ant._stateMachine && ant._stateMachine.isGathering && ant._stateMachine.isGathering()) {
+        ant._stateMachine.setPrimaryState('IDLE');
+        stoppedCount++;
+      }
+    });
+    
+    console.log(`⏹️ Stopped ${stoppedCount} ants from gathering`);
+    this.synchronizeSelections(ants);
+    return stoppedCount;
   }
 
   // --- Utility Functions ---
@@ -612,21 +719,66 @@ function antLoopPropertyCheck(property) {
 // --- Move Selected Ant to Tile ---
 // --- Generic moveSelectedEntityToTile ---
 function moveSelectedEntityToTile(mx, my, tileSize) {
-  // Use SelectionBoxController's selectedEntities for single selection
+  let selectedEntity = null;
+  let useMultiSelection = false;
+
+  // First, check SelectionBoxController's selectedEntities (for drag selection and button selection)
   const controller = typeof SelectionBoxController !== 'undefined' ? SelectionBoxController.getInstance() : null;
   const selectedEntities = controller ? controller.getSelectedEntities() : [];
 
-  if (!selectedEntities || selectedEntities.length !== 1) {
+  if (selectedEntities && selectedEntities.length > 0) {
+    // If multiple entities selected, use multi-selection movement
+    if (selectedEntities.length > 1) {
+      moveSelectedEntitiesToTile(mx, my, tileSize);
+      return;
+    } else {
+      // Single entity in multi-selection system
+      selectedEntity = selectedEntities[0];
+      useMultiSelection = true;
+    }
+  }
+
+  // Fallback to global selectedAnt (for individual mouse click selection)
+  if (!selectedEntity && typeof selectedAnt !== 'undefined' && selectedAnt) {
+    selectedEntity = selectedAnt;
+    useMultiSelection = false;
+  }
+
+  // If still no selection found, check if antManager exists
+  if (!selectedEntity && typeof antManager !== 'undefined' && antManager && antManager.getSelectedAnt) {
+    selectedEntity = antManager.getSelectedAnt();
+    useMultiSelection = false;
+  }
+
+  // No selected entity found
+  if (!selectedEntity) {
     return;
   }
-  let selectedEntity = selectedEntities[0];
-  // Now working with direct ant objects - no unwrapping needed
 
+  // Move the entity
   const tileX = Math.floor(mx / tileSize);
   const tileY = Math.floor(my / tileSize);
-  MovementController.moveEntityToTile(selectedEntity, tileX, tileY, tileSize, g_gridMap);
-  selectedEntity.isSelected = false;
-  if (controller) controller.deselectAll();
+  
+  if (typeof MovementController !== 'undefined' && MovementController.moveEntityToTile) {
+    MovementController.moveEntityToTile(selectedEntity, tileX, tileY, tileSize, g_gridMap);
+  } else {
+    // Fallback to direct movement
+    AntUtilities.moveAntDirectly(selectedEntity, mx, my);
+  }
+
+  // Deselect based on which system was used
+  if (useMultiSelection) {
+    selectedEntity.isSelected = false;
+    if (controller) controller.deselectAll();
+  } else {
+    selectedEntity.isSelected = false;
+    if (typeof selectedAnt !== 'undefined') {
+      selectedAnt = null;
+    }
+    if (typeof antManager !== 'undefined' && antManager && antManager.clearSelection) {
+      antManager.clearSelection();
+    }
+  }
 }
 
 function moveSelectedEntitiesToTile(mx, my, tileSize) {

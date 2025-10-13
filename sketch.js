@@ -18,11 +18,13 @@ let g_seed;
 let g_map;
 let g_map2;
 let g_gridMap;
-let g_coordsy;
 // --- UI ---
 let g_menuFont;
 // --- IDK! ----
 let g_recordingPath;
+// -- Queen ---
+let queenAnt;
+
 
 /**
  * preload
@@ -101,19 +103,19 @@ function initializeWorld() {
   
   // New, Improved, and Chunked Terrain
   // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
-  g_map2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
   g_gridMap = new PathMap(g_map);
-  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
-  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+  
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
- 
+  queenAnt = spawnQueen();
 }
 
 /**
@@ -134,8 +136,64 @@ function draw() {
   if (typeof updatePresentationPanels !== 'undefined') {
     updatePresentationPanels(GameState.getState());
   }
-
   RenderManager.render(GameState.getState());
+
+
+  // background(0);
+  // g_map2.renderDirect();
+
+  // Use the new layered rendering system
+  // Update legacy draggable panels BEFORE rendering so the render pipeline
+  // sees the latest panel positions (avoids a pre-update render that leaves
+  // a ghost image of the previous frame's positions).
+  if (GameState.getState() === 'PLAYING') {
+    try {
+      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+        updateDraggablePanels();
+      }
+    } catch (error) {
+      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
+    }
+  }
+
+  if (RenderManager && RenderManager.isInitialized) {
+    RenderManager.render(GameState.getState());
+    // console.log(frameRate());
+  }
+      // Render debug visualization for ant gathering (overlays on top)
+  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
+    g_gatherDebugRenderer.render();
+  }
+  // Update button groups (rendering handled by RenderLayerManager)
+  if (window.buttonGroupManager) {
+    try {
+      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+    } catch (error) {
+      console.error('❌ Error updating button group system:', error);
+    }
+
+    
+  }
+
+  if (GameState.getState() === 'PLAYING') {
+    const playerQueen = getQueen();
+    if (playerQueen) {
+      // WASD key codes: W=87 A=65 S=83 D=68
+      if (keyIsDown(87)) playerQueen.move("w");
+      if (keyIsDown(65)) playerQueen.move("a");
+      if (keyIsDown(83)) playerQueen.move("s");
+      if (keyIsDown(68)) playerQueen.move("d");
+    }
+  }
+
+
+  // Note: rendering of draggable panels is handled via RenderManager's
+  // ui_game layer (DraggablePanelManager integrates into the render layer).
+  // We intentionally do NOT call renderDraggablePanels() here to avoid a
+  // second draw pass within the same frame which would leave a ghost of
+  // the pre-update positions.
+
+
 }
 
 /**
@@ -148,6 +206,7 @@ function draw() {
 function handleMouseEvent(type, ...args) {
   if (GameState.isInGame()) {
     g_mouseController[type](...args);
+    console.log(g_map2.renderConversion.convCanvasToPos([mouseX,mouseY]));
   }
 }
 
@@ -171,6 +230,17 @@ function mousePressed() {
       if (handled) return; // Button was clicked, don't process other mouse events
     } catch (error) {
       console.error('❌ Error handling button click:', error);
+    }
+  }
+
+  // Handle DraggablePanel mouse events
+  if (window.draggablePanelManager && 
+      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
+    try {
+      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (handled) return; // Panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling draggable panel mouse events:', error);
     }
   }
 
@@ -207,6 +277,10 @@ function handleKeyEvent(type, ...args) {
     g_keyboardController[type](...args);
   }
 }
+
+
+
+
 
 /**
  * keyPressed
@@ -558,24 +632,126 @@ function draw() {
 }
 
 
+  // Handle UI shortcuts first (Ctrl+Shift combinations)
+  if (window.UIManager && window.UIManager.handleKeyPress) {
+    const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
+    if (handled) {
+      return; // UI shortcut was handled, don't process further
+    }
+  }
+  
+  // Handle render layer toggles (Shift + C/V/B/N/M)
+  if (keyIsDown(SHIFT) && RenderManager && RenderManager.isInitialized) {
+    let handled = false;
+    
+    switch (key.toLowerCase()) {
+      case 'c': // Shift+C - Toggle TERRAIN layer
+        RenderManager.toggleLayer('terrain');
+        handled = true;
+        break;
+      case 'v': // Shift+V - Toggle ENTITIES layer
+        RenderManager.toggleLayer('entities');
+        handled = true;
+        break;
+      case 'b': // Shift+B - Toggle EFFECTS layer
+        RenderManager.toggleLayer('effects');
+        handled = true;
+        break;
+      case 'n': // Shift+N - Toggle UI_GAME layer
+        RenderManager.toggleLayer('ui_game');
+        handled = true;
+        break;
+      case 'm': // Shift+M - Toggle UI_DEBUG layer
+        RenderManager.toggleLayer('ui_debug');
+        handled = true;
+        break;
+      case ',': // Shift+, - Toggle UI_MENU layer (comma key)
+        RenderManager.toggleLayer('ui_menu');
+        handled = true;
+        break;
+      case '.': // Shift+. - Enable all layers (period key)
+        RenderManager.enableAllLayers();
+        handled = true;
+        break;
+      case 'z': // Shift+1 - Toggle Sprint 5 image in menu
+        if (typeof toggleSprintImageInMenu !== 'undefined') {
+          toggleSprintImageInMenu();
+        } else {
+          console.warn('toggleSprintImageInMenu function not available');
+        }
+        handled = true;
+        break;
+        break;        
+    }
+    
+    if (handled) {
+      // Display current layer states
+      console.log('🔧 Layer States:', RenderManager.getLayerStates());
+      return; // Layer toggle was handled, don't process further
+    }
+  }
+
+    // --- Queen Movement (Using WASD) ---
+  let playerQueen = getQueen();
+  if (typeof playerQueen !== "undefined" && playerQueen instanceof QueenAnt) {
+    if (key.toLowerCase() === 'r') {
+      playerQueen.emergencyRally();
+      return;
+    } 
+    if (key.toLowerCase() === 'm') {
+      playerQueen.gatherAntsAt(mouseX, mouseY);
+      return;
+    }
+  }
+
+  // Handle all debug-related keys (unified debug system handles both console and UI debug)
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug key was handled, don't process further
+  }
+  if (keyCode === ESCAPE && g_selectionBoxController) {
+    g_selectionBoxController.deselectAll();
+    return;
+  }
+  handleKeyEvent('handleKeyPressed', keyCode, key);
+}
+
+// DEBUG RENDERING FUNCTIONS
+// These functions provide basic debug visualization capability
+
+/**
+ * debugRender
+ * -----------
+ * Debug rendering function - now using draggable panels instead of static overlay.
+ * The debug information is now displayed in the Debug Info draggable panel.
+ */
+function debugRender() {
+  // Debug info is now handled by the Debug Info draggable panel
+  // No static debug rendering needed here anymore
+  return;
+}
+
+/**
+ * drawDebugGrid
+ * -------------
+ * Draws a debug grid overlay for tile-based debugging.
+ * @param {number} tileSize - Size of each tile in pixels
+ * @param {number} gridWidth - Width of the grid in tiles
+ * @param {number} gridHeight - Height of the grid in tiles
+ */
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
   const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
   strokeWeight(1 / zoom);
   noFill();
-  //console.log("t");
-  for (let x = 0; x < gridWidth; x++) {
-    for (let y = 0; y < gridHeight; y++) {
-      rect(x * tileSize, y * tileSize, tileSize, tileSize);
-    }
+
+  // Draw vertical grid lines
+  for (let x = 0; x <= gridWidth * tileSize; x += tileSize) {
+    line(x, 0, x, gridHeight * tileSize);
   }
 
   // Highlight tile under mouse
-  const mouseWorld = typeof getWorldMousePosition === 'function'
-    ? getWorldMousePosition()
-    : { x: mouseX, y: mouseY };
-  const tileX = Math.floor(mouseWorld.x / tileSize);
-  const tileY = Math.floor(mouseWorld.y / tileSize);
+  const tileX = Math.floor(mouseX / tileSize);
+  const tileY = Math.floor(mouseY / tileSize);
   fill(255, 255, 0, 50); // transparent yellow
   noStroke();
   rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
@@ -588,8 +764,16 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     noStroke();
     rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
   }
+
+  pop();
 }
 
-// Dev console indicator moved to debug/testing.js
+// Dynamic window resizing:
+function windowResized() {
+  g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
+  // background(0);
 
-// Command line drawing moved to debug/commandLine.js
+  resizeCanvas(g_canvasX,g_canvasY);
+}

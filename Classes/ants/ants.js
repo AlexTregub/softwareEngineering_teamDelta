@@ -2,11 +2,13 @@
 let antToSpawn = 0;
 let antIndex = 0;
 let antSize;
+let queenSize;
 let ants = [];
 let globalResource = [];
 let antBaseSprite;
 let antbg;
 let hasDeLozier = false;
+let hasQueen = false;
 let selectedAnt = null;
 let JobImages = {};
 
@@ -16,6 +18,7 @@ let antManager = null;
 // --- Preload Images and manager ---
 function antsPreloader() {
   antSize = createVector(20, 20);
+  queenSize = createVector(30, 30);
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   JobImages = {
@@ -24,7 +27,8 @@ function antsPreloader() {
     Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
     Warrior: loadImage('Images/Ants/gray_ant.png'), // We don't have a gray ant warrior
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
-    DeLozier: loadImage('Images/Ants/greg.jpg')
+    DeLozier: loadImage('Images/Ants/greg.jpg'),
+    Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
   };
   initializeAntManager();
 }
@@ -51,6 +55,9 @@ class ant extends Entity {
     this._JobName = JobName;
     this._antIndex = antIndex++;
     this.isBoxHovered = false;
+    this._idleTimer = 0;
+    this._idleTimerTimeout = 1;
+
     
     // New job system (component-based)
     this.job = null;  // Will hold JobComponent instance
@@ -73,6 +80,9 @@ class ant extends Entity {
     this._stateMachine.setStateChangeCallback((oldState, newState) => {
       this._onStateChange(oldState, newState);
     });
+    
+    // Initialize Gather State behavior
+    this._gatherState = new GatherState(this);
     
     // Faction and enemy tracking
     this._faction = faction;
@@ -99,6 +109,7 @@ class ant extends Entity {
   get StatsContainer() { return this._stats; }
   get resourceManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
+  get gatherState() { return this._gatherState; }
   get faction() { return this._faction; }
   set faction(value) { this._faction = value; }
   get nearbyEnemies() { return this._nearbyEnemies; }
@@ -152,166 +163,116 @@ class ant extends Entity {
       // Legacy highlighting
       this.legacyHighlight();
     }
-  }
-
-  // --- Legacy Highlighting (fallback) ---
-  legacyHighlight() {
-    const mousePoint = typeof getWorldMousePosition === 'function'
-      ? getWorldMousePosition()
-      : { x: mouseX, y: mouseY };
-
-    // Use abstract highlighting functions from selectionBox.js if available
-    if (typeof highlightEntity === 'function') {
-      if (this._isSelected) {
-        highlightEntity(this, "selected");
-        if (typeof renderDebugInfo === 'function') renderDebugInfo(this);
-      } else if (this.isMouseOver(mousePoint.x, mousePoint.y)) {
-        highlightEntity(this, "hover");
-      } else if (this.isBoxHovered) {
-        highlightEntity(this, "boxHovered");
-      }
-      
-      // Show combat state with red outline
-      if (this._stateMachine.isInCombat()) {
-        highlightEntity(this, "combat");
-      }
-      
-      // Show state-dependent visual indicators
-      if (typeof renderStateIndicators === 'function') {
-        renderStateIndicators(this);
-      }
-    }
-  }
-  
-  // --- Mouse Over Detection ---
-  isMouseOver(mx, my) {
-    const pos = this._sprite.pos;
-    const size = this._sprite.size;
-    return (
-      mx >= pos.x &&
-      mx <= pos.x + size.x &&
-      my >= pos.y &&
-      my <= pos.y + size.y
-    );
-  }
-
-  setPath(path) { 
-    if (this._movementController) {
-      this._movementController.setPath(path);
-    } else {
-      this._path = path;
-    }
-  }
-
-  // --- Skitter Logic ---
-  setTimeUntilSkitter(value) { this._timeUntilSkitter = value; }
-  rndTimeUntilSkitter() { 
-    this._timeUntilSkitter = random(30, 200); // Generate new random value each time
-  }
-  getTimeUntilSkitter() { return this._timeUntilSkitter; }
-
-  // --- Position and Size ---
-  set posX(value) {
-    this._stats.position.statValue.x = value;
-    this._sprite.pos.x = value;
-  }
-  get posX() { return this._stats.position.statValue.x; }
-
-  set posY(value) {
-    this._stats.position.statValue.y = value;
-    this._sprite.pos.y = value;
-  }
-  get posY() { return this._stats.position.statValue.y; }
-
-  // Helper methods for abstract highlighting functions
-  getPosition() {
-    return this._sprite.pos;
-  }
-  
-  getSize() {
-    return this._sprite.size;
-  }
-
-  get center() {
-    const pos = this._stats.position.statValue;
-    const size = this._stats.size.statValue;
-    return createVector(pos.x + (size.x / 2), pos.y + (size.y / 2));
-  }
-
-  set sizeX(value) { this._stats.size.statValue.x = value; }
-  get sizeX() { return this._stats.size.statValue.x; }
-  set sizeY(value) { this._stats.size.statValue.y = value; }
-  get sizeY() { return this._stats.size.statValue.y; }
-
-  // --- Movement Speed ---
-  set movementSpeed(value) { this._stats.movementSpeed.statValue = value; }
-  get movementSpeed() { return this._stats.movementSpeed.statValue; }
-  
-  // Get effective movement speed modified by terrain
-  getEffectiveMovementSpeed() {
-    let baseSpeed = this.movementSpeed;
     
-    // Apply terrain modifiers
-    switch (this._stateMachine.terrainModifier) {
-      case "IN_WATER": return baseSpeed * 0.5; // 50% speed in water
-      case "IN_MUD":return baseSpeed * 0.3; // 30% speed in mud
-      case "ON_SLIPPERY":return 0; // Can't move on slippery terrain
-      case "ON_ROUGH": return baseSpeed * 0.8; // 80% speed on rough terrain
-      case "DEFAULT":
-      default:return baseSpeed; // Normal speed
+    return this;
+  }
+  
+  _applyJobStats(stats) {
+    // Apply job stats to ant properties
+    this._maxHealth = stats.health;
+    this._health = stats.health;
+    this._damage = stats.strength;
+    
+    // Apply to StatsContainer if available
+    if (this._stats) {
+      this._stats.strength.statValue = stats.strength;
+      this._stats.health.statValue = stats.health;
+      this._stats.gatherSpeed.statValue = stats.gatherSpeed;
+      this._stats.movementSpeed.statValue = stats.movementSpeed;
     }
-  }
-
-  // --- Rotation ---
-  set rotation(value) {
-    this._sprite.rotation = value;
-    while (this._sprite.rotation > 360) this._sprite.rotation -= 360;
-    while (this._sprite.rotation < -360) this._sprite.rotation += 360;
-  }
-  get rotation() { return this._sprite.rotation; }
-
-  // In Range Of Resource
-
-
-  // --- Move Logic ---
-  moveToLocation(X, Y) {
-    // Use MovementController if available
-    if (this._movementController) {
-      return this._movementController.moveToLocation(X, Y);
-    } else {
-      // Fallback to legacy movement logic
-      if (this._stateMachine.canPerformAction("move")) {
-        this._stats.pendingPos.statValue.x = X;
-        this._stats.pendingPos.statValue.y = Y;
-        this._isMoving = true;
-        this._stateMachine.setPrimaryState("MOVING");
-        return true;
-      }
-      return false;
+    
+    // Apply to movement controller if available
+    const movementController = this.getController('movement');
+    if (movementController) {
+      movementController.movementSpeed = stats.movementSpeed;
     }
   }
   
-  // Detect terrain at current position (placeholder - you'll need to integrate with your terrain system)
-  detectTerrain() {
-    // This is a placeholder - you'll need to integrate with your actual terrain/grid system
-    // For now, return DEFAULT terrain
-    // In the future, you could check grid tiles, water bodies, etc.
-    
-    // Example terrain detection logic (replace with your actual terrain system):
-    // const tileX = Math.floor(this.posX / TILE_SIZE);
-    // const tileY = Math.floor(this.posY / TILE_SIZE);
-    // const terrainType = getTerrainAt(tileX, tileY);
-    
-    return "DEFAULT"; // Placeholder
+  _getFallbackJobStats(jobName) {
+    // Fallback job stats when JobComponent isn't available
+    switch (jobName) {
+      case "Builder": return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 60 };
+      case "Scout": return { strength: 10, health: 80, gatherSpeed: 10, movementSpeed: 80 };
+      case "Farmer": return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 60 };
+      case "Warrior": return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
+      case "Spitter": return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
+      case "DeLozier": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+      case "Queen": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+      default: return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
+    }
   }
   
-  // Update terrain state based on current position
-  updateTerrainState() {
-    const currentTerrain = this.detectTerrain();
-    if (this._stateMachine.terrainModifier !== currentTerrain) {
-      this._stateMachine.setTerrainModifier(currentTerrain);
-    }
+  getJobStats() {
+    return this.job ? this.job.stats : this._getFallbackJobStats(this.jobName);
+  }
+  
+  // --- Controller Access for Test Compatibility ---
+  get _movementController() { return this.getController('movement'); }
+  get _taskManager() { return this.getController('taskManager'); }
+  get _renderController() { return this.getController('render'); }
+  get _selectionController() { return this.getController('selection'); }
+  get _combatController() { return this.getController('combat'); }
+  get _transformController() { return this.getController('transform'); }
+  get _terrainController() { return this.getController('terrain'); }
+  get _interactionController() { return this.getController('interaction'); }
+  get _healthController() { return this.getController('health'); }
+  
+  // --- Property/Method Compatibility ---
+  // Backwards-compatible posX/posY accessors used across unit/integration tests
+  // These proxy into the transform controller (or collision box) so older tests
+  // that read/write posX/posY continue to work.
+  get posX() { return this.getPosition().x; }
+  set posX(value) { const p = this.getPosition(); this.setPosition(value, p.y); }
+  get posY() { return this.getPosition().y; }
+  set posY(value) { const p = this.getPosition(); this.setPosition(p.x, value); }
 
+  get isMoving() { return this._delegate('movement', 'getIsMoving') || false; }
+  get isSelected() {
+    const result = this._delegate('selection', 'isSelected') || false;
+    // Debug: log when selection state is queried
+  //
+    return result;
+  }
+  set isSelected(value) {
+    // Debug: log when selection state is set
+    this._delegate('selection', 'setSelected', value);
+  }
+  
+  // --- Command/Task Compatibility ---
+  addCommand(command) { return this._delegate('taskManager', 'addTask', command); }
+  
+  // --- State Machine Integration ---
+  _onStateChange(oldState, newState) {
+    // When entering DROPPING_OFF, find nearest dropoff and move there
+    if (typeof newState === 'string' && newState.includes("DROPPING_OFF")) {
+      this._goToNearestDropoff();
+    }
+    // leaving dropoff clears target
+    if (typeof oldState === 'string' && oldState.includes("DROPPING_OFF") && !(typeof newState === 'string' && newState.includes("DROPPING_OFF"))) {
+      this._targetDropoff = null;
+    }
+  }
+
+  // Find nearest DropoffLocation and move to its center. Returns true if a target was found.
+  _goToNearestDropoff() {
+    const list = (window && window.dropoffs) ? window.dropoffs :
+                 (typeof dropoffs !== 'undefined' ? dropoffs : []);
+    if (!Array.isArray(list) || list.length === 0) return false;
+    const pos = this.getPosition();
+    let best = null, bestDist = Infinity;
+    for (const d of list) {
+      if (!d) continue;
+      const c = (typeof d.getCenterPx === 'function') ? d.getCenterPx() :
+                { x: (d.x + d.width/2) * (d.tileSize || 32), y: (d.y + d.height/2) * (d.tileSize || 32) };
+      const dx = c.x - pos.x, dy = c.y - pos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < bestDist) { bestDist = dist; best = d; }
+    }
+    if (!best) return false;
+    this._targetDropoff = best;
+    const center = best.getCenterPx ? best.getCenterPx() : { x: (best.x + 0.5) * (best.tileSize || 32), y: (best.y + 0.5) * (best.tileSize || 32) };
+    if (typeof this.moveToLocation === 'function') this.moveToLocation(center.x, center.y);
+    return true;
   }
 
   // Check arrival at target dropoff; deposit carried resources and transition out of dropoff state.
@@ -390,6 +351,33 @@ class ant extends Entity {
   }
   dropAllResources() { return this._resourceManager?.dropAllResources() || []; }
   
+  // --- Gather State Methods ---
+  /**
+   * Start autonomous gathering behavior
+   */
+  startGathering() {
+    if (this._stateMachine) {
+      this._stateMachine.setPrimaryState("GATHERING");
+    }
+  }
+  
+  /**
+   * Stop gathering and return to idle
+   */
+  stopGathering() {
+    if (this._stateMachine) {
+      this._stateMachine.setPrimaryState("IDLE");
+    }
+  }
+  
+  /**
+   * Check if ant is currently in gathering state
+   * @returns {boolean} True if ant is gathering
+   */
+  isGathering() {
+    return this._stateMachine?.isGathering() || false;
+  }
+  
   // --- Update Override ---
   update() {
     if (!this.isActive) return;
@@ -419,6 +407,28 @@ class ant extends Entity {
   _updateStateMachine() {
     if (this._stateMachine) {
       this._stateMachine.update();
+      
+      // Update gather state behavior if ant is in GATHERING state
+      if (this._stateMachine.getCurrentState() == "GATHERING" && this._stateMachine.isGathering() && this._gatherState) {
+        if (!this._gatherState.isActive) {
+          //console.log(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
+          this._gatherState.enter() 
+        }
+        if (this._gatherState.update()) {this.stateMachine.beginIdle();};
+      } else if (this._gatherState && this._gatherState.isActive) {
+        //console.log(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
+        this._gatherState.exit();
+        
+      }
+    }
+   if (this._stateMachine.getCurrentState() === "IDLE") {
+    // deltaTime from p5.js is in milliseconds — convert to seconds.
+    const dt = (typeof deltaTime !== 'undefined') ? deltaTime / 1000 : (1 / 60); // fallback ~16.67ms
+    this._idleTimer += dt;
+  } else {
+    this._idleTimer = 0;
+  }if (this._stateMachine.getCurrentState() == "IDLE" && this._idleTimer >= this._idleTimerTimeout) {
+      this._stateMachine.ResumePreferredState()
     }
   }
   
@@ -491,6 +501,8 @@ class ant extends Entity {
   // --- Debug Override ---
   getDebugInfo() {
     const baseInfo = super.getDebugInfo();
+    const gatherInfo = this._gatherState ? this._gatherState.getDebugInfo() : { isActive: false };
+    
     return {
       ...baseInfo,
       antIndex: this._antIndex,
@@ -499,7 +511,8 @@ class ant extends Entity {
       health: `${this._health}/${this._maxHealth}`,
       resources: `${this.getResourceCount()}/${this.getMaxResources()}`,
       faction: this._faction,
-      enemies: this._enemies.length
+      enemies: this._enemies.length,
+      gathering: gatherInfo
     };
   }
   
@@ -593,14 +606,45 @@ class ant extends Entity {
 // --- Job Assignment Function ---
 function assignJob() {
   const JobList = ['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter'];
-  const specialJobList = ['DeLozier'];
-  const availableJobs = !hasDeLozier ? [...JobList, ...specialJobList] : JobList;
-  
+  const specialJobList = ['DeLozier',];
+
+  const availableSpecialJobs = [];
+  if (!hasDeLozier) availableSpecialJobs.push('DeLozier');
+  const availableJobs = [...JobList, ...availableSpecialJobs];
+
   const chosenJob = availableJobs[Math.floor(random(0, availableJobs.length))];
   if (chosenJob === "DeLozier") { 
     hasDeLozier = true; 
   }
   return chosenJob;
+}
+
+function spawnQueen(){
+  let JobName = 'Queen'
+  let sizeR = random(0, 15);
+  let newAnt = new ant(
+    random(0, 500), random(0, 500), 
+    queenSize.x + sizeR, 
+    queenSize.y + sizeR, 
+    30, 0,
+    antBaseSprite,
+    'Queen',
+    'Player'
+  );
+
+  newAnt = new QueenAnt(newAnt);
+
+  newAnt.assignJob(JobName, JobImages[JobName]);
+  ants.push(newAnt);
+  newAnt.update();
+
+  // Register ant with TileInteractionManager for efficient mouse detection
+  if (g_tileInteractionManager) {
+    g_tileInteractionManager.addObject(newAnt, 'ant');
+  }
+
+
+  return newAnt;
 }
 
 // --- Spawn Ants ---
@@ -658,6 +702,13 @@ function antsUpdate() {
       }
     }
   }
+}
+
+function getQueen(){
+  if(queenAnt){
+    return queenAnt;
+  }
+  return false;
 }
 
 // --- Render All Ants (Separated from Updates) ---

@@ -87,21 +87,25 @@ class Button {
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position
    * @param {boolean} isMousePressed - Whether mouse button is currently pressed
+   * @returns {boolean} True if button consumed the mouse event
    */
   update(mouseX, mouseY, isMousePressed) {
     if (!this.enabled) {
       this.isHovered = false;
       this.isPressed = false;
-      return;
+      return false;
     }
 
     // Check if mouse is over button
     const wasHovered = this.isHovered;
     this.isHovered = this.isMouseOver(mouseX, mouseY);
     
+    let consumed = false;
+    
     // Handle mouse press/release
     if (this.isHovered && isMousePressed && !this.isPressed) {
       this.isPressed = true;
+      consumed = true;
     } else if (!isMousePressed && this.isPressed) {
       // Mouse released
       if (this.isHovered) {
@@ -109,9 +113,13 @@ class Button {
         if (this.onClick && typeof this.onClick === 'function') {
           this.onClick(this);
         }
+        consumed = true;
       }
       this.isPressed = false;
     }
+    
+    // Return true if mouse is over button and we had any interaction
+    return consumed || (this.isHovered && isMousePressed);
   }
 
   /**
