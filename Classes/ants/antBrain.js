@@ -2,6 +2,12 @@ const HUNGRY = 100;
 const STARVING = 160;
 const DEATH = 200;
 
+/*
+To Do:
+    Add Checks for separate factions
+    setState() (Most likely going to use when emergency switching state and just have state machine deal with normal swaps? May change later)
+*/
+
 class AntBrain{
     constructor(antType){
         this.antType = antType;
@@ -26,49 +32,49 @@ class AntBrain{
                 this.followForageTrail = 0.05 * mult;
                 this.followFarmTrail = 0 * mult;
                 this.followEnemyTrail = 0.05 * mult;
-                this.followBossTrail = 100;
+                this.followBossTrail = 100 * mult;
                 break;
             case "Scout":
                 this.followBuildTrail = 0.25 * mult;
                 this.followForageTrail = 0.25 * mult;
                 this.followFarmTrail = 0.25 * mult;
                 this.followEnemyTrail = 0.25 * mult;
-                this.followBossTrail = 100;
+                this.followBossTrail = 100 * mult;
                 break;
             case "Farmer":
                 this.followBuildTrail = 0 * mult;
                 this.followForageTrail = 0.1 * mult;
                 this.followFarmTrail = 0.85 * mult;
                 this.followEnemyTrail = 0.05 * mult;
-                this.followBossTrail = 100;
+                this.followBossTrail = 100 * mult;
                 break;
             case "Warrior":
                 this.followBuildTrail = 0 * mult;
                 this.followForageTrail = 0.2 * mult;
                 this.followFarmTrail = 0 * mult;
                 this.followEnemyTrail = 1 * mult;
-                this.followBossTrail = 100;
+                this.followBossTrail = 100 * mult;
                 break;
             case "Spitter":
                 this.followBuildTrail = 0 * mult;
                 this.followForageTrail = 0.2 * mult;
                 this.followFarmTrail = 0 * mult;
                 this.followEnemyTrail = 1 * mult;
-                this.followBossTrail = 100;
+                this.followBossTrail = 100 * mult;
                 break;
             case "DeLozier":
                 this.followBuildTrail = 0 * mult;
                 this.followForageTrail = 0 * mult;
                 this.followFarmTrail = 0 * mult;
                 this.followEnemyTrail = 0 * mult;
-                this.followBossTrail = 100;
+                this.followBossTrail = 100 * mult;
                 break;
             default:
                 this.followBuildTrail = 0 * mult;
                 this.followForageTrail = 0.75 * mult;
                 this.followFarmTrail = 0 * mult;
                 this.followEnemyTrail = 0.25 * mult;
-                this.followBossTrail = 100;
+                this.followBossTrail = 100 * mult;
                 break;
         }
     }
@@ -144,14 +150,17 @@ class AntBrain{
         if(this.hunger === HUNGRY){
             this.flag_ = "hungry";
             this.runFlagState();
+            this.decideState();
         }
         if(this.hunger === STARVING){
             this.flag_ = "starving";
             this.runFlagState();
+            this.decideState();
         }
         if(this.hunger === DEATH){
             this.flag_ = "death";
             this.runFlagState();
+            this.killAnt();//Need to make this
         }
     }
 
@@ -175,7 +184,7 @@ class AntBrain{
         case "reset":
             this.modifyPriorityTrails();
             this.flag_ = "";
-            this.penalizedTrails = [];
+            //this.penalizedTrails = []; Move this reset somewhere else
             break;
         }
     }

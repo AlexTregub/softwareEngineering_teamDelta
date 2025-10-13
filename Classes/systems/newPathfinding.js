@@ -110,7 +110,7 @@ function intuitiveWander(){
 
 }
 
-function tryTrack(scents, antType, failedTrailTypes){
+function tryTrack(scents, antType, failedTrailTypes){ //Probably won't need last two
   /*Try Track
       Ant tries to check pheromones. Depending on ant type and state, higher chance for certain path following.
       If ant likes path, return 1 to have wander run track(). This should set an ant flag to true so that track is always run instead of wander when following trail.
@@ -131,9 +131,10 @@ function tryTrack(scents, antType, failedTrailTypes){
     */
   for(let i = 0; i < scents.length; i++){
     let scent = scents[i];
-    switch(scent){
-      case "default":
-
+    if(this.brain.checkTrail(scent)){
+      this.pathType = scent.name;
+      this.track(pathType);
+      break;
     }
   }
 }
@@ -158,6 +159,7 @@ function track(trailType){
         Wander nearby
         If nothing found, wander randomly
   */
+ 
 }
 
 function selectionChance(ant, scent){ //Used to select which pheromone to follow

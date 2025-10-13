@@ -14,8 +14,8 @@ class Stench{
         
 
     */
-    constructor(state, allegience){
-        this.state = state;
+    constructor(name, allegience){
+        this.name = name; //Build, Forage, etc.
         this.origin = allegience;
         this.stress = 0;
         this.strength = 0;
