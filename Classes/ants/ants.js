@@ -55,10 +55,11 @@ class ant extends Entity {
     this._JobName = JobName;
     this._antIndex = antIndex++;
     this.isBoxHovered = false;
-    this.brain = new AntBrain(_JobName);
+    this.brain;
     this.pathType = null;
     this._idleTimer = 0;
     this._idleTimerTimeout = 1;
+    this.lastFrameTime = performance.now();
 
     
     // New job system (component-based)
@@ -133,6 +134,7 @@ class ant extends Entity {
     // Update job name properties
     this.jobName = jobName;
     this._JobName = jobName;  // Keep legacy property in sync
+    this.brain = new AntBrain(this, jobName);
     
     // Set image if provided
     if (image) {
@@ -354,13 +356,19 @@ class ant extends Entity {
   }
   
   // --- Update Override ---
+  
   update() {
+    const now = performance.now();
+    const deltaTime = (now - this.lastFrameTime) / 1000; // seconds
+    this.lastFrameTime = now;
+
     if (!this.isActive) return;
     
     // Update Entity systems first
     super.update();
     
     // Update ant-specific systems
+    this.brain.update(deltaTime);
     this._updateStats();
     this._updateStateMachine();
     this._updateResourceManager();
@@ -654,6 +662,7 @@ function antsSpawn(numToSpawn, faction = "neutral") {
 }
 
 // --- Update All Ants ---
+
 function antsUpdate() {
   for (let i = 0; i < ants.length; i++) {
     if (ants[i] && typeof ants[i].update === "function") {

@@ -9,10 +9,12 @@ To Do:
 */
 
 class AntBrain{
-    constructor(antType){
+    constructor(antInstance, antType){
+        console.log(`I LIVE!!!`);
+        this.ant = antInstance;
         this.antType = antType;
         this.flag_ = "";
-        this.hunger = 0;
+        this.hunger = 190;
 
         this.followBuildTrail = 0;
         this.followForageTrail = 0;
@@ -141,26 +143,36 @@ class AntBrain{
                 this.setPriority(this.antType, 0);
                 this.followForageTrail = 2;
                 break;
+            case "death":
+                this.setPriority(this.antType, 0);
+                break;
         }
     }
 
     checkHunger(){
         this.hunger++;
+        console.log(`my belly is bellying`);
         //Checks hunger meter every second
         if(this.hunger === HUNGRY){
+            console.log('so fucking hungry')
             this.flag_ = "hungry";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === STARVING){
+            console.log(`so fucking starving`);
             this.flag_ = "starving";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === DEATH){
+            console.log(`so fucking dead`);
             this.flag_ = "death";
             this.runFlagState();
-            this.killAnt();//Need to make this
+            //this.killAnt();//Need to make this
+            if(this.antType != "Queen"){
+                this.ant.takeDamage(999999);
+            }
         }
     }
 
@@ -187,15 +199,24 @@ class AntBrain{
             //this.penalizedTrails = []; Move this reset somewhere else
             break;
         }
+        console.log(`
+                ${this.flag_}:
+                Build: ${this.followBuildTrail}
+                Forage: ${this.followForageTrail}
+                Farm: ${this.followFarmTrail}
+                Enemy: ${this.followEnemyTrail}
+                Boss: ${this.followBossTrail}
+                `);
     }
 
-    update(deltaTime){
+    update(deltaTime){  
         this.internalTimer(deltaTime);
     }
 
     internalTimer(deltaTime){
         this._accumulator = (this._accumulator || 0) + deltaTime;
         if (this._accumulator >= 1) { // every second
+            console.log(`${this.hunger}`);
             this._accumulator = 0;
             this.checkHunger();
         }
