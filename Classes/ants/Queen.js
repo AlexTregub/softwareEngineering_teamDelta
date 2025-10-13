@@ -93,7 +93,7 @@ class QueenAnt extends ant {
 
   move(direction) {
     const pos = this.getPosition();
-    const speed = this.movementSpeed * 0.5; // queen moves slower
+    const speed = this.movementSpeed * 0.1; // queen moves slower
 
     switch (direction) {
       case "w":

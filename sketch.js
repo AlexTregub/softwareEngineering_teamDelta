@@ -153,6 +153,18 @@ function draw() {
     }
   }
 
+  if (GameState.getState() === 'PLAYING') {
+    const playerQueen = getQueen();
+    if (playerQueen) {
+      // WASD key codes: W=87 A=65 S=83 D=68
+      if (keyIsDown(87)) playerQueen.move("w");
+      if (keyIsDown(65)) playerQueen.move("a");
+      if (keyIsDown(83)) playerQueen.move("s");
+      if (keyIsDown(68)) playerQueen.move("d");
+    }
+  }
+
+
   // Note: rendering of draggable panels is handled via RenderManager's
   // ui_game layer (DraggablePanelManager integrates into the render layer).
   // We intentionally do NOT call renderDraggablePanels() here to avoid a
@@ -303,22 +315,13 @@ function keyPressed() {
     // --- Queen Movement (Using WASD) ---
   let playerQueen = getQueen();
   if (typeof playerQueen !== "undefined" && playerQueen instanceof QueenAnt) {
-    switch (key.toLowerCase()) {
-      case 'w': playerQueen.move("w"); break;
-      case 'a': playerQueen.move("a"); break;
-      case 's': playerQueen.move("s"); break;
-      case 'd': playerQueen.move("d"); break;
-      case 'r': playerQueen.emergencyRally(); break;
-      case 'm': playerQueen.gatherAntsAt(mouseX, mouseY); break;
-    }
-
-    // --- Queen Commands ---
     if (key.toLowerCase() === 'r') {
       playerQueen.emergencyRally();
+      return;
     } 
-    // 
-    else if (key.toLowerCase() === 'm') {
+    if (key.toLowerCase() === 'm') {
       playerQueen.gatherAntsAt(mouseX, mouseY);
+      return;
     }
   }
 
