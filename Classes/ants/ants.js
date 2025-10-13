@@ -51,6 +51,9 @@ class ant extends Entity {
     this._JobName = JobName;
     this._antIndex = antIndex++;
     this.isBoxHovered = false;
+    this._idleTimer = 0;
+    this._idleTimerTimeout = 1;
+
     
     // New job system (component-based)
     this.job = null;  // Will hold JobComponent instance
@@ -374,16 +377,26 @@ class ant extends Entity {
       this._stateMachine.update();
       
       // Update gather state behavior if ant is in GATHERING state
-      if (this._stateMachine.isGathering && this._stateMachine.isGathering() && this._gatherState) {
+      if (this._stateMachine.getCurrentState() == "GATHERING" && this._stateMachine.isGathering() && this._gatherState) {
         if (!this._gatherState.isActive) {
-          console.log(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
-          this._gatherState.enter();
+          //console.log(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
+          this._gatherState.enter() 
         }
-        this._gatherState.update();
+        if (this._gatherState.update()) {this.stateMachine.beginIdle();};
       } else if (this._gatherState && this._gatherState.isActive) {
-        console.log(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
+        //console.log(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
         this._gatherState.exit();
+        
       }
+    }
+   if (this._stateMachine.getCurrentState() === "IDLE") {
+    // deltaTime from p5.js is in milliseconds — convert to seconds.
+    const dt = (typeof deltaTime !== 'undefined') ? deltaTime / 1000 : (1 / 60); // fallback ~16.67ms
+    this._idleTimer += dt;
+  } else {
+    this._idleTimer = 0;
+  }if (this._stateMachine.getCurrentState() == "IDLE" && this._idleTimer >= this._idleTimerTimeout) {
+      this._stateMachine.ResumePreferredState()
     }
   }
   

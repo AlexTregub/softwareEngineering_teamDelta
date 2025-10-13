@@ -45,7 +45,7 @@ class GatherState {
     this.resourcesCollected = 0; // Track resources collected this session
     
     // Debug info
-    this.debugEnabled = true; // Temporarily enable debug for testing
+    this.debugEnabled = false; // Temporarily enable debug for testing
     this.lastScanResults = 0;
     
     console.log(`🔍 GatherState initialized for ant - radius: ${this.gatherRadius} tiles (${this.pixelRadius}px)`);
@@ -58,6 +58,7 @@ class GatherState {
     this.isActive = true;
     this.targetResource = null;
     this.searchCooldown = 0;
+    this.gatherStartTime = 0;
     
     // Set ant to GATHERING primary state
     if (this.ant._stateMachine) {
@@ -79,6 +80,8 @@ class GatherState {
     if (this.debugEnabled) {
       console.log(`🐜 Ant ${this.ant._antIndex || 'unknown'} exited GATHER state`);
     }
+
+    return true
   }
 
   /**
@@ -105,6 +108,7 @@ class GatherState {
         console.log(`🎯 Ant ${this.ant.id} moving toward resource at (${this.targetResource.x}, ${this.targetResource.y})`);
       }
       this.updateTargetMovement();
+      this.gatherStartTime  = 0;
     } 
     // Otherwise, search for new resources
     else if (this.searchCooldown <= 0) {
@@ -114,6 +118,9 @@ class GatherState {
       this.searchForResources();
       this.searchCooldown = this.searchInterval;
     }
+    this.gatherStartTime +=  deltaTime;
+
+    if (this.gatherStartTime >= this.gatherTimeout) { return this.exit() }
   }
 
   /**
@@ -171,17 +178,6 @@ class GatherState {
         resourceList = g_resourceManager.getResourceList ? g_resourceManager.getResourceList() : [];
         if (this.debugEnabled) {
           console.log(`🔍 Using g_resourceManager, found ${resourceList.length} total resources`);
-        }
-      }
-      // Fallback to legacy resource list
-      else if (typeof g_resourceList !== 'undefined' && g_resourceList) {
-        resourceList = g_resourceList.getResourceList ? g_resourceList.getResourceList() : [];
-        if (this.debugEnabled) {
-          console.log(`🔍 Using g_resourceList, found ${resourceList.length} total resources`);
-        }
-      } else {
-        if (this.debugEnabled) {
-          console.log(`⚠️ No resource system found! g_resourceManager: ${typeof g_resourceManager}, g_resourceList: ${typeof g_resourceList}`);
         }
       }
 
@@ -249,12 +245,7 @@ class GatherState {
     try {
       // Try to collect the resource using the ant's resource manager
       let collected = false;
-      
-      if (this.ant._resourceManager && this.ant._resourceManager.addResource) {
-        collected = this.ant._resourceManager.addResource(this.targetResource.resource);
-      } else if (this.ant.addResource) {
-        collected = this.ant.addResource(this.targetResource.resource);
-      }
+      collected = this.ant._resourceManager.addResource(this.targetResource.resource);
 
       if (collected) {
         // Remove resource from global system
@@ -282,14 +273,6 @@ class GatherState {
       if (typeof g_resourceManager !== 'undefined' && g_resourceManager && g_resourceManager.removeResource) {
         g_resourceManager.removeResource(resource);
       }
-      // Fallback to legacy system
-      else if (typeof g_resourceList !== 'undefined' && g_resourceList && g_resourceList.getResourceList) {
-        const list = g_resourceList.getResourceList();
-        const index = list.indexOf(resource);
-        if (index > -1) {
-          list.splice(index, 1);
-        }
-      }
     } catch (error) {
       console.warn('GatherState: Error removing resource from system:', error);
     }
@@ -302,9 +285,7 @@ class GatherState {
    */
   moveToResource(targetX, targetY) {
     try {
-      if (this.ant.moveToLocation) {
-        this.ant.moveToLocation(targetX, targetY);
-      } else if (this.ant._movementController && this.ant._movementController.moveToLocation) {
+      if (this.ant._movementController && this.ant._movementController.moveToLocation) {
         this.ant._movementController.moveToLocation(targetX, targetY);
       }
     } catch (error) {
@@ -320,8 +301,6 @@ class GatherState {
     try {
       if (this.ant._resourceManager) {
         return this.ant._resourceManager.isAtMaxLoad && this.ant._resourceManager.isAtMaxLoad();
-      } else if (this.ant.getResourceCount && this.ant.getMaxResources) {
-        return this.ant.getResourceCount() >= this.ant.getMaxResources();
       }
     } catch (error) {
       console.warn('GatherState: Error checking capacity:', error);

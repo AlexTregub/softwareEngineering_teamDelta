@@ -151,6 +151,7 @@ class GatherDebugRenderer {
                 pop();
                 drawLineBetweenEntities(antPos,resPos,"Green",1);
             } else {
+                drawTextBetweenTwoObjects(antPos,resPos,"red",'✖ IN RANGE',distance.toFixed(0),"px")
                 push();
                 fill("red")
                 text(`${distance.toFixed(0)}px`, midX, midY);
@@ -163,6 +164,19 @@ class GatherDebugRenderer {
       });
     }
   }
+}
+
+function drawTextBetweenTwoObjects(objPos1, objPos2, textColor, textToPrint, distance = null, distanceUnits = null){
+    const midX = (objPos1.x + objPos2.x) / 2;
+    const midY = (objPos1.y + objPos2.y) / 2;
+
+    push();
+    fill(textColor)
+    if (distance != null && distanceUnits != null) {
+        text(`${distance}${distanceUnits}`, midX, midY)
+    };
+    text(textToPrint, midX, midY + 12);
+    pop();
 }
 
 // Create global instance
