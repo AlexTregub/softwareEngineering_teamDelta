@@ -162,7 +162,7 @@ function drawTextBetweenTwoObjects(objPos1, objPos2, textColor, textToPrint, dis
     const midY = (objPos1.y + objPos2.y) / 2;
 
     push();
-    fill(textColor)
+    fill(textColor);
     if (distance != null && distanceUnits != null) {
         text(`${distance}${distanceUnits}`, midX, midY)
     };
