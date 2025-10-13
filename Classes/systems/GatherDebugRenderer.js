@@ -40,7 +40,7 @@ class GatherDebugRenderer {
    * Toggles whether to show all lines or just the lines that are in range of resources
    */
   toggleAllLines() {
-    this.showAllLines = !this.showAllLines
+    this.showAllLines = !this.showAllLines;
   }
 
   /**
@@ -162,7 +162,7 @@ function drawTextBetweenTwoObjects(objPos1, objPos2, textColor, textToPrint, dis
     const midY = (objPos1.y + objPos2.y) / 2;
 
     push();
-    fill(textColor)
+    fill(textColor);
     if (distance != null && distanceUnits != null) {
         text(`${distance}${distanceUnits}`, midX, midY)
     };
