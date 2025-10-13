@@ -6,16 +6,50 @@
 
 console.log("loading tasks.js");
 class Task {
-  constructor(ID, antSpecie, taskReward, taskType, status) {
-    this.ID = ID; // identifier for the task
-    this.antSpecie = antSpecie; // "GATHER", "BUILD", "MOVE", etc.
-    this.taskType = taskType; // "Food", "Water", "Nest", etc.
-    this.status = status; // task will be "Incomplete", "InProgress", "Complete"
-    this.taskReward = taskReward;
-    this.createdAt = Date.now();
+  constructor(ID, description){
+    this.ID = ID; //unique identifier for the task
+    this.description = description; //text description of the task
   }
 }
 
+class TaskLibrary{
+  constructor(){
+    this.availableTasks = [];
+    this.initializeDefaultTasks();
+  }
+
+  addTask(task){
+    this.availableTasks.push(task);
+  }
+
+  initializeDefaultTasks(){
+    this.addTask(new Task("T1", "Gather 10 sticks"));
+    this.addTask(new Task("T2", "Spawn 5 new ants"));
+    this.addTask(new Task("T3", "Kill 10 ants"));
+    this.addTask(new Task("T4", "Gather 20 leaves"));
+    //this.addTask(new Task("T5", "Enter mud area"));
+    //this.addTask(new Task("T6", "Heal ants 90+ health"));
+  } 
+
+  //just have the task description be returned at the button
+  //randomly pick among the tasks available
+  printTask(){
+    
+  }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+/*
 class TaskLibrary {
   constructor() {
     this.availableTasks = [];
@@ -83,4 +117,4 @@ class TaskLibrary {
     //take in the reward and convert it to game currency
   }
  
-}
+}*/

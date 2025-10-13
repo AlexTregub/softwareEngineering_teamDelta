@@ -341,48 +341,28 @@ class DraggablePanelManager {
         ]
       }
     }));
-/*
-    // Task panel: use an explicit pixel height and limits so it won't stretch fullscreen
-    this.panels.set('tasks', new DraggablePanel({
-      id: 'tasks-panel',
-      title: 'Task/Objective List',
-      position: { x: 600, y: 80 },
-      size: { width: 220, height: 140 }, // explicit pixel height
-      behavior: { resizable: true, minHeight: 60, maxHeight: 480, autoHeight: false }, // tell panel not to auto-fill
-      list: {
-        layout: 'vertical',
-        spacing: 8,
-        items: [
-          { caption: 'Current Tasks:' }
-        ]
-      }
-    }));*/
 
+    //task panel
+    console.log("Creating task panel");
     this.panels.set('tasks', new DraggablePanel({
-      id: 'tasks-panel',
-      title: 'Ant Government Population Manager (🐜)',
+      id: 'task-panel',
+      title: 'Task/Objective Manager 📋',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
       scale: 1.0, // Initial scale
-      checkbox: {
+      buttons: {
         layout: 'vertical',
-        spacing: 3,
-        //buttonWidth: 120,
-        //buttonHeight: 24,
-        items: [
-          {
-            caption: 'Spawn 1 Ant',
-            onClick: () => this.spawnAnts(1),
-            style: ButtonStyles.SUCCESS
-          },
-          {
-            caption: 'Clear All Ants',
-            onClick: () => this.clearAnts(),
-            style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
-          }
-        ]
-      }
-    }));
+        spacing: 5,
+        buttonWidth: 120,
+        buttonHeight: 24,
+        items: this.taskLibrary.availableTasks.slice(0, 5).map((task, index) => ({
+          caption: task.description,
+          onClick: () => console.log(`Task clicked: ${task.ID}`),
+        style: ButtonStyles.SUCCESS
+      }))
+    }
+  }));  
+  
 
   }
 
