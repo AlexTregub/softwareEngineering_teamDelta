@@ -24,6 +24,23 @@ class AntManager {
     this.selectedAnt = null;
   }
 
+  _getCursorWorldPoint() {
+    if (typeof getWorldMousePosition === 'function') {
+      return getWorldMousePosition();
+    }
+    return { x: mouseX, y: mouseY };
+  }
+
+  _applySelection(antToSelect) {
+    if (this.selectedAnt && this.selectedAnt !== antToSelect) {
+      this.selectedAnt.isSelected = false;
+    }
+    if (antToSelect) {
+      antToSelect.isSelected = true;
+    }
+    this.setSelectedAnt(antToSelect);
+  }
+
   /**
    * Handles ant click control logic - moves selected ant or selects ant under mouse.
    * If an ant is already selected, moves it to the mouse position.
@@ -34,11 +51,25 @@ class AntManager {
    * antManager.handleAntClick();
    */
   handleAntClick() {
-    if (this.selectedAnt) {
-      this.moveSelectedAnt(true);
-    }
+    const worldPoint = this._getCursorWorldPoint();
+    let antUnderCursor = null;
+
     for (let i = 0; i < ant_Index; i++) {
-      this.selectAnt(this.getAntObject(i));
+      const antObj = this.getAntObject(i);
+      if (!antObj || typeof antObj.isMouseOver !== 'function') continue;
+      if (antObj.isMouseOver(worldPoint.x, worldPoint.y)) {
+        antUnderCursor = antObj;
+        break;
+      }
+    }
+
+    if (antUnderCursor) {
+      this._applySelection(antUnderCursor);
+      return;
+    }
+
+    if (this.selectedAnt) {
+      this.moveSelectedAnt(true, worldPoint);
     }
   }
 
@@ -54,14 +85,16 @@ class AntManager {
    * // Move selected ant and deselect it
    * antManager.moveSelectedAnt(false);
    */
-  moveSelectedAnt(resetSelection) {
+  moveSelectedAnt(resetSelection, worldPointOverride) {
     if (typeof resetSelection === "boolean") {
       if (this.selectedAnt) {
-        this.selectedAnt.moveToLocation(mouseX, mouseY);
+        const worldPoint = worldPointOverride || this._getCursorWorldPoint();
+        this.selectedAnt.moveToLocation(worldPoint.x, worldPoint.y);
         this.selectedAnt.isSelected = resetSelection;
         if (resetSelection === false) {
-          this.selectedAnt = null;
+          this.setSelectedAnt(null);
         }
+        // If resetSelection is false, keep the ant selected
       }
     } else {
       // Use global IncorrectParamPassed function for error reporting
@@ -85,10 +118,10 @@ class AntManager {
   selectAnt(antCurrent = null) {
     // Use global ant class for instanceof check
     if (typeof ant !== 'undefined' && !(antCurrent instanceof ant)) return;
-    if (antCurrent && typeof antCurrent.isMouseOver === 'function' && 
-        antCurrent.isMouseOver(mouseX, mouseY)) {
-      antCurrent.isSelected = true;
-      this.selectedAnt = antCurrent;
+    if (!antCurrent || typeof antCurrent.isMouseOver !== 'function') return;
+    const worldPoint = this._getCursorWorldPoint();
+    if (antCurrent.isMouseOver(worldPoint.x, worldPoint.y)) {
+      this._applySelection(antCurrent);
     }
   }
 
@@ -101,14 +134,14 @@ class AntManager {
    * @example
    * const antObj = antManager.getAntObject(5);
    * if (antObj) {
-   *   console.log('Ant position:', antObj.posX, antObj.posY);
+   *   const pos = antObj.getPosition();
+   *   console.log('Ant position:', pos.x, pos.y);
    * }
    */
   getAntObject(antIndex) {
-    // Use global ants array
+    // Use global ants array - now returns direct ant objects
     if (typeof ants === 'undefined' || !ants[antIndex]) return null;
-    let antObj = ants[antIndex].antObject ? ants[antIndex].antObject : ants[antIndex];
-    return antObj;
+    return ants[antIndex];
   }
 
   /**
@@ -118,7 +151,8 @@ class AntManager {
    * @example
    * const selected = antManager.getSelectedAnt();
    * if (selected) {
-   *   console.log('Selected ant at:', selected.posX, selected.posY);
+   *   const pos = selected.getPosition();
+   *   console.log('Selected ant at:', pos.x, pos.y);
    * }
    */
   getSelectedAnt() {
@@ -138,6 +172,9 @@ class AntManager {
    */
   setSelectedAnt(ant) {
     this.selectedAnt = ant;
+    if (typeof selectedAnt !== 'undefined') {
+      selectedAnt = ant;
+    }
   }
 
   /**
@@ -150,7 +187,7 @@ class AntManager {
   clearSelection() {
     if (this.selectedAnt) {
       this.selectedAnt.isSelected = false;
-      this.selectedAnt = null;
+      this.setSelectedAnt(null);
     }
   }
 
@@ -180,7 +217,7 @@ class AntManager {
       hasSelectedAnt: this.selectedAnt !== null,
       selectedAntIndex: this.selectedAnt ? this.selectedAnt.antIndex : null,
       selectedAntPosition: this.selectedAnt ? 
-        { x: this.selectedAnt.posX, y: this.selectedAnt.posY } : null
+        this.selectedAnt.getPosition() : null
     };
   }
 
@@ -223,6 +260,6 @@ class AntManager {
 }
 
 // Export for Node.js compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntManager;
 }

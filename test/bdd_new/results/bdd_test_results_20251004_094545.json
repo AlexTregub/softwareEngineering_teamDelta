@@ -1,0 +1,130 @@
+{
+  "timestamp": "2025-10-04T09:45:30.812491",
+  "total_features": 6,
+  "total_scenarios": 18,
+  "passed_scenarios": 0,
+  "failed_scenarios": 18,
+  "skipped_scenarios": 0,
+  "features": [
+    {
+      "name": "Universal Button System",
+      "scenarios": [
+        {
+          "name": "ButtonGroupManager Initialization",
+          "status": "failed",
+          "error": "Message: invalid session id: session deleted as the browser has closed the connection\nfrom disconnected: not connected to DevTools\n  (Session info: chrome=140.0.7339.208); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3ddc0a5]\n\t(No symbol) [0x0x7ff6b3e0144a]\n\t(No symbol) [0x0x7ff6b3e77be6]\n\t(No symbol) [0x0x7ff6b3e98132]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Button Group Creation",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Button Click Functionality",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Button Drag Functionality",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        }
+      ]
+    },
+    {
+      "name": "Render Pipeline System",
+      "scenarios": [
+        {
+          "name": "RenderLayerManager Initialization",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Layer Toggle Functionality",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Layer State Persistence",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        }
+      ]
+    },
+    {
+      "name": "End-to-End Integration",
+      "scenarios": [
+        {
+          "name": "Complete Debug Button Workflow",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "System Error Recovery",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        }
+      ]
+    },
+    {
+      "name": "Advanced Edge Cases",
+      "scenarios": [
+        {
+          "name": "Multiple Simultaneous Actions",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Button Configuration Validation",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Positioning Edge Cases",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        }
+      ]
+    },
+    {
+      "name": "Comprehensive Action System",
+      "scenarios": [
+        {
+          "name": "Action Handler Validation",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Action Execution with Context",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Action Parameter Validation",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        }
+      ]
+    },
+    {
+      "name": "Button Image and Texture Rendering",
+      "scenarios": [
+        {
+          "name": "Image Support Detection",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Button Rendering Modes",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Image Loading and Fallback",
+          "status": "failed",
+          "error": "Message: invalid session id; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidsessionidexception\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df011c]\n\t(No symbol) [0x0x7ff6b3e37c1d]\n\t(No symbol) [0x0x7ff6b3e70242]\n\t(No symbol) [0x0x7ff6b3e6ac14]\n\t(No symbol) [0x0x7ff6b3e69cca]\n\t(No symbol) [0x0x7ff6b3dba755]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\t(No symbol) [0x0x7ff6b3db9731]\n\tGetHandleVerifier [0x0x7ff6b445b568+4182008]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        }
+      ]
+    }
+  ]
+}

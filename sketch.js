@@ -1,9 +1,37 @@
-let CANVAS_X = 800; // Default 800
-let CANVAS_Y = 800; // Default 800
+
+// --- GRID SYSTEM ---
+let g_canvasX = 800; // Default 800
+let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
+const CHUNKS_X = 20;
+const CHUNKS_Y = 20;
 
 const NONE = '\0'; 
 
+// --- CONTROLLER DECLARATIONS ---
+let g_mouseController;
+let g_keyboardController;
+let g_selectionBoxController;
+let g_uiSelectionController; // UI Effects Layer Selection Controller
+let g_tileInteractionManager; // Efficient tile-based interaction system
+// --- WORLD GENERATION ---
+let g_seed;
+let g_map;
+let g_map2;
+let g_gridMap;
+let g_coordsy;
+// --- UI ---
+let g_menuFont;
+// --- IDK! ----
+let g_recordingPath;
+
+/**
+ * preload
+ * -------
+ * Preloads game assets and resources used during runtime.
+ * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
+ * Assigns loaded assets to globals consumed by rendering and game systems.
+ */
 let SEED;
 let MAP;
 
@@ -19,67 +47,178 @@ let infoButton;
 let debugButton;
 let cameraX = 0;
 let cameraY = 0;
-let cameraSpeed = 10;
+let cameraPanSpeed = 10;
+let cameraZoom = 1;
+const MIN_CAMERA_ZOOM = 0.5;
+const MAX_CAMERA_ZOOM = 3;
+const CAMERA_ZOOM_STEP = 1.1;
+let cameraFollowEnabled = false;
+let cameraFollowTarget = null;
 function preload(){
-  test_stats();
-  terrainPreloader()
-  Ants_Preloader()
+  terrainPreloader();
+  menuPreload();
+  antsPreloader();
   resourcePreLoad();
-  font = loadFont("Images/Assets/Terraria.TTF");
-  menuImage = loadImage("Images/Assets/Menu/ant_logo3.png");
-  playButton = loadImage("Images/Assets/Menu/play_button.png");
-  optionButton = loadImage("Images/Assets/Menu/options_button.png");
-  exitButton = loadImage("Images/Assets/Menu/exit_button.png");
-  infoButton = loadImage("Images/Assets/Menu/info_button.png");
-  debugButton = loadImage("Images/Assets/Menu/debug_button.png");
-  videoButton = loadImage("Images/Assets/Menu/vs_button.png");
-  audioButton = loadImage("Images/Assets/Menu/as_button.png");
-  controlButton = loadImage("Images/Assets/Menu/controls_button.png");
-  backButton = loadImage("Images/Assets/Menu/back_button.png");
+  
+  // Load presentation assets
+  if (typeof loadPresentationAssets !== 'undefined') {
+    loadPresentationAssets();
+  }
 }
 
-// MOUSE INTERACTIONS
+
+function setup() {
+  g_canvasX = windowWidth;
+  g_canvasY = windowHeight;
+  createCanvas(g_canvasX, g_canvasY);
+  initializeWorld();
+
+  // Initialize TileInteractionManager for efficient mouse input handling
+  g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
+
+  // --- Initialize Controllers ---
+  g_mouseController = new MouseInputController();
+  g_keyboardController = new KeyboardInputController();
+  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
+
+  // Connect keyboard controller for general input handling
+  g_keyboardController.onKeyPress((keyCode, key) => {
+    // UI shortcuts are now handled directly in keyPressed() function
+    // This maintains compatibility with existing game input systems
+  });
+
+  initializeMenu();  // Initialize the menu system
+  renderPipelineInit();
+}
+
+/**
+ * initializeWorld
+ * ----------------
+ * Encapsulates the world and map initialization that was previously inlined
+ * inside setup(). Keeps setup() concise and makes the initialization reusable
+ * for tests or reset logic.
+ */
+function initializeWorld() {
+
+  g_seed = hour()*minute()*floor(second()/10);
+
+  g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
+  // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
+  
+  // New, Improved, and Chunked Terrain
+  // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
+  g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
+  g_map2.randomize(g_seed);
+  g_map2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  
+  // COORDSY = MAP.getCoordinateSystem();
+  // COORDSY.setViewCornerBC(0,0);
+  
+  g_gridMap = new PathMap(g_map);
+  g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
+  g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+   // Initialize the render layer manager if not already done
+  RenderManager.initialize();
+ 
+}
+
+/**
+ * draw
+ * ----
+ * Main rendering loop for the game.
+ * uses the RenderManager to render the current game state.
+ * Also updates draggable panels if in the PLAYING state.
+ * Called automatically by p5.js at the frame rate.
+ */
+
+function draw() {
+  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+
+  updatePresentationPanels(GameState.getState());
+
+  // Update presentation panels for state-based visibility
+  if (typeof updatePresentationPanels !== 'undefined') {
+    updatePresentationPanels(GameState.getState());
+  }
+
+  RenderManager.render(GameState.getState());
+}
+
+/**
+ * handleMouseEvent
+ * ----------------
+ * Delegates mouse events to the mouse controller if the game is in an active state.
+ * @param {string} type - The mouse event type (e.g., 'handleMousePressed').
+ * @param {...any} args - Arguments to pass to the controller handler.
+ */
+function handleMouseEvent(type, ...args) {
+  if (GameState.isInGame()) {
+    g_mouseController[type](...args);
+  }
+}
+
+/**
+ * mousePressed
+ * ------------
+ * Handles mouse press events by delegating to the mouse controller.
+ */
 function mousePressed() {
-  if (isInGame()) {  // only allow ant interactions in game
-    originalConsoleLog("b");
-    if (typeof handleMousePressed === 'function') {
-      handleMousePressed(
-        ants,
-        mouseX,
-        mouseY,
-        Ant_Click_Control,
-        selectedAnt,
-        moveSelectedAntToTile,
-        TILE_SIZE,
-        mouseButton
-      );
+  // Handle UI Debug Manager mouse events first
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+    const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
+    if (handled) return;
+  }
+  
+  // Handle Universal Button Group System clicks
+  if (window.buttonGroupManager && 
+      typeof window.buttonGroupManager.handleClick === 'function') {
+    try {
+      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
+      if (handled) return; // Button was clicked, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling button click:', error);
     }
   }
 
-  // Handle menu button clicks
-  if (isInMenu() || isInOptions()) {
-    if (typeof handleMenuClick === 'function') {
-      handleMenuClick();
-    }
-  }
+  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
-
 
 function mouseDragged() {
-  if (isInGame() && typeof handleMouseDragged === 'function') {
-    handleMouseDragged(mouseX, mouseY, ants);
+  // Handle UI Debug Manager drag events
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+    g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
+  handleMouseEvent('handleMouseDragged', mouseX, mouseY);
 }
 
 function mouseReleased() {
-  if (isInGame() && typeof handleMouseReleased === 'function') {
-    handleMouseReleased(ants, selectedAnt, moveSelectedAntToTile, TILE_SIZE);
+  // Handle UI Debug Manager release events
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+    g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
+  }
+  handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+}
+
+// KEYBOARD INTERACTIONS
+
+/**
+ * handleKeyEvent
+ * --------------
+ * Delegates keyboard events to the appropriate handler if the game is in an active state.
+ * @param {string} type - The key event type (e.g., 'handleKeyPressed').
+ * @param {...any} args - Arguments to pass to the handler.
+ */
+function handleKeyEvent(type, ...args) {
+  if (GameState.isInGame() && typeof g_keyboardController[type] === 'function') {
+    g_keyboardController[type](...args);
   }
 }
 
-// Debug functionality moved to debug/testing.js
-
-// KEYBOARD INTERACTIONS
+/**
+ * keyPressed
+ * ----------
+ * Handles key press events, prioritizing debug keys and ESC for selection clearing.
+ */
 function keyPressed() {
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
@@ -92,38 +231,247 @@ function keyPressed() {
     }
   }
 
+  if ((key === 'f' || key === 'F') && isInGame()) {
+    toggleCameraFollow();
+  }
 
+  if (isInGame()) {
+    if (key === '-' || key === '_' || keyCode === 189 || keyCode === 109) {
+      setCameraZoom(cameraZoom / CAMERA_ZOOM_STEP);
+    } else if (key === '=' || key === '+' || keyCode === 187 || keyCode === 107) {
+      setCameraZoom(cameraZoom * CAMERA_ZOOM_STEP);
+    }
+  }
+}
+
+function getPrimarySelectedEntity() {
+  if (typeof antManager !== 'undefined' &&
+      antManager &&
+      typeof antManager.getSelectedAnt === 'function') {
+    const managed = antManager.getSelectedAnt();
+    if (managed) {
+      return managed;
+    }
+  }
+
+  if (typeof selectedAnt !== 'undefined' && selectedAnt) {
+    return selectedAnt;
+  }
+
+  return null;
+}
+
+function getEntityWorldCenter(entity) {
+  if (!entity) return null;
+
+  const pos = typeof entity.getPosition === 'function'
+    ? entity.getPosition()
+    : (entity.sprite?.pos ?? { x: entity.posX ?? 0, y: entity.posY ?? 0 });
+
+  const size = typeof entity.getSize === 'function'
+    ? entity.getSize()
+    : (entity.sprite?.size ?? { x: entity.sizeX ?? TILE_SIZE, y: entity.sizeY ?? TILE_SIZE });
+
+  const posX = pos?.x ?? pos?.[0] ?? 0;
+  const posY = pos?.y ?? pos?.[1] ?? 0;
+  const sizeX = size?.x ?? size?.[0] ?? TILE_SIZE;
+  const sizeY = size?.y ?? size?.[1] ?? TILE_SIZE;
+
+  return {
+    x: posX + sizeX / 2,
+    y: posY + sizeY / 2
+  };
+}
+
+function getMapPixelDimensions() {
+  if (!MAP) {
+    return { width: CANVAS_X, height: CANVAS_Y };
+  }
+
+  const width = MAP._xCount ? MAP._xCount * TILE_SIZE : CANVAS_X;
+  const height = MAP._yCount ? MAP._yCount * TILE_SIZE : CANVAS_Y;
+
+  return { width, height };
+}
+
+function clampCameraToBounds() {
+  const { width, height } = getMapPixelDimensions();
+  const viewWidth = CANVAS_X / cameraZoom;
+  const viewHeight = CANVAS_Y / cameraZoom;
+
+  let minX = 0;
+  let maxX = width - viewWidth;
+  if (viewWidth >= width) {
+    const excessX = viewWidth - width;
+    minX = -excessX / 2;
+    maxX = excessX / 2;
+  } else {
+    maxX = Math.max(0, maxX);
+  }
+
+  let minY = 0;
+  let maxY = height - viewHeight;
+  if (viewHeight >= height) {
+    const excessY = viewHeight - height;
+    minY = -excessY / 2;
+    maxY = excessY / 2;
+  } else {
+    maxY = Math.max(0, maxY);
+  }
+
+  cameraX = constrain(cameraX, minX, maxX);
+  cameraY = constrain(cameraY, minY, maxY);
+
+  if (COORDSY && typeof COORDSY.setViewCornerBC === 'function') {
+    COORDSY.setViewCornerBC([cameraX, cameraY]);
+  }
+}
+
+function centerCameraOn(worldX, worldY) {
+  const viewWidth = CANVAS_X / cameraZoom;
+  const viewHeight = CANVAS_Y / cameraZoom;
+
+  cameraX = worldX - viewWidth / 2;
+  cameraY = worldY - viewHeight / 2;
+
+  clampCameraToBounds();
+}
+
+function centerCameraOnEntity(entity) {
+  const center = getEntityWorldCenter(entity);
+  if (center) {
+    centerCameraOn(center.x, center.y);
+  }
+}
+
+function screenToWorld(px = mouseX, py = mouseY, zoomOverride) {
+  const zoom = typeof zoomOverride === 'number' ? zoomOverride : cameraZoom;
+
+  return {
+    x: cameraX + px / zoom,
+    y: cameraY + py / zoom
+  };
+}
+
+function getWorldMousePosition(px = mouseX, py = mouseY, zoomOverride) {
+  return screenToWorld(px, py, zoomOverride);
+}
+
+function worldToScreen(worldX, worldY) {
+  return {
+    x: (worldX - cameraX) * cameraZoom,
+    y: (worldY - cameraY) * cameraZoom
+  };
+}
+
+function setCameraZoom(targetZoom, focusX = CANVAS_X / 2, focusY = CANVAS_Y / 2) {
+  const clampedZoom = constrain(targetZoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+  if (clampedZoom === cameraZoom) {
+    return false;
+  }
+
+  const currentZoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
+  const focusWorld = screenToWorld(focusX, focusY, currentZoom);
+
+  cameraZoom = clampedZoom;
+  cameraX = focusWorld.x - focusX / cameraZoom;
+  cameraY = focusWorld.y - focusY / cameraZoom;
+
+  clampCameraToBounds();
+
+  if (cameraFollowEnabled) {
+    const target = cameraFollowTarget || getPrimarySelectedEntity();
+    if (target) {
+      centerCameraOnEntity(target);
+    } else {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+    }
+  }
+
+  return true;
+}
+
+function toggleCameraFollow() {
+  const target = getPrimarySelectedEntity();
+
+  if (cameraFollowEnabled) {
+    if (!target || target === cameraFollowTarget) {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+      return;
+    }
+  }
+
+  if (target) {
+    cameraFollowEnabled = true;
+    cameraFollowTarget = target;
+    centerCameraOnEntity(target);
+  }
 }
 
 function updateCamera() {
-  originalConsoleLog(cameraX, cameraY);
-  if(!isInGame()) return;
-  let dx=0, dy=0;
-  if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) { // Left arrow or 'A'
-    originalConsoleLog("Left key is down");
-    cameraX -= cameraSpeed;
-    
-  }
-  if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) { // Right arrow or 'D'
-    originalConsoleLog("Right key is down");
-    cameraX += cameraSpeed;
-  }
-  if (keyIsDown(UP_ARROW) || keyIsDown(87)) { // Up arrow or 'W'
-    cameraY -= cameraSpeed;
-    originalConsoleLog("Up key is down");
-  }
-  if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) { // Down arrow or 'S'
-    cameraY += cameraSpeed;
-    originalConsoleLog("Down key is down");
+  if (!isInGame()) return;
+
+  const left = keyIsDown(LEFT_ARROW) || keyIsDown(65);
+  const right = keyIsDown(RIGHT_ARROW) || keyIsDown(68);
+  const up = keyIsDown(UP_ARROW) || keyIsDown(87);
+  const down = keyIsDown(DOWN_ARROW) || keyIsDown(83);
+  const manualInput = left || right || up || down;
+
+  if (manualInput) {
+    if (cameraFollowEnabled) {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+    }
+
+    const panStep = cameraPanSpeed / cameraZoom;
+    if (left) {
+      cameraX -= panStep;
+    }
+    if (right) {
+      cameraX += panStep;
+    }
+    if (up) {
+      cameraY -= panStep;
+    }
+    if (down) {
+      cameraY += panStep;
+    }
+
+    clampCameraToBounds();
+  } else if (cameraFollowEnabled) {
+    const primary = getPrimarySelectedEntity();
+    const target = primary || cameraFollowTarget;
+    if (target) {
+      cameraFollowTarget = target;
+      centerCameraOnEntity(target);
+    } else {
+      cameraFollowEnabled = false;
+      cameraFollowTarget = null;
+    }
   }
 
-  // if(dx||dy) {
-  //   const maxX = max(0, MAP._xCount * TILE_SIZE - CANVAS_X);
-  //   const maxY = max(0, MAP._yCount * TILE_SIZE - CANVAS_Y);
-  //   cameraX = constrain(cameraX + dx, 0, maxX);
-  //   cameraY = constrain(cameraY + dy, 0, maxY);
-  //   COORDSY.setViewCornerBC(cameraX, cameraY);
-  // }
+  if (typeof originalConsoleLog === 'function') {
+    originalConsoleLog(cameraX, cameraY);
+  }
+}
+
+function mouseWheel(event) {
+  if (!isInGame()) {
+    return true;
+  }
+
+  const wheelDelta = event?.deltaY ?? 0;
+  if (wheelDelta === 0) {
+    return false;
+  }
+
+  const zoomFactor = wheelDelta > 0 ? (1 / CAMERA_ZOOM_STEP) : CAMERA_ZOOM_STEP;
+  const targetZoom = cameraZoom * zoomFactor;
+  setCameraZoom(targetZoom, mouseX, mouseY);
+
+  return false;
 }
 // Command line functionality has been moved to debug/commandLine.js
 
@@ -138,11 +486,11 @@ function setup() {
   MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
   MAP.randomize(SEED);
   COORDSY = MAP.getCoordinateSystem();
-  COORDSY.setViewCornerBC(0,0);
+  COORDSY.setViewCornerBC([0, 0]);
   
   GRIDMAP = new PathMap(MAP);
   COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
-  COORDSY.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
+  COORDSY.setViewCornerBC([0, 0]); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
   
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
@@ -183,15 +531,17 @@ function draw() {
   // --- PLAYING ---
   if (GameState.isInGame()) {
     push();
+    scale(cameraZoom);
     translate(-cameraX, -cameraY);
 
     MAP.render();
     Ants_Update();
     resourceList.drawAll();
-    pop();
 
     if (typeof drawSelectionBox === 'function') drawSelectionBox();
     drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+
+    pop();
 
     if (typeof drawDevConsoleIndicator === 'function') {
       drawDevConsoleIndicator();
@@ -218,9 +568,10 @@ function draw() {
 
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   stroke(100, 100, 100, 100); // light gray grid lines
-  strokeWeight(1);
+  const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
+  strokeWeight(1 / zoom);
   noFill();
-  console.log("t");
+  //console.log("t");
   for (let x = 0; x < gridWidth; x++) {
     for (let y = 0; y < gridHeight; y++) {
       rect(x * tileSize, y * tileSize, tileSize, tileSize);
@@ -228,8 +579,11 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   }
 
   // Highlight tile under mouse
-  const tileX = Math.floor(mouseX / tileSize);
-  const tileY = Math.floor(mouseY / tileSize);
+  const mouseWorld = typeof getWorldMousePosition === 'function'
+    ? getWorldMousePosition()
+    : { x: mouseX, y: mouseY };
+  const tileX = Math.floor(mouseWorld.x / tileSize);
+  const tileY = Math.floor(mouseWorld.y / tileSize);
   fill(255, 255, 0, 50); // transparent yellow
   noStroke();
   rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);

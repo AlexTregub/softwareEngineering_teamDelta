@@ -28,8 +28,8 @@ class Button {
    * @param {string} [options.borderColor='#333'] - Border color
    * @param {number} [options.borderWidth=2] - Border thickness
    * @param {number} [options.cornerRadius=5] - Corner rounding radius
-   * @param {string} [options.fontFamily='Arial'] - Font family for text
-   * @param {number} [options.fontSize=16] - Font size for text
+   * @param {string} [options.fontFamily='Arial'] - g_menuFont family for text
+   * @param {number} [options.fontSize=16] - g_menuFont size for text
    * @param {Function} [options.onClick=null] - Click handler function
    * @param {boolean} [options.enabled=true] - Whether button is clickable
    */
@@ -160,20 +160,35 @@ class Button {
       image(this.img, 0, 0, this.width, this.height);
       pop();
     } else {
-      // --- draw rectangle button ---
+      // --- draw rectangle button using configured style colors ---
       push();
       translate(center.x, center.y + hoverFloat);
       scale(this.currentScale);
-      fill(hovering ? color(180, 255, 180) : color(100, 200, 100));
-      stroke(255);
-      strokeWeight(3);
-      rect(0, 0, this.width, this.height, this.cornerRadius);
-  
-      fill(this.textColor);
+      // Use configured colors (strings like '#rrggbb' or rgb) — fall back to green if something is wrong
+      try {
+        const bgColor = hovering ? (this.hoverColor || this.backgroundColor) : (this.backgroundColor || '#64C864');
+        fill(bgColor);
+      } catch (err) {
+        fill(color(100, 200, 100));
+      }
+      try { stroke(this.borderColor || 255); } catch (err) { stroke(255); }
+      strokeWeight(this.borderWidth || 2);
+      rect(0, 0, this.width, this.height, this.cornerRadius || 5);
+
+      // Text with word wrapping
+      fill(this.textColor || 'white');
       noStroke();
       textFont(this.fontFamily);
       textSize(this.fontSize);
-      text(this.caption, 0, 0);
+      
+      // Enable text wrapping if available
+      if (typeof textWrap === 'function') {
+        textWrap(WORD);
+      }
+      
+      // Wrap text to fit button width
+      const wrappedText = this.wrapTextToFit(this.caption, this.width - 10, this.fontSize);
+      text(wrappedText, 0, 0);
       pop();
     }
   
@@ -215,6 +230,15 @@ class Button {
    */
   setCaption(newCaption) {
     this.caption = newCaption;
+  }
+  
+  /**
+   * Alternative method name for compatibility
+   * 
+   * @param {string} newText - New button text
+   */
+  setText(newText) {
+    this.caption = newText;
   }
 
   /**
@@ -328,57 +352,238 @@ class Button {
       }
     };
   }
+
+  /**
+   * Wrap text to fit within button width
+   * 
+   * @param {string} text - Text to wrap
+   * @param {number} maxWidth - Maximum width in pixels
+   * @param {number} fontSize - Font size for measurement
+   * @returns {string} Wrapped text with line breaks
+   */
+  wrapTextToFit(text, maxWidth, fontSize) {
+    if (typeof textWidth !== 'function') {
+      return text; // Fallback if textWidth is not available
+    }
+    
+    // Store current text settings
+    const currentFont = textFont();
+    const currentSize = textSize();
+    
+    // Set font for measurement
+    if (this.fontFamily) textFont(this.fontFamily);
+    textSize(fontSize);
+    
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    
+    for (let word of words) {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const testWidth = textWidth(testLine);
+      
+      if (testWidth > maxWidth && currentLine !== '') {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    // Restore previous text settings
+    if (currentFont) textFont(currentFont);
+    if (currentSize) textSize(currentSize);
+    
+    return lines.join('\n');
+  }
+
+  /**
+   * Calculate the required height for wrapped text
+   * 
+   * @param {string} text - Text to measure
+   * @param {number} maxWidth - Maximum width in pixels
+   * @param {number} fontSize - Font size
+   * @returns {number} Required height in pixels
+   */
+  calculateWrappedTextHeight(text, maxWidth, fontSize) {
+    const wrappedText = this.wrapTextToFit(text, maxWidth, fontSize);
+    const lines = wrappedText.split('\n').length;
+    const lineHeight = fontSize * 1.2; // Standard line height multiplier
+    return lines * lineHeight;
+  }
+
+  /**
+   * Auto-resize button height to fit wrapped text
+   * 
+   * @param {number} padding - Internal padding for text
+   */
+  autoResizeForText(padding = 10) {
+    const textWidth = this.width - padding;
+    const requiredHeight = this.calculateWrappedTextHeight(this.caption, textWidth, this.fontSize);
+    const newHeight = Math.max(35, requiredHeight + padding); // Minimum height of 35px
+    
+    if (newHeight !== this.height) {
+      this.setSize(this.width, newHeight);
+      return true; // Height changed
+    }
+    return false; // No change needed
+  }
+}
+
+/**
+ * Global button styles - centralized styling for all buttons in the game
+ * All button colors and styling should be defined here for consistency
+ */
+const ButtonStyles = {
+  // Toolbar buttons (used in UILayerRenderer)
+  TOOLBAR: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#5A5A5A',
+    textColor: '#FFFFFF',
+    borderColor: '#222222',
+    borderWidth: 1,
+    cornerRadius: 3,
+    fontSize: 12
+  },
+  TOOLBAR_ACTIVE: {
+    backgroundColor: '#6496FF',
+    hoverColor: '#5A88E6',
+    textColor: '#FFFFFF',
+    borderColor: '#4A78CC',
+    borderWidth: 1,
+    cornerRadius: 3,
+    fontSize: 12
+  },
+  
+  // Main menu buttons
+  MAIN_MENU: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#4A4A4A',
+    textColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+    borderWidth: 2,
+    cornerRadius: 5,
+    fontSize: 24
+  },
+  
+  // Pause menu buttons
+  PAUSE_MENU: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#4A4A4A',
+    textColor: '#FFFFFF',
+    borderColor: '#C8C8C8',
+    borderWidth: 1,
+    cornerRadius: 5,
+    fontSize: 18
+  },
+  
+  // Debug fallback buttons
+  DEBUG_FALLBACK: {
+    backgroundColor: '#3C3C3C',
+    hoverColor: '#4A4A4A',
+    textColor: '#FFFFFF',
+    borderColor: '#C8C8C8',
+    borderWidth: 1,
+    cornerRadius: 4,
+    fontSize: 12
+  },
+  
+  // Menu button styles (createMenuButton factory)
+  DEFAULT: {
+    backgroundColor: '#2196F3',
+    hoverColor: '#1976D2',
+    textColor: 'white',
+    borderColor: '#0D47A1',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  SUCCESS: {
+    backgroundColor: '#4CAF50',
+    hoverColor: '#45a049',
+    textColor: 'white',
+    borderColor: '#2E7D32',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  WARNING: {
+    backgroundColor: '#FF9800',
+    hoverColor: '#F57C00',
+    textColor: 'white',
+    borderColor: '#E65100',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  DANGER: {
+    backgroundColor: '#F44336',
+    hoverColor: '#D32F2F',
+    textColor: 'white',
+    borderColor: '#B71C1C',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  PURPLE: {
+    backgroundColor: '#9C27B0',
+    hoverColor: '#7B1FA2',
+    textColor: 'white',
+    borderColor: '#4A148C',
+    borderWidth: 2,
+    cornerRadius: 8
+  },
+  
+  // Universal Button Group System - Dynamic styling
+  DYNAMIC: {
+    backgroundColor: '#4A5568',
+    hoverColor: '#2D3748',
+    textColor: '#FFFFFF',
+    borderColor: '#718096',
+    borderWidth: 1,
+    cornerRadius: 6,
+    fontSize: 14
+  }
+};
+
+// Make Button class and ButtonStyles globally available
+if (typeof window !== 'undefined') {
+  window.Button = Button;
+  window.ButtonStyles = ButtonStyles;
+}
+if (typeof global !== 'undefined') {
+  global.Button = Button;
+  global.ButtonStyles = ButtonStyles;
 }
 
 // Button factory function with predefined styles
 function createMenuButton(x, y, width, height, caption, style = 'default', clickHandler = null, image = null) {
-  const styles = {
-    default: {
-      backgroundColor: '#2196F3',
-      hoverColor: '#1976D2',
-      textColor: 'white',
-      borderColor: '#0D47A1'
-    },
-    success: {
-      backgroundColor: '#4CAF50',
-      hoverColor: '#45a049',
-      textColor: 'white',
-      borderColor: '#2E7D32'
-    },
-    warning: {
-      backgroundColor: '#FF9800',
-      hoverColor: '#F57C00',
-      textColor: 'white',
-      borderColor: '#E65100'
-    },
-    danger: {
-      backgroundColor: '#F44336',
-      hoverColor: '#D32F2F',
-      textColor: 'white',
-      borderColor: '#B71C1C'
-    },
-    purple: {
-      backgroundColor: '#9C27B0',
-      hoverColor: '#7B1FA2',
-      textColor: 'white',
-      borderColor: '#4A148C'
-    }
+  const styleMap = {
+    default: ButtonStyles.DEFAULT,
+    success: ButtonStyles.SUCCESS,
+    warning: ButtonStyles.WARNING,
+    danger: ButtonStyles.DANGER,
+    purple: ButtonStyles.PURPLE
   };
 
   const buttonStyle = {
-    ...styles[style],
-    borderWidth: 2,
-    cornerRadius: 8,
+    ...styleMap[style],
     onClick: clickHandler || (() => console.log(`${caption} clicked!`)),
     image: image
   };
 
-  return new Button(x, y, width, height, caption, buttonStyle);
+  const btn = new Button(x, y, width, height, caption, buttonStyle);
+  // Backwards compatibility: some code expects an `action` method/property.
+  // Ensure both modern `onClick` and legacy `action` call the same handler.
+  btn.action = function() { if (typeof btn.onClick === 'function') return btn.onClick(btn); };
+  return btn;
 }
 
 // Export for Node.js compatibility
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = Button;
+  module.exports.ButtonStyles = ButtonStyles;
+  module.exports.createMenuButton = createMenuButton;
 }
 
 let activeButtons = [];

@@ -1,4 +1,3 @@
-
 // AntStateMachine.js
 // Manages the state of an ant character in a game, including primary activities and modifiers.
 // Supports complex state combinations and provides methods to query and change states.
@@ -6,7 +5,8 @@ class AntStateMachine {
   constructor() {
     // Primary activity states
     this.primaryState = "IDLE";
-    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING"];
+    // added DROPPING_OFF so ants can transition to a dedicated dropoff state
+    this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING", "PATROL", "DROPPING_OFF"];
     
     // Combat modifier states
     this.combatModifier = "OUT_OF_COMBAT";
@@ -104,12 +104,14 @@ class AntStateMachine {
                this.terrainModifier !== "ON_SLIPPERY";
       
       case "gather":
-        // Can't gather while in combat, following, building, socializing, or mating
+        // Can't gather while in combat, following, building, socializing, mating, patrolling, or dropping off
         return this.combatModifier === "OUT_OF_COMBAT" && 
                this.primaryState !== "FOLLOWING" &&
                this.primaryState !== "BUILDING" &&
                this.primaryState !== "SOCIALIZING" &&
-               this.primaryState !== "MATING";
+               this.primaryState !== "PATROL" &&
+               this.primaryState !== "MATING" &&
+               this.primaryState !== "DROPPING_OFF";
       
       case "attack":
         // Can only attack when in combat states, not while building or mating
@@ -157,6 +159,11 @@ class AntStateMachine {
                this.primaryState !== "BUILDING" &&
                this.primaryState !== "SOCIALIZING";
       
+      case "patrol":
+        // Can't patrol while engaged in other activities
+        return this.primaryState !== "BUILDING" &&
+               this.primaryState !== "SOCIALIZING";
+      
       default:
         return true;
     }
@@ -164,6 +171,7 @@ class AntStateMachine {
 
   // Check current states
   isPrimaryState(state) { return this.primaryState === state; }
+  isDroppingOff() { return this.primaryState === "DROPPING_OFF"; }
   isInCombat() { return this.combatModifier !== "OUT_OF_COMBAT" && this.combatModifier !== null; }
   isOutOfCombat() { return this.combatModifier === "OUT_OF_COMBAT"; }
   isOnTerrain(terrain) { return this.terrainModifier === terrain; }
@@ -216,7 +224,7 @@ class AntStateMachine {
 
   // Debug: Print current state
   printState() {
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       console.log(`AntStateMachine State: ${this.getFullState()}`);
       console.log(`  Primary: ${this.primaryState}`);
       console.log(`  Combat: ${this.combatModifier || "None"}`);
@@ -244,41 +252,68 @@ class AntStateMachine {
       }
     };
   }
+
+  // Update method for game loop integration
+  update() {
+    // Currently a no-op - state machine updates happen through explicit state changes
+    // This method exists to satisfy the interface expected by ant.js
+  }
 }
 
-function antSMtest() {
-    // Create state machine for an ant
-    let antSM = new AntStateMachine();
-    
-    // Set states
-    antSM.setPrimaryState("MOVING");
-    antSM.setCombatModifier("IN_COMBAT");
-    antSM.setTerrainModifier("IN_MUD");
-    
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-      console.log(antSM.getFullState()); // "MOVING_IN_COMBAT_IN_MUD"
-      
-      // Check capabilities
-      console.log(antSM.canPerformAction("move")); // true
-      console.log(antSM.canPerformAction("attack")); // true
-    }
-    
-    // Set callback for state changes
-    antSM.setStateChangeCallback((oldState, newState) => {
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-        console.log(`Ant state changed from ${oldState} to ${newState}`);
+/**
+ * runAntStateCoverageTest
+ * -----------------------
+ * Exercise every state combination defined on AntStateMachine (primary × (null + combat) × (null + terrain)).
+ * Automatically picks up any new states added to primaryStates/combatStates/terrainStates.
+ * Returns a report object { total, checked, failures, visitedCount } and logs a concise summary.
+ */
+function runAntStateCoverageTest(selectedAnt = null, verbose = false) {
+  selectedAnt ??= new AntWrapper();
+  const failures = [];
+  const visited = new Set();
+  selectedAnt.getAntStateMachine().setStateChangeCallback((oldState, newState) => visited.add(newState));
+
+  const primaries = Array.from(selectedAnt.primaryStates);
+  const combats = [null].concat(Array.from(selectedAnt.combatStates));
+  const terrains = [null].concat(Array.from(selectedAnt.terrainStates));
+
+  function buildExpected(primary, combat, terrain) {
+    let s = primary;
+    if (combat) s += `_${combat}`;
+    if (terrain) s += `_${terrain}`;
+    return s;
+  }
+
+  let checked = 0;
+  for (const p of primaries) {
+    for (const c of combats) {
+      for (const t of terrains) {
+        checked++;
+        const ok = sm.setState(p, c, t);
+        const expected = buildExpected(p, c, t);
+        const actual = sm.getFullState();
+        if (!ok) failures.push({ primary: p, combat: c, terrain: t, reason: 'setState returned false' });
+        if (actual !== expected) failures.push({ primary: p, combat: c, terrain: t, reason: 'state mismatch', expected, actual });
+        if (verbose && failures.length === 0) {
+          console.log(`OK: ${expected}`);
+        }
       }
-    });
-    
-    // Reset to idle
-    antSM.reset(); // "Ant state changed from MOVING_IN_COMBAT_IN_MUD to IDLE"
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-      antSM.printState();
-      console.log(antSM.getStateSummary());
     }
+  }
+
+  const report = {
+    total: primaries.length * combats.length * terrains.length,
+    checked,
+    failures,
+    visitedCount: visited.size
+  };
+
+  console.log(`AntStateCoverage: checked ${checked} combinations, failures: ${failures.length}, visitedStateCount: ${visited.size}`);
+  if (failures.length) console.table(failures);
+  return report;
 }
 
 // Export for use in other files
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntStateMachine;
 }

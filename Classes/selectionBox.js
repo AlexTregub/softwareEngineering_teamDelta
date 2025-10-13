@@ -3,6 +3,17 @@ let selectionStart = null;
 let selectionEnd = null;
 let selectedEntities = [];
 
+function toWorldCoords(mx, my) {
+  if (typeof getWorldMousePosition === 'function') {
+    return getWorldMousePosition(mx, my);
+  }
+
+  const offsetX = typeof cameraX === 'number' ? cameraX : 0;
+  const offsetY = typeof cameraY === 'number' ? cameraY : 0;
+
+  return { x: mx + offsetX, y: my + offsetY };
+}
+
 // Deselect all entities
 function deselectAllEntities() {
   selectedEntities.forEach(entity => entity.isSelected = false);
@@ -51,7 +62,8 @@ function isEntityUnderMouse(entity, mx, my) {
 function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, selectedEntity, moveSelectedEntityToTile, TILE_SIZE, mousePressed) {
   // Spread out multi-selected entities around the clicked location
   if (selectedEntities.length > 1 && mousePressed === LEFT) {
-    moveSelectedAntsToTile(mouseX+cameraX, mouseY+cameraY, TILE_SIZE);
+    const worldPoint = toWorldCoords(mouseX, mouseY);
+    moveSelectedAntsToTile(worldPoint.x, worldPoint.y, TILE_SIZE);
     deselectAllEntities();
     return;
   } else if (mousePressed == RIGHT) {
@@ -70,7 +82,9 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
     // Safety check: ensure entity has required methods
     if (!entity || typeof entity.isMouseOver !== 'function') continue;
     
-    if (isEntityUnderMouse(entity, mouseX+cameraX, mouseY+cameraY)) {
+    const worldPoint = toWorldCoords(mouseX, mouseY);
+
+    if (isEntityUnderMouse(entity, worldPoint.x, worldPoint.y)) {
       // Safety check: ensure callback exists before calling
       if (typeof selectEntityCallback === 'function') {
         selectEntityCallback();
@@ -83,7 +97,8 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
   // If no entity was clicked, start box selection (regardless of whether an entity is selected)
   if (!entityWasClicked) {
     isSelecting = true;
-    selectionStart = createVector(mouseX+cameraX, mouseY+cameraY);
+    const worldStart = toWorldCoords(mouseX, mouseY);
+    selectionStart = createVector(worldStart.x, worldStart.y);
     selectionEnd = selectionStart.copy();
   }
 }
@@ -91,7 +106,8 @@ function handleMousePressed(entities, mouseX, mouseY, selectEntityCallback, sele
 // Handles mouse drag for updating selection box
 function handleMouseDragged(mouseX, mouseY, entities) {
   if (isSelecting) {
-    selectionEnd = createVector(mouseX+cameraX, mouseY+cameraY);
+    const worldCurrent = toWorldCoords(mouseX, mouseY);
+    selectionEnd = createVector(worldCurrent.x, worldCurrent.y);
 
     let x1 = Math.min(selectionStart.x, selectionEnd.x);
     let x2 = Math.max(selectionStart.x, selectionEnd.x);
@@ -152,12 +168,17 @@ function handleMouseReleased(entities, selectedEntity, moveSelectedEntityToTile,
 }
 
 // Draws the selection box
+function getCameraZoom() {
+  return (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
+}
+
 function drawSelectionBox() {
   if (isSelecting && selectionStart && selectionEnd) {
     push();
     noFill();
     stroke(0, 150, 255);
-    strokeWeight(2);
+    const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
+    strokeWeight(2 / zoom);
     rectMode(CORNERS);
     rect(selectionStart.x, selectionStart.y, selectionEnd.x, selectionEnd.y);
     pop();
