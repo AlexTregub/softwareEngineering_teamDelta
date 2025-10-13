@@ -40,7 +40,7 @@ class GatherDebugRenderer {
    * Toggles whether to show all lines or just the lines that are in range of resources
    */
   toggleAllLines() {
-    this.showAllLines = !this.showAllLines
+    this.showAllLines = !this.showAllLines;
   }
 
   /**
