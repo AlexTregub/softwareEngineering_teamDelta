@@ -255,7 +255,7 @@ class TileInteractionManager {
    */
   handleTileClick(tileX, tileY, mouseX, mouseY, button) {
     // Default behavior: move selected ant to tile center
-    if (typeof antManager !== 'undefined' && antManager.selectedAnt && button === 'LEFT') {
+    if (antManager && antManager.selectedAnt && button === 'LEFT') {
       const { centerX, centerY } = this.pixelToTile(mouseX, mouseY);
       
       // Set global mouse position to tile center for tile-based movement
@@ -320,6 +320,6 @@ class TileInteractionManager {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = TileInteractionManager;
 }

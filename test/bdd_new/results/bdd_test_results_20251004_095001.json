@@ -1,0 +1,137 @@
+{
+  "timestamp": "2025-10-04T09:49:23.451948",
+  "total_features": 6,
+  "total_scenarios": 18,
+  "passed_scenarios": 2,
+  "failed_scenarios": 16,
+  "skipped_scenarios": 0,
+  "features": [
+    {
+      "name": "Universal Button System",
+      "scenarios": [
+        {
+          "name": "ButtonGroupManager Initialization",
+          "status": "failed",
+          "error": "ButtonGroupManager should exist"
+        },
+        {
+          "name": "Button Group Creation",
+          "status": "failed",
+          "error": "Should have button groups. Found: 0"
+        },
+        {
+          "name": "Button Click Functionality",
+          "status": "failed",
+          "error": "Debug button should be found"
+        },
+        {
+          "name": "Button Drag Functionality",
+          "status": "passed",
+          "details": {
+            "draggableGroups": 0,
+            "hasDraggableGroups": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Render Pipeline System",
+      "scenarios": [
+        {
+          "name": "RenderLayerManager Initialization",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'toggleLayer')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Layer Toggle Functionality",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'isLayerEnabled')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Layer State Persistence",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'disableLayer')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        }
+      ]
+    },
+    {
+      "name": "End-to-End Integration",
+      "scenarios": [
+        {
+          "name": "Complete Debug Button Workflow",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'isLayerEnabled')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "System Error Recovery",
+          "status": "failed",
+          "error": "System should remain stable after error"
+        }
+      ]
+    },
+    {
+      "name": "Advanced Edge Cases",
+      "scenarios": [
+        {
+          "name": "Multiple Simultaneous Actions",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'executeAction')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Button Configuration Validation",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'executeAction')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Positioning Edge Cases",
+          "status": "failed",
+          "error": "Should have button groups"
+        }
+      ]
+    },
+    {
+      "name": "Comprehensive Action System",
+      "scenarios": [
+        {
+          "name": "Action Handler Validation",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'executeAction')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Action Execution with Context",
+          "status": "failed",
+          "error": "Message: javascript error: Cannot read properties of undefined (reading 'executeAction')\n  (Session info: chrome=140.0.7339.208)\nStacktrace:\n\tGetHandleVerifier [0x0x7ff6b4071eb5+80197]\n\tGetHandleVerifier [0x0x7ff6b4071f10+80288]\n\t(No symbol) [0x0x7ff6b3df02fa]\n\t(No symbol) [0x0x7ff6b3df7e5a]\n\t(No symbol) [0x0x7ff6b3dfb2b1]\n\t(No symbol) [0x0x7ff6b3e99b7b]\n\t(No symbol) [0x0x7ff6b3e7037a]\n\t(No symbol) [0x0x7ff6b3e987fb]\n\t(No symbol) [0x0x7ff6b3e70153]\n\t(No symbol) [0x0x7ff6b3e38b02]\n\t(No symbol) [0x0x7ff6b3e398d3]\n\tGetHandleVerifier [0x0x7ff6b432e83d+2949837]\n\tGetHandleVerifier [0x0x7ff6b4328c6a+2926330]\n\tGetHandleVerifier [0x0x7ff6b43486c7+3055959]\n\tGetHandleVerifier [0x0x7ff6b408cfee+191102]\n\tGetHandleVerifier [0x0x7ff6b40950af+224063]\n\tGetHandleVerifier [0x0x7ff6b407af64+117236]\n\tGetHandleVerifier [0x0x7ff6b407b119+117673]\n\tGetHandleVerifier [0x0x7ff6b40610a8+11064]\n\tBaseThreadInitThunk [0x0x7ffef99a7374+20]\n\tRtlUserThreadStart [0x0x7ffefb6bcc91+33]\n"
+        },
+        {
+          "name": "Action Parameter Validation",
+          "status": "failed",
+          "error": "Valid actions should succeed"
+        }
+      ]
+    },
+    {
+      "name": "Button Image and Texture Rendering",
+      "scenarios": [
+        {
+          "name": "Image Support Detection",
+          "status": "passed",
+          "details": {
+            "buttonClassExists": false,
+            "canCreateButton": true,
+            "imagePropertySupported": true
+          }
+        },
+        {
+          "name": "Button Rendering Modes",
+          "status": "failed",
+          "error": "Should have buttons to test"
+        },
+        {
+          "name": "Image Loading and Fallback",
+          "status": "failed",
+          "error": "p5.js loadImage function should be available"
+        }
+      ]
+    }
+  ]
+}

@@ -49,14 +49,14 @@
       }
       this.deselectAll();
       this._isSelecting = true;
-      this._selectionStart = createVector(x, y);
+      this._selectionStart = createVector(x + cameraX, y + cameraY);
       this._selectionEnd = this._selectionStart.copy();
     }
   };
 
   SelectionBoxController.prototype.handleDrag = function (x, y) {
     if (this._isSelecting && this._selectionStart) {
-      this._selectionEnd = createVector(x, y);
+      this._selectionEnd = createVector(x + cameraX, y + cameraY);
       var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
       var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
       var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
@@ -124,7 +124,7 @@
       pop();
     }
 
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       for (var i = 0; i < this._selectedEntities.length; i++) {
         var entity = this._selectedEntities[i];
         try {

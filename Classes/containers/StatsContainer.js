@@ -54,7 +54,7 @@ class StatsContainer {
     getExpTotal(){ this.setExpTotal(); return this.expTotal; }
     setExpTotal(){ this.expTotal = 0; for (const value of this.exp) for (const keys of Object.keys(value)){ this.expTotal += value[keys] }}
     printExpTotal(){ 
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      if (devConsoleEnabled) {
         console.log(`Total EXP: ${this.expTotal}`);
       }
     }
@@ -72,12 +72,12 @@ class StatsContainer {
     }
 
     test_Map(g_map) { 
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      if (devConsoleEnabled) {
         for (const [key, value] of g_map) { console.log(`${key}: ${value}`); }
       }
     }
     test_Exp() { 
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      if (devConsoleEnabled) {
         for (const [key, value] of this.exp) {
           console.log(`KEY: ${key}`); 
           for (const keys of Object.keys(value)){ 
@@ -124,14 +124,14 @@ class stat {
         this.test_enforceStatLimit();
     }
     test_enforceStatLimit() {
-        if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+        if (devConsoleEnabled) {
             if (this.statValue < this.statLowerLimit) console.error(this.statValue, this.statLowerLimit);
             if (this.statValue > this.statUpperLimit) console.error(this.statValue, this.statUpperLimit);
         }
     }
 
     printStatToDebug() {
-        if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+        if (devConsoleEnabled) {
             for (const key of Object.keys(this)) {
                 let value = this[key];
                 // If value is a vector, format as (x, y)
@@ -165,13 +165,13 @@ class stat {
             );
         } else {
             // Fallback: log to console if rendering context is unavailable
-            if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+            if (devConsoleEnabled) {
                 console.log(`Print at (${pos.x}, ${pos.y + spriteSize.y + 5}): ${this.statName}: ${valueToPrint}`);
             }
         }
     }
 }
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
     module.exports = { StatsContainer, stat };
 }

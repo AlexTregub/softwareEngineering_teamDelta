@@ -5,7 +5,6 @@ class AntStateMachine {
   constructor() {
     // Primary activity states
     this.primaryState = "IDLE";
-    // added DROPPING_OFF so ants can transition to a dedicated dropoff state
     this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING", "PATROL", "DROPPING_OFF"];
     
     // Combat modifier states
@@ -18,6 +17,8 @@ class AntStateMachine {
     
     // State change callbacks
     this.onStateChange = null;
+
+    this.preferredState = "GATHERING";
   }
 
   // Set the primary activity state
@@ -83,6 +84,24 @@ class AntStateMachine {
     
     return success;
   }
+  /**
+   * Will try and resume the preferred state after the ant is idle, 
+   */
+  ResumePreferredState(){
+    if(this.primaryState == "IDLE"){ this.setPrimaryState(this.preferredState) }
+  }
+  
+  /**
+   * Will try and set the preferred state to be resumed after the ant is idle, 
+   */
+  setPreferredState(state){
+    if (this.isValidPrimary(state)) { this.primaryState = state } 
+    else { IncorrectParamPassed(state, this.primaryStates)}
+  }
+
+  beginIdle(){
+    if (this.isValidPrimary("IDLE")) { this.primaryState = "IDLE" } 
+  }
 
   // Get the complete state as a string
   getFullState() {
@@ -90,6 +109,10 @@ class AntStateMachine {
     if (this.combatModifier) state += `_${this.combatModifier}`;
     if (this.terrainModifier) state += `_${this.terrainModifier}`;
     return state;
+  }
+
+  getCurrentState(){
+    return this.primaryState
   }
 
   // Check if ant can perform specific actions
@@ -169,6 +192,24 @@ class AntStateMachine {
     }
   }
 
+    // Simple check if a value is an allowed primary state
+  isValidPrimary(state) {
+    return typeof state === 'string' && this.primaryStates.includes(state);
+  }
+
+  // Checks for combat/terrain (accepts null to clear a modifier)
+  isValidCombat(state) {
+    return state === null || (typeof state === 'string' && this.combatStates.includes(state));
+  }
+  isValidTerrain(state) {
+    return state === null || (typeof state === 'string' && this.terrainStates.includes(state));
+  }
+
+  // Check across all state lists (useful for validations)
+  isValidAnyState(state) {
+    return this.isValidPrimary(state) || this.isValidCombat(state) || this.isValidTerrain(state);
+  }
+
   // Check current states
   isPrimaryState(state) { return this.primaryState === state; }
   isDroppingOff() { return this.primaryState === "DROPPING_OFF"; }
@@ -224,7 +265,7 @@ class AntStateMachine {
 
   // Debug: Print current state
   printState() {
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+    if (devConsoleEnabled) {
       console.log(`AntStateMachine State: ${this.getFullState()}`);
       console.log(`  Primary: ${this.primaryState}`);
       console.log(`  Combat: ${this.combatModifier || "None"}`);
@@ -313,40 +354,7 @@ function runAntStateCoverageTest(selectedAnt = null, verbose = false) {
   return report;
 }
 
-
-function antSmTest() {
-    // Create state machine for an ant
-    let antSM = new AntStateMachine();
-    
-    // Set states
-    antSM.setPrimaryState("MOVING");
-    antSM.setCombatModifier("IN_COMBAT");
-    antSM.setTerrainModifier("IN_MUD");
-    
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-      console.log(antSM.getFullState()); // "MOVING_IN_COMBAT_IN_MUD"
-      
-      // Check capabilities
-      console.log(antSM.canPerformAction("move")); // true
-      console.log(antSM.canPerformAction("attack")); // true
-    }
-    
-    // Set callback for state changes
-    antSM.setStateChangeCallback((oldState, newState) => {
-      if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-        console.log(`Ant state changed from ${oldState} to ${newState}`);
-      }
-    });
-    
-    // Reset to idle
-    antSM.reset(); // "Ant state changed from MOVING_IN_COMBAT_IN_MUD to IDLE"
-    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
-      antSM.printState();
-      console.log(antSM.getStateSummary());
-    }
-}
-
 // Export for use in other files
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntStateMachine;
 }

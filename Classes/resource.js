@@ -3,10 +3,61 @@ let g_resourceManager;
 let resourceIndex = 0;
 
 function resourcePreLoad(){
-  greenLeaf = loadImage('Images/Resources/leaf.png');
-  mapleLeaf = loadImage('Images/Resources/mapleLeaf.png');
-  g_resourceList = new resourcesArray(); 
-  g_resourceManager = new ResourceSpawner(1,50,g_resourceList); // (Interval,Capacity,List)
+  // Create the new unified resource system manager
+  g_resourceManager = new ResourceSystemManager(1, 50); // (Interval, Capacity)
+  
+  // Keep g_resourceList for backward compatibility - it will delegate to g_resourceManager
+  g_resourceList = new resourcesArrayCompat(g_resourceManager);
+  
+  // Register all resource types declaratively
+  registerAllResourceTypes();
+}
+
+/**
+ * Register all resource types used in the game.
+ * This centralizes all resource definitions in one place.
+ */
+function registerAllResourceTypes() {
+  // Existing leaf resources
+  g_resourceManager.registerResourceType('greenLeaf', {
+    imagePath: 'Images/Resources/leaf.png',
+    weight: 0.5,
+    canBePickedUp: true,
+    size: { width: 20, height: 20 },
+    displayName: 'Green Leaf',
+    category: 'food'
+  });
+  
+  g_resourceManager.registerResourceType('mapleLeaf', {
+    imagePath: 'Images/Resources/mapleLeaf.png',
+    weight: 0.8,
+    canBePickedUp: true,
+    size: { width: 20, height: 20 },
+    displayName: 'Maple Leaf',
+    category: 'food'
+  });
+
+  g_resourceManager.registerResourceType('stick', {
+    imagePath: 'Images/Resources/stick.png',
+    weight: 0.6,
+    canBePickedUp: true,
+    initialSpawnCount: 25, 
+    size: { width: 20, height: 20 },
+    displayName: 'Stick',
+    category: 'materials'
+  });
+
+  g_resourceManager.registerResourceType('stone', {
+    imagePath: 'Images/Resources/stone.png',
+    weight: 0,  // No random spawning during gameplay
+    canBePickedUp: false,  // Cannot be picked up by entities
+    initialSpawnCount: 25,  // Spawn 25 stones when game starts
+    spawnPattern: 'random',  // Distribute randomly across map
+    size: { width: 20, height: 20 },
+    isObstacle: true,  // Acts as terrain obstacle
+    displayName: 'Stone',
+    category: 'terrain'
+  });
 }
 
 
@@ -14,7 +65,7 @@ function setKey(x,y){
   return `${x},${y}`;
 }
 
-// Plan on using to detect ants collision
+// Legacy resourcesArray class - kept for backward compatibility
 class resourcesArray {
   constructor() {
     this.resources = [];
@@ -40,6 +91,54 @@ class resourcesArray {
         if (r && typeof r.update === 'function') r.update();
       } catch (_) { /* ignore individual update errors */ }
     }
+  }
+}
+
+// Compatibility wrapper that delegates to ResourceSystemManager
+class resourcesArrayCompat {
+  constructor(resourceSystemManager) {
+    this.resourceSystemManager = resourceSystemManager;
+  }
+
+  getResourceList() {
+    return this.resourceSystemManager ? this.resourceSystemManager.getResourceList() : [];
+  }
+
+  drawAll() {
+    if (this.resourceSystemManager) {
+      this.resourceSystemManager.drawAll();
+    }
+  }
+
+  updateAll() {
+    if (this.resourceSystemManager) {
+      this.resourceSystemManager.updateAll();
+    }
+  }
+
+  setSelectedType(resourceType) {
+    if (this.resourceSystemManager && typeof this.resourceSystemManager.setSelectedType === 'function') {
+      this.resourceSystemManager.setSelectedType(resourceType);
+    }
+  }
+
+  // Additional compatibility methods
+  get resources() {
+    return this.getResourceList();
+  }
+
+  set resources(value) {
+    // For compatibility, but discourage direct assignment
+    if (typeof globalThis.logVerbose === 'function') {
+      globalThis.logVerbose('ResourcesArrayCompat: Direct resource assignment deprecated, use ResourceSystemManager methods instead');
+    }
+  }
+
+  clear() {
+    if (this.resourceSystemManager && typeof this.resourceSystemManager.clearAllResources === 'function') {
+      return this.resourceSystemManager.clearAllResources();
+    }
+    return [];
   }
 }
 
@@ -133,7 +232,7 @@ function setRenderListLocation(style, order = "standard"){
         entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0)),
         leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
         fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
-        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 3))
+        ant:() => text("🐜: " + ants.length, style.textPos.x + (style.offsets.x * 2), style.textPos.y + (style.offsets.y * 3))
       }  
       break;
     case "reversed":
@@ -141,7 +240,7 @@ function setRenderListLocation(style, order = "standard"){
         entities:() => text("Entities Rendered", style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 3)),
         leaf:() => text("🍃 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 2)),
         fallLeaf:() => text("🍂 " + globalResource.length, style.textPos.x + (style.offsets.x * 1), style.textPos.y + (style.offsets.y * 1)),
-        ant:() => text("🐜: " + antIndex, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
+        ant:() => text("🐜: " + ants.length, style.textPos.x + (style.offsets.x * 0), style.textPos.y + (style.offsets.y * 0))
       }  
       break;
     default:
@@ -186,6 +285,8 @@ class ResourceSpawner {
     this.maxAmount = maxAmount;
     this.interval = interval;
     this.resources = resources;
+    this.timer = null;
+    this.isActive = false;
 
     this.assets = {
       greenLeaf: { 
@@ -207,13 +308,53 @@ class ResourceSpawner {
       },
     };
 
-    // spawn every {interval} seconds
-    this.timer = setInterval(() => this.spawn(), this.interval * 1000);
+    // Register for game state changes to start/stop spawning automatically
+    if (typeof GameState !== 'undefined') {
+      GameState.onStateChange((newState, oldState) => {
+        if (newState === 'PLAYING') {
+          this.start();
+        } else {
+          this.stop();
+        }
+      });
+
+      // If we're already in PLAYING state when created, start immediately
+      if (GameState.getState() === 'PLAYING') {
+        this.start();
+      }
+    } else {
+      // Fallback for environments without GameState (like tests) - start immediately
+      this.start();
+    }
+  }
+
+  // Start the spawning timer
+  start() {
+    if (!this.isActive) {
+      this.isActive = true;
+      this.timer = setInterval(() => this.spawn(), this.interval * 1000);
+      console.log('ResourceSpawner: Started spawning resources');
+    }
+  }
+
+  // Stop the spawning timer
+  stop() {
+    if (this.isActive) {
+      this.isActive = false;
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+      console.log('ResourceSpawner: Stopped spawning resources');
+    }
   }
 
   
   // Asset selected based on rarity, drawn and appened to list of resources
   spawn() {
+    // Only spawn if active
+    if (!this.isActive) return;
+
     let list = this.resources.getResourceList();
     if (list.length >= this.maxAmount) return;
 
@@ -232,6 +373,14 @@ class ResourceSpawner {
 
     let chosen = this.assets[chosenKey].make();
     list.push(chosen);
+  }
+
+  // Manual spawn method for testing or immediate spawning
+  forceSpawn() {
+    const wasActive = this.isActive;
+    this.isActive = true; // Temporarily enable for this spawn
+    this.spawn();
+    this.isActive = wasActive; // Restore previous state
   }
 }
 
@@ -307,6 +456,14 @@ class Resource extends Entity {
     return new Resource(x, y, 20, 20, { resourceType: 'mapleLeaf' });
   }
 
+  static createStick(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stick' });
+  }
+
+  static createStone(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stone' });
+  }
+
   get type() { return this._resourceType; }
   get resourceType() { return this._resourceType; }
   get isCarried() { return !!this._isCarried; }
@@ -315,8 +472,12 @@ class Resource extends Entity {
   // Rendering: delegate to Entity.render() which will use RenderController if available
   render() {
     super.render();
-    // Apply hover highlight in the modern path
-    this.highlight();
+    // Apply hover highlight in the modern path using enhanced API
+    if (this.isMouseOver(mouseX, mouseY)) {
+      this.highlight.spinning();
+    } else {
+      this.highlight.clear();
+    }
   }
 
   isMouseOver(mx, my) {
@@ -324,24 +485,11 @@ class Resource extends Entity {
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
   }
 
-  highlight() {
-    // Use InteractionController for hover detection if available
-    const interactionController = this.getController('interaction');
-    const isHovered = interactionController ? 
-      interactionController.isMouseOver() : 
-      this.isMouseOver(mouseX, mouseY);
-
-    if (isHovered) {
-      const pos = this.getPosition();
-      const size = this.getSize();
-      
-      // Draw highlight overlay
-      push();
-      noFill();
-      stroke(255, 255, 0, 150); // Yellow highlight
-      strokeWeight(2);
-      rect(pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
-      pop();
+  applyHighlight() {
+    if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
+        this.highlight.hover();
+    } else {
+      verboseLog("No hover effect available");
     }
   }
 
@@ -377,7 +525,7 @@ class Resource extends Entity {
     // If RenderController exists it will handle rendering in Entity.render()
     if (!this.getController('render')) {
       this.render();
-      this.highlight();
+      this.applyHighlight();
     }
   }
 

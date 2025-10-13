@@ -16,6 +16,7 @@ class RenderController {
     // Animation properties
     this._bobOffset = Math.random() * Math.PI * 2; // Random bob start
     this._pulseOffset = Math.random() * Math.PI * 2; // Random pulse start
+    this._spinOffset = Math.random() * Math.PI * 2; // Random spin start
     
     // Rendering settings
     this._smoothing = false; // Pixel art style by default
@@ -34,7 +35,7 @@ class RenderController {
         style: "outline"
       },
       BOX_HOVERED: {
-        color: [0, 255, 50, 100], // Green with transparence
+        color: [0, 255, 0, 150], // Green with transparency
         strokeWeight: 2,
         style: "outline"
       },
@@ -54,9 +55,24 @@ class RenderController {
         style: "outline"
       },
       RESOURCE: {
-        color: [255, 165, 0], // Orange
+        color: [255, 255, 255, 200], // White with transparency
         strokeWeight: 2,
         style: "bob"
+      },
+      SPINNING: {
+        color: [0, 255, 255, 200], // Cyan with transparency
+        strokeWeight: 2,
+        style: "spin"
+      },
+      SLOW_SPINNING: {
+        color: [255, 0, 255, 200], // Magenta with transparency
+        strokeWeight: 2,
+        style: "slowSpin"
+      },
+      FAST_SPINNING: {
+        color: [50, 125, 125, 200], // Teal with transparency
+        strokeWeight: 2,
+        style: "fastSpin"
       }
     };
 
@@ -89,13 +105,15 @@ class RenderController {
    * Update animation offsets for smooth visual effects
    */
   _updateAnimations() {
-    // Update bob and pulse offsets for smooth animation
+    // Update bob, pulse, and spin offsets for smooth animation
     this._bobOffset += 0.1;
     this._pulseOffset += 0.08;
+    this._spinOffset += 0.05;
     
     // Keep offsets in reasonable range
     if (this._bobOffset > Math.PI * 4) this._bobOffset -= Math.PI * 4;
     if (this._pulseOffset > Math.PI * 4) this._pulseOffset -= Math.PI * 4;
+    if (this._spinOffset > Math.PI * 4) this._spinOffset -= Math.PI * 4;
   }
 
   // --- Helper Methods ---
@@ -265,6 +283,7 @@ class RenderController {
    */
   highlightBoxHover() {
     this.setHighlight("BOX_HOVERED");
+    this.renderOutlineHighlight(this.getEntityPosition(), this.getEntitySize(), this._highlightColor, 2);
   }
 
   /**
@@ -272,6 +291,22 @@ class RenderController {
    */
   highlightCombat() {
     this.setHighlight("COMBAT");
+  }
+
+  highlightResource() {
+    this.setHighlight("RESOURCE");
+  }
+
+  highlightSpin() {
+    this.setHighlight("SPINNING");
+  }
+
+  highlightSlowSpin() {
+    this.setHighlight("SLOW_SPINNING");
+  }
+
+  highlightFastSpin() {
+    this.setHighlight("FAST_SPINNING");
   }
 
   /**
@@ -418,25 +453,42 @@ class RenderController {
       case "bob":
         this.renderBobHighlight(pos, size, color, highlightType.strokeWeight);
         break;
+      case "spin":
+        this.renderSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        break;
+      case "slow_spin":
+        this.renderSlowSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        break;
+      case "fast_spin":
+        this.renderFastSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        break;
     }
   }
 
   /**
    * Render outline highlight
    */
-  renderOutlineHighlight(pos, size, color, strokeWeightValue) {
+  renderOutlineHighlight(pos, size, color, strokeWeightValue, rotation = 0) {
     // Ensure p5.js functions are available
     if (typeof stroke !== 'function' || typeof strokeWeight !== 'function') {
       console.warn('RenderController: p5.js functions not available');
       return;
     }
     
+    push(); // Save current transformation matrix
     stroke(...color);
     strokeWeight(strokeWeightValue);
     noFill();
-    rect(pos.x - strokeWeightValue, pos.y - strokeWeightValue, 
+    
+    // Apply rotation around the entity's center
+    translate(pos.x + size.x / 2, pos.y + size.y / 2);
+    rotate(rotation);
+    translate(-size.x / 2, -size.y / 2);
+    
+    rect(-strokeWeightValue, -strokeWeightValue, 
          size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
     noStroke();
+    pop(); // Restore transformation matrix
   }
 
   /**
@@ -465,6 +517,50 @@ class RenderController {
     
     const bobbedPos = { x: pos.x, y: pos.y + bob };
     this.renderOutlineHighlight(bobbedPos, size, color, strokeWeight);
+  }
+
+  /**
+   * Render spinning highlight (normal speed)
+   */
+  renderSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.002; // Normal spin speed
+    const rotation = time % (Math.PI * 2);
+    
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
+  }
+
+  /**
+   * Render slow spinning highlight
+   */
+  renderSlowSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.001; // Slow spin speed
+    const rotation = time % (Math.PI * 2);
+    
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
+  }
+
+  /**
+   * Render fast spinning highlight
+   */
+  renderFastSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.005; // Fast spin speed
+    const rotation = time % (Math.PI * 2);
+    
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
+  }
+
+  /**
+   * Render fast spinning highlight
+   */
+  renderFastSpinHighlight(pos, size, color, strokeWeight) {
+    const time = Date.now() * 0.005; // Fast spin speed
+    const rotation = time % (Math.PI * 2);
+
+    const spinPos = { x: pos.x, y: pos.y };
+    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
   }
 
   /**
@@ -727,9 +823,117 @@ class RenderController {
       center: this.getEntityCenter()
     };
   }
+
+  // --- Selenium Testing Getters ---
+
+  /**
+   * Get current highlight state (for Selenium validation)
+   * @returns {string|null} Current highlight type
+   */
+  getHighlightState() {
+    return this._highlightState;
+  }
+
+  /**
+   * Get highlight color (for Selenium validation)
+   * @returns {Array|null} Current highlight color [r, g, b, a]
+   */
+  getHighlightColor() {
+    return this._highlightColor ? [...this._highlightColor] : null;
+  }
+
+  /**
+   * Get highlight intensity (for Selenium validation)
+   * @returns {number} Current highlight intensity (0-1)
+   */
+  getHighlightIntensity() {
+    return this._highlightIntensity;
+  }
+
+  /**
+   * Check if highlight is active (for Selenium validation)
+   * @returns {boolean} True if any highlight is active
+   */
+  isHighlighted() {
+    return this._highlightState !== null;
+  }
+
+  /**
+   * Get available highlight types (for Selenium validation)
+   * @returns {Array<string>} Array of available highlight type names
+   */
+  getAvailableHighlights() {
+    return Object.keys(this.HIGHLIGHT_TYPES);
+  }
+
+  /**
+   * Get available state indicators (for Selenium validation)
+   * @returns {Array<string>} Array of available state names
+   */
+  getAvailableStates() {
+    return Object.keys(this.STATE_INDICATORS);
+  }
+
+  /**
+   * Get current entity state from state machine (for Selenium validation)
+   * @returns {string|null} Current entity state
+   */
+  getCurrentEntityState() {
+    if (!this._entity || !this._entity._stateMachine) return null;
+    return this._entity._stateMachine.primaryState || null;
+  }
+
+  /**
+   * Check if state indicator is showing (for Selenium validation)
+   * @returns {boolean} True if state indicator should be visible
+   */
+  isStateIndicatorVisible() {
+    const currentState = this.getCurrentEntityState();
+    return currentState && currentState !== "IDLE" && this.STATE_INDICATORS[currentState];
+  }
+
+  /**
+   * Get expected state indicator symbol (for Selenium validation)
+   * @returns {string|null} Expected symbol for current state
+   */
+  getExpectedStateSymbol() {
+    const currentState = this.getCurrentEntityState();
+    if (!currentState || !this.STATE_INDICATORS[currentState]) return null;
+    return this.STATE_INDICATORS[currentState].symbol;
+  }
+
+  /**
+   * Get visual effects count (for Selenium validation)
+   * @returns {number} Number of active visual effects
+   */
+  getEffectsCount() {
+    return this._effects.length;
+  }
+
+  /**
+   * Get render controller validation data (for Selenium validation)
+   * @returns {Object} Complete validation data for testing
+   */
+  getValidationData() {
+    return {
+      highlightState: this._highlightState,
+      highlightColor: this._highlightColor ? [...this._highlightColor] : null,
+      highlightIntensity: this._highlightIntensity,
+      isHighlighted: this.isHighlighted(),
+      entityState: this.getCurrentEntityState(),
+      isStateIndicatorVisible: this.isStateIndicatorVisible(),
+      expectedStateSymbol: this.getExpectedStateSymbol(),
+      effectsCount: this._effects.length,
+      availableHighlights: this.getAvailableHighlights(),
+      availableStates: this.getAvailableStates(),
+      position: this.getEntityPosition(),
+      size: this.getEntitySize(),
+      timestamp: new Date().toISOString()
+    };
+  }
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = RenderController;
 }

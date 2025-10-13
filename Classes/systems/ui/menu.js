@@ -9,6 +9,7 @@ let infoButton;
 let debugButton;
 let menuImage;
 let menuHeader = null;
+let g_mapRendered
 
 // layout debug data is produced by VerticalButtonList and exposed via
 // window.menuLayoutData so debug rendering code can access it without
@@ -85,8 +86,8 @@ function initializeMenu() {
     }
   });
 
-  // initialize external debug handlers (if the debug module is present)
-  if (window.initializeMenuDebug) window.initializeMenuDebug();
+  // Debug system initialization disabled
+  // if (window.initializeMenuDebug) window.initializeMenuDebug();
 }
 
 // Load buttons for current state
@@ -118,11 +119,8 @@ function loadButtons() {
 
   // Register buttons for click handling
   setActiveButtons(menuButtons);
+  g_mapRendered = false;
 }
-
-
-
-
 
 // Start game with fade transition
 function startGameTransition() {
@@ -130,23 +128,17 @@ function startGameTransition() {
     GameState.startFadeTransition("out");
 }
 
-// --- Title drop + floating animation ---
-let easing = 0.07;
-titleY += (titleTargetY - titleY) * easing;
-
-// Add a slow downward drift
-titleY += 0.2; // tweak this value for speed of float-down
-
-let floatOffset = sin(frameCount * 0.03) * 5;
-
 // Main menu render function
 function drawMenu() {
-    textAlign(CENTER, CENTER);
-  
-    // --- Title drop animation ---
+    // --- Title drop + floating animation ---
     let easing = 0.07;
     titleY += (titleTargetY - titleY) * easing;
-    let floatOffset = sin(frameCount * 0.03) * 5;
+
+    // Add a slow downward drift
+    titleY += 0.2; // tweak this value for speed of float-down
+
+    let floatOffset = Math.sin(frameCount * 0.03) * 5;
+    textAlign(CENTER, CENTER);
   
     // Draw logo instead of plain text
     imageMode(CENTER);
@@ -168,11 +160,10 @@ function drawMenu() {
     btn.render();
   });
 
-  // Debug rendering and interactions were moved to debug/menu_debug.js
-  // Use the shared window.menuLayoutDebug flag so both modules agree on state.
-  if (window.menuLayoutDebug && window.drawMenuDebug) {
-    window.drawMenuDebug();
-  }
+  // Debug rendering disabled
+  // if (window.menuLayoutDebug && window.drawMenuDebug) {
+  //   window.drawMenuDebug();
+  // }
 }
 
 // Update menu transitions
@@ -191,14 +182,15 @@ function updateMenu() {
         }
       }
     }
+    // renderMenu() call removed; updateMenu is now state-only
   }
+
+
 
 // Render complete menu system
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
-    g_map.render();
-    antsUpdate();
-    drawMenu();
+    drawMenu()
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {

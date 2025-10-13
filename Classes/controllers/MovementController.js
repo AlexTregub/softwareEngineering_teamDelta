@@ -35,12 +35,16 @@ class MovementController {
       return false;
     }
 
+    //Flip ants when moving Left or Right
+    const pos = this._entity.getPosition();
+    let flipLeft = (x < pos.x);
+    this._entity._sprite.flipX = flipLeft;
+
     // Try to use pathfinding if available
     if (typeof findPath === 'function' && typeof pathMap !== 'undefined' && pathMap) {
       try {
         // Convert entity position to grid coordinates
         const tileSize = window.tileSize || 32;
-        const pos = this._entity.getPosition();
         const startX = Math.floor(pos.x / tileSize);
         const startY = Math.floor(pos.y / tileSize);
         const endX = Math.floor(x / tileSize);
@@ -48,7 +52,7 @@ class MovementController {
 
         // Find path using pathfinding system
         const calculatedPath = findPath([startX, startY], [endX, endY], pathMap);
-        
+
         if (calculatedPath && calculatedPath.length > 0) {
           // Set the path and start following it
           this.setPath(calculatedPath);
@@ -67,6 +71,7 @@ class MovementController {
     // Update entity's state if it has a state machine
     if (this._entity._stateMachine) {
       this._entity._stateMachine.setPrimaryState("MOVING");
+
     }
 
     return true;
@@ -322,6 +327,11 @@ class MovementController {
       return false;
     }
 
+    // Allow entities to opt out (e.g., Queen)
+    if (this._entity && this._entity.disableSkitter) {
+      return false;
+    }
+
     // Only skitter if idle and out of combat
     if (this._entity._stateMachine) {
       const canMove = this._entity._stateMachine.canPerformAction("move");
@@ -439,6 +449,6 @@ MovementController.moveEntityToTile = function(entity, tileX, tileY, tileSize = 
 };
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = MovementController;
 }

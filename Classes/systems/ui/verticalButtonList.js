@@ -172,7 +172,7 @@ class VerticalButtonList {
 
 // expose the class globally in browser environments so existing code that uses
 // `new VerticalButtonList()` continues working
-if (typeof window !== 'undefined' && window) {
+if (window) {
   window.VerticalButtonList = VerticalButtonList;
 }
 

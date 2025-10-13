@@ -19,7 +19,7 @@ class SelectionController {
    */
   update() {
     // Update hover state based on mouse position
-    if (typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined') {
+    if (mouseX !== undefined && mouseY !== undefined) {
       this.updateHoverState(mouseX, mouseY);
     }
     
@@ -269,7 +269,7 @@ class SelectionController {
     });
     
     // Update global selection if available
-    if (typeof antManager !== 'undefined' && antManager) {
+    if (antManager) {
       if (isSelected) {
         antManager.selectedAnt = this._entity;
       } else if (antManager.selectedAnt === this._entity) {
@@ -305,6 +305,6 @@ class SelectionController {
 }
 
 // Export for Node.js testing
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = SelectionController;
 }

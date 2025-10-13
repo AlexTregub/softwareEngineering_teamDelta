@@ -16,7 +16,8 @@ class GameStateManager {
       DEBUG_MENU: "DEBUG_MENU",
       PLAYING: "PLAYING",
       PAUSED: "PAUSED",
-      GAME_OVER: "GAME_OVER"
+      GAME_OVER: "GAME_OVER",
+      KAN_BAN: "KANBAN"
     };
   }
 
@@ -129,6 +130,7 @@ class GameStateManager {
   isPaused = () => this.currentState === this.STATES.PAUSED;
   isGameOver = () => this.currentState === this.STATES.GAME_OVER;
   isDebug = () => this.currentState === this.STATES.DEBUG_MENU;
+  isKanban = () => this.currentState === this.STATES.KAN_BAN;
 
   // Transition methods
   goToMenu = () => this.setState(this.STATES.MENU);
@@ -138,6 +140,7 @@ class GameStateManager {
   pauseGame = () => this.setState(this.STATES.PAUSED);
   resumeGame = () => this.setState(this.STATES.PLAYING);
   endGame = () => this.setState(this.STATES.GAME_OVER);
+  goToKanban = () => this.setState(this.STATES.KAN_BAN);
 
   // Reset to initial state
   reset() {
@@ -162,3 +165,10 @@ class GameStateManager {
 
 // Create global instance
 const GameState = new GameStateManager();
+
+// Make globally available
+if (typeof window !== 'undefined') {
+  window.GameState = GameState;
+} else if (typeof global !== 'undefined') {
+  global.GameState = GameState;
+}

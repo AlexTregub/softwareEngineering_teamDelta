@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "name": "Main Menu Button Groups",
+    "description": "Primary navigation and game controls for main menu state",
+    "version": "1.0.0",
+    "lastModified": "2024-12-19"
+  },
+  "groups": [
+    {
+      "id": "main-navigation",
+      "name": "Main Navigation",
+      "layout": {
+        "type": "vertical",
+        "position": {
+          "x": "center",
+          "y": "center",
+          "offsetX": 0,
+          "offsetY": -50
+        },
+        "spacing": 15,
+        "padding": {
+          "top": 20,
+          "right": 25,
+          "bottom": 20,
+          "left": 25
+        }
+      },
+      "appearance": {
+        "scale": 1.2,
+        "transparency": 0.95,
+        "visible": true,
+        "background": {
+          "color": [45, 45, 55, 200],
+          "cornerRadius": 12
+        }
+      },
+      "behavior": {
+        "draggable": false,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": false,
+        "saveScale": false,
+        "saveTransparency": false,
+        "storageKey": "main-menu-nav"
+      },
+      "conditions": {
+        "gameState": "menu"
+      },
+      "buttons": [
+        {
+          "id": "start-game",
+          "text": "Start Game",
+          "size": {
+            "width": 150,
+            "height": 50
+          },
+          "action": {
+            "type": "gameState",
+            "handler": "game.start"
+          },
+          "tooltip": "Begin a new game session",
+          "hotkey": "Enter"
+        },
+        {
+          "id": "load-game",
+          "text": "Load Game",
+          "size": {
+            "width": 150,
+            "height": 50
+          },
+          "action": {
+            "type": "gameState",
+            "handler": "game.load"
+          },
+          "tooltip": "Load a previously saved game",
+          "hotkey": "L"
+        },
+        {
+          "id": "settings",
+          "text": "Settings",
+          "size": {
+            "width": 150,
+            "height": 50
+          },
+          "action": {
+            "type": "ui",
+            "handler": "menu.showSettings"
+          },
+          "tooltip": "Configure game settings and preferences",
+          "hotkey": "S"
+        },
+        {
+          "id": "exit-game",
+          "text": "Exit",
+          "size": {
+            "width": 150,
+            "height": 50
+          },
+          "action": {
+            "type": "system",
+            "handler": "game.exit"
+          },
+          "tooltip": "Exit the game",
+          "hotkey": "Escape"
+        }
+      ]
+    },
+    {
+      "id": "version-info",
+      "name": "Version Information",
+      "layout": {
+        "type": "horizontal",
+        "position": {
+          "x": "right",
+          "y": "bottom",
+          "offsetX": -20,
+          "offsetY": -20
+        },
+        "spacing": 5,
+        "padding": {
+          "top": 8,
+          "right": 12,
+          "bottom": 8,
+          "left": 12
+        }
+      },
+      "appearance": {
+        "scale": 0.8,
+        "transparency": 0.7,
+        "visible": true,
+        "background": {
+          "color": [20, 20, 25, 150],
+          "cornerRadius": 5
+        }
+      },
+      "behavior": {
+        "draggable": false,
+        "resizable": false,
+        "snapToEdges": false
+      },
+      "persistence": {
+        "savePosition": false,
+        "storageKey": "version-info"
+      },
+      "conditions": {
+        "gameState": "menu"
+      },
+      "buttons": [
+        {
+          "id": "version-display",
+          "text": "v1.0.0",
+          "size": {
+            "width": 60,
+            "height": 25
+          },
+          "action": {
+            "type": "info",
+            "handler": "ui.showVersionInfo"
+          },
+          "tooltip": "Show detailed version information"
+        }
+      ]
+    }
+  ]
+}
