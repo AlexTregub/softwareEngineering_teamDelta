@@ -19,7 +19,13 @@ let infoButton;
 let debugButton;
 let cameraX = 0;
 let cameraY = 0;
-let cameraSpeed = 10;
+let cameraPanSpeed = 10;
+let cameraZoom = 1;
+const MIN_CAMERA_ZOOM = 0.5;
+const MAX_CAMERA_ZOOM = 3;
+const CAMERA_ZOOM_STEP = 1.1;
+let cameraFollowEnabled = false;
+let cameraFollowTarget = null;
 function preload(){
   test_stats();
   terrainPreloader()
