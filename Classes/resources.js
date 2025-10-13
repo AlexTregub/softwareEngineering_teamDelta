@@ -81,13 +81,17 @@ class Resource {
     }
 
     highlight() {
-        if (!this._isCarried && this.isMouseOver(mouseX, mouseY)) {
+        const mousePoint = typeof getWorldMousePosition === 'function'
+            ? getWorldMousePosition()
+            : { x: mouseX, y: mouseY };
+        if (!this._isCarried && this.isMouseOver(mousePoint.x, mousePoint.y)) {
         const pos = this._sprite.pos;
         const size = this._sprite.size;
+        const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
         push();
         noFill();
         stroke(color(255, 255, 255)); // White for hover
-        strokeWeight(2);
+        strokeWeight(2 / zoom);
         rect(pos.x, pos.y, size.x, size.y);
         pop();
         }

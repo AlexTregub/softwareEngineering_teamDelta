@@ -15,6 +15,13 @@ function setKey(x,y){
   return `${x},${y}`;
 }
 
+function getResourceMousePosition() {
+  if (typeof getWorldMousePosition === 'function') {
+    return getWorldMousePosition();
+  }
+  return { x: mouseX, y: mouseY };
+}
+
 // Plan on using to detect ants collision
 class resourcesArray {
   constructor() {
@@ -55,11 +62,13 @@ class Resource {
               image(greenLeaf, x, y, w, h);
 
               // hover detection
-              if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+              const mousePoint = getResourceMousePosition();
+              if (mousePoint.x >= x && mousePoint.x <= x + w && mousePoint.y >= y && mousePoint.y <= y + h) {
+                const zoom = getCurrentZoom();
                 push();
                 noFill();
                 stroke(255); // white outline
-                strokeWeight(2);
+                strokeWeight(2 / zoom);
                 rect(x, y, w, h);
                 pop();
               }
@@ -82,11 +91,13 @@ class Resource {
               image(mapleLeaf, x, y, w, h);
 
               // hover detection
-              if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+              const mousePoint = getResourceMousePosition();
+              if (mousePoint.x >= x && mousePoint.x <= x + w && mousePoint.y >= y && mousePoint.y <= y + h) {
+                const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
                 push();
                 noFill();
                 stroke(255); // white outline
-                strokeWeight(2);
+                strokeWeight(2 / zoom);
                 rect(x, y, w, h);
                 pop();
               }

@@ -215,11 +215,15 @@ class ant {
 
   // --- Rendering ---
   render() {
+    const mousePoint = typeof getWorldMousePosition === 'function'
+      ? getWorldMousePosition()
+      : { x: mouseX, y: mouseY };
+
     if (this._renderController) {
       // Update highlighting based on current state
       if (this._isSelected) {
         this._renderController.highlightSelected();
-      } else if (this.isMouseOver(mouseX, mouseY)) {
+      } else if (this.isMouseOver(mousePoint.x, mousePoint.y)) {
         this._renderController.highlightHover();
       } else if (this.isBoxHovered) {
         this._renderController.highlightBoxHover();
@@ -256,12 +260,16 @@ class ant {
 
   // --- Legacy Highlighting (fallback) ---
   legacyHighlight() {
+    const mousePoint = typeof getWorldMousePosition === 'function'
+      ? getWorldMousePosition()
+      : { x: mouseX, y: mouseY };
+
     // Use abstract highlighting functions from selectionBox.js if available
     if (typeof highlightEntity === 'function') {
       if (this._isSelected) {
         highlightEntity(this, "selected");
         if (typeof renderDebugInfo === 'function') renderDebugInfo(this);
-      } else if (this.isMouseOver(mouseX, mouseY)) {
+      } else if (this.isMouseOver(mousePoint.x, mousePoint.y)) {
         highlightEntity(this, "hover");
       } else if (this.isBoxHovered) {
         highlightEntity(this, "boxHovered");
