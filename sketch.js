@@ -5,6 +5,7 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
+let COORDSY;
 
 const NONE = '\0'; 
 
@@ -35,15 +36,9 @@ let queenAnt;
  * Assigns loaded assets to globals consumed by rendering and game systems.
  */
 let MAP;
-let cameraX = 0;
-let cameraY = 0;
-let cameraPanSpeed = 10;
-let cameraZoom = 1;
-const MIN_CAMERA_ZOOM = 0.5;
-const MAX_CAMERA_ZOOM = 3;
-const CAMERA_ZOOM_STEP = 1.1;
-let cameraFollowEnabled = false;
-let cameraFollowTarget = null;
+
+// Camera system - now managed by CameraManager
+let cameraManager;
 
 function preload(){
   terrainPreloader();
@@ -78,6 +73,20 @@ function setup() {
     // This maintains compatibility with existing game input systems
   });
 
+  // Initialize camera management system
+  cameraManager = new CameraManager();
+  cameraManager.initialize();
+  
+  // Center camera on the middle of g_map2 for better initial view
+  if (g_map2) {
+    const mapCenterX = (CHUNKS_X * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
+    const mapCenterY = (CHUNKS_Y * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
+    cameraManager.centerOn(mapCenterX, mapCenterY);
+    
+    // Optional: Start with a zoomed out view to see more of the map
+    cameraManager.setZoom(0.3); // Zoom out to see ~3x more area
+  }
+
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 }
@@ -103,7 +112,7 @@ function initializeWorld() {
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
-  // COORDSY = MAP.getCoordinateSystem();
+  // COORDSY = new CoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
   g_gridMap = new PathMap(g_map);
@@ -123,6 +132,7 @@ function initializeWorld() {
  */
 
 function draw() {
+  background(0);
   if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
 
   updatePresentationPanels(GameState.getState());
@@ -172,14 +182,20 @@ function draw() {
 
     // --- PLAYING ---
   if (GameState.isInGame()) {
-    push();
-    scale(cameraZoom);
-    translate(-cameraX, -cameraY);
+    // Update camera before rendering
+    if (cameraManager) {
+      cameraManager.update();
+      
+      // Apply camera transformation
+      cameraManager.applyTransform();
+    }
 
-    if (typeof drawSelectionBox === 'function') drawSelectionBox();
+    if (typeof drawSelectionBox === 'function') g_selectionBoxController.draw();
 
-    pop();
-    updateCamera();
+    // Restore camera transformation
+    if (cameraManager) {
+      cameraManager.restoreTransform();
+    }
     
     const playerQueen = getQueen();
     if (playerQueen) {
@@ -295,7 +311,6 @@ function handleKeyEvent(type, ...args) {
 function keyPressed() {
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
-    return; // Debug key was handled, don't process further
   }
   
   if (keyCode === ESCAPE) {
@@ -376,25 +391,44 @@ function keyPressed() {
     }
   }
 
-  // Handle all debug-related keys (unified debug system handles both console and UI debug)
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
-    return; // Debug key was handled, don't process further
-  }
   if (keyCode === ESCAPE && g_selectionBoxController) {
     g_selectionBoxController.deselectAll();
     return;
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
 
-  if ((key === 'f' || key === 'F') && isInGame()) {
-    toggleCameraFollow();
+  if ((key === 'f' || key === 'F') && GameState.isInGame()) {
+    cameraManager.toggleFollow();
+  }
+  
+  // Camera navigation shortcuts
+  if (GameState.isInGame() && cameraManager) {
+    if (key === 'h' || key === 'H') {
+      // 'H' for Home - Center camera on map center
+      const mapCenterX = (CHUNKS_X * 8 * TILE_SIZE) / 2;
+      const mapCenterY = (CHUNKS_Y * 8 * TILE_SIZE) / 2;
+      cameraManager.centerOn(mapCenterX, mapCenterY);
+    }
+    
+    if (key === 'o' || key === 'O') {
+      // 'O' for Overview - Zoom out to see more of the map
+      cameraManager.setZoom(0.2);
+    }
+    
+    if (key === 'r' || key === 'R') {
+      // 'R' for Reset zoom
+      cameraManager.setZoom(1.0);
+    }
   }
 
-  if (GameState.isInGame()) {
+  if (GameState.isInGame() && cameraManager) {
+    const currentZoom = cameraManager.getZoom();
+    const CAMERA_ZOOM_STEP = 1.1; // Moved constant here since it's no longer global
+    
     if (key === '-' || key === '_' || keyCode === 189 || keyCode === 109) {
-      setCameraZoom(cameraZoom / CAMERA_ZOOM_STEP);
+      setCameraZoom(currentZoom / CAMERA_ZOOM_STEP);
     } else if (key === '=' || key === '+' || keyCode === 187 || keyCode === 107) {
-      setCameraZoom(cameraZoom * CAMERA_ZOOM_STEP);
+      setCameraZoom(currentZoom * CAMERA_ZOOM_STEP);
     }
   }
 }
@@ -439,184 +473,53 @@ function getEntityWorldCenter(entity) {
 }
 
 function getMapPixelDimensions() {
-  if (!MAP) {
+  if (!g_map2) {
     return { width: g_canvasX, height: g_canvasY };
   }
 
-  const width = MAP._xCount ? MAP._xCount * TILE_SIZE : g_canvasX;
-  const height = MAP._yCount ? MAP._yCount * TILE_SIZE : g_canvasY;
+  const width = g_map2._xCount ? g_map2._xCount * TILE_SIZE : g_canvasX;
+  const height = g_map2._yCount ? g_map2._yCount * TILE_SIZE : g_canvasY;
 
   return { width, height };
 }
 
-function clampCameraToBounds() {
-  const { width, height } = getMapPixelDimensions();
-  const viewWidth = g_canvasX / cameraZoom;
-  const viewHeight = g_canvasY / cameraZoom;
+// Camera functions have been moved to CameraManager.js
+// Use cameraManager.methodName() instead of these functions:
 
-  let minX = 0;
-  let maxX = width - viewWidth;
-  if (viewWidth >= width) {
-    const excessX = viewWidth - width;
-    minX = -excessX / 2;
-    maxX = excessX / 2;
-  } else {
-    maxX = Math.max(0, maxX);
-  }
-
-  let minY = 0;
-  let maxY = height - viewHeight;
-  if (viewHeight >= height) {
-    const excessY = viewHeight - height;
-    minY = -excessY / 2;
-    maxY = excessY / 2;
-  } else {
-    maxY = Math.max(0, maxY);
-  }
-
-  cameraX = constrain(cameraX, minX, maxX);
-  cameraY = constrain(cameraY, minY, maxY);
-
-  if (COORDSY && typeof COORDSY.setViewCornerBC === 'function') {
-    COORDSY.setViewCornerBC([cameraX, cameraY]);
-  }
+function screenToWorld(px = mouseX, py = mouseY) {
+  return cameraManager ? cameraManager.screenToWorld(px, py) : { worldX: px, worldY: py };
 }
 
-function centerCameraOn(worldX, worldY) {
-  const viewWidth = g_canvasX / cameraZoom;
-  const viewHeight = g_canvasY / cameraZoom;
-
-  cameraX = worldX - viewWidth / 2;
-  cameraY = worldY - viewHeight / 2;
-
-  clampCameraToBounds();
-}
-
-function centerCameraOnEntity(entity) {
-  const center = getEntityWorldCenter(entity);
-  if (center) {
-    centerCameraOn(center.x, center.y);
-  }
-}
-
-function screenToWorld(px = mouseX, py = mouseY, zoomOverride) {
-  const zoom = typeof zoomOverride === 'number' ? zoomOverride : cameraZoom;
-
-  return {
-    x: cameraX + px / zoom,
-    y: cameraY + py / zoom
-  };
-}
-
-function getWorldMousePosition(px = mouseX, py = mouseY, zoomOverride) {
-  return screenToWorld(px, py, zoomOverride);
+function getWorldMousePosition(px = mouseX, py = mouseY) {
+  return cameraManager ? cameraManager.screenToWorld(px, py) : { worldX: px, worldY: py };
 }
 
 function worldToScreen(worldX, worldY) {
-  return {
-    x: (worldX - cameraX) * cameraZoom,
-    y: (worldY - cameraY) * cameraZoom
-  };
+  return cameraManager ? cameraManager.worldToScreen(worldX, worldY) : { screenX: worldX, screenY: worldY };
 }
 
-function setCameraZoom(targetZoom, focusX = g_canvasX / 2, focusY = g_canvasY / 2) {
-  const clampedZoom = constrain(targetZoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
-  if (clampedZoom === cameraZoom) {
-    return false;
-  }
+function setCameraZoom(targetZoom, focusX, focusY) {
+  return cameraManager ? cameraManager.setZoom(targetZoom, focusX, focusY) : false;
+}
 
-  const currentZoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
-  const focusWorld = screenToWorld(focusX, focusY, currentZoom);
+function centerCameraOn(worldX, worldY) {
+  if (cameraManager) cameraManager.centerOn(worldX, worldY);
+}
 
-  cameraZoom = clampedZoom;
-  cameraX = focusWorld.x - focusX / cameraZoom;
-  cameraY = focusWorld.y - focusY / cameraZoom;
-
-  clampCameraToBounds();
-
-  if (cameraFollowEnabled) {
-    const target = cameraFollowTarget || getPrimarySelectedEntity();
-    if (target) {
-      centerCameraOnEntity(target);
-    } else {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-    }
-  }
-
-  return true;
+function centerCameraOnEntity(entity) {
+  if (cameraManager) cameraManager.centerOnEntity(entity);
 }
 
 function toggleCameraFollow() {
-  const target = getPrimarySelectedEntity();
-
-  if (cameraFollowEnabled) {
-    if (!target || target === cameraFollowTarget) {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-      return;
-    }
-  }
-
-  if (target) {
-    cameraFollowEnabled = true;
-    cameraFollowTarget = target;
-    centerCameraOnEntity(target);
-  }
-}
-
-function updateCamera() {
-  if (!GameState.isInGame()) return;
-
-  const left = keyIsDown(LEFT_ARROW) || keyIsDown(65);
-  const right = keyIsDown(RIGHT_ARROW) || keyIsDown(68);
-  const up = keyIsDown(UP_ARROW) || keyIsDown(87);
-  const down = keyIsDown(DOWN_ARROW) || keyIsDown(83);
-  const manualInput = left || right || up || down;
-
-  if (manualInput) {
-    if (cameraFollowEnabled) {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-    }
-
-    const panStep = cameraPanSpeed / cameraZoom;
-    switch (manualInput){
-      case left: cameraX -= panStep;
-      case right: cameraX += panStep;
-      case up: cameraY -= panStep;
-      case down: cameraY += panStep;
-    }
-
-    clampCameraToBounds();
-  } else if (cameraFollowEnabled) {
-    const primary = getPrimarySelectedEntity();
-    const target = primary || cameraFollowTarget;
-    if (target) {
-      cameraFollowTarget = target;
-      centerCameraOnEntity(target);
-    } else {
-      cameraFollowEnabled = false;
-      cameraFollowTarget = null;
-    }
-  }
-
-  if (typeof originalConsoleLog === 'function') {
-    originalConsoleLog(cameraX, cameraY);
-  }
+  if (cameraManager) cameraManager.toggleFollow();
 }
 
 function mouseWheel(event) {
-  if (!isInGame()) { return true; }
-
-  const wheelDelta = event?.deltaY ?? 0;
-  if (wheelDelta === 0) { return false; }
-
-  const zoomFactor = wheelDelta > 0 ? (1 / CAMERA_ZOOM_STEP) : CAMERA_ZOOM_STEP;
-  const targetZoom = cameraZoom * zoomFactor;
-  setCameraZoom(targetZoom, mouseX, mouseY);
-
-  return false;
+  // Delegate to CameraManager
+  if (cameraManager) {
+    return cameraManager.handleMouseWheel(event);
+  }
+  return true;
 }
   
 
@@ -646,7 +549,7 @@ function debugRender() {
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   push();
   stroke(100, 100, 100, 100); // light gray grid lines
-  const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
+  const zoom = cameraManager ? cameraManager.getZoom() : 1;
   strokeWeight(1 / zoom);
   noFill();
 

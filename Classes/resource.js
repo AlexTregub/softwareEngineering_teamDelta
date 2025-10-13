@@ -65,14 +65,7 @@ function setKey(x,y){
   return `${x},${y}`;
 }
 
-function getResourceMousePosition() {
-  if (typeof getWorldMousePosition === 'function') {
-    return getWorldMousePosition();
-  }
-  return { x: mouseX, y: mouseY };
-}
-
-// Plan on using to detect ants collision
+// Legacy resourcesArray class - kept for backward compatibility
 class resourcesArray {
   constructor() {
     this.resources = [];
@@ -299,58 +292,18 @@ class ResourceSpawner {
       greenLeaf: { 
         weight: 0.5, 
         make: () => {
-          let x = random(0, g_canvasX - 20);
-          let y = random(0, g_canvasY - 20);
-          let w = 20, h = 20;
-
-          return {
-            type: "greenLeaf",
-            x, y, w, h,
-            draw: () => {
-              image(greenLeaf, x, y, w, h);
-
-              // hover detection
-              const mousePoint = getResourceMousePosition();
-              if (mousePoint.x >= x && mousePoint.x <= x + w && mousePoint.y >= y && mousePoint.y <= y + h) {
-                const zoom = getCurrentZoom();
-                push();
-                noFill();
-                stroke(255); // white outline
-                strokeWeight(2 / zoom);
-                rect(x, y, w, h);
-                pop();
-              }
-            }
-          };
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createGreenLeaf(x, y);
         }
       },
 
       mapleLeaf: { 
         weight: 0.8, 
         make: () => {
-          let x = random(0, g_canvasX - 20);
-          let y = random(0, g_canvasY - 20);
-          let w = 20, h = 20;
-
-          return {
-            type: "mappleLeaf",
-            x, y, w, h,
-            draw: () => {
-              image(mapleLeaf, x, y, w, h);
-
-              // hover detection
-              const mousePoint = getResourceMousePosition();
-              if (mousePoint.x >= x && mousePoint.x <= x + w && mousePoint.y >= y && mousePoint.y <= y + h) {
-                const zoom = (typeof cameraZoom === 'number' && cameraZoom !== 0) ? cameraZoom : 1;
-                push();
-                noFill();
-                stroke(255); // white outline
-                strokeWeight(2 / zoom);
-                rect(x, y, w, h);
-                pop();
-              }
-            }
-          };
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createMapleLeaf(x, y);
         }
       },
     };

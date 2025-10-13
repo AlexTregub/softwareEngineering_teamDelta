@@ -111,57 +111,30 @@ class ant extends Entity {
   get stateMachine() { return this._stateMachine; }
   get gatherState() { return this._gatherState; }
   get faction() { return this._faction; }
-  set faction(value) { this._faction = value; }
-  get nearbyEnemies() { return this._nearbyEnemies; }
-
-  // --- Sprite2D Helpers ---
-  setSpriteImage(img) { this._sprite.setImage(img); }
-  setSpritePosition(pos) { this._sprite.setPosition(pos); }
-  setSpriteSize(size) { this._sprite.setSize(size); }
-  setSpriteRotation(rotation) { this._sprite.setRotation(rotation); }
-
-  // --- Rendering ---
-  render() {
-    const mousePoint = typeof getWorldMousePosition === 'function'
-      ? getWorldMousePosition()
-      : { x: mouseX, y: mouseY };
-
-    if (this._renderController) {
-      // Update highlighting based on current state
-      if (this._isSelected) {
-        this._renderController.highlightSelected();
-      } else if (this.isMouseOver(mousePoint.x, mousePoint.y)) {
-        this._renderController.highlightHover();
-      } else if (this.isBoxHovered) {
-        this._renderController.highlightBoxHover();
-      } else if (this._stateMachine.isInCombat()) {
-        this._renderController.highlightCombat();
-      } else {
-        this._renderController.clearHighlight();
-      }
-      
-      // Use new render controller
-      this._renderController.render();
+  get health() { return this._health; }
+  get maxHealth() { return this._maxHealth; }
+  get damage() { return this._damage; }
+  
+  // --- New Job System Methods ---
+  assignJob(jobName, image = null) {
+    // Create job component if JobComponent is available
+    if (typeof JobComponent !== 'undefined') {
+      this.job = new JobComponent(jobName, image);
+      this._applyJobStats(this.job.stats);
     } else {
-      // Fallback to legacy rendering
-      noSmooth();
-      this._sprite.render();
-      smooth();
-
-      if (this._isMoving) {
-        const pos = this._sprite.pos;
-        const size = this._sprite.size;
-        const pendingPos = this._stats.pendingPos.statValue;
-        stroke(255);
-        strokeWeight(2);
-        line(
-          pos.x + size.x / 2, pos.y + size.y / 2,
-          pendingPos.x + size.x / 2, pendingPos.y + size.y / 2
-        );
-      }
-      
-      // Legacy highlighting
-      this.legacyHighlight();
+      // Fallback for when JobComponent isn't loaded yet
+      console.warn('JobComponent not available, using fallback job assignment');
+      const stats = this._getFallbackJobStats(jobName);
+      this._applyJobStats(stats);
+    }
+    
+    // Update job name properties
+    this.jobName = jobName;
+    this._JobName = jobName;  // Keep legacy property in sync
+    
+    // Set image if provided
+    if (image) {
+      this.setImage(image);
     }
     
     return this;
@@ -634,7 +607,7 @@ function spawnQueen(){
 
   newAnt = new QueenAnt(newAnt);
 
-  //newAnt.assignJob(JobName, JobImages[JobName]);
+  newAnt.assignJob(JobName, JobImages[JobName]);
   ants.push(newAnt);
   newAnt.update();
 
