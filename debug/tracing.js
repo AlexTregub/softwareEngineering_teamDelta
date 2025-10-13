@@ -105,8 +105,23 @@ function getFunctionName(callStackLevel) {
  * }
  */
 function IncorrectParamPassed(expectedParam, offendingParam) {
-    let callingFunc = getFunctionName(2)
-    let offendingFunc = getFunctionName(3)
+    let i = 2;
+
+    let callingFunc = getFunctionName(i);
+    let offendingFunc = getFunctionName(i+1);
+
+    callingFunc = callingFunc.trimStart();
+    offendingFunc = offendingFunc.trimStart();
+
+    while (callingFunc.includes("IncorrectParamPassed")){
+      i++;
+      callingFunc = getFunctionName(i);
+      offendingFunc = getFunctionName(i+1);
+      callingFunc = callingFunc.trimStart();
+      offendingFunc = offendingFunc.trimStart();
+    }
+
+    
     console.error (`${callingFunc}: Incorrect Param passed` + 
         ` from ${offendingFunc}.` +
         `\nExpecting Type ${getType(expectedParam)},` +

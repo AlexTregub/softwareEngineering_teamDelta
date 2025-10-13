@@ -120,8 +120,9 @@ function draw() {
   if (typeof updatePresentationPanels !== 'undefined') {
     updatePresentationPanels(GameState.getState());
   }
-
   RenderManager.render(GameState.getState());
+
+
   // background(0);
   // g_map2.renderDirect();
 
@@ -143,7 +144,10 @@ function draw() {
     RenderManager.render(GameState.getState());
     // console.log(frameRate());
   }
-
+      // Render debug visualization for ant gathering (overlays on top)
+  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
+    g_gatherDebugRenderer.render();
+  }
   // Update button groups (rendering handled by RenderLayerManager)
   if (window.buttonGroupManager) {
     try {
@@ -151,6 +155,8 @@ function draw() {
     } catch (error) {
       console.error('❌ Error updating button group system:', error);
     }
+
+    
   }
 
   if (GameState.getState() === 'PLAYING') {
@@ -170,6 +176,8 @@ function draw() {
   // We intentionally do NOT call renderDraggablePanels() here to avoid a
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
+
+
 }
 
 /**
@@ -206,6 +214,17 @@ function mousePressed() {
       if (handled) return; // Button was clicked, don't process other mouse events
     } catch (error) {
       console.error('❌ Error handling button click:', error);
+    }
+  }
+
+  // Handle DraggablePanel mouse events
+  if (window.draggablePanelManager && 
+      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
+    try {
+      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (handled) return; // Panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling draggable panel mouse events:', error);
     }
   }
 

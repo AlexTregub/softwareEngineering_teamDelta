@@ -76,7 +76,6 @@
     <script src="Classes/controllers/TransformController.js"></script>
     <script src="Classes/controllers/SelectionController.js"></script>
     <script src="Classes/controllers/TerrainController.js"></script>
-    <script src="Classes/controllers/InteractionController.js"></script>
     <script src="Classes/controllers/MouseInputController.js"></script>
     <script src="Classes/controllers/KeyboardInputController.js"> </script>
     <script src="Classes/controllers/SelectionBoxController.js"></script>
@@ -108,9 +107,10 @@
    <script src="debug/debuggerDemo.js"></script>
     <script src="debug/selectionBoxDebug.js"></script>
     <script src="debug/selectionRenderDebug.js"></script>
-    <script src="debug/mouseEventDebug.js"></script>
-    <script src="debug/selectionStateMachine.js"></script>    <!-- Ant Classes - Load in proper order -->
+    <script src="debug/selectionStateMachine.js"></script>
     <script src="Classes/ants/JobComponent.js"></script>
+    <script src="Classes/ants/GatherState.js"></script>
+    <script src="Classes/systems/GatherDebugRenderer.js"></script>
     <script src="Classes/ants/ants.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
     <script src="Classes/ants/Queen.js"></script>
@@ -118,9 +118,6 @@
     <script src="debug/verboseLogger.js"></script>
     <script src="debug/globalTestRunner.js"></script>
     <script src="debug/testing.js"></script>
-    
-    <!-- Resource System Integration Test -->
-    <script src="test/integration/resourceSystemManagerIntegration.test.js"></script>
     
     <!-- Shareholder Demo System -->
     <script src="Classes/testing/ShareholderDemo.js"></script>
@@ -141,7 +138,6 @@
   </head>
 
   <body>
-    <script src="demo_ant_enhancements.js"></script>
     <script src="sketch.js"></script>
   </body>
 </html>
