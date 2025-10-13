@@ -202,7 +202,7 @@ function drawLineBetweenEntities(obj1Pos, obj2Pos, lineColor, lineWeight) {
    * @param {Array} [resourceColor=this.resourceColor] - Optional resource dot color array
    */
 function renderResourceInfo(resources,textColor,resourceColor) {
-    if (typeof resources || typeof textColor || typeof resourceColor === "undefined"){
+    if(typeof resources === "undefined" || typeof textColor === "undefined" || typeof resourceColor === "undefined"){
         if (typeof resources === "undefined") { IncorrectParamPassed([],resources )};
         if (typeof textColor === "undefined") { IncorrectParamPassed([],textColor )};
         if (typeof resourceColor === "undefined") { IncorrectParamPassed([],resourceColor )};
