@@ -72,14 +72,7 @@ function getResourceMousePosition() {
   return { x: mouseX, y: mouseY };
 }
 
-function getResourceMousePosition() {
-  if (typeof getWorldMousePosition === 'function') {
-    return getWorldMousePosition();
-  }
-  return { x: mouseX, y: mouseY };
-}
-
-// Legacy resourcesArray class - kept for backward compatibility
+// Plan on using to detect ants collision
 class resourcesArray {
   constructor() {
     this.resources = [];
