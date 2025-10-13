@@ -154,19 +154,19 @@ class AntBrain{
         console.log(`my belly is bellying`);
         //Checks hunger meter every second
         if(this.hunger === HUNGRY){
-            console.log('so fucking hungry')
+            console.log('hungry')
             this.flag_ = "hungry";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === STARVING){
-            console.log(`so fucking starving`);
+            console.log(`starving`);
             this.flag_ = "starving";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === DEATH){
-            console.log(`so fucking dead`);
+            console.log(`dead`);
             this.flag_ = "death";
             this.runFlagState();
             //this.killAnt();//Need to make this
