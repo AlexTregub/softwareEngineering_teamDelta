@@ -20,9 +20,11 @@ class DraggablePanelManager {
    * Creates a new DraggablePanelManager instance
    */
   constructor() {
+    // keep previous initialization
     this.panels = new Map();
     this.isInitialized = false;
-    
+  
+
     // Debug mode: Panel Train Mode (panels follow each other when dragged) 🚂
     this.debugMode = {
       panelTrainMode: false
@@ -342,28 +344,31 @@ class DraggablePanelManager {
       }
     }));
 
+    
     //task panel
-    console.log("Creating task panel");
     this.panels.set('tasks', new DraggablePanel({
       id: 'task-panel',
-      title: 'Task/Objective Manager 📋',
-      position: { x: 20, y: 80 },
-      size: { width: 140, height: 280 },
-      scale: 1.0, // Initial scale
+      title: 'Task objectives',
+      position: { x: 600, y: 80 },
+      size: { width: 160, height: 320 },
       buttons: {
         layout: 'vertical',
-        spacing: 5,
-        buttonWidth: 120,
-        buttonHeight: 24,
-        items: this.taskLibrary.availableTasks.slice(0, 5).map((task, index) => ({
-          caption: task.description,
-          onClick: () => console.log(`Task clicked: ${task.ID}`),
-        style: ButtonStyles.SUCCESS
-      }))
-    }
-  }));  
-  
-
+        spacing: 3,
+        buttonWidth: 140,
+        buttonHeight: 25,
+        items: [
+          {
+            caption: 'Gather 10 wood',
+            style: ButtonStyles.SUCCESS
+            //onclick to check if task is done
+          },
+          {
+            caption: getTaskUi(),
+            style: ButtonStyles.SUCCESS
+          }
+        ]
+      }
+    }));
   }
 
   /**
