@@ -493,30 +493,6 @@ class Resource extends Entity {
     }
   }
 
-  // Not currently used
-  /**
-   * -- drawManualHighlight --
-   * 
-   */
-  drawManualHighlight() {
-    const isHovered = interactionController ? 
-      interactionController.isMouseOver() : 
-      this.isMouseOver(mouseX, mouseY);
-
-    if (isHovered) {
-      const pos = this.getPosition();
-      const size = this.getSize();
-      
-      // Draw highlight overlay
-      push();
-      noFill();
-      stroke(255, 255, 0, 150); // Yellow highlight
-      strokeWeight(2);
-      rect(pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
-      pop();
-    }
-  }
-
   pickUp(antObject) {
     if (!this._isCarried) {
       this._isCarried = true;
