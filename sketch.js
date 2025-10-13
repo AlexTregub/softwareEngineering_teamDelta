@@ -39,6 +39,7 @@ function preload(){
   menuPreload();
   antsPreloader();
   resourcePreLoad();
+  preloadPauseImages();
   
   // Load presentation assets
   if (typeof loadPresentationAssets !== 'undefined') {
@@ -144,6 +145,12 @@ function draw() {
     RenderManager.render(GameState.getState());
     // console.log(frameRate());
   }
+  if (typeof window.renderPauseMenuUI === 'function') {
+    window.renderPauseMenuUI();
+  }
+  // Draw dropoff UI (button, placement preview) after other UI elements
+  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
+    window.drawDropoffUI();
       // Render debug visualization for ant gathering (overlays on top)
   if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
     g_gatherDebugRenderer.render();
