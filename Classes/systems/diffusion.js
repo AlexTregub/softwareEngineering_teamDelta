@@ -1,4 +1,4 @@
-///// Diffusion grid (not even chat gpt could help me)
+///// Diffusion grid (call me AI cuz my intelligence be artificial)
 // Accessing things via private is a bad idea, this will bite me in the ass someday
 
 class PheromoneGrid {
@@ -15,6 +15,7 @@ class PheromoneGrid {
         this.initSelGrid(); 
 
         // Pheromone 'REGISTRIES' - access for updates, must be matched with selected grid.
+        // DO NOT DELETE VALS, SET TO NONE.
         this._rightFlat = [];
         this._leftFlat = [];
     }
@@ -62,12 +63,40 @@ class PheromoneGrid {
     }
 
     set(pos,pheromoneArray,selLeft=this._selLeft) { // OVERWRITE pheromone array
-        // ...
+        // Delete prev vals from flat array
+        let oldArr = this.getRaw(pos,selLeft);
+        for (let i = 0; i < oldArr.length; ++i) {
+            if (selLeft) {
+                this._leftFlat[i] = NONE;
+            } else {
+                this._rightFlat[i] = NONE;
+            }
+        }
+
+        // Add new vals to flat + selected position
+        let appendArray = [];
+        if (selLeft) {
+            for (let i = 0; i < pheromoneArray.length; ++i) { // Update flat arr
+                appendArray.push(new PheromoneContainer(this._leftFlat.length,pheromoneArray[i]));
+                this._leftFlat.push(pheromoneArray[i]);
+            }
+
+            this._left.set(pos,appendArray);  // Update grid
+
+            return;
+        }
+
+        for (let i = 0; i < pheromoneArray.length; ++i) { // Update flat arr
+            appendArray.push(new PheromoneContainer(this._rightFlat.length,pheromoneArray[i]));
+            this._rightFlat.push(pheromoneArray[i]);
+        }
+
+        this._right.set(pos,appendArray);  // Update grid
     }
 
-    setRaw(pos,pheromoneContainerArr,selLeft=this._selLeft) {
-        
-    }
+    // setRaw(pos,pheromoneContainerArr,selLeft=this._selLeft) {
+    //     // ...
+    // }
 }
 
 
