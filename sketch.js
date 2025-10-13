@@ -1,4 +1,3 @@
-
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
@@ -39,12 +38,6 @@ let GRIDMAP;
 let COORDSY;
 let font;
 let recordingPath;
-let menuImage;
-let playButton;
-let optionButton;
-let exitButton;
-let infoButton;
-let debugButton;
 let cameraX = 0;
 let cameraY = 0;
 let cameraPanSpeed = 10;
@@ -54,6 +47,7 @@ const MAX_CAMERA_ZOOM = 3;
 const CAMERA_ZOOM_STEP = 1.1;
 let cameraFollowEnabled = false;
 let cameraFollowTarget = null;
+
 function preload(){
   terrainPreloader();
   menuPreload();
@@ -495,7 +489,6 @@ function setup() {
   initializeMenu();  // Initialize the menu system
   setupTests(); // Call test functions from AntStateMachine branch
  
-  Ants_Spawn(10);
   // Resources_Spawn(20);
 }
 
@@ -513,7 +506,6 @@ function drawUI() {
 function setupTests() {
   // Any test functions can be called here
   // e.g. antSMtest();
-  antSMtest(); // Test Ant State Machine
 }
 
 function draw() {
