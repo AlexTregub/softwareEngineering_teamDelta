@@ -1,4 +1,4 @@
-///// Diffusion grid (call me AI cuz my intelligence be artificial)
+///// Diffusion grid (pain)
 // Accessing things via private is a bad idea, this will bite me in the ass someday
 
 class PheromoneGrid {
@@ -8,7 +8,7 @@ class PheromoneGrid {
         this._mapTileSize = map._tileSpanRange;
         this._mapTL = map._tileSpan[0];
 
-        // Pheromone GRIDS
+        // Pheromone GRIDS 
         this._right = NONE;
         this._left = NONE;
 
@@ -59,23 +59,28 @@ class PheromoneGrid {
     }
 
     push(pos,pheromone,selLeft=this._selLeft) { // Merges pheromone into cell
-        // ...
+        let 
     }
 
-    set(pos,pheromoneArray,selLeft=this._selLeft) { // OVERWRITE pheromone array
-        // Delete prev vals from flat array
-        let oldArr = this.getRaw(pos,selLeft);
-        for (let i = 0; i < oldArr.length; ++i) {
-            if (selLeft) {
-                this._leftFlat[i] = NONE;
+    set(pos,pheromoneArray,selGet=this._selLeft,selPut=this._selLeft) { // OVERWRITE pheromone array
+        // Delete prev vals from flat array - if needed
+        if (selPut == selGet) {
+            let oldArr = this.getRaw(pos,selGet);
+            if (selGet) {
+                for (let i = 0; i < oldArr.length; ++i) {
+                    this._leftFlat[i] = NONE;
+                }
             } else {
-                this._rightFlat[i] = NONE;
+                for (let i = 0; i < oldArr.length; ++i) {
+                    this._rightFlat[i] = NONE;
+                }
             }
-        }
+        } 
+        
 
         // Add new vals to flat + selected position
         let appendArray = [];
-        if (selLeft) {
+        if (selPut) {
             for (let i = 0; i < pheromoneArray.length; ++i) { // Update flat arr
                 appendArray.push(new PheromoneContainer(this._leftFlat.length,pheromoneArray[i]));
                 this._leftFlat.push(pheromoneArray[i]);
