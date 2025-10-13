@@ -634,7 +634,7 @@ function spawnQueen(){
 
   newAnt = new QueenAnt(newAnt);
 
-  newAnt.assignJob(JobName, JobImages[JobName]);
+  //newAnt.assignJob(JobName, JobImages[JobName]);
   ants.push(newAnt);
   newAnt.update();
 

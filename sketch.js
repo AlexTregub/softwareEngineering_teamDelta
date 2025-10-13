@@ -175,7 +175,29 @@ function draw() {
     
   }
 
-  if (GameState.getState() === 'PLAYING') {
+    // --- PLAYING ---
+  if (GameState.isInGame()) {
+    push();
+    scale(cameraZoom);
+    translate(-cameraX, -cameraY);
+
+    Ants_Update();
+    resourceList.drawAll();
+
+    if (typeof drawSelectionBox === 'function') drawSelectionBox();
+    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
+
+    pop();
+
+    if (typeof drawDevConsoleIndicator === 'function') {
+      drawDevConsoleIndicator();
+    }
+  
+    if (typeof drawCommandLine === 'function') {
+      drawCommandLine();
+    }
+    updateCamera();
+    
     const playerQueen = getQueen();
     if (playerQueen) {
       // WASD key codes: W=87 A=65 S=83 D=68
@@ -215,13 +237,7 @@ function handleMouseEvent(type, ...args) {
  * ------------
  * Handles mouse press events by delegating to the mouse controller.
  */
-function mousePressed() {
-  // Handle UI Debug Manager mouse events first
-  if (g_uiDebugManager && g_uiDebugManager.isActive) {
-    const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
-    if (handled) return;
-  }
-  
+function mousePressed() {  
   // Handle Universal Button Group System clicks
   if (window.buttonGroupManager && 
       typeof window.buttonGroupManager.handleClick === 'function') {
@@ -494,17 +510,11 @@ function updateCamera() {
     }
 
     const panStep = cameraPanSpeed / cameraZoom;
-    if (left) {
-      cameraX -= panStep;
-    }
-    if (right) {
-      cameraX += panStep;
-    }
-    if (up) {
-      cameraY -= panStep;
-    }
-    if (down) {
-      cameraY += panStep;
+    switch (manualInput){
+      case left: cameraX -= panStep;
+      case right: cameraX += panStep;
+      case up: cameraY -= panStep;
+      case down: cameraY += panStep;
     }
 
     clampCameraToBounds();
@@ -526,14 +536,10 @@ function updateCamera() {
 }
 
 function mouseWheel(event) {
-  if (!isInGame()) {
-    return true;
-  }
+  if (!isInGame()) { return true; }
 
   const wheelDelta = event?.deltaY ?? 0;
-  if (wheelDelta === 0) {
-    return false;
-  }
+  if (wheelDelta === 0) { return false; }
 
   const zoomFactor = wheelDelta > 0 ? (1 / CAMERA_ZOOM_STEP) : CAMERA_ZOOM_STEP;
   const targetZoom = cameraZoom * zoomFactor;
@@ -541,97 +547,8 @@ function mouseWheel(event) {
 
   return false;
 }
-// Command line functionality has been moved to debug/commandLine.js
 
-////// MAIN
-function setup() {
-  CANVAS_X = windowWidth;
-  CANVAS_Y = windowHeight;
-  createCanvas(CANVAS_X, CANVAS_Y);
-
-  SEED = hour()*minute()*floor(second()/10);
-
-  MAP = new Terrain(CANVAS_X,CANVAS_Y,TILE_SIZE);
-  MAP.randomize(SEED);
-  COORDSY = MAP.getCoordinateSystem();
-  COORDSY.setViewCornerBC([0, 0]);
-  
-  GRIDMAP = new PathMap(MAP);
-  COORDSY = MAP.getCoordinateSystem(); // Get Backing canvas coordinate system
-  COORDSY.setViewCornerBC([0, 0]); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
-  
-  initializeMenu();  // Initialize the menu system
-  setupTests(); // Call test functions from AntStateMachine branch
- 
-  // Resources_Spawn(20);
-}
-
-// Global Currency Counter
-function drawUI() {
-  push(); 
-  textFont(font); 
-  textSize(24);
-  fill(255);  // white text
-  textAlign(LEFT, TOP);
-  text("Food: " + globalResource.length, 10, 10);
-  pop();
-}
-
-function setupTests() {
-  // Any test functions can be called here
-  // e.g. antSMtest();
-}
-
-function draw() {
-  console.log("t");
-  background(0);
-
-  // --- UPDATE MENU STATE ---
-  updateMenu();
-
-  // --- MENU / OPTIONS ---
-  if (renderMenu()) {
-    return; // menu rendered, stop here
-  }
-
-  // --- PLAYING ---
-  if (GameState.isInGame()) {
-    push();
-    scale(cameraZoom);
-    translate(-cameraX, -cameraY);
-
-    MAP.render();
-    Ants_Update();
-    resourceList.drawAll();
-
-    if (typeof drawSelectionBox === 'function') drawSelectionBox();
-    drawDebugGrid(TILE_SIZE, GRIDMAP.width, GRIDMAP.height);
-
-    pop();
-
-    if (typeof drawDevConsoleIndicator === 'function') {
-      drawDevConsoleIndicator();
-    }
-  
-    if (typeof drawCommandLine === 'function') {
-      drawCommandLine();
-    }
-    updateCamera();
-    drawUI();
-  }
-
-  // --- FADE OVERLAY (works in both menu + game) ---
-  if (GameState.isFadingTransition()) {
-    const fadeAlpha = GameState.getFadeAlpha();
-    if (fadeAlpha > 0) {
-      fill(255, fadeAlpha);
-      rect(0, 0, CANVAS_X, CANVAS_Y);
-    }
-    GameState.updateFade(10);
-  }
-}
-
-
+function maybeADuplicateIDK(){
   // Handle UI shortcuts first (Ctrl+Shift combinations)
   if (window.UIManager && window.UIManager.handleKeyPress) {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
@@ -718,17 +635,6 @@ function draw() {
 // DEBUG RENDERING FUNCTIONS
 // These functions provide basic debug visualization capability
 
-/**
- * debugRender
- * -----------
- * Debug rendering function - now using draggable panels instead of static overlay.
- * The debug information is now displayed in the Debug Info draggable panel.
- */
-function debugRender() {
-  // Debug info is now handled by the Debug Info draggable panel
-  // No static debug rendering needed here anymore
-  return;
-}
 
 /**
  * drawDebugGrid
