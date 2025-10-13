@@ -38,8 +38,23 @@ class PheromoneGrid {
     }
 
     //// Access: (defaults on selected grid)
-    get(pos,selLeft=this._selLeft) { // Gets current pheromones
-        // ...
+    get(pos,selLeft=this._selLeft) { // Gets current pheromones, in array form
+        let rawArr = this.getRaw(pos,selLeft); // Assumes array of pheromone containers
+        let returnArr = [];
+
+        for (let i = 0; i < rawArr.length; ++i) {
+            returnArr.push(rawArr[i].pheromone);
+        }
+
+        return returnArr;
+    }
+
+    getRaw(pos,selLeft=this._selLeft) { // Gets raw array at position
+        if (selLeft) {
+            return this._left.get(pos); 
+        }
+
+        return this._right.get(pos);
     }
 
     push(pos,pheromone,selLeft=this._selLeft) { // Merges pheromone into cell
@@ -48,5 +63,19 @@ class PheromoneGrid {
 
     set(pos,pheromoneArray,selLeft=this._selLeft) { // OVERWRITE pheromone array
         // ...
+    }
+
+    setRaw(pos,pheromoneContainerArr,selLeft=this._selLeft) {
+        
+    }
+}
+
+
+
+/// Container for pheromones (handles IDs independently)
+class PheromoneContainer {
+    constructor(ID,pheromone) {
+        this.id = ID;
+        this.pheromone = pheromone;
     }
 }
