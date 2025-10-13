@@ -228,13 +228,13 @@ class DraggablePanelManager {
     // Health Management Panel (horizontal layout with health controls)
     this.panels.set('health_controls', new DraggablePanel({
       id: 'health-controls-panel',
-      title: 'Health & Selection Manager 💚',
+      title: 'Health Debug',
       position: { x: 20, y: 400 },
-      size: { width: 560, height: 100 },
+      size: { width: 130, height: 100 },
       buttons: {
-        layout: 'horizontal',
+        layout: 'vertical',
         spacing: 5,
-        buttonWidth: 65,
+        buttonWidth: 110,
         buttonHeight: 30,
         items: [
           {
@@ -293,11 +293,11 @@ class DraggablePanelManager {
         buttonWidth: 140,
         buttonHeight: 25,
         items: [
-          {
+          /*{
             caption: 'Reset Scale',
             onClick: () => this.resetScale(),
             style: ButtonStyles.DEFAULT
-          },
+          }, */
           // --- Ant State Control Buttons ---
           {
             caption: 'Set Idle',
@@ -318,7 +318,7 @@ class DraggablePanelManager {
             caption: 'Gathering All Lines',
             onClick: () => g_gatherDebugRenderer.toggleAllLines(),
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
-          },
+          },/*
           {
             caption: 'Set Patrol',
             onClick: () => this.setSelectedAntsPatrol(),
@@ -343,7 +343,7 @@ class DraggablePanelManager {
             caption: 'Console Log',
             onClick: () => this.dumpConsole(),
             style: ButtonStyles.DANGER
-          }
+          } */
         ]
       }
     }));

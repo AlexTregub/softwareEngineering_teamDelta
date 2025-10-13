@@ -20,7 +20,7 @@ class GatherDebugRenderer {
     this.showAllLines = false;
     
     // Visual styling
-    this.rangeColor = [255, 255, 0, 80]; // Yellow with transparency
+    this.rangeColor = [255, 255, 0, 15]; // Yellow with transparency
     this.rangeStrokeColor = [255, 255, 0, 150];
     this.resourceColor = [0, 255, 0]; // Green
     this.antColor = [255, 0, 0]; // Red
@@ -144,20 +144,11 @@ class GatherDebugRenderer {
             textAlign(CENTER, CENTER);
             textSize(8);
             if (isInRange){
-                push();
-                fill("green")
-                text(`${distance.toFixed(0)}px`, midX, midY);
-                text('✓ IN RANGE', midX, midY + 12);
-                pop();
+                drawTextBetweenTwoObjects(antPos,resPos,[200,255,200,255],'✓ IN RANGE',distance.toFixed(0),"px")
                 drawLineBetweenEntities(antPos,resPos,"Green",1);
             } else {
-                drawTextBetweenTwoObjects(antPos,resPos,"red",'✖ IN RANGE',distance.toFixed(0),"px")
-                push();
-                fill("red")
-                text(`${distance.toFixed(0)}px`, midX, midY);
-                text('✖ IN RANGE', midX, midY + 12);
-                pop();
-                drawLineBetweenEntities(antPos,resPos,"White",1);
+                drawTextBetweenTwoObjects(antPos,resPos,[255,0,0,125],'✖ IN RANGE',distance.toFixed(0),"px")
+                drawLineBetweenEntities(antPos,resPos,[255,255,255,30],1);
             }
             
         }
