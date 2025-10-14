@@ -279,10 +279,6 @@ function handleKeyEvent(type, ...args) {
   }
 }
 
-
-
-
-
 /**
  * keyPressed
  * ----------

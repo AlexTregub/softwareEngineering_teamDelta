@@ -163,7 +163,26 @@ class RenderLayerManager {
     
     // Use the existing terrain rendering system
     if (g_map2 && g_map2.render) {
-      g_map2.render();
+      // If CameraManager exists and provides zoom, apply a temporary transform so the
+      // terrain is drawn scaled around the camera position. This avoids modifying gridTerrain.
+      try {
+        if (typeof cameraManager !== 'undefined' && cameraManager && typeof cameraManager.getZoom === 'function') {
+          push();
+          const zoom = cameraManager.getZoom();
+          // Scale around the canvas center so world tiles scale about the view
+          translate((g_canvasX/2), (g_canvasY/2));
+          scale(zoom);
+          translate(-(g_canvasX/2), -(g_canvasY/2));
+          g_map2.render();
+          pop();
+        } else {
+          g_map2.render();
+        }
+      } catch (e) {
+        console.error('Error while rendering terrain with camera transform:', e);
+        // Fallback to normal render
+        try { g_map2.render(); } catch (e2) { /* ignore */ }
+      }
     }
   }
   

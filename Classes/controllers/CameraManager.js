@@ -127,8 +127,8 @@ class CameraManager {
       // Move camera with arrow keys using CameraController
       if (left && typeof CameraController !== 'undefined') CameraController.moveCameraBy(-panStep, 0);
       if (right && typeof CameraController !== 'undefined') CameraController.moveCameraBy(panStep, 0);
-      if (up && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, -panStep);
-      if (down && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, panStep);
+      if (up && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, panStep);
+      if (down && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, -panStep);
 
       // Update local variables from CameraController
       if (typeof CameraController !== 'undefined') {
@@ -221,10 +221,19 @@ class CameraManager {
       return false;
     }
 
-    // Get world position at focus point before zoom
-    const focusWorld = typeof CameraController !== 'undefined'
-      ? CameraController.screenToWorld(focusX, focusY)
-      : this.screenToWorld(focusX, focusY);
+    // Get world position at focus point before zoom using the zoom-aware conversion
+    // (CameraController.screenToWorld is NOT zoom-aware, so always use our conversion here)
+    const focusWorld = this.screenToWorld(focusX, focusY);
+
+    // DEBUG: log zoom math to help diagnose mouse-wheel behavior
+    if (typeof console !== 'undefined') {
+      console.log('[CameraManager] setZoom start', {
+        prevZoom: this.cameraZoom,
+        clampedZoom,
+        focusScreen: { x: focusX, y: focusY },
+        focusWorldBefore: focusWorld
+      });
+    }
 
     // Update zoom
     this.cameraZoom = clampedZoom;
@@ -232,6 +241,15 @@ class CameraManager {
     // Calculate new camera position to keep focus point at same screen location
     const newCameraX = focusWorld.worldX - focusX / this.cameraZoom;
     const newCameraY = focusWorld.worldY - focusY / this.cameraZoom;
+
+    if (typeof console !== 'undefined') {
+      console.log('[CameraManager] setZoom result', {
+        newCameraX,
+        newCameraY,
+        prevZoom: this.cameraZoom,
+        newZoom: clampedZoom
+      });
+    }
     
     // Update both local variables and CameraController
     this.cameraX = newCameraX;
@@ -241,6 +259,34 @@ class CameraManager {
     }
 
     this.clampToBounds();
+
+    // DEBUG: Print terrain converter and camera controller state after zoom so we can
+    // see whether the render converter (g_map2) or CameraController are out of sync.
+    try {
+      const ccPos = (typeof CameraController !== 'undefined' && typeof CameraController.getCameraPosition === 'function')
+        ? CameraController.getCameraPosition()
+        : null;
+
+      if (typeof g_map2 !== 'undefined' && g_map2) {
+        const conv = g_map2.renderConversion || {};
+        const convPos = conv._camPosition ?? null;
+        const convCenter = conv._canvasCenter ?? null;
+        const stats = typeof g_map2.getCacheStats === 'function' ? g_map2.getCacheStats() : null;
+        console.log('[CameraManager] post-zoom state', {
+          cameraX: this.cameraX,
+          cameraY: this.cameraY,
+          cameraZoom: this.cameraZoom,
+          cameraControllerPos: ccPos,
+          g_map2_convPos: convPos,
+          g_map2_convCenter: convCenter,
+          g_map2_stats: stats
+        });
+      } else {
+        console.log('[CameraManager] post-zoom state', { cameraX: this.cameraX, cameraY: this.cameraY, cameraZoom: this.cameraZoom, cameraControllerPos: ccPos, g_map2: null });
+      }
+    } catch (e) {
+      console.warn('CameraManager: post-zoom debug failed', e);
+    }
 
     // Handle camera following during zoom
     if (this.cameraFollowEnabled) {
@@ -387,12 +433,8 @@ class CameraManager {
    * @returns {Object} World coordinates {worldX, worldY}
    */
   screenToWorld(px = mouseX, py = mouseY) {
-    // Use CameraController for consistent coordinate conversion
-    if (typeof CameraController !== 'undefined') {
-      return CameraController.screenToWorld(px, py);
-    }
-    
-    // Fallback implementation
+    // Zoom-aware conversion from screen (pixels) to world coordinates.
+    // Do not delegate to CameraController because it doesn't account for cameraZoom.
     return {
       worldX: this.cameraX + px / this.cameraZoom,
       worldY: this.cameraY + py / this.cameraZoom
@@ -406,12 +448,8 @@ class CameraManager {
    * @returns {Object} Screen coordinates {screenX, screenY}
    */
   worldToScreen(worldX, worldY) {
-    // Use CameraController for consistent coordinate conversion
-    if (typeof CameraController !== 'undefined') {
-      return CameraController.worldToScreen(worldX, worldY);
-    }
-    
-    // Fallback implementation
+    // Zoom-aware conversion from world to screen coordinates.
+    // Do not delegate to CameraController because it doesn't account for cameraZoom.
     return {
       screenX: (worldX - this.cameraX) * this.cameraZoom,
       screenY: (worldY - this.cameraY) * this.cameraZoom
@@ -462,22 +500,4 @@ if (typeof window !== 'undefined') {
   window.CameraManager = CameraManager;
 }
 
-function constrain(cameraX, minX, maxX) {
-  throw new Error("Function not implemented.");
-}
-function push() {
-  throw new Error("Function not implemented.");
-}
-
-function scale(cameraZoom) {
-  throw new Error("Function not implemented.");
-}
-
-function translate(arg0, arg1) {
-  throw new Error("Function not implemented.");
-}
-
-function pop() {
-  throw new Error("Function not implemented.");
-}
 
