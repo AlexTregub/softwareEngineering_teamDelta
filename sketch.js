@@ -479,7 +479,7 @@ function getMapPixelDimensions() {
 
   const width = g_map2._xCount ? g_map2._xCount * TILE_SIZE : g_canvasX;
   const height = g_map2._yCount ? g_map2._yCount * TILE_SIZE : g_canvasY;
-
+  const gridSize = g_map2.getGridSizePixels()
   return { width, height };
 }
 

@@ -118,12 +118,9 @@ class CameraController {
    * @param {number} worldY - World Y coordinate to center on
    */
   static centerCameraOn(worldX, worldY) {
-    const canvasWidth = typeof g_canvasX !== 'undefined' ? g_canvasX : 800;
-    const canvasHeight = typeof g_canvasY !== 'undefined' ? g_canvasY : 800;
-    
     this.setCameraPosition(
-      worldX - canvasWidth / 2,
-      worldY - canvasHeight / 2
+      worldX/ 2,
+      worldY/2
     );
   }
 

@@ -521,6 +521,15 @@ class gridTerrain {
         // Invalidate cache when terrain data changes
         this.invalidateCache();
     }
+
+    getGridSize(){
+        console.log("this.getGridSize")
+        return createVector(this._gridSizeX,this._gridSizeY)
+    }
+
+    getGridSizePixels(){
+        return createVector(this._gridSizeX*TILE_SIZE,this._gridSizeY*TILE_SIZE)
+    }
 };
 
 // Global functions to control and monitor terrain cache from console

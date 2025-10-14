@@ -234,12 +234,7 @@ class CameraManager {
       this.cameraX = pos.x;
       this.cameraY = pos.y;
     } else {
-      // Fallback implementation
-      const viewWidth = this.canvasWidth / this.cameraZoom;
-      const viewHeight = this.canvasHeight / this.cameraZoom;
-
-      this.cameraX = worldX - viewWidth / 2;
-      this.cameraY = worldY - viewHeight / 2;
+      console.warn("Camera not set correctly. CameraController not yet init.")
     }
 
     this.clampToBounds();
@@ -286,8 +281,8 @@ class CameraManager {
     }
 
     const { width, height } = getMapPixelDimensions();
-    const viewWidth = this.canvasWidth / this.cameraZoom;
-    const viewHeight = this.canvasHeight / this.cameraZoom;
+    const viewWidth = g_canvasX / this.cameraZoom;
+    const viewHeight = g_canvasY / this.cameraZoom;
 
     let minX = 0;
     let maxX = width - viewWidth;
