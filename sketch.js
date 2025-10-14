@@ -79,9 +79,9 @@ function setup() {
   
   // Center camera on the middle of g_map2 for better initial view
   if (g_map2) {
-    const mapCenterX = (CHUNKS_X * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
-    const mapCenterY = (CHUNKS_Y * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
-    cameraManager.centerOn(mapCenterX, mapCenterY);
+    //const mapCenterX = (CHUNKS_X * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
+    //const mapCenterY = (CHUNKS_Y * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
+    cameraManager.centerOn(g_canvasX/2, g_canvasY/2);
     
     // Optional: Start with a zoomed out view to see more of the map
     cameraManager.setZoom(0.3); // Zoom out to see ~3x more area

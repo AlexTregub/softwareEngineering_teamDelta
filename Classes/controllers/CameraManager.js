@@ -18,8 +18,8 @@
 class CameraManager {
   constructor() {
     // Camera position and zoom
-    this.cameraX = 0;
-    this.cameraY = 0;
+    this.cameraX = g_canvasX/2;
+    this.cameraY = g_canvasY/2;
     this.cameraZoom = 1;
     this.cameraPanSpeed = 10;
     
@@ -31,21 +31,13 @@ class CameraManager {
     // Camera following
     this.cameraFollowEnabled = false;
     this.cameraFollowTarget = null;
-    
-    // Canvas dimensions (updated from global variables)
-    this.canvasWidth = 800;
-    this.canvasHeight = 800;
   }
 
   /**
    * Initialize the camera manager
    * Should be called once in setup()
    */
-  initialize() {
-    // Sync with global canvas dimensions if available
-    if (typeof g_canvasX !== 'undefined') this.canvasWidth = g_canvasX;
-    if (typeof g_canvasY !== 'undefined') this.canvasHeight = g_canvasY;
-    
+  initialize() {    
     // Initialize CameraController with starting position
     if (typeof CameraController !== 'undefined') {
       CameraController.setCameraPosition(this.cameraX, this.cameraY);
@@ -107,7 +99,18 @@ class CameraManager {
         this.cameraFollowTarget = null;
       }
     }
+  // compute view center in world pixels, account for zoom
+  const viewCenterX = this.cameraX + (g_canvasX / (2 * this.cameraZoom));
+  const viewCenterY = this.cameraY + (g_canvasY / (2 * this.cameraZoom));
+
+  // convert to tile/world coordinates expected by gridTerrain (array of #[tileX, tileY])
+  const centerTilePos = [ viewCenterX / TILE_SIZE, viewCenterY / TILE_SIZE ];
+
+  // pass a plain array, not a p5.Vector
+  if (typeof g_map2 !== 'undefined' && g_map2 && typeof g_map2.setCameraPosition === 'function') {
+    g_map2.setCameraPosition(centerTilePos);
   }
+}
 
   /**
    * Draws a rect around the border of what the camera is able to see, should be just outside the range
