@@ -60,7 +60,7 @@ class CameraManager {
    */
   update() {
     if (!this.isInGame()) return;
-
+    this.drawCameraBounds();
     // Update canvas dimensions in case of window resize
     if (typeof g_canvasX !== 'undefined') this.canvasWidth = g_canvasX;
     if (typeof g_canvasY !== 'undefined') this.canvasHeight = g_canvasY;
@@ -93,7 +93,6 @@ class CameraManager {
         this.cameraX = pos.x;
         this.cameraY = pos.y;
       }
-
       this.clampToBounds();
       
     } else if (this.cameraFollowEnabled) {
@@ -108,6 +107,19 @@ class CameraManager {
         this.cameraFollowTarget = null;
       }
     }
+  }
+
+  /**
+   * Draws a rect around the border of what the camera is able to see, should be just outside the range
+   * of the canvas at any time. This is for debugging to make sure the camera and the world map
+   * are still in snyc
+   */
+  drawCameraBounds(){
+    rectCustom("blue",[0,0,125,150],3,
+      createVector(this.cameraX,this.cameraY),
+      createVector(this.canvasWidth,this.canvasHeight),
+      false,
+      true)
   }
 
   /**
