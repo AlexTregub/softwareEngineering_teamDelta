@@ -459,36 +459,7 @@ function getMapPixelDimensions() {
   return { width, height };
 }
 
-// Camera functions have been moved to CameraManager.js
-// Use cameraManager.methodName() instead of these functions:
 
-function screenToWorld(px = mouseX, py = mouseY) {
-  return cameraManager ? cameraManager.screenToWorld(px, py) : { worldX: px, worldY: py };
-}
-
-function getWorldMousePosition(px = mouseX, py = mouseY) {
-  return cameraManager ? cameraManager.screenToWorld(px, py) : { worldX: px, worldY: py };
-}
-
-function worldToScreen(worldX, worldY) {
-  return cameraManager ? cameraManager.worldToScreen(worldX, worldY) : { screenX: worldX, screenY: worldY };
-}
-
-function setCameraZoom(targetZoom, focusX, focusY) {
-  return cameraManager ? cameraManager.setZoom(targetZoom, focusX, focusY) : false;
-}
-
-function centerCameraOn(worldX, worldY) {
-  if (cameraManager) cameraManager.centerOn(worldX, worldY);
-}
-
-function centerCameraOnEntity(entity) {
-  if (cameraManager) cameraManager.centerOnEntity(entity);
-}
-
-function toggleCameraFollow() {
-  if (cameraManager) cameraManager.toggleFollow();
-}
 
 function mouseWheel(event) {
   // Delegate to CameraManager

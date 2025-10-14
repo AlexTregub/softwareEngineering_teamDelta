@@ -173,8 +173,12 @@ class RenderLayerManager {
           translate((g_canvasX/2), (g_canvasY/2));
           scale(zoom);
           translate(-(g_canvasX/2), -(g_canvasY/2));
+          g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
           g_map2.render();
           pop();
+          
+          g_canvasX = windowWidth;
+          g_canvasY = windowHeight;
         } else {
           g_map2.render();
         }
