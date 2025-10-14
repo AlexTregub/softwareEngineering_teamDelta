@@ -18,8 +18,12 @@
 class CameraManager {
   constructor() {
     // Camera position and zoom
-    this.cameraX = g_canvasX/2;
-    this.cameraY = g_canvasY/2;
+    // Don't rely on global canvas values at construction time — they may not be set yet.
+    // We'll set a safe default here and compute the real center in initialize().
+    this.cameraX = 0;
+    this.cameraY = 0;
+    this.canvasWidth = (typeof g_canvasX !== 'undefined') ? g_canvasX : 800;
+    this.canvasHeight = (typeof g_canvasY !== 'undefined') ? g_canvasY : 600;
     this.cameraZoom = 1;
     this.cameraPanSpeed = 10;
     
@@ -31,6 +35,9 @@ class CameraManager {
     // Camera following
     this.cameraFollowEnabled = false;
     this.cameraFollowTarget = null;
+
+    // Camera toggles
+    this.cameraOutlineToggle = false;
   }
 
   /**
@@ -38,12 +45,56 @@ class CameraManager {
    * Should be called once in setup()
    */
   initialize() {    
-    // Initialize CameraController with starting position
-    if (typeof CameraController !== 'undefined') {
+    // Ensure we have up-to-date canvas dimensions
+    this.canvasWidth = (typeof g_canvasX !== 'undefined') ? g_canvasX : this.canvasWidth || 800;
+    this.canvasHeight = (typeof g_canvasY !== 'undefined') ? g_canvasY : this.canvasHeight || 600;
+
+    // Compute an initial camera position based on available data.
+    // Prefer an existing CameraController position if present; otherwise center on the canvas.
+    if (typeof CameraController !== 'undefined' && typeof CameraController.getCameraPosition === 'function') {
+      const ccPos = CameraController.getCameraPosition();
+      if (ccPos && typeof ccPos.x === 'number' && typeof ccPos.y === 'number') {
+        this.cameraX = ccPos.x;
+        this.cameraY = ccPos.y;
+      } else {
+        // If map dimensions are available, center the view on the full map (top-left camera coords)
+        if (typeof getMapPixelDimensions === 'function') {
+          const dims = getMapPixelDimensions();
+          if (dims && dims.width > 0 && dims.height > 0) {
+            const viewWidth = this.canvasWidth / this.cameraZoom;
+            const viewHeight = this.canvasHeight / this.cameraZoom;
+            this.cameraX = (dims.width - viewWidth) / 2;
+            this.cameraY = (dims.height - viewHeight) / 2;
+          } else {
+            this.cameraX = this.canvasWidth / 2;
+            this.cameraY = this.canvasHeight / 2;
+          }
+        } else {
+          this.cameraX = this.canvasWidth / 2;
+          this.cameraY = this.canvasHeight / 2;
+        }
+      }
+      // Sync CameraController to our computed values to ensure a single source of truth
       CameraController.setCameraPosition(this.cameraX, this.cameraY);
+    } else {
+      // No CameraController yet - center locally and wait for an available controller later
+      this.cameraX = this.cameraX || (this.canvasWidth / 2);
+      this.cameraY = this.cameraY || (this.canvasHeight / 2);
     }
-    
-    console.log('CameraManager initialized');
+
+    // Clamp to bounds if map dimensions are available (safe-guarded inside clampToBounds)
+    try { this.clampToBounds(); } catch (e) { /* ignore if clamp depends on uninitialized systems */ }
+
+    console.log('CameraManager initialized', { cameraX: this.cameraX, cameraY: this.cameraY, canvasWidth: this.canvasWidth, canvasHeight: this.canvasHeight });
+
+    // If the terrain exists at initialization time, sync its camera position so the render
+    // converter and CameraManager agree. Convert camera pixel center to tile coordinates.
+    if (typeof g_map2 !== 'undefined' && g_map2 && typeof g_map2.setCameraPosition === 'function') {
+      const viewCenterX = this.cameraX + (this.canvasWidth / (2 * this.cameraZoom));
+      const viewCenterY = this.cameraY + (this.canvasHeight / (2 * this.cameraZoom));
+      const centerTilePos = [ viewCenterX / TILE_SIZE, viewCenterY / TILE_SIZE ];
+      try { g_map2.setCameraPosition(centerTilePos); } catch (e) { /* ignore */ }
+    }
   }
 
   /**
@@ -118,12 +169,20 @@ class CameraManager {
    * are still in snyc
    */
   drawCameraBounds(){
-    rectCustom("blue",[0,0,125,150],3,
-      createVector(this.cameraX,this.cameraY),
-      createVector(this.canvasWidth,this.canvasHeight),
-      false,
-      true)
+    if (this.cameraOutlineToggle) {
+      rectCustom( color(0,0,255,100), color(0,0,255,100),
+      30,                                                 // strokeWidth
+      createVector(this.cameraX, this.cameraY),        // pos
+      createVector(this.canvasWidth, this.canvasHeight),// size
+      false,                                            // shouldFill
+      true,                                             // shouldStroke
+    );}
   }
+
+  /**
+   * Toggles the cameraBounds outline, needs to be assigned to a keypress/button
+   */
+  toggleOutline() { this.cameraOutlineToggle = !this.cameraOutlineToggle }
 
   /**
    * Apply camera transformation for rendering
@@ -280,6 +339,14 @@ class CameraManager {
       return; // Can't clamp without map dimensions
     }
 
+    // Prefer using the actual map/grid dimensions (when available). If g_map2 isn't
+    // initialized yet (no tile counts), skip clamping — otherwise the camera will be
+    // clamped to the canvas size instead of the true world size.
+    if (typeof g_map2 === 'undefined' || !g_map2 || !(g_map2._xCount > 0 && g_map2._yCount > 0)) {
+      // Map not ready: don't clamp yet
+      return;
+    }
+
     const { width, height } = getMapPixelDimensions();
     const viewWidth = g_canvasX / this.cameraZoom;
     const viewHeight = g_canvasY / this.cameraZoom;
@@ -394,3 +461,23 @@ class CameraManager {
 if (typeof window !== 'undefined') {
   window.CameraManager = CameraManager;
 }
+
+function constrain(cameraX, minX, maxX) {
+  throw new Error("Function not implemented.");
+}
+function push() {
+  throw new Error("Function not implemented.");
+}
+
+function scale(cameraZoom) {
+  throw new Error("Function not implemented.");
+}
+
+function translate(arg0, arg1) {
+  throw new Error("Function not implemented.");
+}
+
+function pop() {
+  throw new Error("Function not implemented.");
+}
+

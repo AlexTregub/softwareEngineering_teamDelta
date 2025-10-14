@@ -66,6 +66,7 @@
     "LEFT": "readonly",
     "RIGHT": "readonly",
     "CORNER": "readonly",
-    "CORNERS": "readonly"
+    "CORNERS": "readonly",
+    "LFET_ARROW": "readonly"
   }
 }

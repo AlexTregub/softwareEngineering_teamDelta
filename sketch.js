@@ -27,16 +27,6 @@ let g_recordingPath;
 // -- Queen ---
 let queenAnt;
 
-
-/**
- * preload
- * -------
- * Preloads game assets and resources used during runtime.
- * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
- * Assigns loaded assets to globals consumed by rendering and game systems.
- */
-let MAP;
-
 // Camera system - now managed by CameraManager
 let cameraManager;
 
@@ -76,16 +66,6 @@ function setup() {
   // Initialize camera management system
   cameraManager = new CameraManager();
   cameraManager.initialize();
-  
-  // Center camera on the middle of g_map2 for better initial view
-  if (g_map2) {
-    //const mapCenterX = (CHUNKS_X * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
-    //const mapCenterY = (CHUNKS_Y * 8 * TILE_SIZE) / 2; // 20 chunks * 8 tiles * 32 pixels / 2
-    cameraManager.centerOn(g_canvasX/2, g_canvasY/2);
-    
-    // Optional: Start with a zoomed out view to see more of the map
-    cameraManager.setZoom(0.3); // Zoom out to see ~3x more area
-  }
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();

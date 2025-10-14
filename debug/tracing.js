@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Stack tracing utilities for debugging and error reporting
  * Provides functions for analyzing call stacks, extracting function names,

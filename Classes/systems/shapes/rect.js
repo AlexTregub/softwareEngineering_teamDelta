@@ -8,11 +8,11 @@
  * position/size.
  *
  * Parameters
- * @param {{x:number,y:number,z:number}} strokeColor
+ * @param {color} strokeColor
  *   Stroke color as an object with numeric x/y/z properties mapping to
  *   R/G/B channels (0-255). If `shouldStroke` is false this parameter
  *   is ignored.
- * @param {{x:number,y:number,z:number}} fillColor
+ * @param {{color}} fillColor
  *   Fill color as an object with numeric x/y/z properties mapping to
  *   R/G/B channels (0-255). If `shouldFill` is false this parameter
  *   is ignored.
@@ -32,17 +32,13 @@
  * @param {boolean} shouldStroke
  *   If true the rectangle will be stroked with `strokeColor`. If false no
  *   stroke will be applied.
- *
- * Example
- *   // uses scoped strokeW variable
- *   strokeW = 2;
- *   rectCustom({x:0,y:0,z:0}, {x:255,y:0,z:0}, {x:10,y:10}, {x:100,y:50}, true, true);
  */
 function rectCustom(strokeColor, fillColor, strokeWidth, pos, size, shouldFill, shouldStroke) {
+    
     push();
     strokeWeight(strokeWidth);
-    if (shouldStroke) { stroke(strokeColor.x, strokeColor.y, strokeColor.z); } else { noStroke(); }
-    if (shouldFill) { fill(fillColor.x, fillColor.y, fillColor.z); } else { noFill(); }
+    if (shouldStroke) { stroke(strokeColor); } else { noStroke(); }
+    if (shouldFill) { fill(fillColor); } else { noFill(); }
     rect(pos.x, pos.y, size.x, size.y);
     pop();
 }

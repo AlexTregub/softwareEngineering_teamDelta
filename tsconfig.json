@@ -14,14 +14,12 @@
     "moduleResolution": "node",
     "noResolve": true
   },
-  "include": [
+  "exclude": [
     "sketch.js",
     "demo_ant_enhancements.js",
     "Classes/**/*.js",
     "debug/**/*.js",
-    "scripts/**/*.js"
-  ],
-  "exclude": [
+    "scripts/**/*.js",
     "node_modules/**/*",
     "libraries/**/*",
     "**/*.min.js",

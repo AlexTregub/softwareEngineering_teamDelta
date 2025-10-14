@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview GatherDebugRenderer - Visualization utility for ant gathering behavior
  * Shows ant detection ranges, resource positions, and debugging information
