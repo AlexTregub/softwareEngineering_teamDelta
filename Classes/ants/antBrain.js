@@ -14,7 +14,7 @@ class AntBrain{
         this.ant = antInstance;
         this.antType = antType;
         this.flag_ = "";
-        this.hunger = 190;
+        this.hunger = 0;
 
         this.followBuildTrail = 0;
         this.followForageTrail = 0;
