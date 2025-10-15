@@ -179,6 +179,7 @@ function updateMenu() {
         } else {
           // Fade-in done → stop fading
           GameState.stopFadeTransition();
+          
         }
       }
     }

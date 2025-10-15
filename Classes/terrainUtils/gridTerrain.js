@@ -131,6 +131,42 @@ class gridTerrain {
         this._cacheValid = false;               // Dirty flag for cache invalidation
         this._cacheViewport = null;             // Cached viewport state for invalidation
         this._lastCameraPosition = [0, 0];     // Track camera movement
+
+    }
+
+    /**
+     * Public API
+     * Allows the map to be centered to the canvas
+     */
+    setGridToCenter(){
+        this.renderConversion.alignToCanvas()
+    }
+
+    /**
+     * Calculate dynamic chunk buffer based on camera zoom level
+     * More chunks are rendered when zoomed out for smoother scrolling
+     * @private
+     * @returns {number} Number of extra chunks to render in each direction
+     */
+    _calculateChunkBuffer() {
+        // Get zoom level from CameraManager
+        let zoomLevel = 1.0; // Default zoom if CameraManager not available
+        
+        // Try to get zoom from global CameraManager
+        if (typeof cameraManager !== 'undefined' && cameraManager && typeof cameraManager.cameraZoom !== 'undefined') {
+            zoomLevel = cameraManager.cameraZoom;
+        }
+        // Fallback: try to get zoom from global variables
+        else if (typeof cameraZoom !== 'undefined') {
+            zoomLevel = cameraZoom;
+        }
+        
+        // Calculate buffer: more chunks when zoomed out (low zoom values)
+        const baseBuffer = 3;
+        const dynamicBuffer = Math.max(1, Math.floor(baseBuffer / Math.max(0.25, zoomLevel)));
+        
+        // Cap the buffer to reasonable limits for performance
+        return Math.min(6, Math.max(1, dynamicBuffer));
     }
 
     printDebug() {
@@ -281,16 +317,20 @@ class gridTerrain {
         //     }
         // }
 
-        // Only render SOME chunks, should reduce cache's size -> better framerate.
+        // Only render visible chunks plus a dynamic buffer based on zoom level
         let viewSpan = converter.getViewSpan();
+        
+        // Dynamic chunk buffer - render more chunks when zoomed out for smoother scrolling
+        const CHUNK_BUFFER = this._calculateChunkBuffer();
+        
         let chunkSpan = [
-            [ // -x,+y TL
-                (viewSpan[0][0]%this._chunkSize != 0) ? floor(viewSpan[0][0]/this._chunkSize)-1 : viewSpan[0][0]/this._chunkSize,
-                (viewSpan[0][1]%this._chunkSize != 0) ? floor(viewSpan[0][1]/this._chunkSize)+1 : viewSpan[0][1]/this._chunkSize
+            [ // -x,+y TL - Expand outward by buffer amount with bounds checking
+                Math.max(this._gridSpanTL[0], floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
+                Math.min(this._gridSpanTL[1], floor(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
             ],
-            [ // +x,-y BR
-                (viewSpan[1][0]%this._chunkSize != 0) ? floor(viewSpan[1][0]/this._chunkSize)+1 : viewSpan[1][0]/this._chunkSize,
-                (viewSpan[1][1]%this._chunkSize != 0) ? floor(viewSpan[1][1]/this._chunkSize)-1 : viewSpan[1][1]/this._chunkSize
+            [ // +x,-y BR - Expand outward by buffer amount with bounds checking
+                Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, floor(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
+                Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
             ]
         ];
 
@@ -328,34 +368,17 @@ class gridTerrain {
             // const cachePos = converter.convPosToCanvas(tilePos); // Using shared render converter?
             
             // Use tile's material to render correctly
-            const material = tile._materialSet || 'grass';
+            const material = tile._materialSet;
             
             if (typeof TERRAIN_MATERIALS_RANGED !== 'undefined' && TERRAIN_MATERIALS_RANGED[material]) {
                 // CLEAN APPROACH: Use context-aware renderer (no global overrides!)
                 if (typeof renderMaterialToContext === 'function') {
                     // Use the new context-aware renderer that respects existing material definitions
                     renderMaterialToContext(material, cachePos[0], cachePos[1], this._tileSize, this._terrainCache);
-                } else {
-                    // Fallback: Direct cache rendering if context renderer not available
-                    this._renderMaterialDirectToCache(material, cachePos[0], cachePos[1], this._tileSize);
                 }
-            } else {
-                // Fallback: draw a default colored tile
-                this._terrainCache.fill(100, 150, 100); // Default grass color
-                // this._terrainCache.fill(255, 0, 0); // Default grass color
-                this._terrainCache.noStroke();
-                this._terrainCache.rect(cachePos[0], cachePos[1], this._tileSize, this._tileSize);
-            }
-            
+            }            
         } catch (error) {
             console.warn('GridTerrain: Error rendering tile to cache:', error, tile);
-            
-            // Emergency fallback
-            if (this._terrainCache) {
-                this._terrainCache.fill(100, 150, 100);
-                this._terrainCache.noStroke();
-                this._terrainCache.rect(0, 0, this._tileSize, this._tileSize);
-            }
         }
     }
 
@@ -374,9 +397,9 @@ class gridTerrain {
             return true;
         }
         
-        // Check current canvas size (use live g_canvasX, g_canvasY values)
-        const currentCanvasWidth = typeof g_canvasX !== 'undefined' ? g_canvasX : this._canvasSize[0];
-        const currentCanvasHeight = typeof g_canvasY !== 'undefined' ? g_canvasY : this._canvasSize[1];
+        // Check current canvas size
+        const currentCanvasWidth = this._canvasSize[0];
+        const currentCanvasHeight = this._canvasSize[1];
         if (currentCanvasWidth !== this._cacheViewport.canvasSize[0] || 
             currentCanvasHeight !== this._cacheViewport.canvasSize[1]) {
             console.log(`GridTerrain: Canvas size changed from ${this._cacheViewport.canvasSize[0]}x${this._cacheViewport.canvasSize[1]} to ${currentCanvasWidth}x${currentCanvasHeight}`);
@@ -472,14 +495,18 @@ class gridTerrain {
         let chunksRendered = 0;
 
         let viewSpan = converter.getViewSpan();
+        
+        // Use same dynamic chunk buffer as cache rendering for consistency
+        const CHUNK_BUFFER = this._calculateChunkBuffer();
+        
         let chunkSpan = [
-            [ // -x,+y TL
-                (viewSpan[0][0]%this._chunkSize != 0) ? floor(viewSpan[0][0]/this._chunkSize)-1 : viewSpan[0][0]/this._chunkSize,
-                (viewSpan[0][1]%this._chunkSize != 0) ? floor(viewSpan[0][1]/this._chunkSize)+1 : viewSpan[0][1]/this._chunkSize
+            [ // -x,+y TL - Expand outward by buffer amount with bounds checking
+                Math.max(this._gridSpanTL[0], floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
+                Math.min(this._gridSpanTL[1], floor(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
             ],
-            [ // +x,-y BR
-                (viewSpan[1][0]%this._chunkSize != 0) ? floor(viewSpan[1][0]/this._chunkSize)+1 : viewSpan[1][0]/this._chunkSize,
-                (viewSpan[1][1]%this._chunkSize != 0) ? floor(viewSpan[1][1]/this._chunkSize)-1 : viewSpan[1][1]/this._chunkSize
+            [ // +x,-y BR - Expand outward by buffer amount with bounds checking
+                Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, floor(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
+                Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
             ]
         ];
 
@@ -608,29 +635,65 @@ class camRenderConverter {
         this._camPosition = pos;
     }
 
+
+    /**
+     * Update canvas dimensions and recalculate viewport boundaries
+     * 
+     * This method handles window resize events by updating the canvas size
+     * and recalculating how many tiles are visible in the new viewport.
+     * 
+     * @param {Array} sizePair - New canvas dimensions [width, height] in pixels
+     * 
+     * Key calculations:
+     * 1. Updates canvas center point (used as viewport origin)
+     * 2. Calculates tile offsets (how many tiles from center to edge)
+     * 3. Recalculates view span boundaries in tile coordinates
+     * 
+     * The view span defines the visible rectangle:
+     * - Top-Left: camera position minus tile offsets (expanded viewport)
+     * - Bottom-Right: camera position plus tile offsets (expanded viewport)
+     * 
+     * Coordinate system: Mathematical (+Y up, -Y down) not screen coordinates
+     */
     setCanvasSize(sizePair) {
-        ++this._updateId;
+        ++this._updateId; // Increment to trigger tile updates/re-renders
 
+        // Store new canvas dimensions
         this._canvasSize = sizePair;
+        //console.log(this._canvasSize)
+        // Calculate new canvas center point (viewport origin in pixels)
         this._canvasCenter = [
-            this._canvasSize[0]/2,
-            this._canvasSize[1]/2
-        ]; // Canvas center in pixels.
-
-        let tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
-            this._canvasCenter[0]/this._tileSize,
-            this._canvasCenter[1]/this._tileSize
+            this._canvasSize[0]/2,  // Center X in pixels
+            this._canvasSize[1]/2   // Center Y in pixels
         ];
+
+        //console.log(this._canvasCenter)
+
+        // Calculate how many tiles fit from center to edge of viewport
+        let tileOffsets = [
+            Math.ceil(this._canvasCenter[0]/this._tileSize),  // Tiles from center to horizontal edge
+            Math.ceil(this._canvasCenter[1]/this._tileSize)   // Tiles from center to vertical edge
+        ];
+
+        //console.log(tileOffsets)
+        
+        // Recalculate visible area boundaries in tile coordinates
+        // This determines which chunks/tiles need to be rendered
         this._viewSpan = [
-            [ // TL (-x,+y)
-                this._camPosition[0]-tileOffsets[0],
-                this._camPosition[1]+tileOffsets[1]
+            [ // Top-Left corner (-x,+y) - Mathematical coordinates
+                this._camPosition[0]-tileOffsets[0],  // Left boundary
+                this._camPosition[1]+tileOffsets[1]   // Top boundary (+Y is up)
             ],
-            [ // BR (+x,-y)
-                this._camPosition[0]+tileOffsets[0],
-                this._camPosition[1]-tileOffsets[1]
+            [ // Bottom-Right corner (+x,-y) 
+                this._camPosition[0]+tileOffsets[0],  // Right boundary
+                this._camPosition[1]-tileOffsets[1]   // Bottom boundary (-Y is down)
             ]
         ];
+        /*
+        console.log("TOP:",this._viewSpan[0][1])
+        console.log("LEFT:",this._viewSpan[0][0])
+        console.log("RIGHT:",this._viewSpan[1][0])
+        console.log("BOTTOM:",this._viewSpan[1][1]) */
     }
 
     setTileSize(size) {
@@ -650,7 +713,7 @@ class camRenderConverter {
     alignToCanvas() {
         ++this._updateId;
         let alignPos = this.convCanvasToPos([0,0]); // Fixed reference
-        // console.log(alignPos);
+         console.log(alignPos);
 
         let alignOffsetX = floor(alignPos[0]) - alignPos[0];
         let alignOffsetY = floor(alignPos[1]) - alignPos[1];
