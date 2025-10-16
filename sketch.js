@@ -41,6 +41,9 @@ function preload(){
 
 
 function setup() {
+  // Testing diffusion shit
+  testSets();
+
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   createCanvas(g_canvasX, g_canvasY);
