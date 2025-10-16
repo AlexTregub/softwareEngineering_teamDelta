@@ -488,17 +488,6 @@ function mouseWheel(event) {
 // DEBUG RENDERING FUNCTIONS
 // These functions provide basic debug visualization capability
 
-/**
- * debugRender
- * -----------
- * Debug rendering function - now using draggable panels instead of static overlay.
- * The debug information is now displayed in the Debug Info draggable panel.
- */
-function debugRender() {
-  // Debug info is now handled by the Debug Info draggable panel
-  // No static debug rendering needed here anymore
-  return;
-}
 
 /**
  * drawDebugGrid

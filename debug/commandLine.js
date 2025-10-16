@@ -263,7 +263,6 @@ function executeCommand(command) {
     case 'teleport':
     case 'tp': handleTeleportCommand(args); break;
     case 'info': showGameInfo(); break;
-    case 'test': handleTestCommand(args); break;
     case 'perf': handlePerformanceCommand(args); break;
     case 'entity-perf': handleEntityPerformanceCommand(args); break;
     case 'ui': 
@@ -306,14 +305,6 @@ function showCommandHelp() {
   console.log("  perf toggle");
   console.log("  entity-perf report");
 }
-
-/**
- * handleTestCommand
- * -----------------
- * Placeholder for test-related command handling.
- * @param {string[]} args - Command arguments.
- */
-function handleTestCommand(args) { }
 
 /**
  * handleSpawnCommand

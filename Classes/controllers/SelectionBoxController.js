@@ -60,6 +60,7 @@
       var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
       var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
       var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
+      RenderManager.addDrawableToLayer(RenderManager.layers.EFFECTS, SelectionBoxController.draw())
       for (var i = 0; i < this._entities.length; i++) {
         this._entities[i].isBoxHovered = SelectionBoxController.isEntityInBox(this._entities[i], x1, x2, y1, y2);
       }
@@ -116,12 +117,14 @@
   };
 
   SelectionBoxController.prototype.draw = function () {
+    
     if (this._isSelecting && this._selectionStart && this._selectionEnd) {
       push();
       stroke(0, 200, 255);
       noFill();
       rect(this._selectionStart.x, this._selectionStart.y, this._selectionEnd.x - this._selectionStart.x, this._selectionEnd.y - this._selectionStart.y);
       pop();
+      redraw();
     }
 
     if (devConsoleEnabled) {
@@ -174,6 +177,10 @@
     var size = (entity && typeof entity.getSize === 'function') ? entity.getSize() : (entity && entity.sprite && entity.sprite.size) || { x: (entity && entity.sizeX) || 0, y: (entity && entity.sizeY) || 0 };
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
   };
+
+  SelectionBoxController.isSelecting = function () {
+    return _isSelecting;
+  }
 
   // Export
   // Backwards-compatible property mappings

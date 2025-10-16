@@ -528,138 +528,16 @@ class UILayerRenderer {
 
   renderDebugConsole() {
     push();
-    
-    const consoleX = 10;
-    const consoleY = height - 150;
-    const consoleWidth = width - 20;
-    const consoleHeight = 140;
-    
-    // Background
-    fill(0, 0, 0, 230);
-    stroke(0, 255, 0);
-    strokeWeight(2);
-    rect(consoleX, consoleY, consoleWidth, consoleHeight);
-    
-    // Title bar
-    fill(0, 100, 0);
-    noStroke();
-    rect(consoleX, consoleY, consoleWidth, 25);
-    
-    fill(255);
-    textAlign(LEFT, CENTER);
-    textSize(12);
-    text('DEBUG CONSOLE', consoleX + 10, consoleY + 12);
-    
-    // Console content would go here
-    // This is a placeholder for future console implementation
-    fill(0, 255, 0);
-    textAlign(LEFT, TOP);
-    textSize(10);
-    text('> Ready for commands...', consoleX + 10, consoleY + 35);
-    
+
     pop();
     
     this.stats.uiElementsRendered++;
   }
 
-  /**
-   * Menu Systems - Main Menu, Pause, Settings, Game Over
-   */
-  renderMainMenu() {
-    push();
-    
-    // Dark overlay
-    fill(0, 0, 0, 180);
-    noStroke();
-    rect(0, 0, width, height);
-    
-    // Title
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(48);
-    text('ANTS!', width/2, height/2 - 100);
-    
-    // Menu buttons
-    const buttonWidth = 200;
-    const buttonHeight = 50;
-    const buttonSpacing = 20;
-    const startY = height/2 - 50;
-    
-    const buttons = ['Play', 'Settings', 'Credits', 'Exit'];
-    
-    for (let i = 0; i < buttons.length; i++) {
-      const buttonY = startY + i * (buttonHeight + buttonSpacing);
-      
-      // Button background using centralized styles
-      fill(ButtonStyles.MAIN_MENU.backgroundColor);
-      stroke(ButtonStyles.MAIN_MENU.borderColor);
-      strokeWeight(ButtonStyles.MAIN_MENU.borderWidth);
-      rect(width/2 - buttonWidth/2, buttonY, buttonWidth, buttonHeight, ButtonStyles.MAIN_MENU.cornerRadius);
-      
-      // Button text using centralized styles
-      fill(ButtonStyles.MAIN_MENU.textColor);
-      textAlign(CENTER, CENTER);
-      textSize(ButtonStyles.MAIN_MENU.fontSize);
-      text(buttons[i], width/2, buttonY + buttonHeight/2);
-    }
-    
-    pop();
-    
-    this.stats.uiElementsRendered += buttons.length + 1;
-  }
-
   renderPauseMenu() {
     /*
     push();
-    
-    // Semi-transparent overlay
-    fill(0, 0, 0, 150);
-    noStroke();
-    rect(0, 0, width, height);
-    
-    // Menu panel
-    const panelWidth = 300;
-    const panelHeight = 400;
-    const panelX = (width - panelWidth) / 2;
-    const panelY = (height - panelHeight) / 2;
-    
-    fill(40, 40, 40, 230);
-    stroke(255);
-    strokeWeight(2);
-    rect(panelX, panelY, panelWidth, panelHeight, 10);
-    
-    // Title
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    text('PAUSED', panelX + panelWidth/2, panelY + 60);
-    
-    // Menu buttons
-    const buttonWidth = 180;
-    const buttonHeight = 40;
-    const buttonSpacing = 15;
-    const startY = panelY + 120;
-    
-    const buttons = ['Resume', 'Settings', 'Main Menu', 'Exit'];
-    
-    for (let i = 0; i < buttons.length; i++) {
-      const buttonY = startY + i * (buttonHeight + buttonSpacing);
-      
-      // Button background using centralized styles
-      fill(ButtonStyles.PAUSE_MENU.backgroundColor);
-      stroke(ButtonStyles.PAUSE_MENU.borderColor);
-      strokeWeight(ButtonStyles.PAUSE_MENU.borderWidth);
-      rect(panelX + (panelWidth - buttonWidth)/2, buttonY, buttonWidth, buttonHeight, ButtonStyles.PAUSE_MENU.cornerRadius);
-      
-      // Button text using centralized styles
-      fill(ButtonStyles.PAUSE_MENU.textColor);
-      textAlign(CENTER, CENTER);
-      textSize(ButtonStyles.PAUSE_MENU.fontSize);
-      text(buttons[i], panelX + panelWidth/2, buttonY + buttonHeight/2);
-    }
-    
     pop();
-    
     this.stats.uiElementsRendered += buttons.length + 2;
     */
   }
@@ -709,53 +587,6 @@ class UILayerRenderer {
    * MISSING API METHODS - Required by test suite
    * These methods provide the specific signatures expected by the comprehensive test system
    */
-
-  /**
-   * Render HUD with game state data
-   * @param {Object} gameState - Current game state with resources, population, etc.
-   */
-  renderHUD(gameState) {
-    if (!this.config.enableHUD) return;
-    
-    // Handle null/undefined gameState gracefully
-    if (!gameState) {
-      this.renderFallbackHUD();
-      return;
-    }
-
-    push();
-    
-    // Background panel
-    fill(...this.colors.hudBackground);
-    noStroke();
-    rect(10, 10, 200, 80, 5);
-    
-    // Extract resource data from gameState or fallback to global variables
-    let wood = 0, food = 0, population = 0, maxPopulation = 25;
-    
-    if (gameState.stats) {
-      wood = gameState.stats.wood || 0;
-      food = gameState.stats.food || 0;
-      population = gameState.stats.population || 0;
-      maxPopulation = gameState.stats.maxPopulation || 25;
-    } else {
-      // Fallback to global game variables
-      wood = (g_resourceList && g_resourceList.wood) ? g_resourceList.wood.length : 0;
-      food = (g_resourceList && g_resourceList.food) ? g_resourceList.food.length : 0;
-      population = (typeof ants !== 'undefined') ? ants.length : 0;
-    }
-    
-    // Render resource text
-    fill(...this.colors.hudText);
-    textAlign(LEFT, TOP);
-    textSize(16);
-    text(`Wood: ${wood}`, 20, 25);
-    text(`Food: ${food}`, 20, 45);
-    text(`Population: ${population}/${maxPopulation}`, 20, 65);
-    
-    pop();
-    this.stats.uiElementsRendered++;
-  }
 
   /**
    * Render interaction UI elements (selection boxes, tooltips)

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Draggable Panel System Initialization
- * Sets up draggable panels for UI el    });
+ * Sets up draggable panels for UI});
     
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Debug info panel created');s like resource display and performance monitor

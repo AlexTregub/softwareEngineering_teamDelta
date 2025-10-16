@@ -3,9 +3,9 @@
  * Integrates with EffectsLayerRenderer for rendering to UI effects layer
  */
 class UISelectionController {
-  constructor(effectsRenderer, mouseController) {
+  constructor(effectsRenderer, g_mouseController, entities) {
     this.effectsRenderer = effectsRenderer;
-    this.mouseController = mouseController;
+    this.mouseController = g_mouseController;
     
     // Selection state
     this.isSelecting = false;
@@ -17,8 +17,9 @@ class UISelectionController {
       enableSelection: true,
       selectionColor: [0, 200, 255], // Cyan
       strokeWidth: 2,
-      fillAlpha: 30,
-      minSelectionSize: 10 // Minimum selection box size
+      fillAlpha: 125,
+      minSelectionSize: 10, // Minimum selection box size
+      fillInside: true
     };
     
     // Callbacks
@@ -29,11 +30,12 @@ class UISelectionController {
       onSingleClick: null
     };
     
-    // Entities to check for selection
-    this.selectableEntities = [];
-    
-    // Currently selected entities
-    this.selectedEntities = [];
+    this._entities = entities || [];
+
+    this._isSelecting = false;
+    this._selectionStart = null;
+    this._selectionEnd = null;
+    this._selectedEntities = [];7
     
     this.setupMouseHandlers();
   }
@@ -70,11 +72,35 @@ class UISelectionController {
   handleMousePressed(x, y, button) {
     if (!this.config.enableSelection) return;
     
-    // Only handle left mouse button
-    if (button !== 0 && button !== 'LEFT') return;
-    
     this.dragStartPos = { x, y };
     this.isSelecting = false; // Don't start selection until drag threshold met
+    
+    if (button === 'right') {
+      this.deselectAll();
+      return;
+    }
+
+    var clicked = false;
+    for (var i = 0; i < this._entities.length; i++) {
+      var entity = this._entities[i];
+      if (SelectionBoxController.isEntityUnderMouse(entity, x, y)) {
+        this.deselectAll();
+        entity.isSelected = true;
+        this._selectedEntities = [entity];
+        clicked = true;
+        break;
+      }
+    }
+
+    if (!clicked) {
+      if (this._selectedEntities && this._selectedEntities.length > 0) {
+        if (typeof moveSelectedEntitiesToTile === 'function') moveSelectedEntitiesToTile(x, y, typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 16);
+      }
+      this.deselectAll();
+      this._isSelecting = true;
+      this._selectionStart = createVector(x + cameraX, y + cameraY);
+      this._selectionEnd = this._selectionStart.copy();
+    }
   }
   
   /**
@@ -95,6 +121,13 @@ class UISelectionController {
     // Start selection if drag threshold exceeded
     if (!this.isSelecting && dragDistance >= this.dragThreshold) {
       this.startSelection(this.dragStartPos.x, this.dragStartPos.y);
+      this._selectionEnd = createVector(x + cameraX, y + cameraY);
+      var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
+      var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
+      var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
+      for (var i = 0; i < this._entities.length; i++) {
+        this._entities[i].isBoxHovered = SelectionBoxController.isEntityInBox(this._entities[i], x1, x2, y1, y2);
+      }
     }
     
     // Update selection if active
@@ -102,6 +135,20 @@ class UISelectionController {
       this.updateSelection(x, y);
     }
   }
+
+  deselectAll() {
+    for (var i = 0; i < this._selectedEntities.length; i++) {
+      var e = this._selectedEntities[i];
+      e.isSelected = false;
+      if (typeof e.isBoxHovered !== 'undefined') e.isBoxHovered = false;
+    }
+    this._selectedEntities = [];
+    if (this._entities && Array.isArray(this._entities)) {
+      for (var j = 0; j < this._entities.length; j++) {
+        if (typeof this._entities[j].isBoxHovered !== 'undefined') this._entities[j].isBoxHovered = false;
+      }
+    }
+  };
   
   /**
    * Handle mouse released event

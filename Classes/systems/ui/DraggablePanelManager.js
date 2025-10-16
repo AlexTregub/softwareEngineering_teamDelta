@@ -60,24 +60,18 @@ class DraggablePanelManager {
     this.createDefaultPanels();
     
     // Register with RenderLayerManager if available
-    if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
-      // Hook into the UI_GAME layer renderer
-      const originalUIRenderer = g_renderLayerManager.layerRenderers.get('ui_game');
+    // Register with RenderLayerManager using addDrawableToLayer
+    if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addDrawableToLayer === 'function') {
+      // Bind the renderPanels method to this instance
+      this._renderPanelsBound = this.renderPanels.bind(this);
       
-      g_renderLayerManager.layerRenderers.set('ui_game', (gameState) => {
-        // Call original UI renderer first
-        if (originalUIRenderer) {
-          originalUIRenderer(gameState);
-        }
-        
-        // Then render our panels
-        this.renderPanels(gameState);
-      });
+      // Add to UI_GAME layer (panels should render after base game UI)
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, this._renderPanelsBound);
       
       if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ DraggablePanelManager integrated into render pipeline');
+        globalThis.logVerbose('✅ DraggablePanelManager registered with RenderLayerManager');
       } else {
-        console.log('✅ DraggablePanelManager integrated into render pipeline');
+        console.log('✅ DraggablePanelManager registered with RenderLayerManager');
       }
     } else {
       console.warn('⚠️ RenderLayerManager not found - panels will need manual rendering');
@@ -749,6 +743,8 @@ class DraggablePanelManager {
         panel.hide();
       }
     }
+
+    
     
     // Render all visible panels
     for (const panel of this.panels.values()) {

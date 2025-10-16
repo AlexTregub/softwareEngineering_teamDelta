@@ -28,6 +28,9 @@ class RenderLayerManager {
     // Layer rendering functions
     this.layerRenderers = new Map();
     
+    // Layer drawables (additional callbacks appended to a layer)
+    this.layerDrawables = new Map();
+    
     // Layer toggle state for debugging
     this.disabledLayers = new Set();
     
@@ -71,6 +74,29 @@ class RenderLayerManager {
   registerLayerRenderer(layerName, rendererFunction) {
     this.layerRenderers.set(layerName, rendererFunction);
   }
+
+  /**
+   * Add a drawable callback to a layer (does not replace existing renderer).
+   * Drawable signature: function(gameState) { ...drawing code... }
+   */
+  addDrawableToLayer(layerName, drawableFn) {
+    if (!this.layerDrawables.has(layerName)) {
+      this.layerDrawables.set(layerName, []);
+    }
+    this.layerDrawables.get(layerName).push(drawableFn);
+  }
+
+  /**
+   * Remove a drawable callback from a layer.
+   */
+  removeDrawableFromLayer(layerName, drawableFn) {
+    const arr = this.layerDrawables.get(layerName);
+    if (!arr) return false;
+    const idx = arr.indexOf(drawableFn);
+    if (idx === -1) return false;
+    arr.splice(idx, 1);
+    return true;
+  }
   
   /**
    * Main render call - renders all layers based on game state
@@ -102,6 +128,18 @@ class RenderLayerManager {
           renderer(gameState);
         } catch (error) {
           console.error(`Error rendering layer ${layerName}:`, error);
+        }
+      }
+      
+      // Call any extra drawables registered for this layer
+      const drawables = this.layerDrawables.get(layerName);
+      if (drawables && drawables.length) {
+        for (const fn of drawables) {
+          try {
+            fn(gameState);
+          } catch (err) {
+            console.error(`Error in drawable for layer ${layerName}:`, err);
+          }
         }
       }
       
@@ -240,19 +278,17 @@ class RenderLayerManager {
                       (typeof global !== 'undefined') ? global.UIRenderer : null;
     
     if (uiRenderer) {
-      uiRenderer.renderUI(gameState);
-    } else {
-      // Fallback to legacy UI rendering
+      //uiRenderer.renderUI(gameState);
       this.renderBaseGameUI();
       this.renderInteractionUI(gameState);
-      
       // Render state-specific overlays
       if (gameState === 'PAUSED') { this.renderPauseOverlay(); } 
       if (gameState === 'GAME_OVER') { this.renderGameOverOverlay();  }
-    }
+          // Render Universal Button Group System (always on top of other UI)
+      this.renderButtonGroups(gameState);
+    } 
     
-    // Render Universal Button Group System (always on top of other UI)
-    this.renderButtonGroups(gameState);
+
   }
   
   /**
@@ -269,12 +305,6 @@ class RenderLayerManager {
     if (g_selectionBoxController) {
       g_selectionBoxController.draw();
     }
-    
-    // Recording indicator
-    if (g_recordingPath) {
-      // Recording logic here if needed
-      this.renderRecordingIndicator();
-    }
   }
   
   /**
@@ -285,31 +315,8 @@ class RenderLayerManager {
     // Only show interaction UI during active gameplay
     if (gameState !== 'PLAYING') return;
     
-    // Dropoff UI
-    if (window) {
-      if (window.updateDropoffUI) {
-        window.updateDropoffUI();
-      }
-      if (window.drawDropoffUI) {
-        window.drawDropoffUI();
-      }
-    }
-    
-    // Spawn UI (development/debug tool)
-    if (window.renderSpawnUI) {
-      window.renderSpawnUI();
-    }
-  }
-  
-  /**
-   * Render recording indicator
-   * @private
-   */
-  renderRecordingIndicator() {
-    fill(255, 0, 0);
-    textAlign(LEFT, TOP);
-    textSize(16);
-    text("● REC", 10, 10);
+    window.updateDropoffUI();
+    window.drawDropoffUI();
   }
   
   /**
@@ -321,22 +328,11 @@ class RenderLayerManager {
       return;
     }
     
-    // UI Debug System rendering disabled
-    // if (g_uiDebugManager) {
-    //   g_uiDebugManager.render();
-    // }
-    
     // Render existing PerformanceMonitor if enabled
     if (g_performanceMonitor && g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled &&
         typeof g_performanceMonitor.render === 'function') {
       g_performanceMonitor.render();
     }
-    
-    // Render existing debug console if active
-    if (isCommandLineActive()) {
-      drawCommandLine();
-    }
-
 
     // Render dev console indicator if enabled
     if (isDevConsoleEnabled()) {
@@ -353,15 +349,16 @@ class RenderLayerManager {
       }
     }
     
-    if (typeof debugRender === 'function') {
-      debugRender();
-    }
-    
     // Debug grid for playing state
     if (gameState === 'PLAYING' && drawDebugGrid) {
       if (g_gridMap) {
         drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
       }
+    }
+
+         // Render existing debug console if active
+    if (isCommandLineActive()) {
+      drawCommandLine();
     }
   }
   
@@ -607,57 +604,20 @@ function renderPipelineInit() {
         g_resourceManager.forceSpawn();
       }
   } catch (e) { /* non-fatal; spawner will populate via interval */ }
-
-  // Initialize Universal Button Group System
-  initializeUniversalButtonSystem();
   
   // Initialize Draggable Panel System
   initializeDraggablePanelSystem();
-  
-  // Initialize Enhanced Draggable Panels with Button Arrays
-  if (typeof initializeDraggablePanels !== 'undefined') {
-    initializeDraggablePanels();
-  }
   
   // Initialize ant control panel for spawning and state management
   if (typeof initializeAntControlPanel !== 'undefined') {
     initializeAntControlPanel();
   }
   
-  // Initialize presentation panels for menu and kanban states
-  if (typeof initializePresentationPanels !== 'undefined') {
-    initializePresentationPanels();
-  }
-  
   // Initialize UI Selection Controller for effects layer selection box
   // This must happen after RenderManager.initialize() creates the EffectsRenderer
-  setTimeout(() => {
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('🎯 Initializing UI Selection Controller...');
-    } else {
-      console.log('🎯 Initializing UI Selection Controller...');
-    }
-    
-    // Check if required components exist
-    if (UISelectionController && window.EffectsRenderer) {
-      g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
-      if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ UISelectionController created successfully');
-      } else {
-        console.log('✅ UISelectionController created successfully');
-      }
-      
-      // Initialize the selection box system
-      if (initializeUISelectionBox) {
-        initializeUISelectionBox();
-      }
-    } else {
-      console.error('❌ Required components not available:');
-      console.log('UISelectionController available:', typeof UISelectionController !== 'undefined');
-      console.log('EffectsRenderer available:', typeof window.EffectsRenderer !== 'undefined');
-      console.log('window.EffectsRenderer object:', window.EffectsRenderer);
-    }
-  }, 200);
+  if (UISelectionController && window.EffectsRenderer) {
+    g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
+  }
 }
 
 
