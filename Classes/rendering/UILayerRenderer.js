@@ -609,6 +609,7 @@ class UILayerRenderer {
   }
 
   renderPauseMenu() {
+    /*
     push();
     
     // Semi-transparent overlay
@@ -660,6 +661,7 @@ class UILayerRenderer {
     pop();
     
     this.stats.uiElementsRendered += buttons.length + 2;
+    */
   }
 
   renderSettingsMenu() {
