@@ -24,11 +24,11 @@ class CameraManager {
     this.cameraY = 0;
     this.canvasWidth = (typeof g_canvasX !== 'undefined') ? g_canvasX : 800;
     this.canvasHeight = (typeof g_canvasY !== 'undefined') ? g_canvasY : 600;
-    this.cameraZoom = 0.5;
+    this.cameraZoom = 1;
     this.cameraPanSpeed = 10;
     
     // Camera constraints
-    this.MIN_CAMERA_ZOOM = 0.5;
+    this.MIN_CAMERA_ZOOM = 1;
     this.MAX_CAMERA_ZOOM = 3;
     this.CAMERA_ZOOM_STEP = 1.1;
     

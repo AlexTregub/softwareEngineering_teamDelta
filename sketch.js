@@ -116,6 +116,11 @@ function initializeWorld() {
 
 function draw() {
   background(0);
+  push();
+  image(JobImages.DeLozier,g_canvasX/2,g_canvasY/2)
+  image(JobImages.DeLozier,g_canvasX/4,g_canvasY/2)
+  image(JobImages.DeLozier,g_canvasX/1.35,g_canvasY/2)
+  pop();
   if (gridRecenters <= MAX_RECENTERS) {
     g_map2.setGridToCenter()
     gridRecenters++
