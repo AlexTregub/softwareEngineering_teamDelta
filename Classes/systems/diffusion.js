@@ -20,6 +20,7 @@ class PheromoneGrid {
         this._left = NONE;
 
         this.initSelGrid();         
+        this.initSelGrid(!this._selLeft); // Both grids should be initialized
     }
 
     //// Utils: 
@@ -127,6 +128,28 @@ class PheromoneGrid {
 
         return;
     }
+
+    wash(pos,selLeft=this._selLeft) { // Clear pheromones from cell.
+        this.set(pos,[],selLeft);
+    }
+
+    //// Diffusion:
+    diffuse(selLeft=this._selLeft) { // Will diffuse grid in selLeft -> !selleft. DOES NOT UPDATE _selLeft
+        if (selLeft) { // Left grid -> right grid
+            // Clear right grid:
+            this._rightSet.clear();
+            this.initSelGrid(!selLeft);
+
+            // Update cells
+            // ...
+
+            return;
+        }
+    }
+
+    swapSelGrid() {
+        this._selLeft = !this._selLeft;
+    }
 }
 
 
@@ -145,7 +168,7 @@ class Pheromone {
     constructor(type,strength,initial) {
         this.type = type;
         this.strength = strength;
-        this.initial = initial;
+        this.initial = initial; // Initial strength
     }
 
     toString() {
