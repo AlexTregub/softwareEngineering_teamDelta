@@ -5,7 +5,7 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
-const MAX_RECENTERS = 6; // use to make sure the grid renders center of the screen
+const MAX_RECENTERS = 2; // use to make sure the grid renders center of the screen
 let gridRecenters;
 let COORDSY;
 
@@ -116,11 +116,6 @@ function initializeWorld() {
 
 function draw() {
   background(0);
-  push();
-  image(JobImages.DeLozier,g_canvasX/2,g_canvasY/2)
-  image(JobImages.DeLozier,g_canvasX/4,g_canvasY/2)
-  image(JobImages.DeLozier,g_canvasX/1.35,g_canvasY/2)
-  pop();
   if (gridRecenters <= MAX_RECENTERS) {
     g_map2.setGridToCenter()
     gridRecenters++

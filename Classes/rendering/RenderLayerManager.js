@@ -160,34 +160,25 @@ class RenderLayerManager {
     if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
       return;
     }
+
+    push();
+    this.applyZoom();
+    g_map2.render();
+    pop();
     
-    // Use the existing terrain rendering system
-    if (g_map2 && g_map2.render) {
-      // If CameraManager exists and provides zoom, apply a temporary transform so the
-      // terrain is drawn scaled around the camera position. This avoids modifying gridTerrain.
-      try {
-        if (typeof cameraManager !== 'undefined' && cameraManager && typeof cameraManager.getZoom === 'function') {
-          push();
-          const zoom = cameraManager.getZoom();
-          // Scale around the canvas center so world tiles scale about the view
-          translate((g_canvasX/2), (g_canvasY/2));
-          scale(zoom);
-          translate(-(g_canvasX/2), -(g_canvasY/2));
-          g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
-          g_map2.render();
-          pop();
-          
-          g_canvasX = windowWidth;
-          g_canvasY = windowHeight;
-        } else {
-          g_map2.render();
-        }
-      } catch (e) {
-        console.error('Error while rendering terrain with camera transform:', e);
-        // Fallback to normal render
-        try { g_map2.render(); } catch (e2) { /* ignore */ }
-      }
-    }
+  }
+  /**
+   * Gets zoom from the cameraManager and applys it to the scale, 
+   * make sure you surrond this with push() and pop() or everything will scale incorrectly.
+   */
+  applyZoom(){
+    const zoom = cameraManager.getZoom();
+    // Scale around the canvas center so world tiles scale about the view
+    translate((g_canvasX/2), (g_canvasY/2));
+    scale(zoom);
+    translate(-(g_canvasX/2), -(g_canvasY/2));
+    g_canvasX = windowWidth;
+    g_canvasY = windowHeight;
   }
   
   /**
@@ -199,6 +190,9 @@ class RenderLayerManager {
       return;
     }
     
+    push();
+    this.applyZoom();
+    
     // Get the EntityRenderer instance (not the class)
     const entityRenderer = (typeof window !== 'undefined') ? window.EntityRenderer : 
                           (typeof global !== 'undefined') ? global.EntityRenderer : null;
@@ -207,6 +201,7 @@ class RenderLayerManager {
     if (entityRenderer && typeof entityRenderer.renderAllLayers === 'function') {
       entityRenderer.renderAllLayers(gameState);
     }
+    pop();
   }
 
   /**
@@ -218,6 +213,9 @@ class RenderLayerManager {
       return;
     }
     
+    
+    push();
+    this.applyZoom();
     // Get the EffectsRenderer instance
     const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
                            (typeof global !== 'undefined') ? global.EffectsRenderer : null;
@@ -226,6 +224,7 @@ class RenderLayerManager {
     if (effectsRenderer && typeof effectsRenderer.renderEffects === 'function') {
       effectsRenderer.renderEffects(gameState);
     }
+    pop();
   }
   
 
