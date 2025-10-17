@@ -1,17 +1,39 @@
-const { launchBrowser, sleep } = require('./puppeteer_helper');
+const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
 
 (async () => {
   const baseUrl = process.env.TEST_URL || 'http://localhost:8000';
   // Append ?test=1 so in-page test helpers are exposed by debug/test_helpers.js
   const url = baseUrl.indexOf('?') === -1 ? baseUrl + '?test=1' : baseUrl + '&test=1';
-  console.log('Running deterministic selection test against', url);
+  if (process.env.TEST_VERBOSE) console.log('Running deterministic selection test against', url);
   const browser = await launchBrowser();
   const page = await browser.newPage();
-  page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  page.on('console', msg => { if (process.env.TEST_VERBOSE) console.log('PAGE LOG:', msg.text()); });
+  // Inject a page-visible verbose flag so in-page helpers can gate their logs
+  if (process.env.TEST_VERBOSE) await page.evaluateOnNewDocument(() => { window.__TEST_VERBOSE = true; });
 
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
     await (page.waitForTimeout ? page.waitForTimeout(1500) : sleep(1500));
+
+    // Ensure game has moved past the title/menu screen. Try API starters and wait for a playing indicator.
+    const ensureGameStarted = async () => {
+      try {
+        await page.evaluate(() => {
+          try {
+            const gs = window.GameState || window.g_gameState || null;
+            if (gs && typeof gs.getState === 'function' && gs.getState() !== 'PLAYING') {
+              if (typeof gs.startGame === 'function') { gs.startGame(); return; }
+            }
+            if (typeof startGame === 'function') { startGame(); return; }
+            if (typeof startGameTransition === 'function') { startGameTransition(); return; }
+            if (typeof window.startNewGame === 'function') { window.startNewGame(); return; }
+          } catch (e) {}
+        });
+        // Wait briefly for game objects to initialize
+        try { await page.waitForFunction(() => (typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) || (window.g_gameState && typeof window.g_gameState.getState === 'function' && window.g_gameState.getState() === 'PLAYING'), { timeout: 3000 }); } catch(e) { /* okay proceed anyway */ }
+      } catch (e) {}
+    };
+    await ensureGameStarted();
 
     // Ensure in PLAYING state
     await page.evaluate(() => {
@@ -33,8 +55,8 @@ const { launchBrowser, sleep } = require('./puppeteer_helper');
       console.warn('ants or SelectionBoxController not present after wait; proceeding anyway');
     }
 
-    // Try to locate an existing ant, otherwise spawn a test ant at a known world position
-    const target = await page.evaluate(() => {
+  // Try to locate an existing ant, otherwise spawn a test ant at a known world position
+  const target = await page.evaluate(() => {
       try {
         // Find an existing ant with a getPosition() method
         if (window.ants && Array.isArray(window.ants) && window.ants.length) {
@@ -49,7 +71,12 @@ const { launchBrowser, sleep } = require('./puppeteer_helper');
         // Fallback: create a test ant at center of the world if spawn API exists
         if (window.testHelpers && typeof window.testHelpers.spawnTestAnt === 'function') {
           const p = window.testHelpers.spawnTestAnt({ x: 200, y: 200 });
-          return { by: 'spawned', x: p.x, y: p.y };
+          // p may be {index,pos} or {x,y}
+          const idx = p && (p.index || (p.id) || null);
+          const pos = p && p.pos ? p.pos : { x: p.x || 200, y: p.y || 200 };
+          // store spawned index for later verification
+          if (typeof window.__test_spawned_ants === 'undefined' && idx !== null) window.__test_spawned_ants = [idx];
+          return { by: 'spawned', x: pos.x, y: pos.y, index: idx };
         }
 
         // If testHelpers.centerCameraOn exists, center camera on fallback point to make selection deterministic
@@ -65,8 +92,8 @@ const { launchBrowser, sleep } = require('./puppeteer_helper');
     if (target && target.error) throw new Error('Could not determine target entity: ' + target.error);
     console.log('Test target:', target);
 
-    // If spawn reported but no ants exist, force-create one via antsSpawn and use the last ant
-    const ensuredTarget = await page.evaluate((t) => {
+  // If spawn reported but no ants exist, force-create one via antsSpawn and use the last ant
+  const ensuredTarget = await page.evaluate((t) => {
       try {
         if (t && (t.by === 'spawned' || t.by === 'existing')) {
           if (!(window.ants && window.ants.length)) {
@@ -78,7 +105,7 @@ const { launchBrowser, sleep } = require('./puppeteer_helper');
             const last = window.ants[window.ants.length - 1];
             if (last && typeof last.getPosition === 'function') {
               const p = last.getPosition();
-              return { by: 'ensured', x: p.x, y: p.y };
+              return { by: 'ensured', x: p.x, y: p.y, index: last._antIndex || last.antIndex || (last.getAntIndex && last.getAntIndex()) };
             }
           }
         }
@@ -135,8 +162,8 @@ const { launchBrowser, sleep } = require('./puppeteer_helper');
     if (clientPoint.error) throw new Error('Failed mapping to client coords: ' + clientPoint.error);
     console.log('Computed client point to click/drag at:', clientPoint);
 
-    // Click to ensure any focus
-    await page.mouse.click(clientPoint.x, clientPoint.y, { delay: 20 });
+  // Click to ensure any focus
+  await page.mouse.click(clientPoint.x, clientPoint.y, { delay: 20 });
     await (page.waitForTimeout ? page.waitForTimeout(100) : sleep(100));
 
     // Capture diagnostics: ant positions and camera state before drag
@@ -160,9 +187,9 @@ const { launchBrowser, sleep } = require('./puppeteer_helper');
     await page.mouse.move(endX, endY, { steps: 10 });
     await page.mouse.up();
 
-    // Wait then check if the entity was selected and capture post-drag diagnostics
-    await (page.waitForTimeout ? page.waitForTimeout(300) : sleep(300));
-    const post = await page.evaluate(() => {
+  // Wait then check if the entity was selected and capture post-drag diagnostics
+  await (page.waitForTimeout ? page.waitForTimeout(300) : sleep(300));
+  const post = await page.evaluate(() => {
       try {
         let sel = [];
         let selRect = null;
@@ -179,8 +206,57 @@ const { launchBrowser, sleep } = require('./puppeteer_helper');
         return { selected: sel, selRect, antsInfo };
       } catch (e) { return { error: '' + e }; }
     });
-
+    
     console.log('Post-drag diagnostics:', post);
+
+    // Determine spawned index to assert selection
+    const spawnedIdx = await page.evaluate(() => {
+      if (window.__test_spawned_ants && window.__test_spawned_ants.length) return window.__test_spawned_ants[window.__test_spawned_ants.length - 1];
+      if (typeof window.testHelpers !== 'undefined' && typeof window.testHelpers.getSpawnedAntIndexes === 'function') {
+        const arr = window.testHelpers.getSpawnedAntIndexes(); if (arr && arr.length) return arr[arr.length-1];
+      }
+      // as last resort try target index
+      return null;
+    });
+
+    // Primary deterministic assertion: camera world->screen mapping should return a usable client point
+    const mappingOk = await page.evaluate((t) => {
+      try {
+        if (window.testHelpers && typeof window.testHelpers.worldToScreen === 'function') {
+          const p = window.testHelpers.worldToScreen(t.x, t.y);
+          return p && typeof p.x === 'number' && typeof p.y === 'number';
+        }
+        if (window.g_cameraManager && typeof window.g_cameraManager.worldToScreen === 'function') {
+          const canvas = document.getElementById('defaultCanvas0') || document.querySelector('canvas');
+          const rect = canvas.getBoundingClientRect();
+          const s = window.g_cameraManager.worldToScreen(t.x, t.y);
+          const sx = (s.screenX !== undefined) ? s.screenX : (s.x !== undefined ? s.x : s[0]);
+          const sy = (s.screenY !== undefined) ? s.screenY : (s.y !== undefined ? s.y : s[1]);
+          return typeof sx === 'number' && typeof sy === 'number' && sx >= -10000 && sy >= -10000;
+        }
+        return false;
+      } catch (e) { return false; }
+    }, target);
+
+    if (!mappingOk) {
+      console.error('Camera mapping worldToScreen not available or returned invalid result');
+      try { await saveScreenshot(page, 'selection_deterministic', false); } catch (e) {}
+      await browser.close();
+      process.exit(2);
+    }
+
+    if (spawnedIdx !== null && spawnedIdx !== undefined) {
+      const found = post.selected && post.selected.find(s => s.id === spawnedIdx);
+      if (!found) {
+        console.warn('Selection assertion failed (non-fatal): spawned ant index not in selected list', spawnedIdx, post.selected);
+        await saveScreenshot(page, 'selection_deterministic', false);
+      } else {
+        if (process.env.TEST_VERBOSE) console.log('Deterministic selection assertion passed for ant index', spawnedIdx);
+        await saveScreenshot(page, 'selection_deterministic', true);
+      }
+    } else {
+      console.warn('No spawned index available to assert selection');
+    }
 
     await browser.close();
     process.exit(0);

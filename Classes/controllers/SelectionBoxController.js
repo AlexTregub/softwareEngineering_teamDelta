@@ -26,15 +26,21 @@
   };
 
   SelectionBoxController.prototype.handleClick = function (x, y, button) {
+    // Right-click clears selection
     if (button === 'right') {
       this.deselectAll();
       return;
     }
 
-    var clicked = false;
+    // Convert incoming screen coordinates to world coordinates (camera-aware)
+    var worldPt = this._screenToWorld(x, y);
+    var wx = worldPt.x;
+    var wy = worldPt.y;
+
+  var clicked = false;
     for (var i = 0; i < this._entities.length; i++) {
       var entity = this._entities[i];
-      if (SelectionBoxController.isEntityUnderMouse(entity, x, y)) {
+      if (SelectionBoxController.isEntityUnderMouse(entity, wx, wy)) {
         this.deselectAll();
         entity.isSelected = true;
         this._selectedEntities = [entity];
@@ -45,30 +51,44 @@
 
     if (!clicked) {
       if (this._selectedEntities && this._selectedEntities.length > 0) {
-        if (typeof moveSelectedEntitiesToTile === 'function') moveSelectedEntitiesToTile(x, y, typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 16);
+        if (typeof moveSelectedEntitiesToTile === 'function') moveSelectedEntitiesToTile(wx, wy, typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 16);
       }
       this.deselectAll();
       this._isSelecting = true;
-      this._selectionStart = createVector(x + cameraX, y + cameraY);
+      this._selectionStart = createVector(wx, wy);
       this._selectionEnd = this._selectionStart.copy();
     }
+    try {
+      if ((typeof window !== 'undefined') && (window.TESTING_ENABLED || (window.location && window.location.search && window.location.search.indexOf('test=1') !== -1))) {
+        console.log('SelectionBoxController.handleClick worldPt=', wx, wy, 'selectionStart=', this._selectionStart && this._selectionStart.x, this._selectionStart && this._selectionStart.y);
+      }
+    } catch (e) {}
   };
 
   SelectionBoxController.prototype.handleDrag = function (x, y) {
     if (this._isSelecting && this._selectionStart) {
-      this._selectionEnd = createVector(x + cameraX, y + cameraY);
+      var worldPt = this._screenToWorld(x, y);
+      this._selectionEnd = createVector(worldPt.x, worldPt.y);
       var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
       var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
       var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
       for (var i = 0; i < this._entities.length; i++) {
         this._entities[i].isBoxHovered = SelectionBoxController.isEntityInBox(this._entities[i], x1, x2, y1, y2);
       }
+      try {
+        if ((typeof window !== 'undefined') && (window.TESTING_ENABLED || (window.location && window.location.search && window.location.search.indexOf('test=1') !== -1))) {
+          console.log('SelectionBoxController.handleDrag selStart=', this._selectionStart, 'selEnd=', this._selectionEnd);
+        }
+      } catch (e) {}
     }
   };
 
   SelectionBoxController.prototype.handleRelease = function (x, y, button) {
     if (!this._isSelecting) return;
     this._selectedEntities = [];
+    // ensure release coords are accounted for
+    var worldPt = this._screenToWorld(x, y);
+    if (this._selectionEnd == null) this._selectionEnd = createVector(worldPt.x, worldPt.y);
     var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
     var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
     var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
@@ -81,6 +101,16 @@
         if (e.isSelected) this._selectedEntities.push(e);
       }
     }
+    try {
+      if ((typeof window !== 'undefined') && (window.TESTING_ENABLED || (window.location && window.location.search && window.location.search.indexOf('test=1') !== -1))) {
+        console.log('SelectionBoxController.handleRelease selRect=', { x1, x2, y1, y2 }, 'selectedCount=', this._selectedEntities.length);
+        try {
+          // log entity positions
+          var ents = this._entities.map(function(e){ return { idx: e._antIndex || e.antIndex || null, pos: (e.getPosition?e.getPosition():{x:e.posX,y:e.posY}), isSelected: e.isSelected }; });
+          console.log('SelectionBoxController.entities=', ents);
+        } catch (e) {}
+      }
+    } catch (e) {}
     this._isSelecting = false;
     this._selectionStart = null;
     this._selectionEnd = null;
@@ -118,11 +148,27 @@
   SelectionBoxController.prototype.draw = function () {
     
     if (this._isSelecting && this._selectionStart && this._selectionEnd) {
-      push();
-      stroke(0, 200, 255);
-      noFill();
-      rect(this._selectionStart.x, this._selectionStart.y, this._selectionEnd.x - this._selectionStart.x, this._selectionEnd.y - this._selectionStart.y);
-      pop();
+      // Convert world selection coords to screen coords for drawing
+      try {
+        var s1 = this._worldToScreen(this._selectionStart.x, this._selectionStart.y);
+        var s2 = this._worldToScreen(this._selectionEnd.x, this._selectionEnd.y);
+        var rx = Math.min(s1.x, s2.x);
+        var ry = Math.min(s1.y, s2.y);
+        var rw = Math.abs(s2.x - s1.x);
+        var rh = Math.abs(s2.y - s1.y);
+        push();
+        stroke(0, 200, 255);
+        noFill();
+        rect(rx, ry, rw, rh);
+        pop();
+      } catch (err) {
+        // Fallback: draw using world coords if conversion fails
+        push();
+        stroke(0, 200, 255);
+        noFill();
+        rect(this._selectionStart.x, this._selectionStart.y, this._selectionEnd.x - this._selectionStart.x, this._selectionEnd.y - this._selectionStart.y);
+        pop();
+      }
       redraw();
     }
 
@@ -175,6 +221,42 @@
     var pos = (entity && typeof entity.getPosition === 'function') ? entity.getPosition() : (entity && entity.sprite && entity.sprite.pos) || { x: (entity && entity.posX) || 0, y: (entity && entity.posY) || 0 };
     var size = (entity && typeof entity.getSize === 'function') ? entity.getSize() : (entity && entity.sprite && entity.sprite.size) || { x: (entity && entity.sizeX) || 0, y: (entity && entity.sizeY) || 0 };
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
+  };
+
+  // Helper: convert screen coords (canvas/client-local) to world coords using camera systems
+  SelectionBoxController.prototype._screenToWorld = function (sx, sy) {
+    try {
+      if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
+        var w = window.g_cameraManager.screenToWorld(sx, sy);
+        return { x: w.worldX !== undefined ? w.worldX : (w.x !== undefined ? w.x : sx), y: w.worldY !== undefined ? w.worldY : (w.y !== undefined ? w.y : sy) };
+      }
+      if (typeof CameraController !== 'undefined' && typeof CameraController.screenToWorld === 'function') {
+        var cw = CameraController.screenToWorld(sx, sy);
+        return { x: cw.worldX !== undefined ? cw.worldX : (cw.x !== undefined ? cw.x : sx + (typeof cameraX !== 'undefined' ? cameraX : 0)), y: cw.worldY !== undefined ? cw.worldY : (cw.y !== undefined ? cw.y : sy + (typeof cameraY !== 'undefined' ? cameraY : 0)) };
+      }
+      // Fallback: assume globals cameraX/cameraY and no zoom
+      var camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : (typeof cameraX !== 'undefined' ? cameraX : 0);
+      var camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : (typeof cameraY !== 'undefined' ? cameraY : 0);
+      return { x: sx + camX, y: sy + camY };
+    } catch (e) { return { x: sx, y: sy }; }
+  };
+
+  // Helper: convert world coords to screen (canvas/client-local) coords
+  SelectionBoxController.prototype._worldToScreen = function (wx, wy) {
+    try {
+      if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.worldToScreen === 'function') {
+        var s = window.g_cameraManager.worldToScreen(wx, wy);
+        return { x: s.screenX !== undefined ? s.screenX : (s.x !== undefined ? s.x : wx), y: s.screenY !== undefined ? s.screenY : (s.y !== undefined ? s.y : wy) };
+      }
+      if (typeof CameraController !== 'undefined' && typeof CameraController.worldToScreen === 'function') {
+        var cs = CameraController.worldToScreen(wx, wy);
+        return { x: cs.screenX !== undefined ? cs.screenX : (cs.x !== undefined ? cs.x : wx - (typeof cameraX !== 'undefined' ? cameraX : 0)), y: cs.screenY !== undefined ? cs.screenY : (cs.y !== undefined ? cs.y : wy - (typeof cameraY !== 'undefined' ? cameraY : 0)) };
+      }
+      // Fallback: assume globals cameraX/cameraY and no zoom
+      var camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : (typeof cameraX !== 'undefined' ? cameraX : 0);
+      var camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : (typeof cameraY !== 'undefined' ? cameraY : 0);
+      return { x: Math.round(wx - camX), y: Math.round(wy - camY) };
+    } catch (e) { return { x: wx, y: wy }; }
   };
 
   SelectionBoxController.isSelecting = function () {

@@ -18,7 +18,7 @@ async function launchBrowser(opts = {}) {
 
     for (const p of candidatePaths) {
       try { if (p && fs.existsSync(p)) {
-        console.log('puppeteer_helper: launching system Chrome at', p);
+        if (process.env.TEST_VERBOSE) console.log('puppeteer_helper: launching system Chrome at', p);
         return await puppeteer.launch({ ...launchArgs, executablePath: p });
       } } catch (e) {}
     }
@@ -30,5 +30,34 @@ async function launchBrowser(opts = {}) {
 
 // Cross-version sleep helper
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// Save screenshot helper: pass=true will overwrite a canonical passing screenshot; pass=false will create a timestamped failure screenshot.
+async function saveScreenshot(page, testName, pass = true) {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+  const screenshotsDir = path.join(process.cwd(), 'test', 'puppeteer', 'screenshots');
+  const successDir = path.join(screenshotsDir, 'success');
+  const failureDir = path.join(screenshotsDir, 'failure');
+  try { fs.mkdirSync(successDir, { recursive: true }); } catch (e) {}
+  try { fs.mkdirSync(failureDir, { recursive: true }); } catch (e) {}
+    const pad = (n) => n.toString().padStart(2, '0');
+    if (pass) {
+      const filePath = path.join(successDir, `${testName}.png`);
+      await page.screenshot({ path: filePath });
+      if (process.env.TEST_VERBOSE) console.log('Saved passing screenshot:', filePath);
+      return filePath;
+    } else {
+      const d = new Date();
+      const ts = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+      const filePath = path.join(failureDir, `fail_${testName}_${ts}.png`);
+      await page.screenshot({ path: filePath });
+      if (process.env.TEST_VERBOSE) console.log('Saved failure screenshot:', filePath);
+      return filePath;
+    }
+  } catch (e) {
+    try { if (process.env.TEST_VERBOSE) console.error('saveScreenshot failed', e); } catch (ee) {}
+    return null;
+  }
+}
 
-module.exports = { launchBrowser, sleep };
+module.exports = { launchBrowser, sleep, saveScreenshot };

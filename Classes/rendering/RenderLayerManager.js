@@ -244,28 +244,49 @@ class RenderLayerManager {
         isPressed: mouseIsPressed,
         // world will be populated below for layers that apply camera transforms
         world: null,
-        // optional motion deltas for drag-aware interactives
+        // optional motion deltas for drag-aware interactives (world-space)
         dx: 0,
         dy: 0,
-        layer: layerName
+        layer: layerName,
+        pointerId: 0
       };
 
       // If this layer applies camera zoom/translate, compute world coords
       // using cameraManager.screenToWorld so interactive hit tests can use
       // world coordinates without re-performing transforms in every adapter.
       try {
-        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName) &&
-            typeof cameraManager !== 'undefined' && typeof cameraManager.screenToWorld === 'function') {
-          // cameraManager.screenToWorld may return {worldX, worldY} or {x,y}
-          const w = cameraManager.screenToWorld(pointer.screen.x, pointer.screen.y);
-          if (w) {
-            pointer.world = {
-              x: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
-              y: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null),
-              worldX: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
-              worldY: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null)
-            };
-          } else {
+        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName)) {
+          try {
+            const cam = (typeof cameraManager !== 'undefined') ? cameraManager : (typeof window !== 'undefined' ? window.g_cameraManager : null);
+            if (cam && typeof cam.screenToWorld === 'function') {
+              const w = cam.screenToWorld(pointer.screen.x, pointer.screen.y);
+              if (w) {
+                const wx = (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null);
+                const wy = (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null);
+                // compute world deltas based on last known pointer per layer/pointerId
+                pointer.world = { x: wx, y: wy, worldX: wx, worldY: wy };
+                // compute dx/dy if previous sample exists
+                try {
+                  this.__lastPointerSamples = this.__lastPointerSamples || {};
+                  const key = `${layerName}:0`;
+                  const last = this.__lastPointerSamples[key];
+                  if (last && typeof last.x === 'number') {
+                    pointer.dx = pointer.world.x - last.x;
+                    pointer.dy = pointer.world.y - last.y;
+                  } else {
+                    pointer.dx = 0; pointer.dy = 0;
+                  }
+                  // store current sample for next frame
+                  this.__lastPointerSamples[key] = { x: pointer.world.x, y: pointer.world.y };
+                } catch (e) { /* non-fatal */ }
+              } else {
+                pointer.world = null;
+              }
+            } else {
+              pointer.world = null;
+            }
+          } catch (err) {
+            console.warn('Warning: failed to compute pointer.world for layer', layerName, err);
             pointer.world = null;
           }
         }
@@ -778,8 +799,21 @@ class RenderLayerManager {
    */
   dispatchPointerEvent(eventType, evt) {
     // Build a pointer object (screen coords for now)
+    // Normalize incoming coordinates: Puppeteer/page may pass client (page) coordinates.
+    // Convert to canvas-local coordinates (same coordinate space as p5 mouseX/mouseY)
+    let screenX = (evt.x !== undefined && evt.x !== null) ? evt.x : mouseX;
+    let screenY = (evt.y !== undefined && evt.y !== null) ? evt.y : mouseY;
+    try {
+      const canvas = (typeof document !== 'undefined') ? (document.getElementById('defaultCanvas0') || document.querySelector('canvas')) : null;
+      if (canvas && (evt.x !== undefined && evt.x !== null)) {
+        const rect = canvas.getBoundingClientRect();
+        screenX = evt.x - rect.left;
+        screenY = evt.y - rect.top;
+      }
+    } catch (e) { /* ignore normalization failures and fall back to provided coords */ }
+
     const pointer = {
-      screen: { x: evt.x ?? mouseX, y: evt.y ?? mouseY },
+      screen: { x: screenX, y: screenY },
       pointerId: evt.pointerId ?? 0,
       isPressed: !!evt.isPressed,
       world: null,
@@ -813,17 +847,28 @@ class RenderLayerManager {
       const layerName = layers[i];
       // compute layer-specific world coords for this event before dispatch
       pointer.layer = layerName;
+      // compute layer-specific world coords and motion deltas
       try {
-        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName) &&
-            typeof cameraManager !== 'undefined' && typeof cameraManager.screenToWorld === 'function') {
-          const w = cameraManager.screenToWorld(pointer.screen.x, pointer.screen.y);
+        const cam = (typeof cameraManager !== 'undefined') ? cameraManager : (typeof window !== 'undefined' ? window.g_cameraManager : null);
+        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName) && cam && typeof cam.screenToWorld === 'function') {
+          const w = cam.screenToWorld(pointer.screen.x, pointer.screen.y);
           if (w) {
-            pointer.world = {
-              x: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
-              y: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null),
-              worldX: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
-              worldY: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null)
-            };
+            const wx = (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null);
+            const wy = (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null);
+            pointer.world = { x: wx, y: wy, worldX: wx, worldY: wy };
+            // compute dx/dy using last sample stored per layer and pointerId
+            try {
+              this.__lastPointerSamples = this.__lastPointerSamples || {};
+              const key = `${layerName}:${pointer.pointerId}`;
+              const last = this.__lastPointerSamples[key];
+              if (last && typeof last.x === 'number') {
+                pointer.dx = pointer.world.x - last.x;
+                pointer.dy = pointer.world.y - last.y;
+              } else {
+                pointer.dx = 0; pointer.dy = 0;
+              }
+              this.__lastPointerSamples[key] = { x: pointer.world.x, y: pointer.world.y };
+            } catch (e) { /* ignore sample errors */ }
           } else {
             pointer.world = null;
           }

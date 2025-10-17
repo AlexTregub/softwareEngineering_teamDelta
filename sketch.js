@@ -59,6 +59,25 @@ function setup() {
   g_keyboardController = new KeyboardInputController();
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
 
+  // Ensure selection adapter is registered with RenderManager now that controller exists
+  try {
+    if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
+    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
+      const selectionAdapter = {
+        hitTest: function(pointer) { return true; },
+        onPointerDown: function(pointer) { try { g_selectionBoxController.handleClick(pointer.screen.x, pointer.screen.y, 'left'); return true; } catch(e) { return false; } },
+        onPointerMove: function(pointer) { try { g_selectionBoxController.handleDrag(pointer.screen.x, pointer.screen.y); return true; } catch(e) { return false; } },
+        onPointerUp: function(pointer) { try { g_selectionBoxController.handleRelease(pointer.screen.x, pointer.screen.y, 'left'); return true; } catch(e) { return false; } }
+      };
+      RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, selectionAdapter);
+      RenderManager._registeredDrawables.selectionBoxInteractive = true;
+    }
+    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBox) {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
+      RenderManager._registeredDrawables.selectionBox = true;
+    }
+  } catch (e) { console.warn('Failed to ensure selection adapter registration', e); }
+
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
     // UI shortcuts are now handled directly in keyPressed() function
@@ -105,6 +124,60 @@ function initializeWorld() {
   try {
     if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
 
+    // Register SelectionBoxController as an interactive so RenderManager dispatches pointer events to it
+    try {
+      if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
+        const selectionAdapter = {
+          hitTest: function(pointer) {
+            // Always allow selection adapter to receive events on the UI layer
+            return true;
+          },
+          _toWorld: function(px, py) {
+            try {
+              const cam = (typeof window !== 'undefined' && window.g_cameraManager) ? window.g_cameraManager : (typeof cameraManager !== 'undefined' ? cameraManager : null);
+              if (cam && typeof cam.screenToWorld === 'function') {
+                const w = cam.screenToWorld(px, py);
+                return { x: (w.worldX !== undefined ? w.worldX : (w.x !== undefined ? w.x : px)), y: (w.worldY !== undefined ? w.worldY : (w.y !== undefined ? w.y : py)) };
+              }
+              // fallback: use global camera offsets if present
+              const camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : 0;
+              const camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : 0;
+              return { x: px + camX, y: py + camY };
+            } catch (e) { return { x: px, y: py }; }
+          },
+          onPointerDown: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleClick === 'function') {
+                // SelectionBoxController expects screen-local coordinates (it adds cameraX internally)
+                g_selectionBoxController.handleClick(pointer.screen.x, pointer.screen.y, 'left');
+                return true;
+              }
+            } catch (e) { console.warn('selectionAdapter.onPointerDown failed', e); }
+            return false;
+          },
+          onPointerMove: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleDrag === 'function') {
+                g_selectionBoxController.handleDrag(pointer.screen.x, pointer.screen.y);
+                return true;
+              }
+            } catch (e) { /* ignore */ }
+            return false;
+          },
+          onPointerUp: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleRelease === 'function') {
+                g_selectionBoxController.handleRelease(pointer.screen.x, pointer.screen.y, 'left');
+                return true;
+              }
+            } catch (e) { /* ignore */ }
+            return false;
+          }
+        };
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, selectionAdapter);
+        RenderManager._registeredDrawables.selectionBoxInteractive = true;
+      }
+    } catch (e) { console.warn('Failed to register selection adapter with RenderManager', e); }
     // Selection box should render in the UI_GAME layer
     if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBox) {
       RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
@@ -222,11 +295,11 @@ function mousePressed() {
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
     if (consumed) return; // consumed by an interactive (buttons/panels/etc.)
-    // If not consumed, fall back to legacy mouse controller for entity clicks/effects
-    handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
+    // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
   } catch (e) {
     console.error('Error dispatching pointerdown to RenderManager:', e);
-    handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
+    // best-effort: still notify legacy controller if present to avoid breaking older flows
+    try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
   }
 
   // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
@@ -240,11 +313,13 @@ function mouseDragged() {
   // Forward move to RenderManager
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointermove', { x: mouseX, y: mouseY, isPressed: true });
-    // If not consumed, keep legacy mouseDragged behavior for compatibility
-    if (!consumed) handleMouseEvent('handleMouseDragged', mouseX, mouseY);
+    // If not consumed, attempt best-effort legacy notification but prefer RenderManager adapters
+    if (!consumed) {
+      try { handleMouseEvent('handleMouseDragged', mouseX, mouseY); } catch (e) {}
+    }
   } catch (e) {
     console.error('Error dispatching pointermove to RenderManager:', e);
-    handleMouseEvent('handleMouseDragged', mouseX, mouseY);
+    try { handleMouseEvent('handleMouseDragged', mouseX, mouseY); } catch (er) {}
   }
 }
 
@@ -256,10 +331,12 @@ function mouseReleased() {
   // Forward to RenderManager first
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
-    if (!consumed) handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+    if (!consumed) {
+      try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (e) {}
+    }
   } catch (e) {
     console.error('Error dispatching pointerup to RenderManager:', e);
-    handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+    try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (er) {}
   }
 }
 
