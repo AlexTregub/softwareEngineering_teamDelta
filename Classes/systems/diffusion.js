@@ -243,7 +243,7 @@ class PheromoneGrid {
     }
 
     //// Rendering:
-    render(renderConversion) {
+    render(renderConversion,selLeft=this._selLeft) {
         let cullArea = renderConversion.getPosSpan(); // Get area to render
         cullArea[0][0] = floor(cullArea[0][0]) - 1;
         cullArea[0][1] = floor(cullArea[0][1])+1;
@@ -253,7 +253,17 @@ class PheromoneGrid {
  
         for (let y = cullArea[0][1]; y >= cullArea[1][1]; --y) {
             for (let x = cullArea[0][0]; x <= cullArea[1][0]; ++x) {
-                // ...
+                let tlCoord = renderConversion.convPosToCanvas([x,y]);
+
+                push();
+                // fill(color(255,0,0));
+                if (selLeft) {
+                    fill(color(this._left.get(x,y).length*50%255,0,0)); // Count of fuckass pheromones
+                } else {
+                    fill(color(0,this._right.get(x,y).length*50%255,0)); // blue
+                }
+                square(tlCoord[0],tlCoord[1],TILE_SIZE,TILE_SIZE*0.7);
+                pop();
             }
         }
     }
