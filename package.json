@@ -21,6 +21,8 @@
     "test:bdd:ui": "python test/bdd_new/run_bdd_tests.py --tags @ui",
     "test:bdd:integration": "python test/bdd_new/run_bdd_tests.py --tags @integration",
     "test:bdd:core": "python test/bdd_new/run_bdd_tests.py --tags @core",
+  "test:puppeteer": "node test/puppeteer/pw_selection_deterministic.js",
+  "test:puppeteer:all": "node test/puppeteer/pw_selection_deterministic.js",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"
   },
