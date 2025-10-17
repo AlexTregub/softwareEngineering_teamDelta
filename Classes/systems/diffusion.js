@@ -169,6 +169,18 @@ class PheromoneGrid {
             // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _right.
             // this._rightSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
             for (pos in this._rightSet) {
+                let targetCell = this.get([pos.x,pos.y],selLeft); // Primary target
+                let neighborCells = [ // Up,Down,Left,Right - NEEDS OOB PROT.
+                    this.get([pos.x,pos.y+1],selLeft),
+                    this.get([pos.x,pos.y-1],selLeft),
+                    this.get([pos.x-1,pos.y],selLeft),
+                    this.get([pos.x+1,pos.y],selLeft),
+                ]; // Copies, once a pheromone type has diffused, remove.
+
+                // Diffuse targetCell contents...
+                // ...
+
+                // Diffuse remaining neighbors...
                 // ...
             }
 
