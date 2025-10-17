@@ -124,6 +124,21 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
           },
           {
+            caption: 'Enemy Ant',
+            onClick: () => this.spawnEnemyAnt(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF4500', color: '#FFFFFF' }
+          },
+          {
+            caption: '10 Enemy Ants',
+            onClick: () => this.spawnEnemyAnts(10),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF6500', color: '#FFFFFF' }
+          },
+          {
+            caption: '100 Enemy Ants',
+            onClick: () => this.spawnEnemyAnts(100),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF8500', color: '#FFFFFF' }
+          },
+          {
             caption: 'Kill 1 Ant',
             onClick: () => this.killAnts(1),
             style: ButtonStyles.DANGER
@@ -842,6 +857,123 @@ class DraggablePanelManager {
     }
     
     console.warn('⚠️ Could not spawn ants - no compatible ant system found');
+  }
+
+  /**
+   * Spawn a single enemy ant near the mouse cursor or screen center
+   */
+  spawnEnemyAnt() {
+    console.log('🔴 Spawning enemy ant...');
+    
+    // Try multiple spawning methods until we find one that works
+    const spawnMethods = [
+      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
+          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+          const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 50;
+          const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 50;
+          
+          const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
+          if (enemyAnt) {
+            console.log('✅ Successfully spawned enemy ant using AntUtilities');
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Try command line spawning system
+      () => {
+        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+          const initialAntCount = ants.length;
+          try {
+            executeCommand(`spawn 1 ant enemy`);
+            const spawned = ants.length - initialAntCount;
+            if (spawned > 0) {
+              console.log('✅ Successfully spawned enemy ant using command system');
+              return true;
+            }
+          } catch (error) {
+            console.warn('⚠️ Command line spawn method failed:', error.message);
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of spawnMethods) {
+      if (method()) {
+        return;
+      }
+    }
+    
+    console.warn('⚠️ Could not spawn enemy ant - no compatible ant system found');
+  }
+
+  /**
+   * Spawn multiple enemy ants near the mouse cursor or screen center
+   */
+  spawnEnemyAnts(count = 1) {
+    console.log(`🔴 Spawning ${count} enemy ant(s)...`);
+    
+    let spawned = 0;
+    
+    // Try multiple spawning methods until we find one that works
+    const spawnMethods = [
+      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
+          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+          
+          for (let i = 0; i < count; i++) {
+            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+            
+            const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
+            if (enemyAnt) {
+              spawned++;
+            }
+          }
+          
+          if (spawned > 0) {
+            console.log(`✅ Successfully spawned ${spawned} enemy ant(s) using AntUtilities`);
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Try command line spawning system
+      () => {
+        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+          const initialAntCount = ants.length;
+          try {
+            executeCommand(`spawn ${count} ant enemy`);
+            spawned = ants.length - initialAntCount;
+            if (spawned > 0) {
+              console.log(`✅ Successfully spawned ${spawned} enemy ant(s) using command system`);
+              return true;
+            }
+          } catch (error) {
+            console.warn('⚠️ Command line spawn method failed:', error.message);
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of spawnMethods) {
+      if (method()) {
+        return;
+      }
+    }
+    
+    console.warn(`⚠️ Could not spawn ${count} enemy ant(s) - no compatible ant system found`);
   }
   
   /**

@@ -383,7 +383,7 @@ class AntUtilities {
     }
 
     // Validate faction
-    const validFactions = ["red", "blue", "neutral"];
+    const validFactions = ["red", "blue", "neutral", "player", "enemy"];
     if (!validFactions.includes(faction)) {
       console.warn(`Invalid faction: ${faction}. Using neutral.`);
       faction = "neutral";
