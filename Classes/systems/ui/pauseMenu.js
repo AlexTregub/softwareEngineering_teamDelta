@@ -116,3 +116,86 @@
     window.renderPauseMenuUI = renderPauseMenuUI;
     window.togglePauseMenu = togglePause;
 })();
+
+// Inline adapter registration for RenderLayerManager interactive API
+try {
+    if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
+        const pauseAdapter = {
+            hitTest: (pointer) => {
+                try {
+                    const x = pointer.screen.x;
+                    const y = pointer.screen.y;
+                    // Check pause button hit
+                    if (PauseMenu.pauseButton && typeof PauseMenu.pauseButton.isMouseOver === 'function') {
+                        if (PauseMenu.pauseButton.isMouseOver(x, y)) return true;
+                    }
+                    // If overlay active, check overlay buttons
+                    if (PauseMenu.isActive && PauseMenu.buttons && PauseMenu.buttons.length) {
+                        for (const btn of PauseMenu.buttons) {
+                            if (btn && typeof btn.isMouseOver === 'function' && btn.isMouseOver(x, y)) return true;
+                        }
+                    }
+                } catch (e) {}
+                return false;
+            },
+            onPointerDown: (pointer) => {
+                try {
+                    const x = pointer.screen.x;
+                    const y = pointer.screen.y;
+                    // Delegate to pause button click/update
+                    if (PauseMenu.pauseButton && typeof PauseMenu.pauseButton.update === 'function') {
+                        PauseMenu.pauseButton.update(x, y, pointer.isPressed === true);
+                        if (PauseMenu.pauseButton.isMouseOver && PauseMenu.pauseButton.isMouseOver(x, y) && pointer.isPressed) {
+                            // Toggle pause immediately
+                            if (typeof togglePause === 'function') togglePause();
+                            return true;
+                        }
+                    }
+                    // Delegate overlay buttons
+                    if (PauseMenu.isActive && PauseMenu.buttons && PauseMenu.buttons.length) {
+                        for (const btn of PauseMenu.buttons) {
+                            if (btn && typeof btn.update === 'function') btn.update(x, y, pointer.isPressed === true);
+                        }
+                        return false;
+                    }
+                } catch (e) {}
+                return false;
+            },
+            onPointerMove: (pointer) => {
+                try {
+                    const x = pointer.screen.x;
+                    const y = pointer.screen.y;
+                    if (PauseMenu.pauseButton && typeof PauseMenu.pauseButton.update === 'function') PauseMenu.pauseButton.update(x, y, pointer.isPressed === true);
+                    if (PauseMenu.isActive && PauseMenu.buttons && PauseMenu.buttons.length) {
+                        for (const btn of PauseMenu.buttons) {
+                            if (btn && typeof btn.update === 'function') btn.update(x, y, pointer.isPressed === true);
+                        }
+                    }
+                } catch (e) {}
+                return false;
+            },
+            onPointerUp: (pointer) => {
+                try {
+                    const x = pointer.screen.x;
+                    const y = pointer.screen.y;
+                    // Let individual button handlers manage click completion
+                } catch (e) {}
+                return false;
+            },
+            update: (pointer) => {
+                try {
+                    // No-op per-frame; renderPauseMenuUI handles per-frame updates via RenderManager's render call
+                } catch (e) {}
+            },
+            render: (gameState, pointer) => {
+                try {
+                    if (typeof renderPauseMenuUI === 'function') renderPauseMenuUI();
+                } catch (e) {}
+            }
+        };
+
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, pauseAdapter);
+    }
+} catch (e) {
+    console.warn('pauseMenu: failed to register RenderManager adapter', e);
+}

@@ -78,6 +78,66 @@ class DraggablePanelManager {
     }
 
     this.isInitialized = true;
+
+    // Auto-register a minimal interactive adapter so panels receive pointer events
+    try {
+      if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
+        const adapter = {
+          hitTest: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              const panels = Array.from(this.panels.values()).reverse();
+              for (const p of panels) {
+                if (!p.state || !p.state.visible) continue;
+                if (typeof p.isPointInBounds === 'function' && p.isPointInBounds(x, y)) return true;
+              }
+            } catch (e) {}
+            return false;
+          },
+          onPointerDown: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              const handled = this.handleMouseEvents(x, y, true);
+              if (this.isAnyPanelBeingDragged && this.isAnyPanelBeingDragged()) return true;
+              return !!handled;
+            } catch (e) { return false; }
+          },
+          onPointerMove: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, pointer.isPressed === true);
+              return false;
+            } catch (e) { return false; }
+          },
+          onPointerUp: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, false);
+            } catch (e) {}
+            return false;
+          },
+          update: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, pointer.isPressed === true);
+            } catch (e) {}
+          },
+          render: (gameState, pointer) => {
+            try {
+              this.render();
+            } catch (e) {}
+          }
+        };
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, adapter);
+      }
+    } catch (e) {
+      console.warn('DraggablePanelManager: failed to auto-register interactive adapter', e);
+    }
   }
 
   /**

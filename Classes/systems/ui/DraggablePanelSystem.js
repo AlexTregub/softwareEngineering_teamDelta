@@ -379,8 +379,9 @@ function coordinateWithUIRenderer() {
  */
 function updateDraggablePanels() {
   if (window.draggablePanelManager && mouseX !== undefined && mouseY !== undefined) {
-    const isPressed = typeof mouseIsPressed !== 'undefined' ? mouseIsPressed : false;
-    window.draggablePanelManager.update(mouseX, mouseY, isPressed);
+    if (mouseIsPressed || true) {
+      RenderManager.startRendererOverwrite(window.draggablePanelManager.update(mouseX, mouseY, mouse),1)
+    }
   }
 }
 

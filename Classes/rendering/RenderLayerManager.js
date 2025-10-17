@@ -5,6 +5,37 @@
  * @see {@link docs/quick-reference.md} Layer system reference
  */
 
+
+
+// Visual timeline (per frame)
+//
+// render(gameState)
+//   layersToRender = getLayersForState(gameState)
+//   for each layerName in layersToRender:
+//     // Skip disabled layers
+//     if (disabledLayers.has(layerName)) -> continue
+//
+//     layerStart = now
+//
+//     // Get and call renderer for this layer (renderer usually handles push()/applyZoom()/pop())
+//     renderer = layerRenderers.get(layerName)
+//     if (renderer) {
+//       renderer(gameState)
+//     }
+//
+//     // Call any extra drawables registered for this layer (executed in global canvas state after renderer returned)
+//     drawables = layerDrawables.get(layerName)
+//     if (drawables && drawables.length) {
+//       for each fn in drawables:
+//         fn(gameState)
+//     }
+//
+//     layerEnd = now
+//     renderStats.layerTimes[layerName] = layerEnd - layerStart
+//
+// // After all layers: update button groups
+// // Update renderStats (frameCount, lastFrameTime, etc.)
+
 /**
  * Manages rendering layers from terrain to UI with performance optimization.
  * 
@@ -48,6 +79,25 @@ class RenderLayerManager {
     };
     
     this.isInitialized = false;
+
+  // Interactive drawables per layer (topmost last in array)
+  this.layerInteractives = new Map();
+
+  // Pointer capture info: { owner: interactiveObj, pointerId }
+  this._pointerCapture = null;
+
+    // set this to true in conjucntion with a seperate rendering function to skip the rendering pipeline
+    // Temp fix for draggable panels
+    this._RenderMangerOverwrite = false
+    /** When the renderer is overwritten, set this to true, then once the
+     * renderer overwrite is done, start a timer. when that timer is done
+     * set _RendererOverwritten to false
+    */
+    this._RendererOverwritten = false 
+    this.__RendererOverwriteTimer = 0
+    this.__RendererOverwriteLast = 0;
+    this._overwrittenRendererFn = null;
+    this._RendererOverwriteTimerMax = 1; // seconds (default)
   }
   
   /**
@@ -78,12 +128,43 @@ class RenderLayerManager {
   /**
    * Add a drawable callback to a layer (does not replace existing renderer).
    * Drawable signature: function(gameState) { ...drawing code... }
+   * 
+   * This stores callbacks per layer
+   * Each frame, RenderLayerManager.render() will run the layer's registered
+   * renderer first, then call each drawable callback for that layer in order.
+   * All this is wrapped with the error handling and timing measurements
    */
   addDrawableToLayer(layerName, drawableFn) {
     if (!this.layerDrawables.has(layerName)) {
       this.layerDrawables.set(layerName, []);
     }
     this.layerDrawables.get(layerName).push(drawableFn);
+  }
+
+  /**
+   * Register an interactive drawable object for a layer.
+   * interactiveObj should implement:
+   *  - hitTest(pointer) => boolean
+   *  - onPointerDown(pointer) / onPointerMove(pointer) / onPointerUp(pointer) (optional)
+   *  - update(pointer) (optional)
+   *  - render(gameState, pointer) (optional)
+   * The object will be considered in top-down order (last registered is topmost).
+   */
+  addInteractiveDrawable(layerName, interactiveObj) {
+    if (!this.layerInteractives.has(layerName)) this.layerInteractives.set(layerName, []);
+    this.layerInteractives.get(layerName).push(interactiveObj);
+  }
+
+  /**
+   * Remove an interactive drawable from a layer.
+   */
+  removeInteractiveDrawable(layerName, interactiveObj) {
+    const arr = this.layerInteractives.get(layerName);
+    if (!arr) return false;
+    const idx = arr.indexOf(interactiveObj);
+    if (idx === -1) return false;
+    arr.splice(idx, 1);
+    return true;
   }
 
   /**
@@ -106,7 +187,41 @@ class RenderLayerManager {
       console.warn('RenderLayerManager not initialized');
       return;
     }
-    
+    // If an external temporary renderer has been installed, call it and
+    // skip the normal pipeline until its timer expires. This supports
+    // short-lived overrides (e.g., draggable-panel special rendering).
+    if (this._RenderMangerOverwrite && this._RendererOverwritten && typeof this._overwrittenRendererFn === 'function') {
+      const overwriteStart = performance.now();
+      try {
+        // Call the custom renderer. It is responsible for doing its own
+        // push/pop and transforms as needed.
+        this._overwrittenRendererFn(gameState);
+      } catch (err) {
+        console.error('Error in overwritten renderer function:', err);
+      }
+
+      // Update overwrite timer using elapsed time since last tick
+      const now = performance.now();
+      if (!this.__RendererOverwriteLast) this.__RendererOverwriteLast = now;
+      const deltaSec = (now - this.__RendererOverwriteLast) / 1000.0;
+      this.__RendererOverwriteLast = now;
+      this.__RendererOverwriteTimer -= deltaSec;
+
+      if (this.__RendererOverwriteTimer <= 0) {
+        // Timer expired — clear overwrite state
+        this._RenderMangerOverwrite = false;
+        this._RendererOverwritten = false;
+        this.__RendererOverwriteTimer = 0;
+        this.__RendererOverwriteLast = 0;
+        this._overwrittenRendererFn = null;
+      }
+
+      // Update performance stats minimally and return (skip normal pipeline)
+      this.renderStats.frameCount++;
+      this.renderStats.lastFrameTime = performance.now() - overwriteStart;
+      return;
+    }
+
     const frameStart = performance.now();
     
     // Determine which layers to render based on game state
@@ -122,6 +237,59 @@ class RenderLayerManager {
       
       const layerStart = performance.now();
       
+      // Prepare pointer context for this layer (screen coords for now)
+      // Prepare pointer context for this layer (screen coords always available)
+      const pointer = {
+        screen: { x: mouseX, y: mouseY },
+        isPressed: mouseIsPressed,
+        // world will be populated below for layers that apply camera transforms
+        world: null,
+        // optional motion deltas for drag-aware interactives
+        dx: 0,
+        dy: 0,
+        layer: layerName
+      };
+
+      // If this layer applies camera zoom/translate, compute world coords
+      // using cameraManager.screenToWorld so interactive hit tests can use
+      // world coordinates without re-performing transforms in every adapter.
+      try {
+        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName) &&
+            typeof cameraManager !== 'undefined' && typeof cameraManager.screenToWorld === 'function') {
+          // cameraManager.screenToWorld may return {worldX, worldY} or {x,y}
+          const w = cameraManager.screenToWorld(pointer.screen.x, pointer.screen.y);
+          if (w) {
+            pointer.world = {
+              x: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
+              y: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null),
+              worldX: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
+              worldY: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null)
+            };
+          } else {
+            pointer.world = null;
+          }
+        }
+      } catch (err) {
+        // non-fatal: leave pointer.world null if conversion fails
+        console.warn('Warning: failed to compute pointer.world for layer', layerName, err);
+        pointer.world = null;
+      }
+
+      // Call interactive update hooks before rendering so visuals reflect input state
+      const interactives = this.layerInteractives.get(layerName);
+      if (interactives && interactives.length) {
+        // iterate in registration order; topmost being last in array
+        for (const interactive of interactives) {
+          try {
+            if (typeof interactive.update === 'function') {
+              interactive.update(pointer);
+            }
+          } catch (err) {
+            console.error('Error updating interactive drawable:', err);
+          }
+        }
+      }
+
       const renderer = this.layerRenderers.get(layerName);
       if (renderer) {
         try {
@@ -139,6 +307,20 @@ class RenderLayerManager {
             fn(gameState);
           } catch (err) {
             console.error(`Error in drawable for layer ${layerName}:`, err);
+          }
+        }
+      }
+
+      // After renderer and drawables, render interactive visuals if they implement render()
+      if (interactives && interactives.length) {
+        // render in registration order so topmost is drawn last
+        for (const interactive of interactives) {
+          try {
+            if (typeof interactive.render === 'function') {
+              interactive.render(gameState, pointer);
+            }
+          } catch (err) {
+            console.error('Error rendering interactive drawable:', err);
           }
         }
       }
@@ -196,9 +378,11 @@ class RenderLayerManager {
   renderTerrainLayer(gameState) {
     // Only render terrain for game states that need it
     if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
+      background(0);
       return;
     }
-
+    // Always draw a background to remove smearing pixels
+    background(0);
     push();
     this.applyZoom();
     g_map2.render();
@@ -583,6 +767,148 @@ class RenderLayerManager {
    */
   enableAllLayers() {
     this.disabledLayers.clear();
+  }
+
+  /**
+   * Dispatch a pointer event (down/move/up) to interactive drawables.
+   * The dispatch proceeds top-down (topmost first) and stops when a handler
+   * returns true (consumes the event).
+   * eventType: 'pointerdown' | 'pointermove' | 'pointerup'
+   * evt: original event or { x, y, pointerId }
+   */
+  dispatchPointerEvent(eventType, evt) {
+    // Build a pointer object (screen coords for now)
+    const pointer = {
+      screen: { x: evt.x ?? mouseX, y: evt.y ?? mouseY },
+      pointerId: evt.pointerId ?? 0,
+      isPressed: !!evt.isPressed,
+      world: null,
+      layer: null,
+      dx: evt.dx ?? 0,
+      dy: evt.dy ?? 0
+    };
+
+    // If pointer is captured by something, forward directly
+    if (this._pointerCapture && this._pointerCapture.owner) {
+      const owner = this._pointerCapture.owner;
+      const handlerName = this._mapEventToHandler(eventType);
+      if (handlerName && typeof owner[handlerName] === 'function') {
+        try {
+          const consumed = owner[handlerName](pointer) === true;
+          if (eventType === 'pointerup') {
+            // release capture on pointerup
+            this._pointerCapture = null;
+          }
+          return consumed;
+        } catch (err) {
+          console.error('Error in captured pointer handler:', err);
+        }
+      }
+    }
+
+    // otherwise iterate layers top-to-bottom (we want topmost layers first)
+    const layers = Array.from(this.getLayersForState(window.GameState ? window.GameState.getState() : 'PLAYING'));
+    // iterate layers in reverse so UI_MENU (top) is first
+    for (let i = layers.length - 1; i >= 0; i--) {
+      const layerName = layers[i];
+      // compute layer-specific world coords for this event before dispatch
+      pointer.layer = layerName;
+      try {
+        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName) &&
+            typeof cameraManager !== 'undefined' && typeof cameraManager.screenToWorld === 'function') {
+          const w = cameraManager.screenToWorld(pointer.screen.x, pointer.screen.y);
+          if (w) {
+            pointer.world = {
+              x: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
+              y: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null),
+              worldX: (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null),
+              worldY: (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null)
+            };
+          } else {
+            pointer.world = null;
+          }
+        } else {
+          pointer.world = null;
+        }
+      } catch (err) {
+        pointer.world = null;
+      }
+      const interactives = this.layerInteractives.get(layerName);
+      if (!interactives || !interactives.length) continue;
+
+      // iterate interactives from last registered (topmost) to first
+      for (let j = interactives.length - 1; j >= 0; j--) {
+        const interactive = interactives[j];
+        try {
+          if (typeof interactive.hitTest === 'function' && interactive.hitTest(pointer)) {
+            const handlerName = this._mapEventToHandler(eventType);
+            if (handlerName && typeof interactive[handlerName] === 'function') {
+              const consumed = interactive[handlerName](pointer) === true;
+              if (consumed) {
+                // If interactive wants pointer capture, it should set capture via return value or property
+                if (interactive.capturePointer) {
+                  this._pointerCapture = { owner: interactive, pointerId: pointer.pointerId };
+                }
+                return true; // stop propagation
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error dispatching pointer event to interactive:', err);
+        }
+      }
+    }
+
+    return false; // not consumed
+  }
+
+  _mapEventToHandler(eventType) {
+    switch (eventType) {
+      case 'pointerdown': return 'onPointerDown';
+      case 'pointermove': return 'onPointerMove';
+      case 'pointerup': return 'onPointerUp';
+      default: return null;
+    }
+  }
+
+  /**
+   * Start a temporary renderer overwrite.
+   * @param {function} rendererFn - function(gameState) that performs rendering while overwrite is active
+   * @param {number} durationSec - how many seconds the overwrite should run (optional, falls back to _RendererOverwriteTimerMax)
+   */
+  startRendererOverwrite(rendererFn, durationSec) {
+    if (typeof rendererFn !== 'function') {
+      console.warn('startRendererOverwrite requires a function');
+      return false;
+    }
+    this._overwrittenRendererFn = rendererFn;
+    this._RenderMangerOverwrite = true;
+    this._RendererOverwritten = true;
+    this.__RendererOverwriteTimer = typeof durationSec === 'number' ? durationSec : this._RendererOverwriteTimerMax;
+    this.__RendererOverwriteLast = 0; // reset last tick
+    return true;
+  }
+
+  /**
+   * Stop any active renderer overwrite immediately.
+   */
+  stopRendererOverwrite() {
+    this._RenderMangerOverwrite = false;
+    this._RendererOverwritten = false;
+    this.__RendererOverwriteTimer = 0;
+    this.__RendererOverwriteLast = 0;
+    this._overwrittenRendererFn = null;
+  }
+
+  /**
+   * Set default overwrite duration (seconds) used when startRendererOverwrite is called without duration.
+   */
+  setOverwriteDuration(seconds) {
+    if (typeof seconds === 'number' && seconds >= 0) {
+      this._RendererOverwriteTimerMax = seconds;
+      return true;
+    }
+    return false;
   }
 }
 

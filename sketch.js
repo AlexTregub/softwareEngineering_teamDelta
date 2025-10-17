@@ -5,8 +5,6 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
-const MAX_RECENTERS = 2; // use to make sure the grid renders center of the screen
-let gridRecenters;
 let COORDSY;
 
 const NONE = '\0'; 
@@ -49,7 +47,7 @@ function preload(){
 function setup() {
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
-  gridRecenters = 0;
+  RenderMangerOverwrite = false
   createCanvas(g_canvasX, g_canvasY);
   initializeWorld();
 
@@ -103,6 +101,54 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
+  // Register common drawables once (guarded to avoid double-registration)
+  try {
+    if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
+
+    // Selection box should render in the UI_GAME layer
+    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBox) {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
+      RenderManager._registeredDrawables.selectionBox = true;
+    }
+
+    // Gather debug renderer overlays (effects layer)
+    if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer && !RenderManager._registeredDrawables.gatherDebug) {
+      if (typeof g_gatherDebugRenderer.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.EFFECTS, g_gatherDebugRenderer.render.bind(g_gatherDebugRenderer));
+        RenderManager._registeredDrawables.gatherDebug = true;
+      }
+    }
+
+    // Dropoff UI and pause menu UI belong to UI_GAME layer if available
+    if (typeof window !== 'undefined') {
+      if (typeof window.drawDropoffUI === 'function' && !RenderManager._registeredDrawables.drawDropoffUI) {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.drawDropoffUI.bind(window));
+        RenderManager._registeredDrawables.drawDropoffUI = true;
+      }
+      if (typeof window.renderPauseMenuUI === 'function' && !RenderManager._registeredDrawables.renderPauseMenuUI) {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.renderPauseMenuUI.bind(window));
+        RenderManager._registeredDrawables.renderPauseMenuUI = true;
+      }
+    }
+
+    // Draggable panels: ensure the manager is registered to UI layer
+    if (typeof window !== 'undefined' && window.draggablePanelManager && !RenderManager._registeredDrawables.draggablePanelManager) {
+      if (typeof window.draggablePanelManager.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.draggablePanelManager.render.bind(window.draggablePanelManager));
+        RenderManager._registeredDrawables.draggablePanelManager = true;
+      }
+    }
+
+    // Button groups: update is still handled in update cycle, but rendering belongs to UI_GAME
+    if (window.buttonGroupManager && !RenderManager._registeredDrawables.buttonGroupManager) {
+      if (typeof window.buttonGroupManager.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.buttonGroupManager.render.bind(window.buttonGroupManager));
+        RenderManager._registeredDrawables.buttonGroupManager = true;
+      }
+    }
+  } catch (err) {
+    console.error('❌ Error registering drawables with RenderManager:', err);
+  }
   queenAnt = spawnQueen();
 }
 
@@ -115,83 +161,20 @@ function initializeWorld() {
  * Called automatically by p5.js at the frame rate.
  */
 
-function draw() {
-  background(0);
-  if (gridRecenters <= MAX_RECENTERS) {
-    g_map2.setGridToCenter()
-    gridRecenters++
-  }
-  
-  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+function draw() {  
+  // Input-driven updates are handled by interactive adapters registered with RenderManager.
+  // Draggable panels and other UI elements now receive pointer events via RenderManager.
 
-  updatePresentationPanels(GameState.getState());
-
-  // Update presentation panels for state-based visibility
-  if (typeof updatePresentationPanels !== 'undefined') {
-    updatePresentationPanels(GameState.getState());
-  }
   RenderManager.render(GameState.getState());
 
-
-  // background(0);
-  // g_map2.renderDirect();
-
-  // Use the new layered rendering system
-  // Update legacy draggable panels BEFORE rendering so the render pipeline
-  // sees the latest panel positions (avoids a pre-update render that leaves
-  // a ghost image of the previous frame's positions).
-  if (GameState.getState() === 'PLAYING') {
-    try {
-      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
-        updateDraggablePanels();
-      }
-    } catch (error) {
-      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
-    }
-  }
-
-  if (RenderManager && RenderManager.isInitialized) {
-    RenderManager.render(GameState.getState());
-    // console.log(frameRate());
-  }
-  if (typeof window.renderPauseMenuUI === 'function') {
-    window.renderPauseMenuUI();
-  }
-  // Draw dropoff UI (button, placement preview) after other UI elements
-  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
-    window.drawDropoffUI();
-      // Render debug visualization for ant gathering (overlays on top)
-  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
-    g_gatherDebugRenderer.render();
-  }
-  // Update button groups (rendering handled by RenderLayerManager)
-  if (window.buttonGroupManager) {
-    try {
-      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
-    } catch (error) {
-      console.error('❌ Error updating button group system:', error);
-    }
-
-    
-  }
-
-    // --- PLAYING ---
+  // --- PLAYING ---
   if (GameState.isInGame()) {
-    // Update camera before rendering
+    // Update camera before rendering (RenderManager will apply transforms
+    // for the different layers during the render pass).
     if (cameraManager) {
       cameraManager.update();
-      
-      // Apply camera transformation
-      cameraManager.applyTransform();
     }
 
-    if (typeof drawSelectionBox === 'function') g_selectionBoxController.draw();
-
-    // Restore camera transformation
-    if (cameraManager) {
-      cameraManager.restoreTransform();
-    }
-    
     const playerQueen = getQueen();
     if (playerQueen) {
       // WASD key codes: W=87 A=65 S=83 D=68
@@ -200,15 +183,13 @@ function draw() {
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
     }
-  }}
-
+  }
 
   // Note: rendering of draggable panels is handled via RenderManager's
   // ui_game layer (DraggablePanelManager integrates into the render layer).
   // We intentionally do NOT call renderDraggablePanels() here to avoid a
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
-
 
 }
 
@@ -231,36 +212,22 @@ function handleMouseEvent(type, ...args) {
  * ------------
  * Handles mouse press events by delegating to the mouse controller.
  */
-function mousePressed() {  
+function mousePressed() { 
   // Handle UI Debug Manager mouse events first
   if (g_uiDebugManager && g_uiDebugManager.isActive) {
     const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
     if (handled) return;
   }
 
-    // Handle Universal Button Group System clicks
-  if (window.buttonGroupManager && 
-      typeof window.buttonGroupManager.handleClick === 'function') {
-    try {
-      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
-      if (handled) return; // Button was clicked, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling button click:', error);
-    }
+  // Forward to RenderManager interactive dispatch first (gives adapters priority)
+  try {
+    const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
+    if (consumed) return; // consumed by an interactive (buttons/panels/etc.)
+  } catch (e) {
+    console.error('Error dispatching pointerdown to RenderManager:', e);
   }
 
-  // Handle DraggablePanel mouse events
-  if (window.draggablePanelManager && 
-      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
-    try {
-      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
-      if (handled) return; // Panel consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling draggable panel mouse events:', error);
-    }
-  }
-
-  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
+  // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
 }
 
 function mouseDragged() {
@@ -268,7 +235,14 @@ function mouseDragged() {
   if (g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
-  handleMouseEvent('handleMouseDragged', mouseX, mouseY);
+  // Forward move to RenderManager
+  try {
+    const consumed = RenderManager.dispatchPointerEvent('pointermove', { x: mouseX, y: mouseY, isPressed: true });
+    // No legacy fallback; interactive adapters should consume or ignore the event.
+  } catch (e) {
+    console.error('Error dispatching pointermove to RenderManager:', e);
+    // In case of error we do not call legacy handlers to avoid duplicate handling.
+  }
 }
 
 function mouseReleased() {
@@ -276,7 +250,14 @@ function mouseReleased() {
   if (g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
   }
-  handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+  // Forward to RenderManager first
+  try {
+    const consumed = RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
+    // No legacy fallback; interactive adapters handle release events.
+  } catch (e) {
+    console.error('Error dispatching pointerup to RenderManager:', e);
+    // Do not call legacy handlers on error to avoid unexpected double-processing.
+  }
 }
 
 // KEYBOARD INTERACTIONS
@@ -533,7 +514,6 @@ function windowResized() {
   g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
-  // background(0);
 
   resizeCanvas(g_canvasX,g_canvasY);
 }

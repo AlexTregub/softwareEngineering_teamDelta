@@ -309,3 +309,77 @@ if (typeof window !== 'undefined') {
   window.setUISelectionEnabled = setUISelectionEnabled;
   window.getUISelectionDebugInfo = getUISelectionDebugInfo;
 }
+
+// Inline adapter to connect g_uiSelectionController to RenderLayerManager interactive API
+try {
+  if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
+    const selectionAdapter = {
+      hitTest: (pointer) => {
+        try {
+          // Selection box typically uses world coords when available
+          const pos = pointer.world || pointer.screen;
+          // If selection controller has a hitTest, use it
+          if (g_uiSelectionController && typeof g_uiSelectionController.isPointerOverSelection === 'function') {
+            return g_uiSelectionController.isPointerOverSelection(pos.x, pos.y);
+          }
+          // Fallback: always allow selection to start
+          return true;
+        } catch (e) { return false; }
+      },
+      onPointerDown: (pointer) => {
+        try {
+          const pos = pointer.world || pointer.screen;
+          if (g_uiSelectionController && typeof g_uiSelectionController.handleMousePressed === 'function') {
+            g_uiSelectionController.handleMousePressed(pos.x, pos.y, pointer.button || 0);
+            return true;
+          }
+        } catch (e) {}
+        return false;
+      },
+      onPointerMove: (pointer) => {
+        try {
+          const pos = pointer.world || pointer.screen;
+          if (g_uiSelectionController && typeof g_uiSelectionController.handleMouseDrag === 'function') {
+            // Provide dx/dy if available
+            const dx = (pointer.dx !== undefined) ? pointer.dx : 0;
+            const dy = (pointer.dy !== undefined) ? pointer.dy : 0;
+            g_uiSelectionController.handleMouseDrag(pos.x, pos.y, dx, dy);
+          }
+        } catch (e) {}
+        return false;
+      },
+      onPointerUp: (pointer) => {
+        try {
+          const pos = pointer.world || pointer.screen;
+          if (g_uiSelectionController && typeof g_uiSelectionController.handleMouseReleased === 'function') {
+            g_uiSelectionController.handleMouseReleased(pos.x, pos.y, pointer.button || 0);
+            return true;
+          }
+        } catch (e) {}
+        return false;
+      },
+      update: (pointer) => {
+        try {
+          // allow controller per-frame updates if defined
+          if (g_uiSelectionController && typeof g_uiSelectionController.update === 'function') {
+            g_uiSelectionController.update();
+          }
+        } catch (e) {}
+      },
+      render: (gameState, pointer) => {
+        try {
+          // The selection controller typically renders on the effects layer; register there if available
+          if (typeof g_uiSelectionController !== 'undefined' && g_uiSelectionController && typeof g_uiSelectionController.render === 'function') {
+            g_uiSelectionController.render();
+          }
+        } catch (e) {}
+      }
+    };
+
+    // Prefer Effects layer if present, otherwise UI_GAME
+    const targetLayer = (RenderManager.layers && RenderManager.layers.EFFECTS) ? RenderManager.layers.EFFECTS : RenderManager.layers.UI_GAME;
+    RenderManager.addInteractiveDrawable(targetLayer, selectionAdapter);
+  }
+} catch (e) {
+  console.warn('UISelectionBoxIntegration: failed to register selection adapter with RenderManager', e);
+}

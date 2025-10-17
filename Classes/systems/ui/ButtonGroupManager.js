@@ -13,6 +13,23 @@
  * ButtonGroupManager - Central coordinator for multiple button groups
  * Handles JSON configuration, lifecycle management, and interaction coordination
  */
+/**
+ * NOTE: This file now includes a small, non-invasive interactive adapter
+ * wrapper that allows the ButtonGroupManager to register itself with the
+ * central `RenderManager` as an interactive drawable. The wrapper is kept
+ * inside this class to make migration simple and to avoid scattering
+ * adapter files across the repo. The adapter delegates to existing
+ * public APIs on this manager (handleClick, update, render) and provides
+ * the minimal contract required by RenderManager: hitTest, onPointerDown,
+ * onPointerMove, onPointerUp, update, render.
+ *
+ * Why this approach?
+ * - Keeps the adapter colocated with the implementation it wraps.
+ * - Minimizes risk during incremental migration (no changes to button
+ *   group internals required).
+ * - Keeps the runtime API simple: call `buttonGroupManager.registerAsInteractive()`
+ *   (or the manager will auto-register itself during initialize()).
+ */
 class ButtonGroupManager {
   /**
    * Creates a new ButtonGroupManager instance
@@ -97,6 +114,66 @@ class ButtonGroupManager {
 
       this.isInitialized = true;
       this.performanceMetrics.totalGroups = this.activeGroups.size;
+
+      // Auto-register a minimal interactive adapter with RenderManager so
+      // the ButtonGroupManager can receive pointer events via the central
+      // interactive system without changing existing APIs. The adapter is
+      // intentionally small: it implements hitTest and pointer handlers and
+      // delegates to public methods on this manager.
+      try {
+        if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
+          const adapter = {
+            hitTest: (pointer) => {
+              try {
+                // Prefer world coordinates when available (pointer.world), fall back to screen
+                const x = pointer.world ? pointer.world.x : pointer.screen.x;
+                const y = pointer.world ? pointer.world.y : pointer.screen.y;
+                // Check visible groups for bounds
+                const groups = this.getAllActiveGroups();
+                for (let i = groups.length - 1; i >= 0; i--) {
+                  const g = groups[i];
+                  if (typeof g.isPointInBounds === 'function' && g.isPointInBounds(x, y)) return true;
+                }
+              } catch (e) { /* ignore */ }
+              return false;
+            },
+            onPointerDown: (pointer) => {
+              try {
+                const x = pointer.world ? pointer.world.x : pointer.screen.x;
+                const y = pointer.world ? pointer.world.y : pointer.screen.y;
+                return !!this.handleClick(x, y);
+              } catch (e) { return false; }
+            },
+            onPointerMove: (pointer) => {
+              try {
+                const x = pointer.world ? pointer.world.x : pointer.screen.x;
+                const y = pointer.world ? pointer.world.y : pointer.screen.y;
+                if (typeof this.update === 'function') this.update(x, y, pointer.isPressed === true);
+                return false;
+              } catch (e) { return false; }
+            },
+            onPointerUp: (pointer) => {
+              // Nothing special to do here; return false to allow fallthrough
+              return false;
+            },
+            update: (pointer) => {
+              try {
+                const x = pointer.world ? pointer.world.x : pointer.screen.x;
+                const y = pointer.world ? pointer.world.y : pointer.screen.y;
+                if (typeof this.update === 'function') this.update(x, y, pointer.isPressed === true);
+              } catch (e) {}
+            },
+            render: (gameState, pointer) => {
+              try {
+                if (typeof this.render === 'function') this.render({ gameState: gameState, layerName: RenderManager.layers.UI_GAME });
+              } catch (e) {}
+            }
+          };
+          RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, adapter);
+        }
+      } catch (e) {
+        console.warn('ButtonGroupManager: failed to auto-register interactive adapter', e);
+      }
 
       return results;
     } catch (error) {
