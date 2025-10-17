@@ -145,10 +145,10 @@ class PheromoneGrid {
             // get vonNeumann-neighbors, ensure in-bounds (performed after: at worst sizeOfGrid(n+1)~n^2+2n+1 checks, sizeOfGrid(n+1)-sizeOfGrid(n) removes) VS: (performed during: 4*sizeOfGrid(n)~4n^2 checks, ...)
             for (pos in this._leftSet) { 
                 // Up,Down,Left,Right neighbors:
-                let up = new Pos(pos.x,pos.y+1);
-                let down = new Pos(pos.x,pos.y-1);
-                let left = new Pos(pos.x-1,pos.y);
-                let right = new Pos(pos.x+1,pos.y);
+                let up = new hashmapPosition(pos.x,pos.y+1);
+                let down = new hashmapPosition(pos.x,pos.y-1);
+                let left = new hashmapPosition(pos.x-1,pos.y);
+                let right = new hashmapPosition(pos.x+1,pos.y);
                 
                 initTargets.add(up);
                 initTargets.add(down);
@@ -232,21 +232,6 @@ class PheromoneGrid {
 
                 // Store diffused on right grid.
                 this.set([pos.x,pos.y],diffusedPher,!selLeft);
-
-                
-                // let targetCell = this.get([pos.x,pos.y],selLeft); // Primary target
-                // let neighborCells = [ // Up,Down,Left,Right - NEEDS OOB PROT.
-                //     this.get([pos.x,pos.y+1],selLeft),
-                //     this.get([pos.x,pos.y-1],selLeft),
-                //     this.get([pos.x-1,pos.y],selLeft),
-                //     this.get([pos.x+1,pos.y],selLeft),
-                // ]; // Copies, once a pheromone type has diffused, remove.
-
-                // Diffuse targetCell contents...
-                // ...
-
-                // Diffuse remaining neighbors...
-                // ...
             }
 
             return;
@@ -256,11 +241,27 @@ class PheromoneGrid {
     swapSelGrid() {
         this._selLeft = !this._selLeft;
     }
+
+    //// Rendering:
+    render(renderConversion) {
+        let cullArea = renderConversion.getPosSpan(); // Get area to render
+        cullArea[0][0] = floor(cullArea[0][0]) - 1;
+        cullArea[0][1] = floor(cullArea[0][1])+1;
+        cullArea[1][0] = floor(cullArea[1][0])+1;
+        cullArea[1][1] = floor(cullArea[1][1]) - 1;
+            
+ 
+        for (let y = cullArea[0][1]; y >= cullArea[1][1]; --y) {
+            for (let x = cullArea[0][0]; x <= cullArea[1][0]; ++x) {
+                // ...
+            }
+        }
+    }
 }
 
 
 
-class Pos { // Helper object to store in set. NO OTHER USES
+class hashmapPosition { // Helper object to store in set. NO OTHER USES
     constructor(x,y) {
         this.x = x; this.y = y;
     }
@@ -277,10 +278,11 @@ class Pheromone {
         this.initial = initial; // Initial strength
 
         this.rate = rate;
+        this.evaporate = evaporate;
     }
 
     toString() {
-        return this.type+":"+this.strength+'/'+this.initial;
+        return this.type+":"+this.strength+'/'+this.initial+'';
     }
 }
 
@@ -288,7 +290,7 @@ class Pheromone {
 //// Testing funcs
 function testSets() {
     let temp = new Set();
-    let key = new Pos(2,5);
+    let key = new hashmapPosition(2,5);
     
     temp.add(key);
 
