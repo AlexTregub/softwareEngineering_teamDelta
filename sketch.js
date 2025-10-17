@@ -151,7 +151,18 @@ function draw() {
   // Draw dropoff UI (button, placement preview) after other UI elements
   if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
     window.drawDropoffUI();
-      // Render debug visualization for ant gathering (overlays on top)
+  }
+  
+  // Render Enemy Ant Brush (on top of other UI elements)
+  if (window.g_enemyAntBrush) {
+    try {
+      window.g_enemyAntBrush.render();
+    } catch (error) {
+      console.error('❌ Error rendering enemy ant brush:', error);
+    }
+  }
+  
+  // Render debug visualization for ant gathering (overlays on top)
   if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
     g_gatherDebugRenderer.render();
   }
@@ -162,8 +173,15 @@ function draw() {
     } catch (error) {
       console.error('❌ Error updating button group system:', error);
     }
+  }
 
-    
+  // Update Enemy Ant Brush
+  if (window.g_enemyAntBrush) {
+    try {
+      window.g_enemyAntBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating enemy ant brush:', error);
+    }
   }
 
   if (GameState.getState() === 'PLAYING') {
@@ -175,8 +193,7 @@ function draw() {
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
     }
-  }}
-
+  }
 
   // Note: rendering of draggable panels is handled via RenderManager's
   // ui_game layer (DraggablePanelManager integrates into the render layer).
@@ -208,7 +225,7 @@ function handleMouseEvent(type, ...args) {
  */
 function mousePressed() {
   // Handle UI Debug Manager mouse events first
-  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
     const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
     if (handled) return;
   }
@@ -235,12 +252,23 @@ function mousePressed() {
     }
   }
 
+  // Handle Enemy Ant Brush events
+  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling enemy ant brush events:', error);
+    }
+  }
+
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
 function mouseDragged() {
   // Handle UI Debug Manager drag events
-  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
   handleMouseEvent('handleMouseDragged', mouseX, mouseY);
@@ -248,9 +276,20 @@ function mouseDragged() {
 
 function mouseReleased() {
   // Handle UI Debug Manager release events
-  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
   }
+  
+  // Handle Enemy Ant Brush release events
+  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling enemy ant brush release events:', error);
+    }
+  }
+  
   handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
 }
 

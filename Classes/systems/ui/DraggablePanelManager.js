@@ -139,6 +139,11 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.DANGER, backgroundColor: '#FF8500', color: '#FFFFFF' }
           },
           {
+            caption: 'Paint Brush',
+            onClick: () => this.toggleEnemyBrush(),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
+          },
+          {
             caption: 'Kill 1 Ant',
             onClick: () => this.killAnts(1),
             style: ButtonStyles.DANGER
@@ -974,6 +979,49 @@ class DraggablePanelManager {
     }
     
     console.warn(`⚠️ Could not spawn ${count} enemy ant(s) - no compatible ant system found`);
+  }
+
+  /**
+   * Toggle the enemy ant paint brush tool
+   */
+  toggleEnemyBrush() {
+    // Initialize brush if not already done
+    if (typeof g_enemyAntBrush === 'undefined' || !g_enemyAntBrush) {
+      if (typeof initializeEnemyAntBrush === 'function') {
+        window.g_enemyAntBrush = initializeEnemyAntBrush();
+      } else {
+        console.warn('⚠️ Enemy Ant Brush system not available');
+        return;
+      }
+    }
+    
+    // Toggle the brush
+    const isActive = g_enemyAntBrush.toggle();
+    
+    // Update button text to reflect current state
+    const button = this.findButtonByCaption('Paint Brush');
+    if (button) {
+      button.caption = isActive ? 'Brush: ON' : 'Paint Brush';
+      button.style.backgroundColor = isActive ? '#32CD32' : '#FF4500'; // Green when active, orange when inactive
+    }
+    
+    console.log(`🎨 Enemy Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
+  }
+
+  /**
+   * Helper method to find button by caption
+   * @param {string} caption - Button caption to search for
+   * @returns {Object|null} Button object or null if not found
+   */
+  findButtonByCaption(caption) {
+    // Search through all panels and their buttons
+    for (const panel of this.panels.values()) {
+      if (panel.buttons && panel.buttons.items) {
+        const button = panel.buttons.items.find(btn => btn.caption === caption || btn.caption.includes('Paint Brush') || btn.caption.includes('Brush:'));
+        if (button) return button;
+      }
+    }
+    return null;
   }
   
   /**

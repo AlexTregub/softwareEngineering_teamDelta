@@ -756,6 +756,13 @@ function assignJob() {
 function spawnQueen(){
   let JobName = 'Queen'
   let sizeR = random(0, 15);
+  
+  // Ensure queenSize is initialized, fallback to default if not
+  if (typeof queenSize === 'undefined' || !queenSize) {
+    queenSize = createVector(30, 30);
+    console.warn('⚠️ queenSize was undefined, using fallback values');
+  }
+  
   let newAnt = new ant(
     random(0, 500), random(0, 500), 
     queenSize.x + sizeR, 
