@@ -41,21 +41,21 @@ class PheromoneGrid {
         }
     }
 
-    //// Access: (defaults on selected grid)
-    get(pos,selLeft=this._selLeft) { // Gets raw pheromone array at position
+    //// Access: (defaults on selected grid) BASED ON ARRAY NOT ON Pos class.
+    get(posArr,selLeft=this._selLeft) { // Gets raw pheromone array at position
         if (selLeft) {
-            return this._left.get(pos); 
+            return this._left.get(posArr); 
         }
 
-        return this._right.get(pos);
+        return this._right.get(posArr);
     }
 
-    push(pos,pheromone,selLeft=this._selLeft) { // Merges ONE pheromone into cell
+    push(posArr,pheromone,selLeft=this._selLeft) { // Merges ONE pheromone into cell
         // ENSURE MERGE LOGIC IS THE SAME IN BOTH...
         if (selLeft) {
-            if (this._leftSet.has(pos)) { // If exists, merge...
+            if (this._leftSet.has(posArr)) { // If exists, merge...
                 // Key exists...
-                let gridAccessPos = this._left.convToFlat(this._left.convPosToArr(pos));
+                let gridAccessPos = this._left.convToFlat(this._left.convPosToArr(posArr));
                 let length = this._left.rawArray[gridAccessPos].length;
 
                 for (let i = 0; i < length; ++i) { // Check for matching type, merge if needed and early exit.
@@ -73,17 +73,17 @@ class PheromoneGrid {
                 // Type not exist in cell
                 this._left.rawArray[gridAccessPos].push(pheromone);
             } else { // Easy set...
-                this._left.set(pos,[pheromone]);
-                this._leftSet.add(pos);
+                this._left.set(posArr,[pheromone]);
+                this._leftSet.add(posArr);
             }
 
             return;
         }
 
         // selRight
-        if (this._rightSet.has(pos)) { // If exists, merge...
+        if (this._rightSet.has(posArr)) { // If exists, merge...
             // Key exists...
-            let gridAccessPos = this._right.convToFlat(this._right.convPosToArr(pos));
+            let gridAccessPos = this._right.convToFlat(this._right.convPosToArr(posArr));
             let length = this._right.rawArray[gridAccessPos].length;
 
             for (let i = 0; i < length; ++i) { // Check for matching type, merge if needed and early exit.
@@ -101,47 +101,75 @@ class PheromoneGrid {
             // Type not exist in cell, add
             this._right.rawArray[gridAccessPos].push(pheromone);
         } else { // Easy set...
-            this._right.set(pos,[pheromone]);
-            this._rightSet.add(pos);
+            this._right.set(posArr,[pheromone]);
+            this._rightSet.add(posArr);
         }
     }
 
-    set(pos,pheromoneArray,selLeft=this._selLeft) { // ...,  selGet=this._selLeft,selPut=this._selLeft) { // OVERWRITE pheromone array
+    set(posArr,pheromoneArray,selLeft=this._selLeft) { // ...,  selGet=this._selLeft,selPut=this._selLeft) { // OVERWRITE pheromone array
         if (selLeft) {
-            this._left.set(pos,pheromoneArray); // Grid Update
+            this._left.set(posArr,pheromoneArray); // Grid Update
             
             if (pheromoneArray.length == 0) { // If setting to empty...
-                this._leftSet.delete(pos);
+                this._leftSet.delete(posArr);
             } else {
-                this._leftSet.add(pos);
+                this._leftSet.add(posArr);
             }
 
             return;
         }
-        this._right.set(pos,pheromoneArray); // Grid Update
+        this._right.set(posArr,pheromoneArray); // Grid Update
             
         if (pheromoneArray.length == 0) { // If setting to empty...
-            this._rightSet.delete(pos);
+            this._rightSet.delete(posArr);
         } else {
-            this._rightSet.add(pos);
+            this._rightSet.add(posArr);
         }
 
         return;
     }
 
-    wash(pos,selLeft=this._selLeft) { // Clear pheromones from cell.
-        this.set(pos,[],selLeft);
+    wash(posArr,selLeft=this._selLeft) { // Clear pheromones from cell.
+        this.set(posArr,[],selLeft);
     }
 
     //// Diffusion:
     diffuse(selLeft=this._selLeft) { // Will diffuse grid in selLeft -> !selleft. DOES NOT UPDATE _selLeft
         if (selLeft) { // Left grid -> right grid
-            // Clear right grid:
+            // Clear right grid
             this._rightSet.clear();
             this.initSelGrid(!selLeft);
 
-            // Update cells
-            // ...
+            // Update cells - Will need to first get 1-step neighbors, then update ONLY those cells. Operating on _leftSet
+            let initTargets = new Set();
+            // get vonNeumann-neighbors, ensure in-bounds (performed after: at worst sizeOfGrid(n+1)~n^2+2n+1 checks, sizeOfGrid(n+1)-sizeOfGrid(n) removes) VS: (performed during: 4*sizeOfGrid(n)~4n^2 checks, ...)
+            for (pos in this._leftSet) { 
+                // Up,Down,Left,Right neighbors:
+                let up = new Pos(pos.x,pos.y+1);
+                let down = new Pos(pos.x,pos.y-1);
+                let left = new Pos(pos.x-1,pos.y);
+                let right = new Pos(pos.x+1,pos.y);
+                
+                initTargets.add(up);
+                initTargets.add(down);
+                initTargets.add(left);
+                initTargets.add(right);
+            }
+
+            // Drop OOB - increase mem cost temporarily to potentially save on compute
+            let targets = new Set();
+            for (pos in initTargets) {
+                if (pos.x >= this._left._spanTopLeft[0] && pos.x < this._left._spanBotRight[0]
+                    && pos.y >= this._left._spanTopLeft[1] && pos.y < this._left._spanBotRight[1]
+                ) {
+                    targets.add(pos);
+                }
+            }
+
+            // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _right.
+            for (pos in targets) {
+                // ...
+            }
 
             return;
         }
@@ -154,7 +182,7 @@ class PheromoneGrid {
 
 
 
-class Pos { // Helper object to store in set
+class Pos { // Helper object to store in set. NO OTHER USES
     constructor(x,y) {
         this.x = x; this.y = y;
     }
