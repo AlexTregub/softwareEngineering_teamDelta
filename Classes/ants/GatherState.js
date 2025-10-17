@@ -48,7 +48,7 @@ class GatherState {
     this.debugEnabled = false; // Temporarily enable debug for testing
     this.lastScanResults = 0;
     
-    console.log(`🔍 GatherState initialized for ant - radius: ${this.gatherRadius} tiles (${this.pixelRadius}px)`);
+    logVerbose(`🔍 GatherState initialized for ant - radius: ${this.gatherRadius} tiles (${this.pixelRadius}px)`);
   }
 
   /**

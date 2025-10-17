@@ -84,7 +84,7 @@ function stopConsoleCapture() {
 // Convenience: one-off capture function that preserves original behavior
 function captureConsoleOutput(...args) {
   // Mirror to real console first
-  try { _originalConsole.log.apply(console, args); } catch (e) { /* ignore */ }
+  //try { _originalConsole.log.apply(console, args); } catch (e) { /* ignore */ }
 
   // Capture if active
   if (commandLineActive) {
@@ -319,7 +319,7 @@ function handleSpawnCommand(args) {
   const type = args[1] || 'ant';
   const faction = args[2] || 'neutral';
   if (count < 1 || count > 5000) { console.log("❌ Spawn count must be between 1 and 5000"); return; }
-  console.log(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
+  verboseLog(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
   const startingCount = antIndex;
   for (let i = 0; i < count; i++) {
     try {
@@ -342,7 +342,7 @@ function handleSpawnCommand(args) {
     } catch (error) { console.log(`❌ Error creating ant ${i + 1}: ${error.message}`); }
   }
   const actualSpawned = ants.length - startingCount;
-  console.log(`✅ Spawned ${actualSpawned} ants. Total ants: ${ants.length}`);
+  verboseLog(`✅ Spawned ${actualSpawned} ants. Total ants: ${ants.length}`);
   if (g_selectionBoxController) g_selectionBoxController.entities = ants;
 }
 

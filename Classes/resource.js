@@ -489,7 +489,7 @@ class Resource extends Entity {
     if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
         this.highlight.hover();
     } else {
-      verboseLog("No hover effect available");
+      logVerbose("No hover effect available");
     }
   }
 

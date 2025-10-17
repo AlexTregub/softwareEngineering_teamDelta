@@ -713,7 +713,7 @@ class camRenderConverter {
     alignToCanvas() {
         ++this._updateId;
         let alignPos = this.convCanvasToPos([0,0]); // Fixed reference
-         console.log(alignPos);
+         logVerbose(alignPos);
 
         let alignOffsetX = floor(alignPos[0]) - alignPos[0];
         let alignOffsetY = floor(alignPos[1]) - alignPos[1];

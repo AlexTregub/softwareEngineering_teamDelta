@@ -85,7 +85,7 @@ class CameraManager {
     // Clamp to bounds if map dimensions are available (safe-guarded inside clampToBounds)
     try { this.clampToBounds(); } catch (e) { /* ignore if clamp depends on uninitialized systems */ }
 
-    console.log('CameraManager initialized', { cameraX: this.cameraX, cameraY: this.cameraY, canvasWidth: this.canvasWidth, canvasHeight: this.canvasHeight });
+    logVerbose('CameraManager initialized', { cameraX: this.cameraX, cameraY: this.cameraY, canvasWidth: this.canvasWidth, canvasHeight: this.canvasHeight });
 
     // If the terrain exists at initialization time, sync its camera position so the render
     // converter and CameraManager agree. Convert camera pixel center to tile coordinates.

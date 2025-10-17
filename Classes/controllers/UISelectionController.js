@@ -17,7 +17,7 @@ class UISelectionController {
       enableSelection: true,
       selectionColor: [0, 200, 255], // Cyan
       strokeWidth: 2,
-      fillAlpha: 125,
+      fillAlpha: 50,
       minSelectionSize: 10, // Minimum selection box size
       fillInside: true
     };
@@ -31,11 +31,12 @@ class UISelectionController {
     };
     
     this._entities = entities || [];
+    this.selectableEntities = entities || [];
 
     this._isSelecting = false;
     this._selectionStart = null;
     this._selectionEnd = null;
-    this._selectedEntities = [];7
+    this._selectedEntities = [];
     
     this.setupMouseHandlers();
   }
@@ -83,7 +84,7 @@ class UISelectionController {
     var clicked = false;
     for (var i = 0; i < this._entities.length; i++) {
       var entity = this._entities[i];
-      if (SelectionBoxController.isEntityUnderMouse(entity, x, y)) {
+      if (this.isEntityUnderMouse(entity, x, y)) {
         this.deselectAll();
         entity.isSelected = true;
         this._selectedEntities = [entity];
@@ -121,20 +122,32 @@ class UISelectionController {
     // Start selection if drag threshold exceeded
     if (!this.isSelecting && dragDistance >= this.dragThreshold) {
       this.startSelection(this.dragStartPos.x, this.dragStartPos.y);
+    }
+    
+    // Update selection if active
+    if (this._isSelecting && this._selectionStart) {
       this._selectionEnd = createVector(x + cameraX, y + cameraY);
       var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
       var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
       var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
       for (var i = 0; i < this._entities.length; i++) {
-        this._entities[i].isBoxHovered = SelectionBoxController.isEntityInBox(this._entities[i], x1, x2, y1, y2);
+        this._entities[i].isBoxHovered = this.isEntityInBox(this._entities[i], x1, x2, y1, y2);
+      }
+      
+      // Also update effects renderer if available
+      if (this.effectsRenderer) {
+        this.effectsRenderer.updateSelectionBox(x, y);
       }
     }
-    
-    // Update selection if active
-    if (this.isSelecting) {
-      this.updateSelection(x, y);
-    }
   }
+
+  isEntityInBox (entity, x1, x2, y1, y2) {
+    var pos = (entity && typeof entity.getPosition === 'function') ? entity.getPosition() : (entity && entity.sprite && entity.sprite.pos) || { x: (entity && entity.posX) || 0, y: (entity && entity.posY) || 0 };
+    var size = (entity && typeof entity.getSize === 'function') ? entity.getSize() : (entity && entity.sprite && entity.sprite.size) || { x: (entity && entity.sizeX) || 0, y: (entity && entity.sizeY) || 0 };
+    var cx = pos.x + size.x / 2;
+    var cy = pos.y + size.y / 2;
+    return (cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2);
+  };
 
   deselectAll() {
     for (var i = 0; i < this._selectedEntities.length; i++) {
@@ -159,9 +172,34 @@ class UISelectionController {
   handleMouseReleased(x, y, button) {
     if (!this.config.enableSelection) return;
     
-    if (this.isSelecting) {
-      // End selection
-      this.endSelection(x, y);
+    if (this._isSelecting) {
+      // End selection using SelectionBoxController logic
+      this._selectedEntities = [];
+      var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
+      var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
+      var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
+      var dragDistance = dist(x1, y1, x2, y2);
+      if (dragDistance >= 5) {
+        for (var i = 0; i < this._entities.length; i++) {
+          var e = this._entities[i];
+          e.isSelected = this.isEntityInBox(e, x1, x2, y1, y2);
+          e.isBoxHovered = false;
+          if (e.isSelected) this._selectedEntities.push(e);
+        }
+      }
+      this._isSelecting = false;
+      this._selectionStart = null;
+      this._selectionEnd = null;
+      
+      // Also end effects renderer selection if available
+      if (this.effectsRenderer) {
+        this.effectsRenderer.endSelectionBox();
+      }
+      
+      // Call end callback
+      if (this.callbacks.onSelectionEnd) {
+        this.callbacks.onSelectionEnd({x1, y1, x2, y2}, this._selectedEntities);
+      }
     } else if (this.dragStartPos) {
       // Handle single click (no drag occurred)
       this.handleSingleClick(x, y, button);
@@ -179,21 +217,24 @@ class UISelectionController {
    */
   startSelection(x, y) {
     this.isSelecting = true;
+    this._isSelecting = true;
+    this._selectionStart = createVector(x + cameraX, y + cameraY);
+    this._selectionEnd = this._selectionStart.copy();
     
-    if (!this.effectsRenderer) return;
-    
-    // Configure effects renderer selection box
-    this.effectsRenderer.setSelectionEntities(this.selectableEntities);
-    
-    // Start selection box in effects renderer
-    this.effectsRenderer.startSelectionBox(x, y, {
-      color: this.config.selectionColor,
-      strokeWidth: this.config.strokeWidth,
-      fillAlpha: this.config.fillAlpha,
-      onStart: this.callbacks.onSelectionStart,
-      onUpdate: this.callbacks.onSelectionUpdate,
-      onEnd: null // We'll handle this manually
-    });
+    if (this.effectsRenderer) {
+      // Configure effects renderer selection box
+      this.effectsRenderer.setSelectionEntities(this.selectableEntities);
+      
+      // Start selection box in effects renderer
+      this.effectsRenderer.startSelectionBox(x, y, {
+        color: this.config.selectionColor,
+        strokeWidth: this.config.strokeWidth,
+        fillAlpha: this.config.fillAlpha,
+        onStart: this.callbacks.onSelectionStart,
+        onUpdate: this.callbacks.onSelectionUpdate,
+        onEnd: null // We'll handle this manually
+      });
+    }
     
     // Call start callback
     if (this.callbacks.onSelectionStart) {
@@ -262,12 +303,36 @@ class UISelectionController {
     
     // Default single click behavior: select/deselect single entity
     if (clickedEntity) {
+      // Clear previous selections
       this.selectedEntities = [clickedEntity];
+      
+      // Activate entity selection if it has selection methods
+      if (clickedEntity.isSelected !== undefined) {
+        clickedEntity.isSelected = true;
+      }
+      if (typeof clickedEntity.onSelected === 'function') {
+        clickedEntity.onSelected();
+      }
     } else {
       this.selectedEntities = [];
     }
   }
   
+  /**
+   * Get entity under mouse cursor (using SelectionBoxController logic)
+   * @param {Object} entity - Entity to check
+   * @param {number} mx - Mouse X position
+   * @param {number} my - Mouse Y position
+   * @returns {boolean} True if entity is under mouse
+   * @private
+   */
+  isEntityUnderMouse(entity, mx, my) {
+    if (entity && typeof entity.isMouseOver === 'function') return entity.isMouseOver(mx, my);
+    var pos = (entity && typeof entity.getPosition === 'function') ? entity.getPosition() : (entity && entity.sprite && entity.sprite.pos) || { x: (entity && entity.posX) || 0, y: (entity && entity.posY) || 0 };
+    var size = (entity && typeof entity.getSize === 'function') ? entity.getSize() : (entity && entity.sprite && entity.sprite.size) || { x: (entity && entity.sizeX) || 0, y: (entity && entity.sizeY) || 0 };
+    return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
+  }
+
   /**
    * Get entity under mouse cursor
    * @param {number} x - Mouse X position
@@ -276,8 +341,10 @@ class UISelectionController {
    * @private
    */
   getEntityUnderMouse(x, y) {
+    if (!this.selectableEntities) return null;
+    
     for (const entity of this.selectableEntities) {
-      if (this.isPointInEntity(x, y, entity)) {
+      if (this.isEntityUnderMouse(entity, x, y)) {
         return entity;
       }
     }
@@ -321,19 +388,19 @@ class UISelectionController {
   }
   
   /**
-   * Get currently selected entities
+   * Get currently selected entities (using internal _selectedEntities)
    * @returns {Array} Array of selected entities
    */
   getSelectedEntities() {
-    return [...this.selectedEntities];
+    return Array.isArray(this._selectedEntities) ? this._selectedEntities.slice() : [];
   }
   
   /**
    * Clear current selection
    */
   clearSelection() {
-    this.selectedEntities = [];
-    if (this.effectsRenderer && this.effectsRenderer.selectionBox.active) {
+    this.deselectAll();
+    if (this.effectsRenderer && this.effectsRenderer.selectionBox && this.effectsRenderer.selectionBox.active) {
       this.effectsRenderer.cancelSelectionBox();
     }
     return this;
@@ -390,12 +457,62 @@ class UISelectionController {
   getDebugInfo() {
     return {
       isSelecting: this.isSelecting,
-      selectedEntitiesCount: this.selectedEntities.length,
+      selectedEntitiesCount: this._selectedEntities.length,
       selectableEntitiesCount: this.selectableEntities.length,
       config: { ...this.config },
       hasEffectsRenderer: !!this.effectsRenderer,
       hasMouseController: !!this.mouseController
     };
+  }
+
+  /**
+   * Draw selection box and debug info (transferred from SelectionBoxController)
+   */
+  draw() {
+    // Draw selection box
+    if (this._isSelecting && this._selectionStart && this._selectionEnd) {
+      push();
+      stroke(0, 200, 255);
+      noFill();
+      rect(this._selectionStart.x, this._selectionStart.y, this._selectionEnd.x - this._selectionStart.x, this._selectionEnd.y - this._selectionStart.y);
+      pop();
+    }
+
+    // Draw debug info for selected entities
+    if (typeof devConsoleEnabled !== 'undefined' && devConsoleEnabled) {
+      for (var i = 0; i < this._selectedEntities.length; i++) {
+        var entity = this._selectedEntities[i];
+        try {
+          if (entity && typeof entity.getController === 'function') {
+            var rc = entity.getController('render');
+            if (rc && typeof rc.renderDebugInfo === 'function') {
+              rc.renderDebugInfo();
+              continue;
+            }
+          }
+
+          if (typeof DebugRenderer !== 'undefined' && DebugRenderer && typeof DebugRenderer.renderEntityDebug === 'function') {
+            DebugRenderer.renderEntityDebug(entity);
+            continue;
+          }
+
+          var posX = (entity && (entity.posX || entity.x)) || (entity.getPosition && entity.getPosition().x) || 0;
+          var posY = (entity && (entity.posY || entity.y)) || (entity.getPosition && entity.getPosition().y) || 0;
+          push();
+          fill(0, 0, 0, 150);
+          noStroke();
+          rect(posX, posY + 20, 120, 60);
+          fill(255);
+          textSize(8);
+          textAlign(LEFT, TOP);
+          text('ID: ' + (entity && (entity._antIndex || 'unknown')), posX + 2, posY + 24);
+          text('Pos: (' + Math.round(posX) + ', ' + Math.round(posY) + ')', posX + 2, posY + 34);
+          pop();
+        } catch (err) {
+          console.warn('UISelectionController debug render failed for entity', entity, err);
+        }
+      }
+    }
   }
 }
 

@@ -105,7 +105,6 @@ class Entity {
       'movement': typeof MovementController !== 'undefined' ? MovementController : null,
       'render': typeof RenderController !== 'undefined' ? RenderController : null,
       'selection': typeof SelectionController !== 'undefined' ? SelectionController : null,
-      'interaction': typeof InteractionController !== 'undefined' ? InteractionController : null,
       'combat': typeof CombatController !== 'undefined' ? CombatController : null,
       'terrain': typeof TerrainController !== 'undefined' ? TerrainController : null,
       'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null,

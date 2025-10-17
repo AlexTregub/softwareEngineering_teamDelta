@@ -83,11 +83,11 @@ function initializeAntControlPanel() {
         if (typeof globalThis.logVerbose === 'function') {
           globalThis.logVerbose(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
         } else {
-          console.log(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
+          logVerbose(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
         }
         
         if (!isVisible) {
-          console.log('⚡ Panel was not visible, forcing visibility...');
+          logVerbose('⚡ Panel was not visible, forcing visibility...');
           showAntControlPanel();
         }
       }
@@ -365,11 +365,11 @@ function showAntControlPanel() {
     const panel = window.draggablePanelManager.getPanel('ant-control');
     if (panel && typeof panel.setVisible === 'function') {
       panel.setVisible(true);
-      console.log('👁️ Ant Control Panel is now visible');
+      verboseLog('👁️ Ant Control Panel is now visible');
     } else {
       // Fallback method if setVisible doesn't exist
       window.draggablePanelManager.showPanel('ant-control');
-      console.log('👁️ Ant Control Panel shown via showPanel');
+      verboseLog('👁️ Ant Control Panel shown via showPanel');
     }
   } else {
     console.error('❌ Cannot show panel - DraggablePanelManager or panel not available');

@@ -154,6 +154,7 @@ class RenderController {
    */
   render() {
     this._safeRender(() => {
+      push();
       // Set smoothing preference
       if (this._smoothing) {
         smooth();
@@ -186,6 +187,7 @@ class RenderController {
       if (this._smoothing) {
         smooth();
       }
+      pop();
     });
   }
 

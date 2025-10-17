@@ -45,7 +45,6 @@ class MouseInputController {
     this.dragHandlers.forEach(fn => fn(x, y, dx, dy));
     this.lastX = x;
     this.lastY = y;
-    g_selectionBoxController.draw()
   }
 
   handleMouseReleased(x, y, button) {
