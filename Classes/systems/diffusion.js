@@ -169,13 +169,78 @@ class PheromoneGrid {
             // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _right.
             // this._rightSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
             for (pos in this._rightSet) {
-                let targetCell = this.get([pos.x,pos.y],selLeft); // Primary target
-                let neighborCells = [ // Up,Down,Left,Right - NEEDS OOB PROT.
-                    this.get([pos.x,pos.y+1],selLeft),
+                // Collect all pheromones. Store as list of pheromonesTypeArrays of pheromone arrays.
+                let target = this.get([pos.x,pos.y],selLeft);
+                let vnNeighborhood = [
+                    target, // Target
+                    this.get([pos.x,pos.y+1],selLeft), // Up,down,left,right
                     this.get([pos.x,pos.y-1],selLeft),
                     this.get([pos.x-1,pos.y],selLeft),
-                    this.get([pos.x+1,pos.y],selLeft),
-                ]; // Copies, once a pheromone type has diffused, remove.
+                    this.get([pos.x+1,pos.y],selLeft)
+                ];
+
+                let pherTypeArrs = []; // Stores un-merged, typed pheromones
+                let pherTypes = new Map(); // Will store [type,index]
+                for (let i = 0; i < vnNeighborhood.length; ++i) { // Pher array access
+                    for (let j = 0; j < vnNeighborhood[i].length; ++j) { // Pher. access
+                        if (!pherTypes.has(vnNeighborhood[i][j].type)) {
+                            pherTypes.add([vnNeighborhood[i][j].type,pherTypeArrs.length]);
+                            pherTypeArrs.push([vnNeighborhood[i][j]]); // Push arr of 1 pher
+                        } else {
+                            pherTypeArrs[pherTypes.get(vnNeighborhood[i][j].type)].push(vnNeighborhood[i][j]); // Push pheromone to typeArrs at typePos
+                        }
+                    }
+                }
+
+                // Merge for target rate, stored initial stregnth calc - average value for stregnth
+                // VERIFY WHETHER CORRECT DIFFUSION EQUATION WILL BE USED. POTENTIALLY REDUNDANT TARGET VALUE AVERAGED.
+                let pherMerged = [];
+                for (let i = 0; i < pherTypeArrs.length; ++i) {
+                    let temp = new Pheromone(pherTypeArrs[i][0].type,0,0,0);
+                    for (let j = 0; j < pherTypeArrs[i].length; ++j) {
+                        temp.strength += pherTypeArrs[i][j].strength; // AVERAGED...
+                        temp.initial = Math.max(temp.initial,pherTypeArrs[i][j].initial);
+                        temp.rate += pherTypeArrs[i][j].rate; // AVERAGED
+                    }
+
+                    temp.strength /= pherTypeArrs[i].length;
+                    temp.rate /= pherTypeArrs[i].length;
+
+                    pherMerged.push(temp);
+                }
+
+                // Diffusion with target values
+                let diffusedPher = [];
+                for (let i = 0; i < target.length; ++i) {
+                    // (1-r)*TARGET + r*AVG
+                    let avgPher = pherTypeArrs[pherTypes.get(target[i].type)];
+                    let diffusedStr = (1-avgPher.rate)*target[i].strength + avgPher.rate*avgPher.strength;
+                    avgPher.strength = diffusedStr;
+
+                    diffusedPher.push(avgPher); // Diffused strength comp.
+
+                    pherTypes.delete(avgPher.type); // Remove from list to complete...
+                }
+
+                // For remaining... r*AVG
+                for (type in pherTypes) {
+                    let avgPher = pherTypeArrs[pherTypes.get(type)];
+                    avgPher.strength *= avgPher.rate;
+
+                    diffusedPher.push(avgPher);
+                }
+
+                // Store diffused on right grid.
+                this.set([pos.x,pos.y],diffusedPher,!selLeft);
+
+                
+                // let targetCell = this.get([pos.x,pos.y],selLeft); // Primary target
+                // let neighborCells = [ // Up,Down,Left,Right - NEEDS OOB PROT.
+                //     this.get([pos.x,pos.y+1],selLeft),
+                //     this.get([pos.x,pos.y-1],selLeft),
+                //     this.get([pos.x-1,pos.y],selLeft),
+                //     this.get([pos.x+1,pos.y],selLeft),
+                // ]; // Copies, once a pheromone type has diffused, remove.
 
                 // Diffuse targetCell contents...
                 // ...
@@ -206,10 +271,12 @@ class Pos { // Helper object to store in set. NO OTHER USES
 }
 
 class Pheromone {
-    constructor(type,strength,initial) {
+    constructor(type,strength,initial,rate) {
         this.type = type;
         this.strength = strength;
         this.initial = initial; // Initial strength
+
+        this.rate = rate;
     }
 
     toString() {
