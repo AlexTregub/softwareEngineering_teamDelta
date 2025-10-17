@@ -511,23 +511,28 @@ class ant extends Entity {
   _updateEnemyDetection() {
     // Check for enemies periodically
     if (frameCount - this._lastEnemyCheck > this._enemyCheckInterval) {
-      this.detectEnemies(); // This calls CombatController.detectEnemies()
+      // Use the combat controller's built-in update which detects enemies AND updates combat state
+      const combatController = this.getController('combat');
+      if (combatController && typeof combatController.update === 'function') {
+        combatController.update(); // This calls detectEnemies() and updateCombatState()
+        this._enemies = combatController.getNearbyEnemies() || [];
+      }
+      
       this._lastEnemyCheck = frameCount;
       
-      // Get enemies from combat controller
-      const combatController = this.getController('combat');
-      if (combatController) {
-        this._enemies = combatController.getNearbyEnemies() || [];
-        
-        // If in combat and have enemies, attack the nearest one
-        if (this._stateMachine && this._stateMachine.isInCombat() && this._enemies.length > 0) {
-          this._performCombatAttack();
-        }
+      // Only attack if we're actually in combat state and have enemies
+      if (this._stateMachine && this._stateMachine.isInCombat() && this._enemies.length > 0) {
+        this._performCombatAttack();
       }
     }
   }
   
   _performCombatAttack() {
+    // Safety check: Only attack if we're actually in combat state
+    if (!this._stateMachine || !this._stateMachine.isInCombat()) {
+      return; // Cannot attack if not in combat state
+    }
+    
     // Check if current target is still valid and in range
     if (this._combatTarget) {
       // Verify target is still alive and in enemy list
