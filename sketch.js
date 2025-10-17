@@ -116,12 +116,7 @@ function initializeWorld() {
  */
 
 function draw() {
-  background(0);
-  if (gridRecenters <= MAX_RECENTERS) {
-    g_map2.setGridToCenter()
-    gridRecenters++
-  }
-  
+  background(0);  
   if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
 
   updatePresentationPanels(GameState.getState());
@@ -132,22 +127,8 @@ function draw() {
   }
   RenderManager.render(GameState.getState());
 
-
-  // background(0);
-  // g_map2.renderDirect();
-
-  // Use the new layered rendering system
-  // Update legacy draggable panels BEFORE rendering so the render pipeline
-  // sees the latest panel positions (avoids a pre-update render that leaves
-  // a ghost image of the previous frame's positions).
-  if (GameState.getState() === 'PLAYING') {
-    try {
-      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
-        updateDraggablePanels();
-      }
-    } catch (error) {
-      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
-    }
+  if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+    updateDraggablePanels();
   }
 
   if (RenderManager && RenderManager.isInitialized) {
@@ -172,6 +153,7 @@ function draw() {
       console.error('❌ Error updating button group system:', error);
     }
 
+    
     
   }
 
@@ -200,20 +182,11 @@ function draw() {
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
     }
-  }}
-
-
-  // Note: rendering of draggable panels is handled via RenderManager's
-  // ui_game layer (DraggablePanelManager integrates into the render layer).
-  // We intentionally do NOT call renderDraggablePanels() here to avoid a
-  // second draw pass within the same frame which would leave a ghost of
-  // the pre-update positions.
-
-
+  }
+  }
 }
 
-/**
- * handleMouseEvent
+ /* handleMouseEvent
  * ----------------
  * Delegates mouse events to the mouse controller if the game is in an active state.
  * @param {string} type - The mouse event type (e.g., 'handleMousePressed').

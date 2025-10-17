@@ -402,7 +402,7 @@ class gridTerrain {
         const currentCanvasHeight = this._canvasSize[1];
         if (currentCanvasWidth !== this._cacheViewport.canvasSize[0] || 
             currentCanvasHeight !== this._cacheViewport.canvasSize[1]) {
-            console.log(`GridTerrain: Canvas size changed from ${this._cacheViewport.canvasSize[0]}x${this._cacheViewport.canvasSize[1]} to ${currentCanvasWidth}x${currentCanvasHeight}`);
+            verboseLog(`GridTerrain: Canvas size changed from ${this._cacheViewport.canvasSize[0]}x${this._cacheViewport.canvasSize[1]} to ${currentCanvasWidth}x${currentCanvasHeight}`);
             return true;
         }
         

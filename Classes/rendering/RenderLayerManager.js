@@ -203,6 +203,13 @@ class RenderLayerManager {
     this.applyZoom();
     g_map2.render();
     pop();
+
+    
+    // do not render the world until the grid has recentered
+    if (gridRecenters <= MAX_RECENTERS) {
+      g_map2.setGridToCenter()
+      gridRecenters++
+    }
     
   }
   /**

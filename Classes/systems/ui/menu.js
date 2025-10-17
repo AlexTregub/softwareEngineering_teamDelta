@@ -174,6 +174,7 @@ function updateMenu() {
       if (fadeComplete) {
         if (GameState.fadeDirection === "out") {
           // Fade-out done → switch state to PLAYING
+          gridRecenters = 0
           GameState.setState("PLAYING", true); // skip callbacks if needed
           GameState.startFadeTransition("in"); // start fade-in
         } else {
