@@ -5,6 +5,8 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
+let frameNum = 0;
+let temp;
 
 const NONE = '\0'; 
 
@@ -117,6 +119,14 @@ function setup() {
       console.log('window.EffectsRenderer object:', window.EffectsRenderer);
     }
   }, 200);
+
+  temp = new PheromoneGrid();
+  temp.set([0,0],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
+  // temp.set([0,0],[new Pheromone("Pain.",100,100,0.05,0.01)],false);
+  for (let i = -20; i < 20; ++i) {
+    temp.set([i,i],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
+    temp.set([-i,i],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
+  }
 }
 
 /**
@@ -137,7 +147,7 @@ function initializeWorld() {
   // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
-  g_map2.renderConversion._camPosition = [-0.5,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
+  g_map2.renderConversion._camPosition = [0,0]; // TEMPORARY, ALIGNING MAP WITH OTHER...
   
   // COORDSY = MAP.getCoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
@@ -166,6 +176,18 @@ function initializeWorld() {
  * interactive entities, and UI components. Called automatically by p5.js each frame.
  */
 function draw() {
+  ++frameNum;
+
+  // let moving = g_map2.renderConversion._camPosition;
+  // moving[0]-=0.02; moving[1]-= 0.02;
+  // g_map2.renderConversion._camPosition = moving;
+  // console.log(g_map2.renderConversion._camPosition);
+
+  if(frameNum % 120 == 0) {
+    temp.diffuse();
+    temp.swapSelGrid();
+  }
+  
   // background(0);
   // g_map2.renderDirect();
 
@@ -201,6 +223,8 @@ function draw() {
   // We intentionally do NOT call renderDraggablePanels() here to avoid a
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
+  
+  temp.render(g_map2.renderConversion);
 }
 
 /**

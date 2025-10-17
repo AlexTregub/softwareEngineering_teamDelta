@@ -44,6 +44,7 @@ class PheromoneGrid {
     //// Access: (defaults on selected grid) BASED ON ARRAY NOT ON Pos class.
     get(posArr,selLeft=this._selLeft) { // Gets raw pheromone array at position
         if (selLeft) {
+            // console.log(this._left.get(posArr));
             return this._left.get(posArr); 
         }
 
@@ -109,12 +110,17 @@ class PheromoneGrid {
     set(posArr,pheromoneArray,selLeft=this._selLeft) { // ...,  selGet=this._selLeft,selPut=this._selLeft) { // OVERWRITE pheromone array
         if (selLeft) {
             this._left.set(posArr,pheromoneArray); // Grid Update
+            console.log(pheromoneArray);
+            console.log(this._left.get(posArr));
             
             if (pheromoneArray.length == 0) { // If setting to empty...
                 this._leftSet.delete(posArr);
             } else {
                 this._leftSet.add(posArr);
             }
+
+            console.log(pheromoneArray);
+            console.log(this._left.get(posArr));
 
             return;
         }
@@ -196,7 +202,7 @@ class PheromoneGrid {
                 // VERIFY WHETHER CORRECT DIFFUSION EQUATION WILL BE USED. POTENTIALLY REDUNDANT TARGET VALUE AVERAGED.
                 let pherMerged = [];
                 for (let i = 0; i < pherTypeArrs.length; ++i) {
-                    let temp = new Pheromone(pherTypeArrs[i][0].type,0,0,0);
+                    let temp = new Pheromone(pherTypeArrs[i][0].type,0,0,0,0);
                     for (let j = 0; j < pherTypeArrs[i].length; ++j) {
                         temp.strength += pherTypeArrs[i][j].strength; // AVERAGED...
                         temp.initial = Math.max(temp.initial,pherTypeArrs[i][j].initial);
@@ -255,15 +261,24 @@ class PheromoneGrid {
             for (let x = cullArea[0][0]; x <= cullArea[1][0]; ++x) {
                 let tlCoord = renderConversion.convPosToCanvas([x,y]);
 
-                push();
+                // push();
+                // if (this.get([x,y],selLeft).length*50%255,0,0)
                 // fill(color(255,0,0));
-                if (selLeft) {
-                    fill(color(this._left.get(x,y).length*50%255,0,0)); // Count of fuckass pheromones
-                } else {
-                    fill(color(0,this._right.get(x,y).length*50%255,0)); // blue
-                }
-                square(tlCoord[0],tlCoord[1],TILE_SIZE,TILE_SIZE*0.7);
-                pop();
+                fill(this.get([x,y],selLeft).length*200,0,0)
+                // console.log(this.get([x,y],selLeft).length)
+                // if (this.get([x,y],selLeft).length != 0) {
+                //     console.log(x,y);
+                // }
+                // if (selLeft) {
+                //     fill(color(this.get([x,y],selLeft).length*50%255,0,0)); // Count of fuckass pheromones
+                // } else {
+                //     fill(color(0,this.get([x,y],!selLeft).length*50%255,0)); // blue
+                // }
+                square(tlCoord[0]-TILE_SIZE/10,tlCoord[1]-TILE_SIZE/10,TILE_SIZE/5,TILE_SIZE); //,TILE_SIZE*0.7); // Centered circles
+                // draw();
+                // pop();
+                // console.log("Rendered ",x,y);
+                // console.log(this.get([x,y],selLeft));
             }
         }
     }
@@ -282,7 +297,7 @@ class hashmapPosition { // Helper object to store in set. NO OTHER USES
 }
 
 class Pheromone {
-    constructor(type,strength,initial,rate) {
+    constructor(type,strength,initial,rate,evaporate) {
         this.type = type;
         this.strength = strength;
         this.initial = initial; // Initial strength
