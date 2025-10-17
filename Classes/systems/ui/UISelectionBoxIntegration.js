@@ -318,31 +318,30 @@ try {
     const selectionAdapter = {
       hitTest: (pointer) => {
         try {
-          // Selection box typically uses world coords when available
-          const pos = pointer.world || pointer.screen;
-          // If selection controller has a hitTest, use it
+          // Use screen coords for hit tests and selection controller callbacks.
+          const pos = pointer.screen || { x: mouseX, y: mouseY };
           if (g_uiSelectionController && typeof g_uiSelectionController.isPointerOverSelection === 'function') {
             return g_uiSelectionController.isPointerOverSelection(pos.x, pos.y);
           }
-          // Fallback: always allow selection to start
+          // Fallback: allow selection to start
           return true;
         } catch (e) { return false; }
       },
       onPointerDown: (pointer) => {
         try {
-          const pos = pointer.world || pointer.screen;
+          const pos = pointer.screen || { x: mouseX, y: mouseY };
           if (g_uiSelectionController && typeof g_uiSelectionController.handleMousePressed === 'function') {
+            // Do not unconditionally consume the event; let the controller decide.
             g_uiSelectionController.handleMousePressed(pos.x, pos.y, pointer.button || 0);
-            return true;
+            return false; // allow other systems (entities) to also process the click
           }
         } catch (e) {}
         return false;
       },
       onPointerMove: (pointer) => {
         try {
-          const pos = pointer.world || pointer.screen;
+          const pos = pointer.screen || { x: mouseX, y: mouseY };
           if (g_uiSelectionController && typeof g_uiSelectionController.handleMouseDrag === 'function') {
-            // Provide dx/dy if available
             const dx = (pointer.dx !== undefined) ? pointer.dx : 0;
             const dy = (pointer.dy !== undefined) ? pointer.dy : 0;
             g_uiSelectionController.handleMouseDrag(pos.x, pos.y, dx, dy);
@@ -352,10 +351,10 @@ try {
       },
       onPointerUp: (pointer) => {
         try {
-          const pos = pointer.world || pointer.screen;
+          const pos = pointer.screen || { x: mouseX, y: mouseY };
           if (g_uiSelectionController && typeof g_uiSelectionController.handleMouseReleased === 'function') {
             g_uiSelectionController.handleMouseReleased(pos.x, pos.y, pointer.button || 0);
-            return true;
+            return false;
           }
         } catch (e) {}
         return false;

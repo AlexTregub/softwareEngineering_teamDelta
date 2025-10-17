@@ -228,7 +228,7 @@ class CameraManager {
 
     // DEBUG: Comprehensive zoom debugging
     if (typeof console !== 'undefined') {
-      console.log('[CameraManager] setZoom DETAILED DEBUG', {
+      logVerbose('[CameraManager] setZoom DETAILED DEBUG', {
         zoomChange: {
           from: this.cameraZoom,
           to: clampedZoom,
@@ -286,7 +286,7 @@ class CameraManager {
       // Test the zoom focus calculation
       const testScreenCoords = this.worldToScreen(focusWorld.worldX, focusWorld.worldY);
       
-      console.log('[CameraManager] setZoom RESULT VERIFICATION', {
+      verboseLog('[CameraManager] setZoom RESULT VERIFICATION', {
         cameraMovement: {
           deltaX: newCameraX - this.cameraX,
           deltaY: newCameraY - this.cameraY,
@@ -314,7 +314,7 @@ class CameraManager {
     // DEBUG: Final verification after bounds clamping
     if (typeof console !== 'undefined') {
       const finalScreenCoords = this.worldToScreen(focusWorld.worldX, focusWorld.worldY);
-      console.log('[CameraManager] FINAL STATE after clampToBounds', {
+      verboseLog('[CameraManager] FINAL STATE after clampToBounds', {
         finalCamera: { x: this.cameraX, y: this.cameraY, zoom: this.cameraZoom },
         boundsEffect: {
           cameraChanged: (this.cameraX !== newCameraX) || (this.cameraY !== newCameraY),
@@ -344,7 +344,7 @@ class CameraManager {
         const convPos = conv._camPosition ?? null;
         const convCenter = conv._canvasCenter ?? null;
         const stats = typeof g_map2.getCacheStats === 'function' ? g_map2.getCacheStats() : null;
-        console.log('[CameraManager] post-zoom state', {
+        verboseLog('[CameraManager] post-zoom state', {
           cameraX: this.cameraX,
           cameraY: this.cameraY,
           cameraZoom: this.cameraZoom,
@@ -354,7 +354,7 @@ class CameraManager {
           g_map2_stats: stats
         });
       } else {
-        console.log('[CameraManager] post-zoom state', { cameraX: this.cameraX, cameraY: this.cameraY, cameraZoom: this.cameraZoom, cameraControllerPos: ccPos, g_map2: null });
+        verboseLog('[CameraManager] post-zoom state', { cameraX: this.cameraX, cameraY: this.cameraY, cameraZoom: this.cameraZoom, cameraControllerPos: ccPos, g_map2: null });
       }
     } catch (e) {
       console.warn('CameraManager: post-zoom debug failed', e);
@@ -390,7 +390,7 @@ class CameraManager {
     }
 
     // DEBUG: Mouse coordinates and wheel direction
-    console.log('[CameraManager] handleMouseWheel DEBUG', {
+    verboseLog('[CameraManager] handleMouseWheel DEBUG', {
       wheelDelta,
       zoomDirection: wheelDelta > 0 ? 'zoom out' : 'zoom in',
       mouseX: typeof mouseX !== 'undefined' ? mouseX : 'undefined',
@@ -568,7 +568,7 @@ class CameraManager {
       worldY: this.cameraY + py / this.cameraZoom
     };
     
-    console.log('[CameraManager] screenToWorld DEBUG', {
+    verboseLog('[CameraManager] screenToWorld DEBUG', {
       input: { px, py },
       camera: { x: this.cameraX, y: this.cameraY, zoom: this.cameraZoom },
       calculation: {
@@ -591,8 +591,8 @@ class CameraManager {
     // Zoom-aware conversion from world to screen coordinates.
     // With corrected transform order: translate first, then scale
     // Forward transform: translate(-cameraX, -cameraY) then scale(zoom)
-    //console.log (`screenX: ${(worldX - this.cameraX) * this.cameraZoom}`)
-    //console.log (`screenX: ${(worldY - this.cameraY) * this.cameraZoom}`)
+    //verboseLog (`screenX: ${(worldX - this.cameraX) * this.cameraZoom}`)
+    //verboseLog (`screenX: ${(worldY - this.cameraY) * this.cameraZoom}`)
     return {
       screenX: (worldX - this.cameraX) * this.cameraZoom,
       screenY: (worldY - this.cameraY) * this.cameraZoom
@@ -648,14 +648,14 @@ function getWorldMouseX() {
   if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
     const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
     if (window.g_mouseDebugEnabled) {
-      console.log(`[getWorldMouseX] Screen: ${mouseX} -> World: ${worldPos.worldX} (Camera: ${window.g_cameraManager.cameraX}, Zoom: ${window.g_cameraManager.cameraZoom})`);
+      verboseLog(`[getWorldMouseX] Screen: ${mouseX} -> World: ${worldPos.worldX} (Camera: ${window.g_cameraManager.cameraX}, Zoom: ${window.g_cameraManager.cameraZoom})`);
     }
     return worldPos.worldX;
   }
   // Fallback to screen coordinates if no camera manager
   const fallbackX = typeof mouseX !== 'undefined' ? mouseX : 0;
   if (window.g_mouseDebugEnabled) {
-    console.log(`[getWorldMouseX] Fallback mode: ${fallbackX} (no camera manager)`);
+    verboseLog(`[getWorldMouseX] Fallback mode: ${fallbackX} (no camera manager)`);
   }
   return fallbackX;
 }
@@ -664,14 +664,14 @@ function getWorldMouseY() {
   if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
     const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
     if (window.g_mouseDebugEnabled) {
-      console.log(`[getWorldMouseY] Screen: ${mouseY} -> World: ${worldPos.worldY} (Camera: ${window.g_cameraManager.cameraY}, Zoom: ${window.g_cameraManager.cameraZoom})`);
+      verboseLog(`[getWorldMouseY] Screen: ${mouseY} -> World: ${worldPos.worldY} (Camera: ${window.g_cameraManager.cameraY}, Zoom: ${window.g_cameraManager.cameraZoom})`);
     }
     return worldPos.worldY;
   }
   // Fallback to screen coordinates if no camera manager
   const fallbackY = typeof mouseY !== 'undefined' ? mouseY : 0;
   if (window.g_mouseDebugEnabled) {
-    console.log(`[getWorldMouseY] Fallback mode: ${fallbackY} (no camera manager)`);
+    verboseLog(`[getWorldMouseY] Fallback mode: ${fallbackY} (no camera manager)`);
   }
   return fallbackY;
 }
@@ -684,7 +684,7 @@ function getWorldMousePosition() {
   if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
     const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
     if (window.g_mouseDebugEnabled) {
-      console.log(`[getWorldMousePosition] Screen: (${mouseX}, ${mouseY}) -> World: (${worldPos.worldX}, ${worldPos.worldY}) | Camera: (${window.g_cameraManager.cameraX}, ${window.g_cameraManager.cameraY}), Zoom: ${window.g_cameraManager.cameraZoom}`);
+      verboseLog(`[getWorldMousePosition] Screen: (${mouseX}, ${mouseY}) -> World: (${worldPos.worldX}, ${worldPos.worldY}) | Camera: (${window.g_cameraManager.cameraX}, ${window.g_cameraManager.cameraY}), Zoom: ${window.g_cameraManager.cameraZoom}`);
     }
     return { x: worldPos.worldX, y: worldPos.worldY };
   }
@@ -694,7 +694,7 @@ function getWorldMousePosition() {
     y: typeof mouseY !== 'undefined' ? mouseY : 0 
   };
   if (window.g_mouseDebugEnabled) {
-    console.log(`[getWorldMousePosition] Fallback mode: (${fallback.x}, ${fallback.y}) (no camera manager)`);
+    verboseLog(`[getWorldMousePosition] Fallback mode: (${fallback.x}, ${fallback.y}) (no camera manager)`);
   }
   return fallback;
 }
@@ -708,7 +708,7 @@ let g_mouseDebugInterval = null;
 function startMouseDebug() {
   if (typeof window !== 'undefined') {
     window.g_mouseDebugEnabled = true;
-    console.log("[Mouse Debug] Starting periodic debug output (1 second intervals)");
+    verboseLog("[Mouse Debug] Starting periodic debug output (1 second intervals)");
     
     // Clear any existing interval
     if (g_mouseDebugInterval) {
@@ -717,12 +717,12 @@ function startMouseDebug() {
     
     // Start new interval to call functions every second
     g_mouseDebugInterval = setInterval(() => {
-      console.log("=== Mouse Debug Sample (1s interval) ===");
+      verboseLog("=== Mouse Debug Sample (1s interval) ===");
       const worldX = getWorldMouseX();
       const worldY = getWorldMouseY();
       const worldPos = getWorldMousePosition();
-      console.log(`Summary: Screen(${typeof mouseX !== 'undefined' ? mouseX : 'N/A'}, ${typeof mouseY !== 'undefined' ? mouseY : 'N/A'}) -> World(${worldX}, ${worldY})`);
-      console.log("=====================================");
+      verboseLog(`Summary: Screen(${typeof mouseX !== 'undefined' ? mouseX : 'N/A'}, ${typeof mouseY !== 'undefined' ? mouseY : 'N/A'}) -> World(${worldX}, ${worldY})`);
+      verboseLog("=====================================");
     }, 1000);
   }
 }
@@ -733,7 +733,7 @@ function startMouseDebug() {
 function stopMouseDebug() {
   if (typeof window !== 'undefined') {
     window.g_mouseDebugEnabled = false;
-    console.log("[Mouse Debug] Stopping periodic debug output");
+    verboseLog("[Mouse Debug] Stopping periodic debug output");
     
     if (g_mouseDebugInterval) {
       clearInterval(g_mouseDebugInterval);

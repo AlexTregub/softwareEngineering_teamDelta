@@ -161,53 +161,13 @@ function initializeWorld() {
  * Called automatically by p5.js at the frame rate.
  */
 
-<<<<<<< HEAD
 function draw() {  
   // Input-driven updates are handled by interactive adapters registered with RenderManager.
   // Draggable panels and other UI elements now receive pointer events via RenderManager.
-=======
-function draw() {
-  background(0);  
-  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
->>>>>>> 5fc9722126a92ade55b45b5095674dbf206c3cbf
 
   RenderManager.render(GameState.getState());
 
-<<<<<<< HEAD
   // --- PLAYING ---
-=======
-  if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
-    updateDraggablePanels();
-  }
-
-  if (RenderManager && RenderManager.isInitialized) {
-    RenderManager.render(GameState.getState());
-    // console.log(frameRate());
-  }
-  if (typeof window.renderPauseMenuUI === 'function') {
-    window.renderPauseMenuUI();
-  }
-  // Draw dropoff UI (button, placement preview) after other UI elements
-  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
-    window.drawDropoffUI();
-      // Render debug visualization for ant gathering (overlays on top)
-  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
-    g_gatherDebugRenderer.render();
-  }
-  // Update button groups (rendering handled by RenderLayerManager)
-  if (window.buttonGroupManager) {
-    try {
-      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
-    } catch (error) {
-      console.error('❌ Error updating button group system:', error);
-    }
-
-    
-    
-  }
-
-    // --- PLAYING ---
->>>>>>> 5fc9722126a92ade55b45b5095674dbf206c3cbf
   if (GameState.isInGame()) {
     // Update camera before rendering (RenderManager will apply transforms
     // for the different layers during the render pass).
@@ -224,7 +184,6 @@ function draw() {
       if (keyIsDown(68)) playerQueen.move("d");
     }
   }
-<<<<<<< HEAD
 
   // Note: rendering of draggable panels is handled via RenderManager's
   // ui_game layer (DraggablePanelManager integrates into the render layer).
@@ -232,9 +191,6 @@ function draw() {
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
 
-=======
-  }
->>>>>>> 5fc9722126a92ade55b45b5095674dbf206c3cbf
 }
 
  /* handleMouseEvent
@@ -266,8 +222,11 @@ function mousePressed() {
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
     if (consumed) return; // consumed by an interactive (buttons/panels/etc.)
+    // If not consumed, fall back to legacy mouse controller for entity clicks/effects
+    handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
   } catch (e) {
     console.error('Error dispatching pointerdown to RenderManager:', e);
+    handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
   }
 
   // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
@@ -281,10 +240,11 @@ function mouseDragged() {
   // Forward move to RenderManager
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointermove', { x: mouseX, y: mouseY, isPressed: true });
-    // No legacy fallback; interactive adapters should consume or ignore the event.
+    // If not consumed, keep legacy mouseDragged behavior for compatibility
+    if (!consumed) handleMouseEvent('handleMouseDragged', mouseX, mouseY);
   } catch (e) {
     console.error('Error dispatching pointermove to RenderManager:', e);
-    // In case of error we do not call legacy handlers to avoid duplicate handling.
+    handleMouseEvent('handleMouseDragged', mouseX, mouseY);
   }
 }
 
@@ -296,10 +256,10 @@ function mouseReleased() {
   // Forward to RenderManager first
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
-    // No legacy fallback; interactive adapters handle release events.
+    if (!consumed) handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
   } catch (e) {
     console.error('Error dispatching pointerup to RenderManager:', e);
-    // Do not call legacy handlers on error to avoid unexpected double-processing.
+    handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
   }
 }
 
