@@ -832,7 +832,7 @@ class DraggablePanelManager {
    * Spawn multiple ants at random positions or near mouse
    */
   spawnAnts(count = 1) {
-    console.log(`🐜 Spawning ${count} ant(s)...`);
+    verboseLog(`🐜 Spawning ${count} ant(s)...`);
     
     let spawned = 0;
     
@@ -892,7 +892,7 @@ class DraggablePanelManager {
     // Try each method until one succeeds
     for (const method of spawnMethods) {
       if (method()) {
-        console.log(`✅ Successfully spawned ${spawned} ant(s)`);
+        verboseLog(`✅ Successfully spawned ${spawned} ant(s)`);
         return;
       }
     }

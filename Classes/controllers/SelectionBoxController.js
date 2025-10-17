@@ -60,7 +60,6 @@
       var sortedX = [this._selectionStart.x, this._selectionEnd.x].sort(function (a, b) { return a - b; });
       var sortedY = [this._selectionStart.y, this._selectionEnd.y].sort(function (a, b) { return a - b; });
       var x1 = sortedX[0], x2 = sortedX[1], y1 = sortedY[0], y2 = sortedY[1];
-      RenderManager.addDrawableToLayer(RenderManager.layers.EFFECTS, SelectionBoxController.draw())
       for (var i = 0; i < this._entities.length; i++) {
         this._entities[i].isBoxHovered = SelectionBoxController.isEntityInBox(this._entities[i], x1, x2, y1, y2);
       }

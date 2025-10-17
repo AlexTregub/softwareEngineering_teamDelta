@@ -85,7 +85,7 @@ class CameraManager {
     // Clamp to bounds if map dimensions are available (safe-guarded inside clampToBounds)
     try { this.clampToBounds(); } catch (e) { /* ignore if clamp depends on uninitialized systems */ }
 
-    console.log('CameraManager initialized', { cameraX: this.cameraX, cameraY: this.cameraY, canvasWidth: this.canvasWidth, canvasHeight: this.canvasHeight });
+    logVerbose('CameraManager initialized', { cameraX: this.cameraX, cameraY: this.cameraY, canvasWidth: this.canvasWidth, canvasHeight: this.canvasHeight });
 
     // If the terrain exists at initialization time, sync its camera position so the render
     // converter and CameraManager agree. Convert camera pixel center to tile coordinates.
@@ -591,6 +591,8 @@ class CameraManager {
     // Zoom-aware conversion from world to screen coordinates.
     // With corrected transform order: translate first, then scale
     // Forward transform: translate(-cameraX, -cameraY) then scale(zoom)
+    //console.log (`screenX: ${(worldX - this.cameraX) * this.cameraZoom}`)
+    //console.log (`screenX: ${(worldY - this.cameraY) * this.cameraZoom}`)
     return {
       screenX: (worldX - this.cameraX) * this.cameraZoom,
       screenY: (worldY - this.cameraY) * this.cameraZoom
@@ -636,9 +638,131 @@ class CameraManager {
   }
 }
 
+// Global utility functions for camera-aware mouse coordinates
+/**
+ * Get world mouse coordinates that account for camera position and zoom
+ * This is a global convenience function that uses the active CameraManager instance
+ * @returns {Object} World coordinates {x, y} or screen coordinates if no camera manager
+ */
+function getWorldMouseX() {
+  if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
+    const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
+    if (window.g_mouseDebugEnabled) {
+      console.log(`[getWorldMouseX] Screen: ${mouseX} -> World: ${worldPos.worldX} (Camera: ${window.g_cameraManager.cameraX}, Zoom: ${window.g_cameraManager.cameraZoom})`);
+    }
+    return worldPos.worldX;
+  }
+  // Fallback to screen coordinates if no camera manager
+  const fallbackX = typeof mouseX !== 'undefined' ? mouseX : 0;
+  if (window.g_mouseDebugEnabled) {
+    console.log(`[getWorldMouseX] Fallback mode: ${fallbackX} (no camera manager)`);
+  }
+  return fallbackX;
+}
+
+function getWorldMouseY() {
+  if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
+    const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
+    if (window.g_mouseDebugEnabled) {
+      console.log(`[getWorldMouseY] Screen: ${mouseY} -> World: ${worldPos.worldY} (Camera: ${window.g_cameraManager.cameraY}, Zoom: ${window.g_cameraManager.cameraZoom})`);
+    }
+    return worldPos.worldY;
+  }
+  // Fallback to screen coordinates if no camera manager
+  const fallbackY = typeof mouseY !== 'undefined' ? mouseY : 0;
+  if (window.g_mouseDebugEnabled) {
+    console.log(`[getWorldMouseY] Fallback mode: ${fallbackY} (no camera manager)`);
+  }
+  return fallbackY;
+}
+
+/**
+ * Get world mouse position as an object
+ * @returns {Object} World coordinates {x, y}
+ */
+function getWorldMousePosition() {
+  if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
+    const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
+    if (window.g_mouseDebugEnabled) {
+      console.log(`[getWorldMousePosition] Screen: (${mouseX}, ${mouseY}) -> World: (${worldPos.worldX}, ${worldPos.worldY}) | Camera: (${window.g_cameraManager.cameraX}, ${window.g_cameraManager.cameraY}), Zoom: ${window.g_cameraManager.cameraZoom}`);
+    }
+    return { x: worldPos.worldX, y: worldPos.worldY };
+  }
+  // Fallback to screen coordinates if no camera manager
+  const fallback = { 
+    x: typeof mouseX !== 'undefined' ? mouseX : 0, 
+    y: typeof mouseY !== 'undefined' ? mouseY : 0 
+  };
+  if (window.g_mouseDebugEnabled) {
+    console.log(`[getWorldMousePosition] Fallback mode: (${fallback.x}, ${fallback.y}) (no camera manager)`);
+  }
+  return fallback;
+}
+
+// Debug system for mouse coordinate functions
+let g_mouseDebugInterval = null;
+
+/**
+ * Start periodic debug output for mouse coordinate functions (once per second)
+ */
+function startMouseDebug() {
+  if (typeof window !== 'undefined') {
+    window.g_mouseDebugEnabled = true;
+    console.log("[Mouse Debug] Starting periodic debug output (1 second intervals)");
+    
+    // Clear any existing interval
+    if (g_mouseDebugInterval) {
+      clearInterval(g_mouseDebugInterval);
+    }
+    
+    // Start new interval to call functions every second
+    g_mouseDebugInterval = setInterval(() => {
+      console.log("=== Mouse Debug Sample (1s interval) ===");
+      const worldX = getWorldMouseX();
+      const worldY = getWorldMouseY();
+      const worldPos = getWorldMousePosition();
+      console.log(`Summary: Screen(${typeof mouseX !== 'undefined' ? mouseX : 'N/A'}, ${typeof mouseY !== 'undefined' ? mouseY : 'N/A'}) -> World(${worldX}, ${worldY})`);
+      console.log("=====================================");
+    }, 1000);
+  }
+}
+
+/**
+ * Stop periodic debug output for mouse coordinate functions
+ */
+function stopMouseDebug() {
+  if (typeof window !== 'undefined') {
+    window.g_mouseDebugEnabled = false;
+    console.log("[Mouse Debug] Stopping periodic debug output");
+    
+    if (g_mouseDebugInterval) {
+      clearInterval(g_mouseDebugInterval);
+      g_mouseDebugInterval = null;
+    }
+  }
+}
+
+/**
+ * Toggle debug mode for mouse coordinate functions
+ */
+function toggleMouseDebug() {
+  if (typeof window !== 'undefined' && window.g_mouseDebugEnabled) {
+    stopMouseDebug();
+  } else {
+    startMouseDebug();
+  }
+}
+
 // Export for global use
 if (typeof window !== 'undefined') {
   window.CameraManager = CameraManager;
+  window.getWorldMouseX = getWorldMouseX;
+  window.getWorldMouseY = getWorldMouseY;
+  window.getWorldMousePosition = getWorldMousePosition;
+  window.startMouseDebug = startMouseDebug;
+  window.stopMouseDebug = stopMouseDebug;
+  window.toggleMouseDebug = toggleMouseDebug;
+  window.g_mouseDebugEnabled = false; // Initialize as disabled
 }
 
 

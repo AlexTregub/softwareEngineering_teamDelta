@@ -161,13 +161,53 @@ function initializeWorld() {
  * Called automatically by p5.js at the frame rate.
  */
 
+<<<<<<< HEAD
 function draw() {  
   // Input-driven updates are handled by interactive adapters registered with RenderManager.
   // Draggable panels and other UI elements now receive pointer events via RenderManager.
+=======
+function draw() {
+  background(0);  
+  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+>>>>>>> 5fc9722126a92ade55b45b5095674dbf206c3cbf
 
   RenderManager.render(GameState.getState());
 
+<<<<<<< HEAD
   // --- PLAYING ---
+=======
+  if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+    updateDraggablePanels();
+  }
+
+  if (RenderManager && RenderManager.isInitialized) {
+    RenderManager.render(GameState.getState());
+    // console.log(frameRate());
+  }
+  if (typeof window.renderPauseMenuUI === 'function') {
+    window.renderPauseMenuUI();
+  }
+  // Draw dropoff UI (button, placement preview) after other UI elements
+  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
+    window.drawDropoffUI();
+      // Render debug visualization for ant gathering (overlays on top)
+  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
+    g_gatherDebugRenderer.render();
+  }
+  // Update button groups (rendering handled by RenderLayerManager)
+  if (window.buttonGroupManager) {
+    try {
+      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+    } catch (error) {
+      console.error('❌ Error updating button group system:', error);
+    }
+
+    
+    
+  }
+
+    // --- PLAYING ---
+>>>>>>> 5fc9722126a92ade55b45b5095674dbf206c3cbf
   if (GameState.isInGame()) {
     // Update camera before rendering (RenderManager will apply transforms
     // for the different layers during the render pass).
@@ -184,6 +224,7 @@ function draw() {
       if (keyIsDown(68)) playerQueen.move("d");
     }
   }
+<<<<<<< HEAD
 
   // Note: rendering of draggable panels is handled via RenderManager's
   // ui_game layer (DraggablePanelManager integrates into the render layer).
@@ -191,10 +232,12 @@ function draw() {
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
 
+=======
+  }
+>>>>>>> 5fc9722126a92ade55b45b5095674dbf206c3cbf
 }
 
-/**
- * handleMouseEvent
+ /* handleMouseEvent
  * ----------------
  * Delegates mouse events to the mouse controller if the game is in an active state.
  * @param {string} type - The mouse event type (e.g., 'handleMousePressed').
