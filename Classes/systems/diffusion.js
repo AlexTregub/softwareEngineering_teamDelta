@@ -157,17 +157,18 @@ class PheromoneGrid {
             }
 
             // Drop OOB - increase mem cost temporarily to potentially save on compute
-            let targets = new Set();
+            this._rightSet.clear();
             for (pos in initTargets) {
                 if (pos.x >= this._left._spanTopLeft[0] && pos.x < this._left._spanBotRight[0]
                     && pos.y >= this._left._spanTopLeft[1] && pos.y < this._left._spanBotRight[1]
                 ) {
-                    targets.add(pos);
+                    this._rightSet.add(pos);
                 }
             }
 
             // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _right.
-            for (pos in targets) {
+            // this._rightSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
+            for (pos in this._rightSet) {
                 // ...
             }
 
