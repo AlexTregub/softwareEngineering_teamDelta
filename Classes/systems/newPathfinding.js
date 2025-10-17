@@ -7,6 +7,7 @@ class PathMap{
       [0,0],
       [0,0]
     );
+    this._pGrid = new PheromoneGrid(terrain);
     for(let y = 0; y < terrain._yCount; y++){
       for(let x = 0; x < terrain._xCount; x++){
         let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
@@ -25,12 +26,11 @@ class Node{
       Each Node should hold an empty map of pheromone types paired with strength. Ants use this class as a way to
       determine which direction to take (checks pheromone type/strength) and edit pheromones they deposit
   */
-  constructor(terrainTile, x, y){
+  constructor(terrainTile, x, y, pheromoneGrid){
     this._terrainTile = terrainTile; //Uses Tile and x,y so it can easily find neighbors, know its own location, and have other stuff (know terrain type)
     this._x = x;
     this._y = y;
-    this.scents = []; //Collection of Pheromones
-    pheromoneGrid = new StenchGrid;
+    this.pGrid = pheromoneGrid;
 
     this.id = `${x}-${y}`; //Used for easier access. Faster than searching 2D array
     this.assignWall();
@@ -46,8 +46,8 @@ class Node{
     }
   } 
   
-  addScent(x, y, antType, tag){
-    pheromoneGrid[x][y].addPheromone(antType, tag); //Change it so Ant Class has one single array? that holds all info (allegience, )
+  addScent(antType, tag){ //Merge antType and tag into one in antBrain. Enemy-Forage
+    this._pGrid.push(this._x,this._y, {type: tag, strength: 1, initial: 1, rate: 0.1}) //Change it so Ant Class has one single array? that holds all info (allegience, )
   }
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }

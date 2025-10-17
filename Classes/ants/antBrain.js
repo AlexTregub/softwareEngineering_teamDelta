@@ -20,6 +20,7 @@ class AntBrain{
         this.followEnemyTrail = 0;
         this.followBossTrail = 100;
         this.penalizedTrails = [];
+        this.travelledTiles = new Set();
 
         this.setPriority(antType, 1);
     }
