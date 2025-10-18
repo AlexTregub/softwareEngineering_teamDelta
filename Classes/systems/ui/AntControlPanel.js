@@ -154,6 +154,15 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   }
   currentY += buttonHeight + sectionSpacing;
 
+  // === ENEMY SPAWN SECTION ===
+  fill(255, 50, 50);
+  text('ENEMY:', x, currentY);
+  currentY += 18;
+
+  // Enemy Ant button
+  renderEnemySpawnButton('Enemy Ant', x, currentY, buttonWidth + 20, buttonHeight);
+  currentY += buttonHeight + sectionSpacing;
+
   // === FACTION SECTION ===
   fill(255, 200, 200);
   text('FACTIONS:', x, currentY);
@@ -234,6 +243,55 @@ function renderJobSpawnButton(jobName, x, y, w, h) {
     
     AntUtilities.spawnAnt(spawnX, spawnY, jobName, currentFaction);
     console.log(`Spawned ${jobName} ant with faction ${currentFaction}`);
+  }
+}
+
+/**
+ * Render an enemy spawn button
+ * @param {string} buttonText - Button text
+ * @param {number} x - Button x position
+ * @param {number} y - Button y position
+ * @param {number} w - Button width
+ * @param {number} h - Button height
+ */
+function renderEnemySpawnButton(buttonText, x, y, w, h) {
+  // Button background - red/enemy themed
+  const isHovered = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+  
+  if (isHovered) {
+    fill(180, 50, 50, 200);
+  } else {
+    fill(120, 30, 30, 150);
+  }
+  
+  rect(x, y, w, h);
+  
+  // Button border
+  stroke(200, 100, 100);
+  strokeWeight(2);
+  noFill();
+  rect(x, y, w, h);
+  noStroke();
+
+  // Button text
+  fill(255, 255, 255);
+  textAlign(CENTER, CENTER);
+  text(buttonText, x + w/2, y + h/2);
+
+  // Handle click - spawn enemy ant with red ant image if available
+  if (isHovered && mouseIsPressed && typeof AntUtilities !== 'undefined') {
+    const spawnX = mouseX + 50; // Spawn near cursor
+    const spawnY = mouseY + 50;
+    
+    // Try to use brown ant image for enemies (available from the preloader)
+    let enemyImage = null;
+    if (typeof JobImages !== 'undefined') {
+      // Check for brown ant or blue ant images that are loaded
+      enemyImage = JobImages['Farmer'] || JobImages['Builder'] || JobImages['Warrior']; // Farmer uses brown, Builder uses blue
+    }
+    
+    AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy", enemyImage);
+    console.log(`Spawned Enemy Warrior ant at (${spawnX}, ${spawnY})`);
   }
 }
 

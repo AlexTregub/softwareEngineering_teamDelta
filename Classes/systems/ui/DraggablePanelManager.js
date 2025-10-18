@@ -124,6 +124,16 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
           },
           {
+            caption: 'Paint Enemy Brush',
+            onClick: () => this.toggleEnemyBrush(),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Paint Resource Brush',
+            onClick: () => this.toggleResourceBrush(),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#32CD32', color: '#FFFFFF' }
+          },
+          {
             caption: 'Kill 1 Ant',
             onClick: () => this.killAnts(1),
             style: ButtonStyles.DANGER
@@ -842,6 +852,199 @@ class DraggablePanelManager {
     }
     
     console.warn('⚠️ Could not spawn ants - no compatible ant system found');
+  }
+
+  /**
+   * Spawn a single enemy ant near the mouse cursor or screen center
+   */
+  spawnEnemyAnt() {
+    console.log('🔴 Spawning enemy ant...');
+    
+    // Try multiple spawning methods until we find one that works
+    const spawnMethods = [
+      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
+          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+          const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 50;
+          const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 50;
+          
+          const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
+          if (enemyAnt) {
+            console.log('✅ Successfully spawned enemy ant using AntUtilities');
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Try command line spawning system
+      () => {
+        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+          const initialAntCount = ants.length;
+          try {
+            executeCommand(`spawn 1 ant enemy`);
+            const spawned = ants.length - initialAntCount;
+            if (spawned > 0) {
+              console.log('✅ Successfully spawned enemy ant using command system');
+              return true;
+            }
+          } catch (error) {
+            console.warn('⚠️ Command line spawn method failed:', error.message);
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of spawnMethods) {
+      if (method()) {
+        return;
+      }
+    }
+    
+    console.warn('⚠️ Could not spawn enemy ant - no compatible ant system found');
+  }
+
+  /**
+   * Spawn multiple enemy ants near the mouse cursor or screen center
+   */
+  spawnEnemyAnts(count = 1) {
+    console.log(`🔴 Spawning ${count} enemy ant(s)...`);
+    
+    let spawned = 0;
+    
+    // Try multiple spawning methods until we find one that works
+    const spawnMethods = [
+      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
+          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+          
+          for (let i = 0; i < count; i++) {
+            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+            
+            const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
+            if (enemyAnt) {
+              spawned++;
+            }
+          }
+          
+          if (spawned > 0) {
+            console.log(`✅ Successfully spawned ${spawned} enemy ant(s) using AntUtilities`);
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Try command line spawning system
+      () => {
+        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+          const initialAntCount = ants.length;
+          try {
+            executeCommand(`spawn ${count} ant enemy`);
+            spawned = ants.length - initialAntCount;
+            if (spawned > 0) {
+              console.log(`✅ Successfully spawned ${spawned} enemy ant(s) using command system`);
+              return true;
+            }
+          } catch (error) {
+            console.warn('⚠️ Command line spawn method failed:', error.message);
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of spawnMethods) {
+      if (method()) {
+        return;
+      }
+    }
+    
+    console.warn(`⚠️ Could not spawn ${count} enemy ant(s) - no compatible ant system found`);
+  }
+
+  /**
+   * Toggle the enemy ant paint brush tool
+   */
+  toggleEnemyBrush() {
+    // Initialize brush if not already done
+    if (typeof g_enemyAntBrush === 'undefined' || !g_enemyAntBrush) {
+      if (typeof initializeEnemyAntBrush === 'function') {
+        window.g_enemyAntBrush = initializeEnemyAntBrush();
+      } else {
+        console.warn('⚠️ Enemy Ant Brush system not available');
+        return;
+      }
+    }
+    
+    // Toggle the brush
+    const isActive = g_enemyAntBrush.toggle();
+    
+    // Update button text to reflect current state
+    const button = this.findButtonByCaption('Paint Brush');
+    if (button) {
+      button.caption = isActive ? 'Brush: ON' : 'Paint Brush';
+      button.style.backgroundColor = isActive ? '#32CD32' : '#FF4500'; // Green when active, orange when inactive
+    }
+    
+    console.log(`🎨 Enemy Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
+  }
+
+  /**
+   * Toggle the resource paint brush tool
+   */
+  toggleResourceBrush() {
+    // Initialize brush if not already done
+    if (typeof g_resourceBrush === 'undefined' || !g_resourceBrush) {
+      if (typeof initializeResourceBrush === 'function') {
+        window.g_resourceBrush = initializeResourceBrush();
+      } else {
+        console.warn('⚠️ Resource Brush system not available');
+        return;
+      }
+    }
+    
+    // Toggle the brush
+    const isActive = g_resourceBrush.toggle();
+    
+    // Update button text to reflect current state
+    const button = this.findButtonByCaption('Paint Resource Brush');
+    if (button) {
+      button.caption = isActive ? 'Resource Brush: ON' : 'Paint Resource Brush';
+      button.style.backgroundColor = isActive ? '#228B22' : '#32CD32'; // Darker green when active
+    }
+    
+    console.log(`🎨 Resource Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
+  }
+
+  /**
+   * Helper method to find button by caption
+   * @param {string} caption - Button caption to search for
+   * @returns {Object|null} Button object or null if not found
+   */
+  findButtonByCaption(caption) {
+    // Search through all panels and their buttons
+    for (const panel of this.panels.values()) {
+      if (panel.buttons && panel.buttons.items) {
+        const button = panel.buttons.items.find(btn => 
+          btn.caption === caption || 
+          btn.caption.includes('Paint Brush') || 
+          btn.caption.includes('Brush:') ||
+          btn.caption.includes('Resource Brush') ||
+          btn.caption.includes('Paint Resource Brush')
+        );
+        if (button) return button;
+      }
+    }
+    return null;
   }
   
   /**
