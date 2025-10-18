@@ -50,7 +50,7 @@ async function saveScreenshot(page, testName, pass = true) {
   try {
     const fs = require('fs');
     const path = require('path');
-    const screenshotsDir = path.join(process.cwd(), 'test', 'puppeteer', 'screenshots');
+    const screenshotsDir = path.join(process.cwd(), 'test', 'e2e', 'screenshots');
     
     // Check if testName includes a category (e.g., 'camera/zoom_probe')
     const parts = testName.split('/');

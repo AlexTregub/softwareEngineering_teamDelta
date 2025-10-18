@@ -1,4 +1,4 @@
-const cameraHelper = require('./camera_helper');
+const cameraHelper = require('../e2e/camera_helper');
 
 (async function() {
   let browser;

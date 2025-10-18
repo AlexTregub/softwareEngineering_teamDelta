@@ -1,65 +1,127 @@
-# 🚨 TESTING STANDARDS & DOCUMENTATION GUIDE 🚨
+# Test Suite Organization# 🚨 TESTING STANDARDS & DOCUMENTATION GUIDE 🚨
 
-> **⚠️ REQUIRED READING BEFORE WRITING ANY TESTS ⚠️**  
+
+
+Welcome to the Ant Game test suite! Tests are organized by type following software testing best practices.> **⚠️ REQUIRED READING BEFORE WRITING ANY TESTS ⚠️**  
+
 > **This guide points you to ALL testing documentation and standards**
+
+---
 
 ## 📋 **MANDATORY DOCUMENTATION REVIEW**
 
+## 📁 Test Structure
+
 **Before writing or modifying any tests, you MUST review these documents:**
 
-### 1. 🎯 **START HERE - Core Standards**
+```
 
-📍 **Location**: `../docs/standards/testing/`
+test/### 1. 🎯 **START HERE - Core Standards**
 
-| Document | Purpose | When to Use |
-|----------|---------|-------------|
-| **[TESTING_METHODOLOGY_STANDARDS.md](../docs/standards/testing/TESTING_METHODOLOGY_STANDARDS.md)** | 🚫 RED FLAGS & ✅ STRONG patterns | Before writing ANY test |
+├── unit/          # Unit Tests - Fast, isolated tests of individual functions/classes
+
+├── integration/   # Integration Tests - Tests of components working together  📍 **Location**: `../docs/standards/testing/`
+
+├── e2e/          # End-to-End Tests - Full browser automation (Puppeteer)
+
+├── bdd/          # BDD Tests - Behavior-driven development (Gherkin/Behave)| Document | Purpose | When to Use |
+
+└── smoke/        # Smoke Tests - Quick sanity checks|----------|---------|-------------|
+
+```| **[TESTING_METHODOLOGY_STANDARDS.md](../docs/standards/testing/TESTING_METHODOLOGY_STANDARDS.md)** | 🚫 RED FLAGS & ✅ STRONG patterns | Before writing ANY test |
+
 | **[BDD_LANGUAGE_STYLE_GUIDE.md](../docs/standards/testing/BDD_LANGUAGE_STYLE_GUIDE.md)** | Clean, professional test language | For BDD feature files |
-| **[TESTING_QUICK_REFERENCE.md](../docs/standards/testing/TESTING_QUICK_REFERENCE.md)** | Fast lookup for weak patterns | During test review |
 
-### 2. 🛠️ **Technical Implementation**
+---| **[TESTING_QUICK_REFERENCE.md](../docs/standards/testing/TESTING_QUICK_REFERENCE.md)** | Fast lookup for weak patterns | During test review |
 
-| Document | Purpose | When to Use |
-|----------|---------|-------------|
-| **[DEPENDENCY_MANAGEMENT_STRATEGY.md](../docs/standards/testing/DEPENDENCY_MANAGEMENT_STRATEGY.md)** | Smart dependency detection & validation | When mocking system APIs |
-| **[TESTING_VALIDATION_PROCESS.md](../docs/standards/testing/TESTING_VALIDATION_PROCESS.md)** | Test quality validation process | During test reviews |
 
----
 
-## 🗂️ **TEST FOLDER STRUCTURE OVERVIEW**
+## 🧪 Test Types### 2. 🛠️ **Technical Implementation**
 
-### **`/bdd_new/` - Behavior Driven Development Tests**
 
-- **🎯 Primary test suite using Selenium + behave (HEADLESS)**
+
+### Unit Tests (`test/unit/`)| Document | Purpose | When to Use |
+
+- **Speed**: ⚡⚡⚡ Very Fast (milliseconds)|----------|---------|-------------|
+
+- **Purpose**: Test individual functions, classes, methods in isolation| **[DEPENDENCY_MANAGEMENT_STRATEGY.md](../docs/standards/testing/DEPENDENCY_MANAGEMENT_STRATEGY.md)** | Smart dependency detection & validation | When mocking system APIs |
+
+- **Tech**: JavaScript (Mocha/Chai)| **[TESTING_VALIDATION_PROCESS.md](../docs/standards/testing/TESTING_VALIDATION_PROCESS.md)** | Test quality validation process | During test reviews |
+
+
+
+### End-to-End Tests (`test/e2e/`)---
+
+- **Speed**: ⚡ Slower (seconds to minutes)
+
+- **Purpose**: Test complete user workflows in real browser## 🗂️ **TEST FOLDER STRUCTURE OVERVIEW**
+
+- **Tech**: Puppeteer (headless Chrome)
+
+- **Run**: `npm run test:e2e`### **`/bdd_new/` - Behavior Driven Development Tests**
+
+
+
+**Categories**: camera, spawn, combat, selection, ui- **🎯 Primary test suite using Selenium + behave (HEADLESS)**
+
 - **Features**: `features/*.feature` - Gherkin scenarios
-- **Steps**: `steps/*.py` - Python step definitions  
-- **Runners**: `run_bdd_tests.py`, `quick_test.py` (both headless)
-- **Analysis**: `run_dependency_analysis.py` - System API discovery (headless)
 
-### **`/unit/` - Unit Tests (JavaScript)**
+### BDD Tests (`test/bdd/`)- **Steps**: `steps/*.py` - Python step definitions  
 
-- **🔬 Individual component testing**
-- **Framework**: Mocha/Jest JavaScript tests
-- **Focus**: Single class/function validation
-- **Examples**: `button.test.js`, `resourceManager.test.js`
+- **Speed**: ⚡ Varies- **Runners**: `run_bdd_tests.py`, `quick_test.py` (both headless)
 
-### **`/integration/` - Integration Tests**
+- **Purpose**: Define and test business requirements- **Analysis**: `run_dependency_analysis.py` - System API discovery (headless)
 
-- **🔗 Cross-component interaction testing**
+- **Tech**: Python Behave + Selenium
+
+- **Run**: `npm run test:bdd`### **`/unit/` - Unit Tests (JavaScript)**
+
+
+
+### Smoke Tests (`test/smoke/`)- **🔬 Individual component testing**
+
+- **Speed**: ⚡⚡⚡ Very Fast- **Framework**: Mocha/Jest JavaScript tests
+
+- **Purpose**: Quick sanity checks- **Focus**: Single class/function validation
+
+- **Run**: `npm run test:smoke`- **Examples**: `button.test.js`, `resourceManager.test.js`
+
+
+
+---### **`/integration/` - Integration Tests**
+
+
+
+## 🚀 Quick Start- **🔗 Cross-component interaction testing**
+
 - **Mix**: Python + JavaScript integration
-- **Focus**: Component interaction validation
-- **Includes**: Browser automation helpers
 
----
+```bash- **Focus**: Component interaction validation
 
-## ⚡ **QUICK START CHECKLIST**
+npm test                    # Runs BDD suite (default)- **Includes**: Browser automation helpers
+
+npm run test:e2e           # All E2E tests
+
+npm run test:e2e:camera    # Just camera E2E tests---
+
+npm run test:bdd           # BDD tests
+
+npm run test:smoke         # Smoke tests## ⚡ **QUICK START CHECKLIST**
+
+```
 
 **Before writing a new test:**
 
+---
+
 - [ ] Read **TESTING_METHODOLOGY_STANDARDS.md** for RED FLAGS
-- [ ] Check **BDD_LANGUAGE_STYLE_GUIDE.md** for clean language
+
+## 📚 Full Documentation- [ ] Check **BDD_LANGUAGE_STYLE_GUIDE.md** for clean language
+
 - [ ] Run dependency analysis if testing system APIs
-- [ ] Use **TESTING_QUICK_REFERENCE.md** during implementation
+
+See `docs/guides/TESTING_TYPES_GUIDE.md` for comprehensive testing guide.- [ ] Use **TESTING_QUICK_REFERENCE.md** during implementation
+
 
 **Before submitting tests:**
 
@@ -96,7 +158,7 @@
 **Every test must pass these 3 questions:**
 
 1. **"Does this test use the system API?"** If no → weak test
-2. **"Would this test catch a bug?"** If no → weak test  
+2. **"Would this test catch a bug (assumning it's not a unit test)?"** If no → weak test  
 3. **"Am I testing system behavior or test logic?"** If test logic → weak test
 
 ---
