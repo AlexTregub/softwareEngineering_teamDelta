@@ -1,6 +1,6 @@
 # Test Suite Organization# 🚨 TESTING STANDARDS & DOCUMENTATION GUIDE 🚨
 
-
+> **🐛 KNOWN ISSUES**: Before investigating test failures, check **[KNOWN_ISSUES.md](./KNOWN_ISSUES.md)** for documented bugs that have test coverage but are not yet fixed.
 
 Welcome to the Ant Game test suite! Tests are organized by type following software testing best practices.> **⚠️ REQUIRED READING BEFORE WRITING ANY TESTS ⚠️**  
 

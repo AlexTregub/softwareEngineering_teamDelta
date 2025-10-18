@@ -32,3 +32,4 @@ coverage/
 dist/
 build/
 test/puppeteer/screenshots/
+test/bdd/Results
