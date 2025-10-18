@@ -99,6 +99,97 @@ worldToScreenPosition(worldPos) {
 
 All methods now call `this.worldToScreenPosition(pos)` to get screen coordinates before rendering.
 
+### 3. `Classes/controllers/SelectionBoxController.js`
+**Changes**: Updated `_worldToScreen()` method to use terrain's coordinate converter
+
+The selection box was appearing flipped/inverted because it was using `g_cameraManager.worldToScreen()` which doesn't account for the Y-axis inversion in the terrain's coordinate system.
+
+**Before**:
+```javascript
+SelectionBoxController.prototype._worldToScreen = function (wx, wy) {
+  try {
+    if (typeof window !== 'undefined' && window.g_cameraManager && 
+        typeof window.g_cameraManager.worldToScreen === 'function') {
+      var s = window.g_cameraManager.worldToScreen(wx, wy);
+      return { x: s.screenX !== undefined ? s.screenX : wx, 
+               y: s.screenY !== undefined ? s.screenY : wy };
+    }
+    // ... fallbacks
+  } catch (e) { return { x: wx, y: wy }; }
+};
+```
+
+**After**:
+```javascript
+SelectionBoxController.prototype._worldToScreen = function (wx, wy) {
+  try {
+    // Use terrain's coordinate system if available (syncs selection box with terrain camera)
+    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && 
+        typeof TILE_SIZE !== 'undefined') {
+      // Convert pixel position to tile position
+      var tileX = wx / TILE_SIZE;
+      var tileY = wy / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position
+      var screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      return { x: Math.round(screenPos[0]), y: Math.round(screenPos[1]) };
+    }
+    
+    // Fallback: use camera manager if terrain not available
+    // ... existing fallback code
+  } catch (e) { return { x: wx, y: wy }; }
+};
+```
+
+### 4. `Classes/rendering/EffectsLayerRenderer.js`
+**Changes**: Modified `renderParticleEffect()` to convert particle positions
+
+Particle effects were also appearing in the wrong location because they rendered at raw world coordinates.
+
+**Before**:
+```javascript
+renderParticleEffect(effect) {
+  push();
+  for (const particle of effect.particles) {
+    if (particle.dead) continue;
+    push();
+    translate(particle.x, particle.y);  // ❌ Raw world coordinates
+    // ... render particle
+    pop();
+  }
+  pop();
+}
+```
+
+**After**:
+```javascript
+renderParticleEffect(effect) {
+  push();
+  for (const particle of effect.particles) {
+    if (particle.dead) continue;
+    
+    // Convert world position to screen position using terrain's coordinate converter
+    let screenX = particle.x;
+    let screenY = particle.y;
+    
+    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && 
+        typeof TILE_SIZE !== 'undefined') {
+      const tileX = particle.x / TILE_SIZE;
+      const tileY = particle.y / TILE_SIZE;
+      const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
+    push();
+    translate(screenX, screenY);  // ✅ Screen coordinates
+    // ... render particle
+    pop();
+  }
+  pop();
+}
+```
+
 ## Technical Details
 
 ### Coordinate Conversion Formula
@@ -175,9 +266,11 @@ console.log('CameraManager pixels:', cameraManager.cameraX, cameraManager.camera
 ### Issue 1: Y-Axis Inversion
 **Problem**: `camRenderConverter` uses mathematical Y-axis (up=positive), entities might use screen Y-axis (down=positive)
 
-**Mitigation**: The formula already handles this with `-1 * (tileY - cameraTileY)` in `convPosToCanvas()`
+**Solution**: The formula already handles this with `-1 * (tileY - cameraTileY)` in `convPosToCanvas()`
 
-**Verification**: Test entity movement in all directions, especially north/south
+**Result**: ✅ FIXED - Selection box and effects now render correctly with proper Y-axis handling
+
+**Verification**: Tested entity movement in all directions, selection box aligns properly with entities
 
 ### Issue 2: Fractional Tile Positions
 **Problem**: Entities move in pixels, tiles are 32px, fractional positions might cause alignment issues

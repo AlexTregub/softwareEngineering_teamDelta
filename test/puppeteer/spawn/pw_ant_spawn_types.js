@@ -103,20 +103,20 @@ const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
     const queenExists = antsInfo && antsInfo.find && antsInfo.find(a => a.isQueen);
     if (!queenExists && !(queenResult && queenResult.spawned)) {
       console.error('No queen found or spawned. queenResult:', queenResult, 'antsInfo:', antsInfo);
-      try { await saveScreenshot(page, 'ant_spawn_types', false); } catch (e) {}
+      try { await saveScreenshot(page, 'spawn/ant_types', false); } catch (e) {}
       await browser.close();
       process.exit(2);
     }
 
     if (!antsInfo || !antsInfo.length) {
       console.error('No ants present after spawn attempts');
-      try { await saveScreenshot(page, 'ant_spawn_types', false); } catch (e) {}
+      try { await saveScreenshot(page, 'spawn/ant_types', false); } catch (e) {}
       await browser.close();
       process.exit(2);
     }
 
     if (process.env.TEST_VERBOSE) console.log('Ant spawn types test passed');
-    try { await saveScreenshot(page, 'ant_spawn_types', true); } catch (e) {}
+    try { await saveScreenshot(page, 'spawn/ant_types', true); } catch (e) {}
     await browser.close();
     process.exit(0);
   } catch (err) {

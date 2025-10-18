@@ -744,10 +744,13 @@ class RenderController {
       color[3] *= alpha;
     }
     
+    // Convert world position to screen position
+    const screenPos = this.worldToScreenPosition(effect.position);
+    
     fill(...color);
     textAlign(CENTER, CENTER);
     textSize(effect.size || 12);
-    text(effect.text, effect.position.x, effect.position.y);
+    text(effect.text, screenPos.x, screenPos.y);
   }
 
   /**
@@ -763,9 +766,12 @@ class RenderController {
       color[3] *= alpha;
     }
     
+    // Convert world position to screen position
+    const screenPos = this.worldToScreenPosition(effect.position);
+    
     fill(...color);
     noStroke();
-    ellipse(effect.position.x, effect.position.y, effect.size || 4, effect.size || 4);
+    ellipse(screenPos.x, screenPos.y, effect.size || 4, effect.size || 4);
   }
 
   // --- Helper Methods ---

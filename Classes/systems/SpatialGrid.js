@@ -67,20 +67,32 @@ class SpatialGrid {
 
   /**
    * Add an entity to the spatial grid
-   * @param {Entity} entity - Entity to add (must have getX() and getY() methods)
+   * @param {Entity} entity - Entity to add (must have getX()/getY() or getPosition() methods)
    * @returns {boolean} True if added successfully
    * @example
    * const success = spatialGrid.addEntity(myAnt);
    */
   addEntity(entity) {
-    if (!entity || typeof entity.getX !== 'function' || typeof entity.getY !== 'function') {
-      console.warn('SpatialGrid: Cannot add entity without getX/getY methods', entity);
+    if (!entity) {
+      console.warn('SpatialGrid: Cannot add null/undefined entity');
+      return false;
+    }
+
+    // Support both getX()/getY() and getPosition() patterns
+    let x, y;
+    if (typeof entity.getX === 'function' && typeof entity.getY === 'function') {
+      x = entity.getX();
+      y = entity.getY();
+    } else if (typeof entity.getPosition === 'function') {
+      const pos = entity.getPosition();
+      x = pos.x;
+      y = pos.y;
+    } else {
+      console.warn('SpatialGrid: Entity must have getX()/getY() or getPosition() methods', entity);
       return false;
     }
 
     try {
-      const x = entity.getX();
-      const y = entity.getY();
       const key = this._getKey(x, y);
 
       // Create cell if it doesn't exist
@@ -146,13 +158,24 @@ class SpatialGrid {
    * spatialGrid.updateEntity(myAnt); // Sync grid with new position
    */
   updateEntity(entity) {
-    if (!entity || typeof entity.getX !== 'function' || typeof entity.getY !== 'function') {
+    if (!entity) {
+      return false;
+    }
+
+    // Support both getX()/getY() and getPosition() patterns
+    let x, y;
+    if (typeof entity.getX === 'function' && typeof entity.getY === 'function') {
+      x = entity.getX();
+      y = entity.getY();
+    } else if (typeof entity.getPosition === 'function') {
+      const pos = entity.getPosition();
+      x = pos.x;
+      y = pos.y;
+    } else {
       return false;
     }
 
     try {
-      const x = entity.getX();
-      const y = entity.getY();
       const newKey = this._getKey(x, y);
 
       // If entity hasn't moved to a new cell, no update needed

@@ -61,7 +61,7 @@ const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
     });
 
     console.log('Spawned pair info:', spawnInfo);
-  if (spawnInfo.error) { console.error('Could not spawn ants for combat test:', spawnInfo.error); try { await saveScreenshot(page, 'combat_initiation', false); } catch (e) {} await browser.close(); process.exit(2); }
+  if (spawnInfo.error) { console.error('Could not spawn ants for combat test:', spawnInfo.error); try { await saveScreenshot(page, 'combat/initiation', false); } catch (e) {} await browser.close(); process.exit(2); }
 
     // Prefer recorded spawned indexes from testHelpers when available (more reliable than returned spawnInfo)
     let pair = spawnInfo;
@@ -161,13 +161,13 @@ const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
     if (process.env.TEST_VERBOSE) console.log('Combat detection result:', combatDetected);
     if (combatDetected.error || combatDetected.timedOut) {
       console.error('Combat not detected');
-      try { await saveScreenshot(page, 'combat_initiation', false); } catch (e) {}
+      try { await saveScreenshot(page, 'combat/initiation', false); } catch (e) {}
       await browser.close();
       process.exit(2);
     }
 
     if (process.env.TEST_VERBOSE) console.log('Combat initiation test passed');
-    try { await saveScreenshot(page, 'combat_initiation', true); } catch (e) {}
+    try { await saveScreenshot(page, 'combat/initiation', true); } catch (e) {}
     await browser.close();
     process.exit(0);
   } catch (err) {

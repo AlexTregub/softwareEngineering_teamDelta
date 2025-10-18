@@ -30,26 +30,62 @@ async function launchBrowser(opts = {}) {
 
 // Cross-version sleep helper
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-// Save screenshot helper: pass=true will overwrite a canonical passing screenshot; pass=false will create a timestamped failure screenshot.
+
+/**
+ * Save screenshot helper with category support
+ * @param {Page} page - Puppeteer page object
+ * @param {string} testName - Test name, can include category like 'camera/zoom' or just 'test_name'
+ * @param {boolean} pass - true for success/, false for failure/ with timestamp
+ * 
+ * Examples:
+ *   saveScreenshot(page, 'selection_deterministic', true)  -> screenshots/success/selection_deterministic.png
+ *   saveScreenshot(page, 'camera/zoom_probe', false)       -> screenshots/failure/fail_camera_zoom_probe_TIMESTAMP.png
+ *   saveScreenshot(page, 'camera/zoom_in', true)           -> screenshots/camera/success/zoom_in.png
+ * 
+ * If testName contains '/', it's treated as category/name:
+ *   - Creates category subfolder with success/failure subdirs
+ *   - Example: 'camera/zoom' creates screenshots/camera/success/zoom.png
+ */
 async function saveScreenshot(page, testName, pass = true) {
   try {
     const fs = require('fs');
     const path = require('path');
-  const screenshotsDir = path.join(process.cwd(), 'test', 'puppeteer', 'screenshots');
-  const successDir = path.join(screenshotsDir, 'success');
-  const failureDir = path.join(screenshotsDir, 'failure');
-  try { fs.mkdirSync(successDir, { recursive: true }); } catch (e) {}
-  try { fs.mkdirSync(failureDir, { recursive: true }); } catch (e) {}
+    const screenshotsDir = path.join(process.cwd(), 'test', 'puppeteer', 'screenshots');
+    
+    // Check if testName includes a category (e.g., 'camera/zoom_probe')
+    const parts = testName.split('/');
+    let category = null;
+    let name = testName;
+    
+    if (parts.length > 1) {
+      // Has category: 'camera/zoom_probe' -> category='camera', name='zoom_probe'
+      category = parts.slice(0, -1).join('/');
+      name = parts[parts.length - 1];
+    }
+    
+    // Determine base directory (with or without category)
+    const baseDir = category 
+      ? path.join(screenshotsDir, category)
+      : screenshotsDir;
+    
+    const successDir = path.join(baseDir, 'success');
+    const failureDir = path.join(baseDir, 'failure');
+    
+    // Create directories
+    try { fs.mkdirSync(successDir, { recursive: true }); } catch (e) {}
+    try { fs.mkdirSync(failureDir, { recursive: true }); } catch (e) {}
+    
     const pad = (n) => n.toString().padStart(2, '0');
+    
     if (pass) {
-      const filePath = path.join(successDir, `${testName}.png`);
+      const filePath = path.join(successDir, `${name}.png`);
       await page.screenshot({ path: filePath });
       if (process.env.TEST_VERBOSE) console.log('Saved passing screenshot:', filePath);
       return filePath;
     } else {
       const d = new Date();
       const ts = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-      const filePath = path.join(failureDir, `fail_${testName}_${ts}.png`);
+      const filePath = path.join(failureDir, `fail_${name}_${ts}.png`);
       await page.screenshot({ path: filePath });
       if (process.env.TEST_VERBOSE) console.log('Saved failure screenshot:', filePath);
       return filePath;

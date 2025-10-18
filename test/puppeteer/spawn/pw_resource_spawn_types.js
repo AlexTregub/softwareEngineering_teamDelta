@@ -149,13 +149,13 @@ const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
 
     if (failures.length) {
       console.error('Resource spawn presence check failed for types:', failures);
-      try { await saveScreenshot(page, 'resource_spawn_types', false); } catch (e) {}
+      try { await saveScreenshot(page, 'spawn/resource_types', false); } catch (e) {}
       await browser.close();
       process.exit(2);
     }
 
     if (process.env.TEST_VERBOSE) console.log('Resource spawn types test passed');
-    try { await saveScreenshot(page, 'resource_spawn_types', true); } catch (e) {}
+    try { await saveScreenshot(page, 'spawn/resource_types', true); } catch (e) {}
     await browser.close();
     process.exit(0);
   } catch (err) {

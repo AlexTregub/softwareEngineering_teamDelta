@@ -240,7 +240,7 @@ const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
 
     if (!mappingOk) {
       console.error('Camera mapping worldToScreen not available or returned invalid result');
-      try { await saveScreenshot(page, 'selection_deterministic', false); } catch (e) {}
+      try { await saveScreenshot(page, 'selection/deterministic', false); } catch (e) {}
       await browser.close();
       process.exit(2);
     }
@@ -249,10 +249,10 @@ const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
       const found = post.selected && post.selected.find(s => s.id === spawnedIdx);
       if (!found) {
         console.warn('Selection assertion failed (non-fatal): spawned ant index not in selected list', spawnedIdx, post.selected);
-        await saveScreenshot(page, 'selection_deterministic', false);
+        await saveScreenshot(page, 'selection/deterministic', false);
       } else {
         if (process.env.TEST_VERBOSE) console.log('Deterministic selection assertion passed for ant index', spawnedIdx);
-        await saveScreenshot(page, 'selection_deterministic', true);
+        await saveScreenshot(page, 'selection/deterministic', true);
       }
     } else {
       console.warn('No spawned index available to assert selection');

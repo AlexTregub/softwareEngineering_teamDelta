@@ -13,7 +13,6 @@ const NONE = '\0';
 let g_mouseController;
 let g_keyboardController;
 let g_selectionBoxController;
-let g_uiSelectionController; // UI Effects Layer Selection Controller
 let g_tileInteractionManager; // Efficient tile-based interaction system
 // --- WORLD GENERATION ---
 let g_seed;
@@ -57,7 +56,10 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
+  console.log('[SETUP] About to create SelectionBoxController, g_mouseController:', g_mouseController, 'ants:', ants);
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
+  console.log('[SETUP] Created g_selectionBoxController:', g_selectionBoxController);
+  window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
 
   // Ensure selection adapter is registered with RenderManager now that controller exists
   try {
