@@ -20,6 +20,7 @@ class ResourceBrush {
     this.cursorPosition = { x: 0, y: 0 };
     this.pulseAnimation = 0;
     this.pulseSpeed = 0.05;
+    this.showResourceChangeEffect = false;
     
     // Resource types available for painting
     this.availableResources = [
@@ -59,6 +60,12 @@ class ResourceBrush {
     this.currentResourceIndex = (this.currentResourceIndex + 1) % this.availableResources.length;
     this.currentResource = this.availableResources[this.currentResourceIndex];
     console.log(`🔄 Switched to painting: ${this.currentResource.name}`);
+    
+    // Visual feedback for resource type change
+    this.showResourceChangeEffect = true;
+    setTimeout(() => {
+      this.showResourceChangeEffect = false;
+    }, 1000);
   }
 
   /**
@@ -211,6 +218,18 @@ class ResourceBrush {
     textAlign(CENTER, CENTER);
     textSize(12);
     text(this.currentResource.name, x, y - 25);
+    
+    // Show resource change effect
+    if (this.showResourceChangeEffect) {
+      fill(255, 255, 0, 150);
+      noStroke();
+      rect(x - textWidth/2 - 8, y - 38, textWidth + 16, 26, 5);
+      
+      fill(0, 0, 0);
+      textAlign(CENTER, CENTER);
+      textSize(12);
+      text(`→ ${this.currentResource.name} ←`, x, y - 25);
+    }
     
     // Instructions
     fill(255, 255, 255, 200);

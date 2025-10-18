@@ -68,6 +68,37 @@ function setup() {
     // This maintains compatibility with existing game input systems
   });
 
+  // Disable right-click context menu to prevent interference with brush controls
+  if (typeof document !== 'undefined') {
+    // Global context menu prevention
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      return false;
+    });
+    
+    // Additional prevention for the canvas specifically
+    document.addEventListener('DOMContentLoaded', function() {
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        canvas.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        });
+      }
+    });
+    
+    // Prevent right-click from triggering browser back/forward
+    document.addEventListener('mouseup', function(e) {
+      if (e.button === 2) { // Right mouse button
+        e.preventDefault();
+        return false;
+      }
+    });
+    
+    console.log('🚫 Right-click context menu disabled for brush controls');
+  }
+
   // Initialize Queen Control Panel system
   if (typeof initializeQueenControlPanel !== 'undefined') {
     initializeQueenControlPanel();
@@ -82,6 +113,74 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+  
+  // Initialize context menu prevention for better brush control
+  initializeContextMenuPrevention();
+}
+
+/**
+ * Initialize context menu prevention
+ * Prevents right-click context menu from interfering with brush controls
+ */
+function initializeContextMenuPrevention() {
+  // Method 1: Document-level prevention
+  if (typeof document !== 'undefined') {
+    document.oncontextmenu = function(e) {
+      e.preventDefault();
+      return false;
+    };
+  }
+  
+  // Method 2: Window-level prevention
+  if (typeof window !== 'undefined') {
+    window.oncontextmenu = function(e) {
+      e.preventDefault();
+      return false;
+    };
+  }
+  
+  // Method 3: p5.js canvas-specific prevention
+  // This will be applied when the canvas is created
+  try {
+    if (typeof select !== 'undefined') {
+      const canvas = select('canvas');
+      if (canvas) {
+        canvas.elt.oncontextmenu = function(e) {
+          e.preventDefault();
+          return false;
+        };
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not set canvas context menu prevention:', error);
+  }
+  
+  console.log('🚫 Multiple layers of right-click context menu prevention initialized');
+}
+
+/**
+ * Global function to test context menu prevention
+ */
+function testContextMenuPrevention() {
+  console.log('🧪 Testing context menu prevention...');
+  console.log('Right-click anywhere to test - context menu should NOT appear');
+  console.log('If context menu still appears, try: disableContextMenu()');
+  return true;
+}
+
+/**
+ * Global function to force disable context menu
+ */
+function disableContextMenu() {
+  initializeContextMenuPrevention();
+  console.log('🔒 Context menu prevention forcibly re-applied');
+  return true;
+}
+
+// Make functions globally available
+if (typeof window !== 'undefined') {
+  window.testContextMenuPrevention = testContextMenuPrevention;
+  window.disableContextMenu = disableContextMenu;
 }
 
 /**
@@ -482,9 +581,25 @@ function keyPressed() {
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further
   }
-  if (keyCode === ESCAPE && g_selectionBoxController) {
-    g_selectionBoxController.deselectAll();
-    return;
+  if (keyCode === ESCAPE) {
+    // First check if resource brush is active and turn it off
+    if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
+      g_resourceBrush.toggle();
+      console.log('🎨 Resource brush deactivated via ESC key');
+      return;
+    }
+
+    if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
+      g_enemyAntBrush.toggle();
+      console.log('🎨 Enemy brush deactivated via ESC key');
+      return;
+    }
+    
+    // Then handle selection box clearing
+    if (g_selectionBoxController) {
+      g_selectionBoxController.deselectAll();
+      return;
+    }
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
 }
