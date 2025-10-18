@@ -88,6 +88,21 @@ function setup() {
   cameraManager = new CameraManager();
   cameraManager.initialize();
 
+  // Initialize spatial grid manager for efficient entity queries
+  if (typeof SpatialGridManager !== 'undefined') {
+    window.spatialGridManager = new SpatialGridManager(TILE_SIZE * 2); // 64px cells
+    logNormal('SpatialGridManager initialized with 64px cells');
+    
+    // Register spatial grid visualization in debug layer (only renders when enabled)
+    if (typeof RenderManager !== 'undefined') {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_DEBUG, () => {
+        if (window.VISUALIZE_SPATIAL_GRID && spatialGridManager) {
+          spatialGridManager.visualize({ color: 'rgba(0, 255, 0, 0.3)' });
+        }
+      });
+    }
+  }
+
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 }

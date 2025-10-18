@@ -39,8 +39,24 @@ class Sprite2D {
       return; // Don't render if no image
     }
     
+    // Convert world position (pixels) to screen position using terrain's coordinate converter
+    let screenX = this.pos.x + this.size.x / 2;
+    let screenY = this.pos.y + this.size.y / 2;
+    
+    // Use terrain's coordinate system if available (syncs entities with terrain camera)
+    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion) {
+      // Convert pixel position to tile position
+      const tileX = this.pos.x / TILE_SIZE;
+      const tileY = this.pos.y / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position
+      const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0] + this.size.x / 2;
+      screenY = screenPos[1] + this.size.y / 2;
+    }
+    
     push();
-    translate(this.pos.x + this.size.x / 2, this.pos.y + this.size.y / 2);
+    translate(screenX, screenY);
     scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
     rotate(radians(this.rotation));
     imageMode(CENTER);

@@ -302,15 +302,15 @@
 //   }, 500);
 // }
 
-// Expose functions to global scope for debugging and integration
-if (typeof window !== 'undefined') {
-  window.initializeUISelectionBox = initializeUISelectionBox;
-  window.updateUISelectionEntities = updateUISelectionEntities;
-  window.getUISelectedAnts = getUISelectedAnts;
-  window.clearUISelection = clearUISelection;
-  window.setUISelectionEnabled = setUISelectionEnabled;
-  window.getUISelectionDebugInfo = getUISelectionDebugInfo;
-}
+// // Expose functions to global scope for debugging and integration
+// if (typeof window !== 'undefined') {
+//   window.initializeUISelectionBox = initializeUISelectionBox;
+//   window.updateUISelectionEntities = updateUISelectionEntities;
+//   window.getUISelectedAnts = getUISelectedAnts;
+//   window.clearUISelection = clearUISelection;
+//   window.setUISelectionEnabled = setUISelectionEnabled;
+//   window.getUISelectionDebugInfo = getUISelectionDebugInfo;
+// }
 
 // Inline adapter to connect g_uiSelectionController to RenderLayerManager interactive API
 try {

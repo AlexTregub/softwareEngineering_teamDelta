@@ -377,10 +377,25 @@ class RenderController {
     const pos = this.getEntityPosition();
     const size = this.getEntitySize();
     
+    // Convert world position to screen position using terrain's coordinate converter
+    let screenX = pos.x;
+    let screenY = pos.y;
+    
+    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert pixel position to tile position
+      const tileX = pos.x / TILE_SIZE;
+      const tileY = pos.y / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position
+      const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
     this._safeRender(() => {
       fill(100, 100, 100); // Gray default
       noStroke();
-      rect(pos.x, pos.y, size.x, size.y);
+      rect(screenX, screenY, size.x, size.y);
     });
   }
 
@@ -395,14 +410,16 @@ class RenderController {
       
       if (isMoving && target) {
         const pos = this.getEntityCenter();
+        const screenPos = this.worldToScreenPosition(pos);
+        const targetScreenPos = this.worldToScreenPosition({ x: target.x, y: target.y });
         const size = this.getEntitySize();
         
         this._safeRender(() => {
           stroke(255, 255, 255, 150);
           strokeWeight(2);
           line(
-            pos.x, pos.y,
-            target.x + size.x / 2, target.y + size.y / 2
+            screenPos.x, screenPos.y,
+            targetScreenPos.x + size.x / 2, targetScreenPos.y + size.y / 2
           );
           noStroke();
         });
@@ -410,15 +427,17 @@ class RenderController {
     } else if (this._entity._isMoving && this._entity._stats && this._entity._stats.pendingPos) {
       // Fallback to old system
       const pos = this.getEntityPosition();
+      const screenPos = this.worldToScreenPosition(pos);
       const size = this.getEntitySize();
       const target = this._entity._stats.pendingPos.statValue;
+      const targetScreenPos = this.worldToScreenPosition({ x: target.x, y: target.y });
       
       this._safeRender(() => {
         stroke(255);
         strokeWeight(2);
         line(
-          pos.x + size.x / 2, pos.y + size.y / 2,
-          target.x + size.x / 2, target.y + size.y / 2
+          screenPos.x + size.x / 2, screenPos.y + size.y / 2,
+          targetScreenPos.x + size.x / 2, targetScreenPos.y + size.y / 2
         );
         noStroke();
       });
@@ -435,6 +454,7 @@ class RenderController {
     if (!highlightType) return;
 
     const pos = this.getEntityPosition();
+    const screenPos = this.worldToScreenPosition(pos);
     const size = this.getEntitySize();
     
     // Apply intensity to color
@@ -447,22 +467,22 @@ class RenderController {
 
     switch (highlightType.style) {
       case "outline":
-        this.renderOutlineHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderOutlineHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "pulse":
-        this.renderPulseHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderPulseHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "bob":
-        this.renderBobHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderBobHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "spin":
-        this.renderSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderSpinHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "slow_spin":
-        this.renderSlowSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderSlowSpinHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "fast_spin":
-        this.renderFastSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderFastSpinHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
     }
   }
@@ -578,11 +598,12 @@ class RenderController {
     if (!indicator) return;
 
     const pos = this.getEntityPosition();
+    const screenPos = this.worldToScreenPosition(pos);
     const size = this.getEntitySize();
     
     // Position indicator above entity
-    const indicatorX = pos.x + size.x / 2;
-    const indicatorY = pos.y - 15;
+    const indicatorX = screenPos.x + size.x / 2;
+    const indicatorY = screenPos.y - 15;
 
     this._safeRender(() => {
       // Draw background circle
@@ -613,34 +634,35 @@ class RenderController {
 
       // Fallback to legacy behavior if DebugRenderer not available
       const pos = this.getEntityPosition();
+      const screenPos = this.worldToScreenPosition(pos);
       const size = this.getEntitySize();
       
       this._safeRender(() => {
         // Debug text background
         fill(0, 0, 0, 150);
         noStroke();
-        rect(pos.x, pos.y + size.y + 5, 120, 60);
+        rect(screenPos.x, screenPos.y + size.y + 5, 120, 60);
 
         // Debug text
         fill(255);
         textAlign(LEFT, TOP);
         textSize(8);
         
-        let debugY = pos.y + size.y + 10;
+        let debugY = screenPos.y + size.y + 10;
         const lineHeight = 10;
         
         // Entity info
-        text(`ID: ${this._entity._antIndex || "unknown"}`, pos.x + 2, debugY);
+        text(`ID: ${this._entity._antIndex || "unknown"}`, screenPos.x + 2, debugY);
         debugY += lineHeight;
         
         // Position
-        text(`Pos: (${Math.round(pos.x)}, ${Math.round(pos.y)})`, pos.x + 2, debugY);
+        text(`Pos: (${Math.round(pos.x)}, ${Math.round(pos.y)})`, screenPos.x + 2, debugY);
         debugY += lineHeight;
         
         // State
         if (this._entity._stateMachine) {
           const state = this._entity._stateMachine.primaryState || "UNKNOWN";
-          text(`State: ${state}`, pos.x + 2, debugY);
+          text(`State: ${state}`, screenPos.x + 2, debugY);
           debugY += lineHeight;
         }
         
@@ -648,14 +670,14 @@ class RenderController {
         const isMoving = this._entity._movementController ? 
           this._entity._movementController.getIsMoving() : 
           this._entity._isMoving;
-        text(`Moving: ${isMoving ? "YES" : "NO"}`, pos.x + 2, debugY);
+        text(`Moving: ${isMoving ? "YES" : "NO"}`, screenPos.x + 2, debugY);
       });
       debugY += lineHeight;
       
       // Tasks
       if (this._entity._taskManager) {
         const taskCount = this._entity._taskManager.getQueueLength();
-        text(`Tasks: ${taskCount}`, pos.x + 2, debugY);
+        text(`Tasks: ${taskCount}`, screenPos.x + 2, debugY);
       }
     } catch (e) {
       console.warn('RenderController.renderDebugInfo fallback failed', e);
@@ -747,6 +769,27 @@ class RenderController {
   }
 
   // --- Helper Methods ---
+
+  /**
+   * Convert world position to screen position using terrain's coordinate system
+   * @param {Object} worldPos - World position {x, y} in pixels
+   * @returns {Object} Screen position {x, y}
+   */
+  worldToScreenPosition(worldPos) {
+    // Use terrain's coordinate system if available (syncs entities with terrain camera)
+    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert pixel position to tile position
+      const tileX = worldPos.x / TILE_SIZE;
+      const tileY = worldPos.y / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position
+      const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      return { x: screenPos[0], y: screenPos[1] };
+    }
+    
+    // Fallback: return world position unchanged
+    return { x: worldPos.x, y: worldPos.y };
+  }
 
   /**
    * Get entity position

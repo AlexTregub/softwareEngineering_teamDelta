@@ -46,6 +46,11 @@ class Entity {
     // Ensure transform state propagated to collision box and sprite
     this.setPosition(x, y);
     this.setSize(width, height);
+
+    // Register with spatial grid manager (if available and not disabled)
+    if (options.useSpatialGrid !== false && typeof spatialGridManager !== 'undefined') {
+      spatialGridManager.addEntity(this);
+    }
   }
 
   // --- Core Properties ---
@@ -163,7 +168,17 @@ class Entity {
 
   // --- Position & Transform ---
   /** Set position (delegates to transform controller if present). */
-  setPosition(x, y) { this._collisionBox.setPosition(x, y); return this._delegate('transform', 'setPosition', x, y); }
+  setPosition(x, y) { 
+    this._collisionBox.setPosition(x, y); 
+    const result = this._delegate('transform', 'setPosition', x, y);
+    
+    // Update spatial grid when entity moves
+    if (typeof spatialGridManager !== 'undefined') {
+      spatialGridManager.updateEntity(this);
+    }
+    
+    return result;
+  }
   /** Get position (from transform controller or collision box). */
   getPosition() { return this._delegate('transform', 'getPosition') || { x: this._collisionBox.x, y: this._collisionBox.y }; }
   /** Set size (delegates to transform controller if present). */
@@ -696,7 +711,14 @@ class Entity {
 
   // --- Cleanup ---
   /** Mark entity inactive; controllers will be released for GC. */
-  destroy() { this._isActive = false; }
+  destroy() { 
+    this._isActive = false;
+    
+    // Remove from spatial grid
+    if (typeof spatialGridManager !== 'undefined') {
+      spatialGridManager.removeEntity(this);
+    }
+  }
 }
 
 // Export for Node.js testing
