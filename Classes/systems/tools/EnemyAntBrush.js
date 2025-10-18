@@ -9,16 +9,16 @@
 /**
  * EnemyAntBrush - Tool for painting enemy ants with mouse interaction
  */
-class EnemyAntBrush {
+class EnemyAntBrush extends BrushBase {
   constructor() {
-    this.isActive = false;
+    super();
     this.brushSize = 30; // Radius of brush cursor
     this.spawnCooldown = 50; // Milliseconds between spawns to prevent spam
     this.lastSpawnTime = 0;
     this.brushColor = [255, 69, 0, 100]; // Orange with transparency
     this.brushOutlineColor = [255, 69, 0, 255]; // Solid orange outline
     this.isMousePressed = false;
-    
+
     // Visual feedback properties
     this.pulseAnimation = 0;
     this.pulseSpeed = 0.1;
@@ -55,12 +55,10 @@ class EnemyAntBrush {
    */
   update() {
     if (!this.isActive) return;
-
-    // Update pulse animation for visual feedback
+    super.update();
+    // Update pulse animation for visual feedback (super.update handles pulseAnimation too but keep local scaling)
     this.pulseAnimation += this.pulseSpeed;
-    if (this.pulseAnimation > Math.PI * 2) {
-      this.pulseAnimation = 0;
-    }
+    if (this.pulseAnimation > Math.PI * 2) this.pulseAnimation = 0;
 
     // Handle continuous painting while mouse is held down
     if (this.isMousePressed && typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined') {

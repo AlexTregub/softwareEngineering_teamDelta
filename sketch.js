@@ -510,6 +510,60 @@ function mouseReleased() {
   handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
 }
 
+/**
+ * mouseWheel
+ * ---------
+ * Forward mouse wheel events to active brushes so users can cycle brush types
+ * with the scroll wheel. Prevents default page scrolling while in-game.
+ */
+function mouseWheel(event) {
+  try {
+    if (!GameState.isInGame()) return false;
+
+    // Determine scroll direction (positive = down, negative = up)
+    const delta = event.deltaY || 0;
+    const step = (delta > 0) ? 1 : (delta < 0) ? -1 : 0;
+
+    // Helper to call directional cycling on a brush if available
+    const tryCycleDir = (brush) => {
+      if (!brush || !brush.isActive || step === 0) return false;
+      // Preferred: BrushBase-style directional API
+      if (typeof brush.cycleTypeStep === 'function') { brush.cycleTypeStep(step); return true; }
+      if (typeof brush.cycleType === 'function') { brush.cycleType(step); return true; }
+      // Legacy resource brush method
+      if (typeof brush.cycleResourceType === 'function') { if (step > 0) brush.cycleResourceType(); else { /* no backward legacy */ } return true; }
+      // Fallback: adjust availableTypes index if exposed
+      if (Array.isArray(brush.availableTypes) && typeof brush.currentIndex === 'number') {
+        const len = brush.availableTypes.length;
+        brush.currentIndex = ((brush.currentIndex + step) % len + len) % len;
+        brush.currentType = brush.availableTypes[brush.currentIndex];
+        if (typeof brush.onTypeChanged === 'function') { try { brush.onTypeChanged(brush.currentType); } catch(e){} }
+        return true;
+      }
+      return false;
+    };
+
+    // Priority order: Enemy brush, Resource brush, Lightning aim brush
+    if (window.g_enemyAntBrush && tryCycleDir(window.g_enemyAntBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_resourceBrush && tryCycleDir(window.g_resourceBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
+
+  } catch (e) {
+    console.error('❌ Error handling mouseWheel for brushes:', e);
+  }
+  // Let other handlers/processes receive the event if no brush consumed it
+  return true;
+}
+
 // KEYBOARD INTERACTIONS
 
 /**

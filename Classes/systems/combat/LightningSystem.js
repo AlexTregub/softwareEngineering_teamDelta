@@ -39,12 +39,17 @@ class LightningManager {
   constructor() {
     this.sootStains = [];
     this.bolts = []; // transient bolt animations
-    this.cooldown = 10; // milliseconds between strikes
+    this.cooldown = 300; // milliseconds between strikes
     this.lastStrikeTime = 0;
+    // Default playback volume (0.0 - 1.0)
+    this.volume = 0.25; // lower default so strikes aren't too loud
     // Try to load a simple sound using HTMLAudioElement if available
     try {
       this.sound = new Audio('Images/sounds/lightning_strike.wav');
       this.explosionSound = new Audio('Images/sounds/explosion_small.wav');
+      // Apply initial volume if supported
+      try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; } catch (e) {}
+      try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; } catch (e) {}
     } catch (err) {
       this.sound = null;
       this.explosionSound = null;
@@ -53,7 +58,7 @@ class LightningManager {
     console.log('⚡ Lightning system initialized');
   }
 
-  strikeAtAnt(ant, damage = 9999) {
+  strikeAtAnt(ant, damage = 50, radius = 3) {
     try {
       if (!ant) {
         console.warn('⚡ No target ant provided for lightning strike');
@@ -83,10 +88,37 @@ class LightningManager {
 
       // Play sounds if available
       if (this.sound && typeof this.sound.play === 'function') {
-        try { this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
+        try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
       }
       if (this.explosionSound && typeof this.explosionSound.play === 'function') {
-        try { this.explosionSound.currentTime = 0; this.explosionSound.play(); } catch (e) {}
+        try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; this.explosionSound.currentTime = 0; this.explosionSound.play(); } catch (e) {}
+      }
+      
+      // Kill nearby ants as well (area effect)
+      try {
+        const aoeRadius = TILE_SIZE * radius; // 1.5 tiles radius
+        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+          for (const other of ants) {
+            if (!other || !other.isActive) continue;
+            if (other === ant) continue; // already handled
+            const p = (typeof other.getPosition === 'function') ? other.getPosition() : { x: other.x || 0, y: other.y || 0 };
+            const d = Math.hypot(p.x - pos.x, p.y - pos.y);
+            if (d <= aoeRadius) {
+              // Prefer kill() if available
+              if (typeof other.kill === 'function') {
+                try { other.kill(); } catch (e) { other.isActive = false; }
+              } else if (typeof other.takeDamage === 'function') {
+                try { other.takeDamage(damage); } catch (e) { other.isActive = false; }
+              } else {
+                // Force-remove fallback
+                other.isActive = false;
+                if (typeof other.health !== 'undefined') other.health = 0;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('❌ Error applying AoE kills in strikeAtAnt:', e);
       }
 
       // Create a soot stain that fades
@@ -158,32 +190,47 @@ class LightningManager {
   /**
    * Strike at an arbitrary position and apply area damage to nearby ants
    */
-  strikeAtPosition(x, y, damage = 9999, radius = 30) {
+  strikeAtPosition(x, y, damage = 50, radius = 3) {
     try {
       this.createFlash(x, y);
       this.createExplosion(x, y);
-
-      // Damage nearby ants
-      if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-        for (const ant of ants) {
-          if (!ant || !ant.isActive) continue;
-          const p = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
-          const d = Math.hypot(p.x - x, p.y - y);
-          if (d <= radius) {
-            if (typeof ant.takeDamage === 'function') {
-              ant.takeDamage(damage);
-            } else if (typeof ant.kill === 'function') {
-              ant.kill();
-            } else {
-              ant.isActive = false;
+      // Kill nearby ants (area effect). Prefer kill(), otherwise force health to 0 and deactivate.
+      try {
+        const aoeRadius = TILE_SIZE*radius
+        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+          for (const ant of ants) {
+            if (!ant || !ant.isActive) continue;
+            const p = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
+            const d = Math.hypot(p.x - x, p.y - y);
+            if (d <= aoeRadius) {
+              try {
+                if (typeof ant.kill === 'function') {
+                  ant.kill();
+                } else if (typeof ant.takeDamage === 'function') {
+                  // As a fallback, set health to zero then call takeDamage if needed
+                  if (typeof ant.health !== 'undefined') ant.health = 0;
+                  try { ant.takeDamage(damage); } catch (e) { /* ignore */ }
+                } else {
+                  // Force-remove fallback
+                  ant.isActive = false;
+                  if (typeof ant.health !== 'undefined') ant.health = 0;
+                }
+              } catch (e) {
+                // Ensure the ant is deactivated even if kill() throws
+                ant.isActive = false;
+                if (typeof ant.health !== 'undefined') ant.health = 0;
+              }
             }
           }
         }
+      } catch (e) {
+        console.error('❌ Error applying AoE kills in strikeAtPosition:', e);
       }
 
       // Play sounds
       if (this.sound && typeof this.sound.play === 'function') {
-        try { this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
+        this.volume = .25
+        try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
       }
 
       // Soot stain

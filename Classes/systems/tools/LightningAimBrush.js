@@ -2,9 +2,9 @@
  * Lightning Aim Brush
  * Allows the player to aim a lightning strike within a limited radius from the queen.
  */
-class LightningAimBrush {
+class LightningAimBrush extends BrushBase {
   constructor() {
-    this.isActive = false;
+    super();
     this.cursor = { x: 0, y: 0 };
     this.showingInvalid = false;
     this.tileRange = 7; // tiles from queen
@@ -29,6 +29,7 @@ class LightningAimBrush {
 
   update() {
     if (!this.isActive) return;
+    super.update();
     this.cursor.x = (typeof mouseX !== 'undefined') ? mouseX : this.cursor.x;
     this.cursor.y = (typeof mouseY !== 'undefined') ? mouseY : this.cursor.y;
     this.pulse += this.pulseSpeed;
