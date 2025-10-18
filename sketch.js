@@ -308,3 +308,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
 
   pop();
 }
+
+console.log(this.resourcesPreloader.length);
+console.log("called resources length");
+

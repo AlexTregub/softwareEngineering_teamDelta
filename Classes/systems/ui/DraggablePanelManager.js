@@ -363,8 +363,8 @@ class DraggablePanelManager {
             //onclick to check if task is done
           },
           {
-            caption: getTaskUi(),
-            style: ButtonStyles.SUCCESS
+            //caption: getTaskUi(),
+           // style: ButtonStyles.SUCCESS
           }
         ]
       }
