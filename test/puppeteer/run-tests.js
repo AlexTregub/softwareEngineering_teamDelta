@@ -25,6 +25,9 @@ const TEST_CATEGORIES = {
   selection: [
     'pw_selection_deterministic.js',
     'selection-box.test.js'
+  ],
+  ui: [
+    'pw_panel_dragging.js'
   ]
 };
 
@@ -161,6 +164,7 @@ Categories:
   spawn      - Ant and resource spawning tests  
   combat     - Combat initiation tests
   selection  - Selection box and deterministic tests
+  ui         - UI panel dragging and interaction tests
 
 Examples:
   node run-tests.js              # Run all tests
