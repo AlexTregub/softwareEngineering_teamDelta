@@ -7,6 +7,15 @@
  */
 
 /**
+ * Color palette constants for UI consistency
+ */
+const COLOR_SPAWN_SECTION = [200, 200, 255];
+const COLOR_ENEMY_SECTION = [255, 50, 50];
+const COLOR_FACTION_SECTION = [255, 200, 200];
+const COLOR_STATE_SECTION = [200, 255, 200];
+const COLOR_SELECTED_ANTS = [255, 255, 0];
+
+/**
  * Initialize the Ant Control Panel with spawning and state management buttons
  * @returns {boolean} Success status
  */
@@ -134,7 +143,7 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   let currentY = y;
 
   // === SPAWNING SECTION ===
-  fill(200, 200, 255);
+  fill(...COLOR_SPAWN_SECTION);
   text('SPAWN ANTS:', x, currentY);
   currentY += 18;
 
@@ -155,7 +164,7 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   currentY += buttonHeight + sectionSpacing;
 
   // === ENEMY SPAWN SECTION ===
-  fill(255, 50, 50);
+  fill(...COLOR_ENEMY_SECTION);
   text('ENEMY:', x, currentY);
   currentY += 18;
 
@@ -164,7 +173,7 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   currentY += buttonHeight + sectionSpacing;
 
   // === FACTION SECTION ===
-  fill(255, 200, 200);
+  fill(...COLOR_FACTION_SECTION);
   text('FACTIONS:', x, currentY);
   currentY += 18;
 
@@ -176,7 +185,7 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   currentY += buttonHeight + sectionSpacing;
 
   // === STATE CONTROL SECTION ===
-  fill(200, 255, 200);
+  fill(...COLOR_STATE_SECTION);
   text('SELECTED ANTS STATE:', x, currentY);
   currentY += 18;
 
@@ -198,7 +207,7 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   // Show selected ants count
   if (ants && AntUtilities) {
     const selectedCount = AntUtilities.getSelectedAnts(ants).length;
-    fill(255, 255, 0);
+    fill(...COLOR_SELECTED_ANTS);
     text(`Selected: ${selectedCount}`, x, currentY + buttonHeight + 10);
   }
 }

@@ -770,7 +770,7 @@ function spawnQueen(){
     30, 0,
     antBaseSprite,
     'Queen',
-    'Player'
+    'player'
   );
 
   newAnt = new QueenAnt(newAnt);

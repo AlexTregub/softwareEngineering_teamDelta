@@ -9,31 +9,29 @@
 /**
  * ResourceBrush - Interactive tool for painting resources on the map
  */
-class ResourceBrush {
+class ResourceBrush extends BrushBase {
   constructor() {
-    this.isActive = false;
-    this.brushSize = 30;
-    this.spawnCooldown = 100; // milliseconds between spawns
-    this.lastSpawnTime = 0;
-    
-    // Visual feedback
-    this.cursorPosition = { x: 0, y: 0 };
-    this.pulseAnimation = 0;
-    this.pulseSpeed = 0.05;
+    super();
+    this.spawnCooldown = 100; // override default if needed
     this.showResourceChangeEffect = false;
-    
-    // Resource types available for painting
-    this.availableResources = [
+
+    // Resource types available for painting - harmonize with BrushBase.availableTypes
+    this.availableTypes = [
       { type: 'greenLeaf', name: 'Green Leaf', color: [0, 255, 0], factory: Resource.createGreenLeaf },
       { type: 'mapleLeaf', name: 'Maple Leaf', color: [255, 100, 0], factory: Resource.createMapleLeaf },
       { type: 'stick', name: 'Stick', color: [139, 69, 19], factory: Resource.createStick },
       { type: 'stone', name: 'Stone', color: [128, 128, 128], factory: Resource.createStone }
     ];
-    
-    // Current selected resource type
-    this.currentResourceIndex = 0;
-    this.currentResource = this.availableResources[0];
-    
+
+    this.currentIndex = 0;
+    this.currentType = this.availableTypes[0];
+
+    // Hook base onTypeChanged to show a transient visual
+    this.onTypeChanged = (newType) => {
+      this.showResourceChangeEffect = true;
+      setTimeout(() => { this.showResourceChangeEffect = false; }, 1000);
+    };
+
     console.log('🎨 Resource Paint Brush initialized');
   }
 
@@ -45,7 +43,8 @@ class ResourceBrush {
     this.isActive = !this.isActive;
     
     if (this.isActive) {
-      console.log(`🎨 Resource brush activated - painting ${this.currentResource.name}`);
+      const name = (this.currentType && this.currentType.name) ? this.currentType.name : 'Resource';
+      console.log(`🎨 Resource brush activated - painting ${name}`);
     } else {
       console.log('🎨 Resource brush deactivated');
     }
@@ -53,31 +52,12 @@ class ResourceBrush {
     return this.isActive;
   }
 
-  /**
-   * Cycle through available resource types
-   */
-  cycleResourceType() {
-    this.currentResourceIndex = (this.currentResourceIndex + 1) % this.availableResources.length;
-    this.currentResource = this.availableResources[this.currentResourceIndex];
-    console.log(`🔄 Switched to painting: ${this.currentResource.name}`);
-    
-    // Visual feedback for resource type change
-    this.showResourceChangeEffect = true;
-    setTimeout(() => {
-      this.showResourceChangeEffect = false;
-    }, 1000);
-  }
+  // cycleType() provided by BrushBase
 
-  /**
-   * Set specific resource type
-   * @param {string} resourceType - Type of resource to paint
-   */
   setResourceType(resourceType) {
-    const resourceIndex = this.availableResources.findIndex(r => r.type === resourceType);
-    if (resourceIndex !== -1) {
-      this.currentResourceIndex = resourceIndex;
-      this.currentResource = this.availableResources[resourceIndex];
-      console.log(`🎯 Set resource type to: ${this.currentResource.name}`);
+    const newType = this.setType(resourceType);
+    if (newType) {
+      console.log(`🎯 Set resource type to: ${newType.name}`);
     } else {
       console.warn(`⚠️ Unknown resource type: ${resourceType}`);
     }
@@ -87,19 +67,7 @@ class ResourceBrush {
    * Update the brush (called every frame)
    */
   update() {
-    if (!this.isActive) return;
-
-    // Update cursor position
-    if (typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined') {
-      this.cursorPosition.x = mouseX;
-      this.cursorPosition.y = mouseY;
-    }
-
-    // Update pulse animation
-    this.pulseAnimation += this.pulseSpeed;
-    if (this.pulseAnimation > Math.PI * 2) {
-      this.pulseAnimation = 0;
-    }
+    super.update();
   }
 
   /**
@@ -110,17 +78,7 @@ class ResourceBrush {
    * @returns {boolean} True if event was handled
    */
   onMousePressed(mouseX, mouseY, button) {
-    if (!this.isActive) return false;
-
-    if (button === 'LEFT') {
-      this.paintResource(mouseX, mouseY);
-      return true;
-    } else if (button === 'RIGHT') {
-      this.cycleResourceType();
-      return true;
-    }
-
-    return false;
+    return super.onMousePressed(mouseX, mouseY, button);
   }
 
   /**
@@ -131,8 +89,7 @@ class ResourceBrush {
    * @returns {boolean} True if event was handled
    */
   onMouseReleased(mouseX, mouseY, button) {
-    if (!this.isActive) return false;
-    return false; // No special handling for mouse release
+    return super.onMouseReleased(mouseX, mouseY, button);
   }
 
   /**
@@ -140,7 +97,7 @@ class ResourceBrush {
    * @param {number} x - X position
    * @param {number} y - Y position
    */
-  paintResource(x, y) {
+  performAction(x, y) {
     // Check cooldown
     const now = Date.now();
     if (now - this.lastSpawnTime < this.spawnCooldown) {
@@ -154,15 +111,17 @@ class ResourceBrush {
       const finalX = x + offsetX;
       const finalY = y + offsetY;
 
-      // Create the resource using the factory method
-      const resource = this.currentResource.factory(finalX, finalY);
+  // Create the resource using the factory method
+  const type = this.currentType || this.availableTypes[this.currentIndex];
+  const resource = (type && typeof type.factory === 'function') ? type.factory(finalX, finalY) : null;
       
-      if (resource) {
+        if (resource) {
         // Add to resource manager
         if (g_resourceManager && typeof g_resourceManager.addResource === 'function') {
           const added = g_resourceManager.addResource(resource);
           if (added) {
-            console.log(`🎨 Painted ${this.currentResource.name} at (${Math.round(finalX)}, ${Math.round(finalY)})`);
+            const paintedName = (type && type.name) ? type.name : 'Resource';
+            console.log(`🎨 Painted ${paintedName} at (${Math.round(finalX)}, ${Math.round(finalY)})`);
             this.lastSpawnTime = now;
           } else {
             console.warn('⚠️ Could not add resource - at capacity');
@@ -191,18 +150,19 @@ class ResourceBrush {
     const pulseSize = this.brushSize + Math.sin(this.pulseAnimation) * 5;
     
     // Brush area circle
-    stroke(...this.currentResource.color, 150);
+  const ct = this.currentType || this.availableTypes[this.currentIndex];
+  stroke(...(ct.color || [255,255,255]), 150);
     strokeWeight(2);
     noFill();
     ellipse(x, y, pulseSize * 2, pulseSize * 2);
     
     // Inner dot
-    fill(...this.currentResource.color, 200);
+  fill(...(ct.color || [255,255,255]), 200);
     noStroke();
     ellipse(x, y, 8, 8);
     
-    // Crosshair
-    stroke(...this.currentResource.color, 180);
+  // Crosshair
+  stroke(...(ct.color || [255,255,255]), 180);
     strokeWeight(1);
     const crossSize = 12;
     line(x - crossSize, y, x + crossSize, y);
@@ -211,13 +171,13 @@ class ResourceBrush {
     // Resource type indicator
     fill(0, 0, 0, 150);
     noStroke();
-    const textWidth = this.currentResource.name.length * 8;
+  const textWidth = (ct.name ? ct.name.length : 8) * 8;
     rect(x - textWidth/2 - 5, y - 35, textWidth + 10, 20, 3);
     
     fill(255);
     textAlign(CENTER, CENTER);
     textSize(12);
-    text(this.currentResource.name, x, y - 25);
+  text(ct.name || 'Type', x, y - 25);
     
     // Show resource change effect
     if (this.showResourceChangeEffect) {
@@ -228,14 +188,14 @@ class ResourceBrush {
       fill(0, 0, 0);
       textAlign(CENTER, CENTER);
       textSize(12);
-      text(`→ ${this.currentResource.name} ←`, x, y - 25);
+  text(`→ ${ct.name || 'Type'} ←`, x, y - 25);
     }
     
     // Instructions
     fill(255, 255, 255, 200);
     textAlign(LEFT, TOP);
     textSize(10);
-    text('Left Click: Paint  |  Right Click: Change Type', x + 20, y + 20);
+  text('Left Click: Paint  |  Right Click: Change Type', x + 20, y + 20);
 
     pop();
   }
@@ -247,10 +207,10 @@ class ResourceBrush {
   getDebugInfo() {
     return {
       isActive: this.isActive,
-      currentResource: this.currentResource.name,
+      currentResource: (this.currentType && this.currentType.name) ? this.currentType.name : null,
       brushSize: this.brushSize,
       spawnCooldown: this.spawnCooldown,
-      availableTypes: this.availableResources.map(r => r.name)
+      availableTypes: (this.availableTypes || []).map(r => r.name)
     };
   }
 }

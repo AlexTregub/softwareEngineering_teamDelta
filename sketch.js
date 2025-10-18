@@ -251,11 +251,6 @@ function draw() {
       console.error('❌ Error updating legacy draggable panels (pre-render):', error);
     }
   }
-
-  if (RenderManager && RenderManager.isInitialized) {
-    RenderManager.render(GameState.getState());
-    // console.log(frameRate());
-  }
   if (typeof window.renderPauseMenuUI === 'function') {
     window.renderPauseMenuUI();
   }
@@ -304,6 +299,15 @@ function draw() {
     }
   }
 
+    // Update Enemy Ant Brush
+  if (window.g_lightningAimBrush) {
+    try {
+      window.g_lightningAimBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating enemy ant brush:', error);
+    }
+  }
+
   // Update Resource Brush
   if (window.g_resourceBrush) {
     try {
@@ -337,6 +341,15 @@ function draw() {
       window.g_fireballManager.update();
     } catch (error) {
       console.error('❌ Error updating fireball system:', error);
+    }
+  }
+
+  // Update Lightning System (soot stains, timed effects)
+  if (window.g_lightningManager) {
+    try {
+      window.g_lightningManager.update();
+    } catch (error) {
+      console.error('❌ Error updating lightning system:', error);
     }
   }
 
@@ -430,6 +443,17 @@ function mousePressed() {
     }
   }
 
+  // Handle Lightning Aim Brush events
+  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return;
+    } catch (error) {
+      console.error('❌ Error handling lightning aim brush events:', error);
+    }
+  }
+
   // Handle Queen Control Panel events
   if (window.g_queenControlPanel && window.g_queenControlPanel.isQueenSelected()) {
     try {
@@ -445,7 +469,7 @@ function mousePressed() {
 
 function mouseDragged() {
   // Handle UI Debug Manager drag events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager !== null && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
   handleMouseEvent('handleMouseDragged', mouseX, mouseY);
@@ -476,8 +500,72 @@ function mouseReleased() {
       console.error('❌ Error handling resource brush release events:', error);
     }
   }
+
+  // Handle Lightning Aim Brush release events
+  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling lightning aim brush release events:', error);
+    }
+  }
   
   handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton);
+}
+
+/**
+ * mouseWheel
+ * ---------
+ * Forward mouse wheel events to active brushes so users can cycle brush types
+ * with the scroll wheel. Prevents default page scrolling while in-game.
+ */
+function mouseWheel(event) {
+  try {
+    if (!GameState.isInGame()) return false;
+
+    // Determine scroll direction (positive = down, negative = up)
+    const delta = event.deltaY || 0;
+    const step = (delta > 0) ? 1 : (delta < 0) ? -1 : 0;
+
+    // Helper to call directional cycling on a brush if available
+    const tryCycleDir = (brush) => {
+      if (!brush || !brush.isActive || step === 0) return false;
+      // Preferred: BrushBase-style directional API
+      if (typeof brush.cycleTypeStep === 'function') { brush.cycleTypeStep(step); return true; }
+      if (typeof brush.cycleType === 'function') { brush.cycleType(step); return true; }
+      // Legacy resource brush method
+      if (typeof brush.cycleResourceType === 'function') { if (step > 0) brush.cycleResourceType(); else { /* no backward legacy */ } return true; }
+      // Fallback: adjust availableTypes index if exposed
+      if (Array.isArray(brush.availableTypes) && typeof brush.currentIndex === 'number') {
+        const len = brush.availableTypes.length;
+        brush.currentIndex = ((brush.currentIndex + step) % len + len) % len;
+        brush.currentType = brush.availableTypes[brush.currentIndex];
+        if (typeof brush.onTypeChanged === 'function') { try { brush.onTypeChanged(brush.currentType); } catch(e){} }
+        return true;
+      }
+      return false;
+    };
+
+    // Priority order: Enemy brush, Resource brush, Lightning aim brush
+    if (window.g_enemyAntBrush && tryCycleDir(window.g_enemyAntBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_resourceBrush && tryCycleDir(window.g_resourceBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
+
+  } catch (e) {
+    console.error('❌ Error handling mouseWheel for brushes:', e);
+  }
+  // Let other handlers/processes receive the event if no brush consumed it
+  return true;
 }
 
 // KEYBOARD INTERACTIONS
@@ -582,19 +670,9 @@ function keyPressed() {
     return; // Debug key was handled, don't process further
   }
   if (keyCode === ESCAPE) {
-    // First check if resource brush is active and turn it off
-    if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
-      g_resourceBrush.toggle();
-      console.log('🎨 Resource brush deactivated via ESC key');
+    if (deactivateActiveBrushes()) {
       return;
     }
-
-    if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
-      g_enemyAntBrush.toggle();
-      console.log('🎨 Enemy brush deactivated via ESC key');
-      return;
-    }
-    
     // Then handle selection box clearing
     if (g_selectionBoxController) {
       g_selectionBoxController.deselectAll();
@@ -602,6 +680,25 @@ function keyPressed() {
     }
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
+}
+
+/**
+ * Deactivates any active brushes (resource, enemy ant) and logs the action.
+ * Returns true if any brush was deactivated.
+ */
+function deactivateActiveBrushes() {
+  let deactivated = false;
+  if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
+    g_resourceBrush.toggle();
+    console.log('🎨 Resource brush deactivated via ESC key');
+    deactivated = true;
+  }
+  if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
+    g_enemyAntBrush.toggle();
+    console.log('🎨 Enemy brush deactivated via ESC key');
+    deactivated = true;
+  }
+  return deactivated;
 }
 
 // DEBUG RENDERING FUNCTIONS

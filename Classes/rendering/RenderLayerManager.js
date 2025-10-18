@@ -554,6 +554,15 @@ class RenderLayerManager {
         console.error('❌ Error rendering fireball system in effects layer:', error);
       }
     }
+
+    // Also render Lightning System soot stains and effects if available
+    if (window.g_lightningManager && typeof window.g_lightningManager.render === 'function') {
+      try {
+        window.g_lightningManager.render();
+      } catch (error) {
+        console.error('❌ Error rendering lightning system in effects layer:', error);
+      }
+    }
   }
   
   /**

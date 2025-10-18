@@ -206,7 +206,12 @@ class QueenControlPanel {
     }
 
     // Check if queen is still selected and alive
-    if (this.selectedQueen && (!this.selectedQueen.isSelected || this.selectedQueen.health <= 0)) {
+    if (
+      this.selectedQueen &&
+      typeof this.selectedQueen.isSelected !== 'undefined' &&
+      typeof this.selectedQueen.health !== 'undefined' &&
+      (!this.selectedQueen.isSelected || this.selectedQueen.health <= 0)
+    ) {
       this.hide();
     }
   }

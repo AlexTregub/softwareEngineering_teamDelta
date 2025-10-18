@@ -34,7 +34,7 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug'],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat'],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
       'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
       'GAME_OVER': ['stats', 'debug'],
@@ -230,6 +230,33 @@ class DraggablePanelManager {
             caption: 'Reset',
             onClick: () => this.resetGame(),
             style: ButtonStyles.DANGER
+          }
+        ]
+      }
+    }));
+
+    // Combat Panel (lightning button)
+    this.panels.set('combat', new DraggablePanel({
+      id: 'combat-panel',
+      title: 'Combat Controls',
+      position: { x: 20, y: 380 },
+      size: { width: 160, height: 120 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 6,
+        buttonWidth: 140,
+        buttonHeight: 28,
+        items: [
+          {
+            caption: 'Shoot Lightning',
+            onClick: () => this.handleShootLightning(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#4DA6FF', color: '#FFFFFF' }
+          }
+          ,
+          {
+            caption: 'Aim Lightning',
+            onClick: () => this.toggleLightningAimBrush(),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#2E9AFE', color: '#FFFFFF' }
           }
         ]
       }
@@ -1142,6 +1169,109 @@ class DraggablePanelManager {
   }
 
   /**
+   * Handle the Shoot Lightning button from the combat panel
+   */
+  handleShootLightning() {
+    // Ensure LightningSystem exists
+    if (typeof window.LightningManager === 'undefined' || !window.LightningManager) {
+      if (typeof initializeLightningSystem === 'function') {
+        window.g_lightningManager = initializeLightningSystem();
+      } else {
+        console.warn('⚠️ Lightning system not available');
+        return;
+      }
+    }
+
+    // Determine target: prefer selected ant, otherwise nearest ant under mouse or nearest overall
+    let targetAnt = null;
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        const selected = g_selectionBoxController.getSelectedEntities();
+        if (Array.isArray(selected) && selected.length > 0) {
+          // Prefer first selected ant entity
+          targetAnt = selected.find(e => e && e.isAnt) || selected[0];
+        }
+      }
+
+      // If none selected, try nearest ant under mouse
+      if (!targetAnt && typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) {
+        // Find nearest to mouse position within reasonable radius
+        const radius = 80;
+        let best = null;
+        let bestDist = Infinity;
+        for (const ant of ants) {
+          if (!ant || !ant.isActive) continue;
+          const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
+          const d = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+          if (d < bestDist && d <= radius) {
+            bestDist = d;
+            best = ant;
+          }
+        }
+        targetAnt = best || ants[0]; // fallback to first ant
+      }
+
+      // Ask lightning manager to strike (respects cooldown)
+      if (g_lightningManager && typeof g_lightningManager.requestStrike === 'function') {
+        const executed = g_lightningManager.requestStrike(targetAnt);
+        const button = this.findButtonByCaption('Shoot Lightning');
+        if (executed) {
+          console.log('⚡ Lightning strike executed', targetAnt && (targetAnt._antIndex || targetAnt.id || 'ant'));
+          // Show cooldown on the button if available
+          if (button) {
+            const cooldownMs = g_lightningManager.cooldown || 3000;
+            const seconds = Math.ceil(cooldownMs / 1000);
+            const originalCaption = button._originalCaption || button.caption;
+            button._originalCaption = originalCaption;
+            button.caption = `Cooldown (${seconds}s)`;
+            button.style.backgroundColor = '#999999';
+            // Restore after cooldown
+            setTimeout(() => {
+              try {
+                button.caption = originalCaption;
+                button.style.backgroundColor = '#4DA6FF';
+              } catch (e) {}
+            }, cooldownMs + 50);
+          }
+        } else {
+          console.log('⏳ Lightning on cooldown');
+          if (button) {
+            // Briefly flash the button to indicate cooldown
+            const prevColor = button.style.backgroundColor;
+            button.style.backgroundColor = '#555';
+            setTimeout(() => { button.style.backgroundColor = prevColor; }, 200);
+          }
+        }
+      } else {
+        console.warn('⚠️ Lightning manager not initialized or missing requestStrike()');
+      }
+    } catch (err) {
+      console.error('❌ Error in handleShootLightning():', err);
+    }
+  }
+
+  /**
+   * Toggle the lightning aim brush
+   */
+  toggleLightningAimBrush() {
+    if (typeof g_lightningAimBrush === 'undefined' || !g_lightningAimBrush) {
+      if (typeof initializeLightningAimBrush === 'function') {
+        window.g_lightningAimBrush = initializeLightningAimBrush();
+      } else {
+        console.warn('⚠️ Lightning Aim Brush system not available');
+        return;
+      }
+    }
+
+    const active = g_lightningAimBrush.toggle();
+    const button = this.findButtonByCaption('Aim Lightning');
+    if (button) {
+      button.caption = active ? 'Aim: ON' : 'Aim Lightning';
+      button.style.backgroundColor = active ? '#1E90FF' : '#2E9AFE';
+    }
+  }
+
+  /**
    * Toggle debug information display
    */
   toggleDebug() {
@@ -1725,7 +1855,7 @@ class DraggablePanelManager {
       'Panel Manager': {
         initialized: this.isInitialized,
         panelCount: this.panels.size,
-        currentlyDragging: this.currentlyDragging ? this.currentlyDragging.config.id : 'none',
+        currentlyDragging: (this.currentlyDragging && this.currentlyDragging.config && this.currentlyDragging.config.id) ? this.currentlyDragging.config.id : 'none',
         trainMode: this.debugMode.panelTrainMode
       },
       'Game State': this.gameState,
