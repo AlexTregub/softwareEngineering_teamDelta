@@ -41,6 +41,19 @@ class LightningManager {
     this.bolts = []; // transient bolt animations
     this.cooldown = 300; // milliseconds between strikes
     this.lastStrikeTime = 0;
+    // Knockback in pixels applied to ants hit by lightning
+    // Default: push back ~1.5 tiles
+    this.knockbackPx = (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32) * 1.5;
+  // Duration (ms) for knockback tween
+  this.knockbackDurationMs = 180;
+  // Active tweened knockbacks
+  this._activeKnockbacks = [];
+    // Expose simple runtime tuning API (methods will be attached to instance)
+    this.setKnockbackPx = (v) => { this.knockbackPx = Number(v) || this.knockbackPx; return this.knockbackPx; };
+    this.getKnockbackPx = () => this.knockbackPx;
+    this.setKnockbackDurationMs = (v) => { this.knockbackDurationMs = Number(v) || this.knockbackDurationMs; return this.knockbackDurationMs; };
+    this.getKnockbackDurationMs = () => this.knockbackDurationMs;
+    this.getActiveKnockbacks = () => (this._activeKnockbacks || []).map(k => ({ startX: k.startX, startY: k.startY, targetX: k.targetX, targetY: k.targetY, progress: Math.min(1, (millis() - k.startTime) / (k.duration || 1)) }));
     // Default playback volume (0.0 - 1.0)
     this.volume = 0.25; // lower default so strikes aren't too loud
     // Try to load a simple sound using HTMLAudioElement if available
@@ -71,16 +84,12 @@ class LightningManager {
       // Visual flash / instantaneous strike effect - can be expanded
       this.createFlash(pos.x, pos.y);
 
-      // Deal damage or kill ant
+      // Deal damage to ant
       if (typeof ant.takeDamage === 'function') {
         ant.takeDamage(damage);
         console.log(`⚡ Lightning struck ant ${ant._antIndex || ''} for ${damage} damage`);
-      } else if (typeof ant.kill === 'function') {
-        ant.kill();
-        console.log(`⚡ Lightning killed ant ${ant._antIndex || ''}`);
       } else {
-        // Fallback: set inactive
-        ant.isActive = false;
+        console.warn(`⚠️ Ant doesn't have takeDamage() method, skipping damage`);
       }
 
       // Create explosion visuals (optional particle spawn)
@@ -94,9 +103,9 @@ class LightningManager {
         try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; this.explosionSound.currentTime = 0; this.explosionSound.play(); } catch (e) {}
       }
       
-      // Kill nearby ants as well (area effect)
+      // Damage nearby ants as well (area effect)
       try {
-        const aoeRadius = TILE_SIZE * radius; // 1.5 tiles radius
+        const aoeRadius = TILE_SIZE * radius; // radius in tiles
         if (typeof ants !== 'undefined' && Array.isArray(ants)) {
           for (const other of ants) {
             if (!other || !other.isActive) continue;
@@ -104,21 +113,22 @@ class LightningManager {
             const p = (typeof other.getPosition === 'function') ? other.getPosition() : { x: other.x || 0, y: other.y || 0 };
             const d = Math.hypot(p.x - pos.x, p.y - pos.y);
             if (d <= aoeRadius) {
-              // Prefer kill() if available
-              if (typeof other.kill === 'function') {
-                try { other.kill(); } catch (e) { other.isActive = false; }
-              } else if (typeof other.takeDamage === 'function') {
-                try { other.takeDamage(damage); } catch (e) { other.isActive = false; }
-              } else {
-                // Force-remove fallback
-                other.isActive = false;
-                if (typeof other.health !== 'undefined') other.health = 0;
+              // Apply damage to nearby ants
+              if (typeof other.takeDamage === 'function') {
+                try { 
+                  other.takeDamage(damage); 
+                  console.log(`  ⚡ AoE damaged ant at ${d.toFixed(1)}px for ${damage} damage`);
+                } catch (e) { 
+                  console.warn(`  ⚠️ Failed to damage ant:`, e.message);
+                }
               }
+              // apply a small knockback to nearby ants (visual feedback)
+              try { this.applyKnockback(other, pos.x, pos.y, this.knockbackPx); } catch (e) { /* ignore */ }
             }
           }
         }
       } catch (e) {
-        console.error('❌ Error applying AoE kills in strikeAtAnt:', e);
+        console.error('❌ Error applying AoE damage in strikeAtAnt:', e);
       }
 
       // Create a soot stain that fades
@@ -130,6 +140,76 @@ class LightningManager {
     } catch (err) {
       console.error('❌ Error in LightningManager.strikeAtAnt:', err);
     }
+  }
+
+  /**
+   * Apply a small knockback to an entity (ant) away from the source point.
+   * Moves via setPosition() when available, falls back to posX/posY or sprite position.
+   */
+  applyKnockback(entity, sourceX, sourceY, magnitudePx = null) {
+    // Enqueue a tweened knockback for the entity. Returns true if enqueued.
+    if (!entity) return false;
+    const mag = (typeof magnitudePx === 'number') ? magnitudePx : this.knockbackPx;
+    const pos = (typeof entity.getPosition === 'function') ? entity.getPosition() : (entity.sprite && entity.sprite.pos ? entity.sprite.pos : { x: entity.x || 0, y: entity.y || 0 });
+    if (!pos) return false;
+    let dx = pos.x - sourceX;
+    let dy = pos.y - sourceY;
+    const dist = Math.hypot(dx, dy) || 1;
+    dx = (dx / dist) * mag;
+    dy = (dy / dist) * mag;
+
+    const targetX = pos.x + dx;
+    const targetY = pos.y + dy;
+
+    // Remove any existing knockback for the same entity
+    this._activeKnockbacks = this._activeKnockbacks.filter(k => k.entity !== entity);
+
+    this._activeKnockbacks.push({
+      entity,
+      startX: pos.x,
+      startY: pos.y,
+      targetX,
+      targetY,
+      startTime: millis(),
+      duration: this.knockbackDurationMs || 180
+    });
+    return true;
+  }
+
+  // Internal: step active knockbacks and apply interpolated positions
+  _processKnockbacks() {
+    if (!this._activeKnockbacks || this._activeKnockbacks.length === 0) return;
+    const now = millis();
+    const remaining = [];
+    for (const k of this._activeKnockbacks) {
+      const entity = k.entity;
+      // Skip if entity not present or inactive
+      if (!entity || (typeof entity.isActive !== 'undefined' && !entity.isActive)) continue;
+      const tRaw = (now - k.startTime) / (k.duration || 1);
+      const t = Math.max(0, Math.min(1, tRaw));
+
+      // easeOutQuad
+      const eased = 1 - (1 - t) * (1 - t);
+      const x = k.startX + (k.targetX - k.startX) * eased;
+      const y = k.startY + (k.targetY - k.startY) * eased;
+
+      try {
+        if (typeof entity.setPosition === 'function') {
+          entity.setPosition(x, y);
+        } else if (typeof entity.posX !== 'undefined' && typeof entity.posY !== 'undefined') {
+          try { entity.posX = x; entity.posY = y; } catch (e) { /* ignore */ }
+        } else if (entity.sprite && typeof entity.sprite.setPosition === 'function') {
+          try { entity.sprite.setPosition(createVector(x, y)); } catch (e) { /* ignore */ }
+        } else {
+          entity.x = x; entity.y = y;
+        }
+      } catch (e) {
+        // applying position failed; skip
+      }
+
+      if (t < 1) remaining.push(k);
+    }
+    this._activeKnockbacks = remaining;
   }
 
   /**
@@ -192,39 +272,40 @@ class LightningManager {
    */
   strikeAtPosition(x, y, damage = 50, radius = 3) {
     try {
+      console.log(`⚡ strikeAtPosition called at (${x.toFixed(1)}, ${y.toFixed(1)}) with radius ${radius} tiles, damage ${damage}`);
       this.createFlash(x, y);
       this.createExplosion(x, y);
-      // Kill nearby ants (area effect). Prefer kill(), otherwise force health to 0 and deactivate.
+      // Damage nearby ants (area effect)
       try {
-        const aoeRadius = TILE_SIZE*radius
+        const aoeRadius = TILE_SIZE*radius;
+        console.log(`⚡ AOE radius: ${aoeRadius}px, checking ${typeof ants !== 'undefined' && Array.isArray(ants) ? ants.length : 0} ants`);
         if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+          let hitCount = 0;
           for (const ant of ants) {
             if (!ant || !ant.isActive) continue;
             const p = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
             const d = Math.hypot(p.x - x, p.y - y);
             if (d <= aoeRadius) {
+              hitCount++;
+              console.log(`  ⚡ Hit ant at distance ${d.toFixed(1)}px (ant pos: ${p.x.toFixed(1)}, ${p.y.toFixed(1)})`);
               try {
-                if (typeof ant.kill === 'function') {
-                  ant.kill();
-                } else if (typeof ant.takeDamage === 'function') {
-                  // As a fallback, set health to zero then call takeDamage if needed
-                  if (typeof ant.health !== 'undefined') ant.health = 0;
-                  try { ant.takeDamage(damage); } catch (e) { /* ignore */ }
+                if (typeof ant.takeDamage === 'function') {
+                  ant.takeDamage(damage);
+                  console.log(`    ✓ Dealt ${damage} damage to ant`);
                 } else {
-                  // Force-remove fallback
-                  ant.isActive = false;
-                  if (typeof ant.health !== 'undefined') ant.health = 0;
+                  console.log(`    ⚠️ Ant has no takeDamage() method, skipping`);
                 }
               } catch (e) {
-                // Ensure the ant is deactivated even if kill() throws
-                ant.isActive = false;
-                if (typeof ant.health !== 'undefined') ant.health = 0;
+                console.log(`    ⚠️ Exception damaging ant: ${e.message}`);
               }
+              // Apply knockback tween for AoE victims
+              try { this.applyKnockback(ant, x, y, this.knockbackPx); } catch (e) { /* ignore */ }
             }
           }
+          console.log(`⚡ Total ants hit: ${hitCount}`);
         }
       } catch (e) {
-        console.error('❌ Error applying AoE kills in strikeAtPosition:', e);
+        console.error('❌ Error applying AoE damage in strikeAtPosition:', e);
       }
 
       // Play sounds
@@ -245,6 +326,9 @@ class LightningManager {
     const now = millis();
     const dt = this.lastUpdate ? (now - this.lastUpdate) : 16;
     this.lastUpdate = now;
+
+    // Process active knockback tweens
+    this._processKnockbacks();
 
     for (const s of this.sootStains) {
       if (s && s.isActive) s.update();

@@ -251,11 +251,6 @@ function draw() {
       console.error('❌ Error updating legacy draggable panels (pre-render):', error);
     }
   }
-
-  if (RenderManager && RenderManager.isInitialized) {
-    RenderManager.render(GameState.getState());
-    // console.log(frameRate());
-  }
   if (typeof window.renderPauseMenuUI === 'function') {
     window.renderPauseMenuUI();
   }
