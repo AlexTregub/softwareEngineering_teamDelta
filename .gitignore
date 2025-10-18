@@ -33,3 +33,4 @@ dist/
 build/
 test/puppeteer/screenshots/
 test/bdd/Results
+test/e2e/screenshots/

@@ -364,6 +364,12 @@ class DraggablePanel {
     let constrainedX = x;
     let constrainedY = y;
     
+    // Calculate current height based on minimize state
+    // When minimized, only the title bar is visible, so use that for bounds checking
+    const currentHeight = this.state.minimized 
+      ? this.calculateTitleBarHeight() 
+      : this.config.size.height;
+    
     // Constrain to screen bounds if enabled
     if (this.config.behavior.constrainToScreen) {
       const canvas = { 
@@ -372,7 +378,7 @@ class DraggablePanel {
       };
       
       constrainedX = Math.max(0, Math.min(constrainedX, canvas.width - this.config.size.width));
-      constrainedY = Math.max(0, Math.min(constrainedY, canvas.height - this.config.size.height));
+      constrainedY = Math.max(0, Math.min(constrainedY, canvas.height - currentHeight));
     }
     
     // Apply snap to edges if enabled
@@ -397,8 +403,8 @@ class DraggablePanel {
         constrainedY = 0;
       }
       // Snap to bottom edge
-      else if (Math.abs(constrainedY - (canvas.height - this.config.size.height)) < snapThreshold) {
-        constrainedY = canvas.height - this.config.size.height;
+      else if (Math.abs(constrainedY - (canvas.height - currentHeight)) < snapThreshold) {
+        constrainedY = canvas.height - currentHeight;
       }
     }
     
