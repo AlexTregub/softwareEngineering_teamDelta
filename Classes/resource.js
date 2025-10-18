@@ -2,9 +2,12 @@ let g_resourceList;
 let g_resourceManager;
 let resourceIndex = 0;
 
+const RESOURCE_SPAWN_INTERVAL = 1; // seconds
+const MAX_RESOURCE_CAPACITY = 300;
+
 function resourcePreLoad(){
   // Create the new unified resource system manager
-  g_resourceManager = new ResourceSystemManager(1, 50); // (Interval, Capacity)
+  g_resourceManager = new ResourceSystemManager(RESOURCE_SPAWN_INTERVAL, MAX_RESOURCE_CAPACITY); // (Interval, Capacity)
   
   // Keep g_resourceList for backward compatibility - it will delegate to g_resourceManager
   g_resourceList = new resourcesArrayCompat(g_resourceManager);
@@ -457,6 +460,14 @@ class Resource extends Entity {
     return new Resource(x, y, 20, 20, { resourceType: 'mapleLeaf' });
   }
 
+  static createStick(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stick' });
+  }
+
+  static createStone(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stone' });
+  }
+
   get type() { return this._resourceType; }
   get resourceType() { return this._resourceType; }
   get isCarried() { return !!this._isCarried; }
@@ -479,33 +490,10 @@ class Resource extends Entity {
   }
 
   applyHighlight() {
-    // Try to use the enhanced API first (Phase 3 feature)
     if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
-      // Use InteractionController for hover detection if available
         this.highlight.hover();
     } else {
       verboseLog("No hover effect available");
-    }
-  }
-
-  drawManualHighlight() {
-    // Use InteractionController for hover detection if available
-    const interactionController = this.getController('interaction');
-    const isHovered = interactionController ? 
-      interactionController.isMouseOver() : 
-      this.isMouseOver(mouseX, mouseY);
-
-    if (isHovered) {
-      const pos = this.getPosition();
-      const size = this.getSize();
-      
-      // Draw highlight overlay
-      push();
-      noFill();
-      stroke(255, 255, 0, 150); // Yellow highlight
-      strokeWeight(2);
-      rect(pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
-      pop();
     }
   }
 

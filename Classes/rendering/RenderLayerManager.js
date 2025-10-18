@@ -62,7 +62,12 @@ class RenderLayerManager {
     this.registerLayerRenderer(this.layers.UI_DEBUG, this.renderDebugUILayer.bind(this));
     this.registerLayerRenderer(this.layers.UI_MENU, this.renderMenuUILayer.bind(this));
     
+    // Ensure all layers are enabled by default
+    this.enableAllLayers();
+    
     this.isInitialized = true;
+    
+    console.log('🎨 RenderLayerManager initialized with all layers enabled:', this.getLayerStates());
   }
   
   /**
@@ -203,6 +208,9 @@ class RenderLayerManager {
     if (effectsRenderer && typeof effectsRenderer.renderEffects === 'function') {
       effectsRenderer.renderEffects(gameState);
     }
+    
+    // Render Fireball System (projectile effects)
+    this.renderFireballEffects(gameState);
   }
   
 
@@ -231,6 +239,9 @@ class RenderLayerManager {
     
     // Render Universal Button Group System (always on top of other UI)
     this.renderButtonGroups(gameState);
+    
+    // Render Queen Control Panel (part of UI_GAME layer)
+    this.renderQueenControlPanel(gameState);
   }
   
   /**
@@ -397,6 +408,7 @@ class RenderLayerManager {
    * Pause overlay rendering
    */
   renderPauseOverlay() {
+    /*
     fill(0, 0, 0, 150);
     rect(0, 0, g_canvasX, g_canvasY);
     
@@ -406,6 +418,7 @@ class RenderLayerManager {
     text("PAUSED", g_canvasX / 2, g_canvasY / 2);
     textSize(24);
     text("Press ESC to resume", g_canvasX / 2, g_canvasY / 2 + 60);
+    */
   }
   
   /**
@@ -500,6 +513,59 @@ class RenderLayerManager {
   }
   
   /**
+   * Render Queen Control Panel on UI_GAME layer
+   */
+  renderQueenControlPanel(gameState) {
+    // Only render in playing states
+    if (!['PLAYING', 'PAUSED'].includes(gameState)) {
+      return;
+    }
+    
+    // Check if Queen Control Panel is available and visible
+    if (window.g_queenControlPanel && 
+        typeof window.g_queenControlPanel.render === 'function') {
+      
+      try {
+        // Render queen control panel visual effects (targeting cursor, range indicator)
+        window.g_queenControlPanel.render();
+      } catch (error) {
+        console.error('❌ Error rendering queen control panel in UI layer:', error);
+      }
+    }
+  }
+  
+  /**
+   * Render Fireball System on EFFECTS layer
+   */
+  renderFireballEffects(gameState) {
+    // Only render in playing states
+    if (!['PLAYING', 'PAUSED'].includes(gameState)) {
+      return;
+    }
+    
+    // Check if Fireball System is available
+    if (window.g_fireballManager && 
+        typeof window.g_fireballManager.render === 'function') {
+      
+      try {
+        // Render fireball projectiles and effects
+        window.g_fireballManager.render();
+      } catch (error) {
+        console.error('❌ Error rendering fireball system in effects layer:', error);
+      }
+    }
+
+    // Also render Lightning System soot stains and effects if available
+    if (window.g_lightningManager && typeof window.g_lightningManager.render === 'function') {
+      try {
+        window.g_lightningManager.render();
+      } catch (error) {
+        console.error('❌ Error rendering lightning system in effects layer:', error);
+      }
+    }
+  }
+  
+  /**
    * Toggle a specific render layer on/off
    * @param {string} layerName - The layer to toggle
    */
@@ -563,6 +629,15 @@ class RenderLayerManager {
   enableAllLayers() {
     this.disabledLayers.clear();
   }
+  
+  /**
+   * Force all layers to be visible (console command)
+   */
+  forceAllLayersVisible() {
+    this.enableAllLayers();
+    console.log('✅ All render layers forced visible:', this.getLayerStates());
+    return this.getLayerStates();
+  }
 }
 
 
@@ -575,7 +650,7 @@ function renderPipelineInit() {
   g_uiDebugManager = window.g_uiDebugManager; // Make globally available
   
   // Initialize dropoff UI if present (creates the Place Dropoff button)
-  window.initDropoffUI();
+  //window.initDropoffUI();
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
@@ -643,8 +718,22 @@ const RenderManager = new RenderLayerManager();
 // Create global variable for compatibility
 if (typeof window !== 'undefined') {
   window.g_renderLayerManager = RenderManager;
+  window.RenderManager = RenderManager;
+  
+  // Add global console command to force all layers visible
+  window.forceAllLayersVisible = function() {
+    return RenderManager.forceAllLayersVisible();
+  };
+  
+  // Add global console command to check layer states
+  window.checkLayerStates = function() {
+    console.log('🎨 Current layer states:', RenderManager.getLayerStates());
+    return RenderManager.getLayerStates();
+  };
+  
 } else if (typeof global !== 'undefined') {
   global.g_renderLayerManager = RenderManager;
+  global.RenderManager = RenderManager;
 }
 
 // Export for module systems

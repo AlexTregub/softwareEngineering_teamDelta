@@ -5,7 +5,6 @@ class AntStateMachine {
   constructor() {
     // Primary activity states
     this.primaryState = "IDLE";
-    // added DROPPING_OFF so ants can transition to a dedicated dropoff state
     this.primaryStates = ["IDLE", "MOVING", "GATHERING", "FOLLOWING", "BUILDING", "SOCIALIZING", "MATING", "PATROL", "DROPPING_OFF"];
     
     // Combat modifier states
@@ -18,6 +17,8 @@ class AntStateMachine {
     
     // State change callbacks
     this.onStateChange = null;
+
+    this.preferredState = "GATHERING";
   }
 
   // Set the primary activity state
@@ -83,6 +84,24 @@ class AntStateMachine {
     
     return success;
   }
+  /**
+   * Will try and resume the preferred state after the ant is idle, 
+   */
+  ResumePreferredState(){
+    if(this.primaryState == "IDLE"){ this.setPrimaryState(this.preferredState) }
+  }
+  
+  /**
+   * Will try and set the preferred state to be resumed after the ant is idle, 
+   */
+  setPreferredState(state){
+    if (this.isValidPrimary(state)) { this.primaryState = state } 
+    else { IncorrectParamPassed(state, this.primaryStates)}
+  }
+
+  beginIdle(){
+    if (this.isValidPrimary("IDLE")) { this.primaryState = "IDLE" } 
+  }
 
   // Get the complete state as a string
   getFullState() {
@@ -90,6 +109,10 @@ class AntStateMachine {
     if (this.combatModifier) state += `_${this.combatModifier}`;
     if (this.terrainModifier) state += `_${this.terrainModifier}`;
     return state;
+  }
+
+  getCurrentState(){
+    return this.primaryState
   }
 
   // Check if ant can perform specific actions
@@ -167,6 +190,24 @@ class AntStateMachine {
       default:
         return true;
     }
+  }
+
+    // Simple check if a value is an allowed primary state
+  isValidPrimary(state) {
+    return typeof state === 'string' && this.primaryStates.includes(state);
+  }
+
+  // Checks for combat/terrain (accepts null to clear a modifier)
+  isValidCombat(state) {
+    return state === null || (typeof state === 'string' && this.combatStates.includes(state));
+  }
+  isValidTerrain(state) {
+    return state === null || (typeof state === 'string' && this.terrainStates.includes(state));
+  }
+
+  // Check across all state lists (useful for validations)
+  isValidAnyState(state) {
+    return this.isValidPrimary(state) || this.isValidCombat(state) || this.isValidTerrain(state);
   }
 
   // Check current states

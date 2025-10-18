@@ -55,6 +55,24 @@ class ResourceSystemManager {
           return Resource.createMapleLeaf(x, y);
         }
       },
+
+      stick: { 
+        weight: 0.6, 
+        make: () => {
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createStick(x, y);
+        }
+      },
+
+      stone: { 
+        weight: 0.3, 
+        make: () => {
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createStone(x, y);
+        }
+      },
     };
 
     // Configuration options
