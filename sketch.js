@@ -340,6 +340,15 @@ function draw() {
     }
   }
 
+  // Update Lightning System (soot stains, timed effects)
+  if (window.g_lightningManager) {
+    try {
+      window.g_lightningManager.update();
+    } catch (error) {
+      console.error('❌ Error updating lightning system:', error);
+    }
+  }
+
   if (GameState.getState() === 'PLAYING') {
     const playerQueen = getQueen();
     if (playerQueen) {
@@ -430,6 +439,17 @@ function mousePressed() {
     }
   }
 
+  // Handle Lightning Aim Brush events
+  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return;
+    } catch (error) {
+      console.error('❌ Error handling lightning aim brush events:', error);
+    }
+  }
+
   // Handle Queen Control Panel events
   if (window.g_queenControlPanel && window.g_queenControlPanel.isQueenSelected()) {
     try {
@@ -474,6 +494,16 @@ function mouseReleased() {
       window.g_resourceBrush.onMouseReleased(mouseX, mouseY, buttonName);
     } catch (error) {
       console.error('❌ Error handling resource brush release events:', error);
+    }
+  }
+
+  // Handle Lightning Aim Brush release events
+  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling lightning aim brush release events:', error);
     }
   }
   
