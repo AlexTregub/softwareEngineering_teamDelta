@@ -369,7 +369,7 @@ class AntUtilities {
    * @param {Object} customImage - Optional custom image (uses job default if null)
    * @returns {Object} Spawned ant object
    */
-  static spawnAnt(x, y, jobName = "Scout", faction = "neutral", customImage = null) {
+  static spawnAnt(x, y, jobName = "Scout", faction = "player", customImage = null) {
     if (typeof JobComponent === 'undefined') {
       console.warn('JobComponent not available for spawning');
       return null;

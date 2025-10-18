@@ -304,6 +304,15 @@ function draw() {
     }
   }
 
+    // Update Enemy Ant Brush
+  if (window.g_lightningAimBrush) {
+    try {
+      window.g_lightningAimBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating enemy ant brush:', error);
+    }
+  }
+
   // Update Resource Brush
   if (window.g_resourceBrush) {
     try {

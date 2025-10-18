@@ -9,7 +9,7 @@ class LightningAimBrush extends BrushBase {
     this.showingInvalid = false;
     this.tileRange = 7; // tiles from queen
     this.tileSize = (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager.tileSize) ? g_tileInteractionManager.tileSize : 32;
-    this.rangePx = this.tileRange * this.tileSize;
+    this.rangePx = this.tileRange*TILE_SIZE;
     this.brushSize = 16; // visual size of cursor
     this.spawnCooldown = 200; // ms between allowed strikes while holding
     this.lastSpawnTime = 0;
@@ -29,6 +29,7 @@ class LightningAimBrush extends BrushBase {
 
   update() {
     if (!this.isActive) return;
+    this.render()
     super.update();
     this.cursor.x = (typeof mouseX !== 'undefined') ? mouseX : this.cursor.x;
     this.cursor.y = (typeof mouseY !== 'undefined') ? mouseY : this.cursor.y;
@@ -38,6 +39,7 @@ class LightningAimBrush extends BrushBase {
     if (this.isMousePressed) {
       this.tryStrikeAt(this.cursor.x, this.cursor.y);
     }
+    
   }
 
   render() {
@@ -49,7 +51,7 @@ class LightningAimBrush extends BrushBase {
     // Range circle around queen
     if (queenPos) {
       noFill();
-      stroke(100, 180, 255, 140);
+      stroke(100, 0, 255, 140);
       strokeWeight(2);
       ellipse(queenPos.x, queenPos.y, this.rangePx * 2, this.rangePx * 2);
     }
