@@ -124,24 +124,14 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
           },
           {
-            caption: 'Enemy Ant',
-            onClick: () => this.spawnEnemyAnt(),
-            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF4500', color: '#FFFFFF' }
-          },
-          {
-            caption: '10 Enemy Ants',
-            onClick: () => this.spawnEnemyAnts(10),
-            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF6500', color: '#FFFFFF' }
-          },
-          {
-            caption: '100 Enemy Ants',
-            onClick: () => this.spawnEnemyAnts(100),
-            style: { ...ButtonStyles.DANGER, backgroundColor: '#FF8500', color: '#FFFFFF' }
-          },
-          {
-            caption: 'Paint Brush',
+            caption: 'Paint Enemy Brush',
             onClick: () => this.toggleEnemyBrush(),
             style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Paint Resource Brush',
+            onClick: () => this.toggleResourceBrush(),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#32CD32', color: '#FFFFFF' }
           },
           {
             caption: 'Kill 1 Ant',
@@ -1009,6 +999,33 @@ class DraggablePanelManager {
   }
 
   /**
+   * Toggle the resource paint brush tool
+   */
+  toggleResourceBrush() {
+    // Initialize brush if not already done
+    if (typeof g_resourceBrush === 'undefined' || !g_resourceBrush) {
+      if (typeof initializeResourceBrush === 'function') {
+        window.g_resourceBrush = initializeResourceBrush();
+      } else {
+        console.warn('⚠️ Resource Brush system not available');
+        return;
+      }
+    }
+    
+    // Toggle the brush
+    const isActive = g_resourceBrush.toggle();
+    
+    // Update button text to reflect current state
+    const button = this.findButtonByCaption('Paint Resource Brush');
+    if (button) {
+      button.caption = isActive ? 'Resource Brush: ON' : 'Paint Resource Brush';
+      button.style.backgroundColor = isActive ? '#228B22' : '#32CD32'; // Darker green when active
+    }
+    
+    console.log(`🎨 Resource Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
+  }
+
+  /**
    * Helper method to find button by caption
    * @param {string} caption - Button caption to search for
    * @returns {Object|null} Button object or null if not found
@@ -1017,7 +1034,13 @@ class DraggablePanelManager {
     // Search through all panels and their buttons
     for (const panel of this.panels.values()) {
       if (panel.buttons && panel.buttons.items) {
-        const button = panel.buttons.items.find(btn => btn.caption === caption || btn.caption.includes('Paint Brush') || btn.caption.includes('Brush:'));
+        const button = panel.buttons.items.find(btn => 
+          btn.caption === caption || 
+          btn.caption.includes('Paint Brush') || 
+          btn.caption.includes('Brush:') ||
+          btn.caption.includes('Resource Brush') ||
+          btn.caption.includes('Paint Resource Brush')
+        );
         if (button) return button;
       }
     }

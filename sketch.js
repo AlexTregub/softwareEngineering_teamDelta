@@ -68,6 +68,18 @@ function setup() {
     // This maintains compatibility with existing game input systems
   });
 
+  // Initialize Queen Control Panel system
+  if (typeof initializeQueenControlPanel !== 'undefined') {
+    initializeQueenControlPanel();
+    console.log('👑 Queen Control Panel initialized in setup');
+  }
+
+  // Initialize Fireball System
+  if (typeof window !== 'undefined' && typeof FireballManager !== 'undefined') {
+    window.g_fireballManager = new FireballManager();
+    console.log('🔥 Fireball System initialized in setup');
+  }
+
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 }
@@ -162,6 +174,15 @@ function draw() {
     }
   }
   
+  // Render Resource Brush (on top of other UI elements)
+  if (window.g_resourceBrush) {
+    try {
+      window.g_resourceBrush.render();
+    } catch (error) {
+      console.error('❌ Error rendering resource brush:', error);
+    }
+  }
+  
   // Render debug visualization for ant gathering (overlays on top)
   if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
     g_gatherDebugRenderer.render();
@@ -181,6 +202,42 @@ function draw() {
       window.g_enemyAntBrush.update();
     } catch (error) {
       console.error('❌ Error updating enemy ant brush:', error);
+    }
+  }
+
+  // Update Resource Brush
+  if (window.g_resourceBrush) {
+    try {
+      window.g_resourceBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating resource brush:', error);
+    }
+  }
+
+  // Update Queen Control Panel visibility
+  if (typeof updateQueenPanelVisibility !== 'undefined') {
+    try {
+      updateQueenPanelVisibility();
+    } catch (error) {
+      console.error('❌ Error updating queen panel visibility:', error);
+    }
+  }
+
+  // Update Queen Control Panel
+  if (window.g_queenControlPanel) {
+    try {
+      window.g_queenControlPanel.update();
+    } catch (error) {
+      console.error('❌ Error updating queen control panel:', error);
+    }
+  }
+
+  // Update Fireball System
+  if (window.g_fireballManager) {
+    try {
+      window.g_fireballManager.update();
+    } catch (error) {
+      console.error('❌ Error updating fireball system:', error);
     }
   }
 
@@ -263,6 +320,27 @@ function mousePressed() {
     }
   }
 
+  // Handle Resource Brush events
+  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling resource brush events:', error);
+    }
+  }
+
+  // Handle Queen Control Panel events
+  if (window.g_queenControlPanel && window.g_queenControlPanel.isQueenSelected()) {
+    try {
+      const handled = window.g_queenControlPanel.handleMouseClick(mouseX, mouseY);
+      if (handled) return; // Queen panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling queen control panel events:', error);
+    }
+  }
+
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
@@ -287,6 +365,16 @@ function mouseReleased() {
       window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, buttonName);
     } catch (error) {
       console.error('❌ Error handling enemy ant brush release events:', error);
+    }
+  }
+  
+  // Handle Resource Brush release events
+  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_resourceBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling resource brush release events:', error);
     }
   }
   
