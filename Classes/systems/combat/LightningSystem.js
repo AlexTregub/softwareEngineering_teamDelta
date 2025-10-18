@@ -81,13 +81,19 @@ class LightningManager {
       // Determine position
       const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
 
+      // Check if this is the player queen - if so, skip damage
+      const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
+      const isPlayerQueen = (ant === playerQueen || ant.jobName === 'Queen' || ant.job === 'Queen');
+
       // Visual flash / instantaneous strike effect - can be expanded
       this.createFlash(pos.x, pos.y);
 
-      // Deal damage to ant
-      if (typeof ant.takeDamage === 'function') {
+      // Deal damage to ant (skip if it's the player queen)
+      if (!isPlayerQueen && typeof ant.takeDamage === 'function') {
         ant.takeDamage(damage);
         console.log(`⚡ Lightning struck ant ${ant._antIndex || ''} for ${damage} damage`);
+      } else if (isPlayerQueen) {
+        console.log(`👑 Lightning skipped player queen (no friendly fire)`);
       } else {
         console.warn(`⚠️ Ant doesn't have takeDamage() method, skipping damage`);
       }
@@ -106,10 +112,13 @@ class LightningManager {
       // Damage nearby ants as well (area effect)
       try {
         const aoeRadius = TILE_SIZE * radius; // radius in tiles
+        const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
         if (typeof ants !== 'undefined' && Array.isArray(ants)) {
           for (const other of ants) {
             if (!other || !other.isActive) continue;
             if (other === ant) continue; // already handled
+            // Skip the player queen
+            if (other === playerQueen || other.jobName === 'Queen' || other.job === 'Queen') continue;
             const p = (typeof other.getPosition === 'function') ? other.getPosition() : { x: other.x || 0, y: other.y || 0 };
             const d = Math.hypot(p.x - pos.x, p.y - pos.y);
             if (d <= aoeRadius) {
@@ -278,11 +287,14 @@ class LightningManager {
       // Damage nearby ants (area effect)
       try {
         const aoeRadius = TILE_SIZE*radius;
+        const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
         console.log(`⚡ AOE radius: ${aoeRadius}px, checking ${typeof ants !== 'undefined' && Array.isArray(ants) ? ants.length : 0} ants`);
         if (typeof ants !== 'undefined' && Array.isArray(ants)) {
           let hitCount = 0;
           for (const ant of ants) {
             if (!ant || !ant.isActive) continue;
+            // Skip the player queen
+            if (ant === playerQueen || ant.jobName === 'Queen' || ant.job === 'Queen') continue;
             const p = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
             const d = Math.hypot(p.x - x, p.y - y);
             if (d <= aoeRadius) {
