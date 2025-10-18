@@ -38,6 +38,10 @@ class CameraManager {
 
     // Camera toggles
     this.cameraOutlineToggle = false;
+    
+    // Level-specific bounds (null = use current map, or set custom bounds for level)
+    this.customBounds = null; // { width: number, height: number }
+    this.currentLevel = null; // Reference to current level map (defaults to g_map2)
   }
 
   /**
@@ -122,7 +126,10 @@ class CameraManager {
         this.cameraFollowTarget = null;
       }
 
-      const panStep = this.cameraPanSpeed / this.cameraZoom;
+      // Use deltaTime for framerate-independent panning
+      // deltaTime is in milliseconds, convert to seconds and multiply by speed
+      const dt = (typeof deltaTime !== 'undefined' ? deltaTime : 16.67) / 1000.0; // Default to ~60fps
+      const panStep = (this.cameraPanSpeed * dt * 60) / this.cameraZoom; // *60 to maintain similar speed to old system
       
       // Move camera with arrow keys using CameraController
       if (left && typeof CameraController !== 'undefined') CameraController.moveCameraBy(-panStep, 0);
@@ -502,29 +509,74 @@ class CameraManager {
   }
 
   /**
+   * Set custom level bounds for camera clamping
+   * @param {Object} bounds - {width: number, height: number} or null to use current map
+   * @param {Object} levelMap - Reference to level map object (defaults to g_map2)
+   */
+  setLevelBounds(bounds = null, levelMap = null) {
+    this.customBounds = bounds;
+    this.currentLevel = levelMap;
+    logVerbose('CameraManager: Level bounds updated', { bounds, levelMap: levelMap ? 'set' : 'null' });
+  }
+
+  /**
+   * Get current level bounds (pixels)
+   * @returns {Object} {width: number, height: number}
+   */
+  getLevelBounds() {
+    // Use custom bounds if set
+    if (this.customBounds) {
+      return this.customBounds;
+    }
+    
+    // Use specified level or default to g_map2
+    const map = this.currentLevel || (typeof g_map2 !== 'undefined' ? g_map2 : null);
+    
+    // Try to get dimensions from map
+    if (map && map._xCount > 0 && map._yCount > 0) {
+      const tileSize = (typeof TILE_SIZE !== 'undefined') ? TILE_SIZE : 32;
+      return {
+        width: map._xCount * tileSize,
+        height: map._yCount * tileSize
+      };
+    }
+    
+    // Fallback to getMapPixelDimensions if available
+    if (typeof getMapPixelDimensions === 'function') {
+      return getMapPixelDimensions();
+    }
+    
+    // Last resort: use canvas size (no clamping)
+    return {
+      width: this.canvasWidth,
+      height: this.canvasHeight
+    };
+  }
+
+  /**
    * Clamp camera position to world bounds
+   * Now level-aware and configurable
    */
   clampToBounds() {
-    if (typeof getMapPixelDimensions !== 'function') {
-      return; // Can't clamp without map dimensions
+    const bounds = this.getLevelBounds();
+    
+    // If bounds equals canvas size, we're probably not initialized yet
+    if (bounds.width === this.canvasWidth && bounds.height === this.canvasHeight) {
+      // Don't clamp if we don't have real map bounds yet
+      const map = this.currentLevel || (typeof g_map2 !== 'undefined' ? g_map2 : null);
+      if (map && !(map._xCount > 0 && map._yCount > 0)) {
+        return;
+      }
     }
 
-    // Prefer using the actual map/grid dimensions (when available). If g_map2 isn't
-    // initialized yet (no tile counts), skip clamping — otherwise the camera will be
-    // clamped to the canvas size instead of the true world size.
-    if (typeof g_map2 === 'undefined' || !g_map2 || !(g_map2._xCount > 0 && g_map2._yCount > 0)) {
-      // Map not ready: don't clamp yet
-      return;
-    }
-
-    const { width, height } = getMapPixelDimensions();
-    const viewWidth = g_canvasX / this.cameraZoom;
-    const viewHeight = g_canvasY / this.cameraZoom;
+    const viewWidth = this.canvasWidth / this.cameraZoom;
+    const viewHeight = this.canvasHeight / this.cameraZoom;
 
     let minX = 0;
-    let maxX = width - viewWidth;
-    if (viewWidth >= width) {
-      const excessX = viewWidth - width;
+    let maxX = bounds.width - viewWidth;
+    if (viewWidth >= bounds.width) {
+      // View is larger than world - center world in view
+      const excessX = viewWidth - bounds.width;
       minX = -excessX / 2;
       maxX = excessX / 2;
     } else {
@@ -532,9 +584,10 @@ class CameraManager {
     }
 
     let minY = 0;
-    let maxY = height - viewHeight;
-    if (viewHeight >= height) {
-      const excessY = viewHeight - height;
+    let maxY = bounds.height - viewHeight;
+    if (viewHeight >= bounds.height) {
+      // View is larger than world - center world in view
+      const excessY = viewHeight - bounds.height;
       minY = -excessY / 2;
       maxY = excessY / 2;
     } else {
