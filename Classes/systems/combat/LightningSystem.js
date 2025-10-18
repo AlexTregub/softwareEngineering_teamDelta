@@ -322,7 +322,7 @@ class LightningManager {
 
       // Play sounds
       if (this.sound && typeof this.sound.play === 'function') {
-        this.volume = .25
+        // Use the class property for volume
         try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
       }
 

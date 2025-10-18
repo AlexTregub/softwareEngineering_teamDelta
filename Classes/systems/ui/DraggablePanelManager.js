@@ -34,7 +34,7 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', "combat"],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat'],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
       'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
       'GAME_OVER': ['stats', 'debug'],
@@ -1855,7 +1855,7 @@ class DraggablePanelManager {
       'Panel Manager': {
         initialized: this.isInitialized,
         panelCount: this.panels.size,
-        currentlyDragging: this.currentlyDragging ? this.currentlyDragging.config.id : 'none',
+        currentlyDragging: (this.currentlyDragging && this.currentlyDragging.config && this.currentlyDragging.config.id) ? this.currentlyDragging.config.id : 'none',
         trainMode: this.debugMode.panelTrainMode
       },
       'Game State': this.gameState,

@@ -19,8 +19,8 @@ canvas {
   user-select: none;
 }
 
-/* Additional context menu prevention for all elements */
-* {
+/* Additional context menu prevention for game area only */
+#game-area, canvas {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;

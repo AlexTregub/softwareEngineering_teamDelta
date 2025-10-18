@@ -469,7 +469,7 @@ function mousePressed() {
 
 function mouseDragged() {
   // Handle UI Debug Manager drag events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager !== null && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
   handleMouseEvent('handleMouseDragged', mouseX, mouseY);
@@ -670,19 +670,9 @@ function keyPressed() {
     return; // Debug key was handled, don't process further
   }
   if (keyCode === ESCAPE) {
-    // First check if resource brush is active and turn it off
-    if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
-      g_resourceBrush.toggle();
-      console.log('🎨 Resource brush deactivated via ESC key');
+    if (deactivateActiveBrushes()) {
       return;
     }
-
-    if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
-      g_enemyAntBrush.toggle();
-      console.log('🎨 Enemy brush deactivated via ESC key');
-      return;
-    }
-    
     // Then handle selection box clearing
     if (g_selectionBoxController) {
       g_selectionBoxController.deselectAll();
@@ -690,6 +680,25 @@ function keyPressed() {
     }
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
+}
+
+/**
+ * Deactivates any active brushes (resource, enemy ant) and logs the action.
+ * Returns true if any brush was deactivated.
+ */
+function deactivateActiveBrushes() {
+  let deactivated = false;
+  if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
+    g_resourceBrush.toggle();
+    console.log('🎨 Resource brush deactivated via ESC key');
+    deactivated = true;
+  }
+  if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
+    g_enemyAntBrush.toggle();
+    console.log('🎨 Enemy brush deactivated via ESC key');
+    deactivated = true;
+  }
+  return deactivated;
 }
 
 // DEBUG RENDERING FUNCTIONS

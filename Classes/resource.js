@@ -2,9 +2,12 @@ let g_resourceList;
 let g_resourceManager;
 let resourceIndex = 0;
 
+const RESOURCE_SPAWN_INTERVAL = 1; // seconds
+const MAX_RESOURCE_CAPACITY = 300;
+
 function resourcePreLoad(){
   // Create the new unified resource system manager
-  g_resourceManager = new ResourceSystemManager(1, 300); // (Interval, Capacity)
+  g_resourceManager = new ResourceSystemManager(RESOURCE_SPAWN_INTERVAL, MAX_RESOURCE_CAPACITY); // (Interval, Capacity)
   
   // Keep g_resourceList for backward compatibility - it will delegate to g_resourceManager
   g_resourceList = new resourcesArrayCompat(g_resourceManager);
