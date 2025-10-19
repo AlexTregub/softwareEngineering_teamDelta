@@ -266,16 +266,22 @@ class gridTerrain {
             // Initialize the cache buffer with transparent background
             this._terrainCache.clear();
             
-            // Create a render converter that matches the main rendering system
-            // Use the same camera position and CURRENT canvas size for proper alignment
+            // Create a render converter for cache rendering
+            // CRITICAL: For p5.Graphics buffers, we need the buffer's CENTER to correspond
+            // to the camera position, so we set canvas center to half the buffer size
             this._cacheRenderConverter = new camRenderConverter(
                 [...this.renderConversion._camPosition],  // Same camera position
                 [cacheWidth, cacheHeight],               // Current canvas size
                 this._tileSize                          // Same tile size
             );
             
+            // Keep the canvas center at buffer center for proper tile positioning
+            // This makes tiles render centered around camera position in the buffer
+            // (Don't override _canvasCenter - let it stay at [cacheWidth/2, cacheHeight/2])
+            
             // Render all terrain chunks to cache using safer method
-            this._renderChunksToCache();
+            // Pass the cache converter so it uses the correct viewport calculation
+            this._renderChunksToCache(this._cacheRenderConverter);
             
             // Mark cache as valid and store current viewport
             this._cacheValid = true;
@@ -307,6 +313,10 @@ class gridTerrain {
         // Set drawing context to the cache buffer
         this._terrainCache.push();
         
+        // Ensure proper image mode for tile rendering
+        this._terrainCache.imageMode(CORNER);
+        this._terrainCache.noSmooth(); // Match main canvas rendering
+        
         // Render all terrain chunks directly using p5.Graphics methods
         // for (let i = 0; i < this._gridSizeX * this._gridSizeY; ++i) {
         //     // let chunkPos = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
@@ -321,16 +331,19 @@ class gridTerrain {
         let viewSpan = converter.getViewSpan();
         
         // Dynamic chunk buffer - render more chunks when zoomed out for smoother scrolling
-        const CHUNK_BUFFER = this._calculateChunkBuffer();
+        // Add +1 to ensure we cover edges when using imageMode(CENTER)
+        const CHUNK_BUFFER = this._calculateChunkBuffer() + 1;
         
+        // Use ceil for TL to ensure we capture partial chunks on the edges
+        // Use floor for BR to ensure we capture partial chunks on the edges
         let chunkSpan = [
             [ // -x,+y TL - Expand outward by buffer amount with bounds checking
-                Math.max(this._gridSpanTL[0], floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
-                Math.min(this._gridSpanTL[1], floor(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
+                Math.max(this._gridSpanTL[0], Math.floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
+                Math.min(this._gridSpanTL[1], Math.ceil(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
             ],
             [ // +x,-y BR - Expand outward by buffer amount with bounds checking
-                Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, floor(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
-                Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
+                Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, Math.ceil(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
+                Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, Math.floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
             ]
         ];
 
@@ -365,7 +378,11 @@ class gridTerrain {
             
             // Convert world position to cache buffer coordinates using cache render converter
             const cachePos = this._cacheRenderConverter.convPosToCanvas(tilePos);
-            // const cachePos = converter.convPosToCanvas(tilePos); // Using shared render converter?
+            
+            // DEBUG: Log first few tile positions
+            if (tile._x === 0 && tile._y === 0 && typeof globalThis.logVerbose === 'function') {
+                globalThis.logVerbose(`Rendering tile at world [${tilePos}] to cache position [${cachePos}]`);
+            }
             
             // Use tile's material to render correctly
             const material = tile._materialSet;
@@ -440,10 +457,20 @@ class gridTerrain {
         if (!this._terrainCache || !this._cacheValid) return;
         
         try {
-            // Draw the cached terrain buffer directly to the main canvas
-            // Since the cache is rendered with the same coordinate system,
-            // we can draw it at (0,0) and it will align correctly
-            image(this._terrainCache, g_canvasX/2, g_canvasY/2); 
+            // DEBUG: Log coordinate systems
+            if (typeof globalThis.logVerbose === 'function') {
+                globalThis.logVerbose(`Cache Draw - Main canvas center: [${this.renderConversion._canvasCenter}], Cache canvas center: [${this._cacheRenderConverter._canvasCenter}]`);
+                globalThis.logVerbose(`Camera position: [${this.renderConversion._camPosition}]`);
+                globalThis.logVerbose(`Cache buffer size: ${this._terrainCache.width}x${this._terrainCache.height}`);
+            }
+            
+            // Try drawing with imageMode CENTER to center the buffer on canvas
+            push();
+            imageMode(CENTER);
+            image(this._terrainCache, 
+                  this.renderConversion._canvasCenter[0], 
+                  this.renderConversion._canvasCenter[1]); 
+            pop();
             
         } catch (error) {
             console.error('GridTerrain: Error drawing cached terrain:', error);

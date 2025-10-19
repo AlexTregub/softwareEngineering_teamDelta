@@ -17,7 +17,7 @@ let g_mapRendered
 // window.menuLayoutData = { debugRects:[], groupRects:[], centers:[], debugImgs:[], headerTop }
 // global vertical offset (px) to move the menu up/down. Negative moves up.
 // default offset and persisted storage key
-const DEFAULT_MENU_YOFFSET = -100;
+const DEFAULT_MENU_YOFFSET = 0;
 const MENU_YOFFSET_KEY = 'antgame.menuYOffset';
 
 // load persisted offset if available, otherwise fall back to default
@@ -145,7 +145,7 @@ function drawMenu() {
     // If we have a header laid out by the container, draw it centered at its computed position.
     if (menuHeader && menuHeader.img) {
       const hx = g_canvasX / 2;
-      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset + 70;
+      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset;
       image(menuHeader.img, hx, hy, menuHeader.w + 150, menuHeader.h + 100);
     } else if (menuImage) {
       // fallback to previous large logo behavior if header wasn't provided

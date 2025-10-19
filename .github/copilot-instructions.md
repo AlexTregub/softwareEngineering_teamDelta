@@ -61,14 +61,19 @@ python -m http.server 8000     # Alternative (already running in background task
 **Load Order in index.html**: Bootstrap → Rendering → Base Systems → Controllers → Game Logic
 
 ### Testing - CRITICAL PATTERNS (MANDATORY READING)
-- **Primary Tests**: BDD tests in `test/bdd_new/` using Selenium + behave (**HEADLESS MODE ONLY**)
-- **Test Commands**: 
+
+#### Test Types & Commands
+- **E2E Tests** (PRIMARY): Puppeteer-based browser automation in `test/e2e/` with **screenshot visual proof**
+  - `npm run test:e2e` - All E2E tests
+  - `npm run test:e2e:ui` - UI panel tests
+  - `npm run test:e2e:camera` - Camera system tests
+  - Individual: `node test/e2e/ui/pw_panel_minimize.js`
+- **BDD Tests** (LEGACY): Selenium + behave in `test/bdd/` (**HEADLESS MODE ONLY**)
   - `npm run test:bdd` - Full BDD suite
   - `npm run test:bdd:ants` - Ant-specific tests
-  - `npm run test:python:core` - Core system tests
 - **Browser Config**: Chrome headless with `--headless=new`, `--no-sandbox`, `--disable-dev-shm-usage`
-- **BEFORE WRITING TESTS**: Read `docs/standards/testing/TESTING_METHODOLOGY_STANDARDS.md` + `BDD_LANGUAGE_STYLE_GUIDE.md`
-- **Testing Standards**: ALL tests must use system APIs, catch real bugs, run headless
+- **MANDATORY READING**: `docs/standards/testing/TESTING_METHODOLOGY_STANDARDS.md` + `BDD_LANGUAGE_STYLE_GUIDE.md` + `docs/guides/E2E_TESTING_QUICKSTART.md`
+- **Testing Standards**: ALL tests must use system APIs, catch real bugs, run headless, provide visual proof via screenshots
 
 ### Debug System Integration
 
@@ -82,6 +87,74 @@ python -m http.server 8000     # Alternative (already running in background task
   - `Ctrl + Shift + 3` = Debug console (also `` ` ``)
 - **Console Commands**: `demonstrateEntityDebugger()`, `setDebugLimit(50)`, `forceShowAllDebuggers()`
 - **Features**: Outline-only bounding boxes, property panels, performance graphs (update/render times, memory), automatic registration
+
+### E2E Testing Critical Workflows (Puppeteer)
+
+**CRITICAL**: E2E tests require specific patterns to work correctly. See `docs/guides/E2E_TESTING_QUICKSTART.md` for complete guide.
+
+#### 1. Server Setup (REQUIRED)
+```bash
+npm run dev  # Start on localhost:8000
+```
+
+#### 2. Menu Bypass Pattern (CRITICAL!)
+```javascript
+const cameraHelper = require('../camera_helper');
+const gameStarted = await cameraHelper.ensureGameStarted(page);
+if (!gameStarted.started) {
+  throw new Error('Failed to start game - still on main menu');
+}
+```
+**Without this**: Screenshots show main menu (ANTS title, buttons) instead of game!
+
+#### 3. Force Rendering After State Changes (p5.js Pattern)
+```javascript
+// After ANY state change (panel minimize, spawn entities, etc.)
+await page.evaluate(() => {
+  window.gameState = 'PLAYING';
+  if (window.draggablePanelManager) {
+    window.draggablePanelManager.renderPanels('PLAYING');
+  }
+  if (typeof window.redraw === 'function') {
+    window.redraw();  // Call multiple times to force layer updates
+    window.redraw();
+    window.redraw();
+  }
+});
+await sleep(500);  // Wait for render to complete
+await saveScreenshot(page, 'category/test_name', true);
+```
+**Without this**: Screenshots show old state even though internal state changed!
+
+#### 4. Panel State Visibility System
+```javascript
+// Test panels must be added to state visibility list
+await page.evaluate(() => {
+  if (window.draggablePanelManager.stateVisibility) {
+    if (!window.draggablePanelManager.stateVisibility.PLAYING) {
+      window.draggablePanelManager.stateVisibility.PLAYING = [];
+    }
+    window.draggablePanelManager.stateVisibility.PLAYING.push('test-panel-id');
+  }
+});
+```
+**Without this**: Panel created but won't render because not in visibility list!
+
+#### 5. Screenshot Visual Proof (MANDATORY)
+```javascript
+await saveScreenshot(page, 'ui/panel_minimize', true);  // success/
+await saveScreenshot(page, 'ui/panel_error', false);    // failure/ with timestamp
+```
+**Verify Screenshots Show**:
+- ✅ Game terrain (NOT main menu!)
+- ✅ Expected UI elements visible
+- ✅ Correct visual state (e.g., minimized panel = title bar only)
+- ❌ Main menu = test failed to advance game state
+
+**Screenshot Location**: `test/e2e/screenshots/{category}/{success|failure}/{name}.png`
+
+#### E2E Test Template
+See `test/e2e/ui/pw_panel_minimize.js` for complete reference implementation
 
 ## Project-Specific Conventions
 
@@ -98,7 +171,17 @@ index.html                    # Script load order: bootstrap → rendering → b
 │   ├── systems/             # CollisionBox2D, Button, Sprite2D, FramebufferManager
 │   └── terrainUtils/        # Terrain generation and tile systems
 ├── debug/                   # UniversalDebugger, EntityDebugManager, testing.js
-└── test/bdd_new/            # Headless browser automation tests
+├── test/
+│   ├── e2e/                # Puppeteer E2E tests with screenshot proof (PRIMARY)
+│   │   ├── ui/             # UI panel tests
+│   │   ├── camera/         # Camera system tests
+│   │   ├── screenshots/    # Visual proof organized by category
+│   │   ├── puppeteer_helper.js  # launchBrowser, saveScreenshot
+│   │   └── camera_helper.js     # ensureGameStarted (CRITICAL!)
+│   └── bdd/                # Legacy Selenium tests (headless only)
+└── docs/
+    ├── guides/E2E_TESTING_QUICKSTART.md  # MUST READ for E2E tests
+    └── standards/testing/  # TESTING_METHODOLOGY_STANDARDS.md, BDD_LANGUAGE_STYLE_GUIDE.md
 ```
 
 ### Code Patterns
