@@ -196,18 +196,12 @@ class PheromoneGrid {
                         }
                     }
                 }
-                console.log("---");
-                // console.log("UNIQUE MAP CONSTRUCT:",pos,pherTypes);
-                console.log("PherTypeArrs:",pherTypeArrs);
-                console.log("PherTypes:",pherTypes);
 
                 // Merge for target rate, stored initial stregnth calc - average value for stregnth
                 // VERIFY WHETHER CORRECT DIFFUSION EQUATION WILL BE USED. POTENTIALLY REDUNDANT TARGET VALUE AVERAGED.
-                console.log("Begin merge.");
                 let pherMerged = [];
                 for (let i = 0; i < pherTypeArrs.length; ++i) {
                     let temp = new Pheromone(pherTypeArrs[i][0].type,0,0,0,0); // (type,strength,initial,rate,evaporate)
-                    // console.log(temp);
                     for (let j = 0; j < pherTypeArrs[i].length; ++j) {
                         temp.strength += pherTypeArrs[i][j].strength; // AVERAGED...
                         temp.initial = Math.max(temp.initial,pherTypeArrs[i][j].initial);
@@ -217,21 +211,14 @@ class PheromoneGrid {
                     temp.strength /= pherTypeArrs[i].length;
                     temp.rate /= pherTypeArrs[i].length;
 
-                    console.log(temp);
                     pherMerged.push(temp);
                 }
-                console.log("End merge.");
-                console.log("pherMerged:",pherMerged);
-                console.log("targerCell:",target);
 
                 // Diffusion with target values
-                console.log("Begin diffuse");
                 let diffusedPher = [];
                 for (let i = 0; i < target.length; ++i) {
-                    // console.log("prim. diffuse");
                     // (1-r)*TARGET + r*AVG
                     let avgPher = pherMerged[pherTypes.get(target[i].type)];
-                    console.log(avgPher);
                     let diffusedStr = (1-avgPher.rate)*target[i].strength + avgPher.rate*avgPher.strength;
                     avgPher.strength = diffusedStr;
 
@@ -239,21 +226,15 @@ class PheromoneGrid {
 
                     pherTypes.delete(avgPher.type); // Remove from list to complete...
                 }
-                console.log("End Prim diffuse");
 
                 // For remaining... r*AVG
                 for (let type of pherTypes) {
-                    console.log(type);
-                    // console.log("second. diffuse");
-                    // console.log(type);
                     // let avgPher = pherTypeArrs[pherTypes.get(type[0])];
                     let avgPher = pherMerged[type[1]];
                     avgPher.strength *= avgPher.rate;
 
-                    console.log(avgPher);
                     diffusedPher.push(avgPher);
                 }
-                console.log("End Sec diffuse");
                 
 
                 // Store diffused on right grid.
@@ -263,6 +244,7 @@ class PheromoneGrid {
             return;
         }
         
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MIRROR
         
         // Clear left grid
         this._leftSet.clear();
@@ -317,13 +299,12 @@ class PheromoneGrid {
                     }
                 }
             }
-            // console.log("UNIQUE MAP CONSTRUCT:",pos,pherTypes);
 
             // Merge for target rate, stored initial stregnth calc - average value for stregnth
             // VERIFY WHETHER CORRECT DIFFUSION EQUATION WILL BE USED. POTENTIALLY REDUNDANT TARGET VALUE AVERAGED.
             let pherMerged = [];
             for (let i = 0; i < pherTypeArrs.length; ++i) {
-                let temp = new Pheromone(pherTypeArrs[i][0].type,0,0,0,0);
+                let temp = new Pheromone(pherTypeArrs[i][0].type,0,0,0,0); // (type,strength,initial,rate,evaporate)
                 for (let j = 0; j < pherTypeArrs[i].length; ++j) {
                     temp.strength += pherTypeArrs[i][j].strength; // AVERAGED...
                     temp.initial = Math.max(temp.initial,pherTypeArrs[i][j].initial);
@@ -339,10 +320,8 @@ class PheromoneGrid {
             // Diffusion with target values
             let diffusedPher = [];
             for (let i = 0; i < target.length; ++i) {
-                // console.log("prim. diffuse");
                 // (1-r)*TARGET + r*AVG
-                let avgPher = pherTypeArrs[pherTypes.get(target[i].type)];
-                console.log(avgPher);
+                let avgPher = pherMerged[pherTypes.get(target[i].type)];
                 let diffusedStr = (1-avgPher.rate)*target[i].strength + avgPher.rate*avgPher.strength;
                 avgPher.strength = diffusedStr;
 
@@ -353,14 +332,13 @@ class PheromoneGrid {
 
             // For remaining... r*AVG
             for (let type of pherTypes) {
-                // console.log("second. diffuse");
-                // console.log(type);
                 // let avgPher = pherTypeArrs[pherTypes.get(type[0])];
-                let avgPher = pherTypeArrs[type[1]];
+                let avgPher = pherMerged[type[1]];
                 avgPher.strength *= avgPher.rate;
 
                 diffusedPher.push(avgPher);
             }
+            
 
             // Store diffused on left grid.
             this.set([pos.x,pos.y],diffusedPher,!selLeft);
