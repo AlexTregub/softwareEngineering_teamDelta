@@ -64,7 +64,7 @@ function wander(grid, node, travelled, ant, state){
   let priority = ant.pathType;
   let scents = node.getScents();
   if (priority != null){
-    return track(priority);
+    return track(grid, node, ant, priority);
   }
   if(scents && scents.length > 0){
     let result = tryTrack(scents, ant);
@@ -115,6 +115,7 @@ function intuitiveWander(){
           for faster pathfinding)
   */
 
+  //This should be what calls legacy pathfinding
 }
 
 function tryTrack(scents, ant){ //Probably won't need last two
@@ -148,7 +149,7 @@ function tryTrack(scents, ant){ //Probably won't need last two
 ////Problem: When an ant breaks off from a path to optimize, how do we make sure it doesn't just wander randomly again? Keep moving in same direction
 //Maybe use a randomly checked heuristic?
 
-function track(trailType){
+function track(grid, node, ant, trailType){
   /*Tracking:
       When an ant decides to follow a pheromone trail:
         Check surrounding tiles:
@@ -165,5 +166,36 @@ function track(trailType){
         Wander nearby
         If nothing found, wander randomly
   */
+  let x = node._x;
+  let y = node._y;
+  let bestNeighbor = null;
+  let bestScore = -Infinity;
+  //Uses pheromone strength instead of weight (change to consider both)
+
+  for(let i = -1; i <= 1; i++){
+    for(let j = -1; j <= 1; j++){
+      if(i === 0 && j === 0) continue;
+
+      let neighbor = grid.getArrPos([x+i, y+j]); //Gets neighbor
+      if(neighbor && !ant.brain.travelledTiles.has(neighbor.id)){ // Makes sure neighbor isn't previously travelled. Should be added to ant class
+        let scents = neighbor.getScents();
+        let targetScent = scents && scents.find(scent => scent.type === trailType); //This is AI btw. did not want to manually loop through every pheromone in every neighbor
+        let strength = targetScent ? targetScent.strength : 0; //If same scent, get strength. Otherwise, 0 since we want ONLY one pheromone
+
+        if (strength > 0){
+          let score = strength - neighbor.weight; //CHANGE!!! PHEROMONE GOES INTO HUNDREDS SO WEIGHT IS BASICALLY USELESS HERE
+          if (score > bestScore){
+              bestScore = score;
+              bestNeighbor = neighbor;
+          }
+        }
+      }
+    }
+  }
+  if (!bestNeighbor) { //In case there is no pheromnoe
+    return findBestNeighbor(grid, node, ant); //ALSO NEED TO CHANGE ANT STATE. NO FOUND PHEROMONE SHOULD GO BACCK TO WANDERING (i.e., if ant reaches end of trail)
+  }
+  ant.brain.travelledTiles.add(node.id); //May want to set so travelled adds next tile instead of current
+  return bestNeighbor;
  
 }
