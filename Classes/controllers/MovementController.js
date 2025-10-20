@@ -8,6 +8,7 @@ class MovementController {
     this._isMoving = false;
     this._targetPosition = null;
     this._path = null;
+    this._wandering = false;
     this._movementSpeed = 30; // Default speed
     this._skitterTimer = 0;
     this._maxSkitterTime = 200;
@@ -147,6 +148,10 @@ class MovementController {
     // Handle pathfinding movement first
     if (!this._isMoving && this._path && this._path.length > 0) {
       this.followPath();
+    }
+
+    if(!this.isMoving && this._wandering){
+      
     }
     
     // Handle direct movement
