@@ -75,7 +75,7 @@ class PheromoneGrid {
                 this._left.rawArray[gridAccessPos].push(pheromone);
             } else { // Easy set...
                 this._left.set(posArr,[pheromone]);
-                this._leftSet.add(posArr);
+                this._leftSet.add(new hashmapPosition(posArr[0],posArr[1]));
             }
 
             return;
@@ -103,33 +103,35 @@ class PheromoneGrid {
             this._right.rawArray[gridAccessPos].push(pheromone);
         } else { // Easy set...
             this._right.set(posArr,[pheromone]);
-            this._rightSet.add(posArr);
+            this._rightSet.add(new hashmapPosition(posArr[0],posArr[1]));
         }
     }
 
     set(posArr,pheromoneArray,selLeft=this._selLeft) { // ...,  selGet=this._selLeft,selPut=this._selLeft) { // OVERWRITE pheromone array
         if (selLeft) {
             this._left.set(posArr,pheromoneArray); // Grid Update
-            console.log(pheromoneArray);
-            console.log(this._left.get(posArr));
+            // console.log(pheromoneArray);
+            // console.log(this._left.get(posArr));
             
             if (pheromoneArray.length == 0) { // If setting to empty...
-                this._leftSet.delete(posArr);
+                this._leftSet = this._leftSet.delete(new hashmapPosition(posArr[0],posArr[1]));
             } else {
-                this._leftSet.add(posArr);
+                this._leftSet.add(new hashmapPosition(posArr[0],posArr[1]));
+                // console.log(this._leftSet)
             }
 
-            console.log(pheromoneArray);
-            console.log(this._left.get(posArr));
+            // console.log(pheromoneArray);
+            // console.log(this._left.get(posArr));
 
+            console.log(this._leftSet);
             return;
         }
         this._right.set(posArr,pheromoneArray); // Grid Update
             
         if (pheromoneArray.length == 0) { // If setting to empty...
-            this._rightSet.delete(posArr);
+            this._rightSet.delete(new hashmapPosition(posArr[0],posArr[1]));
         } else {
-            this._rightSet.add(posArr);
+            this._rightSet.add(new hashmapPosition(posArr[0],posArr[1]));
         }
 
         return;
@@ -141,13 +143,14 @@ class PheromoneGrid {
 
     //// Diffusion:
     diffuse(selLeft=this._selLeft) { // Will diffuse grid in selLeft -> !selleft. DOES NOT UPDATE _selLeft
+        console.log(this._leftSet);
         if (selLeft) { // Left grid -> right grid
             // Clear right grid
             this._rightSet.clear();
             this.initSelGrid(!selLeft);
 
             // Update cells - Will need to first get 1-step neighbors, then update ONLY those cells. Operating on _leftSet
-            let initTargets = new Set();
+            let initTargets = new Set([new hashmapPosition(0,0)]);
             // get vonNeumann-neighbors, ensure in-bounds (performed after: at worst sizeOfGrid(n+1)~n^2+2n+1 checks, sizeOfGrid(n+1)-sizeOfGrid(n) removes) VS: (performed during: 4*sizeOfGrid(n)~4n^2 checks, ...)
             for (pos in this._leftSet) { 
                 // Up,Down,Left,Right neighbors:
@@ -156,11 +159,20 @@ class PheromoneGrid {
                 let left = new hashmapPosition(pos.x-1,pos.y);
                 let right = new hashmapPosition(pos.x+1,pos.y);
                 
-                initTargets.add(up);
-                initTargets.add(down);
-                initTargets.add(left);
-                initTargets.add(right);
+                // initTargets.add(up);
+                // initTargets.add(down);
+                // initTargets.add(left);
+                // initTargets.add(right);
+
+                console.log(new hashmapPosition(pos.x,pos.y));
+
+                initTargets.add(new hashmapPosition(pos.x,pos.y+1));
+                initTargets.add(new hashmapPosition(pos.x,pos.y-1));
+                initTargets.add(new hashmapPosition(pos.x-1,pos.y));
+                initTargets.add(new hashmapPosition(pos.x+1,pos.y));
             }
+            console.log("initTargets:");
+            console.log(initTargets);
 
             // Drop OOB - increase mem cost temporarily to potentially save on compute
             this._rightSet.clear();
@@ -171,6 +183,7 @@ class PheromoneGrid {
                     this._rightSet.add(pos);
                 }
             }
+            console.log(this._rightSet);
 
             // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _right.
             // this._rightSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
@@ -218,6 +231,7 @@ class PheromoneGrid {
                 // Diffusion with target values
                 let diffusedPher = [];
                 for (let i = 0; i < target.length; ++i) {
+                    console.log("prim. diffuse");
                     // (1-r)*TARGET + r*AVG
                     let avgPher = pherTypeArrs[pherTypes.get(target[i].type)];
                     let diffusedStr = (1-avgPher.rate)*target[i].strength + avgPher.rate*avgPher.strength;
@@ -230,6 +244,7 @@ class PheromoneGrid {
 
                 // For remaining... r*AVG
                 for (type in pherTypes) {
+                    console.log("second. diffuse");
                     let avgPher = pherTypeArrs[pherTypes.get(type)];
                     avgPher.strength *= avgPher.rate;
 
@@ -242,6 +257,106 @@ class PheromoneGrid {
 
             return;
         }
+
+        // Clear left grid
+        this._leftSet.clear();
+        this.initSelGrid(!selLeft);
+
+        // Update cells - Will need to first get 1-step neighbors, then update ONLY those cells. Operating on _rightSet
+        let initTargets = new Set();
+        // get vonNeumann-neighbors, ensure in-bounds (performed after: at worst sizeOfGrid(n+1)~n^2+2n+1 checks, sizeOfGrid(n+1)-sizeOfGrid(n) removes) VS: (performed during: 4*sizeOfGrid(n)~4n^2 checks, ...)
+        for (pos in this._rightSet) { 
+            // Up,Down,Left,Right neighbors:
+            let up = new hashmapPosition(pos.x,pos.y+1);
+            let down = new hashmapPosition(pos.x,pos.y-1);
+            let left = new hashmapPosition(pos.x-1,pos.y);
+            let right = new hashmapPosition(pos.x+1,pos.y);
+            
+            initTargets.add(up);
+            initTargets.add(down);
+            initTargets.add(left);
+            initTargets.add(right);
+        }
+
+        // Drop OOB - increase mem cost temporarily to potentially save on compute
+        this._leftSet.clear();
+        for (pos in initTargets) {
+            if (pos.x >= this._right._spanTopLeft[0] && pos.x < this._right._spanBotRight[0]
+                && pos.y >= this._right._spanTopLeft[1] && pos.y < this._right._spanBotRight[1]
+            ) {
+                this._leftSet.add(pos);
+            }
+        }
+
+        // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _left.
+        // this._leftSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
+        for (pos in this._leftSet) {
+            // Collect all pheromones. Store as list of pheromonesTypeArrays of pheromone arrays.
+            let target = this.get([pos.x,pos.y],selLeft);
+            let vnNeighborhood = [
+                target, // Target
+                this.get([pos.x,pos.y+1],selLeft), // Up,down,left,right
+                this.get([pos.x,pos.y-1],selLeft),
+                this.get([pos.x-1,pos.y],selLeft),
+                this.get([pos.x+1,pos.y],selLeft)
+            ];
+
+            let pherTypeArrs = []; // Stores un-merged, typed pheromones
+            let pherTypes = new Map(); // Will store [type,index]
+            for (let i = 0; i < vnNeighborhood.length; ++i) { // Pher array access
+                for (let j = 0; j < vnNeighborhood[i].length; ++j) { // Pher. access
+                    if (!pherTypes.has(vnNeighborhood[i][j].type)) {
+                        pherTypes.add([vnNeighborhood[i][j].type,pherTypeArrs.length]);
+                        pherTypeArrs.push([vnNeighborhood[i][j]]); // Push arr of 1 pher
+                    } else {
+                        pherTypeArrs[pherTypes.get(vnNeighborhood[i][j].type)].push(vnNeighborhood[i][j]); // Push pheromone to typeArrs at typePos
+                    }
+                }
+            }
+
+            // Merge for target rate, stored initial stregnth calc - average value for stregnth
+            // VERIFY WHETHER CORRECT DIFFUSION EQUATION WILL BE USED. POTENTIALLY REDUNDANT TARGET VALUE AVERAGED.
+            let pherMerged = [];
+            for (let i = 0; i < pherTypeArrs.length; ++i) {
+                let temp = new Pheromone(pherTypeArrs[i][0].type,0,0,0,0);
+                for (let j = 0; j < pherTypeArrs[i].length; ++j) {
+                    temp.strength += pherTypeArrs[i][j].strength; // AVERAGED...
+                    temp.initial = Math.max(temp.initial,pherTypeArrs[i][j].initial);
+                    temp.rate += pherTypeArrs[i][j].rate; // AVERAGED
+                }
+
+                temp.strength /= pherTypeArrs[i].length;
+                temp.rate /= pherTypeArrs[i].length;
+
+                pherMerged.push(temp);
+            }
+
+            // Diffusion with target values
+            let diffusedPher = [];
+            for (let i = 0; i < target.length; ++i) {
+                // (1-r)*TARGET + r*AVG
+                let avgPher = pherTypeArrs[pherTypes.get(target[i].type)];
+                let diffusedStr = (1-avgPher.rate)*target[i].strength + avgPher.rate*avgPher.strength;
+                avgPher.strength = diffusedStr;
+
+                diffusedPher.push(avgPher); // Diffused strength comp.
+
+                pherTypes.delete(avgPher.type); // Remove from list to complete...
+            }
+
+            // For remaining... r*AVG
+            for (type in pherTypes) {
+                let avgPher = pherTypeArrs[pherTypes.get(type)];
+                avgPher.strength *= avgPher.rate;
+
+                diffusedPher.push(avgPher);
+            }
+
+            // Store diffused on left grid.
+            this.set([pos.x,pos.y],diffusedPher,!selLeft);
+        }
+
+        return;
     }
 
     swapSelGrid() {
@@ -318,6 +433,8 @@ function testSets() {
     let key = new hashmapPosition(2,5);
     
     temp.add(key);
+    console.log("-======");
+    console.log(temp);
 
     console.log("Check for key retrieve with pos helper:");
     console.log(temp.has(key));
