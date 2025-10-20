@@ -323,11 +323,8 @@ class MovementController {
   */
     const ant = this._entity;
     let grid = g_pathMap.getGrid();
-    console.log("g_pathMap:", g_pathMap);
-    const node = grid.getArrPos([
-      Math.floor(ant.getPosition().x / window.tileSize),
-      Math.floor(ant.getPosition().y / window.tileSize)
-    ]);
+
+    const node = grid.getArrPos([5,7]);
 
     // Wander or track depending on ant state
     const nextNode = null //wander(grid, node, ant.brain.travelledTiles, ant, ant.brain.movementState || "idle");

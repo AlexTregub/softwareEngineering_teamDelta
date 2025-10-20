@@ -18,7 +18,6 @@ class PheromoneGrid {
         // Pheromone GRIDS 
         this._right = NONE;
         this._left = NONE;
-
         this.initSelGrid();         
         this.initSelGrid(!this._selLeft); // Both grids should be initialized
     }

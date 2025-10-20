@@ -1,7 +1,7 @@
 let _pGrid;
 
 class NewPathMap{
-  constructor(terrain){
+  constructor(terrain=g_map2){
     this._terrain = terrain;
     this._mapTileSize = terrain._tileSpanRange;
     this._mapTL = terrain._tileSpan[0];
@@ -9,10 +9,9 @@ class NewPathMap{
     this._grid = new Grid(this._mapTileSize[0],this._mapTileSize[1],this._mapTL);
 
     _pGrid = new PheromoneGrid(terrain);
-    console.log(`Terrain y: ${terrain._gridTileSpan[0][1]}`);
-    console.log(`Terrain x: ${terrain._gridTileSpan[0][0]}`);
-    for (let y = terrain._gridTileSpan[0][1]; y <= terrain._gridTileSpan[1][1]; y++){
-      for (let x = terrain._gridTileSpan[0][0]; x <= terrain._gridTileSpan[1][0]; x++){
+    
+    for (let y = -72; y <= 88; y++){
+      for (let x = -72; x <= 88; x++){
         let weight = 1;
         let node = new NewNode(weight, x, y, _pGrid);
         this._grid.setArrPos([x, y], node);
