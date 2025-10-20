@@ -113,7 +113,7 @@ class PheromoneGrid {
             // console.log(this._left.get(posArr));
             
             if (pheromoneArray.length == 0) { // If setting to empty...
-                this._leftSet = this._leftSet.delete(new hashmapPosition(posArr[0],posArr[1]));
+                this._leftSet.delete(new hashmapPosition(posArr[0],posArr[1]));
             } else {
                 this._leftSet.add(new hashmapPosition(posArr[0],posArr[1]));
                 // console.log(this._leftSet)
@@ -140,7 +140,7 @@ class PheromoneGrid {
         this.set(posArr,[],selLeft);
     }
 
-    //// Diffusion:
+    //// Diffusion + Evaporation:
     diffuse(selLeft=this._selLeft) { // Will diffuse grid in selLeft -> !selleft. DOES NOT UPDATE _selLeft
         if (selLeft) { // Left grid -> right grid
             // Clear right grid
@@ -349,6 +349,73 @@ class PheromoneGrid {
         }
 
         return;
+    }
+
+    evaporate(selLeft=this._selLeft,delThresh=0.05) { // WILL HAVE THRESHOLD (ie. <5% of initial strength, AND WILL DESTROY THAT PHER.)
+        if (selLeft) {
+            // Clear right:
+            this._rightSet.clear();
+            this.initSelGrid(!selLeft);
+
+            for (let pos of this._leftSet) {
+                // console.log(pos);
+
+                let targetPhers = this.get([pos.x,pos.y],selLeft);
+                let updatedPhers = [];
+
+                for (let i = 0; i < targetPhers.length; ++i) {
+                    let pher = targetPhers[i];
+                    pher.strength *= (1-pher.evaporate);
+                    // console.log(pher.strength);
+                    // console.log(pher.strength/pher.initial);
+                    console.log(pher);
+                    if (pher.strength/pher.initial <= delThresh) {
+                        console.log("dropping...");
+                        continue;
+                    } else {
+                        updatedPhers.push(pher);
+                    }
+                    
+                    // targetPhers[i] = pher;
+                }
+                console.log("upt",updatedPhers);
+
+                this.set([pos.x,pos.y],updatedPhers,!selLeft); // Set on non-target grid.
+            }
+        }
+
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MIRROR
+
+        // Clear left:
+        this._leftSet.clear();
+        this.initSelGrid(!selLeft);
+
+        for (let pos of this._rightSet) {
+            // console.log(pos);
+
+            let targetPhers = this.get([pos.x,pos.y],selLeft);
+            let updatedPhers = [];
+
+            for (let i = 0; i < targetPhers.length; ++i) {
+                let pher = targetPhers[i];
+                console.log("Mult:",(1-pher.evaporate),pher.strength);
+                pher.strength *= (1-pher.evaporate);
+                console.log("NOWAT:",pher.strength);
+                // console.log(pher.strength);
+                // console.log(pher.strength/pher.initial);
+                console.log(pher);
+                if (pher.strength/pher.initial <= delThresh) {
+                    console.log("dropping...");
+                    continue;
+                }
+                updatedPhers.push(pher);
+                // targetPhers[i] = pher;
+            }
+            console.log("upt2",updatedPhers);
+
+            this.set([pos.x,pos.y],updatedPhers,!selLeft); // Set on non-target grid.
+            console.log(this.get([pos.x,pos.y],!selLeft));
+        }
     }
 
     swapSelGrid() {

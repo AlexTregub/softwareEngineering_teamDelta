@@ -125,13 +125,13 @@ function setup() {
   
   // temp.set([0,0],[new Pheromone("Pain.",100,100,0.05,0.01)],false);
   for (let i = -20; i < 20; ++i) {
-    temp.set([i,i],[new Pheromone("Pain. 2x",100,100,0.05,0.01)],true);
-    temp.set([-i,i],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
+    temp.set([i,i],[new Pheromone("Pain. 2x",100,100,0.1,0.01)],true);
+    temp.set([-i,i],[new Pheromone("Pain.",100,100,0.1,0.01)],true);
   }
-  temp.set([0,0],[new Pheromone("Pain. 3x",100,100,0.05,0.01)],true);
+  temp.set([0,0],[new Pheromone("Pain. 3x",100,100,0.1,0.01)],true);
 
-  temp.diffuse();
-  temp.swapSelGrid();
+  // temp.diffuse();
+  // temp.swapSelGrid();
 }
 
 /**
@@ -191,8 +191,15 @@ function draw() {
 
   // if(frameNum % 120 == 0) {
   //   console.log("diffusing..");
-    // temp.diffuse();
+  //   temp.diffuse();
   //   console.log("swapping..");
+  //   temp.swapSelGrid();
+  // }
+
+  // if (frameNum % 240 == 0) {
+  //   console.log("evaporating...");
+  //   temp.evaporate();
+  //   console.log("swapping...");
   //   temp.swapSelGrid();
   // }
   
