@@ -26,6 +26,8 @@ let g_recordingPath;
 // -- Queen ---
 let queenAnt;
 
+// Buildings
+let Buildings = [];
 
 /**
  * preload
@@ -40,6 +42,7 @@ function preload(){
   antsPreloader();
   resourcePreLoad();
   preloadPauseImages();
+  BuildingPreloader();
   
   // Load presentation assets
   if (typeof loadPresentationAssets !== 'undefined') {
@@ -116,6 +119,9 @@ function setup() {
   
   // Initialize context menu prevention for better brush control
   initializeContextMenuPrevention();
+  //
+
+  Buildings.push(createBuilding('antcone', 200, 200, 'neutral'));
 }
 
 /**
@@ -224,6 +230,7 @@ function initializeWorld() {
  */
 
 function draw() {
+
   if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
 
   updatePresentationPanels(GameState.getState());

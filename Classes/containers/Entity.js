@@ -26,12 +26,17 @@ class Entity {
     this._type = options.type || "Entity";
     this._isActive = true;
 
+    // safe p5 vector factory (fallback to plain objects if p5 not ready)
+    const p5Available = (typeof createVector === 'function');
+    this._makeVec = (vx, vy) => p5Available ? createVector(vx, vy) : { x: vx, y: vy };
+
     // Initialize collision box first (required by some controllers)
     this._collisionBox = new CollisionBox2D(x, y, width, height);
 
-    // Initialize sprite component (if Sprite2D available)
-    this._sprite = typeof Sprite2D !== 'undefined' ?
-      new Sprite2D(options.imagePath || null, createVector(x, y), createVector(width, height), 0) : null;
+    // Initialize sprite component only if Sprite2D AND p5 vector API are available.
+    this._sprite = (typeof Sprite2D !== 'undefined' && p5Available)
+      ? new Sprite2D(options.imagePath || null, this._makeVec(x, y), this._makeVec(width, height), 0)
+      : null;
 
     // Initialize debugger system (if UniversalDebugger available)
     this._debugger = null;
@@ -251,8 +256,16 @@ class Entity {
     const size = this.getSize();
     this._collisionBox.setPosition(pos.x, pos.y);
     this._collisionBox.setSize(size.x, size.y);
-    this._sprite?.setPosition(createVector(pos.x, pos.y));
-    this._sprite?.setSize(createVector(size.x, size.y));
+    if (this._sprite) {
+      try {
+        this._sprite.setPosition(this._makeVec(pos.x, pos.y));
+        this._sprite.setSize(this._makeVec(size.x, size.y));
+      } catch (e) {
+        // defensive fallback: try plain objects
+        try { this._sprite.setPosition({ x: pos.x, y: pos.y }); } catch (__) {}
+        try { this._sprite.setSize({ x: size.x, y: size.y }); } catch (__) {}
+      }
+    }
 
     // Update debugger if active
     if (this._debugger?.isActive) {
