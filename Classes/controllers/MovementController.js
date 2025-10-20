@@ -8,7 +8,7 @@ class MovementController {
     this._isMoving = false;
     this._targetPosition = null;
     this._path = null;
-    this._wandering = false;
+    this._wandering = true;
     this._movementSpeed = 30; // Default speed
     this._skitterTimer = 0;
     this._maxSkitterTime = 200;
@@ -147,7 +147,7 @@ class MovementController {
   update() {
     // Handle pathfinding movement first
     if (!this._isMoving && this._path && this._path.length > 0) {
-      this.handlePheromoneMovement();
+      this.followPath();
     }
 
     if(!this._isMoving && this._wandering){
@@ -322,7 +322,7 @@ class MovementController {
       If set to wander, will run this instead of skittering. Gets location information by using wander and moves to location
   */
     const ant = this._entity;
-    const grid = pathMap.getGrid();
+    let grid = g_map2._pathMap.getGrid();
     const node = grid.getArrPos([
       Math.floor(ant.getPosition().x / window.tileSize),
       Math.floor(ant.getPosition().y / window.tileSize)
