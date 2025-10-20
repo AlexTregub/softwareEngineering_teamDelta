@@ -206,10 +206,12 @@ class PheromoneGrid {
                         temp.strength += pherTypeArrs[i][j].strength; // AVERAGED...
                         temp.initial = Math.max(temp.initial,pherTypeArrs[i][j].initial);
                         temp.rate += pherTypeArrs[i][j].rate; // AVERAGED
+                        temp.evaporate += pherTypeArrs[i][j].evaporate; // AVERAGED
                     }
 
                     temp.strength /= pherTypeArrs[i].length;
                     temp.rate /= pherTypeArrs[i].length;
+                    temp.evaporate /= pherTypeArrs[i].length;
 
                     pherMerged.push(temp);
                 }
@@ -309,10 +311,12 @@ class PheromoneGrid {
                     temp.strength += pherTypeArrs[i][j].strength; // AVERAGED...
                     temp.initial = Math.max(temp.initial,pherTypeArrs[i][j].initial);
                     temp.rate += pherTypeArrs[i][j].rate; // AVERAGED
+                    temp.evaporate += pherTypeArrs[i][j].evaporate; // AVERAGED
                 }
 
                 temp.strength /= pherTypeArrs[i].length;
                 temp.rate /= pherTypeArrs[i].length;
+                temp.evaporate /= pherTypeArrs[i].length;
 
                 pherMerged.push(temp);
             }
