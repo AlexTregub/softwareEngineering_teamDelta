@@ -20,15 +20,10 @@ class TileInteractionManager {
 
   // --- Building System / Modifying Tiles ---
 
-  /**
- * Turns a single tile or a rectangular area of tiles into farmland.
- * @param {number} startX - The x-coordinate of the starting tile.
- * @param {number} startY - The y-coordinate of the starting tile.
- * @param {number} [endX=startX] - The x-coordinate of the ending tile (optional).
- * @param {number} [endY=startY] - The y-coordinate of the ending tile (optional).
- */
+    // takes tile coordinates as parameters
+    // start is bottom left corner of an area
+    // end is top right corner of an area
     turnToFarmland(startX, startY, endX = startX, endY = startY) {
-    // Loop through the selected tiles from startX to endX and startY to endY
     for (let x = startX; x <= endX; x++) {
         for (let y = startY; y <= endY; y++) {
             const tile = g_map2.getTileAt(x, y);

@@ -522,7 +522,77 @@ class gridTerrain {
         this.invalidateCache();
     }
 
+    // AI temporary solution until we fix whatever is causing the
+    // buggy behavior in our current chunkArray.get() or chunk.get() functions
+    // This implemetation manually calculates everything
     getTileAt(tileX, tileY) {
+
+        // === PART 1: MANUALLY FIND THE CHUNK ===
+
+        // Correctly calculate the chunk's X coordinate.
+        const chunkX = Math.floor(tileX / this._chunkSize);
+        
+        // --- THIS IS THE FIX ---
+        // The original `Math.floor` was wrong. `Math.ceil` is the correct
+        // logic for this game's Y-down coordinate system.
+        let chunkY = Math.ceil(tileY / this._chunkSize);
+        
+        // This part handles the "y=0" edge case, which belongs to chunk 0.
+        if (tileY === 0) {
+            chunkY = 0;
+        }
+
+        // Get the chunkArray's top-left world coordinate (its "span").
+        const chunkGridTopLeft = this.chunkArray.getSpanRange()[0];
+
+        // Manually calculate the chunk's 2D array index within the chunkArray grid.
+        const chunkArrayX = chunkX - chunkGridTopLeft[0];
+        const chunkArrayY = chunkGridTopLeft[1] - chunkY;
+
+        // Manually "flatten" the 2D index to a 1D index for the rawArray.
+        const chunkGridWidth = this.chunkArray.getSize()[0];
+        const chunkFlatIndex = chunkArrayY * chunkGridWidth + chunkArrayX;
+        
+        // Safety check: ensure the calculated chunk index is valid.
+        if (chunkArrayX < 0 || chunkArrayX >= chunkGridWidth ||
+            chunkArrayY < 0 || chunkArrayY >= this.chunkArray.getSize()[1]) {
+            return null; // The requested coordinate is outside the entire map.
+        }
+
+        // Get the chunk directly from the raw array.
+        const chunk = this.chunkArray.rawArray[chunkFlatIndex];
+
+        // === PART 2: MANUALLY FIND THE TILE WITHIN THE CHUNK ===
+
+        if (chunk) {
+            // Get the chunk's own top-left world coordinate.
+            const tileGridTopLeft = chunk.getSpanRange()[0];
+
+            // Manually calculate the tile's local 2D array index within the chunk.
+            const tileArrayX = tileX - tileGridTopLeft[0];
+            const tileArrayY = tileGridTopLeft[1] - tileY;
+
+            // Manually "flatten" the 2D index for the tile's rawArray.
+            const tileGridWidth = chunk.getSize()[0];
+            const tileFlatIndex = tileArrayY * tileGridWidth + tileArrayX;
+
+            // Safety check: ensure the calculated tile index is valid.
+            if (tileArrayX >= 0 && tileArrayX < tileGridWidth &&
+                tileArrayY >= 0 && tileArrayY < chunk.getSize()[1]) {
+                
+                // Get the tile directly from the chunk's raw array.
+                return chunk.tileData.rawArray[tileFlatIndex];
+            }
+        }
+
+        return null; // Chunk or tile not found.
+
+
+        // original code that doesn't work rn because something
+        // buggy happens when going through layers of the terrain
+        // system (grid of chunk, to grid of tile, to actual tile)
+        // with the current functions that are supposed to that
+        /*
         // Calculate which chunk the tile belongs to.
         const chunkX = Math.floor(tileX / this._chunkSize);
         const chunkY = Math.floor(tileY / this._chunkSize);
@@ -538,6 +608,8 @@ class gridTerrain {
 
         // If the chunk doesn't exist, there is no tile
         return null;
+
+        */
     }
 };
 
