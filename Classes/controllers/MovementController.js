@@ -8,7 +8,7 @@ class MovementController {
     this._isMoving = false;
     this._targetPosition = null;
     this._path = null;
-    this._wandering = true;
+    this._wandering = false;
     this._movementSpeed = 30; // Default speed
     this._skitterTimer = 0;
     this._maxSkitterTime = 200;
@@ -166,6 +166,7 @@ class MovementController {
 
     // Update stuck detection
     this.updateStuckDetection();
+    this._wandering = true;
   }
 
   // --- Private Methods ---
@@ -324,14 +325,17 @@ class MovementController {
     const ant = this._entity;
     let grid = g_pathMap.getGrid();
 
-    const node = grid.getArrPos([5,7]);
+    if (!ant?.brain || !ant.brain.travelledTiles) return;
+
+    const node = grid.get([200,50]);
 
     // Wander or track depending on ant state
-    const nextNode = null //wander(grid, node, ant.brain.travelledTiles, ant, ant.brain.movementState || "idle");
-
+    const nextNode = wander(grid, node, ant.brain.travelledTiles, ant, ant.brain.movementState || "idle");
     if (nextNode) {
-      const nextX = nextNode._x * window.tileSize;
-      const nextY = nextNode._y * window.tileSize;
+      const nextX = nextNode._x;
+      const nextY = nextNode._y;
+      console.log(`nextX: ${this.nextX}`);
+      console.log(`nextY: ${this.nextY}`);
       this.moveToLocation(nextX, nextY);
     }
   }

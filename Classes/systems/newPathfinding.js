@@ -9,12 +9,11 @@ class NewPathMap{
     this._grid = new Grid(this._mapTileSize[0],this._mapTileSize[1],this._mapTL);
 
     _pGrid = new PheromoneGrid(terrain);
-    
-    for (let y = -72; y <= 88; y++){
-      for (let x = -72; x <= 88; x++){
+    for (let y = -72; y < 88; y++){
+      for (let x = -72; x < 88; x++){
         let weight = 1;
         let node = new NewNode(weight, x, y, _pGrid);
-        this._grid.setArrPos([x, y], node);
+        this._grid.set([x, y], node);
       }
     }
   }
@@ -32,7 +31,6 @@ class NewNode{
   constructor(terrainWeight, x, y, pheromoneGrid){
     this._x = x;
     this._y = y;
-    console.log(`X:${this._x}  Y: ${this._y}`);
 
     this.id = `${x}-${y}`; //Used for easier access. Faster than searching 2D array
     this._weight = terrainWeight;
@@ -79,7 +77,8 @@ function wander(grid, node, travelled, ant, state){
     }
   }
   else{ //If no scent, wander to shortest tile
-    node.addScent(state, ant._faction);
+    console.log(`yo mama`);
+    //node.addScent(state, ant._faction);
     return findBestNeighbor(grid, node, ant); //Implement travelled so it holds all previously travelled tiles in current journey. Resets once task finished. Make a Set
   }
   //May turn this into separate function like findBestNeighbor. If no pheromone, run findBestNeighbor for next move.
@@ -92,15 +91,17 @@ function findBestNeighbor(grid, node, ant){
   let x = node._x;
   let y = node._y;
   let bestNeighbor = null;
+  console.log(`X: ${x}`);
+  console.log(`Y: ${y}`);
 
   for(let i = -1; i <= 1; i++){
     for(let j = -1; j <= 1; j++){
       if(i === 0 && j === 0) continue;
 
-      let neighbor = grid.getArrPos([x+i, y+j]);
+      let neighbor = grid.get([x+i, y+j]);
       if(neighbor && !ant.brain.travelledTiles.has(neighbor.id)){ // Makes sure neighbor isn't previously travelled. Should be added to ant class
-        if (neighbor.weight < shortestDistance){ //May need to replace with getWeight()
-          shortestDistance = neighbor.weight;
+        if (neighbor._weight < shortestDistance){ //May need to replace with getWeight()
+          shortestDistance = neighbor._weight;
           bestNeighbor = neighbor;
         }
       }
@@ -185,7 +186,7 @@ function track(grid, node, ant, trailType){
         let strength = targetScent ? targetScent.strength : 0; //If same scent, get strength. Otherwise, 0 since we want ONLY one pheromone
 
         if (strength > 0){
-          let score = strength - neighbor.weight; //CHANGE!!! PHEROMONE GOES INTO HUNDREDS SO WEIGHT IS BASICALLY USELESS HERE
+          let score = strength - neighbor._weight; //CHANGE!!! PHEROMONE GOES INTO HUNDREDS SO WEIGHT IS BASICALLY USELESS HERE
           if (score > bestScore){
               bestScore = score;
               bestNeighbor = neighbor;
