@@ -186,7 +186,9 @@ function draw() {
   // console.log(g_map2.renderConversion._camPosition);
 
   if(frameNum % 120 == 0) {
+    console.log("diffusing..");
     temp.diffuse();
+    console.log("swapping..");
     temp.swapSelGrid();
   }
   
