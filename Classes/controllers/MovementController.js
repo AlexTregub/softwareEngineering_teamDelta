@@ -147,7 +147,7 @@ class MovementController {
   update() {
     // Handle pathfinding movement first
     if (!this._isMoving && this._path && this._path.length > 0) {
-      this.followPath();
+      this.handlePheromoneMovement();
     }
 
     if(!this._isMoving && this._wandering){

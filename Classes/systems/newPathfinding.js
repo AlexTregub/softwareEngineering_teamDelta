@@ -1,4 +1,5 @@
-class PathMap{
+console.log("✅ newPathfinding.js loaded");
+class NewPathMap{
   constructor(terrain){
     this._terrain = terrain; //Requires terrain(for weight, objects, etc.), only used in construction
     this._grid = new Grid( //Makes Grid for easy tile storage/access
@@ -10,7 +11,7 @@ class PathMap{
     this._pGrid = new PheromoneGrid(terrain);
     for(let y = 0; y < terrain._yCount; y++){
       for(let x = 0; x < terrain._xCount; x++){
-        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y, this._pGrid); //Makes tile out of Tile object
+        let node = new NewNode(terrain._tileStore[terrain.conv2dpos(x, y)], x, y, this._pGrid); //Makes tile out of Tile object
         this._grid.setArrPos([x, y], node); //Stores tile in grid
       }
     }
@@ -21,7 +22,7 @@ class PathMap{
   }
 }
 
-class Node{
+class NewNode{
   /*Node
       Each Node should hold an empty map of pheromone types paired with strength. Ants use this class as a way to
       determine which direction to take (checks pheromone type/strength) and edit pheromones they deposit
