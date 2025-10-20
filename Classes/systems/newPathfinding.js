@@ -1,3 +1,5 @@
+let _pGrid;
+
 class NewPathMap{
   constructor(terrain){
     this._terrain = terrain;
@@ -6,13 +8,13 @@ class NewPathMap{
 
     this._grid = new Grid(this._mapTileSize[0],this._mapTileSize[1],this._mapTL);
 
-    this._pGrid = new PheromoneGrid(terrain);
+    _pGrid = new PheromoneGrid(terrain);
     console.log(`Terrain y: ${terrain._gridTileSpan[0][1]}`);
-    for (let y = terrain._gridTileSpan[0][1]; y <= terrain._gridTileSpan[1][1]; y++) {
-      for (let x = terrain._gridTileSpan[0][0]; x <= terrain._gridTileSpan[1][0]; x++) {
-        let tile = terrain.getTile(x, y);
-        if (!tile) continue;
-        let node = new NewNode(tile, x, y, this._pGrid);
+    console.log(`Terrain x: ${terrain._gridTileSpan[0][0]}`);
+    for (let y = terrain._gridTileSpan[0][1]; y <= terrain._gridTileSpan[1][1]; y++){
+      for (let x = terrain._gridTileSpan[0][0]; x <= terrain._gridTileSpan[1][0]; x++){
+        let weight = 1;
+        let node = new NewNode(weight, x, y, _pGrid);
         this._grid.setArrPos([x, y], node);
       }
     }
@@ -28,20 +30,18 @@ class NewNode{
       Each Node should hold an empty map of pheromone types paired with strength. Ants use this class as a way to
       determine which direction to take (checks pheromone type/strength) and edit pheromones they deposit
   */
-  constructor(terrainTile, x, y, pheromoneGrid){
-    this._terrainTile = terrainTile; //Uses Tile and x,y so it can easily find neighbors, know its own location, and have other stuff (know terrain type)
+  constructor(terrainWeight, x, y, pheromoneGrid){
     this._x = x;
     this._y = y;
     console.log(`X:${this._x}  Y: ${this._y}`);
-    this.pGrid = pheromoneGrid;
 
     this.id = `${x}-${y}`; //Used for easier access. Faster than searching 2D array
+    this._weight = terrainWeight;
     this.assignWall();
-    this.weight = this._terrainTile.getWeight();
   }
 
   assignWall(){
-    if(this._terrainTile.getWeight() === 100){ //Calls from terrainTile just to avoid possible flip
+    if(this._terrainWeight === 100){ //Calls from terrainTile just to avoid possible flip
       this.wall = true;
     }
     else{
@@ -50,10 +50,10 @@ class NewNode{
   } 
   
   addScent(antType, tag){ //Merge antType and tag into one in antBrain. Enemy-Forage
-    this.pGrid.push(this._x,this._y, {type: tag, strength: 1, initial: 1, rate: 0.1}) //Change it so Ant Class has one single array? that holds all info (allegience, )
+    _pGrid.push(this._x,this._y, {type: tag, strength: 1, initial: 1, rate: 0.1}) //Change it so Ant Class has one single array? that holds all info (allegience, )
   }
   getScents() {
-    return this.pGrid.get([this._x, this._y]); 
+    return _pGrid.get([this._x, this._y]); 
   }
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }
