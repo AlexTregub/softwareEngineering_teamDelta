@@ -130,8 +130,8 @@ function setup() {
   }
   temp.set([0,0],[new Pheromone("Pain. 3x",100,100,0.05,0.01)],true);
 
-  // temp.diffuse();
-  // temp.swapSelGrid();
+  temp.diffuse();
+  temp.swapSelGrid();
 }
 
 /**
