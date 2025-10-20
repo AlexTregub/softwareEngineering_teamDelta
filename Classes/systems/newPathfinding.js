@@ -1,4 +1,3 @@
-console.log("✅ newPathfinding.js loaded");
 class NewPathMap{
   constructor(terrain){
     this._terrain = terrain; //Requires terrain(for weight, objects, etc.), only used in construction
