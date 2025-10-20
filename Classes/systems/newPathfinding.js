@@ -77,7 +77,6 @@ function wander(grid, node, travelled, ant, state){
     }
   }
   else{ //If no scent, wander to shortest tile
-    console.log(`yo mama`);
     //node.addScent(state, ant._faction);
     return findBestNeighbor(grid, node, ant); //Implement travelled so it holds all previously travelled tiles in current journey. Resets once task finished. Make a Set
   }
@@ -91,8 +90,6 @@ function findBestNeighbor(grid, node, ant){
   let x = node._x;
   let y = node._y;
   let bestNeighbor = null;
-  console.log(`X: ${x}`);
-  console.log(`Y: ${y}`);
 
   for(let i = -1; i <= 1; i++){
     for(let j = -1; j <= 1; j++){
