@@ -97,13 +97,13 @@ class QueenAnt extends ant {
 
     switch (direction) {
       case "w":
-        this.moveToLocation(pos.x, pos.y - speed);
+        this.moveToLocation(pos.x, pos.y + speed);
         break;
       case "a":
         this.moveToLocation(pos.x - speed, pos.y);
         break;
       case "s":
-        this.moveToLocation(pos.x, pos.y + speed);
+        this.moveToLocation(pos.x, pos.y - speed);
         break;
       case "d":
         this.moveToLocation(pos.x + speed, pos.y);

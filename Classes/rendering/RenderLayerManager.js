@@ -116,6 +116,110 @@ class RenderLayerManager {
     this.registerLayerRenderer(this.layers.UI_MENU, this.renderMenuUILayer.bind(this));
     
     this.isInitialized = true;
+
+
+    // Register common drawables once (guarded to avoid double-registration)
+  try {
+    if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
+
+    // Register SelectionBoxController as an interactive so RenderManager dispatches pointer events to it
+    try {
+      if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
+        const selectionAdapter = {
+          hitTest: function(pointer) {
+            // Always allow selection adapter to receive events on the UI layer
+            return true;
+          },
+          _toWorld: function(px, py) {
+            try {
+              const cam = (typeof window !== 'undefined' && window.g_cameraManager) ? window.g_cameraManager : (typeof cameraManager !== 'undefined' ? cameraManager : null);
+              if (cam && typeof cam.screenToWorld === 'function') {
+                const w = cam.screenToWorld(px, py);
+                return { x: (w.worldX !== undefined ? w.worldX : (w.x !== undefined ? w.x : px)), y: (w.worldY !== undefined ? w.worldY : (w.y !== undefined ? w.y : py)) };
+              }
+              // fallback: use global camera offsets if present
+              const camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : 0;
+              const camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : 0;
+              return { x: px + camX, y: py + camY };
+            } catch (e) { return { x: px, y: py }; }
+          },
+          onPointerDown: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleClick === 'function') {
+                // SelectionBoxController expects screen-local coordinates (it adds cameraX internally)
+                g_selectionBoxController.handleClick(pointer.screen.x, pointer.screen.y, 'left');
+                return true;
+              }
+            } catch (e) { console.warn('selectionAdapter.onPointerDown failed', e); }
+            return false;
+          },
+          onPointerMove: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleDrag === 'function') {
+                g_selectionBoxController.handleDrag(pointer.screen.x, pointer.screen.y);
+                return true;
+              }
+            } catch (e) { /* ignore */ }
+            return false;
+          },
+          onPointerUp: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleRelease === 'function') {
+                g_selectionBoxController.handleRelease(pointer.screen.x, pointer.screen.y, 'left');
+                return true;
+              }
+            } catch (e) { /* ignore */ }
+            return false;
+          }
+        };
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, selectionAdapter);
+        RenderManager._registeredDrawables.selectionBoxInteractive = true;
+      }
+    } catch (e) { console.warn('Failed to register selection adapter with RenderManager', e); }
+    // Selection box should render in the UI_GAME layer
+    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBox) {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
+      RenderManager._registeredDrawables.selectionBox = true;
+    }
+
+    // Gather debug renderer overlays (effects layer)
+    if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer && !RenderManager._registeredDrawables.gatherDebug) {
+      if (typeof g_gatherDebugRenderer.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.EFFECTS, g_gatherDebugRenderer.render.bind(g_gatherDebugRenderer));
+        RenderManager._registeredDrawables.gatherDebug = true;
+      }
+    }
+
+    // Dropoff UI and pause menu UI belong to UI_GAME layer if available
+    if (typeof window !== 'undefined') {
+      if (typeof window.drawDropoffUI === 'function' && !RenderManager._registeredDrawables.drawDropoffUI) {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.drawDropoffUI.bind(window));
+        RenderManager._registeredDrawables.drawDropoffUI = true;
+      }
+      if (typeof window.renderPauseMenuUI === 'function' && !RenderManager._registeredDrawables.renderPauseMenuUI) {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.renderPauseMenuUI.bind(window));
+        RenderManager._registeredDrawables.renderPauseMenuUI = true;
+      }
+    }
+
+    // Draggable panels: ensure the manager is registered to UI layer
+    if (typeof window !== 'undefined' && window.draggablePanelManager && !RenderManager._registeredDrawables.draggablePanelManager) {
+      if (typeof window.draggablePanelManager.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.draggablePanelManager.render.bind(window.draggablePanelManager));
+        RenderManager._registeredDrawables.draggablePanelManager = true;
+      }
+    }
+
+    // Button groups: update is still handled in update cycle, but rendering belongs to UI_GAME
+    if (window.buttonGroupManager && !RenderManager._registeredDrawables.buttonGroupManager) {
+      if (typeof window.buttonGroupManager.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.buttonGroupManager.render.bind(window.buttonGroupManager));
+        RenderManager._registeredDrawables.buttonGroupManager = true;
+      }
+    }
+  } catch (err) {
+    console.error('❌ Error registering drawables with RenderManager:', err);
+  }
   }
   
   /**
