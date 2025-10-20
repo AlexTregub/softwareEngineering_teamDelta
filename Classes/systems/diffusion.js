@@ -154,44 +154,50 @@ class PheromoneGrid {
             // Update cells - Will need to first get 1-step neighbors, then update ONLY those cells. Operating on _leftSet
             let initTargets = new Set();
             // get vonNeumann-neighbors, ensure in-bounds (performed after: at worst sizeOfGrid(n+1)~n^2+2n+1 checks, sizeOfGrid(n+1)-sizeOfGrid(n) removes) VS: (performed during: 4*sizeOfGrid(n)~4n^2 checks, ...)
-            for (pos in this._leftSet) { 
-                console.log("CHEEESE");
-                console.log(pos);
+            for (let pos of this._leftSet) { 
+                // console.log("CHEEESE");
+                // console.log(pos);
                 // Up,Down,Left,Right neighbors:
-                let up = new hashmapPosition(pos.x,pos.y+1);
-                let down = new hashmapPosition(pos.x,pos.y-1);
-                let left = new hashmapPosition(pos.x-1,pos.y);
-                let right = new hashmapPosition(pos.x+1,pos.y);
+                // let up = new hashmapPosition(pos.x,pos.y+1);
+                // let down = new hashmapPosition(pos.x,pos.y-1);
+                // let left = new hashmapPosition(pos.x-1,pos.y);
+                // let right = new hashmapPosition(pos.x+1,pos.y);
                 
                 // initTargets.add(up);
                 // initTargets.add(down);
                 // initTargets.add(left);
                 // initTargets.add(right);
 
-                console.log(new hashmapPosition(pos.x,pos.y));
+                // console.log(new hashmapPosition(pos.x,pos.y));
+                // initTargets.add(new hashmapPosition(pos.x,pos.y));
+
+                console.log(pos.x,pos.y);
+                initTargets.add(new hashmapPosition(pos.x,pos.y)); // Should also be needed...
 
                 initTargets.add(new hashmapPosition(pos.x,pos.y+1));
                 initTargets.add(new hashmapPosition(pos.x,pos.y-1));
                 initTargets.add(new hashmapPosition(pos.x-1,pos.y));
                 initTargets.add(new hashmapPosition(pos.x+1,pos.y));
             }
-            console.log("initTargets:");
-            console.log(initTargets);
+            console.log("initTargets:",initTargets);
+            // console.log(initTargets);
 
             // Drop OOB - increase mem cost temporarily to potentially save on compute
-            this._rightSet.clear();
-            for (pos in initTargets) {
+            // this._rightSet.clear();
+            let rightSet = new Set();
+            for (let pos of initTargets) {
                 if (pos.x >= this._left._spanTopLeft[0] && pos.x < this._left._spanBotRight[0]
                     && pos.y >= this._left._spanTopLeft[1] && pos.y < this._left._spanBotRight[1]
                 ) {
-                    this._rightSet.add(pos);
+                    rightSet.add(pos);
                 }
             }
-            console.log(this._rightSet);
+            console.log("RIGHTSET:",rightSet);
 
             // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _right.
             // this._rightSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
-            for (pos in this._rightSet) {
+            for (let pos of rightSet) {
+                // console.log(pos);
                 // Collect all pheromones. Store as list of pheromonesTypeArrays of pheromone arrays.
                 let target = this.get([pos.x,pos.y],selLeft);
                 let vnNeighborhood = [
@@ -207,13 +213,15 @@ class PheromoneGrid {
                 for (let i = 0; i < vnNeighborhood.length; ++i) { // Pher array access
                     for (let j = 0; j < vnNeighborhood[i].length; ++j) { // Pher. access
                         if (!pherTypes.has(vnNeighborhood[i][j].type)) {
-                            pherTypes.add([vnNeighborhood[i][j].type,pherTypeArrs.length]);
+                            pherTypes.set(vnNeighborhood[i][j].type,pherTypeArrs.length);
                             pherTypeArrs.push([vnNeighborhood[i][j]]); // Push arr of 1 pher
                         } else {
                             pherTypeArrs[pherTypes.get(vnNeighborhood[i][j].type)].push(vnNeighborhood[i][j]); // Push pheromone to typeArrs at typePos
                         }
                     }
                 }
+                console.log("UNIQUE MAP CONSTRUCT:",pos,pherTypes);
+                // console.log(pherTypes);
 
                 // Merge for target rate, stored initial stregnth calc - average value for stregnth
                 // VERIFY WHETHER CORRECT DIFFUSION EQUATION WILL BE USED. POTENTIALLY REDUNDANT TARGET VALUE AVERAGED.
@@ -235,7 +243,7 @@ class PheromoneGrid {
                 // Diffusion with target values
                 let diffusedPher = [];
                 for (let i = 0; i < target.length; ++i) {
-                    console.log("prim. diffuse");
+                    // console.log("prim. diffuse");
                     // (1-r)*TARGET + r*AVG
                     let avgPher = pherTypeArrs[pherTypes.get(target[i].type)];
                     let diffusedStr = (1-avgPher.rate)*target[i].strength + avgPher.rate*avgPher.strength;
@@ -247,9 +255,11 @@ class PheromoneGrid {
                 }
 
                 // For remaining... r*AVG
-                for (type in pherTypes) {
-                    console.log("second. diffuse");
-                    let avgPher = pherTypeArrs[pherTypes.get(type)];
+                for (let type of pherTypes) {
+                    // console.log("second. diffuse");
+                    // console.log(type);
+                    // let avgPher = pherTypeArrs[pherTypes.get(type[0])];
+                    let avgPher = pherTypeArrs[type[1]];
                     avgPher.strength *= avgPher.rate;
 
                     diffusedPher.push(avgPher);
@@ -408,6 +418,9 @@ class PheromoneGrid {
 class hashmapPosition { // Helper object to store in set. NO OTHER USES
     constructor(x,y) {
         this.x = x; this.y = y;
+
+        if (x == -0) { this.x = 0; }
+        if (y == -0) { this.y = 0; }
     }
 
     toString() { 

@@ -122,15 +122,16 @@ function setup() {
   }, 200);
 
   temp = new PheromoneGrid();
-  temp.set([0,0],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
+  
   // temp.set([0,0],[new Pheromone("Pain.",100,100,0.05,0.01)],false);
   for (let i = -20; i < 20; ++i) {
-    temp.set([i,i],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
+    temp.set([i,i],[new Pheromone("Pain. 2x",100,100,0.05,0.01)],true);
     temp.set([-i,i],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
   }
+  temp.set([0,0],[new Pheromone("Pain. 3x",100,100,0.05,0.01)],true);
 
-  temp.diffuse();
-  temp.swapSelGrid();
+  // temp.diffuse();
+  // temp.swapSelGrid();
 }
 
 /**
