@@ -10,7 +10,7 @@ class PathMap{
     this._pGrid = new PheromoneGrid(terrain);
     for(let y = 0; y < terrain._yCount; y++){
       for(let x = 0; x < terrain._xCount; x++){
-        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
+        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y, this._pGrid); //Makes tile out of Tile object
         this._grid.setArrPos([x, y], node); //Stores tile in grid
       }
     }
@@ -47,7 +47,10 @@ class Node{
   } 
   
   addScent(antType, tag){ //Merge antType and tag into one in antBrain. Enemy-Forage
-    this._pGrid.push(this._x,this._y, {type: tag, strength: 1, initial: 1, rate: 0.1}) //Change it so Ant Class has one single array? that holds all info (allegience, )
+    this.pGrid.push(this._x,this._y, {type: tag, strength: 1, initial: 1, rate: 0.1}) //Change it so Ant Class has one single array? that holds all info (allegience, )
+  }
+  getScents() {
+    return this.pGrid.get([this._x, this._y]); 
   }
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }
@@ -58,27 +61,31 @@ function wander(grid, node, travelled, ant, state){
         Wanders around aimlessly (Takes the shortest path?)
         Leaves pheromone related to its current task
   */
-  if(node.scents.length > 0 && !ant.avoidSmellCheck){
-    let result = tryTrack(node.scents, ant.speciesName, travelled);
+  let priority = ant.pathType;
+  let scents = node.getScents();
+  if (priority != null){
+    return track(priority);
+  }
+  if(scents && scents.length > 0){
+    let result = tryTrack(scents, ant);
     if(result === 0){
-      ant.avoidSmellCheck = true; //this should be implemented into Ant class. Ants stop checking smell (at least temp) once test failed
       return findBestNeighbor(grid, node, travelled);
     }
     else if(result != 0){
-      ant.pathType = result; //This should be implemented into Ant class. Ants immediately go to tracking when following pheromones.
-      return track();
+      ant.pathType = result; //Probably put in brain instead of ant class
+      return track(result);
     }
   }
   else{ //If no scent, wander to shortest tile
-    node.addScent(state, this._faction);
-    return findBestNeighbor(grid, node, travelled); //Implement travelled so it holds all previously travelled tiles in current journey. Resets once task finished. Make a Set
+    node.addScent(state, ant._faction);
+    return findBestNeighbor(grid, node, ant); //Implement travelled so it holds all previously travelled tiles in current journey. Resets once task finished. Make a Set
   }
   //May turn this into separate function like findBestNeighbor. If no pheromone, run findBestNeighbor for next move.
   //If pheromone exists, run pheromone probability function. If pheromone fails, run this. If pheromone passes, track();
   //Make sure the ant avoids pheromones for its entire wander time if probability fails
 }
 
-function findBestNeighbor(grid, node, travelled){
+function findBestNeighbor(grid, node, ant){
   let shortestDistance = Infinity;
   let x = node._x;
   let y = node._y;
@@ -89,7 +96,7 @@ function findBestNeighbor(grid, node, travelled){
       if(i === 0 && j === 0) continue;
 
       let neighbor = grid.getArrPos([x+i, y+j]);
-      if(neighbor && !travelled.has(neighbor.id)){ // Makes sure neighbor isn't previously travelled. Should be added to ant class
+      if(neighbor && !ant.brain.travelledTiles.has(neighbor.id)){ // Makes sure neighbor isn't previously travelled. Should be added to ant class
         if (neighbor.weight < shortestDistance){ //May need to replace with getWeight()
           shortestDistance = neighbor.weight;
           bestNeighbor = neighbor;
@@ -97,7 +104,7 @@ function findBestNeighbor(grid, node, travelled){
       }
     }
   }
-  travelled.add(node.id); //May want to set so travelled adds next tile instead of current
+  ant.brain.travelledTiles.add(node.id); //May want to set so travelled adds next tile instead of current
   return bestNeighbor;
 }
 
@@ -132,7 +139,7 @@ function tryTrack(scents, ant){ //Probably won't need last two
   for(let i = 0; i < scents.length; i++){
     let scent = scents[i];
     if(ant.brain.checkTrail(scent)){
-      return scent.name;
+      return scent.type;
     }
   }
   return 0;
