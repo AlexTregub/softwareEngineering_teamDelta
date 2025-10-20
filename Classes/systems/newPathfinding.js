@@ -8,8 +8,10 @@ class NewPathMap{
       [0,0]
     );
     this._pGrid = new PheromoneGrid(terrain);
+    console.log(`Terrain y and x: ${terrain._xCount}`)
     for(let y = 0; y < terrain._yCount; y++){
       for(let x = 0; x < terrain._xCount; x++){
+        console.log(`Made it this far`);
         let node = new NewNode(terrain._tileStore[terrain.conv2dpos(x, y)], x, y, this._pGrid); //Makes tile out of Tile object
         this._grid.setArrPos([x, y], node); //Stores tile in grid
       }
@@ -30,6 +32,7 @@ class NewNode{
     this._terrainTile = terrainTile; //Uses Tile and x,y so it can easily find neighbors, know its own location, and have other stuff (know terrain type)
     this._x = x;
     this._y = y;
+    console.log(`X:${this._x}  Y: ${this._y}`);
     this.pGrid = pheromoneGrid;
 
     this.id = `${x}-${y}`; //Used for easier access. Faster than searching 2D array
@@ -199,3 +202,59 @@ function track(grid, node, ant, trailType){
   return bestNeighbor;
  
 }
+/*function debugPathMap(g_pathMap, maxInspect = 5) {
+    console.log("=== DEBUG PATH MAP ===");
+
+    if (!g_pathMap) {
+        console.warn("g_pathMap is undefined or null");
+        return;
+    }
+
+    console.log("g_pathMap exists:", g_pathMap);
+
+    // Check getGrid()
+    if (typeof g_pathMap.getGrid !== "function") {
+        console.warn("g_pathMap does NOT have a getGrid() function");
+        return;
+    }
+
+    const grid = g_pathMap.getGrid();
+    if (!grid) {
+        console.warn("getGrid() returned null or undefined");
+        return;
+    }
+
+    console.log("Grid object:", grid);
+
+    // Check grid properties
+    console.log("Grid size:", {
+        xCount: grid._xCount,
+        yCount: grid._yCount
+    });
+    console.log("Grid keys:", Object.keys(grid));
+
+    // Check a few nodes
+    console.log(`Inspecting first ${maxInspect}x${maxInspect} nodes:`);
+    for (let y = 0; y < Math.min(maxInspect, grid._yCount); y++) {
+        let row = [];
+        for (let x = 0; x < Math.min(maxInspect, grid._xCount); x++) {
+            const node = grid.getArrPos([x, y]);
+            if (node) {
+                row.push({
+                    id: node.id,
+                    x: node._x,
+                    y: node._y,
+                    weight: node.weight,
+                    wall: node.wall,
+                    pheromones: node.getScents ? node.getScents() : null
+                });
+            } else {
+                row.push(null);
+            }
+        }
+        console.log(`Row ${y}:`, row);
+    }
+
+    console.log("=== END DEBUG PATH MAP ===");
+}
+    */
