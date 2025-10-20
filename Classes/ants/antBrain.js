@@ -13,6 +13,7 @@ class AntBrain{
         this.antType = antType;
         this.flag_ = "";
         this.hunger = 0;
+        this.movementState = "";
 
         this.followBuildTrail = 0;
         this.followForageTrail = 0;

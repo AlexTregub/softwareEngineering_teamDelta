@@ -150,8 +150,8 @@ class MovementController {
       this.followPath();
     }
 
-    if(!this.isMoving && this._wandering){
-      
+    if(!this._isMoving && this._wandering){
+      this.handlePheromoneMovement();
     }
     
     // Handle direct movement
@@ -314,6 +314,27 @@ class MovementController {
     // Update sprite position if available
     if (this._entity._sprite && this._entity._sprite.setPosition) {
       this._entity._sprite.setPosition(position);
+    }
+  }
+
+  handlePheromoneMovement(){
+  /*PHEROMONE MOVEMENT
+      If set to wander, will run this instead of skittering. Gets location information by using wander and moves to location
+  */
+    const ant = this._entity;
+    const grid = pathMap.getGrid();
+    const node = grid.getArrPos([
+      Math.floor(ant.getPosition().x / window.tileSize),
+      Math.floor(ant.getPosition().y / window.tileSize)
+    ]);
+
+    // Wander or track depending on ant state
+    const nextNode = wander(grid, node, ant.brain.travelledTiles, ant, ant.brain.movementState || "idle");
+
+    if (nextNode) {
+      const nextX = nextNode._x * window.tileSize;
+      const nextY = nextNode._y * window.tileSize;
+      this.moveToLocation(nextX, nextY);
     }
   }
 
