@@ -8,7 +8,7 @@ class MovementController {
     this._isMoving = false;
     this._targetPosition = null;
     this._path = null;
-    this._wandering = false;
+    this._wandering = true;
     this._movementSpeed = 30; // Default speed
     this._skitterTimer = 0;
     this._maxSkitterTime = 200;
@@ -324,7 +324,6 @@ class MovementController {
     const ant = this._entity;
     let grid = g_pathMap.getGrid();
     console.log("g_pathMap:", g_pathMap);
-    debugPathMap(g_pathMap);
     const node = grid.getArrPos([
       Math.floor(ant.getPosition().x / window.tileSize),
       Math.floor(ant.getPosition().y / window.tileSize)

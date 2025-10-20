@@ -1,19 +1,19 @@
 class NewPathMap{
   constructor(terrain){
-    this._terrain = terrain; //Requires terrain(for weight, objects, etc.), only used in construction
-    this._grid = new Grid( //Makes Grid for easy tile storage/access
-      terrain._xCount, //Size of terrain to match
-      terrain._yCount,
-      [0,0],
-      [0,0]
-    );
+    this._terrain = terrain;
+    this._mapTileSize = terrain._tileSpanRange;
+    this._mapTL = terrain._tileSpan[0];
+
+    this._grid = new Grid(this._mapTileSize[0],this._mapTileSize[1],this._mapTL);
+
     this._pGrid = new PheromoneGrid(terrain);
-    console.log(`Terrain y and x: ${terrain._xCount}`)
-    for(let y = 0; y < terrain._yCount; y++){
-      for(let x = 0; x < terrain._xCount; x++){
-        console.log(`Made it this far`);
-        let node = new NewNode(terrain._tileStore[terrain.conv2dpos(x, y)], x, y, this._pGrid); //Makes tile out of Tile object
-        this._grid.setArrPos([x, y], node); //Stores tile in grid
+    console.log(`Terrain y: ${terrain._gridTileSpan[0][1]}`);
+    for (let y = terrain._gridTileSpan[0][1]; y <= terrain._gridTileSpan[1][1]; y++) {
+      for (let x = terrain._gridTileSpan[0][0]; x <= terrain._gridTileSpan[1][0]; x++) {
+        let tile = terrain.getTile(x, y);
+        if (!tile) continue;
+        let node = new NewNode(tile, x, y, this._pGrid);
+        this._grid.setArrPos([x, y], node);
       }
     }
   }
@@ -202,59 +202,3 @@ function track(grid, node, ant, trailType){
   return bestNeighbor;
  
 }
-/*function debugPathMap(g_pathMap, maxInspect = 5) {
-    console.log("=== DEBUG PATH MAP ===");
-
-    if (!g_pathMap) {
-        console.warn("g_pathMap is undefined or null");
-        return;
-    }
-
-    console.log("g_pathMap exists:", g_pathMap);
-
-    // Check getGrid()
-    if (typeof g_pathMap.getGrid !== "function") {
-        console.warn("g_pathMap does NOT have a getGrid() function");
-        return;
-    }
-
-    const grid = g_pathMap.getGrid();
-    if (!grid) {
-        console.warn("getGrid() returned null or undefined");
-        return;
-    }
-
-    console.log("Grid object:", grid);
-
-    // Check grid properties
-    console.log("Grid size:", {
-        xCount: grid._xCount,
-        yCount: grid._yCount
-    });
-    console.log("Grid keys:", Object.keys(grid));
-
-    // Check a few nodes
-    console.log(`Inspecting first ${maxInspect}x${maxInspect} nodes:`);
-    for (let y = 0; y < Math.min(maxInspect, grid._yCount); y++) {
-        let row = [];
-        for (let x = 0; x < Math.min(maxInspect, grid._xCount); x++) {
-            const node = grid.getArrPos([x, y]);
-            if (node) {
-                row.push({
-                    id: node.id,
-                    x: node._x,
-                    y: node._y,
-                    weight: node.weight,
-                    wall: node.wall,
-                    pheromones: node.getScents ? node.getScents() : null
-                });
-            } else {
-                row.push(null);
-            }
-        }
-        console.log(`Row ${y}:`, row);
-    }
-
-    console.log("=== END DEBUG PATH MAP ===");
-}
-    */
