@@ -128,6 +128,9 @@ function setup() {
     temp.set([i,i],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
     temp.set([-i,i],[new Pheromone("Pain.",100,100,0.05,0.01)],true);
   }
+
+  temp.diffuse();
+  temp.swapSelGrid();
 }
 
 /**
@@ -154,7 +157,7 @@ function initializeWorld() {
   // COORDSY.setViewCornerBC(0,0);
   
   g_gridMap = new PathMap(g_map);
-  g_pathMap = new NewPathMap(g_map);
+  g_pathMap = new NewPathMap(g_map); // TEMPORARY
   g_coordsy = g_map.getCoordinateSystem(); // Get Backing canvas coordinate system
   g_coordsy.setViewCornerBC(0,0); // Top left corner of VIEWING canvas on BACKING canvas, (0,0) by default. Included to demonstrate use. Update as needed with camera
    // Initialize the render layer manager if not already done
@@ -185,12 +188,12 @@ function draw() {
   // g_map2.renderConversion._camPosition = moving;
   // console.log(g_map2.renderConversion._camPosition);
 
-  if(frameNum % 120 == 0) {
-    console.log("diffusing..");
-    temp.diffuse();
-    console.log("swapping..");
-    temp.swapSelGrid();
-  }
+  // if(frameNum % 120 == 0) {
+  //   console.log("diffusing..");
+    // temp.diffuse();
+  //   console.log("swapping..");
+  //   temp.swapSelGrid();
+  // }
   
   // background(0);
   // g_map2.renderDirect();

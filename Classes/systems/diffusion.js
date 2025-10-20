@@ -123,7 +123,7 @@ class PheromoneGrid {
             // console.log(pheromoneArray);
             // console.log(this._left.get(posArr));
 
-            console.log(this._leftSet);
+            // console.log(this._leftSet);
             return;
         }
         this._right.set(posArr,pheromoneArray); // Grid Update
@@ -143,16 +143,20 @@ class PheromoneGrid {
 
     //// Diffusion:
     diffuse(selLeft=this._selLeft) { // Will diffuse grid in selLeft -> !selleft. DOES NOT UPDATE _selLeft
+        console.log("L+R sets at initial diffusion time:");
         console.log(this._leftSet);
+        console.log(this._rightSet);
         if (selLeft) { // Left grid -> right grid
             // Clear right grid
             this._rightSet.clear();
             this.initSelGrid(!selLeft);
 
             // Update cells - Will need to first get 1-step neighbors, then update ONLY those cells. Operating on _leftSet
-            let initTargets = new Set([new hashmapPosition(0,0)]);
+            let initTargets = new Set();
             // get vonNeumann-neighbors, ensure in-bounds (performed after: at worst sizeOfGrid(n+1)~n^2+2n+1 checks, sizeOfGrid(n+1)-sizeOfGrid(n) removes) VS: (performed during: 4*sizeOfGrid(n)~4n^2 checks, ...)
             for (pos in this._leftSet) { 
+                console.log("CHEEESE");
+                console.log(pos);
                 // Up,Down,Left,Right neighbors:
                 let up = new hashmapPosition(pos.x,pos.y+1);
                 let down = new hashmapPosition(pos.x,pos.y-1);
@@ -433,8 +437,13 @@ function testSets() {
     let key = new hashmapPosition(2,5);
     
     temp.add(key);
+    temp.add(new hashmapPosition(1,1));
     console.log("-======");
     console.log(temp);
+
+    let nextTemp = temp;
+
+    console.log(nextTemp);
 
     console.log("Check for key retrieve with pos helper:");
     console.log(temp.has(key));
