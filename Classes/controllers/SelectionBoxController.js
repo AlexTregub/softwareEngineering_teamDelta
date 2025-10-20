@@ -110,22 +110,6 @@
         this._entities[i].isBoxHovered = inBox;
         if (inBox) entitiesInBox.push(this._entities[i]);
       }
-      
-      // Trigger onSelectionUpdate callback
-      if (this._callbacks.onSelectionUpdate) {
-        try {
-          var bounds = { x1: x1, y1: y1, x2: x2, y2: y2, width: x2 - x1, height: y2 - y1 };
-          this._callbacks.onSelectionUpdate(bounds, entitiesInBox);
-        } catch (e) {
-          console.warn('SelectionBoxController: onSelectionUpdate callback error', e);
-        }
-      }
-      
-      try {
-        if ((typeof window !== 'undefined') && (window.TESTING_ENABLED || (window.location && window.location.search && window.location.search.indexOf('test=1') !== -1))) {
-          console.log('SelectionBoxController.handleDrag selStart=', this._selectionStart, 'selEnd=', this._selectionEnd);
-        }
-      } catch (e) {}
     }
   };
 

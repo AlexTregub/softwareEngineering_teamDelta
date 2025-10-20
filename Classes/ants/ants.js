@@ -475,9 +475,24 @@ class ant extends Entity {
       const pos = this.getPosition();
       const size = this.getSize();
       
+      // Convert world position to screen position using terrain's coordinate converter
+      let screenX = pos.x + size.x/2;
+      let screenY = pos.y - 12;
+      
+      if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+        // Convert pixel position to tile position
+        const tileX = pos.x / TILE_SIZE;
+        const tileY = pos.y / TILE_SIZE;
+        
+        // Use terrain's converter to get screen position
+        const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+        screenX = screenPos[0] + size.x/2;
+        screenY = screenPos[1] - 12;
+      }
+      
       fill(255, 255, 0);
       textAlign(CENTER);
-      text(resourceCount, pos.x + size.x/2, pos.y - 12);
+      text(resourceCount, screenX, screenY);
     }
   }
   

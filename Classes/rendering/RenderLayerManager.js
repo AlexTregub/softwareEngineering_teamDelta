@@ -340,8 +340,7 @@ class RenderLayerManager {
       }
       
       const layerStart = performance.now();
-      
-      // Prepare pointer context for this layer (screen coords for now)
+
       // Prepare pointer context for this layer (screen coords always available)
       const pointer = {
         screen: { x: mouseX, y: mouseY },

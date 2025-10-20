@@ -36,10 +36,12 @@ class CollisionBox2D {
    * @returns {boolean} True if point is inside collision box
    */
   contains(pointX, pointY) {
-    return pointX >= this.x && 
-           pointX <= this.x + this.width && 
-           pointY >= this.y && 
-           pointY <= this.y + this.height;
+    const result = pointX >= this.x && 
+                   pointX <= this.x + this.width && 
+                   pointY >= this.y && 
+                   pointY <= this.y + this.height;
+    
+    return result;
   }
 
   /**

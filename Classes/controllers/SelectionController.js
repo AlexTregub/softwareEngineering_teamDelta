@@ -10,6 +10,10 @@ class SelectionController {
     this._highlightType = "none";
     this._selectionCallbacks = [];
     this._selectable = false;
+    this._lastMouseX = -1;
+    this._lastMouseY = -1;
+    this._lastCameraX = undefined;
+    this._lastCameraY = undefined;
   }
 
   // --- Public API ---
@@ -18,10 +22,22 @@ class SelectionController {
    * Update selection state and highlighting
    */
   update() {
-    // Update hover state based on mouse position
+    // Check if camera has moved
+    const cameraX = typeof cameraManager !== 'undefined' ? cameraManager.cameraX : 0;
+    const cameraY = typeof cameraManager !== 'undefined' ? cameraManager.cameraY : 0;
+    const cameraMoved = (cameraX !== this._lastCameraX || cameraY !== this._lastCameraY);
+    
+    // Update hover state if mouse moved OR camera moved
     if (mouseX !== undefined && mouseY !== undefined) {
-      this.updateHoverState(mouseX, mouseY);
+      const mouseMoved = (mouseX !== this._lastMouseX || mouseY !== this._lastMouseY);
+      if (mouseMoved || cameraMoved) {
+        this.updateHoverState(mouseX, mouseY);
+      }
     }
+    
+    // Store camera position for next frame
+    this._lastCameraX = cameraX;
+    this._lastCameraY = cameraY;
     
     // Update highlight type based on current states
     this.updateHighlightType();
@@ -90,6 +106,10 @@ class SelectionController {
    * @param {boolean} hovered - Whether entity is hovered
    */
   setHovered(hovered) {
+    // Debug: log when hover state changes
+    if (this._isHovered !== hovered && this._entity._debugger && this._entity._debugger.isActive) {
+      console.log(`[SelectionController.setHovered] ${this._entity.type || 'Entity'} hover changed: ${this._isHovered} → ${hovered}`);
+    }
     this._isHovered = hovered;
   }
 
@@ -119,30 +139,72 @@ class SelectionController {
 
   /**
    * Update hover state based on mouse position
-   * @param {number} mouseX - Mouse X position
-   * @param {number} mouseY - Mouse Y position
+   * @param {number} mouseX - Mouse X position (screen coordinates)
+   * @param {number} mouseY - Mouse Y position (screen coordinates)
    */
   updateHoverState(mouseX, mouseY) {
+    // Only log if mouse has moved
+    const mouseMoved = (mouseX !== this._lastMouseX || mouseY !== this._lastMouseY);
+    
     // Use transform controller if available, otherwise fallback
     let isOver = false;
     
     if (this._entity._transformController) {
-      isOver = this._entity._transformController.contains(mouseX, mouseY);
+      // TransformController.contains() expects WORLD coordinates, not screen coordinates
+      // Convert screen mouse position to world position
+      let worldMouseX = mouseX;
+      let worldMouseY = mouseY;
+      
+      if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+        const worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
+        worldMouseX = worldMouse.x;
+        worldMouseY = worldMouse.y;
+      }
+      
+      isOver = this._entity._transformController.contains(worldMouseX, worldMouseY);
     } else if (this._entity.isMouseOver) {
-      isOver = this._entity.isMouseOver(mouseX, mouseY);
-    } else {
-      // Fallback calculation
-      const pos = this._entity.getPosition();
+      // NOTE: Entity.isMouseOver() uses global mouseX/mouseY and ignores parameters
+      // We need to use the collision box directly with converted coordinates
+      const pos = this._entity.getPosition(); // World coords
       const size = this._entity.getSize();
       
+      // Convert screen mouse position to world position for comparison
+      let worldMouseX = mouseX;
+      let worldMouseY = mouseY;
+      
+      if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+        const worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
+        worldMouseX = worldMouse.x;
+        worldMouseY = worldMouse.y;
+      }
+      
+      // Use collision box directly with converted coords
+      isOver = this._entity._collisionBox && this._entity._collisionBox.contains(worldMouseX, worldMouseY);
+    } else {
+      // Fallback calculation - convert screen mouse coords to world coords
+      const pos = this._entity.getPosition(); // World coords
+      const size = this._entity.getSize();
+      
+      // Convert screen mouse position to world position for comparison
+      let worldMouseX = mouseX;
+      let worldMouseY = mouseY;
+      
+      if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+        const worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
+        worldMouseX = worldMouse.x;
+        worldMouseY = worldMouse.y;
+      }
+      
       isOver = (
-        mouseX >= pos.x &&
-        mouseX <= pos.x + size.x &&
-        mouseY >= pos.y &&
-        mouseY <= pos.y + size.y
+        worldMouseX >= pos.x &&
+        worldMouseX <= pos.x + size.x &&
+        worldMouseY >= pos.y &&
+        worldMouseY <= pos.y + size.y
       );
     }
     
+    this._lastMouseX = mouseX;
+    this._lastMouseY = mouseY;
     this.setHovered(isOver);
   }
 

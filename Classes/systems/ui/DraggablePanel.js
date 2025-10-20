@@ -294,7 +294,7 @@ class DraggablePanel {
 
     // Update button interactions (only if not dragging panel and didn't click minimize)
     let buttonConsumedEvent = false;
-    if (!this.isDragging && !minimizeButtonClicked) {
+    if (!this.isDragging && !this.isMinimized()) {
       this.buttons.forEach(button => {
         const consumed = button.update(mouseX, mouseY, mousePressed);
         if (consumed) buttonConsumedEvent = true;
@@ -643,7 +643,7 @@ class DraggablePanel {
    */
   renderButtons() {
     this.buttons.forEach(button => {
-      button.render();
+      if (!this.isMinimized()) { button.render() };
     });
   }
 
@@ -991,7 +991,14 @@ class DraggablePanel {
       this.saveState();
     }
   }
+
+  /**
+   * Minimized state getter, returns current minimized state
+   */
+  isMinimized() { return this.state.minimized}
 }
+
+
 
 // Export for browser environments
 if (typeof window !== 'undefined') {

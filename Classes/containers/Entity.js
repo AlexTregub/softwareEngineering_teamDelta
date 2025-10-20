@@ -214,8 +214,30 @@ class Entity {
   toggleSelection() { return this._delegate('selection', 'toggleSelected'); }
 
   // --- Interaction ---
-  isMouseOver() { return this._delegate('interaction', 'isMouseOver') || this._collisionBox.contains(mouseX, mouseY); }
-  onClick() { return this._delegate('interaction', 'onClick'); }
+  isMouseOver() { 
+    // Convert mouse screen coordinates to world coordinates for collision detection
+    // Uses CoordinateConverter utility which handles Y-axis inversion automatically
+    const worldMouse = (typeof CoordinateConverter !== 'undefined') ?
+      CoordinateConverter.screenToWorld(mouseX, mouseY) :
+      { x: mouseX, y: mouseY }; // Fallback if converter not available
+    
+    const isOver = this._collisionBox.contains(worldMouse.x, worldMouse.y);
+    
+    // Only log if mouse moved and hovering
+    if (isOver && (!window._lastDebugMouseX || !window._lastDebugMouseY || 
+        window._lastDebugMouseX !== mouseX || window._lastDebugMouseY !== mouseY)) {
+      const pos = this.getPosition();
+      const size = this.getSize();
+      console.log(`[Entity.js:isMouseOver:225] Screen:(${mouseX},${mouseY}) World:(${worldMouse.x},${worldMouse.y}) EntityPos:(${pos.x},${pos.y}) Size:(${size.x},${size.y}) isOver:${isOver}`);
+      window._lastDebugMouseX = mouseX;
+      window._lastDebugMouseY = mouseY;
+    }
+    
+    return isOver;
+  }
+
+  // TODO: The interaction controller has been removed, need to delegate this somewhere else.
+  onClick() { return this._delegate('interaction', 'onClick'); }  
 
   // --- Combat ---
   isInCombat() { return this._delegate('combat', 'isInCombat') || false; }
@@ -286,36 +308,11 @@ class Entity {
     }
     
     const renderController = this._controllers.get('render');
-    if (renderController) {
-      renderController.render();
-    } else {
-      this._fallbackRender();
-    }
+    renderController.render();
 
     // Render debugger overlay if active
     if (this._debugger?.isActive) {
       try { this._debugger.render(); } catch (error) { console.warn('Error rendering entity debugger:', error); }
-    }
-  }
-
-  /**
-   * _fallbackRender
-   * ---------------
-   * Simple rectangle or sprite rendering used when no render controller exists.
-   * Highlights selection state visually.
-   * @private
-   */
-  _fallbackRender() {
-    const pos = this.getPosition();
-    const size = this.getSize();
-    
-    if (this._sprite && this.hasImage()) {
-      this._sprite.render();
-    } else {
-      fill(100, 150, 200);
-      if (this.isSelected()) { stroke(255, 255, 0); strokeWeight(2); }
-      else noStroke();
-      rect(pos.x, pos.y, size.x, size.y);
     }
   }
 

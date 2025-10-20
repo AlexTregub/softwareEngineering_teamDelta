@@ -41,7 +41,7 @@ class MovementController {
     this._entity._sprite.flipX = flipLeft;
 
     // Try to use pathfinding if available
-    if (typeof this.setPath === 'function' && typeof pathMap !== 'undefined' && pathMap) {
+    if (typeof findPath === 'function' && typeof pathMap !== 'undefined' && pathMap) {
       try {
         // Convert entity position to grid coordinates
         const tileSize = window.tileSize || 32;
@@ -51,7 +51,7 @@ class MovementController {
         const endY = Math.floor(y / tileSize);
 
         // Find path using pathfinding system
-        const calculatedPath = setPath([startX, startY], [endX, endY], pathMap);
+        const calculatedPath = findPath([startX, startY], [endX, endY], pathMap);
 
         if (calculatedPath && calculatedPath.length > 0) {
           // Set the path and start following it
@@ -59,14 +59,14 @@ class MovementController {
           return true;
         }
       } catch (error) {
-        console.warn("Pathfinding failed", error);
+        console.warn("Pathfinding failed, using direct movement:", error);
       }
     }
 
-    // // Fallback to direct movement
-    // this._targetPosition = { x, y };
-    // this._isMoving = true;
-    // this._stuckCounter = 0;
+    // Fallback to direct movement
+    this._targetPosition = { x, y };
+    this._isMoving = true;
+    this._stuckCounter = 0;
 
     // Update entity's state if it has a state machine
     if (this._entity._stateMachine) {

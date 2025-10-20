@@ -1,4 +1,3 @@
-
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
@@ -393,6 +392,15 @@ function keyPressed() {
   }
 }
 
+/**
+ * getPrimarySelectedEntity
+ * -------------------------
+ * Retrieves the primary selected entity from the ant manager or the global
+ * selectedAnt variable. This function ensures compatibility with both the
+ * new ant manager system and the legacy global selection.
+ *
+ * @returns {Object|null} - The primary selected entity, or null if none is selected.
+ */
 function getPrimarySelectedEntity() {
   if (typeof antManager !== 'undefined' &&
       antManager &&
@@ -410,6 +418,17 @@ function getPrimarySelectedEntity() {
   return null;
 }
 
+/**
+ * getEntityWorldCenter
+ * --------------------
+ * Calculates the center position of an entity in world coordinates.
+ * This function determines the position and size of the entity, either
+ * through its methods or directly from its properties, and computes
+ * the center point.
+ *
+ * @param {Object} entity - The entity whose center position is to be calculated.
+ * @returns {Object|null} - An object containing the x and y coordinates of the center, or null if the entity is invalid.
+ */
 function getEntityWorldCenter(entity) {
   if (!entity) return null;
 
@@ -432,6 +451,16 @@ function getEntityWorldCenter(entity) {
   };
 }
 
+/**
+ * getMapPixelDimensions
+ * ----------------------
+ * Retrieves the pixel dimensions of the map.
+ * If the map object (g_map2) is available, it calculates the dimensions
+ * based on the number of tiles and their size. Otherwise, it defaults
+ * to the canvas dimensions.
+ *
+ * @returns {Object} - An object containing the width and height of the map in pixels.
+ */
 function getMapPixelDimensions() {
   if (!g_map2) {
     return { width: g_canvasX, height: g_canvasY };
@@ -477,23 +506,6 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   for (let x = 0; x <= gridWidth * tileSize; x += tileSize) {
     line(x, 0, x, gridHeight * tileSize);
   }
-
-  // Highlight tile under mouse
-  const tileX = Math.floor(mouseX / tileSize);
-  const tileY = Math.floor(mouseY / tileSize);
-  fill(255, 255, 0, 50); // transparent yellow
-  noStroke();
-  rect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
-
-  // Highlight selected ant's current tile
-  if (selectedAnt) {
-    const antTileX = Math.floor(selectedAnt.posX / tileSize);
-    const antTileY = Math.floor(selectedAnt.posY / tileSize);
-    fill(0, 255, 0, 80); // transparent green
-    noStroke();
-    rect(antTileX * tileSize, antTileY * tileSize, tileSize, tileSize);
-  }
-
   pop();
 }
 

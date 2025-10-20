@@ -172,20 +172,22 @@ class TransformController {
 
   /**
    * Check if point is within entity bounds
-   * @param {number} x - X coordinate
-   * @param {number} y - Y coordinate
+   * @param {number} x - X coordinate (ASSUMES WORLD COORDINATES)
+   * @param {number} y - Y coordinate (ASSUMES WORLD COORDINATES)
    * @returns {boolean} True if point is within bounds
    */
   contains(x, y) {
     const pos = this.getPosition();
     const size = this.getSize();
     
-    return (
+    const result = (
       x >= pos.x &&
       x <= pos.x + size.x &&
       y >= pos.y &&
       y <= pos.y + size.y
     );
+    
+    return result;
   }
 
   /**

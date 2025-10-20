@@ -277,6 +277,11 @@ class RenderController {
    * Highlight entity as hovered
    */
   highlightHover() {
+    // Debug: log when highlight is set
+    if (this._entity._debugger && this._entity._debugger.isActive) {
+      console.log(`[RenderController.highlightHover] ${this._entity.type || 'Entity'} highlight set to HOVER`);
+      console.trace('Called from:');
+    }
     this.setHighlight("HOVER");
   }
 
@@ -285,7 +290,10 @@ class RenderController {
    */
   highlightBoxHover() {
     this.setHighlight("BOX_HOVERED");
-    this.renderOutlineHighlight(this.getEntityPosition(), this.getEntitySize(), this._highlightColor, 2);
+    // Convert world position to screen position before rendering
+    const worldPos = this.getEntityPosition();
+    const screenPos = this.worldToScreenPosition(worldPos);
+    this.renderOutlineHighlight(screenPos, this.getEntitySize(), this._highlightColor, 2);
   }
 
   /**
@@ -323,7 +331,7 @@ class RenderController {
       text: `-${damage}`,
       position: { x: pos.x, y: pos.y - 10 },
       color: color,
-      velocity: { x: 0, y: -2 },
+      velocity: { x: 0, y: .5 },
       duration: 1500,
       fadeOut: true
     });
@@ -349,7 +357,7 @@ class RenderController {
       text: text,
       position: { x: pos.x, y: pos.y - 20 },
       color: color,
-      velocity: { x: 0, y: -1 },
+      velocity: { x: 0, y: 1 },
       duration: 2000,
       fadeOut: true
     });
@@ -448,7 +456,9 @@ class RenderController {
    * Render highlighting around entity
    */
   renderHighlighting() {
-    if (!this._highlightState || !this._highlightColor) return;
+    if (!this._highlightState || !this._highlightColor) {
+      return;
+    }
 
     const highlightType = this.HIGHLIGHT_TYPES[this._highlightState];
     if (!highlightType) return;
@@ -783,13 +793,16 @@ class RenderController {
    */
   worldToScreenPosition(worldPos) {
     // Use terrain's coordinate system if available (syncs entities with terrain camera)
+    // NOTE: This MUST match the logic in Sprite2d.render() to keep highlights synced with sprites
     if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
       // Convert pixel position to tile position
       const tileX = worldPos.x / TILE_SIZE;
       const tileY = worldPos.y / TILE_SIZE;
       
-      // Use terrain's converter to get screen position
+      // Use terrain's converter to get screen position (top-left corner)
       const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      
+      // Return top-left corner position (highlights will handle centering if needed)
       return { x: screenPos[0], y: screenPos[1] };
     }
     

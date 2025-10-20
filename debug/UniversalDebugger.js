@@ -229,7 +229,91 @@ class UniversalDebugger {
       this._drawPerformanceGraph();
     }
     
+    // Log hover detection details if mouse is moving
+    this._logHoverDebugInfo();
+    
     this._recordPerformance('render', startTime);
+  }
+  
+  /**
+   * Logs hover detection debugging information when mouse moves.
+   * Only active when debugger is visible and mouse has moved.
+   * 
+   * @private
+   */
+  _logHoverDebugInfo() {
+    if (typeof mouseX === 'undefined' || typeof mouseY === 'undefined') return;
+    
+    // Track last mouse position to only log on movement
+    if (!this._lastDebugMouseX) this._lastDebugMouseX = mouseX;
+    if (!this._lastDebugMouseY) this._lastDebugMouseY = mouseY;
+    
+    const mouseMoved = (mouseX !== this._lastDebugMouseX || mouseY !== this._lastDebugMouseY);
+    if (!mouseMoved) return;
+    
+    this._lastDebugMouseX = mouseX;
+    this._lastDebugMouseY = mouseY;
+    
+    // Gather coordinate information
+    const screenMouse = { x: mouseX, y: mouseY };
+    let worldMouse = { x: mouseX, y: mouseY };
+    
+    if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+      worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
+    }
+    
+    // Get entity positions
+    const entityWorldPos = this.target.getPosition ? this.target.getPosition() : 
+                           (this.target._collisionBox ? { x: this.target._collisionBox.x, y: this.target._collisionBox.y } : null);
+    const spritePos = this.target._sprite ? { x: this.target._sprite.pos.x, y: this.target._sprite.pos.y } : null;
+    const collisionPos = this.target._collisionBox ? { x: this.target._collisionBox.x, y: this.target._collisionBox.y } : null;
+    
+    // DIAGNOSTIC: Check coordinate conversion step by step
+    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      const screenToTile = g_map2.renderConversion.convCanvasToPos([screenMouse.x, screenMouse.y]);
+      const tileToWorld = [screenToTile[0] * TILE_SIZE, screenToTile[1] * TILE_SIZE];
+      console.log(`  DIAGNOSTIC Screen→Tile: [${screenToTile[0].toFixed(2)}, ${screenToTile[1].toFixed(2)}] → World: [${tileToWorld[0].toFixed(2)}, ${tileToWorld[1].toFixed(2)}]`);
+      
+      if (entityWorldPos) {
+        const entityToTile = [entityWorldPos.x / TILE_SIZE, entityWorldPos.y / TILE_SIZE];
+        const tileToScreen = g_map2.renderConversion.convPosToCanvas(entityToTile);
+        console.log(`  DIAGNOSTIC Entity World→Tile: [${entityToTile[0].toFixed(2)}, ${entityToTile[1].toFixed(2)}] → Screen: [${tileToScreen[0].toFixed(0)}, ${tileToScreen[1].toFixed(0)}]`);
+      }
+    }
+    
+    // Calculate screen position of entity
+    let entityScreenPos = entityWorldPos;
+    if (entityWorldPos && this.target._renderController && typeof this.target._renderController.worldToScreenPosition === 'function') {
+      entityScreenPos = this.target._renderController.worldToScreenPosition(entityWorldPos);
+    } else if (entityWorldPos && typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+      entityScreenPos = CoordinateConverter.worldToScreen(entityWorldPos.x, entityWorldPos.y);
+    }
+    
+    // Check if hovering
+    const isHovering = this.target._selectionController ? this.target._selectionController.isHovered() : false;
+    
+    // Log comprehensive info
+    console.log(`[UniversalDebugger] ${this.target.type || 'Entity'} Hover Debug:`);
+    console.log(`  Screen Mouse: (${screenMouse.x.toFixed(0)}, ${screenMouse.y.toFixed(0)})`);
+    console.log(`  World Mouse:  (${worldMouse.x.toFixed(2)}, ${worldMouse.y.toFixed(2)})`);
+    if (entityWorldPos) {
+      console.log(`  Entity World: (${entityWorldPos.x.toFixed(2)}, ${entityWorldPos.y.toFixed(2)})`);
+    }
+    if (entityScreenPos && entityScreenPos !== entityWorldPos) {
+      console.log(`  Entity Screen: (${entityScreenPos.x.toFixed(0)}, ${entityScreenPos.y.toFixed(0)})`);
+    }
+    
+    // ALWAYS show sprite and collision positions
+    if (spritePos) {
+      const match = spritePos.x === entityWorldPos?.x && spritePos.y === entityWorldPos?.y;
+      console.log(`  Sprite Pos:    (${spritePos.x.toFixed(2)}, ${spritePos.y.toFixed(2)})${match ? ' [OK]' : ' [MISMATCH!]'}`);
+    }
+    if (collisionPos) {
+      const match = collisionPos.x === entityWorldPos?.x && collisionPos.y === entityWorldPos?.y;
+      console.log(`  Collision Pos: (${collisionPos.x.toFixed(2)}, ${collisionPos.y.toFixed(2)})${match ? ' [OK]' : ' [MISMATCH!]'}`);
+    }
+    
+    console.log(`  Is Hovering: ${isHovering}`);
   }
 
   /**
