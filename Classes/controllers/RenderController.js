@@ -86,6 +86,14 @@ class RenderController {
       FLEEING: { color: [255, 255, 0], symbol: "💨" },
       IDLE: { color: [128, 128, 128], symbol: "💤" }
     };
+
+    // Terrain effect indicators
+    this.TERRAIN_INDICATORS = {
+      IN_WATER: { color: [0, 100, 255], symbol: "💧" },
+      IN_MUD: { color: [101, 67, 33], symbol: "🟫" },
+      ON_SLIPPERY: { color: [200, 230, 255], symbol: "❄️" },
+      ON_ROUGH: { color: [128, 128, 128], symbol: "🗿" }
+    };
   }
 
   // --- Public API ---
@@ -170,6 +178,9 @@ class RenderController {
       
       // Render highlighting
       this.renderHighlighting();
+      
+      // Render terrain effects indicator
+      this.renderTerrainIndicator();
       
       // Render state indicators
       this.renderStateIndicators();
@@ -622,6 +633,47 @@ class RenderController {
       ellipse(indicatorX, indicatorY, 16, 16);
 
       // Draw state indicator
+      fill(...indicator.color);
+      textAlign(CENTER, CENTER);
+      textSize(10);
+      text(indicator.symbol, indicatorX, indicatorY);
+    });
+  }
+
+  /**
+   * Render terrain effect indicator
+   * Shows visual feedback when terrain is affecting entity movement speed
+   */
+  renderTerrainIndicator() {
+    // Check if entity has state machine (required for terrain modifier)
+    if (!this._entity._stateMachine) return;
+    
+    // Get current terrain modifier
+    const terrainModifier = this._entity._stateMachine.terrainModifier;
+    
+    // Only show indicator for non-default terrain (when terrain affects movement)
+    if (!terrainModifier || terrainModifier === 'DEFAULT') return;
+    
+    // Get indicator configuration for this terrain type
+    const indicator = this.TERRAIN_INDICATORS[terrainModifier];
+    if (!indicator) return;
+    
+    // Get entity position and size for positioning
+    const pos = this.getEntityPosition();
+    const screenPos = this.worldToScreenPosition(pos);
+    const size = this.getEntitySize();
+    
+    // Render terrain indicator with safe render wrapper
+    this._safeRender(() => {
+      const indicatorX = screenPos.x + size.x / 2;
+      const indicatorY = screenPos.y - 30; // Position above state indicator (which is at -15)
+
+      // Draw background circle
+      fill(0, 0, 0, 100);
+      noStroke();
+      ellipse(indicatorX, indicatorY, 16, 16);
+
+      // Draw terrain effect icon
       fill(...indicator.color);
       textAlign(CENTER, CENTER);
       textSize(10);

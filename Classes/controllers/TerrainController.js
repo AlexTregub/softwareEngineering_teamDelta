@@ -171,6 +171,9 @@ class TerrainController {
         return "IN_WATER";
       
       case "mud":
+      case "moss":
+      case "moss_0":
+      case "moss_1":
       case "swamp":
       case "marsh":
         return "IN_MUD";
@@ -179,6 +182,7 @@ class TerrainController {
       case "slippery":
         return "ON_SLIPPERY";
       
+      case "stone":
       case "rocks":
       case "rough":
       case "mountain":
@@ -186,7 +190,6 @@ class TerrainController {
       
       case "grass":
       case "dirt":
-      case "stone":
       case "default":
       default:
         return "DEFAULT";
@@ -207,7 +210,7 @@ class TerrainController {
       case "IN_MUD":
         return baseSpeed * 0.3; // 30% speed in mud
       case "ON_SLIPPERY":
-        return 0; // Can't move on slippery terrain
+        return baseSpeed * 1.2; // move very fast on slippery terrain
       case "ON_ROUGH":
         return baseSpeed * 0.8; // 80% speed on rough terrain
       case "DEFAULT":

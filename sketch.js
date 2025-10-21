@@ -48,6 +48,27 @@ function setup() {
   g_canvasY = windowHeight;
   RenderMangerOverwrite = false
   createCanvas(g_canvasX, g_canvasY);
+  
+  // Initialize spatial grid manager FIRST (before any entities are created)
+  if (typeof SpatialGridManager !== 'undefined') {
+    window.spatialGridManager = new SpatialGridManager(TILE_SIZE * 2); // 64px cells
+    logNormal('SpatialGridManager initialized with 64px cells');
+    
+    // Register spatial grid visualization in debug layer (only renders when enabled)
+    if (typeof RenderManager !== 'undefined') {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_DEBUG, () => {
+        if (window.VISUALIZE_SPATIAL_GRID && spatialGridManager) {
+          spatialGridManager.visualize({ color: 'rgba(0, 255, 0, 0.3)' });
+        }
+      });
+    }
+  }
+  
+  // Now spawn initial resources (after spatial grid exists)
+  if (typeof spawnInitialResources === 'function') {
+    spawnInitialResources();
+  }
+  
   initializeWorld();
 
   // Initialize TileInteractionManager for efficient mouse input handling
@@ -90,21 +111,6 @@ function setup() {
   cameraManager = new CameraManager();
   cameraManager.initialize();
 
-  // Initialize spatial grid manager for efficient entity queries
-  if (typeof SpatialGridManager !== 'undefined') {
-    window.spatialGridManager = new SpatialGridManager(TILE_SIZE * 2); // 64px cells
-    logNormal('SpatialGridManager initialized with 64px cells');
-    
-    // Register spatial grid visualization in debug layer (only renders when enabled)
-    if (typeof RenderManager !== 'undefined') {
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_DEBUG, () => {
-        if (window.VISUALIZE_SPATIAL_GRID && spatialGridManager) {
-          spatialGridManager.visualize({ color: 'rgba(0, 255, 0, 0.3)' });
-        }
-      });
-    }
-  }
-  
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 }
@@ -604,6 +610,78 @@ function getActiveMap() {
     return mapManager.getActiveMap();
   }
   return g_activeMap || null;
+}
+
+/**
+ * loadMossStoneLevel
+ * ------------------
+ * Creates and loads the moss & stone column level as the active map.
+ * This level features alternating columns of moss and stone for testing
+ * terrain speed modifiers (moss = IN_MUD, stone = ON_ROUGH).
+ * 
+ * @returns {boolean} True if successful, false otherwise
+ */
+function loadMossStoneLevel() {
+  console.log("🏛️ Loading Moss & Stone Column Level");
+  
+  try {
+    // Create the moss/stone column level
+    const mossStoneLevel = createMossStoneColumnLevel(
+      CHUNKS_X,
+      CHUNKS_Y,
+      g_seed,
+      CHUNK_SIZE,
+      TILE_SIZE,
+      [windowWidth, windowHeight]
+    );
+    
+    // Register with MapManager
+    if (typeof mapManager !== 'undefined') {
+      mapManager.registerMap('mossStone', mossStoneLevel, true);
+      console.log("✅ Moss & Stone level registered and set as active");
+      return true;
+    } else {
+      console.error("❌ MapManager not available");
+      return false;
+    }
+  } catch (error) {
+    console.error("❌ Failed to load Moss & Stone level:", error);
+    return false;
+  }
+}
+
+/**
+ * switchToLevel
+ * -------------
+ * Switches to a specific level by ID and starts the game.
+ * Convenience function for menu buttons.
+ * 
+ * @param {string} levelId - The ID of the level to switch to
+ */
+function switchToLevel(levelId) {
+  console.log(`🔄 Switching to level: ${levelId}`);
+  
+  // If the level is 'mossStone' and doesn't exist yet, create it
+  if (levelId === 'mossStone') {
+    const existingMap = mapManager.getMap('mossStone');
+    if (!existingMap) {
+      loadMossStoneLevel();
+    } else {
+      mapManager.setActiveMap('mossStone');
+    }
+  } else {
+    // Switch to existing level
+    setActiveMap(levelId);
+  }
+  
+  // CRITICAL: Invalidate terrain cache to force re-render with new terrain
+  if (g_activeMap && typeof g_activeMap.invalidateCache === 'function') {
+    g_activeMap.invalidateCache();
+    console.log("✅ Terrain cache invalidated - new terrain will render");
+  }
+  
+  // Start the game
+  startGameTransition();
 }
 
 // Dynamic window resizing:

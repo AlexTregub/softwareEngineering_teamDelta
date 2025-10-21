@@ -109,6 +109,12 @@ class MapManager {
       window.g_activeMap = map;
     }
 
+    // Invalidate terrain cache to force re-render with new map
+    if (map && typeof map.invalidateCache === 'function') {
+      map.invalidateCache();
+      console.log(`MapManager: Terrain cache invalidated for '${mapId}'`);
+    }
+
     console.log(`MapManager: Active map set to '${mapId}'`);
     return true;
   }

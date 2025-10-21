@@ -43,8 +43,9 @@ function initializeAntManager() { antManager = new AntManager(); }
 class ant extends Entity {
   constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite, JobName = "Scout", faction = "player") {
     // Initialize Entity with ant-specific options
+    // Use "Queen" type if JobName is "Queen", otherwise "Ant"
     super(posX, posY, sizex, sizey, {
-      type: "Ant",
+      type: JobName === "Queen" ? "Queen" : "Ant",
       imagePath: img,
       movementSpeed: movementSpeed,
       selectable: true,
@@ -620,16 +621,24 @@ function assignJob() {
 function spawnQueen(){
   let JobName = 'Queen'
   let sizeR = random(0, 15);
+  
+  // Create QueenAnt directly (no need for wrapper ant)
   let newAnt = new ant(
     random(0, 500), random(0, 500), 
     queenSize.x + sizeR, 
     queenSize.y + sizeR, 
     30, 0,
     antBaseSprite,
-    'Queen',
+    'Queen',  // This makes it type "Queen"
     'Player'
   );
 
+  // Wrap in QueenAnt to get Queen-specific behavior
+  // Note: This creates a NEW entity, so we need to remove the old one from spatial grid
+  if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+    spatialGridManager.removeEntity(newAnt);
+  }
+  
   newAnt = new QueenAnt(newAnt);
 
   newAnt.assignJob(JobName, JobImages[JobName]);

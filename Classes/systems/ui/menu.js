@@ -44,6 +44,7 @@ const initialMenuYOffset = DEFAULT_MENU_YOFFSET;
 const MENU_CONFIGS = {
   MENU: [
     { x: -10, y: -200, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
+    { x: -10, y: -100, w: 220, h: 80, text: "Moss & Stone Level", style: 'info', action: () => switchToLevel('mossStone') },
     { x: -10, y: -10,  w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
     { x: -10, y: 70,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
     { x: -60, y: 100, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },

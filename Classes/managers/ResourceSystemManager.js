@@ -460,6 +460,7 @@ class ResourceSystemManager {
       isObstacle: false,
       displayName: resourceType,
       category: 'resource',
+      deferSpawning: false,  // New option to defer spawning
       ...config
     };
 
@@ -550,9 +551,15 @@ class ResourceSystemManager {
       }
     }
 
-    // 5. Handle initial bulk spawning
-    if (resourceConfig.initialSpawnCount > 0) {
+    // 5. Handle initial bulk spawning (unless deferred)
+    if (resourceConfig.initialSpawnCount > 0 && !resourceConfig.deferSpawning) {
       this._spawnResourcesAtStartup(resourceType, resourceConfig);
+    } else if (resourceConfig.deferSpawning) {
+      // Store for later spawning
+      if (!this._deferredSpawns) {
+        this._deferredSpawns = [];
+      }
+      this._deferredSpawns.push({ resourceType, config: resourceConfig });
     }
 
     // Store the config for later reference
@@ -566,6 +573,25 @@ class ResourceSystemManager {
     } else {
       console.log(`ResourceSystemManager: Successfully registered resource type '${resourceType}'`);
     }
+  }
+
+  /**
+   * Spawn all deferred resources (call this after spatial grid is initialized)
+   */
+  spawnDeferredResources() {
+    if (!this._deferredSpawns || this._deferredSpawns.length === 0) {
+      console.log('ResourceSystemManager: No deferred spawns to process');
+      return;
+    }
+
+    console.log(`ResourceSystemManager: Spawning ${this._deferredSpawns.length} deferred resource types`);
+    
+    for (const { resourceType, config } of this._deferredSpawns) {
+      this._spawnResourcesAtStartup(resourceType, config);
+    }
+    
+    // Clear deferred list
+    this._deferredSpawns = [];
   }
 
   /**
