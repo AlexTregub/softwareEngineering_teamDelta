@@ -110,6 +110,11 @@ class Button {
       // Mouse released
       if (this.isHovered) {
         this.wasClicked = true;
+    
+        if (typeof soundManager !== 'undefined') {
+          soundManager.play("click");
+        }
+    
         if (this.onClick && typeof this.onClick === 'function') {
           this.onClick(this);
         }
