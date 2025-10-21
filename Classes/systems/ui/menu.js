@@ -186,7 +186,7 @@ function updateMenu() {
       if (fadeComplete) {
         if (GameState.fadeDirection === "out") {
           // Fade-out done → switch state to PLAYING
-          GameState.setState("PLAYING", true); // skip callbacks if needed
+          GameState.setState("PLAYEDB4", true); // skip callbacks if needed
           GameState.startFadeTransition("in"); // start fade-in
         } else {
           // Fade-in done → stop fading
@@ -206,7 +206,7 @@ function renderMenu() {
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {
-      fill(255, fadeAlpha);
+      fill(0, fadeAlpha);
       rect(0, 0, g_canvasX, g_canvasY);
     }
     return true;

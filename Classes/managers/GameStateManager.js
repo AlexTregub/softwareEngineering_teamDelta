@@ -18,7 +18,8 @@ class GameStateManager {
       PAUSED: "PAUSED",
       GAME_OVER: "GAME_OVER",
       KAN_BAN: "KANBAN",
-      SANDBOX: "SANDBOX"
+      SANDBOX: "SANDBOX",
+      PLAYEDB4: "PLAYEDB4"
     };
   }
 
@@ -133,17 +134,19 @@ class GameStateManager {
   isGameOver = () => this.currentState === this.STATES.GAME_OVER;
   isDebug = () => this.currentState === this.STATES.DEBUG_MENU;
   isKanban = () => this.currentState === this.STATES.KAN_BAN;
+  isPlayedB4 = () => this.currentState === this.STATES.PLAYEDB4;
 
   // Transition methods
   goToMenu = () => this.setState(this.STATES.MENU);
   goToOptions = () => this.setState(this.STATES.OPTIONS);
   goToDebug = () => this.setState(this.STATES.DEBUG_MENU);
-  startGame = () => { this.startFadeTransition(); return this.setState(this.STATES.PLAYING); };
+  startGame = () => { this.startFadeTransition(); return this.setState(this.STATES.PLAYEDB4); };
   pauseGame = () => this.setState(this.STATES.PAUSED);
   resumeGame = () => this.setState(this.STATES.PLAYING);
   endGame = () => this.setState(this.STATES.GAME_OVER);
   goToKanban = () => this.setState(this.STATES.KAN_BAN);
   goToSandbox = () => this.setState(this.STATES.SANDBOX);
+  goToPlayedB4 = () => this.setState(this.STATES.PLAYEDB4);
 
   // Reset to initial state
   reset() {

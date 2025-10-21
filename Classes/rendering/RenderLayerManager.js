@@ -144,7 +144,10 @@ class RenderLayerManager {
         
       case 'PLAYING':
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME];
-        
+      
+      case 'PLAYEDB4':
+        return [this.layers.EFFECTS];
+
       case 'PAUSED':
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS];
         
@@ -491,7 +494,8 @@ class RenderLayerManager {
           'GAME_OVER': 'gameOver',
           'MENU': 'menu',
           'DEBUG_MENU': 'debug',
-          'SANDBOX': 'sandbox'
+          'SANDBOX': 'sandbox',
+          'PLAYEDB4': 'playedB4'  // New state mapping
         };
         
         // Set the current game state for button group conditions

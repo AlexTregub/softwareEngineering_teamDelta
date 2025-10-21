@@ -46,7 +46,8 @@ class UILayerRenderer {
       mainMenu: { active: false },
       pauseMenu: { active: false },
       settingsMenu: { active: false },
-      gameOverMenu: { active: false }
+      gameOverMenu: { active: false },
+      playedB4Menu: { active: false }
     };
 
     this.fonts = {
@@ -822,6 +823,9 @@ class UILayerRenderer {
         break;
       case 'PAUSED':
         this.renderPauseMenu();
+        break;
+      case 'PLAYEDB4':
+        this.renderPlayedB4Menu();
         break;
       case 'SETTINGS':
         this.renderSettingsMenu();

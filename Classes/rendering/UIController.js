@@ -469,6 +469,18 @@ class UIController {
     }
   }
 
+  hidePlayedB4Menu() {
+    if (this.uiRenderer) {
+      this.uiRenderer.menuSystems.playedB4Menu.active = false;
+    }
+  }
+
+  showPlayedB4Menu() {
+    if (this.uiRenderer) {
+      this.uiRenderer.menuSystems.playedB4Menu.active = true;
+    }
+  }
+
   /**
    * Individual UI panel show/hide methods for toggleAllUI
    */

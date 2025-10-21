@@ -15,7 +15,9 @@ class SoundManager {
     // define all sounds here with labels
     this.soundList = {
       click: "/sounds/clickSound.mp3",
-      bgMusic: "/sounds/bgMusic.mp3"
+      bgMusic: "/sounds/bgMusic.mp3",
+      antonyTheme: "/sounds/ayeTony.mp3",
+      optionPop: "/sounds/optionPopup.mp3",
     };
   }
 
