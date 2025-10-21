@@ -63,7 +63,7 @@ ______________________...........(7.5,-7.5)
 
 // Currently fixed-size terrain.
 class gridTerrain {
-    constructor(gridSizeX,gridSizeY,g_seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[g_canvasX,g_canvasY]) {
+    constructor(gridSizeX,gridSizeY,g_seed,chunkSize=CHUNK_SIZE,tileSize=TILE_SIZE,canvasSize=[g_canvasX,g_canvasY],generationMode='perlin') {
         this._gridSizeX = gridSizeX;
         this._gridSizeY = gridSizeY;
         this._gridChunkCount = this._gridSizeX * this._gridSizeY;
@@ -79,6 +79,7 @@ class gridTerrain {
         this._chunkSize = chunkSize; // Chunk size (in tiles)
         this._tileSize = tileSize; // tile size (in pixels)
         this._seed = g_seed;
+        this._generationMode = generationMode; // Terrain generation algorithm
         
         // chunkArray considered public
         this.chunkArray = new Grid(this._gridSizeX,this._gridSizeY, 
@@ -107,7 +108,8 @@ class gridTerrain {
                 this._tileSize
             );
 
-            this.chunkArray.rawArray[i].randomize(g_seed); // Randomize at creation, not necessarily working correctly
+            // Apply terrain generation based on mode
+            this.chunkArray.rawArray[i].applyGenerationMode(this._generationMode, chunkPosition, this._tileSpanRange, g_seed);
         }
 
         this._canvasSize = canvasSize;
