@@ -40,6 +40,7 @@ function preload(){
   antsPreloader();
   resourcePreLoad();
   preloadPauseImages();
+  soundManager.preload();
   
   // Load presentation assets
   if (typeof loadPresentationAssets !== 'undefined') {
@@ -181,6 +182,7 @@ function disableContextMenu() {
 if (typeof window !== 'undefined') {
   window.testContextMenuPrevention = testContextMenuPrevention;
   window.disableContextMenu = disableContextMenu;
+  soundManager.play("bgMusic", 0.125, 1, true);
 }
 
 /**
@@ -735,6 +737,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     line(x, 0, x, gridHeight * tileSize);
   }
 
+  // w
   // Highlight tile under mouse
   const tileX = Math.floor(mouseX / tileSize);
   const tileY = Math.floor(mouseY / tileSize);
