@@ -34,9 +34,9 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat'],
-      'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
-      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
+      'PLAYING': ['ant_spawn2', 'health_controls', 'debug', 'combat', 'buildings'],
+      'PAUSED': ['ant_spawn', 'health_controls', 'debug', 'buildings'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'buildings'],
       'GAME_OVER': ['stats', 'debug'],
       'KANBAN': ['presentation-kanban-transition', 'debug']
     };
@@ -91,9 +91,9 @@ class DraggablePanelManager {
    */
   createDefaultPanels() {
     // Ant Spawn Panel (vertical layout with ant spawning options)
-    this.panels.set('ant_spawn', new DraggablePanel({
-      id: 'ant-Spawn-panel',
-      title: 'Ant Government Population Manager (🐜)',
+    this.panels.set('ant_spawn2', new DraggablePanel({
+      id: 'ant-Spawn-panel2',
+      title: 'Ant Government Population Manager (🐜)2',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
       scale: 1.0, // Initial scale
@@ -109,8 +109,18 @@ class DraggablePanelManager {
             style: ButtonStyles.SUCCESS
           },
           {
-            caption: 'Spawn 10 Ants',
-            onClick: () => this.spawnAnts(10),
+            caption: 'Spawn building',
+            onClick: () => {
+              const building = createBuilding('antcone', 50, 50, 'Player');
+              if (building && typeof Buildings !== 'undefined') {
+                Buildings.push(building);
+                // Register with TileInteractionManager for mouse detection
+                if (g_tileInteractionManager) {
+                  g_tileInteractionManager.addObject(building, 'building');
+                }
+                console.log('Building created and registered:', building);
+              }
+            },
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#32CD32' }
           },
           {
@@ -381,6 +391,42 @@ class DraggablePanelManager {
             onClick: () => this.dumpConsole(),
             style: ButtonStyles.DANGER
           } */
+        ]
+      }
+    }));
+
+    // Building Panel (grid layout with building types)
+    this.panels.set('buildings', new DraggablePanel({
+      id: 'buildings-panel',
+      title: 'Building Manager 🏗️',
+      position: { x: 380, y: 80 },
+      size: { width: 200, height: 180 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 5,
+        buttonWidth: 180,
+        buttonHeight: 35,
+        items: [
+          {
+            caption: 'Ant Cone (Paint)',
+            onClick: () => this.toggleBuildingBrush('antcone'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#8B4513', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Ant Hill (Paint)',
+            onClick: () => this.toggleBuildingBrush('anthill'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#A0522D', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Hive Source (Paint)',
+            onClick: () => this.toggleBuildingBrush('hivesource'),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#DAA520', color: '#000000' }
+          },
+          {
+            caption: 'Clear Buildings',
+            onClick: () => this.clearBuildings(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
+          }
         ]
       }
     }));
@@ -1053,6 +1099,75 @@ class DraggablePanelManager {
   }
 
   /**
+   * Toggle the building paint brush tool
+   * @param {string} buildingType - Type of building to paint ('antcone', 'anthill', 'hivesource')
+   */
+  toggleBuildingBrush(buildingType) {
+    // Initialize building brush if not already done
+    if (typeof g_buildingBrush === 'undefined' || !g_buildingBrush) {
+      if (typeof initializeBuildingBrush === 'function') {
+        window.g_buildingBrush = initializeBuildingBrush();
+      } else {
+        console.warn('⚠️ Building Brush system not available');
+        return;
+      }
+    }
+    
+    // Check if clicking the same building type that's already active
+    const wasActive = g_buildingBrush.isActive;
+    const wasSameType = g_buildingBrush.getBuildingType() === buildingType;
+    
+    if (wasActive && wasSameType) {
+      // Deactivate if clicking the same brush again
+      g_buildingBrush.deactivate();
+    } else {
+      // Activate with new building type
+      g_buildingBrush.activate(buildingType);
+    }
+    
+    const isActive = g_buildingBrush.isActive;
+    
+    // Update button states
+    const buildingNames = {
+      'antcone': '🏔️ Ant Cone',
+      'anthill': '🏔️ Ant Hill',
+      'hivesource': '🏠 Hive Source'
+    };
+    
+    // Find and update all building buttons
+    const panel = this.panels.get('buildings');
+    if (panel && panel.buttons && panel.buttons.items) {
+      panel.buttons.items.forEach(btn => {
+        if (btn.caption.includes('🏔️') || btn.caption.includes('🏠')) {
+          const btnType = btn.caption.includes('Cone') ? 'antcone' : 
+                         btn.caption.includes('Hill') ? 'anthill' : 'hivesource';
+          
+          if (btnType === buildingType && isActive) {
+            btn.caption = `${buildingNames[btnType]} (ON)`;
+            btn.style.fontWeight = 'bold';
+          } else {
+            btn.caption = `${buildingNames[btnType]} (Paint)`;
+            btn.style.fontWeight = 'normal';
+          }
+        }
+      });
+    }
+    
+    console.log(`🏗️ Building Brush ${isActive ? 'activated' : 'deactivated'}: ${buildingType}`);
+  }
+
+  /**
+   * Clear all buildings from the map
+   */
+  clearBuildings() {
+    if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
+      const count = Buildings.length;
+      Buildings.length = 0; // Clear the array
+      console.log(`🏗️ Cleared ${count} building(s)`);
+    }
+  }
+
+  /**
    * Helper method to find button by caption
    * @param {string} caption - Button caption to search for
    * @returns {Object|null} Button object or null if not found
@@ -1571,136 +1686,75 @@ class DraggablePanelManager {
    * Damage selected ants by specified amount
    */
   damageSelectedAnts(amount) {
-    console.log(`💥 Damaging selected ants by ${amount} HP...`);
-    
-    // Try multiple damage methods
-    const damageMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand(`damage ${amount}`);
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command damage method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Direct ant manipulation with AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
-          let damaged = 0;
-          selectedAnts.forEach(ant => {
-            if (ant && typeof ant.takeDamage === 'function') {
-              ant.takeDamage(amount);
-              damaged++;
-            }
-          });
-          if (damaged > 0) {
-            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP`);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array damage
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let damaged = 0;
-          ants.forEach(ant => {
-            if (ant && ant.isSelected && typeof ant.takeDamage === 'function') {
-              ant.takeDamage(amount);
-              damaged++;
-            }
-          });
-          if (damaged > 0) {
-            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP directly`);
-            return true;
-          }
-        }
-        return false;
+    console.log(`💥 Damaging selected entities by ${amount} HP...`);
+
+    // Preferred: use selection controller to get selected entities (ants/buildings)
+    let selected = [];
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        selected = g_selectionBoxController.getSelectedEntities() || [];
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of damageMethods) {
-      if (method()) return;
+    } catch (e) { selected = []; }
+
+    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
+    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
+      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
+      else selected = ants.filter(a => a && a.isSelected);
     }
-    
-    console.warn('⚠️ Could not damage ants - no selected ants or compatible damage system found');
+
+    // If still nothing selected, warn and return
+    if (!selected || selected.length === 0) {
+      console.warn('⚠️ No selected entities found to damage');
+      return;
+    }
+
+    // Apply damage to any selected entity that supports takeDamage()
+    let damagedCount = 0;
+    selected.forEach(entity => {
+      if (entity && typeof entity.takeDamage === 'function') {
+        try { entity.takeDamage(amount); damagedCount++; } catch (e) { console.warn('Damage call failed', e); }
+      }
+    });
+
+    if (damagedCount > 0) console.log(`✅ Damaged ${damagedCount} selected entities by ${amount} HP`);
+    else console.warn('⚠️ No selected entities supported takeDamage()');
   }
 
   /**
    * Heal selected ants by specified amount
    */
   healSelectedAnts(amount) {
-    console.log(`💚 Healing selected ants by ${amount} HP...`);
+    console.log(`💚 Healing selected entities by ${amount} HP...`);
     
-    // Try multiple healing methods
-    const healMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand(`heal ${amount}`);
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command heal method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Direct ant manipulation with AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
-          let healed = 0;
-          selectedAnts.forEach(ant => {
-            if (ant && typeof ant.heal === 'function') {
-              ant.heal(amount);
-              healed++;
-            }
-          });
-          if (healed > 0) {
-            console.log(`✅ Healed ${healed} selected ants by ${amount} HP`);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array healing
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let healed = 0;
-          ants.forEach(ant => {
-            if (ant && ant.isSelected && typeof ant.heal === 'function') {
-              ant.heal(amount);
-              healed++;
-            }
-          });
-          if (healed > 0) {
-            console.log(`✅ Healed ${healed} selected ants by ${amount} HP directly`);
-            return true;
-          }
-        }
-        return false;
+    // Preferred: use selection controller to get selected entities (ants/buildings)
+    let selected = [];
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        selected = g_selectionBoxController.getSelectedEntities() || [];
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of healMethods) {
-      if (method()) return;
+    } catch (e) { selected = []; }
+
+    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
+    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
+      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
+      else selected = ants.filter(a => a && a.isSelected);
     }
-    
-    console.warn('⚠️ Could not heal ants - no selected ants or compatible heal system found');
+
+    if (!selected || selected.length === 0) {
+      console.warn('⚠️ No selected entities found to heal');
+      return;
+    }
+
+    // Apply heal() to any selected entity that supports it
+    let healedCount = 0;
+    selected.forEach(entity => {
+      if (entity && typeof entity.heal === 'function') {
+        try { entity.heal(amount); healedCount++; } catch (e) { console.warn('Heal call failed', e); }
+      }
+    });
+
+    if (healedCount > 0) console.log(`✅ Healed ${healedCount} selected entities by ${amount} HP`);
+    else console.warn('⚠️ No selected entities supported heal()');
   }
 
   // --- Ant State Control Methods ---
