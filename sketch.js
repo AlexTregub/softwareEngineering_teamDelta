@@ -23,6 +23,9 @@ let g_gridMap;
 let g_menuFont;
 // --- IDK! ----
 let g_recordingPath;
+// -- Queen ---
+let queenAnt;
+
 
 /**
  * preload
@@ -36,6 +39,7 @@ function preload(){
   menuPreload();
   antsPreloader();
   resourcePreLoad();
+  preloadPauseImages();
   
   // Load presentation assets
   if (typeof loadPresentationAssets !== 'undefined') {
@@ -107,7 +111,7 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
- 
+  queenAnt = spawnQueen();
 }
 
 /**
@@ -128,8 +132,9 @@ function draw() {
   if (typeof updatePresentationPanels !== 'undefined') {
     updatePresentationPanels(GameState.getState());
   }
-
   RenderManager.render(GameState.getState());
+
+
   // background(0);
   // g_map2.renderDirect();
 
@@ -151,7 +156,16 @@ function draw() {
     RenderManager.render(GameState.getState());
     // console.log(frameRate());
   }
-
+  if (typeof window.renderPauseMenuUI === 'function') {
+    window.renderPauseMenuUI();
+  }
+  // Draw dropoff UI (button, placement preview) after other UI elements
+  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
+    window.drawDropoffUI();
+      // Render debug visualization for ant gathering (overlays on top)
+  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
+    g_gatherDebugRenderer.render();
+  }
   // Update button groups (rendering handled by RenderLayerManager)
   if (window.buttonGroupManager) {
     try {
@@ -159,13 +173,29 @@ function draw() {
     } catch (error) {
       console.error('❌ Error updating button group system:', error);
     }
+
+    
   }
+
+  if (GameState.getState() === 'PLAYING') {
+    const playerQueen = getQueen();
+    if (playerQueen) {
+      // WASD key codes: W=87 A=65 S=83 D=68
+      if (keyIsDown(87)) playerQueen.move("w");
+      if (keyIsDown(65)) playerQueen.move("a");
+      if (keyIsDown(83)) playerQueen.move("s");
+      if (keyIsDown(68)) playerQueen.move("d");
+    }
+  }}
+
 
   // Note: rendering of draggable panels is handled via RenderManager's
   // ui_game layer (DraggablePanelManager integrates into the render layer).
   // We intentionally do NOT call renderDraggablePanels() here to avoid a
   // second draw pass within the same frame which would leave a ghost of
   // the pre-update positions.
+
+
 }
 
 /**
@@ -205,6 +235,17 @@ function mousePressed() {
     }
   }
 
+  // Handle DraggablePanel mouse events
+  if (window.draggablePanelManager && 
+      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
+    try {
+      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (handled) return; // Panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling draggable panel mouse events:', error);
+    }
+  }
+
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
@@ -238,6 +279,10 @@ function handleKeyEvent(type, ...args) {
     g_keyboardController[type](...args);
   }
 }
+
+
+
+
 
 /**
  * keyPressed
@@ -294,6 +339,7 @@ function keyPressed() {
         }
         handled = true;
         break;
+        break;        
     }
     
     if (handled) {
@@ -302,7 +348,20 @@ function keyPressed() {
       return; // Layer toggle was handled, don't process further
     }
   }
-  
+
+    // --- Queen Movement (Using WASD) ---
+  let playerQueen = getQueen();
+  if (typeof playerQueen !== "undefined" && playerQueen instanceof QueenAnt) {
+    if (key.toLowerCase() === 'r') {
+      playerQueen.emergencyRally();
+      return;
+    } 
+    if (key.toLowerCase() === 'm') {
+      playerQueen.gatherAntsAt(mouseX, mouseY);
+      return;
+    }
+  }
+
   // Handle all debug-related keys (unified debug system handles both console and UI debug)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
     return; // Debug key was handled, don't process further

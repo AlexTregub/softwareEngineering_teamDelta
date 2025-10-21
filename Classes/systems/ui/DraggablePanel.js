@@ -225,15 +225,40 @@ class DraggablePanel {
   }
 
   /**
+   * Check if mouse is over this panel (including title bar and content area)
+   * 
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position
+   * @returns {boolean} True if mouse is over the panel
+   */
+  isMouseOver(mouseX, mouseY) {
+    if (!this.state.visible) return false;
+    
+    const height = this.state.minimized ? this.calculateTitleBarHeight() : this.config.size.height;
+    const panelBounds = {
+      x: this.state.position.x,
+      y: this.state.position.y,
+      width: this.config.size.width,
+      height: height
+    };
+    
+    return this.isPointInBounds(mouseX, mouseY, panelBounds);
+  }
+
+  /**
    * Update method for handling mouse interaction and dragging
    * Based on ButtonGroup.js drag handling
    * 
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position  
    * @param {boolean} mousePressed - Whether mouse button is currently pressed
+   * @returns {boolean} True if mouse event was consumed by this panel
    */
   update(mouseX, mouseY, mousePressed) {
-    if (!this.state.visible) return;
+    if (!this.state.visible) return false;
+    
+    // Check if mouse is over this panel
+    const mouseOverPanel = this.isMouseOver(mouseX, mouseY);
     
     // Check if content needs resizing (this happens once per frame maximum)
     if (!this._lastResizeCheck || Date.now() - this._lastResizeCheck > 100) {
@@ -245,16 +270,25 @@ class DraggablePanel {
     this.updateButtonPositions();
     
     // Update button interactions (only if not dragging panel)
+    let buttonConsumedEvent = false;
     if (!this.isDragging) {
       this.buttons.forEach(button => {
-        button.update(mouseX, mouseY, mousePressed);
+        const consumed = button.update(mouseX, mouseY, mousePressed);
+        if (consumed) buttonConsumedEvent = true;
       });
     }
     
     // Handle panel dragging
+    let dragConsumedEvent = false;
     if (this.config.behavior.draggable) {
+      const wasDragging = this.isDragging;
       this.handleDragging(mouseX, mouseY, mousePressed);
+      // If we started dragging or were already dragging, consume the event
+      dragConsumedEvent = this.isDragging || wasDragging;
     }
+    
+    // Return true if mouse is over panel and we consumed the event
+    return mouseOverPanel && (buttonConsumedEvent || dragConsumedEvent);
   }
 
   /**
