@@ -1,16 +1,19 @@
 // ===============================
 // 🏗️ Building Preloader
 // ===============================
-let Cone, Hill, Hive;
+let Cone;
+let Hill;
+let Hive;
 
 function BuildingPreloader() {
-  Cone = loadImage('Images/Buildings/Cone.png');
-  Hill = loadImage('Images/Buildings/Hill.png');
-  Hive = loadImage('Images/Buildings/Hive.png');
+  Cone = loadImage('Images/Buildings/Cone/Cone1.png');
+  Hill = loadImage('Images/Buildings/Hill/Hill1.png');
+  Hive = loadImage('Images/Buildings/Hive/Hive1.png');
 }
 
 
 class AbstractBuildingFactory {
+  constructor() {}
   createBuilding(x, y, faction) {
     throw new Error("createBuilding() must be implemented by subclass");
   }
@@ -18,32 +21,83 @@ class AbstractBuildingFactory {
 
 
 class AntCone extends AbstractBuildingFactory {
+  constructor() {
+    super();
+    this.info = {
+      canUpgrade: true,
+      upgradeCost: 50,
+      progressions: {
+        1: {
+          image: () => loadImage('Images/Buildings/Cone/Cone2.png'),
+          canUpgrade: false,    
+          upgradeCost: null,
+          progressions: {}
+        }
+      }
+    };
+  }
+
   createBuilding(x, y, faction) {
-    return new Building(x, y, 91, 97, Cone, faction);
+    console.log(this.info, this.upgradeCost, globalResource.length)
+    return new Building(x, y, 91, 97, Cone, faction, this.info);
   }
 }
 
 class AntHill extends AbstractBuildingFactory {
+  constructor() {
+    super();
+    this.info = {
+      canUpgrade: true,
+      upgradeCost: 50,
+      progressions: {
+        1: {
+          image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+          canUpgrade: false,    
+          upgradeCost: null,
+          progressions: {}
+        }
+      }
+    };
+  }
+
   createBuilding(x, y, faction) {
-    return new Building(x, y, 160, 100, Hill, faction);
+    return new Building(x, y, 160, 100, Hill, faction,this.info);
   }
 }
 
 class HiveSource extends AbstractBuildingFactory {
+  constructor() {
+    super();
+    
+    this.info = {
+      canUpgrade: true,
+      upgradeCost: 5,
+      progressions: {
+        1: {
+          image: () => loadImage('Images/Buildings/Hive/Hive2.png'),
+          canUpgrade: false,    
+          upgradeCost: null,
+          progressions: {}
+        }
+      }
+    };
+  }
+
   createBuilding(x, y, faction) {
-    return new Building(x, y, 160, 160, Hive, faction);
+    return new Building(x, y, 160, 160, Hive, faction, this.info);
   }
 }
 
 
 class Building extends Entity {
-  constructor(x, y, width, height, img, faction) {
+  constructor(x, y, width, height, img, faction, info) {
     super(x, y, width, height, {
       type: "Ant",
       imagePath: img,
       selectable: true,
       faction: faction
     });
+
 
     // --- Basic properties ---
     this._faction = faction;
@@ -53,10 +107,12 @@ class Building extends Entity {
     this._isDead = false;
     this.lastFrameTime = performance.now();
     this.isBoxHovered = false;
+    this.info = info
+
 
     // --- Spawning (ants) ---
     this._spawnEnabled = false;
-    this._spawnInterval = 5.0; // seconds
+    this._spawnInterval = 10; // seconds
     this._spawnTimer = 0.0;
     this._spawnCount = 1; // number of ants per interval
     // --- Controllers ---
@@ -65,6 +121,29 @@ class Building extends Entity {
     // --- Image ---
     if (img) this.setImage(img);
   }
+
+  upgradeBuilding() {
+    if (!this.info || !this.info.progressions) return false;
+    const next = this.info.progressions[1];
+    if(this.info.upgradeCost > globalResource.length){ console.log('Not enough resources to upgrade'); return false; }
+    if (!next) { console.log('No further upgrades'); return false; }
+
+    const nextImage = typeof next.image === "function" ? next.image() : next.image;
+    if (!nextImage) { console.log('Image not loaded yet'); return false; }
+
+    try {
+      this.setImage(nextImage);
+      this._spawnInterval = Math.max(1, this._spawnInterval - 1);
+      this._spawnCount += 1;
+      this.info = next;
+      console.log("Building upgraded!");
+    } catch (e) {
+      console.warn("Upgrade failed:", e);
+      return false;
+    }
+    return true;
+  }
+
 
 
   get _renderController() { return this.getController('render'); }
@@ -218,31 +297,6 @@ function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
     if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
   }
 
-  // enable spawning for specific building types
-  try {
-    switch (String(type).toLowerCase()) {
-      case 'hivesource':
-        building._spawnEnabled = true;
-        building._spawnInterval = rand(60, 70);
-        building._spawnCount = 10;
-        break;
-      case 'anthill':
-        building._spawnEnabled = true;
-        building._spawnInterval = rand(10,80);
-        building._spawnCount = 2;
-        break;
-
-      case 'antcone':
-        building._spawnEnabled = true;
-        building._spawnInterval = rand(1,50);
-        building._spawnCount = 1;
-        break;
-
-      default:
-        building._spawnEnabled = false;
-    }
-  } catch (e) { /* ignore */ }
-  
   return building;
 }
 
