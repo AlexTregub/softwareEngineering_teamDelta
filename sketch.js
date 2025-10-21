@@ -1,4 +1,3 @@
-
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
@@ -13,7 +12,9 @@ let g_mouseController;
 let g_keyboardController;
 let g_selectionBoxController;
 let g_uiSelectionController; // UI Effects Layer Selection Controller
-let g_tileInteractionManager; // Efficient tile-based interaction system
+let g_tileInteractionManager;
+// Add a single list used by selection systems (ants + buildings)
+let selectables = [];
 // --- WORLD GENERATION ---
 let g_seed;
 let g_map;
@@ -63,8 +64,8 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-
+  // Selection controller reads from the combined selectables list
+  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, selectables);
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
     // UI shortcuts are now handled directly in keyPressed() function

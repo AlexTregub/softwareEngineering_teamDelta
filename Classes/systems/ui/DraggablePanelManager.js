@@ -1686,136 +1686,75 @@ class DraggablePanelManager {
    * Damage selected ants by specified amount
    */
   damageSelectedAnts(amount) {
-    console.log(`💥 Damaging selected ants by ${amount} HP...`);
-    
-    // Try multiple damage methods
-    const damageMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand(`damage ${amount}`);
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command damage method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Direct ant manipulation with AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
-          let damaged = 0;
-          selectedAnts.forEach(ant => {
-            if (ant && typeof ant.takeDamage === 'function') {
-              ant.takeDamage(amount);
-              damaged++;
-            }
-          });
-          if (damaged > 0) {
-            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP`);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array damage
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let damaged = 0;
-          ants.forEach(ant => {
-            if (ant && ant.isSelected && typeof ant.takeDamage === 'function') {
-              ant.takeDamage(amount);
-              damaged++;
-            }
-          });
-          if (damaged > 0) {
-            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP directly`);
-            return true;
-          }
-        }
-        return false;
+    console.log(`💥 Damaging selected entities by ${amount} HP...`);
+
+    // Preferred: use selection controller to get selected entities (ants/buildings)
+    let selected = [];
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        selected = g_selectionBoxController.getSelectedEntities() || [];
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of damageMethods) {
-      if (method()) return;
+    } catch (e) { selected = []; }
+
+    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
+    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
+      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
+      else selected = ants.filter(a => a && a.isSelected);
     }
-    
-    console.warn('⚠️ Could not damage ants - no selected ants or compatible damage system found');
+
+    // If still nothing selected, warn and return
+    if (!selected || selected.length === 0) {
+      console.warn('⚠️ No selected entities found to damage');
+      return;
+    }
+
+    // Apply damage to any selected entity that supports takeDamage()
+    let damagedCount = 0;
+    selected.forEach(entity => {
+      if (entity && typeof entity.takeDamage === 'function') {
+        try { entity.takeDamage(amount); damagedCount++; } catch (e) { console.warn('Damage call failed', e); }
+      }
+    });
+
+    if (damagedCount > 0) console.log(`✅ Damaged ${damagedCount} selected entities by ${amount} HP`);
+    else console.warn('⚠️ No selected entities supported takeDamage()');
   }
 
   /**
    * Heal selected ants by specified amount
    */
   healSelectedAnts(amount) {
-    console.log(`💚 Healing selected ants by ${amount} HP...`);
+    console.log(`💚 Healing selected entities by ${amount} HP...`);
     
-    // Try multiple healing methods
-    const healMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand(`heal ${amount}`);
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command heal method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Direct ant manipulation with AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
-          let healed = 0;
-          selectedAnts.forEach(ant => {
-            if (ant && typeof ant.heal === 'function') {
-              ant.heal(amount);
-              healed++;
-            }
-          });
-          if (healed > 0) {
-            console.log(`✅ Healed ${healed} selected ants by ${amount} HP`);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array healing
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let healed = 0;
-          ants.forEach(ant => {
-            if (ant && ant.isSelected && typeof ant.heal === 'function') {
-              ant.heal(amount);
-              healed++;
-            }
-          });
-          if (healed > 0) {
-            console.log(`✅ Healed ${healed} selected ants by ${amount} HP directly`);
-            return true;
-          }
-        }
-        return false;
+    // Preferred: use selection controller to get selected entities (ants/buildings)
+    let selected = [];
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        selected = g_selectionBoxController.getSelectedEntities() || [];
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of healMethods) {
-      if (method()) return;
+    } catch (e) { selected = []; }
+
+    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
+    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
+      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
+      else selected = ants.filter(a => a && a.isSelected);
     }
-    
-    console.warn('⚠️ Could not heal ants - no selected ants or compatible heal system found');
+
+    if (!selected || selected.length === 0) {
+      console.warn('⚠️ No selected entities found to heal');
+      return;
+    }
+
+    // Apply heal() to any selected entity that supports it
+    let healedCount = 0;
+    selected.forEach(entity => {
+      if (entity && typeof entity.heal === 'function') {
+        try { entity.heal(amount); healedCount++; } catch (e) { console.warn('Heal call failed', e); }
+      }
+    });
+
+    if (healedCount > 0) console.log(`✅ Healed ${healedCount} selected entities by ${amount} HP`);
+    else console.warn('⚠️ No selected entities supported heal()');
   }
 
   // --- Ant State Control Methods ---

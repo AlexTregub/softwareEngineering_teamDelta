@@ -1,10 +1,14 @@
+// ===============================
+// 🏗️ Building Preloader
+// ===============================
 let Cone, Hill, Hive;
 
-function BuildingPreloader(){
-    Cone = loadImage('Images/Buildings/Cone.png');
-    Hill = loadImage('Images/Buildings/Hill.png');
-    Hive = loadImage('Images/Buildings/Hive.png');
+function BuildingPreloader() {
+  Cone = loadImage('Images/Buildings/Cone.png');
+  Hill = loadImage('Images/Buildings/Hill.png');
+  Hive = loadImage('Images/Buildings/Hive.png');
 }
+
 
 class AbstractBuildingFactory {
   createBuilding(x, y, faction) {
@@ -12,106 +16,247 @@ class AbstractBuildingFactory {
   }
 }
 
+
 class AntCone extends AbstractBuildingFactory {
-    createBuilding(x, y, faction) {
-        return new Building(x, y, 91, 97, Cone, faction);
-    }
+  createBuilding(x, y, faction) {
+    return new Building(x, y, 91, 97, Cone, faction);
+  }
 }
 
 class AntHill extends AbstractBuildingFactory {
-    createBuilding(x, y, faction) {
-        return new Building(x, y, 160, 100, Hill, faction);
-    }
+  createBuilding(x, y, faction) {
+    return new Building(x, y, 160, 100, Hill, faction);
+  }
 }
 
 class HiveSource extends AbstractBuildingFactory {
-    createBuilding(x, y, faction) {
-        return new Building(x, y, 160, 160, Hive, faction);
-    }
+  createBuilding(x, y, faction) {
+    return new Building(x, y, 160, 160, Hive, faction);
+  }
 }
-
 
 
 class Building extends Entity {
-    constructor(x, y, width, height, img, faction) {
-        super(x, y, width, height, {
-            type: "Ant",
-            imagePath: img,
-            selectable: true,
-            faction: faction
-        });
-        this._faction = faction;
-        if(img){this.setImage(img)}
-        this.lastFrameTime = performance.now();
-    }
+  constructor(x, y, width, height, img, faction) {
+    super(x, y, width, height, {
+      type: "Ant",
+      imagePath: img,
+      selectable: true,
+      faction: faction
+    });
 
-    _renderBoxHover() {}
+    // --- Basic properties ---
+    this._faction = faction;
+    this._health = 100;
+    this._maxHealth = 100;
+    this._damage = 0;
+    this._isDead = false;
+    this.lastFrameTime = performance.now();
+    this.isBoxHovered = false;
 
-    get _renderController() { return this.getController('render'); }
+    // --- Spawning (ants) ---
+    this._spawnEnabled = false;
+    this._spawnInterval = 5.0; // seconds
+    this._spawnTimer = 0.0;
+    this._spawnCount = 1; // number of ants per interval
+    // --- Controllers ---
+    this._controllers.set('movement', null);
 
-    update() {
-        const now = performance.now();
-        const deltaTime = (now - this.lastFrameTime) / 1000; // seconds
-        this.lastFrameTime = now;
+    // --- Image ---
+    if (img) this.setImage(img);
+  }
 
-        if (!this.isActive()) return;
-        
-        // Update only safe controllers for buildings (avoid transform/movement which may conflict)
-        const safeControllers = ['render', 'health', 'selection', 'interaction'];
-        safeControllers.forEach(name => {
-          const c = this.getController(name);
-          if (c && typeof c.update === 'function') {
-            try { c.update(); } catch (e) { console.warn(`Building ${name} update error:`, e); }
-          }
-        });
-        
-        // Ensure collision box and sprite are in sync with the entity's canonical position/size
-        try {
-          const pos = this.getPosition();
-          const size = this.getSize();
-          if (pos) this._collisionBox.setPosition(pos.x, pos.y);
-          if (size) this._collisionBox.setSize(size.x, size.y);
-          if (this._sprite && typeof this._sprite.setPosition === 'function') {
-            // prefer sprite API to accept plain object if createVector isn't available
-            try { this._sprite.setPosition(pos); } catch { /* fallback ignored */ }
-          }
-        } catch (e) {
-          console.warn('Building sync error:', e);
+
+  get _renderController() { return this.getController('render'); }
+  get _healthController() { return this.getController('health'); }
+  get _selectionController() { return this.getController('selection'); }
+
+ 
+  update() {
+    const now = performance.now();
+    const deltaTime = (now - this.lastFrameTime) / 1000;
+    this.lastFrameTime = now;
+
+    if (!this.isActive) return;
+    super.update();
+
+    this._updateHealthController();
+
+    // Spawn ants if enabled — uses global antsSpawn(num, faction, x, y)
+    if (this._spawnEnabled && typeof antsSpawn === 'function') {
+      try {
+        this._spawnTimer += deltaTime;
+        while (this._spawnTimer >= this._spawnInterval) {
+          this._spawnTimer -= this._spawnInterval;
+          // compute building center
+          const p = this.getPosition ? this.getPosition() : (this._pos || { x: 0, y: 0 });
+          const s = this.getSize ? this.getSize() : (this._size || { x: width || 32, y: height || 32 });
+          const centerX = p.x + (s.x / 2);
+          const centerY = p.y + (s.y / 2);
+          antsSpawn(this._spawnCount, this._faction || 'neutral', centerX , centerY);
         }
+      } catch (e) { console.warn('Building spawn error', e); }
+    }
+  }
+
+  _updateHealthController() {
+    if (this._healthController) {
+      this._healthController.update();
+    }
+  }
+
+
+  get faction() { return this._faction; }
+  get health() { return this._health; }
+  get maxHealth() { return this._maxHealth; }
+  get damage() { return this._damage; }
+
+  get isSelected() {
+    return this._delegate('selection', 'isSelected') || false;
+  }
+
+  set isSelected(value) {
+    this._delegate('selection', 'setSelected', value);
+  }
+
+  takeDamage(amount) {
+    const oldHealth = this._health;
+    this._health = Math.max(0, this._health - amount);
+
+    if (this._healthController && oldHealth > this._health) {
+      this._healthController.onDamage();
     }
 
-    moveToLocation(x, y) {
-        return;
+    if (this._health <= 0) {
+      console.log("Building has died.");
     }
 
-    render() {
-        if (!this.isActive) return;
-        super.render();
+    return this._health;
+  }
+
+  heal(amount) {
+    this._health = Math.min(this._maxHealth, this._health + (amount || 0));
+    try {
+      const hc = this.getController?.('health');
+      if (hc && typeof hc.onHeal === 'function') hc.onHeal(amount, this._health);
+    } catch (e) {}
+    return this._health;
+  }
+
+  moveToLocation(x, y) {
+    // Buildings don’t move
+    return;
+  }
+
+  _renderBoxHover() {
+    this._renderController.highlightBoxHover();
+  }
+
+  render() {
+    if (!this.isActive) return;
+    super.render();
+
+    if (this._healthController) {
+      this._healthController.render();
     }
+
+    if (this.isBoxHovered) {
+      this._renderBoxHover();
+    }
+  }
+
+  die() {
+    this.isActive = false;
+    this._isDead = true;
+    // remove from render lists
+    const idx = Buildings.indexOf(this);
+    if (idx !== -1) Buildings.splice(idx, 1);
+    if (typeof window !== 'undefined' && Array.isArray(window.buildings)) {
+      const wi = window.buildings.indexOf(this);
+      if (wi !== -1) window.buildings.splice(wi, 1);
+    }
+    // remove from selectables
+    if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+      const sidx = selectables.indexOf(this);
+      if (sidx !== -1) selectables.splice(sidx, 1);
+    }
+    if (g_selectionBoxController && g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+    // other cleanup...
+  }
 }
 
-// Simple factory registry + helper for convenience
+
 const BuildingFactoryRegistry = {
   antcone: new AntCone(),
   anthill: new AntHill(),
   hivesource: new HiveSource()
 };
 
-
-
 function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
   if (!type) return null;
   const key = String(type).toLowerCase();
   const factory = BuildingFactoryRegistry[key];
   if (!factory) return null;
+
+  const building = factory.createBuilding(x, y, faction);
+  if (!building) return null;
+
+  // ensure building is active and registered in renderer arrays
+  building.isActive = true;
+  if (typeof window !== 'undefined') {
+    window.buildings = window.buildings || [];
+    if (!window.buildings.includes(building)) window.buildings.push(building);
+  }
+  if (typeof Buildings !== 'undefined' && !Buildings.includes(building)) Buildings.push(building);
+
+  // Register in selectables so selection systems see this building
+  if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+    if (!selectables.includes(building)) selectables.push(building);
+  }
+  // Ensure selection controller uses selectables reference (some controllers snapshot list)
+  if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+    if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+  }
+
+  // enable spawning for specific building types
+  try {
+    switch (String(type).toLowerCase()) {
+      case 'hivesource':
+        building._spawnEnabled = true;
+        building._spawnInterval = rand(60, 70);
+        building._spawnCount = 10;
+        break;
+      case 'anthill':
+        building._spawnEnabled = true;
+        building._spawnInterval = rand(10,80);
+        building._spawnCount = 2;
+        break;
+
+      case 'antcone':
+        building._spawnEnabled = true;
+        building._spawnInterval = rand(1,50);
+        building._spawnCount = 1;
+        break;
+
+      default:
+        building._spawnEnabled = false;
+    }
+  } catch (e) { /* ignore */ }
   
-  
-  let building = factory.createBuilding(x, y, faction);
   return building;
 }
 
-// expose helper globally for convenience in sketch.js / console
-if (typeof window !== 'undefined') window.createBuilding = createBuilding;
-if (typeof module !== 'undefined' && module.exports) module.exports = { Building, AntCone, AntHill, HiveSource, createBuilding };
 
+if (typeof window !== 'undefined') {
+  window.createBuilding = createBuilding;
+}
 
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    Building,
+    AntCone,
+    AntHill,
+    HiveSource,
+    createBuilding
+  };
+}
