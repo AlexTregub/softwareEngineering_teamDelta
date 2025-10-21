@@ -737,6 +737,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
     line(x, 0, x, gridHeight * tileSize);
   }
 
+  // w
   // Highlight tile under mouse
   const tileX = Math.floor(mouseX / tileSize);
   const tileY = Math.floor(mouseY / tileSize);
