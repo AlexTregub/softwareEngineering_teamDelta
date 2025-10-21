@@ -12,7 +12,9 @@ const NONE = '\0';
 let g_mouseController;
 let g_keyboardController;
 let g_selectionBoxController;
-let g_tileInteractionManager; // Efficient tile-based interaction system
+let g_tileInteractionManager;
+// Add a single list used by selection systems (ants + buildings)
+let selectables = [];
 // --- WORLD GENERATION ---
 let g_seed;
 let g_map;
@@ -26,6 +28,8 @@ let g_recordingPath;
 // -- Queen ---
 let queenAnt;
 
+// Buildings
+let Buildings = [];
 // Camera system - now managed by CameraManager
 let cameraManager;
 
@@ -35,6 +39,8 @@ function preload(){
   antsPreloader();
   resourcePreLoad();
   preloadPauseImages();
+  BuildingPreloader();
+  soundManager.preload();
   
   // Load presentation assets
   if (typeof loadPresentationAssets !== 'undefined') {
@@ -44,6 +50,10 @@ function preload(){
 
 
 function setup() {
+  // Initialize TaskLibrary before other systems that depend on it
+  /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
+  console.log('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
+*/
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   RenderMangerOverwrite = false
@@ -111,8 +121,123 @@ function setup() {
   cameraManager = new CameraManager();
   cameraManager.initialize();
 
+  // Disable right-click context menu to prevent interference with brush controls
+  if (typeof document !== 'undefined') {
+    // Global context menu prevention
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      return false;
+    });
+    
+    // Additional prevention for the canvas specifically
+    document.addEventListener('DOMContentLoaded', function() {
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        canvas.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        });
+      }
+    });
+    
+    // Prevent right-click from triggering browser back/forward
+    document.addEventListener('mouseup', function(e) {
+      if (e.button === 2) { // Right mouse button
+        e.preventDefault();
+        return false;
+      }
+    });
+    
+    console.log('🚫 Right-click context menu disabled for brush controls');
+  }
+
+  // Initialize Queen Control Panel system
+  if (typeof initializeQueenControlPanel !== 'undefined') {
+    initializeQueenControlPanel();
+    console.log('👑 Queen Control Panel initialized in setup');
+  }
+
+  // Initialize Fireball System
+  if (typeof window !== 'undefined' && typeof FireballManager !== 'undefined') {
+    window.g_fireballManager = new FireballManager();
+    console.log('🔥 Fireball System initialized in setup');
+  }
+
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+  
+  // Initialize context menu prevention for better brush control
+  initializeContextMenuPrevention();
+  //
+
+  Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
+}
+
+/**
+ * Initialize context menu prevention
+ * Prevents right-click context menu from interfering with brush controls
+ */
+function initializeContextMenuPrevention() {
+  // Method 1: Document-level prevention
+  if (typeof document !== 'undefined') {
+    document.oncontextmenu = function(e) {
+      e.preventDefault();
+      return false;
+    };
+  }
+  
+  // Method 2: Window-level prevention
+  if (typeof window !== 'undefined') {
+    window.oncontextmenu = function(e) {
+      e.preventDefault();
+      return false;
+    };
+  }
+  
+  // Method 3: p5.js canvas-specific prevention
+  // This will be applied when the canvas is created
+  try {
+    if (typeof select !== 'undefined') {
+      const canvas = select('canvas');
+      if (canvas) {
+        canvas.elt.oncontextmenu = function(e) {
+          e.preventDefault();
+          return false;
+        };
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not set canvas context menu prevention:', error);
+  }
+  
+  console.log('🚫 Multiple layers of right-click context menu prevention initialized');
+}
+
+/**
+ * Global function to test context menu prevention
+ */
+function testContextMenuPrevention() {
+  console.log('🧪 Testing context menu prevention...');
+  console.log('Right-click anywhere to test - context menu should NOT appear');
+  console.log('If context menu still appears, try: disableContextMenu()');
+  return true;
+}
+
+/**
+ * Global function to force disable context menu
+ */
+function disableContextMenu() {
+  initializeContextMenuPrevention();
+  console.log('🔒 Context menu prevention forcibly re-applied');
+  return true;
+}
+
+// Make functions globally available
+if (typeof window !== 'undefined') {
+  window.testContextMenuPrevention = testContextMenuPrevention;
+  window.disableContextMenu = disableContextMenu;
+  soundManager.play("bgMusic", 0.125, 1, true);
 }
 
 /**
@@ -165,33 +290,150 @@ function initializeWorld() {
  */
 
 function draw() {  
+
   // Input-driven updates are handled by interactive adapters registered with RenderManager.
   // Draggable panels and other UI elements now receive pointer events via RenderManager.
 
   RenderManager.render(GameState.getState());
 
-  // --- PLAYING ---
-  if (GameState.isInGame()) {
-    // Update camera before rendering (RenderManager will apply transforms
-    // for the different layers during the render pass).
-    if (cameraManager) {
-      cameraManager.update();
-    }
 
-    // Update and draw tile inspector hover overlay
-    if (typeof updateHoveredTile === 'function') {
-      updateHoveredTile(mouseX, mouseY);
-    }
-    if (typeof drawHoveredTileOverlay === 'function') {
-      drawHoveredTileOverlay();
-    }
-    if (typeof drawInspectedTileIndicator === 'function') {
-      drawInspectedTileIndicator();
-    }
-    if (typeof drawInspectorStatus === 'function') {
-      drawInspectorStatus();
-    }
+  // background(0);
+  // g_map2.renderDirect();
 
+  // Use the new layered rendering system
+  // Update legacy draggable panels BEFORE rendering so the render pipeline
+  // sees the latest panel positions (avoids a pre-update render that leaves
+  // a ghost image of the previous frame's positions).
+  if (GameState.getState() === 'PLAYING') {
+    try {
+      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
+        updateDraggablePanels();
+      }
+    } catch (error) {
+      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
+    }
+  }
+  if (typeof window.renderPauseMenuUI === 'function') {
+    window.renderPauseMenuUI();
+  }
+  // Draw dropoff UI (button, placement preview) after other UI elements
+  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
+    window.drawDropoffUI();
+  }
+  
+  // Render Enemy Ant Brush (on top of other UI elements)
+  if (window.g_enemyAntBrush) {
+    try {
+      window.g_enemyAntBrush.render();
+    } catch (error) {
+      console.error('❌ Error rendering enemy ant brush:', error);
+    }
+  }
+  
+  // Render Resource Brush (on top of other UI elements)
+  if (window.g_resourceBrush) {
+    try {
+      window.g_resourceBrush.render();
+    } catch (error) {
+      console.error('❌ Error rendering resource brush:', error);
+    }
+  }
+  
+  // Render Building Brush (on top of other UI elements)
+  if (window.g_buildingBrush) {
+    try {
+      window.g_buildingBrush.render();
+    } catch (error) {
+      console.error('❌ Error rendering building brush:', error);
+    }
+  }
+  
+  // Render debug visualization for ant gathering (overlays on top)
+  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
+    g_gatherDebugRenderer.render();
+  }
+  // Update button groups (rendering handled by RenderLayerManager)
+  if (window.buttonGroupManager) {
+    try {
+      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+    } catch (error) {
+      console.error('❌ Error updating button group system:', error);
+    }
+  }
+
+  // Update Enemy Ant Brush
+  if (window.g_enemyAntBrush) {
+    try {
+      window.g_enemyAntBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating enemy ant brush:', error);
+    }
+  }
+
+    // Update Enemy Ant Brush
+  if (window.g_lightningAimBrush) {
+    try {
+      window.g_lightningAimBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating enemy ant brush:', error);
+    }
+  }
+
+  // Update Resource Brush
+  if (window.g_resourceBrush) {
+    try {
+      window.g_resourceBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating resource brush:', error);
+    }
+  }
+
+  // Update Building Brush
+  if (window.g_buildingBrush) {
+    try {
+      window.g_buildingBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating building brush:', error);
+    }
+  }
+
+  // Update Queen Control Panel visibility
+  if (typeof updateQueenPanelVisibility !== 'undefined') {
+    try {
+      updateQueenPanelVisibility();
+    } catch (error) {
+      console.error('❌ Error updating queen panel visibility:', error);
+    }
+  }
+
+  // Update Queen Control Panel
+  if (window.g_queenControlPanel) {
+    try {
+      window.g_queenControlPanel.update();
+    } catch (error) {
+      console.error('❌ Error updating queen control panel:', error);
+    }
+  }
+
+  // Update Fireball System
+  if (window.g_fireballManager) {
+    try {
+      window.g_fireballManager.update();
+    } catch (error) {
+      console.error('❌ Error updating fireball system:', error);
+    }
+  }
+
+  // Update Lightning System (soot stains, timed effects)
+  if (window.g_lightningManager) {
+    try {
+      window.g_lightningManager.update();
+    } catch (error) {
+      console.error('❌ Error updating lightning system:', error);
+    }
+  }
+
+  if (GameState.getState() === 'PLAYING') {
     const playerQueen = getQueen();
     if (playerQueen) {
       // WASD key codes: W=87 A=65 S=83 D=68
@@ -200,6 +442,8 @@ function draw() {
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
     }
+  }
+
   }
 }
 
@@ -233,7 +477,7 @@ function mousePressed() {
   }
   
   // Handle UI Debug Manager mouse events first
-  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
     const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
     if (handled) return;
   }
@@ -250,11 +494,89 @@ function mousePressed() {
   }
 
   // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
+  
+  // Handle Universal Button Group System clicks
+  if (window.buttonGroupManager && 
+      typeof window.buttonGroupManager.handleClick === 'function') {
+    try {
+      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
+      if (handled) return; // Button was clicked, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling button click:', error);
+    }
+  }
+
+  // Handle DraggablePanel mouse events
+  if (window.draggablePanelManager && 
+      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
+    try {
+      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (handled) return; // Panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling draggable panel mouse events:', error);
+    }
+  }
+
+  // Handle Enemy Ant Brush events
+  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling enemy ant brush events:', error);
+    }
+  }
+
+  // Handle Resource Brush events
+  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling resource brush events:', error);
+    }
+  }
+
+  // Handle Building Brush events
+  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling building brush events:', error);
+    }
+  }
+
+  // Handle Lightning Aim Brush events
+  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return;
+    } catch (error) {
+      console.error('❌ Error handling lightning aim brush events:', error);
+    }
+  }
+
+  // Handle Queen Control Panel events
+  if (window.g_queenControlPanel && window.g_queenControlPanel.isQueenSelected()) {
+    try {
+      const handled = window.g_queenControlPanel.handleMouseClick(mouseX, mouseY);
+      if (handled) return; // Queen panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling queen control panel events:', error);
+    }
+  }
+
+  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
 function mouseDragged() {
   // Handle UI Debug Manager drag events
-  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager !== null && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
   // Forward move to RenderManager
@@ -272,9 +594,50 @@ function mouseDragged() {
 
 function mouseReleased() {
   // Handle UI Debug Manager release events
-  if (g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
   }
+  
+  // Handle Enemy Ant Brush release events
+  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling enemy ant brush release events:', error);
+    }
+  }
+  
+  // Handle Resource Brush release events
+  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_resourceBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling resource brush release events:', error);
+    }
+  }
+
+  // Handle Building Brush release events
+  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_buildingBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling building brush release events:', error);
+    }
+  }
+
+  // Handle Lightning Aim Brush release events
+  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling lightning aim brush release events:', error);
+    }
+  }
+  
   // Forward to RenderManager first
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
@@ -285,6 +648,60 @@ function mouseReleased() {
     console.error('Error dispatching pointerup to RenderManager:', e);
     try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (er) {}
   }
+}
+
+/**
+ * mouseWheel
+ * ---------
+ * Forward mouse wheel events to active brushes so users can cycle brush types
+ * with the scroll wheel. Prevents default page scrolling while in-game.
+ */
+function mouseWheel(event) {
+  try {
+    if (!GameState.isInGame()) return false;
+
+    // Determine scroll direction (positive = down, negative = up)
+    const delta = event.deltaY || 0;
+    const step = (delta > 0) ? 1 : (delta < 0) ? -1 : 0;
+
+    // Helper to call directional cycling on a brush if available
+    const tryCycleDir = (brush) => {
+      if (!brush || !brush.isActive || step === 0) return false;
+      // Preferred: BrushBase-style directional API
+      if (typeof brush.cycleTypeStep === 'function') { brush.cycleTypeStep(step); return true; }
+      if (typeof brush.cycleType === 'function') { brush.cycleType(step); return true; }
+      // Legacy resource brush method
+      if (typeof brush.cycleResourceType === 'function') { if (step > 0) brush.cycleResourceType(); else { /* no backward legacy */ } return true; }
+      // Fallback: adjust availableTypes index if exposed
+      if (Array.isArray(brush.availableTypes) && typeof brush.currentIndex === 'number') {
+        const len = brush.availableTypes.length;
+        brush.currentIndex = ((brush.currentIndex + step) % len + len) % len;
+        brush.currentType = brush.availableTypes[brush.currentIndex];
+        if (typeof brush.onTypeChanged === 'function') { try { brush.onTypeChanged(brush.currentType); } catch(e){} }
+        return true;
+      }
+      return false;
+    };
+
+    // Priority order: Enemy brush, Resource brush, Lightning aim brush
+    if (window.g_enemyAntBrush && tryCycleDir(window.g_enemyAntBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_resourceBrush && tryCycleDir(window.g_resourceBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
+
+  } catch (e) {
+    console.error('❌ Error handling mouseWheel for brushes:', e);
+  }
+  // Let other handlers/processes receive the event if no brush consumed it
+  return true;
 }
 
 // KEYBOARD INTERACTIONS
@@ -398,9 +815,15 @@ function keyPressed() {
     }
   }
 
-  if (keyCode === ESCAPE && g_selectionBoxController) {
-    g_selectionBoxController.deselectAll();
-    return;
+  if (keyCode === ESCAPE) {
+    if (deactivateActiveBrushes()) {
+      return;
+    }
+    // Then handle selection box clearing
+    if (g_selectionBoxController) {
+      g_selectionBoxController.deselectAll();
+      return;
+    }
   }
   handleKeyEvent('handleKeyPressed', keyCode, key);
 
@@ -530,6 +953,25 @@ function mouseWheel(event) {
   return true;
 }
   
+
+/**
+ * Deactivates any active brushes (resource, enemy ant) and logs the action.
+ * Returns true if any brush was deactivated.
+ */
+function deactivateActiveBrushes() {
+  let deactivated = false;
+  if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
+    g_resourceBrush.toggle();
+    console.log('🎨 Resource brush deactivated via ESC key');
+    deactivated = true;
+  }
+  if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
+    g_enemyAntBrush.toggle();
+    console.log('🎨 Enemy brush deactivated via ESC key');
+    deactivated = true;
+  }
+  return deactivated;
+}
 
 // DEBUG RENDERING FUNCTIONS
 // These functions provide basic debug visualization capability

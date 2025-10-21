@@ -99,6 +99,7 @@ class ant extends Entity {
     this._maxHealth = 100;
     this._damage = 10;
     this._attackRange = 50;
+    this._combatTarget = null; // Current target this ant is attacking
     
     // Set initial image if provided
     if (img && typeof img !== 'string') {
@@ -315,7 +316,82 @@ class ant extends Entity {
   die() {
     this.isActive = false;
     this.setState("DEAD");
-
+    this._combatTarget = null; // Clear target when dying
+    
+    // Remove this ant from all game systems
+    this._removeFromGame();
+  }
+  
+  /**
+   * Remove this ant from all game systems when it dies
+   */
+  _removeFromGame() {
+    console.log(`💀 Removing dead ant ${this._antIndex} from game systems`);
+    
+    // 1. Remove from global ants array
+    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      const index = ants.indexOf(this);
+      if (index !== -1) {
+        ants.splice(index, 1);
+        console.log(`   ✅ Removed from ants array (${ants.length} remaining)`);
+      }
+    }
+    
+    // 2. Remove from TileInteractionManager
+    if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
+      const pos = this.getPosition();
+      if (pos && typeof g_tileInteractionManager.removeObjectFromTile === 'function') {
+        const tileX = Math.floor(pos.x / (g_tileInteractionManager.tileSize || 32));
+        const tileY = Math.floor(pos.y / (g_tileInteractionManager.tileSize || 32));
+        g_tileInteractionManager.removeObjectFromTile(this, tileX, tileY);
+        console.log(`   ✅ Removed from TileInteractionManager`);
+      }
+    }
+    
+    // 3. Clear from selection systems
+    if (this.isSelected) {
+      this.isSelected = false;
+      
+      // Update SelectionBoxController if available
+      if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+        if (g_selectionBoxController.entities && Array.isArray(g_selectionBoxController.entities)) {
+          g_selectionBoxController.entities = ants; // Update to current ants array
+        }
+      }
+      
+      // Clear from ant manager if this was the selected ant
+      if (typeof antManager !== 'undefined' && antManager && antManager.selectedAnt === this) {
+        antManager.selectedAnt = null;
+      }
+      
+      console.log(`   ✅ Cleared from selection systems`);
+    }
+    
+    // 4. Clear combat targets pointing to this dead ant
+    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      ants.forEach(otherAnt => {
+        if (otherAnt._combatTarget === this) {
+          otherAnt._combatTarget = null;
+          console.log(`   ✅ Cleared combat target from ant ${otherAnt._antIndex}`);
+        }
+      });
+    }
+    
+    // 5. Update UI selection entities if function exists
+    if (typeof updateUISelectionEntities === 'function') {
+      updateUISelectionEntities();
+      console.log(`   ✅ Updated UI selection entities`);
+    }
+    
+    // Remove from selectables so selection system stops referencing it
+    if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+      const sidx = selectables.indexOf(this);
+      if (sidx !== -1) selectables.splice(sidx, 1);
+    }
+    // Also update selection controller's entities if it stores a snapshot
+    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+      if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+    }
   }
   
   // --- Resource Methods ---
@@ -446,9 +522,94 @@ class ant extends Entity {
   _updateEnemyDetection() {
     // Check for enemies periodically
     if (frameCount - this._lastEnemyCheck > this._enemyCheckInterval) {
-      this._enemies = this.detectEnemies() || [];
+      // Use the combat controller's built-in update which detects enemies AND updates combat state
+      const combatController = this.getController('combat');
+      if (combatController && typeof combatController.update === 'function') {
+        combatController.update(); // This calls detectEnemies() and updateCombatState()
+        this._enemies = combatController.getNearbyEnemies() || [];
+      }
+      
       this._lastEnemyCheck = frameCount;
+      
+      // Only attack if we're actually in combat state and have enemies
+      if (this._stateMachine && this._stateMachine.isInCombat() && this._enemies.length > 0) {
+        this._performCombatAttack();
+      }
     }
+  }
+  
+  _performCombatAttack() {
+    // Safety check: Only attack if we're actually in combat state
+    if (!this._stateMachine || !this._stateMachine.isInCombat()) {
+      return; // Cannot attack if not in combat state
+    }
+    
+    // Check if current target is still valid and in range
+    if (this._combatTarget) {
+      // Verify target is still alive and in enemy list
+      const targetStillValid = this._enemies.includes(this._combatTarget) && 
+                              this._combatTarget.health > 0 && 
+                              this._combatTarget.isActive !== false;
+      
+      if (targetStillValid) {
+        const distance = this._calculateDistance(this, this._combatTarget);
+        if (distance <= this._attackRange) {
+          // Attack current target
+          this._attackTarget(this._combatTarget);
+          return;
+        }
+      }
+      
+      // Target is no longer valid, clear it
+      this._combatTarget = null;
+    }
+    
+    // Find a new target if we don't have one
+    if (!this._combatTarget) {
+      let nearestEnemy = null;
+      let shortestDistance = Infinity;
+      
+      for (const enemy of this._enemies) {
+        // Only target enemies that are alive and active
+        if (enemy.health > 0 && enemy.isActive !== false) {
+          const distance = this._calculateDistance(this, enemy);
+          if (distance < shortestDistance && distance <= this._attackRange) {
+            shortestDistance = distance;
+            nearestEnemy = enemy;
+          }
+        }
+      }
+      
+      // Set new target
+      if (nearestEnemy) {
+        this._combatTarget = nearestEnemy;
+        this._attackTarget(this._combatTarget);
+      }
+    }
+  }
+  
+  _attackTarget(target) {
+    if (target && typeof target.takeDamage === 'function') {
+      // Use strength stat from StatsContainer, fallback to basic damage
+      const attackPower = this._stats?.strength?.statValue || this._damage;
+      target.takeDamage(attackPower);
+      
+      // Show damage effect if available
+      if (this._renderController && typeof this._renderController.showDamageNumber === 'function') {
+        const enemyPos = target.getPosition();
+        this._renderController.showDamageNumber(attackPower, [255, 100, 100]);
+      }
+      
+      console.log(`🗡️ Ant ${this._antIndex} (${this._faction}) attacked enemy ${target._antIndex || 'unknown'} for ${attackPower} damage`);
+    }
+  }
+  
+  _calculateDistance(entity1, entity2) {
+    const pos1 = entity1.getPosition();
+    const pos2 = entity2.getPosition();
+    const dx = pos1.x - pos2.x;
+    const dy = pos1.y - pos2.y;
+    return Math.sqrt(dx * dx + dy * dy);
   }
   
   // --- Render Override ---
@@ -643,6 +804,8 @@ function spawnQueen(){
 
   newAnt.assignJob(JobName, JobImages[JobName]);
   ants.push(newAnt);
+  // also add to selectables so selection box can see it
+  if (typeof selectables !== 'undefined') selectables.push(newAnt);
   newAnt.update();
 
   // Register ant with TileInteractionManager for efficient mouse detection
@@ -655,27 +818,36 @@ function spawnQueen(){
 }
 
 // --- Spawn Ants ---
-function antsSpawn(numToSpawn, faction = "neutral") {
+function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let JobName = assignJob();
-    
+
+    let px, py;
+    if (x !== null && y !== null) {
+      const jitter = 12;
+      px = x + (Math.random() * jitter - jitter / 2);
+      py = y + (Math.random() * jitter - jitter / 2);
+    } else {
+      px = random(0, 500);
+      py = random(0, 500);
+    }
+
     // Create ant directly with new job system
     let newAnt = new ant(
-      random(0, 500), random(0, 500), 
-      antSize.x + sizeR, 
-      antSize.y + sizeR, 
+      px, py,
+      antSize.x + sizeR,
+      antSize.y + sizeR,
       30, 0,
       antBaseSprite,
       JobName,
       faction
     );
     
-    // Assign job using new component system
     newAnt.assignJob(JobName, JobImages[JobName]);
     
-    // Store ant directly (no wrapper!)
     ants.push(newAnt);
+    if (typeof selectables !== 'undefined') selectables.push(newAnt);
     newAnt.update();
     
     // Register ant with TileInteractionManager for efficient mouse detection
