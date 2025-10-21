@@ -20,6 +20,7 @@ let g_mapRendered
 const DEFAULT_MENU_YOFFSET = -100;
 const MENU_YOFFSET_KEY = 'antgame.menuYOffset';
 
+
 // load persisted offset if available, otherwise fall back to default
 let menuYOffset = (function(){
   try {
@@ -78,13 +79,23 @@ function menuPreload(){
 function initializeMenu() {
   titleTargetY = g_canvasY / 2 - 150 + menuYOffset;
   loadButtons();
+
+  if (GameState.getState() === "MENU") {
+    soundManager.play("bgMusic", 0.125, 1, true);
+  }
   
   // Register callback to reload buttons when state changes
   GameState.onStateChange((newState, oldState) => {
+    if (newState === "MENU") {
+      soundManager.play("bgMusic", 0.125, 1, true);
+    } else if (newState === "PLAYING") {
+      soundManager.stop("bgMusic");
+    }
     if (newState === "MENU" || newState === "OPTIONS") {
       loadButtons();
     }
   });
+  
 
   // Debug system initialization disabled
   // if (window.initializeMenuDebug) window.initializeMenuDebug();
@@ -126,6 +137,7 @@ function loadButtons() {
 function startGameTransition() {
     // Only start fade out, do NOT switch state yet
     GameState.startFadeTransition("out");
+    soundManager.stop("bgMusic");
 }
 
 // Main menu render function
