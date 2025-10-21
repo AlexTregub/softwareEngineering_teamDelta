@@ -54,6 +54,10 @@ function preload(){
 
 
 function setup() {
+  // Initialize TaskLibrary before other systems that depend on it
+  /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
+  console.log('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
+*/
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   createCanvas(g_canvasX, g_canvasY);

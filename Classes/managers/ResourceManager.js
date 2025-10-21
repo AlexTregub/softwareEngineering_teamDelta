@@ -127,6 +127,13 @@ class ResourceManager {
           try { resource.drop(); } catch (e) { /* best-effort */ }
         }
         globalResourceArray.push(resource);
+
+        // --- update aggregated totals so tasks/UI can read progress ---
+        try {
+          const rtype = resource.type || resource.resourceType || resource._type || 'misc';
+          const ramt = (typeof resource.amount === 'number') ? resource.amount : 1;
+          addGlobalResource(rtype, ramt);
+        } catch (e) { /* ignore totals update errors */ }
       }
 
       return droppedResources;
@@ -388,4 +395,90 @@ class ResourceManager {
 // Export for Node.js compatibility
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ResourceManager;
+}
+
+// === Global resource totals helpers ===
+// Maintains aggregated counts of resources by type (updated on drop-off)
+const _resourceTotals = {};
+
+/**
+ * Increment global total for a resource type.
+ * @param {string} type
+ * @param {number} amount
+ */
+function addGlobalResource(type, amount = 1) {
+  if (!type) return;
+  const amt = Number(amount) || 0;
+  _resourceTotals[type] = (_resourceTotals[type] || 0) + amt;
+
+  // Debug: show change and current totals
+  try {
+    console.log(`[ResourceManager] addGlobalResource: ${type} +${amt} -> ${_resourceTotals[type]}`);
+    console.log('[ResourceManager] totals:', getResourceTotals());
+    console.log('added resource')
+  } catch (e) { /* ignore logging errors */ }
+
+  return _resourceTotals[type];
+}
+
+/**
+ * Remove/consume resource from global totals (returns true if successful).
+ * @param {string} type
+ * @param {number} amount
+ */
+function removeGlobalResource(type, amount = 1) {
+  if (!type) return false;
+  const amt = Number(amount) || 0;
+  const have = _resourceTotals[type] || 0;
+  if (have < amt) {
+    console.warn(`[ResourceManager] removeGlobalResource failed: ${type} has ${have}, tried to remove ${amt}`);
+    return false;
+  }
+  _resourceTotals[type] = have - amt;
+  if (_resourceTotals[type] <= 0) delete _resourceTotals[type];
+
+  // Debug: show change and current totals
+  try {
+    console.log(`[ResourceManager] removeGlobalResource: ${type} -${amt} -> ${_resourceTotals[type] || 0}`);
+    console.log('[ResourceManager] totals:', getResourceTotals());
+  } catch (e) { /* ignore logging errors */ }
+
+  return true;
+}
+
+/**
+ * Return a copy of the global resource totals map.
+ * @returns {Object<string, number>}
+ */
+function getResourceTotals() {
+  return Object.assign({}, _resourceTotals);
+}
+
+/**
+ * Return count for a specific resource type, or total of all types if no type provided.
+ * @param {string} [type]
+ * @returns {number}
+ */
+function getResourceCount(type) {
+  if (!type) {
+    return Object.values(_resourceTotals).reduce((s, v) => s + v, 0);
+  }
+  return _resourceTotals[String(type)] || 0;
+}
+
+// Debug helper you can call from console or UI
+function logResourceTotals() {
+  try {
+    console.log('test resource totals log:');
+    console.log('[ResourceManager] current totals:', getResourceTotals());
+  } catch (e) { /* ignore */ }
+}
+
+// expose to global for UI / Task systems
+if (typeof window !== 'undefined') {
+  window.addGlobalResource = window.addGlobalResource || addGlobalResource;
+  window.removeGlobalResource = window.removeGlobalResource || removeGlobalResource;
+  window.getResourceTotals = window.getResourceTotals || getResourceTotals;
+  window.getResourceCount = window.getResourceCount || getResourceCount;
+  window.logResourceTotals = window.logResourceTotals || logResourceTotals;
 }

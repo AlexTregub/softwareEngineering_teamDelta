@@ -20,9 +20,11 @@ class DraggablePanelManager {
    * Creates a new DraggablePanelManager instance
    */
   constructor() {
+    // keep previous initialization
     this.panels = new Map();
     this.isInitialized = false;
-    
+  
+
     // Debug mode: Panel Train Mode (panels follow each other when dragged) 🚂
     this.debugMode = {
       panelTrainMode: false
@@ -34,9 +36,9 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn2', 'health_controls', 'debug', 'combat', 'buildings'],
-      'PAUSED': ['ant_spawn', 'health_controls', 'debug', 'buildings'],
-      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'buildings'],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat', 'tasks','buildings'],
+      'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
       'GAME_OVER': ['stats', 'debug'],
       'KANBAN': ['presentation-kanban-transition', 'debug']
     };
@@ -395,6 +397,110 @@ class DraggablePanelManager {
       }
     }));
 
+    
+    //task panel
+    this.panels.set('tasks', new DraggablePanel({
+      id: 'task-panel',
+      title: 'Task objectives',
+      position: { x: 600, y: 80 },
+      size: { width: 160, height: 320 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 3,
+        buttonWidth: 140,
+        buttonHeight: 25,
+        items: [
+          {
+            caption: 'Gather 10 wood',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('Gather 10 wood clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T1') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('10 wood')));
+              if (!task) { console.warn('Task T1 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Gather 10 wood'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
+          },
+          {
+            caption: 'spawn 5 new ants',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('spawn 5 new ants clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T2') || (t.description && t.description.toLowerCase().includes('spawn') && t.description.includes('5')));
+              if (!task) { console.warn('Task T2 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.toLowerCase().includes('spawn 5'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
+          },
+          {
+            caption: 'Kill 10 ants',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('Kill 10 ants clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T3') || (t.description && t.description.toLowerCase().includes('kill') && t.description.includes('10')));
+              if (!task) { console.warn('Task T3 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Kill 10'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
+          },
+          {
+            caption: 'Gather 20 leaves',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('Gather 20 leaves clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T4') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('20 leaves')));
+              if (!task) { console.warn('Task T4 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('20 leaves'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
     // Building Panel (grid layout with building types)
     this.panels.set('buildings', new DraggablePanel({
       id: 'buildings-panel',
