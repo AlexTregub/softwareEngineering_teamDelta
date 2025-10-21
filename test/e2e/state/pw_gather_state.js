@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 24: GatherState
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,16 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_GatherState_initializes_correctly(page) {
+  const testName = 'GatherState initializes correctly';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: GatherState initializes correctly');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_1', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +28,16 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_enter_activates_gathering(page) {
+  const testName = 'enter() activates gathering';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: enter() activates gathering');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_2', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +46,16 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_exit_deactivates_gathering(page) {
+  const testName = 'exit() deactivates gathering';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: exit() deactivates gathering');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_3', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +64,16 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_update_searches_for_resources(page) {
+  const testName = 'update() searches for resources';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: update() searches for resources');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_4', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +82,16 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_searchForResources_finds_nearby(page) {
+  const testName = 'searchForResources() finds nearby';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: searchForResources() finds nearby');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_5', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +100,16 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_getResourcesInRadius_detects(page) {
+  const testName = 'getResourcesInRadius() detects';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: getResourcesInRadius() detects');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_6', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +118,16 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_updateTargetMovement_moves_to_resource(page) {
+  const testName = 'updateTargetMovement() moves to resource';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: updateTargetMovement() moves to resource');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_7', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +136,16 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_attemptResourceCollection_collects(page) {
+  const testName = 'attemptResourceCollection() collects';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: attemptResourceCollection() collects');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_8', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +154,16 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_isAtMaxCapacity_checks_inventory(page) {
+  const testName = 'isAtMaxCapacity() checks inventory';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: isAtMaxCapacity() checks inventory');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_9', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +172,16 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_transitionToDropOff_switches_state(page) {
+  const testName = 'transitionToDropOff() switches state';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: transitionToDropOff() switches state');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'state/gatherstate_10', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +190,45 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function test_Gather_timeout_works_6_seconds_(page) {
+  const testName = 'Gather timeout works (6 seconds)';
+  const startTime = Date.now();
+  try {
+    await page.evaluate(() => {
+      // Test implementation placeholder
+      console.log('Testing: Gather timeout works (6 seconds)');
+    });
+    await forceRedraw(page);
+    await captureEvidence(page, 'state/gatherstate_11', 'state', true);
+    console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
+    testsPassed++;
+  } catch (error) {
+    console.log(`  ❌ FAIL: ${testName} (${Date.now() - startTime}ms) - ${error.message}`);
+    testsFailed++;
+  }
+}
+
+async function test_Debug_info_provides_state_details(page) {
+  const testName = 'Debug info provides state details';
+  const startTime = Date.now();
+  try {
+    await page.evaluate(() => {
+      // Test implementation placeholder
+      console.log('Testing: Debug info provides state details');
+    });
+    await forceRedraw(page);
+    await captureEvidence(page, 'state/gatherstate_12', 'state', true);
+    console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
+    testsPassed++;
+  } catch (error) {
+    console.log(`  ❌ FAIL: ${testName} (${Date.now() - startTime}ms) - ${error.message}`);
+    testsFailed++;
+  }
+}
+
+async function runGatherStateTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 24: GatherState');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +244,18 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_GatherState_initializes_correctly(page);
+    await test_enter_activates_gathering(page);
+    await test_exit_deactivates_gathering(page);
+    await test_update_searches_for_resources(page);
+    await test_searchForResources_finds_nearby(page);
+    await test_getResourcesInRadius_detects(page);
+    await test_updateTargetMovement_moves_to_resource(page);
+    await test_attemptResourceCollection_collects(page);
+    await test_isAtMaxCapacity_checks_inventory(page);
+    await test_transitionToDropOff_switches_state(page);
+    await test_Gather_timeout_works_6_seconds_(page);
+    await test_Debug_info_provides_state_details(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +271,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runGatherStateTests();

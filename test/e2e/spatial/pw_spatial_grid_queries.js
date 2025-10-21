@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 34: SpatialGridQueries
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,16 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_getNearbyEntities_finds_in_radius(page) {
+  const testName = 'getNearbyEntities() finds in radius';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: getNearbyEntities() finds in radius');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_1', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +28,16 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_findNearestEntity_returns_closest(page) {
+  const testName = 'findNearestEntity() returns closest';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: findNearestEntity() returns closest');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_2', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +46,16 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_getEntitiesInRect_finds_in_rectangle(page) {
+  const testName = 'getEntitiesInRect() finds in rectangle';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: getEntitiesInRect() finds in rectangle');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_3', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +64,16 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_getEntitiesByType_filters_by_type(page) {
+  const testName = 'getEntitiesByType() filters by type';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: getEntitiesByType() filters by type');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_4', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +82,16 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Queries_faster_than_array_iteration(page) {
+  const testName = 'Queries faster than array iteration';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Queries faster than array iteration');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_5', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +100,16 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Empty_results_for_empty_areas(page) {
+  const testName = 'Empty results for empty areas';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Empty results for empty areas');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_6', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +118,16 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_Radius_queries_work_correctly(page) {
+  const testName = 'Radius queries work correctly';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: Radius queries work correctly');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_7', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +136,16 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Type_filtering_works(page) {
+  const testName = 'Type filtering works';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Type filtering works');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_8', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +154,16 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Query_performance_acceptable(page) {
+  const testName = 'Query performance acceptable';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Query performance acceptable');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_9', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +172,16 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Queries_return_correct_entities(page) {
+  const testName = 'Queries return correct entities';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Queries return correct entities');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'spatial/spatialgridqueries_10', 'spatial', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +190,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runSpatialGridQueriesTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 34: SpatialGridQueries');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +208,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_getNearbyEntities_finds_in_radius(page);
+    await test_findNearestEntity_returns_closest(page);
+    await test_getEntitiesInRect_finds_in_rectangle(page);
+    await test_getEntitiesByType_filters_by_type(page);
+    await test_Queries_faster_than_array_iteration(page);
+    await test_Empty_results_for_empty_areas(page);
+    await test_Radius_queries_work_correctly(page);
+    await test_Type_filtering_works(page);
+    await test_Query_performance_acceptable(page);
+    await test_Queries_return_correct_entities(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +233,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runSpatialGridQueriesTests();

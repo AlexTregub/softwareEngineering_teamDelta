@@ -167,6 +167,15 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
     this._coordSysUpdateId = -1; // Used for render conversion optimizations
     this._coordSysPos = NONE;
+    
+    // Entity tracking
+    this.entities = [];
+    this.tileX = renderX;
+    this.tileY = renderY;
+    this.x = renderX * tileSize;
+    this.y = renderY * tileSize;
+    this.width = tileSize;
+    this.height = tileSize;
   }
  
 
@@ -262,5 +271,87 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
   toString() {
     return this._materialSet+'('+this._x+','+this._y+')';
+  }
+  
+  // =========================================================================
+  // Entity Tracking Methods
+  // =========================================================================
+  
+  /**
+   * Check if entity is on this tile
+   * @param {Object} entity - Entity to check
+   * @returns {boolean} True if entity is on tile
+   */
+  hasEntity(entity) {
+    return this.entities.includes(entity);
+  }
+  
+  /**
+   * Add entity to this tile
+   * @param {Object} entity - Entity to add
+   */
+  addEntity(entity) {
+    if (!this.entities.includes(entity)) {
+      this.entities.push(entity);
+    }
+  }
+  
+  /**
+   * Remove entity from this tile
+   * @param {Object} entity - Entity to remove
+   */
+  removeEntity(entity) {
+    const index = this.entities.indexOf(entity);
+    if (index !== -1) {
+      this.entities.splice(index, 1);
+    }
+  }
+  
+  /**
+   * Get all entities on this tile
+   * @returns {Array} Copy of entities array
+   */
+  getEntities() {
+    return [...this.entities];
+  }
+  
+  /**
+   * Get entity count on this tile
+   * @returns {number} Number of entities
+   */
+  getEntityCount() {
+    return this.entities.length;
+  }
+  
+  /**
+   * Get material property (alias for compatibility)
+   * @returns {string} Material type
+   */
+  get material() {
+    return this._materialSet;
+  }
+  
+  /**
+   * Set material property (alias for compatibility)
+   * @param {string} value - Material type
+   */
+  set material(value) {
+    this._materialSet = value;
+  }
+  
+  /**
+   * Get weight property (alias for compatibility)
+   * @returns {number} Weight value
+   */
+  get weight() {
+    return this._weight;
+  }
+  
+  /**
+   * Set weight property (alias for compatibility)
+   * @param {number} value - Weight value
+   */
+  set weight(value) {
+    this._weight = value;
   }
 }

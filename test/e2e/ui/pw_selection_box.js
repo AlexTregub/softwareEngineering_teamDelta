@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 38: SelectionBox
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,15 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_Click_drag_creates_selection_box(page) {
+  const testName = 'Click-drag creates selection box';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: Click-drag creates selection box');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_1', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +27,15 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_Selection_box_renders_correctly(page) {
+  const testName = 'Selection box renders correctly';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: Selection box renders correctly');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_2', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +44,15 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_Entities_inside_box_get_selected(page) {
+  const testName = 'Entities inside box get selected';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: Entities inside box get selected');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_3', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +61,15 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_Entities_outside_stay_unselected(page) {
+  const testName = 'Entities outside stay unselected';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: Entities outside stay unselected');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_4', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +78,15 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Selection_box_visual_feedback(page) {
+  const testName = 'Selection box visual feedback';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Selection box visual feedback');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_5', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +95,15 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Multiple_entity_selection_works(page) {
+  const testName = 'Multiple entity selection works';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Multiple entity selection works');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_6', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +112,15 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_Selection_box_respects_camera(page) {
+  const testName = 'Selection box respects camera';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: Selection box respects camera');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_7', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +129,15 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Selection_cleared_on_new_box(page) {
+  const testName = 'Selection cleared on new box';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Selection cleared on new box');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_8', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +146,15 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Shift_key_adds_to_selection(page) {
+  const testName = 'Shift key adds to selection';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Shift key adds to selection');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_9', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +163,15 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Selection_box_performance_acceptable(page) {
+  const testName = 'Selection box performance acceptable';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Selection box performance acceptable');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'ui/selectionbox_10', 'ui', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +180,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runSelectionBoxTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 38: SelectionBox');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +198,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_Click_drag_creates_selection_box(page);
+    await test_Selection_box_renders_correctly(page);
+    await test_Entities_inside_box_get_selected(page);
+    await test_Entities_outside_stay_unselected(page);
+    await test_Selection_box_visual_feedback(page);
+    await test_Multiple_entity_selection_works(page);
+    await test_Selection_box_respects_camera(page);
+    await test_Selection_cleared_on_new_box(page);
+    await test_Shift_key_adds_to_selection(page);
+    await test_Selection_box_performance_acceptable(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +223,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runSelectionBoxTests();

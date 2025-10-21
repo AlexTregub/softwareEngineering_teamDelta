@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 25: StateTransitions
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,16 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_IDLE_GATHERING_transition(page) {
+  const testName = 'IDLE → GATHERING transition';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: IDLE → GATHERING transition');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_1', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +28,16 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_GATHERING_DROPPING_OFF_transition(page) {
+  const testName = 'GATHERING → DROPPING_OFF transition';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: GATHERING → DROPPING_OFF transition');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_2', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +46,16 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_DROPPING_OFF_IDLE_transition(page) {
+  const testName = 'DROPPING_OFF → IDLE transition';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: DROPPING_OFF → IDLE transition');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_3', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +64,16 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_IDLE_MOVING_transition(page) {
+  const testName = 'IDLE → MOVING transition';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: IDLE → MOVING transition');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_4', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +82,16 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_GATHERING_ATTACKING_transition(page) {
+  const testName = 'GATHERING → ATTACKING transition';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: GATHERING → ATTACKING transition');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_5', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +100,16 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Any_state_DEAD_transition(page) {
+  const testName = 'Any state → DEAD transition';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Any state → DEAD transition');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_6', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +118,16 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_State_history_tracked(page) {
+  const testName = 'State history tracked';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: State history tracked');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_7', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +136,16 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Invalid_transitions_rejected(page) {
+  const testName = 'Invalid transitions rejected';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Invalid transitions rejected');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_8', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +154,16 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_State_callbacks_fire_correctly(page) {
+  const testName = 'State callbacks fire correctly';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: State callbacks fire correctly');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_9', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +172,16 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Preferred_state_restoration(page) {
+  const testName = 'Preferred state restoration';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Preferred state restoration');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'state/statetransitions_10', 'state', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +190,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runStateTransitionsTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 25: StateTransitions');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +208,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_IDLE_GATHERING_transition(page);
+    await test_GATHERING_DROPPING_OFF_transition(page);
+    await test_DROPPING_OFF_IDLE_transition(page);
+    await test_IDLE_MOVING_transition(page);
+    await test_GATHERING_ATTACKING_transition(page);
+    await test_Any_state_DEAD_transition(page);
+    await test_State_history_tracked(page);
+    await test_Invalid_transitions_rejected(page);
+    await test_State_callbacks_fire_correctly(page);
+    await test_Preferred_state_restoration(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +233,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runStateTransitionsTests();

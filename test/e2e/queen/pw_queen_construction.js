@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 21: QueenConstruction
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,16 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_Queen_extends_ant_class(page) {
+  const testName = 'Queen extends ant class';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: Queen extends ant class');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_1', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +28,16 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_Queen_has_larger_size(page) {
+  const testName = 'Queen has larger size';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: Queen has larger size');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_2', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +46,16 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_Queen_has_Queen_job_type(page) {
+  const testName = 'Queen has Queen job type';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: Queen has Queen job type');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_3', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +64,16 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_Queen_cannot_starve_to_death(page) {
+  const testName = 'Queen cannot starve to death';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: Queen cannot starve to death');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_4', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +82,16 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Queen_initializes_command_system(page) {
+  const testName = 'Queen initializes command system';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Queen initializes command system');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_5', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +100,16 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Queen_has_unique_sprite(page) {
+  const testName = 'Queen has unique sprite';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Queen has unique sprite');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_6', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +118,16 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_Only_one_Queen_per_colony(page) {
+  const testName = 'Only one Queen per colony';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: Only one Queen per colony');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_7', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +136,16 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Queen_registered_in_global_queenAnt(page) {
+  const testName = 'Queen registered in global queenAnt';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Queen registered in global queenAnt');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_8', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +154,16 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Queen_has_special_rendering(page) {
+  const testName = 'Queen has special rendering';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Queen has special rendering');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_9', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +172,16 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Queen_spawns_with_correct_stats(page) {
+  const testName = 'Queen spawns with correct stats';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Queen spawns with correct stats');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'queen/queenconstruction_10', 'queen', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +190,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runQueenConstructionTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 21: QueenConstruction');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +208,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_Queen_extends_ant_class(page);
+    await test_Queen_has_larger_size(page);
+    await test_Queen_has_Queen_job_type(page);
+    await test_Queen_cannot_starve_to_death(page);
+    await test_Queen_initializes_command_system(page);
+    await test_Queen_has_unique_sprite(page);
+    await test_Only_one_Queen_per_colony(page);
+    await test_Queen_registered_in_global_queenAnt(page);
+    await test_Queen_has_special_rendering(page);
+    await test_Queen_spawns_with_correct_stats(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +233,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runQueenConstructionTests();

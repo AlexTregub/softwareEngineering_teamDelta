@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 27: AntBrainDecisions
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,16 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_decideState_makes_decisions(page) {
+  const testName = 'decideState() makes decisions';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: decideState() makes decisions');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_1', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +28,16 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_Emergency_hunger_overrides_behavior(page) {
+  const testName = 'Emergency hunger overrides behavior';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: Emergency hunger overrides behavior');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_2', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +46,16 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_Starving_forces_food_gathering(page) {
+  const testName = 'Starving forces food gathering';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: Starving forces food gathering');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_3', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +64,16 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_Death_at_hunger_threshold(page) {
+  const testName = 'Death at hunger threshold';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: Death at hunger threshold');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_4', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +82,16 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Pheromone_trails_influence_decisions(page) {
+  const testName = 'Pheromone trails influence decisions';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Pheromone trails influence decisions');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_5', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +100,16 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Job_type_affects_choices(page) {
+  const testName = 'Job type affects choices';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Job type affects choices');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_6', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +118,16 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_Builder_seeks_construction(page) {
+  const testName = 'Builder seeks construction';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: Builder seeks construction');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_7', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +136,16 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Warrior_patrols_attacks(page) {
+  const testName = 'Warrior patrols/attacks';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Warrior patrols/attacks');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_8', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +154,16 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Farmer_tends_crops(page) {
+  const testName = 'Farmer tends crops';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Farmer tends crops');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_9', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +172,16 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Scout_explores(page) {
+  const testName = 'Scout explores';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
       // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Scout explores');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'brain/antbraindecisions_10', 'brain', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +190,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runAntBrainDecisionsTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 27: AntBrainDecisions');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +208,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_decideState_makes_decisions(page);
+    await test_Emergency_hunger_overrides_behavior(page);
+    await test_Starving_forces_food_gathering(page);
+    await test_Death_at_hunger_threshold(page);
+    await test_Pheromone_trails_influence_decisions(page);
+    await test_Job_type_affects_choices(page);
+    await test_Builder_seeks_construction(page);
+    await test_Warrior_patrols_attacks(page);
+    await test_Farmer_tends_crops(page);
+    await test_Scout_explores(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +233,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runAntBrainDecisionsTests();

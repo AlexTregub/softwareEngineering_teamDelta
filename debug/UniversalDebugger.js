@@ -269,14 +269,14 @@ class UniversalDebugger {
     const collisionPos = this.target._collisionBox ? { x: this.target._collisionBox.x, y: this.target._collisionBox.y } : null;
     
     // DIAGNOSTIC: Check coordinate conversion step by step
-    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      const screenToTile = g_map2.renderConversion.convCanvasToPos([screenMouse.x, screenMouse.y]);
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      const screenToTile = g_activeMap.renderConversion.convCanvasToPos([screenMouse.x, screenMouse.y]);
       const tileToWorld = [screenToTile[0] * TILE_SIZE, screenToTile[1] * TILE_SIZE];
       console.log(`  DIAGNOSTIC Screen→Tile: [${screenToTile[0].toFixed(2)}, ${screenToTile[1].toFixed(2)}] → World: [${tileToWorld[0].toFixed(2)}, ${tileToWorld[1].toFixed(2)}]`);
       
       if (entityWorldPos) {
         const entityToTile = [entityWorldPos.x / TILE_SIZE, entityWorldPos.y / TILE_SIZE];
-        const tileToScreen = g_map2.renderConversion.convPosToCanvas(entityToTile);
+        const tileToScreen = g_activeMap.renderConversion.convPosToCanvas(entityToTile);
         console.log(`  DIAGNOSTIC Entity World→Tile: [${entityToTile[0].toFixed(2)}, ${entityToTile[1].toFixed(2)}] → Screen: [${tileToScreen[0].toFixed(0)}, ${tileToScreen[1].toFixed(0)}]`);
       }
     }

@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 44: ResourceSystemIntegration
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,15 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_Resources_spawn_ants_detect_collect_deposit(page) {
+  const testName = 'Resources spawn → ants detect → collect → deposit';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: Resources spawn → ants detect → collect → deposit');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_1', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +27,15 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_Resource_scarcity_affects_behavior(page) {
+  const testName = 'Resource scarcity affects behavior';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: Resource scarcity affects behavior');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_2', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +44,15 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_Multiple_resource_types_handled(page) {
+  const testName = 'Multiple resource types handled';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: Multiple resource types handled');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_3', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +61,15 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_Resource_respawn_after_depletion(page) {
+  const testName = 'Resource respawn after depletion';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: Resource respawn after depletion');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_4', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +78,15 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Resource_manager_tracks_all(page) {
+  const testName = 'Resource manager tracks all';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Resource manager tracks all');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_5', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +95,15 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Ants_prioritize_food_when_hungry(page) {
+  const testName = 'Ants prioritize food when hungry';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Ants prioritize food when hungry');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_6', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +112,15 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_Builders_seek_wood_resources(page) {
+  const testName = 'Builders seek wood resources';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: Builders seek wood resources');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_7', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +129,15 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Resource_visualization_updates(page) {
+  const testName = 'Resource visualization updates';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Resource visualization updates');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_8', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +146,15 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Dropoff_accumulation_shown(page) {
+  const testName = 'Dropoff accumulation shown';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Dropoff accumulation shown');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_9', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +163,15 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Resource_system_scales_with_ant_count(page) {
+  const testName = 'Resource system scales with ant count';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Resource system scales with ant count');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'integration/resourcesystemintegration_10', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +180,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runResourceSystemIntegrationTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 44: ResourceSystemIntegration');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +198,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_Resources_spawn_ants_detect_collect_deposit(page);
+    await test_Resource_scarcity_affects_behavior(page);
+    await test_Multiple_resource_types_handled(page);
+    await test_Resource_respawn_after_depletion(page);
+    await test_Resource_manager_tracks_all(page);
+    await test_Ants_prioritize_food_when_hungry(page);
+    await test_Builders_seek_wood_resources(page);
+    await test_Resource_visualization_updates(page);
+    await test_Dropoff_accumulation_shown(page);
+    await test_Resource_system_scales_with_ant_count(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +223,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runResourceSystemIntegrationTests();

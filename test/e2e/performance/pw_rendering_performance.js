@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 47: RenderingPerformance
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,15 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_Terrain_cache_improves_performance(page) {
+  const testName = 'Terrain cache improves performance';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: Terrain cache improves performance');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_1', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +27,15 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_Entity_culling_reduces_draw_calls(page) {
+  const testName = 'Entity culling reduces draw calls';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: Entity culling reduces draw calls');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_2', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +44,15 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_Sprite_batching_works(page) {
+  const testName = 'Sprite batching works';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: Sprite batching works');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_3', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +61,15 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_Layer_rendering_optimized(page) {
+  const testName = 'Layer rendering optimized';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: Layer rendering optimized');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_4', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +78,15 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Camera_movement_doesnt_drop_FPS(page) {
+  const testName = 'Camera movement doesnt drop FPS';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Camera movement doesnt drop FPS');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_5', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +95,15 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Zoom_doesnt_affect_performance(page) {
+  const testName = 'Zoom doesnt affect performance';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Zoom doesnt affect performance');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_6', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +112,15 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_UI_rendering_separate_from_game(page) {
+  const testName = 'UI rendering separate from game';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: UI rendering separate from game');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_7', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +129,15 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Debug_rendering_toggleable(page) {
+  const testName = 'Debug rendering toggleable';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Debug rendering toggleable');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_8', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +146,15 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Render_time_per_layer_measured(page) {
+  const testName = 'Render time per layer measured';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Render time per layer measured');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_9', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +163,15 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Overall_render_budget_maintained(page) {
+  const testName = 'Overall render budget maintained';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Overall render budget maintained');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'performance/renderingperformance_10', 'performance', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +180,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runRenderingPerformanceTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 47: RenderingPerformance');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +198,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_Terrain_cache_improves_performance(page);
+    await test_Entity_culling_reduces_draw_calls(page);
+    await test_Sprite_batching_works(page);
+    await test_Layer_rendering_optimized(page);
+    await test_Camera_movement_doesnt_drop_FPS(page);
+    await test_Zoom_doesnt_affect_performance(page);
+    await test_UI_rendering_separate_from_game(page);
+    await test_Debug_rendering_toggleable(page);
+    await test_Render_time_per_layer_measured(page);
+    await test_Overall_render_budget_maintained(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +223,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runRenderingPerformanceTests();

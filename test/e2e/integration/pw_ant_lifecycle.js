@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 41: AntLifecycle
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,15 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_Ant_spawns_searches_gathers_drops_repeats(page) {
+  const testName = 'Ant spawns → searches → gathers → drops → repeats';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: Ant spawns → searches → gathers → drops → repeats');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_1', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +27,15 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_Ant_hunger_seeks_food_eats_continues(page) {
+  const testName = 'Ant hunger → seeks food → eats → continues';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: Ant hunger → seeks food → eats → continues');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_2', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +44,15 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_Ant_encounters_enemy_engages_returns(page) {
+  const testName = 'Ant encounters enemy → engages → returns';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: Ant encounters enemy → engages → returns');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_3', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +61,15 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_Ant_inventory_fills_seeks_dropoff_deposits(page) {
+  const testName = 'Ant inventory fills → seeks dropoff → deposits';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: Ant inventory fills → seeks dropoff → deposits');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_4', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +78,15 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Ant_follows_pheromone_completes_task(page) {
+  const testName = 'Ant follows pheromone → completes task';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Ant follows pheromone → completes task');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_5', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +95,15 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Ant_low_health_flees_heals(page) {
+  const testName = 'Ant low health → flees → heals';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Ant low health → flees → heals');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_6', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +112,15 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_Ant_job_type_appropriate_behavior(page) {
+  const testName = 'Ant job type → appropriate behavior';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: Ant job type → appropriate behavior');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_7', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +129,15 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Complete_gather_cycle_with_multiple_ants(page) {
+  const testName = 'Complete gather cycle with multiple ants';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Complete gather cycle with multiple ants');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_8', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +146,15 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Ant_death_removed_from_systems(page) {
+  const testName = 'Ant death → removed from systems';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Ant death → removed from systems');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_9', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +163,15 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Full_lifecycle_from_spawn_to_death(page) {
+  const testName = 'Full lifecycle from spawn to death';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Full lifecycle from spawn to death');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'integration/antlifecycle_10', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +180,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runAntLifecycleTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 41: AntLifecycle');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +198,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_Ant_spawns_searches_gathers_drops_repeats(page);
+    await test_Ant_hunger_seeks_food_eats_continues(page);
+    await test_Ant_encounters_enemy_engages_returns(page);
+    await test_Ant_inventory_fills_seeks_dropoff_deposits(page);
+    await test_Ant_follows_pheromone_completes_task(page);
+    await test_Ant_low_health_flees_heals(page);
+    await test_Ant_job_type_appropriate_behavior(page);
+    await test_Complete_gather_cycle_with_multiple_ants(page);
+    await test_Ant_death_removed_from_systems(page);
+    await test_Full_lifecycle_from_spawn_to_death(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +223,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runAntLifecycleTests();

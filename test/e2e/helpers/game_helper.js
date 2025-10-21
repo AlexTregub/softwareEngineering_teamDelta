@@ -419,6 +419,7 @@ async function getSpatialGridStats(page) {
 }
 
 module.exports = {
+  sleep,
   ensureGameStarted,
   forceRedraw,
   spawnAnt,

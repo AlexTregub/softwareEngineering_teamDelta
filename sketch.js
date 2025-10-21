@@ -18,6 +18,7 @@ let g_seed;
 let g_map;
 let g_map2;
 let g_gridMap;
+let g_activeMap; // Reference to currently active terrain map (for level switching)
 // --- UI ---
 let g_menuFont;
 // --- IDK! ----
@@ -103,7 +104,7 @@ function setup() {
       });
     }
   }
-
+  
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 }
@@ -122,12 +123,21 @@ function initializeWorld() {
   g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
   // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
   
-  // New, Improved, and Chunked Terrain
+  // New, Improved, and Chunked Terrain using MapManager
   // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
   // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
+  
+  // IMPORTANT: Set g_activeMap immediately after g_map2 creation
+  g_activeMap = g_map2;
+  
+  // Register with MapManager (which will also update g_activeMap)
+  if (typeof mapManager !== 'undefined') {
+    mapManager.registerMap('level1', g_map2, true);
+    console.log("Main map registered with MapManager as 'level1' and set as active");
+  }
   
   // COORDSY = new CoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
@@ -162,6 +172,20 @@ function draw() {
       cameraManager.update();
     }
 
+    // Update and draw tile inspector hover overlay
+    if (typeof updateHoveredTile === 'function') {
+      updateHoveredTile(mouseX, mouseY);
+    }
+    if (typeof drawHoveredTileOverlay === 'function') {
+      drawHoveredTileOverlay();
+    }
+    if (typeof drawInspectedTileIndicator === 'function') {
+      drawInspectedTileIndicator();
+    }
+    if (typeof drawInspectorStatus === 'function') {
+      drawInspectorStatus();
+    }
+
     const playerQueen = getQueen();
     if (playerQueen) {
       // WASD key codes: W=87 A=65 S=83 D=68
@@ -182,7 +206,9 @@ function draw() {
 function handleMouseEvent(type, ...args) {
   if (GameState.isInGame()) {
     g_mouseController[type](...args);
-    console.log(g_map2.renderConversion.convCanvasToPos([mouseX,mouseY]));
+    if (g_activeMap && g_activeMap.renderConversion) {
+      console.log(g_activeMap.renderConversion.convCanvasToPos([mouseX,mouseY]));
+    }
   }
 }
 
@@ -192,6 +218,14 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() { 
+  // Tile Inspector - check first
+  if (typeof tileInspectorEnabled !== 'undefined' && tileInspectorEnabled) {
+    if (typeof inspectTileAtMouse === 'function') {
+      inspectTileAtMouse(mouseX, mouseY);
+      return; // Don't process other mouse events
+    }
+  }
+  
   // Handle UI Debug Manager mouse events first
   if (g_uiDebugManager && g_uiDebugManager.isActive) {
     const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
@@ -268,6 +302,14 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  // Tile Inspector toggle (T key)
+  if (key === 't' || key === 'T') {
+    if (typeof toggleTileInspector === 'function') {
+      toggleTileInspector();
+      return;
+    }
+  }
+  
   // Handle all debug-related keys (command line, dev console, test hotkeys)
   if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
   }
@@ -453,22 +495,22 @@ function getEntityWorldCenter(entity) {
 
 /**
  * getMapPixelDimensions
- * ----------------------
- * Retrieves the pixel dimensions of the map.
- * If the map object (g_map2) is available, it calculates the dimensions
+ * ---------------------
+ * Returns the pixel dimensions of the active map.
+ * If the map object (g_activeMap) is available, it calculates the dimensions
  * based on the number of tiles and their size. Otherwise, it defaults
  * to the canvas dimensions.
  *
  * @returns {Object} - An object containing the width and height of the map in pixels.
  */
 function getMapPixelDimensions() {
-  if (!g_map2) {
+  if (!g_activeMap) {
     return { width: g_canvasX, height: g_canvasY };
   }
 
-  const width = g_map2._xCount ? g_map2._xCount * TILE_SIZE : g_canvasX;
-  const height = g_map2._yCount ? g_map2._yCount * TILE_SIZE : g_canvasY;
-  const gridSize = g_map2.getGridSizePixels()
+  const width = g_activeMap._xCount ? g_activeMap._xCount * TILE_SIZE : g_canvasX;
+  const height = g_activeMap._yCount ? g_activeMap._yCount * TILE_SIZE : g_canvasY;
+  const gridSize = g_activeMap.getGridSizePixels()
   return { width, height };
 }
 
@@ -509,9 +551,66 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   pop();
 }
 
+/**
+ * setActiveMap
+ * ------------
+ * Sets the currently active terrain map by ID. Future-proof for level switching.
+ * Delegates to MapManager for centralized map management.
+ * 
+ * @param {string|gridTerrain} mapIdOrMap - Map ID string or terrain map instance
+ * @returns {boolean} True if successful, false if invalid
+ * 
+ * @example
+ * // Switch by ID
+ * setActiveMap('level2');
+ * 
+ * // Switch by creating new map
+ * const newMap = new gridTerrain(20, 20, seed, 8, 32, [windowWidth, windowHeight]);
+ * mapManager.registerMap('level2', newMap);
+ * setActiveMap('level2');
+ */
+function setActiveMap(mapIdOrMap) {
+  if (typeof mapManager === 'undefined') {
+    console.error("setActiveMap: MapManager not available");
+    return false;
+  }
+  
+  // If passed a string ID, use MapManager
+  if (typeof mapIdOrMap === 'string') {
+    return mapManager.setActiveMap(mapIdOrMap);
+  }
+  
+  // If passed a map object, register it and set active
+  if (mapIdOrMap && typeof mapIdOrMap.chunkArray !== 'undefined') {
+    const tempId = `map_${Date.now()}`;
+    mapManager.registerMap(tempId, mapIdOrMap, true);
+    return true;
+  }
+  
+  console.error("setActiveMap: Invalid argument");
+  return false;
+}
+
+/**
+ * getActiveMap
+ * ------------
+ * Returns the currently active terrain map.
+ * Delegates to MapManager for centralized access.
+ * 
+ * @returns {gridTerrain|null} The active terrain map, or null if none set
+ */
+function getActiveMap() {
+  if (typeof mapManager !== 'undefined') {
+    return mapManager.getActiveMap();
+  }
+  return g_activeMap || null;
+}
+
 // Dynamic window resizing:
 function windowResized() {
-  g_map2.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+  if (g_activeMap && g_activeMap.renderConversion) {
+    g_activeMap.renderConversion.setCanvasSize([windowWidth,windowHeight]);
+  }
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
 

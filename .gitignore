@@ -34,3 +34,4 @@ build/
 test/puppeteer/screenshots/
 test/bdd/Results
 test/e2e/screenshots/
+test/e2e/MORNING_QUICK_REFERENCE.md

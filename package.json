@@ -58,6 +58,7 @@
     "test:e2e:integration": "node test/e2e/integration/run-all-integration.js",
     "test:e2e:performance": "node test/e2e/performance/run-all-performance.js",
     "test:e2e:all": "npm run test:e2e:entity && npm run test:e2e:controllers && npm run test:e2e:ants && npm run test:e2e:queen && npm run test:e2e:state && npm run test:e2e:brain && npm run test:e2e:resources && npm run test:e2e:spatial && npm run test:e2e:integration && npm run test:e2e:performance",
+    "test:all": "node test/e2e/run-all-comprehensive.js",
     "test:smoke": "node test/smoke/run-smoke-tests.js",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"

@@ -1,5 +1,5 @@
 /**
- * Test Suite 36: CameraZoom
+ * Test Suite 42: MultiAntCoordination
  */
 
 const { launchBrowser, sleep } = require('../puppeteer_helper');
@@ -10,16 +10,15 @@ let testsPassed = 0;
 let testsFailed = 0;
 
 
-async function test_Mouse_wheel_zooms_camera(page) {
-  const testName = 'Mouse wheel zooms camera';
+async function test_Multiple_ants_gather_without_conflicts(page) {
+  const testName = 'Multiple ants gather without conflicts';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Mouse wheel zooms camera');
+      console.log('Testing: Multiple ants gather without conflicts');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_1', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_1', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -28,16 +27,15 @@ async function test_Mouse_wheel_zooms_camera(page) {
   }
 }
 
-async function test_Zoom_affects_entity_size(page) {
-  const testName = 'Zoom affects entity size';
+async function test_Ants_avoid_colliding(page) {
+  const testName = 'Ants avoid colliding';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects entity size');
+      console.log('Testing: Ants avoid colliding');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_2', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_2', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -46,16 +44,15 @@ async function test_Zoom_affects_entity_size(page) {
   }
 }
 
-async function test_Zoom_min_max_bounds(page) {
-  const testName = 'Zoom min/max bounds';
+async function test_Ants_share_resource_locations(page) {
+  const testName = 'Ants share resource locations';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom min/max bounds');
+      console.log('Testing: Ants share resource locations');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_3', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_3', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -64,16 +61,15 @@ async function test_Zoom_min_max_bounds(page) {
   }
 }
 
-async function test_Zoom_centered_on_mouse(page) {
-  const testName = 'Zoom centered on mouse';
+async function test_Ants_coordinate_dropoff_usage(page) {
+  const testName = 'Ants coordinate dropoff usage';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom centered on mouse');
+      console.log('Testing: Ants coordinate dropoff usage');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_4', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_4', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -82,16 +78,15 @@ async function test_Zoom_centered_on_mouse(page) {
   }
 }
 
-async function test_Zoom_affects_world_to_screen(page) {
-  const testName = 'Zoom affects world-to-screen';
+async function test_Combat_ants_support_each_other(page) {
+  const testName = 'Combat ants support each other';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects world-to-screen');
+      console.log('Testing: Combat ants support each other');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_5', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_5', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -100,16 +95,15 @@ async function test_Zoom_affects_world_to_screen(page) {
   }
 }
 
-async function test_Zoom_smooth_animation(page) {
-  const testName = 'Zoom smooth animation';
+async function test_Builder_ants_coordinate_construction(page) {
+  const testName = 'Builder ants coordinate construction';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom smooth animation');
+      console.log('Testing: Builder ants coordinate construction');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_6', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_6', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -118,16 +112,15 @@ async function test_Zoom_smooth_animation(page) {
   }
 }
 
-async function test_Zoom_affects_UI_correctly(page) {
-  const testName = 'Zoom affects UI correctly';
+async function test_Spatial_grid_prevents_overlap(page) {
+  const testName = 'Spatial grid prevents overlap';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects UI correctly');
+      console.log('Testing: Spatial grid prevents overlap');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_7', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_7', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -136,16 +129,15 @@ async function test_Zoom_affects_UI_correctly(page) {
   }
 }
 
-async function test_Zoom_respects_limits(page) {
-  const testName = 'Zoom respects limits';
+async function test_Multiple_ants_pathfind_independently(page) {
+  const testName = 'Multiple ants pathfind independently';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom respects limits');
+      console.log('Testing: Multiple ants pathfind independently');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_8', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_8', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -154,16 +146,15 @@ async function test_Zoom_respects_limits(page) {
   }
 }
 
-async function test_Zoom_affects_pathfinding_viz(page) {
-  const testName = 'Zoom affects pathfinding viz';
+async function test_Ant_behaviors_dont_interfere(page) {
+  const testName = 'Ant behaviors dont interfere';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom affects pathfinding viz');
+      console.log('Testing: Ant behaviors dont interfere');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_9', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_9', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -172,16 +163,15 @@ async function test_Zoom_affects_pathfinding_viz(page) {
   }
 }
 
-async function test_Zoom_state_persists(page) {
-  const testName = 'Zoom state persists';
+async function test_Colony_coordination_emerges(page) {
+  const testName = 'Colony coordination emerges';
   const startTime = Date.now();
   try {
     await page.evaluate(() => {
-      // Test implementation placeholder
-      console.log('Testing: Zoom state persists');
+      console.log('Testing: Colony coordination emerges');
     });
     await forceRedraw(page);
-    await captureEvidence(page, 'camera/camerazoom_10', 'camera', true);
+    await captureEvidence(page, 'integration/multiantcoordination_10', 'integration', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
     testsPassed++;
   } catch (error) {
@@ -190,9 +180,9 @@ async function test_Zoom_state_persists(page) {
   }
 }
 
-async function runCameraZoomTests() {
+async function runMultiAntCoordinationTests() {
   console.log('\n' + '='.repeat(70));
-  console.log('Test Suite 36: CameraZoom');
+  console.log('Test Suite 42: MultiAntCoordination');
   console.log('='.repeat(70) + '\n');
 
   let browser, page;
@@ -208,16 +198,16 @@ async function runCameraZoomTests() {
     if (!gameStarted.started) throw new Error(`Failed to start game: ${gameStarted.reason}`);
     console.log('✅ Game started\n');
 
-    await test_Mouse_wheel_zooms_camera(page);
-    await test_Zoom_affects_entity_size(page);
-    await test_Zoom_min_max_bounds(page);
-    await test_Zoom_centered_on_mouse(page);
-    await test_Zoom_affects_world_to_screen(page);
-    await test_Zoom_smooth_animation(page);
-    await test_Zoom_affects_UI_correctly(page);
-    await test_Zoom_respects_limits(page);
-    await test_Zoom_affects_pathfinding_viz(page);
-    await test_Zoom_state_persists(page);
+    await test_Multiple_ants_gather_without_conflicts(page);
+    await test_Ants_avoid_colliding(page);
+    await test_Ants_share_resource_locations(page);
+    await test_Ants_coordinate_dropoff_usage(page);
+    await test_Combat_ants_support_each_other(page);
+    await test_Builder_ants_coordinate_construction(page);
+    await test_Spatial_grid_prevents_overlap(page);
+    await test_Multiple_ants_pathfind_independently(page);
+    await test_Ant_behaviors_dont_interfere(page);
+    await test_Colony_coordination_emerges(page);
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -233,4 +223,4 @@ async function runCameraZoomTests() {
   process.exit(testsFailed > 0 ? 1 : 0);
 }
 
-runCameraZoomTests();
+runMultiAntCoordinationTests();

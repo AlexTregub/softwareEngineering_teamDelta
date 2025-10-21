@@ -181,6 +181,16 @@ class Entity {
   }
   /** Get position (from transform controller or collision box). */
   getPosition() { return this._delegate('transform', 'getPosition') || { x: this._collisionBox.x, y: this._collisionBox.y }; }
+  /** Get X coordinate. */
+  getX() { 
+    const pos = this.getPosition(); 
+    return pos.x; 
+  }
+  /** Get Y coordinate. */
+  getY() { 
+    const pos = this.getPosition(); 
+    return pos.y; 
+  }
   /** Set size (delegates to transform controller if present). */
   setSize(w, h) { this._collisionBox.setSize(w, h); return this._delegate('transform', 'setSize', w, h); }
   /** Get size (from transform controller or collision box). */
@@ -211,7 +221,7 @@ class Entity {
   // --- Selection ---
   setSelected(selected) { return this._delegate('selection', 'setSelected', selected); }
   isSelected() { return this._delegate('selection', 'isSelected') || false; }
-  toggleSelection() { return this._delegate('selection', 'toggleSelected'); }
+  toggleSelection() { return this._delegate('selection', 'toggleSelection'); }
 
   // --- Interaction ---
   isMouseOver() { 
@@ -581,6 +591,7 @@ class Entity {
         this.rendering.setOpacity(value);
       }
     };
+    
   }
 
   /**
@@ -658,13 +669,9 @@ class Entity {
     return this._stateMachine.primaryState || null;
   }
 
-  /**
-   * Check if entity is selected (for Selenium validation)
-   * @returns {boolean} True if entity is selected
-   */
-  isSelected() {
-    return this._isSelected || false;
-  }
+  // NOTE: isSelected() method is defined earlier at line ~213 and delegates to SelectionController
+  // Removed duplicate isSelected() that was incorrectly reading _isSelected property (which is never set)
+  // The correct implementation delegates: isSelected() { return this._delegate('selection', 'isSelected') || false; }
 
   /**
    * Check if entity is active (for Selenium validation)
@@ -704,6 +711,57 @@ class Entity {
       controllers: Array.from(this._controllers.keys()),
       timestamp: new Date().toISOString()
     };
+  }
+
+  // --- Terrain Information (convenience methods) ---
+  
+  /**
+   * Get current terrain type at entity position
+   * @returns {string} Current terrain modifier ("DEFAULT", "IN_WATER", "IN_MUD", "ON_SLIPPERY", "ON_ROUGH")
+   */
+  getCurrentTerrain() {
+    const terrainController = this._controllers.get('terrain');
+    return terrainController?.getCurrentTerrain() || "DEFAULT";
+  }
+  
+  /**
+   * Get the underlying tile material at entity position
+   * @returns {string|null} Tile material ('grass', 'dirt', 'stone', etc.) or null if unavailable
+   */
+  getCurrentTileMaterial() {
+    const pos = this.getPosition();
+    
+    // Try MapManager first (preferred)
+    if (typeof mapManager !== 'undefined' && mapManager.getActiveMap()) {
+      return mapManager.getTileMaterial(pos.x, pos.y);
+    }
+    
+    // Fallback to g_activeMap for backwards compatibility
+    if (typeof g_activeMap === 'undefined' || !g_activeMap) {
+      return null;
+    }
+    
+    try {
+      const tileSize = window.TILE_SIZE || 32;
+      const tileX = Math.floor(pos.x / tileSize);
+      const tileY = Math.floor(pos.y / tileSize);
+      
+      const chunkX = Math.floor(tileX / g_activeMap._chunkSize);
+      const chunkY = Math.floor(tileY / g_activeMap._chunkSize);
+      const chunk = g_activeMap.chunkArray?.get?.([chunkX, chunkY]);
+      
+      if (chunk) {
+        const localX = tileX - (chunkX * g_activeMap._chunkSize);
+        const localY = tileY - (chunkY * g_activeMap._chunkSize);
+        const tile = chunk.tileData?.get?.([localX, localY]);
+        
+        return tile?.material || null;
+      }
+    } catch (error) {
+      console.warn("getCurrentTileMaterial error:", error);
+    }
+    
+    return null;
   }
 
   // --- Cleanup ---

@@ -1,0 +1,357 @@
+/**
+ * MapManager.js
+ * =============
+ * Centralized map management system for level switching and terrain access.
+ * 
+ * Features:
+ * - Manages multiple terrain maps (levels)
+ * - Handles active map switching
+ * - Provides safe terrain queries
+ * - Future-proof for save/load systems
+ * 
+ * @module MapManager
+ * @author Team Delta
+ * @date 2025-10-21
+ */
+
+class MapManager {
+  constructor() {
+    /** @type {Map<string, gridTerrain>} All loaded maps indexed by ID */
+    this._maps = new Map();
+    
+    /** @type {gridTerrain|null} Currently active map */
+    this._activeMap = null;
+    
+    /** @type {string|null} ID of currently active map */
+    this._activeMapId = null;
+    
+    /** @type {number} Default tile size in pixels */
+    this._defaultTileSize = 32;
+    
+    console.log("MapManager initialized");
+  }
+
+  // --- Map Registration ---
+
+  /**
+   * Register a new map
+   * @param {string} mapId - Unique identifier for this map
+   * @param {gridTerrain} map - The terrain map instance
+   * @param {boolean} setActive - Whether to immediately set as active map
+   * @returns {boolean} True if successful
+   */
+  registerMap(mapId, map, setActive = false) {
+    if (!mapId || typeof mapId !== 'string') {
+      console.error("MapManager.registerMap: Invalid map ID");
+      return false;
+    }
+
+    if (!map || typeof map.chunkArray === 'undefined') {
+      console.error("MapManager.registerMap: Invalid map object");
+      return false;
+    }
+
+    if (this._maps.has(mapId)) {
+      console.warn(`MapManager.registerMap: Map '${mapId}' already registered, replacing`);
+    }
+
+    this._maps.set(mapId, map);
+    console.log(`MapManager: Registered map '${mapId}'`);
+
+    if (setActive) {
+      this.setActiveMap(mapId);
+    }
+
+    return true;
+  }
+
+  /**
+   * Unregister a map (cleanup)
+   * @param {string} mapId - ID of map to remove
+   * @returns {boolean} True if removed
+   */
+  unregisterMap(mapId) {
+    if (!this._maps.has(mapId)) {
+      console.warn(`MapManager.unregisterMap: Map '${mapId}' not found`);
+      return false;
+    }
+
+    // Don't allow removing active map
+    if (mapId === this._activeMapId) {
+      console.error("MapManager.unregisterMap: Cannot remove active map");
+      return false;
+    }
+
+    this._maps.delete(mapId);
+    console.log(`MapManager: Unregistered map '${mapId}'`);
+    return true;
+  }
+
+  // --- Active Map Management ---
+
+  /**
+   * Set the active map by ID
+   * @param {string} mapId - ID of map to activate
+   * @returns {boolean} True if successful
+   */
+  setActiveMap(mapId) {
+    if (!this._maps.has(mapId)) {
+      console.error(`MapManager.setActiveMap: Map '${mapId}' not found`);
+      return false;
+    }
+
+    const map = this._maps.get(mapId);
+    this._activeMap = map;
+    this._activeMapId = mapId;
+
+    // Update global reference for backwards compatibility
+    if (typeof window !== 'undefined') {
+      window.g_activeMap = map;
+    }
+
+    console.log(`MapManager: Active map set to '${mapId}'`);
+    return true;
+  }
+
+  /**
+   * Get the currently active map
+   * @returns {gridTerrain|null} Active map instance
+   */
+  getActiveMap() {
+    return this._activeMap;
+  }
+
+  /**
+   * Get active map ID
+   * @returns {string|null} Active map identifier
+   */
+  getActiveMapId() {
+    return this._activeMapId;
+  }
+
+  /**
+   * Get a specific map by ID
+   * @param {string} mapId - Map identifier
+   * @returns {gridTerrain|null} Map instance or null
+   */
+  getMap(mapId) {
+    return this._maps.get(mapId) || null;
+  }
+
+  /**
+   * Check if a map is registered
+   * @param {string} mapId - Map identifier
+   * @returns {boolean} True if map exists
+   */
+  hasMap(mapId) {
+    return this._maps.has(mapId);
+  }
+
+  /**
+   * Get all registered map IDs
+   * @returns {string[]} Array of map identifiers
+   */
+  getMapIds() {
+    return Array.from(this._maps.keys());
+  }
+
+  // --- Terrain Queries ---
+
+  /**
+   * Get tile at world position from active map
+   * @param {number} worldX - World X coordinate in pixels
+   * @param {number} worldY - World Y coordinate in pixels
+   * @returns {Tile|null} Tile object or null if not found
+   */
+  getTileAtPosition(worldX, worldY) {
+    if (!this._activeMap) {
+      return null;
+    }
+
+    try {
+      // Use the map's coordinate system to convert world pixels to grid coordinates
+      // This is the CORRECT way - tiles are stored at grid positions, not pixel/tileSize
+      if (this._activeMap.renderConversion && typeof this._activeMap.renderConversion.convCanvasToPos === 'function') {
+        const gridPos = this._activeMap.renderConversion.convCanvasToPos([worldX, worldY]);
+        const gridX = Math.floor(gridPos[0]);
+        const gridY = Math.floor(gridPos[1]);
+        
+        return this.getTileAtGridCoords(gridX, gridY);
+      } else {
+        // Fallback if renderConversion not available (shouldn't happen)
+        console.warn("MapManager: renderConversion not available, using fallback");
+        const tileSize = window.TILE_SIZE || this._defaultTileSize;
+        const gridX = Math.floor(worldX / tileSize);
+        const gridY = Math.floor(worldY / tileSize);
+        return this.getTileAtGridCoords(gridX, gridY);
+      }
+    } catch (error) {
+      console.warn("MapManager.getTileAtPosition error:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Get tile at grid coordinates from active map
+   * @param {number} tileGridX - Tile grid X coordinate (tile-space, considering span)
+   * @param {number} tileGridY - Tile grid Y coordinate (tile-space, considering span) 
+   * @returns {Tile|null} Tile object or null if not found
+   */
+  getTileAtGridCoords(tileGridX, tileGridY) {
+    if (!this._activeMap || !this._activeMap.chunkArray) {
+      return null;
+    }
+
+    try {
+      // IMPORTANT: Don't try to calculate which chunk contains the tile!
+      // The Grid system uses spanning coordinates with Y-axis inversion.
+      // Instead, iterate through chunks and let the Grid span system handle lookup.
+      
+      // First, try to find the tile by iterating through the chunk array
+      // This works because chunk.tileData is a Grid with span support
+      const chunks = this._activeMap.chunkArray.rawArray;
+      
+      if (chunks && chunks.length > 0) {
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i];
+          if (chunk && chunk.tileData) {
+            // Each chunk's tileData has a span - check if our tile is in this chunk's span
+            const tileSpan = chunk.tileData.getSpanRange();
+            if (tileSpan && tileSpan.length === 2) {
+              const [spanStart, spanEnd] = tileSpan;
+              
+              // Check if tile coordinates are within this chunk's span
+              // spanStart = [minX, maxY], spanEnd = [maxX, minY] due to Y-axis inversion
+              const inXRange = tileGridX >= spanStart[0] && tileGridX <= spanEnd[0];
+              const inYRange = tileGridY >= spanEnd[1] && tileGridY <= spanStart[1]; // Note: Y is inverted
+              
+              if (inXRange && inYRange) {
+                // Get the tile from this chunk's tileData
+                // Use rawArray access to bypass Grid's OOB check which has inverted Y-axis issues
+                try {
+                  // Convert span position to array position
+                  const arrPos = chunk.tileData.convRelToArrPos([tileGridX, tileGridY]);
+                  const flatIndex = chunk.tileData.convToFlat(arrPos);
+                  const tile = chunk.tileData.rawArray[flatIndex];
+                  if (tile && tile !== NONE) {
+                    return tile;
+                  }
+                } catch (e) {
+                  // Try the normal get method as fallback
+                  const tile = chunk.tileData.get([tileGridX, tileGridY]);
+                  if (tile) {
+                    return tile;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      // Silently handle errors - expected at map edges
+      if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN) {
+        console.warn("MapManager.getTileAtGridCoords:", {tileGridX, tileGridY, error: error.message});
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @deprecated Use getTileAtGridCoords instead
+   */
+  getTileAtCoords(tileX, tileY) {
+    return this.getTileAtGridCoords(tileX, tileY);
+  }
+
+  /**
+   * Get tile material at world position
+   * @param {number} worldX - World X coordinate in pixels
+   * @param {number} worldY - World Y coordinate in pixels
+   * @returns {string|null} Material name or null
+   */
+  getTileMaterial(worldX, worldY) {
+    const tile = this.getTileAtPosition(worldX, worldY);
+    return tile?.material || null;
+  }
+
+  // --- Map Creation Helpers ---
+
+  /**
+   * Create and register a new procedural map
+   * @param {string} mapId - Unique identifier for this map
+   * @param {Object} config - Map configuration
+   * @param {number} config.chunksX - Number of chunks horizontally
+   * @param {number} config.chunksY - Number of chunks vertically
+   * @param {number} config.seed - Random seed for generation
+   * @param {number} config.chunkSize - Tiles per chunk
+   * @param {number} config.tileSize - Pixels per tile
+   * @param {number[]} config.canvasSize - [width, height] of canvas
+   * @param {boolean} setActive - Whether to set as active map
+   * @returns {gridTerrain|null} Created map or null if failed
+   */
+  createProceduralMap(mapId, config, setActive = false) {
+    try {
+      const {
+        chunksX = 20,
+        chunksY = 20,
+        seed = Math.random() * 10000,
+        chunkSize = 8,
+        tileSize = 32,
+        canvasSize = [800, 600]
+      } = config;
+
+      const map = new gridTerrain(
+        chunksX,
+        chunksY,
+        seed,
+        chunkSize,
+        tileSize,
+        canvasSize
+      );
+
+      map.randomize(seed);
+      map.renderConversion.alignToCanvas();
+
+      this.registerMap(mapId, map, setActive);
+      return map;
+    } catch (error) {
+      console.error("MapManager.createProceduralMap error:", error);
+      return null;
+    }
+  }
+
+  // --- Utility ---
+
+  /**
+   * Get info about all registered maps
+   * @returns {Object} Map information
+   */
+  getInfo() {
+    return {
+      totalMaps: this._maps.size,
+      activeMapId: this._activeMapId,
+      mapIds: this.getMapIds(),
+      hasActiveMap: this._activeMap !== null
+    };
+  }
+
+  /**
+   * Clear all maps (use with caution)
+   */
+  clearAll() {
+    this._maps.clear();
+    this._activeMap = null;
+    this._activeMapId = null;
+    if (typeof window !== 'undefined') {
+      window.g_activeMap = null;
+    }
+    console.log("MapManager: All maps cleared");
+  }
+}
+
+// Create global singleton instance
+if (typeof window !== 'undefined') {
+  window.mapManager = new MapManager();
+}
