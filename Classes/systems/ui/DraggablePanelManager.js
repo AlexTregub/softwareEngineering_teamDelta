@@ -501,6 +501,11 @@ class DraggablePanelManager {
                 console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
+          }
+        ]
+      }
+    }));
+
     // Building Panel (grid layout with building types)
     this.panels.set('buildings', new DraggablePanel({
       id: 'buildings-panel',
