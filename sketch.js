@@ -40,7 +40,7 @@ function preload(){
   terrainPreloader();
   menuPreload();
   antsPreloader();
-  // resourcePreLoad();
+  resourcePreLoad();
   preloadPauseImages();
   BuildingPreloader();
   
