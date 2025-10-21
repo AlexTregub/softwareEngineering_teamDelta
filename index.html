@@ -3,17 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>ANTS!</title>
-
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="icon" type="image/x-icon" href="Images/favicon.ico">
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
-
         <!-- Type Checks -->
      <script src="debug/typeChecks/vectorCheck.js"></script>
-
     <!-- Rendering System - Load First -->
     <script src="Classes/rendering/EntityLayerRenderer.js"></script>
     <script src="Classes/rendering/UILayerRenderer.js"></script>
@@ -59,16 +55,28 @@
     <script src="Classes/systems/ui/DraggablePanelSystem.js"></script>
     <script src="Classes/systems/ui/AntControlPanel.js"></script>
     <script src="Classes/systems/ui/PresentationPanel.js"></script>
-    
+
+    <!-- Queen Control Panel -->
+    <script src="Classes/systems/ui/QueenControlPanel.js"></script>
+
+    <!-- Combat Systems -->
+    <script src="Classes/systems/combat/FireballSystem.js"></script>
+  <script src="Classes/systems/combat/LightningSystem.js"></script>
+
+    <!-- Brush Tools -->
+  <script src="Classes/systems/tools/BrushBase.js"></script>
+    <script src="Classes/systems/tools/EnemyAntBrush.js"></script>
+    <script src="Classes/systems/tools/ResourceBrush.js"></script>
+    <script src="Classes/systems/tools/LightningAimBrush.js"></script>
+
     <!-- UI Selection Box System -->
     <script src="Classes/systems/ui/UISelectionBoxIntegration.js"></script>
-    
+
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
     <script src="Classes/managers/AntManager.js"></script>
     <script src="Classes/systems/shapes/circle.js"></script>
     <script src="Classes/pathfinding.js"></script>
-
     <!-- Controller System - Load all controllers before ant classes -->
     <script src="Classes/controllers/CameraController.js"></script>
     <script src="Classes/controllers/MovementController.js"></script>
@@ -88,6 +96,13 @@
 
     <!-- <script src="Classes/coordinateSystem.js"></script> -->
     <script src="Classes/containers/DropoffLocation.js"></script>
+    <!-- Legacy UI files commented out - using universal system -->
+    <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
+    <!-- <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script> -->
+    <script src="Classes/systems/ui/verticalButtonList.js"></script>
+    <script src="Classes/systems/ui/menu.js"></script>
+    <script src="Classes/systems/ui/pauseMenu.js"></script>
+    <script src="debug/menu_debug.js"></script>
     <script src="Classes/systems/ui/dropoffButton.js"></script>
     <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script>
   <script src="Classes/systems/ui/verticalButtonList.js"></script>
@@ -95,17 +110,19 @@
   <script src="Classes/systems/ui/pauseMenu.js"></script>
 
    <script src="debug/menu_debug.js"></script>
-   
-    
+
+
     <!-- Universal Button System Integration -->
+    <!-- <script src="Classes/systems/ui/dropoffButton_universal.js"></script> -->
+    <!-- <script src="Classes/systems/ui/spawnGreenLeafButton_universal.js"></script> -->
     <script src="Classes/systems/ui/dropoffButton_universal.js"></script>
     <script src="Classes/systems/ui/spawnGreenLeafButton_universal.js"></script>
-    
+
     <!-- Legacy fallbacks (commented out - kept for reference) -->
     <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
     <!-- <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script> -->
     <!-- <script src="Classes/systems/ui/spawnControlsUI.js"></script> -->
-    
+
     <script src="Classes/systems/ui/verticalButtonList.js"></script>
     <script src="Classes/systems/ui/menu.js"></script>
     <script src="debug/menu_debug.js"></script>
@@ -131,7 +148,6 @@
     
     <!-- Shareholder Demo System -->
     <script src="Classes/testing/ShareholderDemo.js"></script>
-
     <!-- Testing suites, comment these out for final build -->
     <script src="test/unit/selectionBox.test.js"></script>
     <script src="test/unit/selectionBox.integration.test.js"></script>
@@ -139,14 +155,12 @@
     <script src="test/unit/UISelectionBoxTest.js"></script>
     <script src="debug/tracing.js"></script>
     <script src="test/integration/manual-highlight-debug.js"></script>
-
     <script src="Classes/terrainUtils/chunk.js"></script>
     <script src="Classes/terrainUtils/coordinateSystem.js"></script>
     <script src="Classes/terrainUtils/grid.js"></script>
     <script src="Classes/terrainUtils/gridTerrain.js"></script>
     <script src="Classes/terrainUtils/terrianGen.js"></script>
   </head>
-
   <body>
     <script src="sketch.js"></script>
   </body>
