@@ -82,7 +82,7 @@ class UILayerRenderer {
     push();
     
     switch(gameState) {
-      case 'PLAYING':
+      case 'SANDBOX':
         this.renderInGameUI();
         break;
       case 'PAUSED':

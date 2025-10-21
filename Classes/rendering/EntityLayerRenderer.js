@@ -157,7 +157,7 @@ class EntityRenderer {
     }
     
     // Update resources if in playing state
-    if (gameState === 'PLAYING' && g_resourceList.updateAll) {
+    if (gameState === 'PLAYING' && g_resourceList.updateAll || gameState === 'SANDBOX' && g_resourceList.updateAll) {
       g_resourceList.updateAll();
     }
   }
@@ -184,7 +184,7 @@ class EntityRenderer {
     }
     
     // Update ants if in playing state  
-    if (gameState === 'PLAYING' && antsUpdate) {
+    if (gameState === 'PLAYING' && antsUpdate || gameState === 'SANDBOX' && antsUpdate) {
       antsUpdate();
     }
   }

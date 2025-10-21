@@ -132,7 +132,7 @@
         "storageKey": "entity-actions"
       },
       "conditions": {
-        "gameState": "playing",
+        "gameState": "sandbox",
         "hasSelection": true
       },
       "buttons": [
@@ -243,7 +243,7 @@
         "storageKey": "resource-display"
       },
       "conditions": {
-        "gameState": "playing"
+        "gameState": "sandbox"
       },
       "buttons": [
         {
@@ -336,7 +336,7 @@
         "storageKey": "debug-panel"
       },
       "conditions": {
-        "gameState": "playing"
+        "gameState": "sandbox"
       },
       "buttons": [
         {

@@ -17,7 +17,8 @@ class GameStateManager {
       PLAYING: "PLAYING",
       PAUSED: "PAUSED",
       GAME_OVER: "GAME_OVER",
-      KAN_BAN: "KANBAN"
+      KAN_BAN: "KANBAN",
+      SANDBOX: "SANDBOX"
     };
   }
 
@@ -127,6 +128,7 @@ class GameStateManager {
   isInMenu = () => this.currentState === this.STATES.MENU;
   isInOptions = () => this.currentState === this.STATES.OPTIONS;
   isInGame = () => this.currentState === this.STATES.PLAYING;
+  isInSandbox = () => this.currentState === this.STATES.SANDBOX;
   isPaused = () => this.currentState === this.STATES.PAUSED;
   isGameOver = () => this.currentState === this.STATES.GAME_OVER;
   isDebug = () => this.currentState === this.STATES.DEBUG_MENU;
@@ -141,6 +143,7 @@ class GameStateManager {
   resumeGame = () => this.setState(this.STATES.PLAYING);
   endGame = () => this.setState(this.STATES.GAME_OVER);
   goToKanban = () => this.setState(this.STATES.KAN_BAN);
+  goToSandbox = () => this.setState(this.STATES.SANDBOX);
 
   // Reset to initial state
   reset() {

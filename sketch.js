@@ -226,7 +226,7 @@ function initializeWorld() {
  */
 
 function draw() {
-  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
+  if (GameState.getState() === 'SANDBOX') {  updateDraggablePanels(); }
 
   updatePresentationPanels(GameState.getState());
 
@@ -244,7 +244,7 @@ function draw() {
   // Update legacy draggable panels BEFORE rendering so the render pipeline
   // sees the latest panel positions (avoids a pre-update render that leaves
   // a ghost image of the previous frame's positions).
-  if (GameState.getState() === 'PLAYING') {
+  if (GameState.getState() === 'SANDBOX' || GameState.getState() === 'PLAYING') {
     try {
       if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
         updateDraggablePanels();
@@ -355,7 +355,7 @@ function draw() {
     }
   }
 
-  if (GameState.getState() === 'PLAYING') {
+  if (GameState.getState() === 'SANDBOX' || GameState.getState() === 'PLAYING') {
     const playerQueen = getQueen();
     if (playerQueen) {
       // WASD key codes: W=87 A=65 S=83 D=68

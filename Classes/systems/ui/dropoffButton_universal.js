@@ -117,7 +117,7 @@ function updateDropoffUI() {
 function updateLegacyDropoffUI() {
   if (!dropoffUI.button) return;
   // show only while in PLAYING
-  if (!(typeof GameState !== 'undefined' && GameState.isInGame && GameState.isInGame())) return;
+  if (!(typeof GameState !== 'undefined' && GameState.isInSandbox && GameState.isInSandbox())) return;
 
   // keep button anchored to bottom-center
   const bx = Math.floor((width - dropoffUI.button.width) / 2);

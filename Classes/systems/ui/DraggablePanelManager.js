@@ -34,7 +34,9 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat'],
+      'SANDBOX': ['ant_spawn', 'health_controls', 'debug', 'combat'],
+      // This will need to be updated for game
+      // 'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat'],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
       'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
       'GAME_OVER': ['stats', 'debug'],

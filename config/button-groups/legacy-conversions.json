@@ -46,7 +46,7 @@
         "storageKey": "demo-testing"
       },
       "conditions": {
-        "gameState": "playing"
+        "gameState": "sandbox"
       },
       "buttons": [
         {

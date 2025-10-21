@@ -139,8 +139,8 @@ class RenderLayerManager {
       case 'KANBAN':
         return [this.layers.TERRAIN, this.layers.UI_MENU];
         
-      case 'DEBUG_MENU':
-        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_DEBUG, this.layers.UI_MENU];
+      case 'SANDBOX':
+        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_DEBUG];
         
       case 'PLAYING':
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_DEBUG];
@@ -162,7 +162,7 @@ class RenderLayerManager {
    */
   renderTerrainLayer(gameState) {
     // Only render terrain for game states that need it
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS', 'SANDBOX'].includes(gameState)) {
       return;
     }
     
@@ -177,7 +177,7 @@ class RenderLayerManager {
    */
   renderEntitiesLayer(gameState) {
     // Only render entities during gameplay states
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU'].includes(gameState)) {
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'SANDBOX'].includes(gameState)) {
       return;
     }
     
@@ -196,7 +196,7 @@ class RenderLayerManager {
    */
   renderEffectsLayer(gameState) {
     // Render effects in most game states
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MAIN_MENU'].includes(gameState)) {
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MAIN_MENU', 'SANDBOX'].includes(gameState)) {
       return;
     }
     
@@ -219,7 +219,7 @@ class RenderLayerManager {
    * GAME UI LAYER - In-game interface elements
    */
   renderGameUILayer(gameState) {
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER'].includes(gameState)) { return; }
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'SANDBOX'].includes(gameState)) { return; }
     
     // Use comprehensive UI renderer
     const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
@@ -272,7 +272,7 @@ class RenderLayerManager {
    */
   renderInteractionUI(gameState) {
     // Only show interaction UI during active gameplay
-    if (gameState !== 'PLAYING') return;
+    if (gameState !== 'PLAYING' || gameState !== 'SANDBOX') return;
     
     // Dropoff UI
     if (window) {
@@ -347,7 +347,7 @@ class RenderLayerManager {
     }
     
     // Debug grid for playing state
-    if (gameState === 'PLAYING' && drawDebugGrid) {
+    if (gameState === 'PLAYING' && drawDebugGrid || gameState === 'SANDBOX' && drawDebugGrid) {
       if (g_gridMap) {
         drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
       }
@@ -475,7 +475,7 @@ class RenderLayerManager {
    */
   renderButtonGroups(gameState) {
     // Only render buttons in appropriate game states (including MENU for testing)
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU'].includes(gameState)) {
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU', 'SANDBOX'].includes(gameState)) {
       return;
     }
     
@@ -490,7 +490,8 @@ class RenderLayerManager {
           'PAUSED': 'paused',
           'GAME_OVER': 'gameOver',
           'MENU': 'menu',
-          'DEBUG_MENU': 'debug'
+          'DEBUG_MENU': 'debug',
+          'SANDBOX': 'sandbox'
         };
         
         // Set the current game state for button group conditions
@@ -517,7 +518,7 @@ class RenderLayerManager {
    */
   renderQueenControlPanel(gameState) {
     // Only render in playing states
-    if (!['PLAYING', 'PAUSED'].includes(gameState)) {
+    if (!['PLAYING', 'SANDBOX'].includes(gameState)) {
       return;
     }
     
@@ -539,7 +540,7 @@ class RenderLayerManager {
    */
   renderFireballEffects(gameState) {
     // Only render in playing states
-    if (!['PLAYING', 'PAUSED'].includes(gameState)) {
+    if (!['PLAYING', 'SANDBOX'].includes(gameState)) {
       return;
     }
     

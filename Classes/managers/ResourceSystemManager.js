@@ -100,7 +100,7 @@ class ResourceSystemManager {
     // Register for game state changes to start/stop spawning automatically
     if (typeof GameState !== 'undefined') {
       GameState.onStateChange((newState, oldState) => {
-        if (newState === 'PLAYING') {
+        if (newState === 'PLAYING' || newState === 'SANDBOX') {
           this.startSpawning();
         } else {
           this.stopSpawning();
@@ -108,7 +108,7 @@ class ResourceSystemManager {
       });
 
       // If we're already in PLAYING state when created, start immediately
-      if (GameState.getState() === 'PLAYING' && this.options.autoStart) {
+      if (GameState.getState() === 'PLAYING' && this.options.autoStart || GameState.getState() === 'SANDBOX' && this.options.autoStart) {
         this.startSpawning();
       }
     } else {

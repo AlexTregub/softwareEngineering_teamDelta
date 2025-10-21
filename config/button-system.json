@@ -43,7 +43,7 @@
     {
       "name": "Gameplay Groups",
       "path": "./button-groups/gameplay.json",
-      "gameStates": ["playing", "paused"],
+      "gameStates": ["sandbox", "paused"],
       "priority": 2,
       "loadOnStartup": false
     },
@@ -66,8 +66,8 @@
       "enabledFeatures": ["progress"],
       "disabledFeatures": ["interaction", "navigation"]
     },
-    "playing": {
-      "description": "Active gameplay state",
+    "sandbox": {
+      "description": "Active sandbox state",
       "enabledFeatures": ["entities", "resources", "controls", "debug"],
       "disabledFeatures": ["menu-navigation"]
     },

@@ -48,7 +48,7 @@ const MENU_CONFIGS = {
     { x: -10, y: -10,  w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
     { x: -10, y: 70,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
     { x: -60, y: 100, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
-    { x: 0,   y: 100,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
+    { x: 0,   y: 100,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => GameState.goToSandbox() }
   ],
   OPTIONS: [
     { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
@@ -88,7 +88,7 @@ function initializeMenu() {
   GameState.onStateChange((newState, oldState) => {
     if (newState === "MENU") {
       soundManager.play("bgMusic", 0.125, 1, true);
-    } else if (newState === "PLAYING") {
+    } else if (newState === "PLAYING" || newState === "SANDBOX") {
       soundManager.stop("bgMusic");
     }
     if (newState === "MENU" || newState === "OPTIONS") {

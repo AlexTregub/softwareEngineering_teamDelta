@@ -314,7 +314,7 @@ class ResourceSpawner {
     // Register for game state changes to start/stop spawning automatically
     if (typeof GameState !== 'undefined') {
       GameState.onStateChange((newState, oldState) => {
-        if (newState === 'PLAYING') {
+        if (newState === 'PLAYING' || newState === 'SANDBOX') {
           this.start();
         } else {
           this.stop();
@@ -322,7 +322,7 @@ class ResourceSpawner {
       });
 
       // If we're already in PLAYING state when created, start immediately
-      if (GameState.getState() === 'PLAYING') {
+      if (GameState.getState() === 'PLAYING' || GameState.getState() === 'SANDBOX') {
         this.start();
       }
     } else {
