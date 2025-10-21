@@ -34,9 +34,9 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat'],
-      'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
-      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
+      'PLAYING': ['ant_spawn2', 'health_controls', 'debug', 'combat', 'buildings'],
+      'PAUSED': ['ant_spawn', 'health_controls', 'debug', 'buildings'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'buildings'],
       'GAME_OVER': ['stats', 'debug'],
       'KANBAN': ['presentation-kanban-transition', 'debug']
     };
@@ -91,9 +91,9 @@ class DraggablePanelManager {
    */
   createDefaultPanels() {
     // Ant Spawn Panel (vertical layout with ant spawning options)
-    this.panels.set('ant_spawn', new DraggablePanel({
-      id: 'ant-Spawn-panel',
-      title: 'Ant Government Population Manager (🐜)',
+    this.panels.set('ant_spawn2', new DraggablePanel({
+      id: 'ant-Spawn-panel2',
+      title: 'Ant Government Population Manager (🐜)2',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
       scale: 1.0, // Initial scale
@@ -109,8 +109,18 @@ class DraggablePanelManager {
             style: ButtonStyles.SUCCESS
           },
           {
-            caption: 'Spawn 10 Ants',
-            onClick: () => this.spawnAnts(10),
+            caption: 'Spawn building',
+            onClick: () => {
+              const building = createBuilding('antcone', 50, 50, 'Player');
+              if (building && typeof Buildings !== 'undefined') {
+                Buildings.push(building);
+                // Register with TileInteractionManager for mouse detection
+                if (g_tileInteractionManager) {
+                  g_tileInteractionManager.addObject(building, 'building');
+                }
+                console.log('Building created and registered:', building);
+              }
+            },
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#32CD32' }
           },
           {
@@ -381,6 +391,42 @@ class DraggablePanelManager {
             onClick: () => this.dumpConsole(),
             style: ButtonStyles.DANGER
           } */
+        ]
+      }
+    }));
+
+    // Building Panel (grid layout with building types)
+    this.panels.set('buildings', new DraggablePanel({
+      id: 'buildings-panel',
+      title: 'Building Manager 🏗️',
+      position: { x: 380, y: 80 },
+      size: { width: 200, height: 180 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 5,
+        buttonWidth: 180,
+        buttonHeight: 35,
+        items: [
+          {
+            caption: 'Ant Cone (Paint)',
+            onClick: () => this.toggleBuildingBrush('antcone'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#8B4513', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Ant Hill (Paint)',
+            onClick: () => this.toggleBuildingBrush('anthill'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#A0522D', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Hive Source (Paint)',
+            onClick: () => this.toggleBuildingBrush('hivesource'),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#DAA520', color: '#000000' }
+          },
+          {
+            caption: 'Clear Buildings',
+            onClick: () => this.clearBuildings(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
+          }
         ]
       }
     }));
@@ -1050,6 +1096,75 @@ class DraggablePanelManager {
     }
     
     console.log(`🎨 Resource Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
+  }
+
+  /**
+   * Toggle the building paint brush tool
+   * @param {string} buildingType - Type of building to paint ('antcone', 'anthill', 'hivesource')
+   */
+  toggleBuildingBrush(buildingType) {
+    // Initialize building brush if not already done
+    if (typeof g_buildingBrush === 'undefined' || !g_buildingBrush) {
+      if (typeof initializeBuildingBrush === 'function') {
+        window.g_buildingBrush = initializeBuildingBrush();
+      } else {
+        console.warn('⚠️ Building Brush system not available');
+        return;
+      }
+    }
+    
+    // Check if clicking the same building type that's already active
+    const wasActive = g_buildingBrush.isActive;
+    const wasSameType = g_buildingBrush.getBuildingType() === buildingType;
+    
+    if (wasActive && wasSameType) {
+      // Deactivate if clicking the same brush again
+      g_buildingBrush.deactivate();
+    } else {
+      // Activate with new building type
+      g_buildingBrush.activate(buildingType);
+    }
+    
+    const isActive = g_buildingBrush.isActive;
+    
+    // Update button states
+    const buildingNames = {
+      'antcone': '🏔️ Ant Cone',
+      'anthill': '🏔️ Ant Hill',
+      'hivesource': '🏠 Hive Source'
+    };
+    
+    // Find and update all building buttons
+    const panel = this.panels.get('buildings');
+    if (panel && panel.buttons && panel.buttons.items) {
+      panel.buttons.items.forEach(btn => {
+        if (btn.caption.includes('🏔️') || btn.caption.includes('🏠')) {
+          const btnType = btn.caption.includes('Cone') ? 'antcone' : 
+                         btn.caption.includes('Hill') ? 'anthill' : 'hivesource';
+          
+          if (btnType === buildingType && isActive) {
+            btn.caption = `${buildingNames[btnType]} (ON)`;
+            btn.style.fontWeight = 'bold';
+          } else {
+            btn.caption = `${buildingNames[btnType]} (Paint)`;
+            btn.style.fontWeight = 'normal';
+          }
+        }
+      });
+    }
+    
+    console.log(`🏗️ Building Brush ${isActive ? 'activated' : 'deactivated'}: ${buildingType}`);
+  }
+
+  /**
+   * Clear all buildings from the map
+   */
+  clearBuildings() {
+    if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
+      const count = Buildings.length;
+      Buildings.length = 0; // Clear the array
+      console.log(`🏗️ Cleared ${count} building(s)`);
+    }
   }
 
   /**

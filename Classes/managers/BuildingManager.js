@@ -14,19 +14,19 @@ class AbstractBuildingFactory {
 
 class AntCone extends AbstractBuildingFactory {
     createBuilding(x, y, faction) {
-        return new Building(x, y, 64, 64, Cone, faction);
+        return new Building(x, y, 128, 128, Cone, faction);
     }
 }
 
 class AntHill extends AbstractBuildingFactory {
     createBuilding(x, y, faction) {
-        return new Building(x, y, 128, 128, Hill, faction);
+        return new Building(x, y, 256, 256, Hill, faction);
     }
 }
 
 class HiveSource extends AbstractBuildingFactory {
     createBuilding(x, y, faction) {
-        return new Building(x, y, 64, 64, Hive, faction);
+        return new Building(x, y, 128, 128, Hive, faction);
     }
 }
 
@@ -82,12 +82,36 @@ const BuildingFactoryRegistry = {
   hivesource: new HiveSource()
 };
 
-function createBuilding(type, x, y, faction = 'neutral') {
+/**
+ * Snap coordinates to grid based on TILE_SIZE
+ * @param {number} x - World x coordinate
+ * @param {number} y - World y coordinate
+ * @returns {object} - Snapped coordinates {x, y}
+ */
+function snapToGrid(x, y) {
+  const tileSize = (typeof TILE_SIZE !== 'undefined') ? TILE_SIZE : 32;
+  return {
+    x: Math.floor(x / tileSize) * tileSize,
+    y: Math.floor(y / tileSize) * tileSize
+  };
+}
+
+function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
   if (!type) return null;
   const key = String(type).toLowerCase();
   const factory = BuildingFactoryRegistry[key];
   if (!factory) return null;
-  let building = factory.createBuilding(x, y, faction);
+  
+  // Snap to grid if requested
+  let finalX = x;
+  let finalY = y;
+  if (snapGrid) {
+    const snapped = snapToGrid(x, y);
+    finalX = snapped.x;
+    finalY = snapped.y;
+  }
+  
+  let building = factory.createBuilding(finalX, finalY, faction);
   building.update();
   return building;
 }
