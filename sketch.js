@@ -226,6 +226,10 @@ function draw() {
   // g_map2.renderConversion.forceTileUpdate();
   // g_map2.invalidateCache();
 
+  // window.moveCameraBy(1,0);
+  // console.log(window.getCameraPosition());
+  // console.log(getWorldMouseX(),getWorldMouseY());
+
   if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
 
   updatePresentationPanels(GameState.getState());
