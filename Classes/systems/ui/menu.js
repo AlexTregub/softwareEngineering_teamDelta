@@ -189,6 +189,7 @@ function updateMenu() {
 
 // Render complete menu system
 function renderMenu() {
+  soundManager.play("bgMusic", 0.125, 1, true);
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
     drawMenu()
     

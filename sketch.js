@@ -70,7 +70,6 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
-  soundManager.play("bgMusic", 0.125, 1, true);
 }
 
 /**
