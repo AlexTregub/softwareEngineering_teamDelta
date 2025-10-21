@@ -680,7 +680,7 @@ class camRenderConverter {
             this._canvasCenter[0]/this._tileSize,
             this._canvasCenter[1]/this._tileSize
         ];
-        this._viewSpan = [
+        this._viewSpan = [ // Calc view Span
             [ // TL (-x,+y)
                 this._camPosition[0]-tileOffsets[0],
                 this._camPosition[1]+tileOffsets[1]
