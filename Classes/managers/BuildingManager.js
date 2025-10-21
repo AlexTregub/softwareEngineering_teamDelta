@@ -14,19 +14,19 @@ class AbstractBuildingFactory {
 
 class AntCone extends AbstractBuildingFactory {
     createBuilding(x, y, faction) {
-        return new Building(x, y, 128, 128, Cone, faction);
+        return new Building(x, y, 91, 97, Cone, faction);
     }
 }
 
 class AntHill extends AbstractBuildingFactory {
     createBuilding(x, y, faction) {
-        return new Building(x, y, 256, 256, Hill, faction);
+        return new Building(x, y, 160, 100, Hill, faction);
     }
 }
 
 class HiveSource extends AbstractBuildingFactory {
     createBuilding(x, y, faction) {
-        return new Building(x, y, 128, 128, Hive, faction);
+        return new Building(x, y, 160, 160, Hive, faction);
     }
 }
 
@@ -42,12 +42,10 @@ class Building extends Entity {
         });
         this._faction = faction;
         if(img){this.setImage(img)}
-        this.x = x;
-        this.y = y;
         this.lastFrameTime = performance.now();
     }
 
-
+    _renderBoxHover() {}
 
     get _renderController() { return this.getController('render'); }
 
@@ -58,20 +56,37 @@ class Building extends Entity {
 
         if (!this.isActive()) return;
         
-        // Update Entity systems first
-        super.update();
-        console.log('Building update at', this.x, this.y);
+        // Update only safe controllers for buildings (avoid transform/movement which may conflict)
+        const safeControllers = ['render', 'health', 'selection', 'interaction'];
+        safeControllers.forEach(name => {
+          const c = this.getController(name);
+          if (c && typeof c.update === 'function') {
+            try { c.update(); } catch (e) { console.warn(`Building ${name} update error:`, e); }
+          }
+        });
+        
+        // Ensure collision box and sprite are in sync with the entity's canonical position/size
+        try {
+          const pos = this.getPosition();
+          const size = this.getSize();
+          if (pos) this._collisionBox.setPosition(pos.x, pos.y);
+          if (size) this._collisionBox.setSize(size.x, size.y);
+          if (this._sprite && typeof this._sprite.setPosition === 'function') {
+            // prefer sprite API to accept plain object if createVector isn't available
+            try { this._sprite.setPosition(pos); } catch { /* fallback ignored */ }
+          }
+        } catch (e) {
+          console.warn('Building sync error:', e);
+        }
+    }
+
+    moveToLocation(x, y) {
+        return;
     }
 
     render() {
         if (!this.isActive) return;
         super.render();
-        if (this._healthController) {
-            this._healthController.render();
-        }
-        if (this.isBoxHovered) {
-            this._renderBoxHover();
-        }
     }
 }
 
@@ -82,19 +97,7 @@ const BuildingFactoryRegistry = {
   hivesource: new HiveSource()
 };
 
-/**
- * Snap coordinates to grid based on TILE_SIZE
- * @param {number} x - World x coordinate
- * @param {number} y - World y coordinate
- * @returns {object} - Snapped coordinates {x, y}
- */
-function snapToGrid(x, y) {
-  const tileSize = (typeof TILE_SIZE !== 'undefined') ? TILE_SIZE : 32;
-  return {
-    x: Math.floor(x / tileSize) * tileSize,
-    y: Math.floor(y / tileSize) * tileSize
-  };
-}
+
 
 function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
   if (!type) return null;
@@ -102,17 +105,8 @@ function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
   const factory = BuildingFactoryRegistry[key];
   if (!factory) return null;
   
-  // Snap to grid if requested
-  let finalX = x;
-  let finalY = y;
-  if (snapGrid) {
-    const snapped = snapToGrid(x, y);
-    finalX = snapped.x;
-    finalY = snapped.y;
-  }
   
-  let building = factory.createBuilding(finalX, finalY, faction);
-  building.update();
+  let building = factory.createBuilding(x, y, faction);
   return building;
 }
 

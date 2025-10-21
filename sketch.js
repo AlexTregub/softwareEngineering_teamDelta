@@ -40,7 +40,7 @@ function preload(){
   terrainPreloader();
   menuPreload();
   antsPreloader();
-  resourcePreLoad();
+  // resourcePreLoad();
   preloadPauseImages();
   BuildingPreloader();
   
@@ -121,7 +121,7 @@ function setup() {
   initializeContextMenuPrevention();
   //
 
-  Buildings.push(createBuilding('antcone', 200, 200, 'neutral'));
+  Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
 }
 
 /**
