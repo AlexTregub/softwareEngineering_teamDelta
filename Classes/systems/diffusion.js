@@ -435,10 +435,37 @@ class PheromoneGrid {
             for (let x = cullArea[0][0]; x <= cullArea[1][0]; ++x) {
                 let tlCoord = renderConversion.convPosToCanvas([x,y]);
 
+                // Want display of MAX and AVG
+                let phersAtCell = this.get([x,y],selLeft);
+                
+                let maxRatio = 0;
+                let avgRatio = 0;
+                for (let i = 0; i < phersAtCell.length; ++i) {
+                    maxRatio = Math.max(maxRatio,phersAtCell[i].strength/phersAtCell[i].initial);
+                    avgRatio += phersAtCell[i].strength/phersAtCell[i].initial;
+                }
+                if (phersAtCell.length != 0) {
+                    avgRatio /= phersAtCell.length;
+                }
+                
+
+
+                fill(color(255*maxRatio,0,0));
+                square(tlCoord[0]-3*TILE_SIZE/10,tlCoord[1]-TILE_SIZE/10,TILE_SIZE/5,TILE_SIZE); //,TILE_SIZE*0.7); // Centered circles
+
+                fill(color(0,255*avgRatio,0));
+                square(tlCoord[0]-1*TILE_SIZE/10,tlCoord[1]-TILE_SIZE/10,TILE_SIZE/5,TILE_SIZE); //,TILE_SIZE*0.7); // Centered circles
+
+                fill(color(0,0,0));
+                if (phersAtCell.length != 0) {
+                    fill(color(0,0,255));
+                }
+                square(tlCoord[0]+1*TILE_SIZE/10,tlCoord[1]-TILE_SIZE/10,TILE_SIZE/5,TILE_SIZE);
+
                 // push();
                 // if (this.get([x,y],selLeft).length*50%255,0,0)
                 // fill(color(255,0,0));
-                fill(this.get([x,y],selLeft).length*200,0,0)
+                // fill(this.get([x,y],selLeft).length*200,0,0)
                 // console.log(this.get([x,y],selLeft).length)
                 // if (this.get([x,y],selLeft).length != 0) {
                 //     console.log(x,y);
@@ -448,7 +475,7 @@ class PheromoneGrid {
                 // } else {
                 //     fill(color(0,this.get([x,y],!selLeft).length*50%255,0)); // blue
                 // }
-                square(tlCoord[0]-TILE_SIZE/10,tlCoord[1]-TILE_SIZE/10,TILE_SIZE/5,TILE_SIZE); //,TILE_SIZE*0.7); // Centered circles
+                // square(tlCoord[0]-TILE_SIZE/10,tlCoord[1]-TILE_SIZE/10,TILE_SIZE/5,TILE_SIZE); //,TILE_SIZE*0.7); // Centered circles
                 // draw();
                 // pop();
                 // console.log("Rendered ",x,y);
