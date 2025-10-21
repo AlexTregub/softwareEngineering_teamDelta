@@ -143,10 +143,10 @@ class RenderLayerManager {
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_DEBUG];
         
       case 'PLAYING':
-        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_DEBUG];
+        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME];
         
       case 'PAUSED':
-        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME];
+        return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS];
         
       case 'GAME_OVER':
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_MENU];
@@ -219,7 +219,7 @@ class RenderLayerManager {
    * GAME UI LAYER - In-game interface elements
    */
   renderGameUILayer(gameState) {
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'SANDBOX'].includes(gameState)) { return; }
+    if (!['PLAYING', 'GAME_OVER', 'SANDBOX'].includes(gameState)) { return; }
     
     // Use comprehensive UI renderer
     const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
@@ -272,7 +272,7 @@ class RenderLayerManager {
    */
   renderInteractionUI(gameState) {
     // Only show interaction UI during active gameplay
-    if (gameState !== 'PLAYING' || gameState !== 'SANDBOX') return;
+    if (gameState !== 'SANDBOX') return;
     
     // Dropoff UI
     if (window) {
@@ -347,7 +347,7 @@ class RenderLayerManager {
     }
     
     // Debug grid for playing state
-    if (gameState === 'PLAYING' && drawDebugGrid || gameState === 'SANDBOX' && drawDebugGrid) {
+    if (gameState === 'SANDBOX' && drawDebugGrid) {
       if (g_gridMap) {
         drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
       }
@@ -475,7 +475,7 @@ class RenderLayerManager {
    */
   renderButtonGroups(gameState) {
     // Only render buttons in appropriate game states (including MENU for testing)
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU', 'SANDBOX'].includes(gameState)) {
+    if (![ 'GAME_OVER', 'MENU', 'DEBUG_MENU', 'SANDBOX'].includes(gameState)) {
       return;
     }
     
