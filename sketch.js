@@ -206,25 +206,19 @@ if (typeof window !== 'undefined') {
 function initializeWorld() {
 
   g_seed = hour()*minute()*floor(second()/10);
-
-  g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
-  // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
   
   // New, Improved, and Chunked Terrain
-  // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
-  // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
-  // COORDSY = MAP.getCoordinateSystem();
-  // COORDSY.setViewCornerBC(0,0);
-  
-  g_gridMap = new PathMap(g_map);
+  g_gridMap = new PathMap(g_map2);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
   queenAnt = spawnQueen();
+
+  // disableTerrainCache();
 }
 
 /**
@@ -237,6 +231,15 @@ function initializeWorld() {
  */
 
 function draw() {
+  // NO LONGER WORKING:
+  // g_map2.renderConversion._camPosition[0] += 0.1;
+  // g_map2.renderConversion._camPosition[1] += 0.1;
+  // g_map2.renderConversion.forceTileUpdate();
+  // g_map2.invalidateCache();
+
+  // window.moveCameraBy(1,0);
+  // console.log(window.getCameraPosition());
+  // console.log(getWorldMouseX(),getWorldMouseY());
 
   if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
 
