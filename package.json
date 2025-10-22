@@ -62,6 +62,8 @@
     "test:smoke": "node test/smoke/run-smoke-tests.js",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"
+    ,
+    "test:unit": "mocha --reporter ./test/unit/silent-reporter.js \\\"test/unit/**/*.test.js\\\""
   },
   "keywords": [
     "game",

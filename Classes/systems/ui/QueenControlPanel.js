@@ -18,13 +18,13 @@ class QueenControlPanel {
   constructor() {
     this.isVisible = false;
     this.selectedQueen = null;
-    this.panelId = 'queen-control-panel';
+    this.panelId = 'queen-powers-panel';
     this.panel = null;
     
     // Panel properties
-    this.position = { x: 20, y: 150 };
-    this.size = { width: 180, height: 120 };
-    this.title = 'Queen Commands';
+    this.position = { x: 20, y: 380 };
+    this.size = { width: 160, height: 120 };
+    this.title = 'Queen Powers';
     
     // Fireball properties
     this.fireballDamage = 30;
@@ -34,6 +34,9 @@ class QueenControlPanel {
     // Visual feedback
     this.targetingMode = false;
     this.targetCursor = { x: 0, y: 0, visible: false };
+    
+    // Power cycling state
+    this.currentPowerIndex = -1;
   }
 
   /**
@@ -71,7 +74,7 @@ class QueenControlPanel {
   }
 
   /**
-   * Create the draggable panel
+   * Create the draggable panel with power controls
    */
   createPanel() {
     if (!window.draggablePanelManager || !window.DraggablePanel) return;
@@ -81,7 +84,16 @@ class QueenControlPanel {
       window.draggablePanelManager.removePanel(this.panelId);
     }
 
-    // Create new panel
+    // ButtonStyles might not be available yet, so use inline styles
+    const successStyle = window.ButtonStyles ? 
+      { ...window.ButtonStyles.SUCCESS, backgroundColor: '#32CD32', color: '#FFFFFF' } :
+      { backgroundColor: '#32CD32', color: '#FFFFFF' };
+    
+    const infoStyle = window.ButtonStyles ? 
+      { ...window.ButtonStyles.INFO, backgroundColor: '#555555', color: '#999999' } :
+      { backgroundColor: '#555555', color: '#999999' };
+
+    // Create new panel with power controls
     this.panel = new window.DraggablePanel({
       id: this.panelId,
       title: this.title,
@@ -89,27 +101,19 @@ class QueenControlPanel {
       size: this.size,
       buttons: {
         layout: 'vertical',
-        spacing: 8,
-        buttonWidth: 150,
+        spacing: 6,
+        buttonWidth: 140,
         buttonHeight: 28,
         items: [
           {
-            caption: 'Fireball Attack',
-            onClick: () => this.activateFireballTargeting(),
-            style: { 
-              backgroundColor: '#FF4500', 
-              color: '#FFFFFF',
-              border: '2px solid #FF6500'
-            }
+            caption: 'Place Dropoff',
+            onClick: () => this.handlePlaceDropoff(),
+            style: successStyle
           },
           {
-            caption: 'Cancel Targeting',
-            onClick: () => this.cancelTargeting(),
-            style: { 
-              backgroundColor: '#666666', 
-              color: '#FFFFFF',
-              border: '2px solid #888888'
-            }
+            caption: 'Use Power',
+            onClick: () => this.cyclePower(),
+            style: infoStyle // Greyed out by default
           }
         ]
       }
@@ -117,6 +121,9 @@ class QueenControlPanel {
 
     // Add panel to manager
     window.draggablePanelManager.addPanel(this.panel);
+    
+    // Update power button state based on unlocked powers
+    this.updatePowerButtonState();
   }
 
   /**
@@ -145,6 +152,148 @@ class QueenControlPanel {
     this.targetingMode = false;
     this.targetCursor.visible = false;
     console.log('🎯 Fireball targeting cancelled');
+  }
+
+  /**
+   * Handle Place Dropoff button click
+   */
+  handlePlaceDropoff() {
+    // Activate dropoff placement mode
+    if (typeof window.g_dropoffTilePlacementMode !== 'undefined') {
+      window.g_dropoffTilePlacementMode = true;
+      console.log("🎯 Place Dropoff: click a tile to place, press ESC to cancel.");
+    } else if (typeof window.activateDropoffPlacement === 'function') {
+      window.activateDropoffPlacement();
+    } else {
+      console.log("🎯 Place Dropoff: click a tile to place, press ESC to cancel.");
+      // Fallback: set global flag
+      window.g_dropoffTilePlacementMode = true;
+    }
+  }
+
+  /**
+   * Update the Use Power button state based on unlocked powers
+   */
+  updatePowerButtonState() {
+    if (!this.selectedQueen || !this.panel) return;
+    
+    const button = this.findButtonByCaption('Use Power', true);
+    if (!button) return;
+
+    const unlockedPowers = this.selectedQueen.getUnlockedPowers ? 
+      this.selectedQueen.getUnlockedPowers() : [];
+
+    if (unlockedPowers.length > 0) {
+      // Enable button with bright colors
+      button.style.backgroundColor = '#1E90FF';
+      button.style.color = '#FFFFFF';
+      button.caption = 'Use Power: None';
+    } else {
+      // Grey out button
+      button.style.backgroundColor = '#555555';
+      button.style.color = '#999999';
+      button.caption = 'Use Power';
+      
+      // Reset current power if no powers unlocked
+      if (button.style.backgroundColor === '#555555' || button.caption === 'Use Power') {
+        this.currentPowerIndex = -1;
+        button.caption = 'Use Power';
+      }
+    }
+  }
+
+  /**
+   * Cycle through unlocked powers and activate the selected one
+   */
+  cyclePower() {
+    if (!this.selectedQueen) return;
+
+    const button = this.findButtonByCaption('Use Power', true); // partial match
+    if (!button) return;
+
+    // Define all powers with their activation logic
+    const allPowers = [
+      {
+        name: 'Fireball',
+        key: 'fireball',
+        activate: () => {
+          console.log('🔥 Fireball activated!');
+          this.activateFireballTargeting();
+        }
+      },
+      {
+        name: 'Lightning',
+        key: 'lightning',
+        activate: () => {
+          console.log('⚡ Lightning activated!');
+          if (typeof window.activateLightning === 'function') {
+            window.activateLightning();
+          } else {
+            console.log('⚡ Lightning system: Click to strike enemies');
+          }
+        }
+      },
+      {
+        name: 'Blackhole',
+        key: 'blackhole',
+        activate: () => {
+          console.log('🌀 Blackhole power - not yet implemented');
+        }
+      },
+      {
+        name: 'Sludge',
+        key: 'sludge',
+        activate: () => {
+          console.log('☠️ Sludge power - not yet implemented');
+        }
+      },
+      {
+        name: 'Tidal Wave',
+        key: 'tidalWave',
+        activate: () => {
+          console.log('🌊 Tidal Wave power - not yet implemented');
+        }
+      }
+    ];
+
+    // Filter to only unlocked powers
+    const unlockedPowers = allPowers.filter(p => 
+      this.selectedQueen.isPowerUnlocked && this.selectedQueen.isPowerUnlocked(p.key)
+    );
+
+    if (unlockedPowers.length === 0) {
+      console.log('❌ No powers unlocked yet! Use the cheats panel to unlock powers.');
+      return;
+    }
+
+    // Cycle to next power
+    this.currentPowerIndex = (this.currentPowerIndex + 1) % unlockedPowers.length;
+    const currentPower = unlockedPowers[this.currentPowerIndex];
+
+    // Update button caption
+    button.caption = `Use Power: ${currentPower.name}`;
+
+    // Activate the power
+    currentPower.activate();
+
+    console.log(`👑 Queen power cycled to: ${currentPower.name}`);
+  }
+
+  /**
+   * Find a button by caption (supports partial matching)
+   * @param {string} caption - Button caption to search for
+   * @param {boolean} partialMatch - Allow partial matching
+   * @returns {Object|null} Button object or null
+   */
+  findButtonByCaption(caption, partialMatch = false) {
+    if (!this.panel || !this.panel.buttons) return null;
+
+    return this.panel.buttons.find(btn => {
+      if (partialMatch) {
+        return btn.caption && btn.caption.includes(caption);
+      }
+      return btn.caption === caption;
+    });
   }
 
   /**
@@ -334,9 +483,14 @@ function updateQueenPanelVisibility() {
     selectedQueen = ants.find(ant => 
       ant && 
       ant.isSelected && 
-      ant.jobName === 'Queen' && 
+      (ant.jobName === 'Queen' || ant.job === 'Queen' || (ant.constructor && ant.constructor.name === 'QueenAnt')) &&
       ant.health > 0
     );
+  }
+  
+  // Also check playerQueen global
+  if (!selectedQueen && typeof playerQueen !== 'undefined' && playerQueen && playerQueen.isSelected) {
+    selectedQueen = playerQueen;
   }
 
   // Show or hide panel based on selection
@@ -344,6 +498,9 @@ function updateQueenPanelVisibility() {
     g_queenControlPanel.show(selectedQueen);
   } else if (!selectedQueen && g_queenControlPanel.isVisible) {
     g_queenControlPanel.hide();
+  } else if (selectedQueen && g_queenControlPanel.isVisible) {
+    // Queen still selected - update power button state in case powers changed
+    g_queenControlPanel.updatePowerButtonState();
   }
 }
 

@@ -95,8 +95,13 @@ class AntStateMachine {
    * Will try and set the preferred state to be resumed after the ant is idle, 
    */
   setPreferredState(state){
-    if (this.isValidPrimary(state)) { this.primaryState = state } 
-    else { IncorrectParamPassed(state, this.primaryStates)}
+    if (this.isValidPrimary(state)) {
+      this.preferredState = state;
+      return true;
+    } else {
+      console.warn(`AntStateMachine: Invalid preferred state '${state}'`);
+      return false;
+    }
   }
 
   beginIdle(){

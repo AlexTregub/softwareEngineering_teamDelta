@@ -34,11 +34,12 @@ class DraggablePanelManager {
     this.currentlyDragging = null;
     
     // Panel visibility by game state (from Integration class)
+    // NOTE: 'combat' panel removed - Queen Powers now managed by QueenControlPanel (shows only when queen selected)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat', 'tasks','buildings',"resources"],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'tasks','buildings',"resources", 'cheats'],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
-      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'cheats'],
       'GAME_OVER': ['stats', 'debug'],
       'KANBAN': ['presentation-kanban-transition', 'debug']
     };
@@ -266,32 +267,8 @@ class DraggablePanelManager {
       }
     }));
 
-    // Combat Panel (lightning button)
-    this.panels.set('combat', new DraggablePanel({
-      id: 'combat-panel',
-      title: 'Combat Controls',
-      position: { x: 20, y: 380 },
-      size: { width: 160, height: 120 },
-      buttons: {
-        layout: 'vertical',
-        spacing: 6,
-        buttonWidth: 140,
-        buttonHeight: 28,
-        items: [
-          {
-            caption: 'Shoot Lightning',
-            onClick: () => this.handleShootLightning(),
-            style: { ...ButtonStyles.DANGER, backgroundColor: '#4DA6FF', color: '#FFFFFF' }
-          }
-          ,
-          {
-            caption: 'Aim Lightning',
-            onClick: () => this.toggleLightningAimBrush(),
-            style: { ...ButtonStyles.INFO, backgroundColor: '#2E9AFE', color: '#FFFFFF' }
-          }
-        ]
-      }
-    }));
+    // NOTE: Combat/Queen Powers panel has been moved to QueenControlPanel.js
+    // It now only shows when the queen is selected (see Classes/systems/ui/QueenControlPanel.js)
 
     // Health Management Panel (horizontal layout with health controls)
     this.panels.set('health_controls', new DraggablePanel({
@@ -556,6 +533,52 @@ class DraggablePanelManager {
             caption: 'Clear Buildings',
             onClick: () => this.clearBuildings(),
             style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
+          }
+        ]
+      }
+    }));
+
+    // Cheats Panel (unlock powers and other debug features)
+    this.panels.set('cheats', new DraggablePanel({
+      id: 'cheats-panel',
+      title: '👑 Power Cheats',
+      position: { x: 780, y: 80 },
+      size: { width: 180, height: 220 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 4,
+        buttonWidth: 160,
+        buttonHeight: 32,
+        items: [
+          {
+            caption: '🔥 Unlock Fireball',
+            onClick: () => this.unlockPower('fireball'),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
+          },
+          {
+            caption: '⚡ Unlock Lightning',
+            onClick: () => this.unlockPower('lightning'),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#4DA6FF', color: '#FFFFFF' }
+          },
+          {
+            caption: '🌀 Unlock Black Hole',
+            onClick: () => this.unlockPower('blackhole'),
+            style: { ...ButtonStyles.PURPLE, backgroundColor: '#9400D3', color: '#FFFFFF' }
+          },
+          {
+            caption: '🧪 Unlock Sludge',
+            onClick: () => this.unlockPower('sludge'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#556B2F', color: '#FFFFFF' }
+          },
+          {
+            caption: '🌊 Unlock Tidal Wave',
+            onClick: () => this.unlockPower('tidalWave'),
+            style: { ...ButtonStyles.PRIMARY, backgroundColor: '#1E90FF', color: '#FFFFFF' }
+          },
+          {
+            caption: '🔓 Unlock All Powers',
+            onClick: () => this.unlockAllPowers(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#FFD700', color: '#000000' }
           }
         ]
       }
@@ -1300,21 +1323,95 @@ class DraggablePanelManager {
   }
 
   /**
+   * Unlock a specific power for the queen
+   * @param {string} powerName - Name of the power to unlock
+   */
+  unlockPower(powerName) {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.warn('⚠️ No queen found - cannot unlock powers');
+      return;
+    }
+
+    if (typeof queen.unlockPower === 'function') {
+      const success = queen.unlockPower(powerName);
+      if (success) {
+        console.log(`✅ Unlocked power: ${powerName}`);
+        
+        // Update the button to show it's unlocked
+        const button = this.findButtonByCaption(`Unlock ${powerName}`, true);
+        if (button) {
+          button.caption = `✅ ${powerName.charAt(0).toUpperCase() + powerName.slice(1)}`;
+        }
+
+        // Update the Use Power button state in QueenControlPanel if available
+        if (typeof window.g_queenControlPanel !== 'undefined' && window.g_queenControlPanel) {
+          window.g_queenControlPanel.updatePowerButtonState();
+        }
+      }
+    } else {
+      console.warn('⚠️ Queen does not support power unlocking (old queen class?)');
+    }
+  }
+
+  /**
+   * Unlock all powers for the queen
+   */
+  unlockAllPowers() {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.warn('⚠️ No queen found - cannot unlock powers');
+      return;
+    }
+
+    const powers = ['fireball', 'lightning', 'blackhole', 'sludge', 'tidalWave'];
+    let unlocked = 0;
+
+    for (const power of powers) {
+      if (typeof queen.unlockPower === 'function' && queen.unlockPower(power)) {
+        unlocked++;
+      }
+    }
+
+    console.log(`✅ Unlocked ${unlocked}/${powers.length} powers`);
+
+    // Update all unlock buttons to show they're unlocked
+    const panel = this.panels.get('cheats');
+    if (panel && panel.buttons && panel.buttons.items) {
+      panel.buttons.items.forEach(btn => {
+        if (btn.caption.includes('Unlock') && !btn.caption.includes('All')) {
+          const powerName = btn.caption.replace('🔥 Unlock ', '').replace('⚡ Unlock ', '')
+            .replace('🌀 Unlock ', '').replace('🧪 Unlock ', '').replace('🌊 Unlock ', '');
+          btn.caption = `✅ ${powerName}`;
+        }
+      });
+    }
+
+    // Update the Use Power button state in QueenControlPanel if available
+    if (typeof window.g_queenControlPanel !== 'undefined' && window.g_queenControlPanel) {
+      window.g_queenControlPanel.updatePowerButtonState();
+    }
+  }
+
+  /**
    * Helper method to find button by caption
    * @param {string} caption - Button caption to search for
    * @returns {Object|null} Button object or null if not found
    */
-  findButtonByCaption(caption) {
+  findButtonByCaption(caption, partialMatch = false) {
     // Search through all panels and their buttons
     for (const panel of this.panels.values()) {
       if (panel.buttons && panel.buttons.items) {
-        const button = panel.buttons.items.find(btn => 
-          btn.caption === caption || 
-          btn.caption.includes('Paint Brush') || 
-          btn.caption.includes('Brush:') ||
-          btn.caption.includes('Resource Brush') ||
-          btn.caption.includes('Paint Resource Brush')
-        );
+        const button = panel.buttons.items.find(btn => {
+          if (partialMatch) {
+            return btn.caption && btn.caption.includes(caption);
+          }
+          return btn.caption === caption || 
+            btn.caption.includes('Paint Brush') || 
+            btn.caption.includes('Brush:') ||
+            btn.caption.includes('Resource Brush') ||
+            btn.caption.includes('Paint Resource Brush');
+        });
         if (button) return button;
       }
     }
@@ -1498,7 +1595,7 @@ class DraggablePanelManager {
   }
 
   /**
-   * Toggle the lightning aim brush
+   * Toggle the lightning aim brush (LEGACY - replaced by power cycling)
    */
   toggleLightningAimBrush() {
     if (typeof g_lightningAimBrush === 'undefined' || !g_lightningAimBrush) {
@@ -1517,6 +1614,10 @@ class DraggablePanelManager {
       button.style.backgroundColor = active ? '#1E90FF' : '#2E9AFE';
     }
   }
+
+  // NOTE: handlePlaceDropoff, updatePowerButtonState, and cyclePower methods 
+  // have been moved to QueenControlPanel.js (Classes/systems/ui/QueenControlPanel.js)
+  // These methods are now part of the queen-specific panel that only shows when queen is selected
 
   /**
    * Toggle debug information display

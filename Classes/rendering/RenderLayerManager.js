@@ -1142,7 +1142,9 @@ function renderPipelineInit() {
   g_uiDebugManager = window.g_uiDebugManager; // Make globally available
   
   // Initialize dropoff UI if present (creates the Place Dropoff button)
-  //window.initDropoffUI();
+  if (typeof window.initDropoffUI === 'function') {
+    window.initDropoffUI();
+  }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {

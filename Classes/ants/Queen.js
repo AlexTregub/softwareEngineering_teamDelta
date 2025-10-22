@@ -20,6 +20,15 @@ class QueenAnt extends ant {
     this.showCommandRadius = false;
     // Queen should not perform idle random skitter movements
     this.disableSkitter = true;
+
+    // Power unlock flags (false by default - unlock via cheats or progression)
+    this.unlockedPowers = {
+      fireball: false,
+      lightning: false,
+      blackhole: false,
+      sludge: false,
+      tidalWave: false
+    };
   }
 
   // --- ANT MANAGEMENT ---
@@ -87,6 +96,39 @@ class QueenAnt extends ant {
       x: queenPos.x,
       y: queenPos.y,
     });
+  }
+
+  // --- POWER MANAGEMENT ---
+
+  unlockPower(powerName) {
+    if (this.unlockedPowers.hasOwnProperty(powerName)) {
+      this.unlockedPowers[powerName] = true;
+      console.log(`👑 Queen unlocked power: ${powerName}`);
+      return true;
+    }
+    console.warn(`⚠️ Unknown power: ${powerName}`);
+    return false;
+  }
+
+  lockPower(powerName) {
+    if (this.unlockedPowers.hasOwnProperty(powerName)) {
+      this.unlockedPowers[powerName] = false;
+      console.log(`👑 Queen locked power: ${powerName}`);
+      return true;
+    }
+    return false;
+  }
+
+  isPowerUnlocked(powerName) {
+    return this.unlockedPowers[powerName] === true;
+  }
+
+  getUnlockedPowers() {
+    return Object.keys(this.unlockedPowers).filter(power => this.unlockedPowers[power]);
+  }
+
+  getAllPowers() {
+    return { ...this.unlockedPowers };
   }
 
   // --- MOVEMENT OVERRIDE ---
