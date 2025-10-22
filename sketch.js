@@ -1,4 +1,3 @@
-
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
@@ -13,7 +12,9 @@ let g_mouseController;
 let g_keyboardController;
 let g_selectionBoxController;
 let g_uiSelectionController; // UI Effects Layer Selection Controller
-let g_tileInteractionManager; // Efficient tile-based interaction system
+let g_tileInteractionManager;
+// Add a single list used by selection systems (ants + buildings)
+let selectables = [];
 // --- WORLD GENERATION ---
 let g_seed;
 let g_map;
@@ -26,6 +27,8 @@ let g_recordingPath;
 // -- Queen ---
 let queenAnt;
 
+// Buildings
+let Buildings = [];
 
 /**
  * preload
@@ -40,6 +43,7 @@ function preload(){
   antsPreloader();
   resourcePreLoad();
   preloadPauseImages();
+  BuildingPreloader();
   soundManager.preload();
   
   // Load presentation assets
@@ -50,6 +54,10 @@ function preload(){
 
 
 function setup() {
+  // Initialize TaskLibrary before other systems that depend on it
+  /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
+  console.log('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
+*/
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   createCanvas(g_canvasX, g_canvasY);
@@ -61,8 +69,8 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-
+  // Selection controller reads from the combined selectables list
+  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, selectables);
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
     // UI shortcuts are now handled directly in keyPressed() function
@@ -117,6 +125,9 @@ function setup() {
   
   // Initialize context menu prevention for better brush control
   initializeContextMenuPrevention();
+  //
+
+  Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
 }
 
 /**
@@ -283,6 +294,15 @@ function draw() {
     }
   }
   
+  // Render Building Brush (on top of other UI elements)
+  if (window.g_buildingBrush) {
+    try {
+      window.g_buildingBrush.render();
+    } catch (error) {
+      console.error('❌ Error rendering building brush:', error);
+    }
+  }
+  
   // Render debug visualization for ant gathering (overlays on top)
   if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
     g_gatherDebugRenderer.render();
@@ -320,6 +340,15 @@ function draw() {
       window.g_resourceBrush.update();
     } catch (error) {
       console.error('❌ Error updating resource brush:', error);
+    }
+  }
+
+  // Update Building Brush
+  if (window.g_buildingBrush) {
+    try {
+      window.g_buildingBrush.update();
+    } catch (error) {
+      console.error('❌ Error updating building brush:', error);
     }
   }
 
@@ -449,6 +478,17 @@ function mousePressed() {
     }
   }
 
+  // Handle Building Brush events
+  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling building brush events:', error);
+    }
+  }
+
   // Handle Lightning Aim Brush events
   if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
     try {
@@ -504,6 +544,16 @@ function mouseReleased() {
       window.g_resourceBrush.onMouseReleased(mouseX, mouseY, buttonName);
     } catch (error) {
       console.error('❌ Error handling resource brush release events:', error);
+    }
+  }
+
+  // Handle Building Brush release events
+  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_buildingBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling building brush release events:', error);
     }
   }
 

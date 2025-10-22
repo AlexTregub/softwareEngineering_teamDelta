@@ -381,6 +381,16 @@ class ant extends Entity {
       updateUISelectionEntities();
       console.log(`   ✅ Updated UI selection entities`);
     }
+    
+    // Remove from selectables so selection system stops referencing it
+    if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+      const sidx = selectables.indexOf(this);
+      if (sidx !== -1) selectables.splice(sidx, 1);
+    }
+    // Also update selection controller's entities if it stores a snapshot
+    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+      if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+    }
   }
   
   // --- Resource Methods ---
@@ -777,6 +787,8 @@ function spawnQueen(){
 
   newAnt.assignJob(JobName, JobImages[JobName]);
   ants.push(newAnt);
+  // also add to selectables so selection box can see it
+  if (typeof selectables !== 'undefined') selectables.push(newAnt);
   newAnt.update();
 
   // Register ant with TileInteractionManager for efficient mouse detection
@@ -789,27 +801,36 @@ function spawnQueen(){
 }
 
 // --- Spawn Ants ---
-function antsSpawn(numToSpawn, faction = "neutral") {
+function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let JobName = assignJob();
-    
+
+    let px, py;
+    if (x !== null && y !== null) {
+      const jitter = 12;
+      px = x + (Math.random() * jitter - jitter / 2);
+      py = y + (Math.random() * jitter - jitter / 2);
+    } else {
+      px = random(0, 500);
+      py = random(0, 500);
+    }
+
     // Create ant directly with new job system
     let newAnt = new ant(
-      random(0, 500), random(0, 500), 
-      antSize.x + sizeR, 
-      antSize.y + sizeR, 
+      px, py,
+      antSize.x + sizeR,
+      antSize.y + sizeR,
       30, 0,
       antBaseSprite,
       JobName,
       faction
     );
     
-    // Assign job using new component system
     newAnt.assignJob(JobName, JobImages[JobName]);
     
-    // Store ant directly (no wrapper!)
     ants.push(newAnt);
+    if (typeof selectables !== 'undefined') selectables.push(newAnt);
     newAnt.update();
     
     // Register ant with TileInteractionManager for efficient mouse detection

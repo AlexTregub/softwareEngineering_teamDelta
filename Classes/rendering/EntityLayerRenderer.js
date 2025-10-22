@@ -193,8 +193,27 @@ class EntityRenderer {
    * Collect other entities (expandable for future entity types)
    */
   collectOtherEntities(gameState) {
+    // Collect buildings
+    if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
+      for (const building of Buildings) {
+        if (building && this.shouldRenderEntity(building)) {
+          this.renderGroups.BACKGROUND.push({
+            entity: building,
+            type: 'building',
+            depth: this.getEntityDepth(building),
+            position: this.getEntityPosition(building)
+          });
+          this.stats.totalEntities++;
+          
+          // Update building if in playing state
+          if (gameState === 'PLAYING' && building.update) {
+            building.update();
+          }
+        }
+      }
+    }
+    
     // Placeholder for additional entity types like:
-    // - Buildings/structures
     // - Projectiles
     // - Environmental objects
     // - Particle effects

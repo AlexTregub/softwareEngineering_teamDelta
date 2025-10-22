@@ -78,6 +78,7 @@ class resourcesArray {
     return this.resources;
   }
 
+
   drawAll() {
     for (const r of this.resources) {
       // Prefer modern Entity/Controller render path; fallback to legacy draw if encountered
