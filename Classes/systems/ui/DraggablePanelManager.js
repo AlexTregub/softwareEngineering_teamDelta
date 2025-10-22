@@ -149,7 +149,7 @@ class DraggablePanelManager {
     // Ant Spawn Panel (vertical layout with ant spawning options)
     this.panels.set('ant_spawn', new DraggablePanel({
       id: 'ant-Spawn-panel',
-      title: 'Ant Government Population Manager (🐜)',
+      title: 'Ant Spawning',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
       scale: 1.0, // Initial scale
@@ -223,7 +223,7 @@ class DraggablePanelManager {
         layout: 'horizontal',
         columns: 2,
         spacing: 8,
-        buttonWidth: 200,
+        buttonWidth: 160,
         buttonHeight: 20,
         items: [
           {
