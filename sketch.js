@@ -61,8 +61,8 @@ function setup() {
   
   // Initialize spatial grid manager FIRST (before any entities are created)
   if (typeof SpatialGridManager !== 'undefined') {
-    window.spatialGridManager = new SpatialGridManager(TILE_SIZE * 2); // 64px cells
-    logNormal('SpatialGridManager initialized with 64px cells');
+    window.spatialGridManager = new SpatialGridManager(TILE_SIZE); // Match terrain tile size (32px)
+    logNormal(`SpatialGridManager initialized with ${TILE_SIZE}px cells (matching terrain tiles)`);
     
     // Register spatial grid visualization in debug layer (only renders when enabled)
     if (typeof RenderManager !== 'undefined') {
@@ -291,28 +291,8 @@ function initializeWorld() {
 
 function draw() {  
 
-  // Input-driven updates are handled by interactive adapters registered with RenderManager.
-  // Draggable panels and other UI elements now receive pointer events via RenderManager.
-
   RenderManager.render(GameState.getState());
 
-
-  // background(0);
-  // g_map2.renderDirect();
-
-  // Use the new layered rendering system
-  // Update legacy draggable panels BEFORE rendering so the render pipeline
-  // sees the latest panel positions (avoids a pre-update render that leaves
-  // a ghost image of the previous frame's positions).
-  if (GameState.getState() === 'PLAYING') {
-    try {
-      if (typeof updateDraggablePanels !== 'undefined') { // Avoid double call
-        updateDraggablePanels();
-      }
-    } catch (error) {
-      console.error('❌ Error updating legacy draggable panels (pre-render):', error);
-    }
-  }
   if (typeof window.renderPauseMenuUI === 'function') {
     window.renderPauseMenuUI();
   }
@@ -444,7 +424,24 @@ function draw() {
     }
   }
 
+  // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
+  if (typeof window.drawCoordinateVisualization === 'function') {
+    try {
+      window.drawCoordinateVisualization();
+    } catch (error) {
+      console.error('❌ Error drawing coordinate visualization:', error);
+    }
   }
+  
+  // Debug visualization for terrain grid (toggle with toggleTerrainGrid() or Ctrl+Shift+G)
+  if (typeof window.drawTerrainGrid === 'function') {
+    try {
+      window.drawTerrainGrid();
+    } catch (error) {
+      console.error('❌ Error drawing terrain grid:', error);
+    }
+  }
+  
 }
 
  /* handleMouseEvent
@@ -482,41 +479,9 @@ function mousePressed() {
     if (handled) return;
   }
 
-  // Forward to RenderManager interactive dispatch first (gives adapters priority)
-  try {
-    const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
-    if (consumed) return; // consumed by an interactive (buttons/panels/etc.)
-    // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
-  } catch (e) {
-    console.error('Error dispatching pointerdown to RenderManager:', e);
-    // best-effort: still notify legacy controller if present to avoid breaking older flows
-    try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
-  }
-
-  // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
+  // PRIORITY 1: Check active brushes FIRST (before UI elements)
+  // This ensures brush clicks work even if panels are visible
   
-  // Handle Universal Button Group System clicks
-  if (window.buttonGroupManager && 
-      typeof window.buttonGroupManager.handleClick === 'function') {
-    try {
-      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
-      if (handled) return; // Button was clicked, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling button click:', error);
-    }
-  }
-
-  // Handle DraggablePanel mouse events
-  if (window.draggablePanelManager && 
-      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
-    try {
-      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
-      if (handled) return; // Panel consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling draggable panel mouse events:', error);
-    }
-  }
-
   // Handle Enemy Ant Brush events
   if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
     try {
@@ -558,6 +523,46 @@ function mousePressed() {
       if (handled) return;
     } catch (error) {
       console.error('❌ Error handling lightning aim brush events:', error);
+    }
+  }
+
+  // PRIORITY 2: RenderManager UI elements (buttons, panels, etc.)
+  // Forward to RenderManager interactive dispatch (gives adapters priority)
+  try {
+    const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
+    if (consumed) {
+      console.log('🖱️ Mouse click consumed by RenderManager');
+      return; // consumed by an interactive (buttons/panels/etc.)
+    }
+    console.log('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
+    // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
+  } catch (e) {
+    console.error('Error dispatching pointerdown to RenderManager:', e);
+    // best-effort: still notify legacy controller if present to avoid breaking older flows
+    try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
+  }
+
+  // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
+  
+  // Handle Universal Button Group System clicks
+  if (window.buttonGroupManager && 
+      typeof window.buttonGroupManager.handleClick === 'function') {
+    try {
+      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
+      if (handled) return; // Button was clicked, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling button click:', error);
+    }
+  }
+
+  // Handle DraggablePanel mouse events
+  if (window.draggablePanelManager && 
+      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
+    try {
+      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (handled) return; // Panel consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling draggable panel mouse events:', error);
     }
   }
 
@@ -731,6 +736,11 @@ function keyPressed() {
       toggleTileInspector();
       return;
     }
+  }
+  
+  // Handle terrain grid debug shortcuts (Ctrl+Shift+G/O/L)
+  if (typeof handleTerrainGridKeys === 'function' && handleTerrainGridKeys()) {
+    return; // Terrain grid shortcut was handled
   }
   
   // Handle all debug-related keys (command line, dev console, test hotkeys)

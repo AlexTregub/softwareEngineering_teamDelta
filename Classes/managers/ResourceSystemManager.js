@@ -629,6 +629,7 @@ class ResourceSystemManager {
 
   /**
    * Generate spawn positions based on pattern.
+   * Converts all positions to terrain-aligned coordinates.
    * @private
    */
   _generateSpawnPositions(count, config) {
@@ -645,10 +646,17 @@ class ResourceSystemManager {
         
         for (let row = 0; row < rows && positions.length < count; row++) {
           for (let col = 0; col < cols && positions.length < count; col++) {
-            positions.push({
-              x: stepX * (col + 1),
-              y: stepY * (row + 1)
-            });
+            let x = stepX * (col + 1);
+            let y = stepY * (row + 1);
+            
+            // Convert to terrain-aligned coordinates
+            if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+              const worldPos = CoordinateConverter.screenToWorld(x, y);
+              x = worldPos.x;
+              y = worldPos.y;
+            }
+            
+            positions.push({ x, y });
           }
         }
         break;
@@ -674,6 +682,13 @@ class ResourceSystemManager {
             y = random(height, g_canvasY - height);
           }
           
+          // Convert to terrain-aligned coordinates
+          if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+            const worldPos = CoordinateConverter.screenToWorld(x, y);
+            x = worldPos.x;
+            y = worldPos.y;
+          }
+          
           positions.push({ x, y });
         }
         break;
@@ -681,6 +696,7 @@ class ResourceSystemManager {
       case 'random':
       default:
         // Use improved distribution algorithm for better spread
+        // Note: _generateWellDistributedPositions will also apply coordinate conversion
         positions = this._generateWellDistributedPositions(count, width, height);
         break;
     }
@@ -691,6 +707,7 @@ class ResourceSystemManager {
   /**
    * Generate well-distributed positions across the canvas using Poisson disk sampling approach.
    * This ensures resources are spread out evenly without clustering.
+   * All positions are converted to terrain-aligned coordinates.
    * @private
    */
   _generateWellDistributedPositions(count, resourceWidth, resourceHeight) {
@@ -709,8 +726,15 @@ class ResourceSystemManager {
       
       while (!placed && attempts < maxAttempts) {
         // Generate candidate position
-        const candidateX = random(padding, g_canvasX - padding - resourceWidth);
-        const candidateY = random(padding, g_canvasY - padding - resourceHeight);
+        let candidateX = random(padding, g_canvasX - padding - resourceWidth);
+        let candidateY = random(padding, g_canvasY - padding - resourceHeight);
+        
+        // Convert to terrain-aligned coordinates
+        if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+          const worldPos = CoordinateConverter.screenToWorld(candidateX, candidateY);
+          candidateX = worldPos.x;
+          candidateY = worldPos.y;
+        }
         
         // Check minimum distance from existing positions
         let tooClose = false;
@@ -736,10 +760,17 @@ class ResourceSystemManager {
       
       // If we couldn't place with minimum distance, place randomly as fallback
       if (!placed) {
-        positions.push({
-          x: random(padding, g_canvasX - padding - resourceWidth),
-          y: random(padding, g_canvasY - padding - resourceHeight)
-        });
+        let fallbackX = random(padding, g_canvasX - padding - resourceWidth);
+        let fallbackY = random(padding, g_canvasY - padding - resourceHeight);
+        
+        // Convert fallback position too
+        if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+          const worldPos = CoordinateConverter.screenToWorld(fallbackX, fallbackY);
+          fallbackX = worldPos.x;
+          fallbackY = worldPos.y;
+        }
+        
+        positions.push({ x: fallbackX, y: fallbackY });
       }
     }
     

@@ -36,7 +36,7 @@ class DraggablePanelManager {
     // Panel visibility by game state (from Integration class)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat', 'tasks','buildings'],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat', 'tasks','buildings',"resources"],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
       'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
       'GAME_OVER': ['stats', 'debug'],
@@ -147,9 +147,9 @@ class DraggablePanelManager {
    */
   createDefaultPanels() {
     // Ant Spawn Panel (vertical layout with ant spawning options)
-    this.panels.set('ant_spawn2', new DraggablePanel({
-      id: 'ant-Spawn-panel2',
-      title: 'Ant Government Population Manager (🐜)2',
+    this.panels.set('ant_spawn', new DraggablePanel({
+      id: 'ant-Spawn-panel',
+      title: 'Ant Government Population Manager (🐜)',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
       scale: 1.0, // Initial scale
@@ -165,39 +165,19 @@ class DraggablePanelManager {
             style: ButtonStyles.SUCCESS
           },
           {
-            caption: 'Spawn building',
-            onClick: () => {
-              const building = createBuilding('antcone', 50, 50, 'Player');
-              if (building && typeof Buildings !== 'undefined') {
-                Buildings.push(building);
-                // Register with TileInteractionManager for mouse detection
-                if (g_tileInteractionManager) {
-                  g_tileInteractionManager.addObject(building, 'building');
-                }
-                console.log('Building created and registered:', building);
-              }
-            },
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#32CD32' }
+            caption: 'Spawn 10 Ants',
+            onClick: () => this.spawnAnts(10),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
           },
           {
             caption: 'Spawn 100 Ants',
             onClick: () => this.spawnAnts(100),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
-          },
-          {
-            caption: 'Spawn 1000 Ants (Don\'t do this!)',
-            onClick: () => this.spawnAnts(1000),
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
           },
           {
             caption: 'Paint Enemy Brush',
             onClick: () => this.toggleEnemyBrush(),
             style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
-          },
-          {
-            caption: 'Paint Resource Brush',
-            onClick: () => this.toggleResourceBrush(),
-            style: { ...ButtonStyles.INFO, backgroundColor: '#32CD32', color: '#FFFFFF' }
           },
           {
             caption: 'Kill 1 Ant',
@@ -240,32 +220,17 @@ class DraggablePanelManager {
       position: { x: 180, y: 80 },
       size: { width: 180, height: 150 },
       buttons: {
-        layout: 'grid',
+        layout: 'horizontal',
         columns: 2,
         spacing: 8,
-        buttonWidth: 70,
-        buttonHeight: 40,
+        buttonWidth: 200,
+        buttonHeight: 20,
         items: [
           {
-            caption: 'Wood',
-            onClick: () => this.selectResource('stick'),
-            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#8B4513' }
-          },
-          {
-            caption: 'Leaves',
-            onClick: () => this.selectResource('leaves'),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#11cd5cff' }
-          },
-          {
-            caption: 'Stone',
-            onClick: () => this.selectResource('stone'),
-            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#696969' }
-          }/*,
-          {
-            caption: 'Info',
-            onClick: () => this.showResourceInfo(),
-            style: ButtonStyles.PURPLE
-          }*/
+            caption: 'Paint Resource Brush',
+            onClick: () => this.toggleResourceBrush(),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#32CD32', color: '#FFFFFF' }
+          }
         ]
       }
     }));

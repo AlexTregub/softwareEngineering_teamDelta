@@ -753,38 +753,24 @@ class camRenderConverter {
 
     //// Conversions
     convPosToCanvas(input) {
-        // 'Proper' conversion:
-        // let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
-        // let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
-        // let third = this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
+        // Standard conversion without Y-axis inversion
+        // Converts tile coordinates to canvas pixel coordinates
+        // Uses standard p5.js coordinate system: Y increases downward
         
-        // (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0]
-        // return third;
-
-        // Handling inverted y:
-        // let first = this.posSub(input,this._camPosition); // Convert to center relative to cam position
-        // first[1]*=-1; // Invert rendering on y axis.
-        // let second = this.scalMul(first,this._tileSize); // Convert to pixel size, relative to (0,0) grid aka (0,0) canvas
-        // let third = this.posAdd(second,this._canvasCenter); // Offset to (cen,cen);
-        
-        // return third;
-
         return [
             (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0],
-            -1*(input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
+            (input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
         ];
     }
 
-    convCanvasToPos(input) { // Invert pos->canvas calc
-        // let thirdInv = this.posSub(input,this._canvasCenter);
-        // let secondInv = this.scalMul(thirdInv,1/this._tileSize);
-        // let firstInv = this.posAdd(secondInv,this._camPosition)
-        // return firstInv;
+    convCanvasToPos(input) { // Inverse of pos->canvas calc
+        // Standard conversion without Y-axis inversion
+        // Converts canvas pixel coordinates to tile coordinates
+        // Uses standard p5.js coordinate system: Y increases downward
 
         return [
             (input[0] - this._canvasCenter[0])/this._tileSize + this._camPosition[0],
-            // (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
-            (input[1] - this._canvasCenter[1])/-this._tileSize + this._camPosition[1]
+            (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
         ];
     }
 

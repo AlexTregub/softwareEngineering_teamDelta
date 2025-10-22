@@ -19,29 +19,30 @@
  * 
  * @class SpatialGrid
  * @example
- * const grid = new SpatialGrid(64); // 64px cells
+ * const grid = new SpatialGrid(32); // 32px cells (match TILE_SIZE)
  * grid.addEntity(myAnt);
  * const nearby = grid.queryRadius(100, 100, 50); // Find entities within 50px of (100,100)
  */
 class SpatialGrid {
   /**
    * Create a spatial grid with fixed cell size
-   * @param {number} [cellSize=64] - Size of each grid cell in pixels (default: TILE_SIZE * 2)
+   * Cell size should match terrain tile size for perfect alignment
+   * @param {number} [cellSize=32] - Size of each grid cell in pixels (default: TILE_SIZE to match terrain)
    */
-  constructor(cellSize = (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE * 2 : 64)) {
+  constructor(cellSize = (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32)) {
     this._cellSize = cellSize;
     this._grid = new Map(); // key: "x,y", value: Set of entities
     this._entityCount = 0;
     
     if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal(`SpatialGrid: Initialized with cell size ${this._cellSize}px`);
+      globalThis.logNormal(`SpatialGrid: Initialized with cell size ${this._cellSize}px (matching terrain tile size)`);
     }
   }
 
   /**
    * Convert world coordinates to grid cell key
-   * @param {number} x - World X coordinate
-   * @param {number} y - World Y coordinate
+   * @param {number} x - World X coordinate (pixel-space)
+   * @param {number} y - World Y coordinate (pixel-space)
    * @returns {string} Grid cell key "cellX,cellY"
    * @private
    */
@@ -53,16 +54,15 @@ class SpatialGrid {
 
   /**
    * Get cell coordinates from world coordinates
-   * @param {number} x - World X coordinate
-   * @param {number} y - World Y coordinate
+   * @param {number} x - World X coordinate (pixel-space)
+   * @param {number} y - World Y coordinate (pixel-space)
    * @returns {Array<number>} [cellX, cellY]
    * @private
    */
   _getCellCoords(x, y) {
-    return [
-      Math.floor(x / this._cellSize),
-      Math.floor(y / this._cellSize)
-    ];
+    const cellX = Math.floor(x / this._cellSize);
+    const cellY = Math.floor(y / this._cellSize);
+    return [cellX, cellY];
   }
 
   /**

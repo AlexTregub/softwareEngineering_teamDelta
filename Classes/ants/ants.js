@@ -783,9 +783,23 @@ function spawnQueen(){
   let JobName = 'Queen'
   let sizeR = random(0, 15);
   
+  // Generate spawn position
+  let spawnX = random(0, 500);
+  let spawnY = random(0, 500);
+  
+  // Convert to terrain-aligned coordinates (applies Y-axis inversion)
+  if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && 
+      typeof g_map2.renderConversion.convCanvasToPos === 'function' &&
+      typeof g_map2.renderConversion.convPosToCanvas === 'function') {
+    const tilePos = g_map2.renderConversion.convCanvasToPos([spawnX, spawnY]);
+    const alignedPos = g_map2.renderConversion.convPosToCanvas(tilePos);
+    spawnX = alignedPos[0];
+    spawnY = alignedPos[1];
+  }
+  
   // Create QueenAnt directly (no need for wrapper ant)
   let newAnt = new ant(
-    random(0, 500), random(0, 500), 
+    spawnX, spawnY, 
     queenSize.x + sizeR, 
     queenSize.y + sizeR, 
     30, 0,
@@ -831,6 +845,18 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     } else {
       px = random(0, 500);
       py = random(0, 500);
+    }
+    
+    // Convert to terrain-aligned coordinates (applies Y-axis inversion)
+    // This ensures entities are stored in the same coordinate space as terrain
+    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && 
+        typeof g_map2.renderConversion.convCanvasToPos === 'function' &&
+        typeof g_map2.renderConversion.convPosToCanvas === 'function') {
+      // Convert screen -> tile -> back to terrain-aligned screen coords
+      const tilePos = g_map2.renderConversion.convCanvasToPos([px, py]);
+      const alignedPos = g_map2.renderConversion.convPosToCanvas(tilePos);
+      px = alignedPos[0];
+      py = alignedPos[1];
     }
 
     // Create ant directly with new job system
