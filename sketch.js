@@ -29,6 +29,7 @@ let queenAnt;
 
 // Buildings
 let Buildings = [];
+let hive;
 
 /**
  * preload
@@ -127,7 +128,9 @@ function setup() {
   initializeContextMenuPrevention();
   //
 
-  Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
+  // TEST BUILDINGS
+  hive = createBuilding('hivesource', 200, 200, 'neutral');
+  Buildings.push(hive);
 }
 
 /**
@@ -396,6 +399,12 @@ function draw() {
       if (keyIsDown(65)) playerQueen.move("a");
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
+    }
+
+    // Press U to upgrade hive
+    if(keyIsDown(85) && hive){
+      console.log('Upgrading hive...');
+      hive.upgradeBuilding();
     }
   }
 
