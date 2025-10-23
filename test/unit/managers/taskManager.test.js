@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-const controllerPath = path.join(__dirname, '..', '..', 'Classes', 'controllers', 'TaskManager.js');
+const controllerPath = path.join(__dirname, '..', '..', '..', 'Classes', 'controllers', 'TaskManager.js');
 const controllerCode = fs.readFileSync(controllerPath, 'utf8');
 const classMatch = controllerCode.match(/class TaskManager[\s\S]*?^}/m);
 if (classMatch) {

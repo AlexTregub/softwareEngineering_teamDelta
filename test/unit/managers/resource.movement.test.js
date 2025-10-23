@@ -2,6 +2,8 @@
  * Resource Movement Integration Test
  */
 
+const { expect } = require('chai');
+
 // Mock Entity dependencies for Node.js testing
 class MockCollisionBox2D {
   constructor(x, y, width, height) {

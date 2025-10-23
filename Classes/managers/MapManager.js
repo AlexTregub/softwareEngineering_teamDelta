@@ -361,3 +361,8 @@ class MapManager {
 if (typeof window !== 'undefined') {
   window.mapManager = new MapManager();
 }
+
+// Export for Node.js compatibility
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = MapManager;
+}

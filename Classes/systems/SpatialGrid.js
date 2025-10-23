@@ -484,3 +484,8 @@ if (typeof window !== 'undefined') {
     }
   };
 }
+
+// Export for Node.js compatibility
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SpatialGrid;
+}

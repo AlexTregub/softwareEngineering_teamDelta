@@ -21,7 +21,7 @@ test_dir = Path(__file__).parent.absolute()  # test/unified_bdd_tests/
 project_root = test_dir.parent.parent        # project root directory 
 sys.path.insert(0, str(test_dir))
 
-print(f"🔍 Debug paths:")
+print(f"[DEBUG] Debug paths:")
 print(f"   Test dir: {test_dir}")
 print(f"   Project root: {project_root}")
 print(f"   Index.html exists: {(project_root / 'index.html').exists()}")
@@ -63,7 +63,7 @@ class BDDTestRunner:
         
     def run_selenium_tests_directly(self):
         """Run the tests directly using Selenium without behave dependency"""
-        print("🧪 Running BDD Tests with Direct Selenium Implementation")
+        print("[TEST] Running BDD Tests with Direct Selenium Implementation")
         print("=" * 60)
         
         try:
@@ -93,7 +93,7 @@ class BDDTestRunner:
         for port in [8000, 8001, 8002, 8003, 8004]:
             try:
                 response = urllib.request.urlopen(f'http://localhost:{port}', timeout=3)
-                print(f"✅ Found existing HTTP server on port {port}")
+                print(f"[OK] Found existing HTTP server on port {port}")
                 self.server_port = port
                 return None  # No server process to manage
             except:
@@ -101,7 +101,7 @@ class BDDTestRunner:
         
         # No existing server, start our own
         port = 8000
-        print(f"🌐 Starting new HTTP server on port {port}...")
+        print(f"[SERVER] Starting new HTTP server on port {port}...")
         print(f"   Working directory: {project_root}")
         
         # Use shell=True for better Windows compatibility
@@ -118,12 +118,12 @@ class BDDTestRunner:
             time.sleep(1)
             try:
                 response = urllib.request.urlopen(f'http://localhost:{port}', timeout=2)
-                print(f"✅ HTTP server started successfully on port {port}")
+                print(f"[OK] HTTP server started successfully on port {port}")
                 self.server_port = port
                 return server
             except:
                 if i == 9:  # Last attempt
-                    print("❌ Server failed to start within timeout")
+                    print("[ERROR] Server failed to start within timeout")
                     server.terminate()
                     raise Exception("HTTP server startup timeout")
                 continue
@@ -135,18 +135,18 @@ class BDDTestRunner:
     def _stop_server(self, server):
         """Stop HTTP server"""
         if server is not None:
-            print("🛑 Stopping HTTP server...")
+            print("[STOP] Stopping HTTP server...")
             server.terminate()
             try:
                 server.wait(timeout=5)
             except:
                 server.kill()  # Force kill if it doesn't stop
         else:
-            print("🔄 Using existing server, not stopping")
+            print("[INFO] Using existing server, not stopping")
     
     def _setup_browser(self):
         """Setup Chrome WebDriver"""
-        print("🌍 Setting up Chrome WebDriver (headless)...")
+        print("[BROWSER] Setting up Chrome WebDriver (headless)...")
         chrome_options = Options()
         chrome_options.add_argument('--headless')  # Run in headless mode
         chrome_options.add_argument('--no-sandbox')
@@ -169,28 +169,28 @@ class BDDTestRunner:
         
         # Use file protocol for reliable loading (bypass server issues)
         file_url = f"file:///{str(project_root).replace(chr(92), '/')}/index.html"
-        print(f"🔗 Loading page: {file_url}")
+        print(f"[LOAD] Loading page: {file_url}")
         try:
             driver.get(file_url)
-            print("✅ Page loaded successfully")
+            print("[OK] Page loaded successfully")
         except Exception as e:
-            print(f"❌ Page load failed: {e}")
+            print(f"[ERROR] Page load failed: {e}")
             raise
         
         # Wait for game systems to initialize
-        print("⏳ Waiting for game systems to initialize...")
+        print("[WAIT] Waiting for game systems to initialize...")
         
         # First, let's see what actually loaded
         try:
             page_title = driver.title
             page_source_length = len(driver.page_source)
-            print(f"📄 Page info: Title='{page_title}', Source length={page_source_length}")
+            print(f"[INFO] Page info: Title='{page_title}', Source length={page_source_length}")
             
             if page_source_length < 500:
-                print("⚠️  Page seems very small, showing content:")
+                print("[WARN] Page seems very small, showing content:")
                 print(driver.page_source)
         except Exception as e:
-            print(f"❌ Could not get page info: {e}")
+            print(f"[ERROR] Could not get page info: {e}")
         
         max_wait_time = 20  # Reduced from 30 seconds
         wait_interval = 2   # Increased interval
@@ -227,27 +227,27 @@ class BDDTestRunner:
                     systems_ready['buttonManager'] and 
                     systems_ready['renderManager'] and 
                     systems_ready['actionFactory']):
-                    print(f"✅ All systems initialized in {elapsed} seconds")
+                    print(f"[OK] All systems initialized in {elapsed} seconds")
                     break
                     
                 # Show more detailed status
                 if elapsed % 5 == 0 or elapsed < 5:  # Every 5 seconds or first 5 seconds
-                    print(f"⏳ Status at {elapsed}s:")
-                    print(f"   📄 Document: {systems_ready.get('documentReady', 'unknown')}")
-                    print(f"   📜 Scripts: {systems_ready.get('scriptsLoaded', 0)} loaded")
-                    print(f"   🎨 p5.js: {systems_ready.get('p5Loaded', False)} loaded, setup/draw: {systems_ready['p5Ready']}")
-                    print(f"   🔧 Systems: buttons={systems_ready['buttonManager']}, render={systems_ready['renderManager']}, actions={systems_ready['actionFactory']}")
+                    print(f"[WAIT] Status at {elapsed}s:")
+                    print(f"   Document: {systems_ready.get('documentReady', 'unknown')}")
+                    print(f"   Scripts: {systems_ready.get('scriptsLoaded', 0)} loaded")
+                    print(f"   p5.js: {systems_ready.get('p5Loaded', False)} loaded, setup/draw: {systems_ready['p5Ready']}")
+                    print(f"   Systems: buttons={systems_ready['buttonManager']}, render={systems_ready['renderManager']}, actions={systems_ready['actionFactory']}")
                     if systems_ready.get('consoleErrors'):
-                        print(f"   ❌ Console errors: {systems_ready['consoleErrors']}")
+                        print(f"   [ERROR] Console errors: {systems_ready['consoleErrors']}")
                 
             except Exception as e:
-                print(f"⏳ Still loading... ({elapsed}s) - Error: {str(e)}")
+                print(f"[WAIT] Still loading... ({elapsed}s) - Error: {str(e)}")
             
             time.sleep(wait_interval)
             elapsed += wait_interval
         
         if elapsed >= max_wait_time:
-            print("⚠️  Warning: Maximum wait time reached, some systems may not be ready")
+            print("[WARN] Warning: Maximum wait time reached, some systems may not be ready")
         
         # Additional wait for p5.js to complete setup
         time.sleep(2)
@@ -256,7 +256,7 @@ class BDDTestRunner:
     
     def _run_button_system_tests(self, driver):
         """Run Universal Button System tests"""
-        print("\n📋 Testing Universal Button System...")
+        print("\n[TEST] Testing Universal Button System...")
         feature_results = {
             'name': 'Universal Button System',
             'scenarios': []
@@ -283,7 +283,7 @@ class BDDTestRunner:
     
     def _run_render_pipeline_tests(self, driver):
         """Run Render Pipeline tests"""
-        print("\n🎨 Testing Render Pipeline System...")
+        print("\n[TEST] Testing Render Pipeline System...")
         feature_results = {
             'name': 'Render Pipeline System',
             'scenarios': []
@@ -306,7 +306,7 @@ class BDDTestRunner:
     
     def _run_integration_tests(self, driver):
         """Run end-to-end integration tests"""
-        print("\n🔗 Testing End-to-End Integration...")
+        print("\n[TEST] Testing End-to-End Integration...")
         feature_results = {
             'name': 'End-to-End Integration',
             'scenarios': []
@@ -326,7 +326,7 @@ class BDDTestRunner:
     def _test_button_manager_initialization(self, driver):
         """Test: ButtonGroupManager has been initialized"""
         scenario_name = "ButtonGroupManager Initialization"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -341,17 +341,17 @@ class BDDTestRunner:
             assert result['hasActiveGroups'], "ButtonGroupManager should have activeGroups"
             assert result['hasCreateMethod'], "ButtonGroupManager should have createButtonGroup method"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_button_group_creation(self, driver):
         """Test: Button groups are created correctly"""
         scenario_name = "Button Group Creation"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -380,17 +380,17 @@ class BDDTestRunner:
             assert result['hasGroups'], f"Should have button groups. Found: {result['totalGroups']}"
             assert result['hasButtons'], f"Should have buttons. Found: {result['totalButtons']}"
             
-            print(f"  ✅ {scenario_name} - PASSED (Groups: {result['totalGroups']}, Buttons: {result['totalButtons']})")
+            print(f"  [PASS] {scenario_name} - PASSED (Groups: {result['totalGroups']}, Buttons: {result['totalButtons']})")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_button_click_functionality(self, driver):
         """Test: Button clicks trigger actions correctly"""
         scenario_name = "Button Click Functionality"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             # Find debug button
@@ -434,17 +434,17 @@ class BDDTestRunner:
             
             assert action_result['success'], f"Action execution should succeed: {action_result.get('error', '')}"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': {'button': button_info, 'action': action_result}}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_button_drag_functionality(self, driver):
         """Test: Button groups can be dragged correctly"""
         scenario_name = "Button Drag Functionality"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -468,17 +468,17 @@ class BDDTestRunner:
             # Note: This test validates the drag configuration rather than actual drag behavior
             # Full drag testing would require complex mouse simulation
             
-            print(f"  ✅ {scenario_name} - PASSED (Draggable groups: {result['draggableGroups']})")
+            print(f"  [PASS] {scenario_name} - PASSED (Draggable groups: {result['draggableGroups']})")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_render_manager_initialization(self, driver):
         """Test: RenderLayerManager is properly initialized"""
         scenario_name = "RenderLayerManager Initialization"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -497,17 +497,17 @@ class BDDTestRunner:
             assert result['hasToggleLayer'], "RenderLayerManager should have toggleLayer method"
             assert result['uiDebugExists'], "UI_DEBUG layer should exist"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_layer_toggle_functionality(self, driver):
         """Test: Layer toggling works correctly"""
         scenario_name = "Layer Toggle Functionality"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -531,17 +531,17 @@ class BDDTestRunner:
             assert result['secondToggleWorked'], "Second toggle should change state back"
             assert result['backToOriginal'], "Should return to original state after two toggles"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_layer_state_persistence(self, driver):
         """Test: Layer states persist correctly"""
         scenario_name = "Layer State Persistence"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -571,17 +571,17 @@ class BDDTestRunner:
             assert result['persistedDisabled'], "Disabled state should persist"
             assert result['enabledCorrectly'], "Layer should be enabled when enableLayer is called"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_complete_debug_workflow(self, driver):
         """Test: Complete debug button workflow"""
         scenario_name = "Complete Debug Button Workflow"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -616,17 +616,17 @@ class BDDTestRunner:
             assert result['secondActionSucceeded'], "Second debug action should succeed"
             assert result['backToOriginal'], "Should return to original state after two actions"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_system_recovery(self, driver):
         """Test: System handles errors gracefully"""
         scenario_name = "System Error Recovery"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -665,16 +665,16 @@ class BDDTestRunner:
             assert result['systemStable'], "System should remain stable after error"
             assert result['errorHandled'], "Errors should be handled gracefully"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _run_edge_case_tests(self, driver):
         """Run edge case and boundary condition tests"""
-        print("\n🔍 Testing Edge Cases and Boundary Conditions...")
+        print("\n[TEST] Testing Edge Cases and Boundary Conditions...")
         feature_results = {
             'name': 'Advanced Edge Cases',
             'scenarios': []
@@ -697,7 +697,7 @@ class BDDTestRunner:
     
     def _run_comprehensive_action_tests(self, driver):
         """Run comprehensive action system tests"""
-        print("\n⚡ Testing Comprehensive Action System...")
+        print("\n[TEST] Testing Comprehensive Action System...")
         feature_results = {
             'name': 'Comprehensive Action System',
             'scenarios': []
@@ -721,7 +721,7 @@ class BDDTestRunner:
     def _test_multiple_simultaneous_actions(self, driver):
         """Test: Multiple actions executed simultaneously"""
         scenario_name = "Multiple Simultaneous Actions"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -752,17 +752,17 @@ class BDDTestRunner:
             assert result['allExecuted'], "All actions should execute"
             assert result['allSuccessful'], "All actions should succeed"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_button_configuration_validation(self, driver):
         """Test: Button configuration validation"""
         scenario_name = "Button Configuration Validation"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -787,17 +787,17 @@ class BDDTestRunner:
             
             assert result['validExecuted'], "Valid configuration should execute successfully"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_positioning_edge_cases(self, driver):
         """Test: Button positioning edge cases"""
         scenario_name = "Positioning Edge Cases"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -834,17 +834,17 @@ class BDDTestRunner:
             assert result['totalGroups'] > 0, "Should have button groups"
             assert result['groupsWithButtons'] > 0, "Should have groups with buttons"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_action_handler_validation(self, driver):
         """Test: Action handler registration and validation"""
         scenario_name = "Action Handler Validation"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -862,17 +862,17 @@ class BDDTestRunner:
             assert result['hasExecuteAction'], "Should have executeAction method"
             assert result['debugActionWorks'], "Debug action should work"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_action_execution_with_context(self, driver):
         """Test: Action execution with game context"""
         scenario_name = "Action Execution with Context"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -895,17 +895,17 @@ class BDDTestRunner:
             
             assert result['bothSucceeded'], "Actions should work with various context values"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_action_parameter_validation(self, driver):
         """Test: Action parameter validation"""
         scenario_name = "Action Parameter Validation"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -962,16 +962,16 @@ class BDDTestRunner:
             assert result['missingAction'], "Missing actions should be handled"
             assert result['nullAction'], "Null actions should be handled"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _run_image_texture_tests(self, driver):
         """Run image and texture rendering tests"""
-        print("\n🖼️ Testing Image and Texture Rendering...")
+        print("\n[TEST] Testing Image and Texture Rendering...")
         feature_results = {
             'name': 'Button Image and Texture Rendering',
             'scenarios': []
@@ -995,7 +995,7 @@ class BDDTestRunner:
     def _test_image_support_detection(self, driver):
         """Test: Button class supports image configuration"""
         scenario_name = "Image Support Detection"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -1009,17 +1009,17 @@ class BDDTestRunner:
             
             assert result['buttonClassExists'] or True, "Button functionality should be available through the system"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_button_rendering_modes(self, driver):
         """Test: Buttons can render in different modes (text vs image)"""
         scenario_name = "Button Rendering Modes"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -1061,17 +1061,17 @@ class BDDTestRunner:
             assert result['totalButtons'] > 0, "Should have buttons to test"
             # Note: Current buttons may not have images, but the system should support them
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _test_image_loading_fallback(self, driver):
         """Test: System handles image loading gracefully"""
         scenario_name = "Image Loading and Fallback"
-        print(f"  ⏳ {scenario_name}")
+        print(f"  [RUNNING] {scenario_name}")
         
         try:
             result = driver.execute_script('''
@@ -1088,11 +1088,11 @@ class BDDTestRunner:
             assert result['imageSupported'], "p5.js image rendering should be available"
             assert result['canvasAvailable'], "Canvas should be available for rendering"
             
-            print(f"  ✅ {scenario_name} - PASSED")
+            print(f"  [PASS] {scenario_name} - PASSED")
             return {'name': scenario_name, 'status': 'passed', 'details': result}
             
         except Exception as e:
-            print(f"  ❌ {scenario_name} - FAILED: {str(e)}")
+            print(f"  [FAIL] {scenario_name} - FAILED: {str(e)}")
             return {'name': scenario_name, 'status': 'failed', 'error': str(e)}
     
     def _update_totals(self, feature_results):
@@ -1110,14 +1110,14 @@ class BDDTestRunner:
     def _generate_report(self):
         """Generate test report"""
         print("\n" + "=" * 60)
-        print("📊 BDD TEST RESULTS SUMMARY")
+        print("[SUMMARY] BDD TEST RESULTS SUMMARY")
         print("=" * 60)
         
         print(f"Total Features: {self.test_results['total_features']}")
         print(f"Total Scenarios: {self.test_results['total_scenarios']}")
-        print(f"✅ Passed: {self.test_results['passed_scenarios']}")
-        print(f"❌ Failed: {self.test_results['failed_scenarios']}")
-        print(f"⏸️  Skipped: {self.test_results['skipped_scenarios']}")
+        print(f"[PASS] Passed: {self.test_results['passed_scenarios']}")
+        print(f"[FAIL] Failed: {self.test_results['failed_scenarios']}")
+        print(f"[SKIP] Skipped: {self.test_results['skipped_scenarios']}")
         
         success_rate = (self.test_results['passed_scenarios'] / self.test_results['total_scenarios'] * 100) if self.test_results['total_scenarios'] > 0 else 0
         print(f"Success Rate: {success_rate:.1f}%")
@@ -1127,14 +1127,14 @@ class BDDTestRunner:
         with open(results_file, 'w') as f:
             json.dump(self.test_results, f, indent=2)
         
-        print(f"\n📋 Detailed results saved to: {results_file}")
+        print(f"\n[REPORT] Detailed results saved to: {results_file}")
         
         # Print feature-by-feature results
-        print("\n📋 DETAILED FEATURE RESULTS:")
+        print("\n[DETAILS] DETAILED FEATURE RESULTS:")
         for feature in self.test_results['features']:
-            print(f"\n🎯 {feature['name']}:")
+            print(f"\n[FEATURE] {feature['name']}:")
             for scenario in feature['scenarios']:
-                status_icon = "✅" if scenario['status'] == 'passed' else "❌"
+                status_icon = "[PASS]" if scenario['status'] == 'passed' else "[FAIL]"
                 print(f"  {status_icon} {scenario['name']}")
                 if scenario['status'] == 'failed':
                     print(f"      Error: {scenario.get('error', 'Unknown error')}")
@@ -1142,7 +1142,7 @@ class BDDTestRunner:
 
 def main():
     """Main entry point"""
-    print("🚀 Universal Button System & Render Pipeline BDD Test Suite")
+    print("[START] Universal Button System & Render Pipeline BDD Test Suite")
     print("Testing methodology: Public API validation with real browser integration")
     print()
     
@@ -1150,17 +1150,17 @@ def main():
     
     # Check if behave is available for full BDD support
     if BEHAVE_AVAILABLE:
-        print("📚 Behave library detected - Full BDD support available")
-        print("🔄 Running tests with direct Selenium implementation for better control...")
+        print("[INFO] Behave library detected - Full BDD support available")
+        print("[INFO] Running tests with direct Selenium implementation for better control...")
     else:
-        print("⚠️  Behave library not found - Using direct Selenium implementation")
-        print("💡 Install behave with: pip install behave")
+        print("[WARN] Behave library not found - Using direct Selenium implementation")
+        print("[INFO] Install behave with: pip install behave")
         print()
     
     # Run tests
     runner.run_selenium_tests_directly()
     
-    print("\n🎉 BDD testing complete!")
+    print("\n[COMPLETE] BDD testing complete!")
     return 0
 
 

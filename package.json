@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node test/run-all-tests.js",
     "test:all": "node test/run-all-tests.js",
-    "test:unit": "npx mocha \"test/unit/**/*.test.js\" --reporter spec",
+    "test:unit": "node test/unit/run-with-summary.js",
+    "test:unit:verbose": "npx mocha \"test/unit/**/*.test.js\" --reporter spec",
     "test:unit:controllers": "npx mocha \"test/unit/controllers/*.test.js\" --reporter spec",
     "test:unit:managers": "npx mocha \"test/unit/managers/*.test.js\" --reporter spec",
     "test:unit:systems": "npx mocha \"test/unit/systems/*.test.js\" --reporter spec",

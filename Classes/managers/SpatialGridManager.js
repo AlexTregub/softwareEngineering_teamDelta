@@ -161,8 +161,9 @@ class SpatialGridManager {
     let filter = options.filter || null;
     if (options.type) {
       const typeFilter = (entity) => entity.type === options.type;
-      filter = filter ? 
-        (entity) => typeFilter(entity) && filter(entity) : 
+      const originalFilter = filter; // Capture original to avoid circular reference
+      filter = originalFilter ? 
+        (entity) => typeFilter(entity) && originalFilter(entity) : 
         typeFilter;
     }
 
@@ -187,8 +188,9 @@ class SpatialGridManager {
     let filter = options.filter || null;
     if (options.type) {
       const typeFilter = (entity) => entity.type === options.type;
-      filter = filter ?
-        (entity) => typeFilter(entity) && filter(entity) :
+      const originalFilter = filter; // Capture original to avoid circular reference
+      filter = originalFilter ?
+        (entity) => typeFilter(entity) && originalFilter(entity) :
         typeFilter;
     }
 
@@ -211,8 +213,9 @@ class SpatialGridManager {
     let filter = options.filter || null;
     if (options.type) {
       const typeFilter = (entity) => entity.type === options.type;
-      filter = filter ?
-        (entity) => typeFilter(entity) && filter(entity) :
+      const originalFilter = filter; // Capture original to avoid circular reference
+      filter = originalFilter ?
+        (entity) => typeFilter(entity) && originalFilter(entity) :
         typeFilter;
     }
 
@@ -427,4 +430,9 @@ if (typeof window !== 'undefined') {
       return null;
     }
   };
+}
+
+// Export for Node.js compatibility
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SpatialGridManager;
 }
