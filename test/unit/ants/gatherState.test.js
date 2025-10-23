@@ -4,7 +4,7 @@ const { expect } = require('chai');
 global.logVerbose = global.logVerbose || function() {};
 global.deltaTime = global.deltaTime || 16; // ms per frame approx
 
-const GatherState = require('../../Classes/ants/GatherState');
+const GatherState = require('../../../Classes/ants/GatherState');
 
 describe('GatherState', function() {
   let antMock;

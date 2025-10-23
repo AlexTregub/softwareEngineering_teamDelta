@@ -1,278 +1,180 @@
-# Test Suite Organization# 🚨 TESTING STANDARDS & DOCUMENTATION GUIDE 🚨
+# Comprehensive Test Runner
 
-> **🐛 KNOWN ISSUES**: Before investigating test failures, check **[KNOWN_ISSUES.md](./KNOWN_ISSUES.md)** for documented bugs that have test coverage but are not yet fixed.
+This directory contains the comprehensive test runner that executes all test suites in the proper order.
 
-Welcome to the Ant Game test suite! Tests are organized by type following software testing best practices.> **⚠️ REQUIRED READING BEFORE WRITING ANY TESTS ⚠️**  
+## Quick Start
 
-> **This guide points you to ALL testing documentation and standards**
-
----
-
-## 📋 **MANDATORY DOCUMENTATION REVIEW**
-
-## 📁 Test Structure
-
-**Before writing or modifying any tests, you MUST review these documents:**
-
-```
-
-test/### 1. 🎯 **START HERE - Core Standards**
-
-├── unit/          # Unit Tests - Fast, isolated tests of individual functions/classes
-
-├── integration/   # Integration Tests - Tests of components working together  📍 **Location**: `../docs/standards/testing/`
-
-├── e2e/          # End-to-End Tests - Full browser automation (Puppeteer)
-
-├── bdd/          # BDD Tests - Behavior-driven development (Gherkin/Behave)| Document | Purpose | When to Use |
-
-└── smoke/        # Smoke Tests - Quick sanity checks|----------|---------|-------------|
-
-```| **[TESTING_METHODOLOGY_STANDARDS.md](../docs/standards/testing/TESTING_METHODOLOGY_STANDARDS.md)** | 🚫 RED FLAGS & ✅ STRONG patterns | Before writing ANY test |
-
-| **[BDD_LANGUAGE_STYLE_GUIDE.md](../docs/standards/testing/BDD_LANGUAGE_STYLE_GUIDE.md)** | Clean, professional test language | For BDD feature files |
-
----| **[TESTING_QUICK_REFERENCE.md](../docs/standards/testing/TESTING_QUICK_REFERENCE.md)** | Fast lookup for weak patterns | During test review |
-
-
-
-## 🧪 Test Types### 2. 🛠️ **Technical Implementation**
-
-
-
-### Unit Tests (`test/unit/`)| Document | Purpose | When to Use |
-
-- **Speed**: ⚡⚡⚡ Very Fast (milliseconds)|----------|---------|-------------|
-
-- **Purpose**: Test individual functions, classes, methods in isolation| **[DEPENDENCY_MANAGEMENT_STRATEGY.md](../docs/standards/testing/DEPENDENCY_MANAGEMENT_STRATEGY.md)** | Smart dependency detection & validation | When mocking system APIs |
-
-- **Tech**: JavaScript (Mocha/Chai)| **[TESTING_VALIDATION_PROCESS.md](../docs/standards/testing/TESTING_VALIDATION_PROCESS.md)** | Test quality validation process | During test reviews |
-
-
-
-### End-to-End Tests (`test/e2e/`)---
-
-- **Speed**: ⚡ Slower (seconds to minutes)
-
-- **Purpose**: Test complete user workflows in real browser## 🗂️ **TEST FOLDER STRUCTURE OVERVIEW**
-
-- **Tech**: Puppeteer (headless Chrome)
-
-- **Run**: `npm run test:e2e`### **`/bdd_new/` - Behavior Driven Development Tests**
-
-
-
-**Categories**: camera, spawn, combat, selection, ui- **🎯 Primary test suite using Selenium + behave (HEADLESS)**
-
-- **Features**: `features/*.feature` - Gherkin scenarios
-
-### BDD Tests (`test/bdd/`)- **Steps**: `steps/*.py` - Python step definitions  
-
-- **Speed**: ⚡ Varies- **Runners**: `run_bdd_tests.py`, `quick_test.py` (both headless)
-
-- **Purpose**: Define and test business requirements- **Analysis**: `run_dependency_analysis.py` - System API discovery (headless)
-
-- **Tech**: Python Behave + Selenium
-
-- **Run**: `npm run test:bdd`### **`/unit/` - Unit Tests (JavaScript)**
-
-
-
-### Smoke Tests (`test/smoke/`)- **🔬 Individual component testing**
-
-- **Speed**: ⚡⚡⚡ Very Fast- **Framework**: Mocha/Jest JavaScript tests
-
-- **Purpose**: Quick sanity checks- **Focus**: Single class/function validation
-
-- **Run**: `npm run test:smoke`- **Examples**: `button.test.js`, `resourceManager.test.js`
-
-
-
----### **`/integration/` - Integration Tests**
-
-
-
-## 🚀 Quick Start- **🔗 Cross-component interaction testing**
-
-- **Mix**: Python + JavaScript integration
-
-```bash- **Focus**: Component interaction validation
-
-npm test                    # Runs BDD suite (default)- **Includes**: Browser automation helpers
-
-npm run test:e2e           # All E2E tests
-
-npm run test:e2e:camera    # Just camera E2E tests---
-
-npm run test:bdd           # BDD tests
-
-npm run test:smoke         # Smoke tests## ⚡ **QUICK START CHECKLIST**
-
-```
-
-**Before writing a new test:**
-
----
-
-- [ ] Read **TESTING_METHODOLOGY_STANDARDS.md** for RED FLAGS
-
-## 📚 Full Documentation- [ ] Check **BDD_LANGUAGE_STYLE_GUIDE.md** for clean language
-
-- [ ] Run dependency analysis if testing system APIs
-
-See `docs/guides/TESTING_TYPES_GUIDE.md` for comprehensive testing guide.- [ ] Use **TESTING_QUICK_REFERENCE.md** during implementation
-
-
-**Before submitting tests:**
-
-- [ ] No RED FLAG patterns present
-- [ ] Language follows style guide (no "real/fake" emphasis)
-- [ ] Tests use system APIs, not test logic
-- [ ] Realistic data and thresholds used
-
----
-
-## 🚫 **CRITICAL RED FLAGS - IMMEDIATE REJECTION**
-
-**These patterns will fail review instantly:**
-
-### Language Anti-Patterns
-
-- ❌ "**REAL** antsSpawn function" → ✅ "antsSpawn function"
-- ❌ "**actual** game data" → ✅ "game data"  
-- ❌ "**fake implementations**" → ✅ (remove entirely)
-- ❌ "**authentic** testing" → ✅ "testing"
-
-### Code Anti-Patterns
-
-- ❌ `expect(counter).to.equal(5)` - Loop counter testing
-- ❌ `expect(true).to.be.true` - Placeholder tests
-- ❌ `obj._privateMethod()` - Private method testing
-- ❌ Manual property injection without system constructor
-- ❌ Hardcoded test results without execution
-
----
-
-## 🎯 **TEST QUALITY STANDARDS**
-
-**Every test must pass these 3 questions:**
-
-1. **"Does this test use the system API?"** If no → weak test
-2. **"Would this test catch a bug (assumning it's not a unit test)?"** If no → weak test  
-3. **"Am I testing system behavior or test logic?"** If test logic → weak test
-
----
-
-## �️ **BROWSER REQUIREMENTS**
-
-**ALL tests run in HEADLESS mode:**
-
-- ✅ **Chrome headless** - Primary browser for all automation
-- ✅ **No GUI required** - Tests run without visible browser windows
-- ✅ **CI/CD compatible** - Works on servers without display
-- ✅ **Faster execution** - Headless mode is more efficient
-
-> **⚠️ REQUIREMENT**: Chrome browser must be installed, but tests run headless
-
-### ChromeDriver Management
-
-**✅ Automatic Version Handling**: The test framework uses `webdriver-manager` to automatically download and manage the correct ChromeDriver version that matches your installed Chrome browser.
-
-**No manual ChromeDriver installation required!** The framework automatically:
-
-- Detects your Chrome browser version
-- Downloads the compatible ChromeDriver
-- Manages version updates when Chrome updates
-- Eliminates version compatibility errors
-
----
-
-## �🚀 **HOW TO RUN TESTS**
-
-### BDD Tests (Recommended)
-
+Run all tests in sequence:
 ```bash
-# Full BDD suite with headless browser automation
-cd bdd_new
-python run_bdd_tests.py
-
-# Quick validation (headless)
-python quick_test.py
-
-# System dependency analysis (headless)
-python run_dependency_analysis.py
-
-# Verify headless browser setup
-python verify_headless.py
-```
-
-> **🤖 All browser tests run in HEADLESS mode for CI/CD compatibility**
-
-### Unit Tests
-
-```bash
-# JavaScript unit tests
-cd unit
 npm test
-
-# Specific test file
-node button.test.js
+# or
+npm run test:all
 ```
+
+## Test Execution Order
+
+The comprehensive test runner executes tests in this order:
+
+1. **Unit Tests** - Fast, isolated tests for individual modules
+2. **Integration Tests** - Tests for component interactions
+3. **BDD Tests** - Behavior-driven development tests (Behave/Python)
+4. **E2E Tests** - End-to-end browser tests (Puppeteer)
+
+## Available Commands
+
+### Comprehensive Testing
+- `npm test` - Run all test suites in order
+- `npm run test:all` - Same as `npm test`
+
+### Unit Tests (Mocha + Chai)
+- `npm run test:unit` - Run all unit tests with spec reporter
+- `npm run test:unit:controllers` - Run controller unit tests only
+- `npm run test:unit:managers` - Run manager unit tests only
+- `npm run test:unit:systems` - Run system unit tests only
+- `npm run test:unit:silent` - Run unit tests with minimal output
 
 ### Integration Tests
+- `npm run test:integration` - Run integration tests (if any exist)
 
+### BDD Tests (Behave/Python)
+- `npm run test:bdd` - Run all BDD tests
+- `npm run test:bdd:ants` - Run ant-specific BDD tests
+- `npm run test:bdd:buttons` - Run button system BDD tests
+- `npm run test:bdd:ui` - Run UI BDD tests
+- `npm run test:bdd:integration` - Run integration BDD tests
+- `npm run test:bdd:core` - Run core functionality BDD tests
+
+### E2E Tests (Puppeteer)
+- `npm run test:e2e` - Run main E2E test suite
+- `npm run test:e2e:camera` - Camera system tests
+- `npm run test:e2e:ui` - UI component tests
+- `npm run test:e2e:entity` - Entity system tests
+- `npm run test:e2e:controllers` - Controller tests
+- `npm run test:e2e:ants` - Ant behavior tests
+- `npm run test:e2e:all` - Run all E2E test categories
+
+### Smoke Tests
+- `npm run test:smoke` - Quick smoke tests to verify basic functionality
+
+### Development Server
+- `npm run dev` - Start Python development server on port 8000
+- `npm start` - Same as `npm run dev`
+
+## Test Runner Features
+
+The comprehensive test runner (`test/run-all-tests.js`) provides:
+
+- ✅ **Sequential Execution** - Tests run in proper dependency order
+- ✅ **Color-coded Output** - Easy to read test results
+- ✅ **Duration Tracking** - See how long each suite takes
+- ✅ **Failure Detection** - Immediately see which suites failed
+- ✅ **Summary Report** - Final summary with pass/fail counts
+- ✅ **Optional Suites** - Skip integration tests if none exist
+- ✅ **Large Buffer** - Handles extensive test output
+
+## Test Statistics
+
+Current test coverage:
+
+- **Unit Tests**: 862 passing tests across 17 controller modules
+- **BDD Tests**: Comprehensive behavior scenarios
+- **E2E Tests**: Full browser automation with screenshot validation
+
+## Prerequisites
+
+### Node.js Tests (Unit/E2E)
+- Node.js >= 14.0.0
+- npm packages: `mocha`, `chai`, `puppeteer`
+
+### Python Tests (BDD)
+- Python 3.x
+- Behave framework
+- Selenium WebDriver
+
+Install all dependencies:
 ```bash
-cd integration  
-python run_integration_tests.py
+npm install
+npm run test:setup
 ```
 
----
+## Writing New Tests
 
-## 📚 **COMPLETE DOCUMENTATION INDEX**
+### Unit Tests
+Place in `test/unit/` with `.test.js` extension:
+```javascript
+const { expect } = require('chai');
+const MyModule = require('../../../Classes/MyModule.js');
 
-### Testing Standards (`../docs/standards/testing/`)
+describe('MyModule', function() {
+  it('should do something', function() {
+    expect(true).to.be.true;
+  });
+});
+```
 
-1. **TESTING_METHODOLOGY_STANDARDS.md** - Core methodology & RED FLAGS
-2. **BDD_LANGUAGE_STYLE_GUIDE.md** - Professional test language  
-3. **TESTING_QUICK_REFERENCE.md** - Fast lookup reference
-4. **DEPENDENCY_MANAGEMENT_STRATEGY.md** - System API testing strategy
-5. **TESTING_VALIDATION_PROCESS.md** - Quality validation process
-6. **testing-methodology.md** - Historical methodology document
+### BDD Tests
+Place in `test/bdd/features/` with `.feature` extension:
+```gherkin
+Feature: My Feature
+  Scenario: My Scenario
+    Given some precondition
+    When some action
+    Then some assertion
+```
 
-### Test Execution Files (this folder)
+### E2E Tests
+Place in `test/e2e/` with descriptive names:
+```javascript
+const puppeteer = require('puppeteer');
+const { launchBrowser } = require('./puppeteer_helper');
 
-- **`bdd_new/run_bdd_tests.py`** - Primary BDD test runner
-- **`bdd_new/quick_test.py`** - Fast validation runner  
-- **`bdd_new/run_dependency_analysis.py`** - API discovery tool
-- **`integration/run_integration_tests.py`** - Integration test runner
-- **`unit/*.test.js`** - Individual unit tests
+// Your E2E test implementation
+```
 
----
+## CI/CD Integration
 
-## ⚠️ **FAILURE TO FOLLOW THESE STANDARDS**
+The test runner is designed for CI/CD pipelines:
 
-**Tests that violate these standards will be:**
+```yaml
+# Example GitHub Actions
+- name: Run all tests
+  run: npm test
+```
 
-- ❌ **Rejected in code review**
-- ❌ **Marked as technical debt**
-- ❌ **Required to be rewritten**
+Exit codes:
+- `0` - All tests passed
+- `1` - Some tests failed
 
-**This documentation exists to prevent:**
+## Troubleshooting
 
-- 🚫 Weak tests that don't catch bugs
-- 🚫 Inconsistent language and style
-- 🚫 Tests that break when system changes
-- 🚫 Time waste from rejected submissions
+**Unit tests fail to run:**
+- Ensure all dependencies are installed: `npm install`
+- Check that test files have `.test.js` extension
 
----
+**BDD tests fail:**
+- Install Python dependencies: `npm run test:setup`
+- Ensure Python 3.x is installed
+- Check that Chrome/Chromium is available for Selenium
 
-## 💡 **NEED HELP?**
+**E2E tests fail:**
+- Make sure development server is running: `npm run dev`
+- Check that port 8000 is available
+- Verify Puppeteer can launch Chrome
 
-1. **Start with**: TESTING_METHODOLOGY_STANDARDS.md RED FLAGS section
-2. **Language questions**: BDD_LANGUAGE_STYLE_GUIDE.md examples
-3. **Quick lookup**: TESTING_QUICK_REFERENCE.md patterns
-4. **System APIs**: Run dependency analysis first
-5. **Integration issues**: Check DEPENDENCY_MANAGEMENT_STRATEGY.md
+**Tests timeout:**
+- Increase Mocha timeout in individual test files
+- Check for infinite loops or hanging promises
 
-**Remember**: Good tests save debugging time. Bad tests waste everyone's time.
-**Follow the standards = faster reviews + fewer bugs + maintainable code.**
+## Performance Tips
+
+- Run individual test suites during development
+- Use `test:unit:silent` for quick validation
+- Run full suite before committing to main branch
+- Use `test:smoke` for fastest feedback loop
+
+## Support
+
+For issues or questions:
+- Check test output for specific error messages
+- Review test files for documentation
+- See project documentation in `docs/` directory

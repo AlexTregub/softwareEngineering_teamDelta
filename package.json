@@ -4,7 +4,14 @@
   "description": "Test suite for the Ant Game project",
   "main": "sketch.js",
   "scripts": {
-    "test": "npm run test:bdd",
+    "test": "node test/run-all-tests.js",
+    "test:all": "node test/run-all-tests.js",
+    "test:unit": "npx mocha \"test/unit/**/*.test.js\" --reporter spec",
+    "test:unit:controllers": "npx mocha \"test/unit/controllers/*.test.js\" --reporter spec",
+    "test:unit:managers": "npx mocha \"test/unit/managers/*.test.js\" --reporter spec",
+    "test:unit:systems": "npx mocha \"test/unit/systems/*.test.js\" --reporter spec",
+    "test:unit:silent": "npx mocha \"test/unit/**/*.test.js\" --reporter min",
+    "test:integration": "npx mocha \"test/integration/**/*.test.js\" --reporter spec",
     "test:setup": "cd test/bdd && pip install -r requirements.txt",
     "test:python": "python test/bdd/steps/run_python_tests.py",
     "test:python:core": "behave --steps-dir test/bdd/steps test/bdd/features --tags @core",
@@ -58,12 +65,9 @@
     "test:e2e:integration": "node test/e2e/integration/run-all-integration.js",
     "test:e2e:performance": "node test/e2e/performance/run-all-performance.js",
     "test:e2e:all": "npm run test:e2e:entity && npm run test:e2e:controllers && npm run test:e2e:ants && npm run test:e2e:queen && npm run test:e2e:state && npm run test:e2e:brain && npm run test:e2e:resources && npm run test:e2e:spatial && npm run test:e2e:integration && npm run test:e2e:performance",
-    "test:all": "node test/e2e/run-all-comprehensive.js",
     "test:smoke": "node test/smoke/run-smoke-tests.js",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"
-    ,
-    "test:unit": "mocha --reporter ./test/unit/silent-reporter.js \\\"test/unit/**/*.test.js\\\""
   },
   "keywords": [
     "game",

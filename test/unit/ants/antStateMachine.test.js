@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 const { expect } = require('chai');
-const AntStateMachine = require('../../Classes/ants/antStateMachine');
+const AntStateMachine = require('../../../Classes/ants/antStateMachine');
 
 describe('AntStateMachine', () => {
   let sm;

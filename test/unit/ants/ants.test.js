@@ -88,7 +88,7 @@ global.dropoffs = [{ getCenterPx() { return { x: 10, y: 10 }; }, x: 0, y: 0, til
 global.QueenAnt = function(base) { return base; };
 
 // Now require the module under test
-const antsModule = require('../../Classes/ants/ants.js');
+const antsModule = require('../../../Classes/ants/ants.js');
 
 // restore any original globals to avoid polluting other tests
 for (const k of toMock) {
