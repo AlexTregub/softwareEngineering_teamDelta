@@ -34,8 +34,9 @@ class SpatialGrid {
     this._grid = new Map(); // key: "x,y", value: Set of entities
     this._entityCount = 0;
     
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal(`SpatialGrid: Initialized with cell size ${this._cellSize}px (matching terrain tile size)`);
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+    if (globalObj && typeof globalObj.logNormal === 'function') {
+      globalObj.logNormal(`SpatialGrid: Initialized with cell size ${this._cellSize}px (matching terrain tile size)`);
     }
   }
 
@@ -356,8 +357,9 @@ class SpatialGrid {
     this._grid.clear();
     this._entityCount = 0;
     
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('SpatialGrid: Cleared all entities');
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+    if (globalObj && typeof globalObj.logNormal === 'function') {
+      globalObj.logNormal('SpatialGrid: Cleared all entities');
     }
   }
 

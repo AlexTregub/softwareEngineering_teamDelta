@@ -16,8 +16,8 @@ const Mocha = require('mocha');
 const glob = require('glob');
 const path = require('path');
 
-// Run all manager tests (comprehensive tests created in this session)
-const testFiles = glob.sync('test/unit/managers/*.test.js', {
+// Run all manager and rendering tests (comprehensive tests created in this session)
+const testFiles = glob.sync('test/unit/{managers,rendering}/*.test.js', {
   cwd: path.join(__dirname, '..', '..')
 });
 

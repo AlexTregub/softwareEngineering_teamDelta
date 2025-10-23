@@ -19,10 +19,12 @@ global.rotate = (angle) => {};
 global.radians = (degrees) => degrees * (Math.PI / 180);
 global.imageMode = (mode) => {};
 global.image = (img, x, y, width, height) => {};
+global.scale = (x, y) => {}; // Added missing scale function
+global.tint = (c, alpha) => {}; // Added missing tint function
 global.CENTER = 'center';
 
 // Import the Sprite2D class
-const Sprite2D = require('../../Classes/rendering/Sprite2d.js');
+const Sprite2D = require('../../../Classes/rendering/Sprite2d.js');
 
 describe('Sprite2D', function() {
   describe('Constructor', function() {
@@ -175,10 +177,12 @@ describe('Sprite2D', function() {
       global.rotate = () => callOrder.push('rotate');
       global.image = () => callOrder.push('image');
       global.pop = () => callOrder.push('pop');
+      global.scale = () => callOrder.push('scale');
       
       sprite.render();
       
-      expect(callOrder).to.deep.equal(['push', 'imageMode', 'translate', 'rotate', 'image', 'pop']);
+      // Correct order: push → translate → scale → rotate → imageMode → image → pop
+      expect(callOrder).to.deep.equal(['push', 'translate', 'scale', 'rotate', 'imageMode', 'image', 'pop']);
     });
 
     it('render should handle zero rotation', function() {

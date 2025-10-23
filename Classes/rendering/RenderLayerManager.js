@@ -46,7 +46,9 @@
  */
 class RenderLayerManager {
   constructor() {
-    // Rendering layers in order (bottom to top)
+    /**
+     * Rendering layers in order (bottom to top)
+     */ 
     this.layers = {
       TERRAIN: 'terrain',      // Static terrain, cached
       ENTITIES: 'entities',    // Dynamic game objects (ants, resources)

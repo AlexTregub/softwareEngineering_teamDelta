@@ -122,6 +122,102 @@ class MockHealthController {
   update() {}
 }
 
+
+// Mock gameState Manager
+class MockGameStateManager {
+  constructor() {
+    this.currentState = "MENU";
+    this.previousState = null;
+    this.fadeAlpha = 0;
+    this.isFading = false;
+    this.stateChangeCallbacks = [];
+    this.isFading = false;
+    this.fadeDirection = "out";
+    
+    // Valid game states
+    this.STATES = {
+      MENU: "MENU",
+      OPTIONS: "OPTIONS", 
+      DEBUG_MENU: "DEBUG_MENU",
+      PLAYING: "PLAYING",
+      PAUSED: "PAUSED",
+      GAME_OVER: "GAME_OVER",
+      KAN_BAN: "KANBAN"
+    };
+  }
+
+   // Get current state
+  getState() {
+    return this.currentState;
+  }
+
+  // Set state with optional callback execution
+  setState(newState, skipCallbacks = false) {
+    if (!this.isValidState(newState)) {
+      console.warn(`Invalid game state: ${newState}`);
+      return false;
+    }
+
+    this.previousState = this.currentState;
+    this.currentState = newState;
+
+    if (!skipCallbacks) {
+      this.executeCallbacks(newState, this.previousState);
+    }
+    return true;
+  }
+
+  // Get previous state
+  getPreviousState = () => this.previousState;
+
+  // Check if current state matches
+  isState = (state) => this.currentState === state;
+
+    // State change callback system
+  onStateChange(callback) {
+    if (typeof callback === 'function') {
+      this.stateChangeCallbacks.push(callback);
+    }
+  }
+
+    removeStateChangeCallback(callback) {
+    const index = this.stateChangeCallbacks.indexOf(callback);
+    if (index > -1) {
+      this.stateChangeCallbacks.splice(index, 1);
+    }
+  }
+
+  executeCallbacks(newState, oldState) {
+    this.stateChangeCallbacks.forEach(callback => {
+      try {
+        callback(newState, oldState);
+      } catch (error) {
+        console.error('Error in state change callback:', error);
+      }
+    });
+  }
+
+  
+  // Convenience methods for common states
+  isInMenu = () => this.currentState === this.STATES.MENU;
+  isInOptions = () => this.currentState === this.STATES.OPTIONS;
+  isInGame = () => this.currentState === this.STATES.PLAYING;
+  isPaused = () => this.currentState === this.STATES.PAUSED;
+  isGameOver = () => this.currentState === this.STATES.GAME_OVER;
+  isDebug = () => this.currentState === this.STATES.DEBUG_MENU;
+  isKanban = () => this.currentState === this.STATES.KAN_BAN;
+
+  // Transition methods
+  goToMenu = () => this.setState(this.STATES.MENU);
+  goToOptions = () => this.setState(this.STATES.OPTIONS);
+  goToDebug = () => this.setState(this.STATES.DEBUG_MENU);
+  startGame = () => { this.startFadeTransition(); return this.setState(this.STATES.PLAYING); };
+  pauseGame = () => this.setState(this.STATES.PAUSED);
+  resumeGame = () => this.setState(this.STATES.PLAYING);
+  endGame = () => this.setState(this.STATES.GAME_OVER);
+  goToKanban = () => this.setState(this.STATES.KAN_BAN);
+}
+
 // Assign controllers to global
 global.TransformController = MockTransformController;
 global.MovementController = MockMovementController;
@@ -131,6 +227,7 @@ global.CombatController = MockCombatController;
 global.TerrainController = MockTerrainController;
 global.TaskManager = MockTaskManager;
 global.HealthController = MockHealthController;
+global.GameStateManager = MockGameStateManager;
 
 // Mock spatial grid manager
 global.spatialGridManager = {
@@ -138,6 +235,8 @@ global.spatialGridManager = {
   updateEntity: function() {},
   removeEntity: function() {}
 };
+
+
 
 // Load Entity
 const Entity = require('../../../Classes/containers/Entity.js');
@@ -491,6 +590,10 @@ describe('Entity', function() {
       expect(entity._collisionBox.x).to.equal(50);
       expect(entity._collisionBox.y).to.equal(60);
     });
+
+    it.skip('should not run any update loops while the gamestate is not "PLAYING"', function(){
+      
+    })
   });
   
   describe('Rendering', function() {

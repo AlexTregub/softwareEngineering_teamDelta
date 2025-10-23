@@ -353,7 +353,8 @@ class UILayerRenderer {
   }
 
   renderContextMenu() {
-    if (!this.interactionUI.contextMenu.items.length || !this.interactionUI.contextMenu.position) return;
+    // Guard against null/undefined items array
+    if (!this.interactionUI.contextMenu.items || !this.interactionUI.contextMenu.items.length || !this.interactionUI.contextMenu.position) return;
     
     push();
     

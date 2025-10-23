@@ -44,8 +44,9 @@ class SpatialGridManager {
       queryCount: 0
     };
 
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('SpatialGridManager: Initialized');
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+    if (globalObj && typeof globalObj.logNormal === 'function') {
+      globalObj.logNormal('SpatialGridManager: Initialized');
     }
   }
 
@@ -287,8 +288,9 @@ class SpatialGridManager {
     this._allEntities = [];
     this._entitiesByType.clear();
     
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('SpatialGridManager: Cleared all entities');
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+    if (globalObj && typeof globalObj.logNormal === 'function') {
+      globalObj.logNormal('SpatialGridManager: Cleared all entities');
     }
   }
 
@@ -298,8 +300,9 @@ class SpatialGridManager {
    * spatialGridManager.rebuildGrid();
    */
   rebuildGrid() {
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('SpatialGridManager: Rebuilding spatial grid...');
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+    if (globalObj && typeof globalObj.logNormal === 'function') {
+      globalObj.logNormal('SpatialGridManager: Rebuilding spatial grid...');
     }
 
     this._grid.clear();
@@ -308,8 +311,8 @@ class SpatialGridManager {
       this._grid.addEntity(entity);
     }
 
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal(`SpatialGridManager: Rebuilt grid with ${this._allEntities.length} entities`);
+    if (globalObj && typeof globalObj.logNormal === 'function') {
+      globalObj.logNormal(`SpatialGridManager: Rebuilt grid with ${this._allEntities.length} entities`);
     }
   }
 
