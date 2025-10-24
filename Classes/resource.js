@@ -491,15 +491,25 @@ class Resource extends Entity {
   // Rendering: delegate to Entity.render() which will use RenderController if available
   render() {
     super.render();
-    // Apply hover highlight in the modern path using enhanced API
-    if (this.isMouseOver(mouseX, mouseY)) {
-      this.highlight.spinning();
+    // Use SelectionController's hover detection (handles camera/coordinate conversion)
+    const isHovered = this._selectionController ? this._selectionController.isHovered() : false;
+    
+    // Apply hover highlight using the highlight API
+    if (isHovered) {
+      if (this.highlight && typeof this.highlight.spinning === 'function') {
+        this.highlight.spinning();
+      }
     } else {
-      this.highlight.clear();
+      if (this.highlight && typeof this.highlight.clear === 'function') {
+        this.highlight.clear();
+      }
     }
   }
 
+  // Deprecated: Use SelectionController's isHovered() instead
+  // This method doesn't account for camera movement
   isMouseOver(mx, my) {
+    console.warn('Resource.isMouseOver() is deprecated - use SelectionController.isHovered() instead');
     const pos = this.getPosition(); const size = this.getSize();
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
   }

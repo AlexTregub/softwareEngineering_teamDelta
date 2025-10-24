@@ -676,6 +676,14 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  // Coordinate Debug Overlay toggle (Tilde ~ key)
+  if (key === '`' || key === '~') {
+    if (typeof toggleCoordinateDebug === 'function') {
+      toggleCoordinateDebug();
+      return;
+    }
+  }
+  
   // Tile Inspector toggle (T key)
   if (key === 't' || key === 'T') {
     if (typeof toggleTileInspector === 'function') {

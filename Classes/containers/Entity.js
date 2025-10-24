@@ -26,12 +26,18 @@ class Entity {
     this._type = options.type || "Entity";
     this._isActive = true;
 
-    // Initialize collision box first (required by some controllers)
-    this._collisionBox = new CollisionBox2D(x, y, width, height);
+    // Apply +0.5 tile offset for tile-centered positioning
+    // This moves entities to the visual center of their tile, so rendering doesn't need offset
+    const TILE_SIZE = typeof window !== 'undefined' && window.TILE_SIZE ? window.TILE_SIZE : 32;
+    const centeredX = x + (TILE_SIZE * 0.5);
+    const centeredY = y + (TILE_SIZE * 0.5);
 
-    // Initialize sprite component (if Sprite2D available)
+    // Initialize collision box first (required by some controllers)
+    this._collisionBox = new CollisionBox2D(centeredX, centeredY, width, height);
+
+    // Initialize sprite component (if Sprite2D available) - use centered position
     this._sprite = typeof Sprite2D !== 'undefined' ?
-      new Sprite2D(options.imagePath || null, createVector(x, y), createVector(width, height), 0) : null;
+      new Sprite2D(options.imagePath || null, createVector(centeredX, centeredY), createVector(width, height), 0) : null;
 
     // Initialize debugger system (if UniversalDebugger available)
     this._debugger = null;
@@ -43,8 +49,8 @@ class Entity {
     // Initialize enhanced API
     this._initializeEnhancedAPI();
 
-    // Ensure transform state propagated to collision box and sprite
-    this.setPosition(x, y);
+    // Ensure transform state propagated to collision box and sprite (use centered position)
+    this.setPosition(centeredX, centeredY);
     this.setSize(width, height);
 
     // Register with spatial grid manager (if available and not disabled)
@@ -213,9 +219,10 @@ class Entity {
     
     // Use terrain's coordinate system if available (syncs with sprite rendering)
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Convert world pixels to tile coordinates (centered on tiles)
-      const tileX = (worldPos.x / TILE_SIZE) + 0.5;
-      const tileY = (worldPos.y / TILE_SIZE) + 0.5;
+      // Convert world pixels to tile coordinates
+      // Entity position is already tile-centered (+0.5 applied in Entity constructor)
+      const tileX = worldPos.x / TILE_SIZE;
+      const tileY = worldPos.y / TILE_SIZE;
       
       // Use terrain's converter to get screen position (handles Y-axis inversion)
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
@@ -235,12 +242,6 @@ class Entity {
     if (typeof CoordinateConverter !== 'undefined') {
       return CoordinateConverter.worldToTile(pos.x, pos.y);
     }
-    // Fallback: manual conversion
-    const tileSize = typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32;
-    return {
-      x: Math.floor(pos.x / tileSize),
-      y: Math.floor(pos.y / tileSize)
-    };
   }
   
   /** Get X coordinate. */

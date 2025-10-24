@@ -530,11 +530,12 @@ class RenderController {
     strokeWeight(strokeWeightValue);
     noFill();
     
-    // pos is the screen top-left position (matching imageMode(CORNER) in Sprite2D)
-    // Draw rectangle at top-left corner with slight outset for stroke
-    rectMode(CORNER);
-    rect(pos.x - strokeWeightValue, pos.y - strokeWeightValue, 
-         size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
+    // pos is screen top-left position, but sprite renders centered
+    // Translate to center and draw rect centered (matching imageMode(CENTER) in Sprite2D)
+    translate(pos.x + size.x / 2, pos.y + size.y / 2);
+    rotate(rotation);
+    rectMode(CENTER);
+    rect(0, 0, size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
     
     noStroke();
     pop(); // Restore transformation matrix
@@ -843,13 +844,14 @@ class RenderController {
     // NOTE: This MUST match the logic in Sprite2d.render() to keep highlights synced with sprites
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
       // Convert world pixel position to tile position
+      // Entity position is already tile-centered (+0.5 applied in Entity constructor)
       const tileX = worldPos.x / TILE_SIZE;
       const tileY = worldPos.y / TILE_SIZE;
       
       // Use terrain's converter to get screen position
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       
-      // Return top-left screen position (matching CORNER mode rendering)
+      // Return top-left screen position (sprite adds offset to center for rendering)
       return { x: screenPos[0], y: screenPos[1] };
     }
     

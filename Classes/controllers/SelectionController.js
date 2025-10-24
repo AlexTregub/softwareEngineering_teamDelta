@@ -154,24 +154,21 @@ class SelectionController {
     let isOver = false;
     
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Convert screen mouse position to tile coordinates (handles camera offset and Y-axis inversion)
+      // Convert screen mouse position to world coordinates
       const mouseTilePos = g_activeMap.renderConversion.convCanvasToPos([mouseX, mouseY]);
+      const mouseWorldX = mouseTilePos[0] * TILE_SIZE;
+      const mouseWorldY = mouseTilePos[1] * TILE_SIZE;
       
-      // Convert entity world pixels to tile coordinates (with proper tile centering to match sprite rendering)
-      // Grid coordinates are centered on tiles, so we add +0.5 to match sprite rendering
-      const entityTileX = (pos.x / TILE_SIZE) + 0.5;
-      const entityTileY = (pos.y / TILE_SIZE) + 0.5;
-      const entityTileSizeX = size.x / TILE_SIZE;
-      const entityTileSizeY = size.y / TILE_SIZE;
-      
-      // Check if mouse tile position is within entity bounds (in tile space, centered)
+      // Collision detection happens in WORLD SPACE (where collision box is stored)
+      // Sprite rendering adds +0.5 tiles for visual centering, but collision uses actual stored position
+      // Check if mouse is within entity's collision box bounds
       isOver = (
-        mouseTilePos[0] >= entityTileX - (entityTileSizeX / 2) &&
-        mouseTilePos[0] <= entityTileX + (entityTileSizeX / 2) &&
-        mouseTilePos[1] >= entityTileY - (entityTileSizeY / 2) &&
-        mouseTilePos[1] <= entityTileY + (entityTileSizeY / 2)
+        mouseWorldX >= pos.x &&
+        mouseWorldX <= pos.x + size.x &&
+        mouseWorldY >= pos.y &&
+        mouseWorldY <= pos.y + size.y
       );
-    } else if (this._entity._transformController) {
+    } /*else if (this._entity._transformController) {
       // Fallback: Use TransformController if terrain system not available
       // TransformController.contains() expects WORLD coordinates, not screen coordinates
       // Convert screen mouse position to world position
@@ -209,7 +206,7 @@ class SelectionController {
         );
       }
     }
-    
+    */
     this._lastMouseX = mouseX;
     this._lastMouseY = mouseY;
     this.setHovered(isOver);

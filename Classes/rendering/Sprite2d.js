@@ -45,9 +45,8 @@ class Sprite2D {
     
     // Use terrain's coordinate system if available (syncs entities with terrain camera)
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Entity positions are stored in world pixels
+      // Entity positions are already tile-centered (+0.5 applied in Entity constructor)
       // GridTerrain works in tile coordinates and handles screen conversion
-      // Convert pixel position to tile position
       const tileX = this.pos.x / TILE_SIZE;
       const tileY = this.pos.y / TILE_SIZE;
       
@@ -58,9 +57,10 @@ class Sprite2D {
     }
     
     push();
-    // Use CORNER mode for top-left origin (consistent with collision box)
-    imageMode(CORNER);
-    translate(screenX, screenY);
+    // Use CENTER mode for proper flipping/rotation around sprite center
+    imageMode(CENTER);
+    // Translate to center of sprite (screenX/Y is top-left, add half size for center)
+    translate(screenX + this.size.x / 2, screenY + this.size.y / 2);
     scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
     rotate(radians(this.rotation));
     
@@ -68,7 +68,7 @@ class Sprite2D {
     if (this.alpha && this.alpha < 255) {
       tint(255, this.alpha);
     }
-    // Render sprite at top-left corner (origin is now top-left)
+    // Render sprite centered at origin (position is now center)
     image(this.img, 0, 0, this.size.x, this.size.y);
     pop();
   }
