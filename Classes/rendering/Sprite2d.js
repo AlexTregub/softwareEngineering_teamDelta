@@ -40,19 +40,22 @@ class Sprite2D {
     }
     
     // Convert world position (pixels) to screen position using terrain's coordinate converter
-    let screenX = this.pos.x + this.size.x / 2;
-    let screenY = this.pos.y + this.size.y / 2;
+    let screenX = this.pos.x;
+    let screenY = this.pos.y;
     
     // Use terrain's coordinate system if available (syncs entities with terrain camera)
-    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion) {
-      // Convert pixel position to tile position
-      const tileX = this.pos.x / TILE_SIZE;
-      const tileY = this.pos.y / TILE_SIZE;
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Entity positions are stored in world pixels
+      // GridTerrain works in tile coordinates and handles screen conversion
+      // Convert pixel position to tile position (with proper centering)
+      // Grid coordinates are centered on tiles, so we add +0.5 to position sprites at tile centers
+      const tileX = (this.pos.x / TILE_SIZE) + 0.5;
+      const tileY = (this.pos.y / TILE_SIZE) + 0.5;
       
-      // Use terrain's converter to get screen position
+      // Use terrain's converter to get screen position (handles Y-axis inversion)
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
-      screenX = screenPos[0] + this.size.x / 2;
-      screenY = screenPos[1] + this.size.y / 2;
+      screenX = screenPos[0];
+      screenY = screenPos[1];
     }
     
     push();
@@ -65,8 +68,7 @@ class Sprite2D {
     if (this.alpha && this.alpha < 255) {
       tint(255, this.alpha);
     }
-    // TODO: fix all of the rendering to use the correct sprite pos.
-    //image(this.img, -this.size.x/2, -this.size.y/2, this.size.x, this.size.y);
+    // Render sprite centered at translated position
     image(this.img, 0, 0, this.size.x, this.size.y);
     pop();
   }

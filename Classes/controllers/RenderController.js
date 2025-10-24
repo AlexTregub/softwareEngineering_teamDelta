@@ -401,11 +401,12 @@ class RenderController {
     let screenY = pos.y;
     
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Convert pixel position to tile position
-      const tileX = pos.x / TILE_SIZE;
-      const tileY = pos.y / TILE_SIZE;
+      // Convert world pixel position to tile position (with proper centering to match sprite rendering)
+      // Grid coordinates are centered on tiles, so we add +0.5 to position entities at tile centers
+      const tileX = (pos.x / TILE_SIZE) + 0.5;
+      const tileY = (pos.y / TILE_SIZE) + 0.5;
       
-      // Use terrain's converter to get screen position
+      // Use terrain's converter to get screen position (handles Y-axis inversion)
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       screenX = screenPos[0];
       screenY = screenPos[1];
@@ -414,7 +415,9 @@ class RenderController {
     this._safeRender(() => {
       fill(100, 100, 100); // Gray default
       noStroke();
+      rectMode(CENTER); // Draw from center to match sprite rendering
       rect(screenX, screenY, size.x, size.y);
+      rectMode(CORNER); // Reset to default
     });
   }
 
@@ -523,13 +526,16 @@ class RenderController {
     strokeWeight(strokeWeightValue);
     noFill();
     
-    // Apply rotation around the entity's center
-    translate(pos.x + size.x / 2, pos.y + size.y / 2);
+    // pos is already the screen center position (from worldToScreenPosition matching Sprite2D.render)
+    // Apply rotation around the center point
+    translate(pos.x, pos.y);
     rotate(rotation);
-    translate(-size.x / 2, -size.y / 2);
     
-    rect(-strokeWeightValue, -strokeWeightValue, 
-         size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
+    // Draw rectangle centered at origin (matching imageMode(CENTER) in Sprite2D)
+    rectMode(CENTER);
+    rect(0, 0, size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
+    rectMode(CORNER); // Reset to default
+    
     noStroke();
     pop(); // Restore transformation matrix
   }
@@ -847,14 +853,15 @@ class RenderController {
     // Use terrain's coordinate system if available (syncs entities with terrain camera)
     // NOTE: This MUST match the logic in Sprite2d.render() to keep highlights synced with sprites
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Convert pixel position to tile position
-      const tileX = worldPos.x / TILE_SIZE;
-      const tileY = worldPos.y / TILE_SIZE;
+      // Convert world pixel position to tile position (with proper centering to match sprite rendering)
+      // Grid coordinates are centered on tiles, so we add +0.5 to position entities at tile centers
+      const tileX = (worldPos.x / TILE_SIZE) + 0.5;
+      const tileY = (worldPos.y / TILE_SIZE) + 0.5;
       
-      // Use terrain's converter to get screen position (top-left corner)
+      // Use terrain's converter to get screen position (handles Y-axis inversion)
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       
-      // Return top-left corner position (highlights will handle centering if needed)
+      // Return centered screen position
       return { x: screenPos[0], y: screenPos[1] };
     }
     

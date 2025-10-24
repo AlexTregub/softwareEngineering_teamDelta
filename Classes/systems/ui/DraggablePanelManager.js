@@ -37,7 +37,7 @@ class DraggablePanelManager {
     // NOTE: 'combat' panel removed - Queen Powers now managed by QueenControlPanel (shows only when queen selected)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'tasks','buildings',"resources", 'cheats'],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'tasks','buildings',"resources", 'cheats', 'queen-powers-panel'],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
       'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'cheats'],
       'GAME_OVER': ['stats', 'debug'],

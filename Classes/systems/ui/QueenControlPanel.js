@@ -37,6 +37,66 @@ class QueenControlPanel {
     
     // Power cycling state
     this.currentPowerIndex = -1;
+    this.allPowers = [
+      {
+        name: 'Fireball',
+        key: 'fireball',
+        activate: () => {
+          console.log('🔥 Fireball activated!');
+          this.activateFireballTargeting();
+        }
+      },
+      {
+        name: 'Lightning',
+        key: 'lightning',
+        activate: () => {
+          console.log('⚡ Lightning activated!');
+          // Initialize lightning brush if needed
+          if (typeof window.g_lightningAimBrush === 'undefined' || !window.g_lightningAimBrush) {
+            if (typeof window.initializeLightningAimBrush === 'function') {
+              window.g_lightningAimBrush = window.initializeLightningAimBrush();
+            } else {
+              console.warn('⚠️ Lightning Aim Brush system not available');
+              return;
+            }
+          }
+          
+          // Activate lightning aim brush
+          if (window.g_lightningAimBrush) {
+            // If already active, don't toggle off - just ensure it's on
+            if (!window.g_lightningAimBrush.isActive) {
+              window.g_lightningAimBrush.toggle();
+            }
+            console.log('⚡ Lightning targeting mode activated - click to strike!');
+          }
+        }
+      },
+      {
+        name: 'Blackhole',
+        key: 'blackhole',
+        activate: () => {
+          console.log('🌀 Blackhole power - not yet implemented');
+        }
+      },
+      {
+        name: 'Sludge',
+        key: 'sludge',
+        activate: () => {
+          console.log('☠️ Sludge power - not yet implemented');
+        }
+      },
+      {
+        name: 'Tidal Wave',
+        key: 'tidalWave',
+        activate: () => {
+          console.log('🌊 Tidal Wave power - not yet implemented');
+        }
+      }
+    ];
+    
+    // Interaction timer - keeps panel visible for 3 seconds after last interaction
+    this.lastInteractionTime = 0;
+    this.interactionDelay = 3000; // 3 seconds in milliseconds
   }
 
   /**
@@ -48,6 +108,7 @@ class QueenControlPanel {
     
     this.selectedQueen = queen;
     this.isVisible = true;
+    this.lastInteractionTime = Date.now(); // Reset interaction timer
     
     // Create or update the draggable panel
     this.createPanel();
@@ -77,11 +138,12 @@ class QueenControlPanel {
    * Create the draggable panel with power controls
    */
   createPanel() {
-    if (!window.draggablePanelManager || !window.DraggablePanel) return;
+    if (!window.draggablePanelManager) return;
 
     // Remove existing panel if it exists
     if (this.panel) {
       window.draggablePanelManager.removePanel(this.panelId);
+      this.panel = null;
     }
 
     // ButtonStyles might not be available yet, so use inline styles
@@ -93,8 +155,8 @@ class QueenControlPanel {
       { ...window.ButtonStyles.INFO, backgroundColor: '#555555', color: '#999999' } :
       { backgroundColor: '#555555', color: '#999999' };
 
-    // Create new panel with power controls
-    this.panel = new window.DraggablePanel({
+    // Create new panel with power controls - addPanel creates the DraggablePanel internally
+    this.panel = window.draggablePanelManager.addPanel({
       id: this.panelId,
       title: this.title,
       position: this.position,
@@ -111,16 +173,13 @@ class QueenControlPanel {
             style: successStyle
           },
           {
-            caption: 'Use Power',
-            onClick: () => this.cyclePower(),
+            caption: 'Power: None',
+            onClick: () => this.activateCurrentPower(),
             style: infoStyle // Greyed out by default
           }
         ]
       }
     });
-
-    // Add panel to manager
-    window.draggablePanelManager.addPanel(this.panel);
     
     // Update power button state based on unlocked powers
     this.updatePowerButtonState();
@@ -158,6 +217,9 @@ class QueenControlPanel {
    * Handle Place Dropoff button click
    */
   handlePlaceDropoff() {
+    // Reset interaction timer
+    this.lastInteractionTime = Date.now();
+    
     // Activate dropoff placement mode
     if (typeof window.g_dropoffTilePlacementMode !== 'undefined') {
       window.g_dropoffTilePlacementMode = true;
@@ -172,111 +234,134 @@ class QueenControlPanel {
   }
 
   /**
-   * Update the Use Power button state based on unlocked powers
+   * Update the Power button state based on unlocked powers
    */
   updatePowerButtonState() {
     if (!this.selectedQueen || !this.panel) return;
     
-    const button = this.findButtonByCaption('Use Power', true);
+    const button = this.findButtonByCaption('Power:', true);
     if (!button) return;
 
-    const unlockedPowers = this.selectedQueen.getUnlockedPowers ? 
-      this.selectedQueen.getUnlockedPowers() : [];
+    const unlockedPowers = this.getUnlockedPowers();
 
     if (unlockedPowers.length > 0) {
       // Enable button with bright colors
-      button.style.backgroundColor = '#1E90FF';
-      button.style.color = '#FFFFFF';
-      button.caption = 'Use Power: None';
+      button.backgroundColor = '#1E90FF';
+      button.textColor = '#FFFFFF';
+      
+      // Set to first power if none selected
+      if (this.currentPowerIndex < 0 || this.currentPowerIndex >= unlockedPowers.length) {
+        this.currentPowerIndex = 0;
+      }
+      
+      // Update button caption with current power
+      const currentPower = unlockedPowers[this.currentPowerIndex];
+      button.caption = `Power: ${currentPower.name}`;
     } else {
       // Grey out button
-      button.style.backgroundColor = '#555555';
-      button.style.color = '#999999';
-      button.caption = 'Use Power';
-      
-      // Reset current power if no powers unlocked
-      if (button.style.backgroundColor === '#555555' || button.caption === 'Use Power') {
-        this.currentPowerIndex = -1;
-        button.caption = 'Use Power';
-      }
+      button.backgroundColor = '#555555';
+      button.textColor = '#999999';
+      button.caption = 'Power: None';
+      this.currentPowerIndex = -1;
     }
   }
 
   /**
-   * Cycle through unlocked powers and activate the selected one
+   * Get unlocked powers for the selected queen
+   * @returns {Array} Array of unlocked power objects
    */
-  cyclePower() {
-    if (!this.selectedQueen) return;
-
-    const button = this.findButtonByCaption('Use Power', true); // partial match
-    if (!button) return;
-
-    // Define all powers with their activation logic
-    const allPowers = [
-      {
-        name: 'Fireball',
-        key: 'fireball',
-        activate: () => {
-          console.log('🔥 Fireball activated!');
-          this.activateFireballTargeting();
-        }
-      },
-      {
-        name: 'Lightning',
-        key: 'lightning',
-        activate: () => {
-          console.log('⚡ Lightning activated!');
-          if (typeof window.activateLightning === 'function') {
-            window.activateLightning();
-          } else {
-            console.log('⚡ Lightning system: Click to strike enemies');
-          }
-        }
-      },
-      {
-        name: 'Blackhole',
-        key: 'blackhole',
-        activate: () => {
-          console.log('🌀 Blackhole power - not yet implemented');
-        }
-      },
-      {
-        name: 'Sludge',
-        key: 'sludge',
-        activate: () => {
-          console.log('☠️ Sludge power - not yet implemented');
-        }
-      },
-      {
-        name: 'Tidal Wave',
-        key: 'tidalWave',
-        activate: () => {
-          console.log('🌊 Tidal Wave power - not yet implemented');
-        }
-      }
-    ];
-
-    // Filter to only unlocked powers
-    const unlockedPowers = allPowers.filter(p => 
+  getUnlockedPowers() {
+    if (!this.selectedQueen) return [];
+    
+    return this.allPowers.filter(p => 
       this.selectedQueen.isPowerUnlocked && this.selectedQueen.isPowerUnlocked(p.key)
     );
+  }
 
+  /**
+   * Cycle to next power (used by mouse wheel and right-click)
+   * @param {number} direction - 1 for next, -1 for previous
+   */
+  cyclePower(direction = 1) {
+    if (!this.selectedQueen) return;
+
+    // Reset interaction timer
+    this.lastInteractionTime = Date.now();
+
+    const unlockedPowers = this.getUnlockedPowers();
     if (unlockedPowers.length === 0) {
       console.log('❌ No powers unlocked yet! Use the cheats panel to unlock powers.');
       return;
     }
 
-    // Cycle to next power
-    this.currentPowerIndex = (this.currentPowerIndex + 1) % unlockedPowers.length;
-    const currentPower = unlockedPowers[this.currentPowerIndex];
+    // Cycle to next/previous power
+    this.currentPowerIndex = (this.currentPowerIndex + direction) % unlockedPowers.length;
+    if (this.currentPowerIndex < 0) {
+      this.currentPowerIndex = unlockedPowers.length - 1;
+    }
 
     // Update button caption
-    button.caption = `Use Power: ${currentPower.name}`;
+    this.updatePowerButtonState();
 
+    const currentPower = unlockedPowers[this.currentPowerIndex];
+    console.log(`👑 Queen power cycled to: ${currentPower.name}`);
+  }
+
+  /**
+   * Activate the currently selected power
+   */
+  activateCurrentPower() {
+    if (!this.selectedQueen) return;
+
+    // Reset interaction timer
+    this.lastInteractionTime = Date.now();
+
+    const unlockedPowers = this.getUnlockedPowers();
+    if (unlockedPowers.length === 0) {
+      console.log('❌ No powers unlocked yet!');
+      return;
+    }
+
+    if (this.currentPowerIndex < 0 || this.currentPowerIndex >= unlockedPowers.length) {
+      this.currentPowerIndex = 0;
+    }
+
+    const currentPower = unlockedPowers[this.currentPowerIndex];
+    console.log(`👑 Activating power: ${currentPower.name}`);
+    
     // Activate the power
     currentPower.activate();
+  }
 
-    console.log(`👑 Queen power cycled to: ${currentPower.name}`);
+  /**
+   * Handle mouse wheel scroll for power cycling
+   * @param {number} delta - Scroll delta (positive = scroll up, negative = scroll down)
+   * @returns {boolean} True if scroll was handled
+   */
+  handleMouseWheel(delta) {
+    if (!this.isVisible || !this.selectedQueen) return false;
+
+    const unlockedPowers = this.getUnlockedPowers();
+    if (unlockedPowers.length === 0) return false;
+
+    // Scroll up = next power, scroll down = previous power
+    this.cyclePower(delta > 0 ? 1 : -1);
+    return true;
+  }
+
+  /**
+   * Handle right-click for power cycling
+   * @returns {boolean} True if right-click was handled
+   */
+  handleRightClick() {
+    if (!this.isVisible || !this.selectedQueen) return false;
+
+    const unlockedPowers = this.getUnlockedPowers();
+    if (unlockedPowers.length === 0) return false;
+
+    // Right-click cycles to next power
+    this.cyclePower(1);
+    return true;
   }
 
   /**
@@ -304,6 +389,9 @@ class QueenControlPanel {
    */
   handleMouseClick(mouseX, mouseY) {
     if (!this.targetingMode || !this.selectedQueen) return false;
+
+    // Reset interaction timer
+    this.lastInteractionTime = Date.now();
 
     // Fire fireball at clicked location
     this.fireFireball(mouseX, mouseY);
@@ -354,14 +442,28 @@ class QueenControlPanel {
       this.targetCursor.y = mouseY;
     }
 
-    // Check if queen is still selected and alive
+    // Check if queen is still alive (always hide if dead)
+    if (
+      this.selectedQueen &&
+      typeof this.selectedQueen.health !== 'undefined' &&
+      this.selectedQueen.health <= 0
+    ) {
+      this.hide();
+      return;
+    }
+
+    // Check if queen is deselected, but use the interaction timer
     if (
       this.selectedQueen &&
       typeof this.selectedQueen.isSelected !== 'undefined' &&
-      typeof this.selectedQueen.health !== 'undefined' &&
-      (!this.selectedQueen.isSelected || this.selectedQueen.health <= 0)
+      !this.selectedQueen.isSelected
     ) {
-      this.hide();
+      // Check if interaction delay has passed
+      const timeSinceInteraction = Date.now() - this.lastInteractionTime;
+      if (timeSinceInteraction >= this.interactionDelay) {
+        this.hide();
+      }
+      // Otherwise, keep panel visible even though queen is deselected
     }
   }
 
@@ -493,15 +595,16 @@ function updateQueenPanelVisibility() {
     selectedQueen = playerQueen;
   }
 
-  // Show or hide panel based on selection
+  // Show panel if queen is selected
   if (selectedQueen && !g_queenControlPanel.isVisible) {
     g_queenControlPanel.show(selectedQueen);
-  } else if (!selectedQueen && g_queenControlPanel.isVisible) {
-    g_queenControlPanel.hide();
   } else if (selectedQueen && g_queenControlPanel.isVisible) {
-    // Queen still selected - update power button state in case powers changed
+    // Queen still selected - update selected queen reference and reset timer
+    g_queenControlPanel.selectedQueen = selectedQueen;
+    g_queenControlPanel.lastInteractionTime = Date.now();
     g_queenControlPanel.updatePowerButtonState();
   }
+  // Note: Don't hide here if queen is deselected - let update() handle it with the 3-second delay
 }
 
 // Auto-initialize if in browser environment

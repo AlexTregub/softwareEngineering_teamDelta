@@ -146,10 +146,33 @@ class SelectionController {
     // Only log if mouse has moved
     const mouseMoved = (mouseX !== this._lastMouseX || mouseY !== this._lastMouseY);
     
-    // Use transform controller if available, otherwise fallback
+    // Get entity position and size in world pixels
+    const pos = this._entity.getPosition(); // World coords in pixels
+    const size = this._entity.getSize();
+    
+    // Convert mouse screen coordinates and entity world coordinates using GridTerrain's coordinate system
     let isOver = false;
     
-    if (this._entity._transformController) {
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert screen mouse position to tile coordinates (handles camera offset and Y-axis inversion)
+      const mouseTilePos = g_activeMap.renderConversion.convCanvasToPos([mouseX, mouseY]);
+      
+      // Convert entity world pixels to tile coordinates (with proper tile centering to match sprite rendering)
+      // Grid coordinates are centered on tiles, so we add +0.5 to match sprite rendering
+      const entityTileX = (pos.x / TILE_SIZE) + 0.5;
+      const entityTileY = (pos.y / TILE_SIZE) + 0.5;
+      const entityTileSizeX = size.x / TILE_SIZE;
+      const entityTileSizeY = size.y / TILE_SIZE;
+      
+      // Check if mouse tile position is within entity bounds (in tile space, centered)
+      isOver = (
+        mouseTilePos[0] >= entityTileX - (entityTileSizeX / 2) &&
+        mouseTilePos[0] <= entityTileX + (entityTileSizeX / 2) &&
+        mouseTilePos[1] >= entityTileY - (entityTileSizeY / 2) &&
+        mouseTilePos[1] <= entityTileY + (entityTileSizeY / 2)
+      );
+    } else if (this._entity._transformController) {
+      // Fallback: Use TransformController if terrain system not available
       // TransformController.contains() expects WORLD coordinates, not screen coordinates
       // Convert screen mouse position to world position
       let worldMouseX = mouseX;
@@ -162,13 +185,8 @@ class SelectionController {
       }
       
       isOver = this._entity._transformController.contains(worldMouseX, worldMouseY);
-    } else if (this._entity.isMouseOver) {
-      // NOTE: Entity.isMouseOver() uses global mouseX/mouseY and ignores parameters
-      // We need to use the collision box directly with converted coordinates
-      const pos = this._entity.getPosition(); // World coords
-      const size = this._entity.getSize();
-      
-      // Convert screen mouse position to world position for comparison
+    } else {
+      // Final fallback: Direct collision box check with coordinate conversion
       let worldMouseX = mouseX;
       let worldMouseY = mouseY;
       
@@ -179,28 +197,17 @@ class SelectionController {
       }
       
       // Use collision box directly with converted coords
-      isOver = this._entity._collisionBox && this._entity._collisionBox.contains(worldMouseX, worldMouseY);
-    } else {
-      // Fallback calculation - convert screen mouse coords to world coords
-      const pos = this._entity.getPosition(); // World coords
-      const size = this._entity.getSize();
-      
-      // Convert screen mouse position to world position for comparison
-      let worldMouseX = mouseX;
-      let worldMouseY = mouseY;
-      
-      if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
-        const worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
-        worldMouseX = worldMouse.x;
-        worldMouseY = worldMouse.y;
+      if (this._entity._collisionBox) {
+        isOver = this._entity._collisionBox.contains(worldMouseX, worldMouseY);
+      } else {
+        // Last resort: direct bounds check
+        isOver = (
+          worldMouseX >= pos.x &&
+          worldMouseX <= pos.x + size.x &&
+          worldMouseY >= pos.y &&
+          worldMouseY <= pos.y + size.y
+        );
       }
-      
-      isOver = (
-        worldMouseX >= pos.x &&
-        worldMouseX <= pos.x + size.x &&
-        worldMouseY >= pos.y &&
-        worldMouseY <= pos.y + size.y
-      );
     }
     
     this._lastMouseX = mouseX;

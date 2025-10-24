@@ -222,6 +222,35 @@ class RenderLayerManager {
         RenderManager._registeredDrawables.buttonGroupManager = true;
       }
     }
+
+    // Brush systems: register render methods to UI_GAME layer
+    if (window.g_enemyAntBrush && !RenderManager._registeredDrawables.enemyAntBrush) {
+      if (typeof window.g_enemyAntBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_enemyAntBrush.render.bind(window.g_enemyAntBrush));
+        RenderManager._registeredDrawables.enemyAntBrush = true;
+      }
+    }
+    
+    if (window.g_resourceBrush && !RenderManager._registeredDrawables.resourceBrush) {
+      if (typeof window.g_resourceBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_resourceBrush.render.bind(window.g_resourceBrush));
+        RenderManager._registeredDrawables.resourceBrush = true;
+      }
+    }
+    
+    if (window.g_buildingBrush && !RenderManager._registeredDrawables.buildingBrush) {
+      if (typeof window.g_buildingBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_buildingBrush.render.bind(window.g_buildingBrush));
+        RenderManager._registeredDrawables.buildingBrush = true;
+      }
+    }
+    
+    if (window.g_lightningAimBrush && !RenderManager._registeredDrawables.lightningAimBrush) {
+      if (typeof window.g_lightningAimBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_lightningAimBrush.render.bind(window.g_lightningAimBrush));
+        RenderManager._registeredDrawables.lightningAimBrush = true;
+      }
+    }
   } catch (err) {
     console.error('❌ Error registering drawables with RenderManager:', err);
   }

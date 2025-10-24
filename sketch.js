@@ -290,143 +290,69 @@ function initializeWorld() {
  */
 
 function draw() {
-  // Update camera before rendering (CRITICAL: must happen before RenderManager.render)
+  // ============================================================
+  // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
+  // Updates must happen BEFORE rendering to show current frame data
+  // ============================================================
+  
+  // Update camera (input processing, following, bounds clamping)
   if (GameState.isInGame() && cameraManager) {
     cameraManager.update();
   }
 
-  RenderManager.render(GameState.getState());
-
-  if (typeof window.renderPauseMenuUI === 'function') {
-    window.renderPauseMenuUI();
-  }
-  // Draw dropoff UI (button, placement preview) after other UI elements
-  if (typeof window !== 'undefined' && typeof window.drawDropoffUI === 'function') {
-    window.drawDropoffUI();
-  }
-  
-  // Render Enemy Ant Brush (on top of other UI elements)
-  if (window.g_enemyAntBrush) {
-    try {
-      window.g_enemyAntBrush.render();
-    } catch (error) {
-      console.error('❌ Error rendering enemy ant brush:', error);
-    }
-  }
-  
-  // Render Resource Brush (on top of other UI elements)
-  if (window.g_resourceBrush) {
-    try {
-      window.g_resourceBrush.render();
-    } catch (error) {
-      console.error('❌ Error rendering resource brush:', error);
-    }
-  }
-  
-  // Render Building Brush (on top of other UI elements)
-  if (window.g_buildingBrush) {
-    try {
-      window.g_buildingBrush.render();
-    } catch (error) {
-      console.error('❌ Error rendering building brush:', error);
-    }
-  }
-  
-  // Render debug visualization for ant gathering (overlays on top)
-  if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer) {
-    g_gatherDebugRenderer.render();
-  }
-  // Update button groups (rendering handled by RenderLayerManager)
-  if (window.buttonGroupManager) {
-    try {
-      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
-    } catch (error) {
-      console.error('❌ Error updating button group system:', error);
-    }
-  }
-
-  // Update Enemy Ant Brush
-  if (window.g_enemyAntBrush) {
-    try {
-      window.g_enemyAntBrush.update();
-    } catch (error) {
-      console.error('❌ Error updating enemy ant brush:', error);
-    }
-  }
-
-    // Update Enemy Ant Brush
-  if (window.g_lightningAimBrush) {
-    try {
-      window.g_lightningAimBrush.update();
-    } catch (error) {
-      console.error('❌ Error updating enemy ant brush:', error);
-    }
-  }
-
-  // Update Resource Brush
-  if (window.g_resourceBrush) {
-    try {
-      window.g_resourceBrush.update();
-    } catch (error) {
-      console.error('❌ Error updating resource brush:', error);
-    }
-  }
-
-  // Update Building Brush
-  if (window.g_buildingBrush) {
-    try {
-      window.g_buildingBrush.update();
-    } catch (error) {
-      console.error('❌ Error updating building brush:', error);
-    }
-  }
-
-  // Update Queen Control Panel visibility
-  if (typeof updateQueenPanelVisibility !== 'undefined') {
-    try {
-      updateQueenPanelVisibility();
-    } catch (error) {
-      console.error('❌ Error updating queen panel visibility:', error);
-    }
-  }
-
-  // Update Queen Control Panel
-  if (window.g_queenControlPanel) {
-    try {
-      window.g_queenControlPanel.update();
-    } catch (error) {
-      console.error('❌ Error updating queen control panel:', error);
-    }
-  }
-
-  // Update Fireball System
-  if (window.g_fireballManager) {
-    try {
-      window.g_fireballManager.update();
-    } catch (error) {
-      console.error('❌ Error updating fireball system:', error);
-    }
-  }
-
-  // Update Lightning System (soot stains, timed effects)
-  if (window.g_lightningManager) {
-    try {
-      window.g_lightningManager.update();
-    } catch (error) {
-      console.error('❌ Error updating lightning system:', error);
-    }
-  }
-
+  // Update game systems (only if playing)
   if (GameState.getState() === 'PLAYING') {
+    // Update button groups
+    if (window.buttonGroupManager) {
+      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
+    }
+
+    // Update brush systems
+    if (window.g_enemyAntBrush) {
+      window.g_enemyAntBrush.update();
+    }
+    if (window.g_lightningAimBrush) {
+      window.g_lightningAimBrush.update();
+    }
+    if (window.g_resourceBrush) {
+      window.g_resourceBrush.update();
+    }
+    if (window.g_buildingBrush) {
+      window.g_buildingBrush.update();
+    }
+
+    // Update queen control panel
+    if (typeof updateQueenPanelVisibility !== 'undefined') {
+      updateQueenPanelVisibility();
+    }
+    if (window.g_queenControlPanel) {
+      window.g_queenControlPanel.update();
+    }
+
+    // Update effect systems
+    if (window.g_fireballManager) {
+      window.g_fireballManager.update();
+    }
+    if (window.g_lightningManager) {
+      window.g_lightningManager.update();
+    }
+
+    // Update queen movement (WASD keys)
     const playerQueen = getQueen();
     if (playerQueen) {
-      // WASD key codes: W=87 A=65 S=83 D=68
       if (keyIsDown(87)) playerQueen.move("w");
       if (keyIsDown(65)) playerQueen.move("a");
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
     }
   }
+
+  // ============================================================
+  // GAME LOOP PHASE 2: RENDER EVERYTHING ONCE
+  // RenderLayerManager handles all layered rendering
+  // ============================================================
+  
+  RenderManager.render(GameState.getState());
 
   // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
   if (typeof window.drawCoordinateVisualization === 'function') {
@@ -527,6 +453,16 @@ function mousePressed() {
       if (handled) return;
     } catch (error) {
       console.error('❌ Error handling lightning aim brush events:', error);
+    }
+  }
+
+  // Handle Queen Control Panel right-click for power cycling
+  if (window.g_queenControlPanel && mouseButton === RIGHT) {
+    try {
+      const handled = window.g_queenControlPanel.handleRightClick();
+      if (handled) return; // Queen panel consumed the right-click
+    } catch (error) {
+      console.error('❌ Error handling queen control panel right-click:', error);
     }
   }
 
@@ -692,7 +628,7 @@ function mouseWheel(event) {
       return false;
     };
 
-    // Priority order: Enemy brush, Resource brush, Lightning aim brush
+    // Priority order: Enemy brush, Resource brush, Lightning aim brush, Queen powers
     if (window.g_enemyAntBrush && tryCycleDir(window.g_enemyAntBrush)) {
       event.preventDefault();
       return false;
@@ -702,6 +638,12 @@ function mouseWheel(event) {
       return false;
     }
     if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    
+    // Queen power cycling with mouse wheel
+    if (window.g_queenControlPanel && window.g_queenControlPanel.handleMouseWheel(delta)) {
       event.preventDefault();
       return false;
     }
