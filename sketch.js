@@ -30,14 +30,9 @@ let queenAnt;
 
 // Buildings
 let Buildings = [];
+// Camera system - now managed by CameraManager
+let cameraManager;
 
-/**
- * preload
- * -------
- * Preloads game assets and resources used during runtime.
- * Called by p5.js before setup to ensure textures, sprites, sounds, and fonts are available.
- * Assigns loaded assets to globals consumed by rendering and game systems.
- */
 function preload(){
   terrainPreloader();
   menuPreload();
@@ -176,9 +171,7 @@ function setup() {
   initializeContextMenuPrevention();
   //
 
-  // TEST BUILDINGS
-  hive = createBuilding('hivesource', 200, 200, 'neutral');
-  Buildings.push(hive);
+  Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
 }
 
 /**
@@ -257,24 +250,35 @@ if (typeof window !== 'undefined') {
 function initializeWorld() {
 
   g_seed = hour()*minute()*floor(second()/10);
+
+  // OLD TERRAIN SYSTEM - Commented out, using gridTerrain instead
+  // g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
+  // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
   
-  // New, Improved, and Chunked Terrain
+  // New, Improved, and Chunked Terrain using MapManager
   // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
   // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
-  // COORDSY = MAP.getCoordinateSystem();
+  // IMPORTANT: Set g_activeMap immediately after g_map2 creation
+  g_activeMap = g_map2;
+  
+  // Register with MapManager (which will also update g_activeMap)
+  if (typeof mapManager !== 'undefined') {
+    mapManager.registerMap('level1', g_map2, true);
+    console.log("Main map registered with MapManager as 'level1' and set as active");
+  }
+  
+  // COORDSY = new CoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
-  g_gridMap = new PathMap(g_map);
+  g_gridMap = new PathMap(g_map2);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
   queenAnt = spawnQueen();
-
-  // disableTerrainCache();
 }
 
 /**
@@ -287,25 +291,17 @@ function initializeWorld() {
  */
 
 function draw() {
-
-  if (GameState.getState() === 'PLAYING') {  updateDraggablePanels(); }
-
-  updatePresentationPanels(GameState.getState());
-
-  // Update presentation panels for state-based visibility
-  if (typeof updatePresentationPanels !== 'undefined') {
-    updatePresentationPanels(GameState.getState());
+  // ============================================================
+  // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
+  // Updates must happen BEFORE rendering to show current frame data
+  // ============================================================
+  
+  // Update camera (input processing, following, bounds clamping)
+  if (GameState.isInGame() && cameraManager) {
+    cameraManager.update();
   }
-  RenderManager.render(GameState.getState());
 
-
-  // background(0);
-  // g_map2.renderDirect();
-
-  // Use the new layered rendering system
-  // Update legacy draggable panels BEFORE rendering so the render pipeline
-  // sees the latest panel positions (avoids a pre-update render that leaves
-  // a ghost image of the previous frame's positions).
+  // Update game systems (only if playing)
   if (GameState.getState() === 'PLAYING') {
     // Update button groups
     if (window.buttonGroupManager) {
@@ -349,12 +345,6 @@ function draw() {
       if (keyIsDown(65)) playerQueen.move("a");
       if (keyIsDown(83)) playerQueen.move("s");
       if (keyIsDown(68)) playerQueen.move("d");
-    }
-
-    // Press U to upgrade hive
-    if(keyIsDown(85) && hive){
-      console.log('Upgrading hive...');
-      hive.upgradeBuilding();
     }
   }
 
