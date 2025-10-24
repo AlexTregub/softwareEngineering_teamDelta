@@ -289,7 +289,11 @@ function initializeWorld() {
  * Called automatically by p5.js at the frame rate.
  */
 
-function draw() {  
+function draw() {
+  // Update camera before rendering (CRITICAL: must happen before RenderManager.render)
+  if (GameState.isInGame() && cameraManager) {
+    cameraManager.update();
+  }
 
   RenderManager.render(GameState.getState());
 
