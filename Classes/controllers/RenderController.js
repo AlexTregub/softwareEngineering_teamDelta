@@ -431,36 +431,41 @@ class RenderController {
       const isMoving = this._entity._movementController.getIsMoving();
       
       if (isMoving && target) {
+        // Get entity center in world coordinates, convert to screen
         const pos = this.getEntityCenter();
         const screenPos = this.worldToScreenPosition(pos);
-        const targetScreenPos = this.worldToScreenPosition({ x: target.x, y: target.y });
-        const size = this.getEntitySize();
+        
+        // Get target center in world coordinates, convert to screen
+        const targetCenter = {
+          x: target.x + this.getEntitySize().x / 2,
+          y: target.y + this.getEntitySize().y / 2
+        };
+        const targetScreenPos = this.worldToScreenPosition(targetCenter);
         
         this._safeRender(() => {
           stroke(255, 255, 255, 150);
           strokeWeight(2);
-          line(
-            screenPos.x, screenPos.y,
-            targetScreenPos.x + size.x / 2, targetScreenPos.y + size.y / 2
-          );
+          // Both positions are already centered screen coordinates
+          line(screenPos.x, screenPos.y, targetScreenPos.x, targetScreenPos.y);
           noStroke();
         });
       }
     } else if (this._entity._isMoving && this._entity._stats && this._entity._stats.pendingPos) {
       // Fallback to old system
-      const pos = this.getEntityPosition();
+      const pos = this.getEntityCenter();
       const screenPos = this.worldToScreenPosition(pos);
-      const size = this.getEntitySize();
       const target = this._entity._stats.pendingPos.statValue;
-      const targetScreenPos = this.worldToScreenPosition({ x: target.x, y: target.y });
+      const targetCenter = {
+        x: target.x + this.getEntitySize().x / 2,
+        y: target.y + this.getEntitySize().y / 2
+      };
+      const targetScreenPos = this.worldToScreenPosition(targetCenter);
       
       this._safeRender(() => {
         stroke(255);
         strokeWeight(2);
-        line(
-          screenPos.x + size.x / 2, screenPos.y + size.y / 2,
-          targetScreenPos.x + size.x / 2, targetScreenPos.y + size.y / 2
-        );
+        // Both positions are already centered screen coordinates
+        line(screenPos.x, screenPos.y, targetScreenPos.x, targetScreenPos.y);
         noStroke();
       });
     }
@@ -624,12 +629,12 @@ class RenderController {
     const indicator = this.STATE_INDICATORS[currentState];
     if (!indicator) return;
 
-    const pos = this.getEntityPosition();
-    const screenPos = this.worldToScreenPosition(pos);
-    const size = this.getEntitySize();
+    // Get center position in world coordinates, convert to screen
+    const centerPos = this.getEntityCenter();
+    const screenPos = this.worldToScreenPosition(centerPos);
     
-    // Position indicator above entity
-    const indicatorX = screenPos.x + size.x / 2;
+    // Position indicator above entity (screenPos is already centered)
+    const indicatorX = screenPos.x;
     const indicatorY = screenPos.y - 15;
 
     this._safeRender(() => {
@@ -664,14 +669,14 @@ class RenderController {
     const indicator = this.TERRAIN_INDICATORS[terrainModifier];
     if (!indicator) return;
     
-    // Get entity position and size for positioning
-    const pos = this.getEntityPosition();
-    const screenPos = this.worldToScreenPosition(pos);
-    const size = this.getEntitySize();
+    // Get center position in world coordinates, convert to screen
+    const centerPos = this.getEntityCenter();
+    const screenPos = this.worldToScreenPosition(centerPos);
     
     // Render terrain indicator with safe render wrapper
     this._safeRender(() => {
-      const indicatorX = screenPos.x + size.x / 2;
+      // Position above entity center (screenPos is already centered)
+      const indicatorX = screenPos.x;
       const indicatorY = screenPos.y - 30; // Position above state indicator (which is at -15)
 
       // Draw background circle

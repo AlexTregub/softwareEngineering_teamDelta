@@ -29,7 +29,6 @@ class LightningAimBrush extends BrushBase {
 
   update() {
     if (!this.isActive) return;
-    this.render()
     super.update();
     this.cursor.x = (typeof mouseX !== 'undefined') ? mouseX : this.cursor.x;
     this.cursor.y = (typeof mouseY !== 'undefined') ? mouseY : this.cursor.y;

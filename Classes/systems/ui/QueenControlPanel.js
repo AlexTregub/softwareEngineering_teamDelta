@@ -55,6 +55,18 @@ class QueenControlPanel {
           if (typeof window.g_lightningAimBrush === 'undefined' || !window.g_lightningAimBrush) {
             if (typeof window.initializeLightningAimBrush === 'function') {
               window.g_lightningAimBrush = window.initializeLightningAimBrush();
+              console.log('✅ Lightning brush initialized');
+              
+              // Register the render function with RenderLayerManager
+              if (typeof RenderManager !== 'undefined' && RenderManager && 
+                  typeof RenderManager.addDrawableToLayer === 'function' &&
+                  typeof window.g_lightningAimBrush.render === 'function') {
+                RenderManager.addDrawableToLayer(
+                  RenderManager.layers.UI_GAME, 
+                  window.g_lightningAimBrush.render.bind(window.g_lightningAimBrush)
+                );
+                console.log('✅ Lightning brush render registered');
+              }
             } else {
               console.warn('⚠️ Lightning Aim Brush system not available');
               return;
@@ -63,11 +75,20 @@ class QueenControlPanel {
           
           // Activate lightning aim brush
           if (window.g_lightningAimBrush) {
+            console.log('⚡ Lightning brush state before activation:', {
+              isActive: window.g_lightningAimBrush.isActive,
+              hasRender: typeof window.g_lightningAimBrush.render === 'function'
+            });
+            
             // If already active, don't toggle off - just ensure it's on
             if (!window.g_lightningAimBrush.isActive) {
               window.g_lightningAimBrush.toggle();
             }
+            
             console.log('⚡ Lightning targeting mode activated - click to strike!');
+            console.log('⚡ Lightning brush state after activation:', {
+              isActive: window.g_lightningAimBrush.isActive
+            });
           }
         }
       },
