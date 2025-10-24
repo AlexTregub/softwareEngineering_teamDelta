@@ -125,10 +125,10 @@ function setup() {
   
   // temp.set([0,0],[new Pheromone("Pain.",100,100,0.05,0.01)],false);
   for (let i = -1; i < 2; ++i) {
-    temp.set([i,i],[new Pheromone("Pain. 2x",100,100,0.1,0.01)],true);
-    temp.set([-i,i],[new Pheromone("Pain.",100,100,0.1,0.01)],true);
+    temp.set([i,i],[new Pheromone("Pain. 2x",100,100,0.1,0.5)],true);
+    temp.set([-i,i],[new Pheromone("Pain.",100,100,0.1,0.5)],true);
   }
-  temp.set([0,0],[new Pheromone("Pain. 3x",100,100,0.1,0.01)],true);
+  temp.set([0,0],[new Pheromone("Pain. 3x",100,100,0.1,0.25)],true);
 
   // temp.diffuse();
   // temp.swapSelGrid();
