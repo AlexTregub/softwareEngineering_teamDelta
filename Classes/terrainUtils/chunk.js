@@ -163,7 +163,7 @@ class Chunk {
         let len = this.tileData.getSize()[0]*this.tileData.getSize()[1];
         
         for (let i = 0; i < len; ++i) {
-            this.tileData.rawArray[i].render2(coordSys);
+            this.tileData.rawArray[i].render(coordSys);
         }
     }
 

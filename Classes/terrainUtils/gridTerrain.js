@@ -122,7 +122,8 @@ class gridTerrain {
 
         this._tileSpanRange = [
             this._tileSpan[1][0] - this._tileSpan[0][0],
-            this._tileSpan[1][1] - this._tileSpan[0][1]
+            // this._tileSpan[1][1] - this._tileSpan[0][1]
+            this._tileSpan[0][1] - this._tileSpan[1][1] // Updated order for flipped y-axis
         ]
 
         // Canvas conversions handler
@@ -171,6 +172,18 @@ class gridTerrain {
         return Math.min(6, Math.max(1, dynamicBuffer));
     }
 
+    //// Functionality
+    randomize(g_seed=this._seed) {
+        noiseSeed(g_seed);
+
+        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
+            this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
+        }
+        
+        // Invalidate cache when terrain data changes
+        this.invalidateCache();
+    }
+
     printDebug() {
         print("gridTerrain debug:");
         print("Chunk span:",this._gridSizeX,',',this._gridSizeY,"; Center chunk:",this._centerChunkX,',',this._centerChunkY)
@@ -185,6 +198,72 @@ class gridTerrain {
         print("Render center:",this.renderConversion.convPosToCanvas([0,0]));
     }
 
+    //// Utils
+    convRelToAccess(pos) { // Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
+        // let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize)-1;
+        let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize); // Not even I know why this works
+        let chunkY = pos[1]%this._chunkSize == 0 ? pos[1]/this._chunkSize : floor(pos[1]/this._chunkSize)+1;
+
+        let relX = pos[0] - chunkX*this._chunkSize;
+        let relY = chunkY*this._chunkSize - pos[1];
+
+        return [
+            [chunkX,chunkY],
+            [relX,relY]
+        ]
+    }
+
+    convArrToAccess(pos) { // Converts legacy array position -> chunk (0,0 indexed) + relative, 2d format.
+        // Assumes position is from (0,0) with old format.
+        let chunkX = floor(pos[0]/this._chunkSize); // 2 -> 0.* -> chunk at 0,y
+        let chunkY = floor(pos[1]/this._chunkSize);
+        
+        let relX = pos[0] - chunkX*this._chunkSize; // Will not round, allow for float positions
+        let relY = pos[1] - chunkY*this._chunkSize;
+
+        return [
+            [chunkX,chunkY],
+            [relX,relY]
+        ]
+    }
+
+    //// Access - similar to grid functions
+    // Assumes indexed from (0,0)
+    getArrPos(pos) {
+        let access = this.convArrToAccess(pos);
+        let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
+
+        return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
+    }
+
+    setArrPos(pos,obj) {
+        let access = this.convArrToAccess(pos);
+        let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
+
+        return this.chunkArray.rawArray[chunkRawAccess].setArrPos(access[1],obj);
+    }
+
+    // Assumes indexed from TL position (_tileSpan[0])
+    get(relPos) {
+        let access = this.convRelToAccess(relPos);
+        let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
+
+        // CONVERSIONS HAVE FAILED?
+        // console.log(access)
+        // console.log(this.chunkArray.convRelToArrPos(access[0]))
+        // console.log(chunkRawAccess)
+        return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
+    }
+
+    set(relPos,obj) {
+        let access = this.convRelToAccess(relPos);
+        let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
+
+        return this.chunkArray.rawArray[chunkRawAccess].setArrPos(access[1],obj);
+    }
+
+
+    //// Rendering (+ pipeline)
     render() {
         // Use caching system for performance optimization
         if (!this._shouldUseCache()) {
@@ -577,19 +656,6 @@ class gridTerrain {
         // Invalidate cache when terrain data changes
         this.invalidateCache();
     }
-
-    getGridSize(){
-        console.log("this.getGridSize")
-        return createVector(this._gridSizeX,this._gridSizeY)
-    }
-
-    getGridSizePixels(){
-        return createVector(this._gridSizeX*TILE_SIZE,this._gridSizeY*TILE_SIZE)
-    }
-
-    getCamRenderConverter(){
-        return this.renderConversion
-    }
 };
 
 // Global functions to control and monitor terrain cache from console
@@ -707,15 +773,10 @@ class camRenderConverter {
             Math.ceil(this._canvasCenter[0]/this._tileSize),  // Tiles from center to horizontal edge
             Math.ceil(this._canvasCenter[1]/this._tileSize)   // Tiles from center to vertical edge
         ];
-
-        //console.log(tileOffsets)
-        
-        // Recalculate visible area boundaries in tile coordinates
-        // This determines which chunks/tiles need to be rendered
         this._viewSpan = [
-            [ // Top-Left corner (-x,+y) - Mathematical coordinates
-                this._camPosition[0]-tileOffsets[0],  // Left boundary
-                this._camPosition[1]+tileOffsets[1]   // Top boundary (+Y is up)
+            [ // TL (-x,+y)
+                this._camPosition[0]-tileOffsets[0],
+                this._camPosition[1]+tileOffsets[1]
             ],
             [ // Bottom-Right corner (+x,-y) 
                 this._camPosition[0]+tileOffsets[0],  // Right boundary

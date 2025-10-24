@@ -876,7 +876,6 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     if (typeof selectables !== 'undefined') selectables.push(newAnt);
     newAnt.update();
     
-    // Register ant with TileInteractionManager for efficient mouse detection
     if (g_tileInteractionManager) {
       g_tileInteractionManager.addObject(newAnt, 'ant');
     }
