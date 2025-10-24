@@ -27,10 +27,23 @@ class SootStain {
 
   render() {
     if (!this.isActive) return;
+    
+    // Convert world coordinates to screen coordinates
+    let screenX = this.x;
+    let screenY = this.y;
+    
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      const tileX = this.x / TILE_SIZE;
+      const tileY = this.y / TILE_SIZE;
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
     push();
     noStroke();
     fill(30, 30, 30, this.alpha * 180);
-    ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
+    ellipse(screenX, screenY, this.radius * 2, this.radius * 2);
     pop();
   }
 }

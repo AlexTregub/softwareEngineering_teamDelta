@@ -44,21 +44,37 @@ class LightningAimBrush extends BrushBase {
   render() {
     if (!this.isActive) return;
     const queen = typeof getQueen === 'function' ? getQueen() : null;
-    const queenPos = queen && typeof queen.getPosition === 'function' ? queen.getPosition() : (queen ? { x: queen.x || 0, y: queen.y || 0 } : null);
+    
+    // Get queen's screen position (uses sprite coordinate transformation)
+    let queenScreenX = 0;
+    let queenScreenY = 0;
+    
+    if (queen) {
+      if (typeof queen.getScreenPosition === 'function') {
+        // Use Entity's getScreenPosition for proper coordinate conversion
+        const screenPos = queen.getScreenPosition();
+        queenScreenX = screenPos.x;
+        queenScreenY = screenPos.y;
+      } else {
+        // Fallback for non-Entity objects
+        queenScreenX = queen.x || 0;
+        queenScreenY = queen.y || 0;
+      }
+    }
 
     push();
-    // Range circle around queen
-    if (queenPos) {
+    // Range circle around queen (in screen coordinates)
+    if (queen) {
       noFill();
       stroke(100, 0, 255, 140);
       strokeWeight(2);
-      ellipse(queenPos.x, queenPos.y, this.rangePx * 2, this.rangePx * 2);
+      ellipse(queenScreenX, queenScreenY, this.rangePx * 2, this.rangePx * 2);
     }
 
-    // Crosshair and validity
-    const dx = queenPos ? (this.cursor.x - queenPos.x) : 0;
-    const dy = queenPos ? (this.cursor.y - queenPos.y) : 0;
-    const dist = queenPos ? Math.hypot(dx, dy) : Infinity;
+    // Crosshair and validity (cursor is already in screen coordinates from mouseX/mouseY)
+    const dx = (this.cursor.x - queenScreenX);
+    const dy = (this.cursor.y - queenScreenY);
+    const dist = Math.hypot(dx, dy);
     const valid = dist <= this.rangePx;
 
     // Cursor indicator
@@ -70,6 +86,7 @@ class LightningAimBrush extends BrushBase {
     // inner lines
     strokeWeight(1);
     line(this.cursor.x - size, this.cursor.y, this.cursor.x + size, this.cursor.y);
+    line(this.cursor.x, this.cursor.y - size, this.cursor.x, this.cursor.y + size);
     line(this.cursor.x, this.cursor.y - size, this.cursor.x, this.cursor.y + size);
 
     // Instruction text
@@ -116,25 +133,49 @@ class LightningAimBrush extends BrushBase {
     if (now - this.lastSpawnTime < this.spawnCooldown) return false;
 
     const queen = typeof getQueen === 'function' ? getQueen() : null;
-    const queenPos = queen && typeof queen.getPosition === 'function' ? queen.getPosition() : (queen ? { x: queen.x || 0, y: queen.y || 0 } : null);
-    if (!queenPos) {
+    if (!queen) {
       console.warn('⚠️ No queen found - cannot aim lightning');
       return false;
     }
+    
+    // Get queen's screen position for range check
+    let queenScreenX = 0;
+    let queenScreenY = 0;
+    
+    if (typeof queen.getScreenPosition === 'function') {
+      const screenPos = queen.getScreenPosition();
+      queenScreenX = screenPos.x;
+      queenScreenY = screenPos.y;
+    } else {
+      queenScreenX = queen.x || 0;
+      queenScreenY = queen.y || 0;
+    }
 
-    const dx = mx - queenPos.x;
-    const dy = my - queenPos.y;
+    // Check range using screen coordinates (mouse is in screen coords)
+    const dx = mx - queenScreenX;
+    const dy = my - queenScreenY;
     const dist = Math.hypot(dx, dy);
     if (dist > this.rangePx) {
       // Out of range
-      // brief visual feedback could be added
       this.lastSpawnTime = now; // still consume spawn tick to prevent spam of logs
       return false;
     }
 
-    // Request lightning at the position
+    // Convert screen coordinates to world coordinates for the actual strike
+    let worldX = mx;
+    let worldY = my;
+    
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert screen position back to tile coordinates
+      const tilePos = g_activeMap.renderConversion.convCanvasToPos([mx, my]);
+      // Convert tile coordinates to world pixels (subtract 0.5 to reverse the centering)
+      worldX = (tilePos[0] - 0.5) * TILE_SIZE;
+      worldY = (tilePos[1] - 0.5) * TILE_SIZE;
+    }
+
+    // Request lightning at the world position
     if (typeof g_lightningManager !== 'undefined' && g_lightningManager && typeof g_lightningManager.requestStrike === 'function') {
-      const executed = g_lightningManager.requestStrike({ x: mx, y: my });
+      const executed = g_lightningManager.requestStrike({ x: worldX, y: worldY });
       if (executed) {
         this.lastSpawnTime = now;
         return true;

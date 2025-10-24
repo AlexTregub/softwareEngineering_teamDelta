@@ -171,16 +171,28 @@ class Fireball {
   render() {
     if (!this.isActive) return;
 
+    // Convert world coordinates to screen coordinates
+    let screenX = this.x;
+    let screenY = this.y;
+    
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      const tileX = this.x / TILE_SIZE;
+      const tileY = this.y / TILE_SIZE;
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+
     push();
 
-    // Draw trail
+    // Draw trail (needs to convert each trail point)
     this.renderTrail();
 
     // Draw glow effect
-    this.renderGlow();
+    this.renderGlow(screenX, screenY);
 
     // Draw main fireball
-    this.renderFireball();
+    this.renderFireball(screenX, screenY);
 
     pop();
   }
@@ -193,42 +205,54 @@ class Fireball {
       const trailPoint = this.trail[i];
       const alpha = (i / this.trail.length) * this.trailColor[3];
       
+      // Convert trail point to screen coordinates
+      let screenX = trailPoint.x;
+      let screenY = trailPoint.y;
+      
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+        const tileX = trailPoint.x / TILE_SIZE;
+        const tileY = trailPoint.y / TILE_SIZE;
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+        screenX = screenPos[0];
+        screenY = screenPos[1];
+      }
+      
       fill(this.trailColor[0], this.trailColor[1], this.trailColor[2], alpha);
       noStroke();
       
       const trailSize = (i / this.trail.length) * this.size * 0.8;
-      ellipse(trailPoint.x, trailPoint.y, trailSize, trailSize);
+      ellipse(screenX, screenY, trailSize, trailSize);
     }
   }
 
   /**
    * Render the glow effect
    */
-  renderGlow() {
+  renderGlow(screenX, screenY) {
     const glowSize = this.size * 2.5 + Math.sin(this.animation) * 3;
     fill(this.glowColor[0], this.glowColor[1], this.glowColor[2], this.glowColor[3]);
     noStroke();
-    ellipse(this.x, this.y, glowSize, glowSize);
+    ellipse(screenX, screenY, glowSize, glowSize);
   }
 
   /**
    * Render the main fireball
    */
-  renderFireball() {
+  renderFireball(screenX, screenY) {
     const fireballSize = this.size + Math.sin(this.animation) * 2;
     
     // Outer fire layer
     fill(this.color[0], this.color[1], this.color[2], this.color[3]);
     noStroke();
-    ellipse(this.x, this.y, fireballSize, fireballSize);
+    ellipse(screenX, screenY, fireballSize, fireballSize);
     
     // Inner core
     fill(255, 255, 100, 200); // Bright yellow core
-    ellipse(this.x, this.y, fireballSize * 0.6, fireballSize * 0.6);
+    ellipse(screenX, screenY, fireballSize * 0.6, fireballSize * 0.6);
     
     // Hot center
     fill(255, 255, 255, 150); // White hot center
-    ellipse(this.x, this.y, fireballSize * 0.3, fireballSize * 0.3);
+    ellipse(screenX, screenY, fireballSize * 0.3, fireballSize * 0.3);
   }
 
   /**

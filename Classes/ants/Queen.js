@@ -165,12 +165,14 @@ class QueenAnt extends ant {
 
     // Draw command radius if visible
     if (this.showCommandRadius) {
-      const pos = this.getPosition();
+      // Use Entity's getScreenPosition for proper coordinate conversion
+      const screenPos = this.getScreenPosition();
+      
       push();
       noFill();
       stroke(255, 215, 0, 100);
       strokeWeight(2);
-      ellipse(pos.x, pos.y, this.commandRadius * 2);
+      ellipse(screenPos.x, screenPos.y, this.commandRadius * 2);
       pop();
     }
   }

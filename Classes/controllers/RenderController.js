@@ -401,10 +401,9 @@ class RenderController {
     let screenY = pos.y;
     
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Convert world pixel position to tile position (with proper centering to match sprite rendering)
-      // Grid coordinates are centered on tiles, so we add +0.5 to position entities at tile centers
-      const tileX = (pos.x / TILE_SIZE) + 0.5;
-      const tileY = (pos.y / TILE_SIZE) + 0.5;
+      // Convert world pixel position to tile position
+      const tileX = pos.x / TILE_SIZE +0.5;
+      const tileY = pos.y / TILE_SIZE +0.5;
       
       // Use terrain's converter to get screen position (handles Y-axis inversion)
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
@@ -531,15 +530,11 @@ class RenderController {
     strokeWeight(strokeWeightValue);
     noFill();
     
-    // pos is already the screen center position (from worldToScreenPosition matching Sprite2D.render)
-    // Apply rotation around the center point
-    translate(pos.x, pos.y);
-    rotate(rotation);
-    
-    // Draw rectangle centered at origin (matching imageMode(CENTER) in Sprite2D)
-    rectMode(CENTER);
-    rect(0, 0, size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
-    rectMode(CORNER); // Reset to default
+    // pos is the screen top-left position (matching imageMode(CORNER) in Sprite2D)
+    // Draw rectangle at top-left corner with slight outset for stroke
+    rectMode(CORNER);
+    rect(pos.x - strokeWeightValue, pos.y - strokeWeightValue, 
+         size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
     
     noStroke();
     pop(); // Restore transformation matrix
@@ -602,17 +597,6 @@ class RenderController {
     const time = Date.now() * 0.005; // Fast spin speed
     const rotation = time % (Math.PI * 2);
     
-    const spinPos = { x: pos.x, y: pos.y };
-    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
-  }
-
-  /**
-   * Render fast spinning highlight
-   */
-  renderFastSpinHighlight(pos, size, color, strokeWeight) {
-    const time = Date.now() * 0.005; // Fast spin speed
-    const rotation = time % (Math.PI * 2);
-
     const spinPos = { x: pos.x, y: pos.y };
     this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
   }
@@ -858,15 +842,14 @@ class RenderController {
     // Use terrain's coordinate system if available (syncs entities with terrain camera)
     // NOTE: This MUST match the logic in Sprite2d.render() to keep highlights synced with sprites
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Convert world pixel position to tile position (with proper centering to match sprite rendering)
-      // Grid coordinates are centered on tiles, so we add +0.5 to position entities at tile centers
-      const tileX = (worldPos.x / TILE_SIZE) + 0.5;
-      const tileY = (worldPos.y / TILE_SIZE) + 0.5;
+      // Convert world pixel position to tile position
+      const tileX = worldPos.x / TILE_SIZE;
+      const tileY = worldPos.y / TILE_SIZE;
       
-      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      // Use terrain's converter to get screen position
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       
-      // Return centered screen position
+      // Return top-left screen position (matching CORNER mode rendering)
       return { x: screenPos[0], y: screenPos[1] };
     }
     

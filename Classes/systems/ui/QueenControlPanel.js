@@ -421,24 +421,36 @@ class QueenControlPanel {
 
   /**
    * Fire a fireball from queen to target location
-   * @param {number} targetX - Target X position
-   * @param {number} targetY - Target Y position
+   * @param {number} targetScreenX - Target screen X position
+   * @param {number} targetScreenY - Target screen Y position
    */
-  fireFireball(targetX, targetY) {
+  fireFireball(targetScreenX, targetScreenY) {
     if (!this.selectedQueen || !window.g_fireballManager) {
       console.warn('⚠️ Cannot fire fireball - missing queen or fireball system');
       return;
     }
 
-    // Get queen position
-    const queenPos = this.selectedQueen.getPosition();
+    // Get queen position in world coordinates
+    const queenPosWorld = this.selectedQueen.getPosition();
     
-    // Create fireball
+    // Convert screen coordinates to world coordinates for the target
+    let targetWorldX = targetScreenX;
+    let targetWorldY = targetScreenY;
+    
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert screen position back to tile coordinates
+      const tilePos = g_activeMap.renderConversion.convCanvasToPos([targetScreenX, targetScreenY]);
+      // Convert tile coordinates to world pixels (subtract 0.5 to reverse the centering)
+      targetWorldX = (tilePos[0] - 0.5) * TILE_SIZE;
+      targetWorldY = (tilePos[1] - 0.5) * TILE_SIZE;
+    }
+    
+    // Create fireball using world coordinates
     window.g_fireballManager.createFireball(
-      queenPos.x, 
-      queenPos.y, 
-      targetX, 
-      targetY, 
+      queenPosWorld.x, 
+      queenPosWorld.y, 
+      targetWorldX, 
+      targetWorldY, 
       this.fireballDamage
     );
 
@@ -544,13 +556,15 @@ class QueenControlPanel {
     
     push();
     
-    const queenPos = this.selectedQueen.getPosition();
     const range = 300; // Fireball range
+    
+    // Use Entity's getScreenPosition for proper coordinate conversion
+    const screenPos = this.selectedQueen.getScreenPosition();
     
     noFill();
     stroke(255, 100, 0, 80);
     strokeWeight(1);
-    ellipse(queenPos.x, queenPos.y, range * 2, range * 2);
+    ellipse(screenPos.x, screenPos.y, range * 2, range * 2);
     
     pop();
   }

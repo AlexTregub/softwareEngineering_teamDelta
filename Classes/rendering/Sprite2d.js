@@ -47,28 +47,28 @@ class Sprite2D {
     if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
       // Entity positions are stored in world pixels
       // GridTerrain works in tile coordinates and handles screen conversion
-      // Convert pixel position to tile position (with proper centering)
-      // Grid coordinates are centered on tiles, so we add +0.5 to position sprites at tile centers
-      const tileX = (this.pos.x / TILE_SIZE) + 0.5;
-      const tileY = (this.pos.y / TILE_SIZE) + 0.5;
+      // Convert pixel position to tile position
+      const tileX = this.pos.x / TILE_SIZE;
+      const tileY = this.pos.y / TILE_SIZE;
       
-      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      // Use terrain's converter to get screen position
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       screenX = screenPos[0];
       screenY = screenPos[1];
     }
     
     push();
+    // Use CORNER mode for top-left origin (consistent with collision box)
+    imageMode(CORNER);
     translate(screenX, screenY);
     scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
     rotate(radians(this.rotation));
-    imageMode(CENTER);
     
     // Apply opacity if set
     if (this.alpha && this.alpha < 255) {
       tint(255, this.alpha);
     }
-    // Render sprite centered at translated position
+    // Render sprite at top-left corner (origin is now top-left)
     image(this.img, 0, 0, this.size.x, this.size.y);
     pop();
   }

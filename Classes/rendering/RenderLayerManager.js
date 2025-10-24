@@ -708,6 +708,12 @@ class RenderLayerManager {
     if (isCommandLineActive()) {
       drawCommandLine();
     }
+
+    // Render mouse crosshair
+    if (typeof g_mouseCrosshair !== 'undefined' && g_mouseCrosshair) {
+      g_mouseCrosshair.update();
+      g_mouseCrosshair.render();
+    }
   }
   
   /**

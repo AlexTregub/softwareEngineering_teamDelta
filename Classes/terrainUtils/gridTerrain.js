@@ -758,6 +758,15 @@ class camRenderConverter {
     //// Conversions
     /**
      * Convert world tile coordinates to canvas pixel coordinates
+     * Systems affected by coordinate conversion:
+     * - Sprite2D.render() - Entity sprite rendering (has +0.5 tile centering offset)
+     * - RenderController.worldToScreenPosition() - Highlighting and UI elements
+     * - SelectionBoxController._worldToScreen() - Selection box rendering
+     * - EffectsLayerRenderer - Particle effects
+     * - FireballSystem - Fireball projectile and trail rendering  
+     * - LightningSystem - Lightning strike visual effects
+     * - CoordinateConverter.worldToScreen() - Global coordinate utility
+     * - Ant resource count text rendering
      * @param {Array<number>} input - [x, y] world tile coordinates
      * @returns {Array<number>} [x, y] canvas pixel coordinates (Y increases downward)
      */
@@ -768,12 +777,20 @@ class camRenderConverter {
         
         return [
             (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0],
-            (input[1] - this._camPosition[1])*-this._tileSize + this._canvasCenter[1]
+            (input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
         ];
     }
 
     /**
      * Convert canvas pixel coordinates to world tile coordinates
+     * 
+     * Used primarily for:
+     * - Mouse click position → world tile coordinate conversion
+     * - SelectionController hover detection
+     * - TileInteractionManager click handling
+     * - Entity spawning at mouse position
+     * - Pathfinding target selection
+     * 
      * @param {Array<number>} input - [x, y] canvas pixel coordinates (e.g., mouseX, mouseY)
      * @returns {Array<number>} [x, y] world tile coordinates (Y increases upward)
      */
@@ -784,7 +801,7 @@ class camRenderConverter {
 
         return [
             (input[0] - this._canvasCenter[0])/this._tileSize + this._camPosition[0],
-            -1*(input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
+            (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
         ];
     }
 

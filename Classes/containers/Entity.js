@@ -202,6 +202,31 @@ class Entity {
   getPosition() { return this._delegate('transform', 'getPosition') }
   
   /**
+   * Get screen position (converts world position to screen coordinates for rendering)
+   * This matches the coordinate transformation used by Sprite2D rendering
+   * @returns {{x: number, y: number}} Screen coordinates
+   */
+  getScreenPosition() {
+    const worldPos = this.getPosition();
+    let screenX = worldPos.x;
+    let screenY = worldPos.y;
+    
+    // Use terrain's coordinate system if available (syncs with sprite rendering)
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert world pixels to tile coordinates (centered on tiles)
+      const tileX = (worldPos.x / TILE_SIZE) + 0.5;
+      const tileY = (worldPos.y / TILE_SIZE) + 0.5;
+      
+      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
+    return { x: screenX, y: screenY };
+  }
+  
+  /**
    * Get position in tile coordinates
    * @returns {{x: number, y: number}} Tile coordinates (floored integers)
    */
