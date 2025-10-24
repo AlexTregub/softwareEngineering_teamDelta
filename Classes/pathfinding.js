@@ -12,11 +12,23 @@ class PathMap{
     this._grid = new Grid( //Makes Grid for easy tile storage/access
       // terrain._xCount, //Size of terrain to match
       // terrain._yCount,
-      this._terrain._tileSpanRange[0],
-      this._terrain._tileSpanRange[1], // BAD IDEA TO USE PRIVATE VARS, fuck it we ball 
-      this._terrain._tileSpan[0], // TL Position, private var access
+      // this._terrain._tileSpanRange[0],
+      // this._terrain._tileSpanRange[1], // BAD IDEA TO USE PRIVATE VARS, fuck it we ball 
+      // this._terrain._tileSpan[0], // TL Position, private var access
+      // [0,0]
+
+      terrain._xCount, //Size of terrain to match
+      terrain._yCount,
       [0,0]
     );
+
+    for(let y = 0; y < terrain._yCount; y++){
+      for(let x = 0; x < terrain._xCount; x++){
+        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
+        this._grid.setArrPos([x, y], node); //Stores tile in grid
+      }
+    }
+
 
     console.log("Pathfinding using "+this._grid.infoStr());
 
@@ -32,11 +44,11 @@ class PathMap{
     //   let node = new Node()
     // }
 
-    for (let y = this._grid._spanTopLeft[1]; y > this._grid._spanBotRight[1]; --y) { // Respect y axis
-      for (let x = this._grid._spanTopLeft[0]; x < this._grid._spanBotRight[0]; ++x) {
-        let node = new Node(this._terrain.get([x,y]), x, y); //Makes tile out of Tile object
-      }
-    }
+    // for (let y = this._grid._spanTopLeft[1]; y > this._grid._spanBotRight[1]; --y) { // Respect y axis
+    //   for (let x = this._grid._spanTopLeft[0]; x < this._grid._spanBotRight[0]; ++x) {
+    //     let node = new Node(this._terrain.get([x,y]), x, y); //Makes tile out of Tile object
+    //   }
+    // }
 
     for(let y = 0; y < terrain._yCount; y++){
       for(let x = 0; x < terrain._xCount; x++){
