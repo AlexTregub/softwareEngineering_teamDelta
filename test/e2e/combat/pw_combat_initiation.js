@@ -1,4 +1,4 @@
-const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
+const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
 
 (async () => {
   const baseUrl = process.env.TEST_URL || 'http://localhost:8000';

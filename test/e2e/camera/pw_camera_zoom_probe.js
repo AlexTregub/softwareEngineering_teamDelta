@@ -1,4 +1,4 @@
-const camera = require('./camera_helper');
+const camera = require('../camera_helper');
 
 async function run() {
   const browser = await camera.launch();

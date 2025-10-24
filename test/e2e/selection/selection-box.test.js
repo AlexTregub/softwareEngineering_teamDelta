@@ -7,7 +7,7 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
-const { launchBrowser, sleep, saveScreenshot } = require('./puppeteer_helper');
+const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
 
 // Test configuration
 const CONFIG = {
