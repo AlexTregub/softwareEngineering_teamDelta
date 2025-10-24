@@ -527,6 +527,13 @@ class Pheromone {
 
 //// Testing funcs
 function testSets() { // SET NOT WORKING CORRECTLY.
+    let stringSet = new Set(); // Good.
+    stringSet.add("test");
+    stringSet.add("test1");
+    stringSet.add("test1");
+    stringSet.add("test");
+    console.log(stringSet);
+    
     let temp = new Set();
     let key = new hashmapPosition(2,5);
     
