@@ -44,13 +44,13 @@ class Sprite2D {
     let screenY = this.pos.y + this.size.y / 2;
     
     // Use terrain's coordinate system if available (syncs entities with terrain camera)
-    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion) {
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion) {
       // Convert pixel position to tile position
       const tileX = this.pos.x / TILE_SIZE;
       const tileY = this.pos.y / TILE_SIZE;
       
       // Use terrain's converter to get screen position
-      const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       screenX = screenPos[0] + this.size.x / 2;
       screenY = screenPos[1] + this.size.y / 2;
     }

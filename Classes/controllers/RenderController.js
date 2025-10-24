@@ -400,13 +400,13 @@ class RenderController {
     let screenX = pos.x;
     let screenY = pos.y;
     
-    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
       // Convert pixel position to tile position
       const tileX = pos.x / TILE_SIZE;
       const tileY = pos.y / TILE_SIZE;
       
       // Use terrain's converter to get screen position
-      const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       screenX = screenPos[0];
       screenY = screenPos[1];
     }
@@ -846,13 +846,13 @@ class RenderController {
   worldToScreenPosition(worldPos) {
     // Use terrain's coordinate system if available (syncs entities with terrain camera)
     // NOTE: This MUST match the logic in Sprite2d.render() to keep highlights synced with sprites
-    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
       // Convert pixel position to tile position
       const tileX = worldPos.x / TILE_SIZE;
       const tileY = worldPos.y / TILE_SIZE;
       
       // Use terrain's converter to get screen position (top-left corner)
-      const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       
       // Return top-left corner position (highlights will handle centering if needed)
       return { x: screenPos[0], y: screenPos[1] };

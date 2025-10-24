@@ -52,15 +52,15 @@ function testCoordinateAlignment() {
   }
 
   // Test 6: Y-axis inversion check
-  if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion) {
+  if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion) {
     console.log(`\n🔄 Y-axis inversion test:`);
     
     // Test two points: (100, 100) and (100, 200)
     const point1 = [100, 100];
     const point2 = [100, 200];
     
-    const tile1 = g_map2.renderConversion.convCanvasToPos(point1);
-    const tile2 = g_map2.renderConversion.convCanvasToPos(point2);
+    const tile1 = g_activeMap.renderConversion.convCanvasToPos(point1);
+    const tile2 = g_activeMap.renderConversion.convCanvasToPos(point2);
     
     console.log(`   Canvas (100, 100) → Tile (${tile1[0].toFixed(2)}, ${tile1[1].toFixed(2)})`);
     console.log(`   Canvas (100, 200) → Tile (${tile2[0].toFixed(2)}, ${tile2[1].toFixed(2)})`);
@@ -229,9 +229,9 @@ function runCoordinateDiagnostics() {
   
   // Test 5: Terrain system availability
   console.log('🗺️ TEST 5: Terrain System Check');
-  console.log('  g_map2 exists:', typeof g_map2 !== 'undefined' ? '✅' : '❌');
+  console.log('  g_activeMap exists:', typeof g_activeMap !== 'undefined' ? '✅' : '❌');
   console.log('  renderConversion exists:', 
-    (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion) ? '✅' : '❌');
+    (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion) ? '✅' : '❌');
   console.log('  TILE_SIZE defined:', typeof TILE_SIZE !== 'undefined' ? `✅ (${TILE_SIZE}px)` : '❌');
   console.log('  CoordinateConverter.isAvailable():', 
     (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) ? '✅' : '❌');

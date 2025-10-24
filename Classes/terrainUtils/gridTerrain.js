@@ -586,12 +586,16 @@ class gridTerrain {
     getGridSizePixels(){
         return createVector(this._gridSizeX*TILE_SIZE,this._gridSizeY*TILE_SIZE)
     }
+
+    getCamRenderConverter(){
+        return this.renderConversion
+    }
 };
 
 // Global functions to control and monitor terrain cache from console
 function checkTerrainCacheStatus() {
-    if (typeof g_map2 !== 'undefined' && g_map2 && typeof g_map2.getCacheStats === 'function') {
-        const stats = g_map2.getCacheStats();
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && typeof g_activeMap.getCacheStats === 'function') {
+        const stats = g_activeMap.getCacheStats();
         console.log('Terrain Cache Status:', stats);
         return stats;
     } else {
@@ -602,8 +606,8 @@ function checkTerrainCacheStatus() {
 
 function enableTerrainCache() {
     window.DISABLE_TERRAIN_CACHE = false;
-    if (g_map2) {
-        g_map2.invalidateCache();
+    if (g_activeMap) {
+        g_activeMap.invalidateCache();
         console.log('Terrain cache enabled');
     }
 }
@@ -614,8 +618,8 @@ function disableTerrainCache() {
 }
 
 function forceTerrainCacheRegeneration() {
-    if (g_map2) {
-        g_map2.invalidateCache();
+    if (g_activeMap) {
+        g_activeMap.invalidateCache();
         console.log('Terrain cache regeneration forced');
     }
 }
@@ -752,6 +756,11 @@ class camRenderConverter {
     }
 
     //// Conversions
+    /**
+     * Convert world tile coordinates to canvas pixel coordinates
+     * @param {Array<number>} input - [x, y] world tile coordinates
+     * @returns {Array<number>} [x, y] canvas pixel coordinates (Y increases downward)
+     */
     convPosToCanvas(input) {
         // Standard conversion without Y-axis inversion
         // Converts tile coordinates to canvas pixel coordinates
@@ -759,10 +768,15 @@ class camRenderConverter {
         
         return [
             (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0],
-            (input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
+            (input[1] - this._camPosition[1])*-this._tileSize + this._canvasCenter[1]
         ];
     }
 
+    /**
+     * Convert canvas pixel coordinates to world tile coordinates
+     * @param {Array<number>} input - [x, y] canvas pixel coordinates (e.g., mouseX, mouseY)
+     * @returns {Array<number>} [x, y] world tile coordinates (Y increases upward)
+     */
     convCanvasToPos(input) { // Inverse of pos->canvas calc
         // Standard conversion without Y-axis inversion
         // Converts canvas pixel coordinates to tile coordinates
@@ -770,7 +784,7 @@ class camRenderConverter {
 
         return [
             (input[0] - this._canvasCenter[0])/this._tileSize + this._camPosition[0],
-            (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
+            -1*(input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
         ];
     }
 
@@ -814,4 +828,14 @@ class camRenderConverter {
     //         ]
     //     ]
     // }
+}
+
+function convPosToCanvas(input){
+    if (typeof g_activeMap === "undefined") {return}
+    return g_activeMap.renderConversion.convPosToCanvas(input)
+}
+
+function convCanvasToPos(input){
+    if (typeof g_activeMap === "undefined") {return}
+    return g_activeMap.renderConversion.convCanvasToPos(input)
 }

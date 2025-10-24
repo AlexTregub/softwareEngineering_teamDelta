@@ -167,10 +167,17 @@ class Entity {
   }
 
   // --- Position & Transform ---
-  /** Set position (delegates to transform controller if present). */
+  /**
+   * Set position in world coordinates (collision box is single source of truth)
+   * @param {number} x - X coordinate in world space (pixels)
+   * @param {number} y - Y coordinate in world space (pixels)
+   */
   setPosition(x, y) { 
+    // Collision box is the authoritative position storage
     this._collisionBox.setPosition(x, y); 
-    const result = this._delegate('transform', 'setPosition', x, y);
+    
+    // Notify transform controller to sync sprite and mark dirty
+    const result = this._delegate('transform', 'setPosition', this._collisionBox.getPosX(), this._collisionBox.getPosY());
     
     // Update spatial grid when entity moves
     if (typeof spatialGridManager !== 'undefined') {
@@ -179,8 +186,38 @@ class Entity {
     
     return result;
   }
-  /** Get position (from transform controller or collision box). */
-  getPosition() { return this._delegate('transform', 'getPosition') || { x: this._collisionBox.x, y: this._collisionBox.y }; }
+  
+  /**
+   * Set position from screen coordinates (converts to world space)
+   * Useful for mouse clicks and UI interactions
+   * @param {number} screenX - X coordinate in screen space (canvas pixels)
+   * @param {number} screenY - Y coordinate in screen space (canvas pixels)
+   */
+  setPositionFromScreen(screenX, screenY) {
+    const worldPos = CoordinateConverter.screenToWorld(screenX, screenY);
+    this.setPosition(worldPos.x, worldPos.y);
+  }
+  
+  /** Get position (from transform controller which reads from collision box). */
+  getPosition() { return this._delegate('transform', 'getPosition') }
+  
+  /**
+   * Get position in tile coordinates
+   * @returns {{x: number, y: number}} Tile coordinates (floored integers)
+   */
+  getTilePosition() {
+    const pos = this.getPosition();
+    if (typeof CoordinateConverter !== 'undefined') {
+      return CoordinateConverter.worldToTile(pos.x, pos.y);
+    }
+    // Fallback: manual conversion
+    const tileSize = typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32;
+    return {
+      x: Math.floor(pos.x / tileSize),
+      y: Math.floor(pos.y / tileSize)
+    };
+  }
+  
   /** Get X coordinate. */
   getX() { 
     const pos = this.getPosition(); 

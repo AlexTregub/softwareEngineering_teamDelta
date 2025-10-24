@@ -8,10 +8,7 @@
 
 // =============================================================================
 // BASIC USAGE - Already Set Up
-// =============================================================================
-
-// The main map (g_map2) is automatically registered as 'level1' during setup
-// You can verify this:
+// ===========================
 console.log(mapManager.getInfo());
 // Output: { totalMaps: 1, activeMapId: 'level1', mapIds: ['level1'], hasActiveMap: true }
 

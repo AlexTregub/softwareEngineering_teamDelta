@@ -141,7 +141,7 @@ async function getDiagnostics(page) {
   return await page.evaluate(() => {
     try {
       const cam = (window.g_cameraManager) ? { x: window.g_cameraManager.cameraX, y: window.g_cameraManager.cameraY, zoom: window.g_cameraManager.cameraZoom } : (typeof window.cameraX !== 'undefined' ? { x: window.cameraX, y: window.cameraY, zoom: window.cameraZoom || 1 } : null);
-      const map = (typeof g_map2 !== 'undefined' && g_map2) ? { xCount: g_map2._xCount, yCount: g_map2._yCount, tileSize: g_map2.tileSize || window.TILE_SIZE || null, cacheStats: (typeof g_map2.getCacheStats === 'function' ? g_map2.getCacheStats() : null) } : null;
+      const map = (typeof g_activeMap !== 'undefined' && g_activeMap) ? { xCount: g_activeMap._xCount, yCount: g_activeMap._yCount, tileSize: g_activeMap.tileSize || window.TILE_SIZE || null, cacheStats: (typeof g_activeMap.getCacheStats === 'function' ? g_activeMap.getCacheStats() : null) } : null;
       return { camera: cam, map };
     } catch (e) { return { error: '' + e }; }
   });

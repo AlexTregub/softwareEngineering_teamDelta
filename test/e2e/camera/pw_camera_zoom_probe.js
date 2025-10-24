@@ -17,7 +17,7 @@ async function run() {
     names.worldToScreen = typeof window.worldToScreen === 'function' || (window.g_cameraManager && typeof window.g_cameraManager.worldToScreen === 'function');
     names.screenToWorld = typeof window.screenToWorld === 'function' || (window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function');
     names.cameraGlobals = (typeof window.cameraX !== 'undefined') && (typeof window.cameraY !== 'undefined');
-    names.g_map2 = !!window.g_map2;
+    names.g_activeMap = !!window.g_activeMap;
     return names;
   });
 

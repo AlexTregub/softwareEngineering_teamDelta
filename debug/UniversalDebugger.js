@@ -268,23 +268,10 @@ class UniversalDebugger {
     const spritePos = this.target._sprite ? { x: this.target._sprite.pos.x, y: this.target._sprite.pos.y } : null;
     const collisionPos = this.target._collisionBox ? { x: this.target._collisionBox.x, y: this.target._collisionBox.y } : null;
     
-    // DIAGNOSTIC: Check coordinate conversion step by step
-    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      const screenToTile = g_activeMap.renderConversion.convCanvasToPos([screenMouse.x, screenMouse.y]);
-      const tileToWorld = [screenToTile[0] * TILE_SIZE, screenToTile[1] * TILE_SIZE];
-      console.log(`  DIAGNOSTIC Screen→Tile: [${screenToTile[0].toFixed(2)}, ${screenToTile[1].toFixed(2)}] → World: [${tileToWorld[0].toFixed(2)}, ${tileToWorld[1].toFixed(2)}]`);
-      
-      if (entityWorldPos) {
-        const entityToTile = [entityWorldPos.x / TILE_SIZE, entityWorldPos.y / TILE_SIZE];
-        const tileToScreen = g_activeMap.renderConversion.convPosToCanvas(entityToTile);
-        console.log(`  DIAGNOSTIC Entity World→Tile: [${entityToTile[0].toFixed(2)}, ${entityToTile[1].toFixed(2)}] → Screen: [${tileToScreen[0].toFixed(0)}, ${tileToScreen[1].toFixed(0)}]`);
-      }
-    }
-    
     // Calculate screen position of entity
     let entityScreenPos = entityWorldPos;
     if (entityWorldPos && this.target._renderController && typeof this.target._renderController.worldToScreenPosition === 'function') {
-      entityScreenPos = this.target._renderController.worldToScreenPosition(entityWorldPos);
+      entityScreenPos = this.target._renderController.worldToScreen(entityWorldPos);
     } else if (entityWorldPos && typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
       entityScreenPos = CoordinateConverter.worldToScreen(entityWorldPos.x, entityWorldPos.y);
     }
@@ -668,7 +655,7 @@ class UniversalDebugger {
    */
   _extractBoundingInfo() {
     const obj = this.target;
-    const bounds = {
+    let bounds = {
       x: 0,
       y: 0,
       width: 0,
@@ -684,27 +671,6 @@ class UniversalDebugger {
         bounds.detected = true;
         return bounds;
       }
-    }
-
-    // Strategy 2: Check for direct position/size properties
-    if (this._tryExtractFromPositionSize(obj, bounds)) {
-      bounds.source = 'position-size';
-      bounds.detected = true;
-      return bounds;
-    }
-
-    // Strategy 3: Check for sprite property
-    if (obj._sprite && this._tryExtractFromSprite(obj._sprite, bounds)) {
-      bounds.source = 'sprite';
-      bounds.detected = true;
-      return bounds;
-    }
-
-    // Strategy 4: Check for center and size properties
-    if (this._tryExtractFromCenterSize(obj, bounds)) {
-      bounds.source = 'center-size';
-      bounds.detected = true;
-      return bounds;
     }
 
     return bounds;
@@ -851,7 +817,9 @@ class UniversalDebugger {
    */
   _drawBoundingBox() {
     if (!this.boundingBox || !this.boundingBox.detected) return;
-
+    let convertPos = worldToScreen([this.boundingBox.x,this.boundingBox.y])
+    this.boundingBox.x = convertPos[0]
+    this.boundingBox.y = convertPos[1]
     const bounds = this.boundingBox;
     
     // Save current drawing state

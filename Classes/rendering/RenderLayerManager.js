@@ -514,7 +514,7 @@ class RenderLayerManager {
     background(0);
     push();
     this.applyZoom();
-    g_map2.render();
+    g_activeMap.render();
     pop();
     
   }

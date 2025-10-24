@@ -255,7 +255,7 @@ async function disableVisualDebug(page) {
           return {
             hasSystem: window.g_terrainEntitySync !== undefined,
             hasAlias: window.terrainEntitySync !== undefined,
-            hasTileSupport: typeof window.g_map2 !== 'undefined',
+            hasTileSupport: typeof window.g_activeMap !== 'undefined',
             systemType: window.g_terrainEntitySync?.constructor?.name
           };
         });

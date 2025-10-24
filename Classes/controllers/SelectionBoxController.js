@@ -289,10 +289,10 @@
   SelectionBoxController.prototype._screenToWorld = function (sx, sy) {
     try {
       // Use terrain's coordinate system if available (syncs with terrain camera including Y-axis inversion)
-      if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && 
-          typeof g_map2.renderConversion.convCanvasToPos === 'function' && typeof TILE_SIZE !== 'undefined') {
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
+          typeof g_activeMap.renderConversion.convCanvasToPos === 'function' && typeof TILE_SIZE !== 'undefined') {
         // Use terrain's inverse converter to get tile position from screen coords
-        var tilePos = g_map2.renderConversion.convCanvasToPos([sx, sy]);
+        var tilePos = g_activeMap.renderConversion.convCanvasToPos([sx, sy]);
         
         // Convert tile position back to world pixel position
         var worldX = tilePos[0] * TILE_SIZE;
@@ -321,13 +321,13 @@
   SelectionBoxController.prototype._worldToScreen = function (wx, wy) {
     try {
       // Use terrain's coordinate system if available (syncs selection box with terrain camera)
-      if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
         // Convert pixel position to tile position
         var tileX = wx / TILE_SIZE;
         var tileY = wy / TILE_SIZE;
         
         // Use terrain's converter to get screen position
-        var screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+        var screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
         return { x: Math.round(screenPos[0]), y: Math.round(screenPos[1]) };
       }
       

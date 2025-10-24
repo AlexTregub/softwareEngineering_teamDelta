@@ -249,19 +249,12 @@ class TerrainController {
   // --- Private Methods ---
 
   /**
-   * Get entity position (with fallbacks)
+   * Get entity position
    * @returns {Object} Position object with x, y
    */
   _getEntityPosition() {
-    if (this._entity._transformController) {
-      return this._entity._transformController.getPosition();
-    } else if (this._entity.getPosition) {
-      return this._entity.getPosition();
-    } else {
-      return { 
-        ...this._entity.getPosition() 
-      };
-    }
+    // Use Entity's public API to get position (delegates to transform controller)
+    return this._entity.getPosition();
   }
 
   /**
@@ -294,9 +287,7 @@ class TerrainController {
    */
   _onTerrainChange(oldTerrain, newTerrain) {
     // Override in subclasses or set callback for custom behavior
-    if (this._onTerrainChangeCallback) {
-      this._onTerrainChangeCallback(oldTerrain, newTerrain);
-    }
+    if (this._onTerrainChangeCallback) { this._onTerrainChangeCallback(oldTerrain, newTerrain);  }
   }
 
   /**

@@ -204,15 +204,33 @@ class CollisionBox2D {
 
   /**
    * Sets the position of the collision box.
+   * Supports both separate x,y parameters and p5.Vector objects for sprite-like sync.
    * 
-   * @param {number} newX - New X position
-   * @param {number} newY - New Y position
+   * @param {number|p5.Vector|Object} newX - New X position, or vector/object with x,y properties
+   * @param {number} [newY] - New Y position (optional if first param is vector)
    * @returns {CollisionBox2D} Returns this collision box for method chaining
    */
   setPosition(newX, newY) {
-    this.x = newX;
-    this.y = newY;
+    // Support p5.Vector or object with x,y properties (sprite-like sync)
+    if (typeof newX === 'object' && newX !== null) {
+      this.x = newX.x;
+      this.y = newX.y;
+    } else {
+      this.x = newX;
+      this.y = newY;
+    }
     return this;
+  }
+
+  getPosX(){
+    return this.x
+  }
+  getPosY(){
+    return this.y
+  }
+  getPos(){
+    const returnVal = [this.x,this.y]
+    return returnVal
   }
 
   /**

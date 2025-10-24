@@ -641,13 +641,13 @@ class ant extends Entity {
       let screenX = pos.x + size.x/2;
       let screenY = pos.y - 12;
       
-      if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
         // Convert pixel position to tile position
         const tileX = pos.x / TILE_SIZE;
         const tileY = pos.y / TILE_SIZE;
         
         // Use terrain's converter to get screen position
-        const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
         screenX = screenPos[0] + size.x/2;
         screenY = screenPos[1] - 12;
       }
@@ -788,11 +788,11 @@ function spawnQueen(){
   let spawnY = random(0, 500);
   
   // Convert to terrain-aligned coordinates (applies Y-axis inversion)
-  if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && 
-      typeof g_map2.renderConversion.convCanvasToPos === 'function' &&
-      typeof g_map2.renderConversion.convPosToCanvas === 'function') {
-    const tilePos = g_map2.renderConversion.convCanvasToPos([spawnX, spawnY]);
-    const alignedPos = g_map2.renderConversion.convPosToCanvas(tilePos);
+  if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
+      typeof g_activeMap.renderConversion.convCanvasToPos === 'function' &&
+      typeof g_activeMap.renderConversion.convPosToCanvas === 'function') {
+    const tilePos = g_activeMap.renderConversion.convCanvasToPos([spawnX, spawnY]);
+    const alignedPos = g_activeMap.renderConversion.convPosToCanvas(tilePos);
     spawnX = alignedPos[0];
     spawnY = alignedPos[1];
   }
@@ -849,12 +849,12 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     
     // Convert to terrain-aligned coordinates (applies Y-axis inversion)
     // This ensures entities are stored in the same coordinate space as terrain
-    if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && 
-        typeof g_map2.renderConversion.convCanvasToPos === 'function' &&
-        typeof g_map2.renderConversion.convPosToCanvas === 'function') {
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
+        typeof g_activeMap.renderConversion.convCanvasToPos === 'function' &&
+        typeof g_activeMap.renderConversion.convPosToCanvas === 'function') {
       // Convert screen -> tile -> back to terrain-aligned screen coords
-      const tilePos = g_map2.renderConversion.convCanvasToPos([px, py]);
-      const alignedPos = g_map2.renderConversion.convPosToCanvas(tilePos);
+      const tilePos = g_activeMap.renderConversion.convCanvasToPos([px, py]);
+      const alignedPos = g_activeMap.renderConversion.convPosToCanvas(tilePos);
       px = alignedPos[0];
       py = alignedPos[1];
     }

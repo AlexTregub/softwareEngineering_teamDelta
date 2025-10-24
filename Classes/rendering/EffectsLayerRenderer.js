@@ -332,13 +332,13 @@ class EffectsLayerRenderer {
       let screenX = particle.x;
       let screenY = particle.y;
       
-      if (typeof g_map2 !== 'undefined' && g_map2 && g_map2.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
         // Convert pixel position to tile position
         const tileX = particle.x / TILE_SIZE;
         const tileY = particle.y / TILE_SIZE;
         
         // Use terrain's converter to get screen position
-        const screenPos = g_map2.renderConversion.convPosToCanvas([tileX, tileY]);
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
         screenX = screenPos[0];
         screenY = screenPos[1];
       }

@@ -41,7 +41,7 @@ class CameraManager {
     
     // Level-specific bounds (null = use current map, or set custom bounds for level)
     this.customBounds = null; // { width: number, height: number }
-    this.currentLevel = null; // Reference to current level map (defaults to g_map2)
+    this.currentLevel = null; // Reference to current level map (defaults to g_activeMap)
   }
 
   /**
@@ -93,11 +93,11 @@ class CameraManager {
 
     // If the terrain exists at initialization time, sync its camera position so the render
     // converter and CameraManager agree. Convert camera pixel center to tile coordinates.
-    if (typeof g_map2 !== 'undefined' && g_map2 && typeof g_map2.setCameraPosition === 'function') {
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && typeof g_activeMap.setCameraPosition === 'function') {
       const viewCenterX = this.cameraX + (this.canvasWidth / (2 * this.cameraZoom));
       const viewCenterY = this.cameraY + (this.canvasHeight / (2 * this.cameraZoom));
       const centerTilePos = [ viewCenterX / TILE_SIZE, viewCenterY / TILE_SIZE ];
-      try { g_map2.setCameraPosition(centerTilePos); } catch (e) { /* ignore */ }
+      try { g_activeMap.setCameraPosition(centerTilePos); } catch (e) { /* ignore */ }
     }
   }
 
@@ -165,8 +165,8 @@ class CameraManager {
   const centerTilePos = [ viewCenterX / TILE_SIZE, viewCenterY / TILE_SIZE ];
 
   // pass a plain array, not a p5.Vector
-  if (typeof g_map2 !== 'undefined' && g_map2 && typeof g_map2.setCameraPosition === 'function') {
-    g_map2.setCameraPosition(centerTilePos);
+  if (typeof g_activeMap !== 'undefined' && g_activeMap && typeof g_activeMap.setCameraPosition === 'function') {
+    g_activeMap.setCameraPosition(centerTilePos);
   }
 }
 
@@ -340,28 +340,28 @@ class CameraManager {
     }
 
     // DEBUG: Print terrain converter and camera controller state after zoom so we can
-    // see whether the render converter (g_map2) or CameraController are out of sync.
+    // see whether the render converter (g_activeMap) or CameraController are out of sync.
     try {
       const ccPos = (typeof CameraController !== 'undefined' && typeof CameraController.getCameraPosition === 'function')
         ? CameraController.getCameraPosition()
         : null;
 
-      if (typeof g_map2 !== 'undefined' && g_map2) {
-        const conv = g_map2.renderConversion || {};
+      if (typeof g_activeMap !== 'undefined' && g_activeMap) {
+        const conv = g_activeMap.renderConversion || {};
         const convPos = conv._camPosition ?? null;
         const convCenter = conv._canvasCenter ?? null;
-        const stats = typeof g_map2.getCacheStats === 'function' ? g_map2.getCacheStats() : null;
+        const stats = typeof g_activeMap.getCacheStats === 'function' ? g_activeMap.getCacheStats() : null;
         verboseLog('[CameraManager] post-zoom state', {
           cameraX: this.cameraX,
           cameraY: this.cameraY,
           cameraZoom: this.cameraZoom,
           cameraControllerPos: ccPos,
-          g_map2_convPos: convPos,
-          g_map2_convCenter: convCenter,
-          g_map2_stats: stats
+          g_activeMap_convPos: convPos,
+          g_activeMap_convCenter: convCenter,
+          g_activeMap_stats: stats
         });
       } else {
-        verboseLog('[CameraManager] post-zoom state', { cameraX: this.cameraX, cameraY: this.cameraY, cameraZoom: this.cameraZoom, cameraControllerPos: ccPos, g_map2: null });
+        verboseLog('[CameraManager] post-zoom state', { cameraX: this.cameraX, cameraY: this.cameraY, cameraZoom: this.cameraZoom, cameraControllerPos: ccPos, g_activeMap: null });
       }
     } catch (e) {
       console.warn('CameraManager: post-zoom debug failed', e);
@@ -511,7 +511,7 @@ class CameraManager {
   /**
    * Set custom level bounds for camera clamping
    * @param {Object} bounds - {width: number, height: number} or null to use current map
-   * @param {Object} levelMap - Reference to level map object (defaults to g_map2)
+   * @param {Object} levelMap - Reference to level map object (defaults to g_activeMap)
    */
   setLevelBounds(bounds = null, levelMap = null) {
     this.customBounds = bounds;
@@ -529,8 +529,8 @@ class CameraManager {
       return this.customBounds;
     }
     
-    // Use specified level or default to g_map2
-    const map = this.currentLevel || (typeof g_map2 !== 'undefined' ? g_map2 : null);
+    // Use specified level or default to g_activeMap
+    const map = this.currentLevel || (typeof g_activeMap !== 'undefined' ? g_activeMap : null);
     
     // Try to get dimensions from map
     if (map && map._xCount > 0 && map._yCount > 0) {
@@ -563,7 +563,7 @@ class CameraManager {
     // If bounds equals canvas size, we're probably not initialized yet
     if (bounds.width === this.canvasWidth && bounds.height === this.canvasHeight) {
       // Don't clamp if we don't have real map bounds yet
-      const map = this.currentLevel || (typeof g_map2 !== 'undefined' ? g_map2 : null);
+      const map = this.currentLevel || (typeof g_activeMap !== 'undefined' ? g_activeMap : null);
       if (map && !(map._xCount > 0 && map._yCount > 0)) {
         return;
       }

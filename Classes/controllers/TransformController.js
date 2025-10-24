@@ -35,47 +35,42 @@ class TransformController {
   // --- Position Management ---
 
   /**
-   * Set position
-   * @param {number} x - X coordinate
-   * @param {number} y - Y coordinate
+   * Set position - Called by Entity after collision box is updated
+   * Collision box is already updated by Entity.setPosition() before this is called
+   * @param {number} x - X coordinate in world space (pixels)
+   * @param {number} y - Y coordinate in world space (pixels)
    */
   setPosition(x, y) {
+    // Update StatsContainer if available
     if (this._entity._stats && 
         this._entity._stats.position && 
         this._entity._stats.position.statValue) {
       this._entity._stats.position.statValue.x = x;
       this._entity._stats.position.statValue.y = y;
     }
+    
+    // Update cache for dirty flag tracking
     this._lastPosition.x = x;
     this._lastPosition.y = y;
     this._isDirty = true;
   }
 
   /**
-   * Get position
+   * Get position - CollisionBox is the single source of truth
    * @returns {Object} Position object with x, y
    */
   getPosition() {
-    // Try to get from StatsContainer system first
-    if (this._entity._stats && this._entity._stats.position && this._entity._stats.position.statValue) {
-      return this._entity._stats.position.statValue;
-    }
-    
-    // Fall back to cached position or collision box
-    if (this._lastPosition && this._lastPosition.x !== undefined) {
-      return this._lastPosition;
-    }
-    
-    // Final fallback to collision box
+    // CollisionBox is the authoritative source for position
     if (this._entity._collisionBox) {
       return {
         x: this._entity._collisionBox.x,
         y: this._entity._collisionBox.y
       };
     }
-    
-    // Absolute fallback
-    return { x: 0, y: 0 };
+    // Last resort cached value
+    if (this._lastPosition && this._lastPosition.x !== undefined) {
+      return this._lastPosition;
+    }
   }
 
   /**
@@ -226,7 +221,7 @@ class TransformController {
   // --- Sprite Synchronization ---
 
   /**
-   * Sync transform values with sprite
+   * Sync transform values with sprite and collision box
    */
   syncSprite() {
     if (!this._entity._sprite) return;
@@ -234,14 +229,14 @@ class TransformController {
     const pos = this.getPosition();
     const size = this.getSize();
     
-    // Update sprite position
+    // Update sprite position and size
     this._entity._sprite.setPosition(createVector(pos.x, pos.y));
-    
-    // Update sprite size
     this._entity._sprite.setSize(createVector(size.x, size.y));
-    
-    // Update sprite rotation
     this._entity._sprite.setRotation(this._lastRotation);
+
+    // Update collision box position and size (synced the same way as sprite)
+    this._entity._collisionBox.setPosition(createVector(pos.x, pos.y));
+    this._entity._collisionBox.setSize(size.x, size.y);
   }
 
   /**
