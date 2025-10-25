@@ -10,7 +10,7 @@ To Do:
 
 class AntBrain{
     constructor(antInstance, antType){
-        console.log(`I LIVE!!!`);
+        logVerbose(`I LIVE!!!`);
         this.ant = antInstance;
         this.antType = antType;
         this.flag_ = "";
@@ -151,7 +151,7 @@ class AntBrain{
 
     checkHunger(){
         this.hunger++;
-        console.log(`my belly is bellying`);
+        logVerbose(`my belly is bellying`);
         //Checks hunger meter every second
         if(this.hunger === HUNGRY){
             console.log('hungry')
@@ -216,7 +216,7 @@ class AntBrain{
     internalTimer(deltaTime){
         this._accumulator = (this._accumulator || 0) + deltaTime;
         if (this._accumulator >= 1) { // every second
-            console.log(`${this.hunger}`);
+            logVerbose(`${this.hunger}`);
             this._accumulator = 0;
             this.checkHunger();
         }

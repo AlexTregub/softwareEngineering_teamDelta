@@ -86,6 +86,14 @@ class RenderController {
       FLEEING: { color: [255, 255, 0], symbol: "💨" },
       IDLE: { color: [128, 128, 128], symbol: "💤" }
     };
+
+    // Terrain effect indicators
+    this.TERRAIN_INDICATORS = {
+      IN_WATER: { color: [0, 100, 255], symbol: "💧" },
+      IN_MUD: { color: [101, 67, 33], symbol: "🟫" },
+      ON_SLIPPERY: { color: [200, 230, 255], symbol: "❄️" },
+      ON_ROUGH: { color: [128, 128, 128], symbol: "🗿" }
+    };
   }
 
   // --- Public API ---
@@ -154,6 +162,7 @@ class RenderController {
    */
   render() {
     this._safeRender(() => {
+      push();
       // Set smoothing preference
       if (this._smoothing) {
         smooth();
@@ -169,6 +178,9 @@ class RenderController {
       
       // Render highlighting
       this.renderHighlighting();
+      
+      // Render terrain effects indicator
+      this.renderTerrainIndicator();
       
       // Render state indicators
       this.renderStateIndicators();
@@ -186,6 +198,7 @@ class RenderController {
       if (this._smoothing) {
         smooth();
       }
+      pop();
     });
   }
 
@@ -275,6 +288,11 @@ class RenderController {
    * Highlight entity as hovered
    */
   highlightHover() {
+    // Debug: log when highlight is set
+    if (this._entity._debugger && this._entity._debugger.isActive) {
+      console.log(`[RenderController.highlightHover] ${this._entity.type || 'Entity'} highlight set to HOVER`);
+      console.trace('Called from:');
+    }
     this.setHighlight("HOVER");
   }
 
@@ -283,7 +301,10 @@ class RenderController {
    */
   highlightBoxHover() {
     this.setHighlight("BOX_HOVERED");
-    this.renderOutlineHighlight(this.getEntityPosition(), this.getEntitySize(), this._highlightColor, 2);
+    // Convert world position to screen position before rendering
+    const worldPos = this.getEntityPosition();
+    const screenPos = this.worldToScreenPosition(worldPos);
+    this.renderOutlineHighlight(screenPos, this.getEntitySize(), this._highlightColor, 2);
   }
 
   /**
@@ -321,7 +342,7 @@ class RenderController {
       text: `-${damage}`,
       position: { x: pos.x, y: pos.y - 10 },
       color: color,
-      velocity: { x: 0, y: -2 },
+      velocity: { x: 0, y: .5 },
       duration: 1500,
       fadeOut: true
     });
@@ -347,7 +368,7 @@ class RenderController {
       text: text,
       position: { x: pos.x, y: pos.y - 20 },
       color: color,
-      velocity: { x: 0, y: -1 },
+      velocity: { x: 0, y: 1 },
       duration: 2000,
       fadeOut: true
     });
@@ -375,10 +396,27 @@ class RenderController {
     const pos = this.getEntityPosition();
     const size = this.getEntitySize();
     
+    // Convert world position to screen position using terrain's coordinate converter
+    let screenX = pos.x;
+    let screenY = pos.y;
+    
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert world pixel position to tile position
+      const tileX = pos.x / TILE_SIZE +0.5;
+      const tileY = pos.y / TILE_SIZE +0.5;
+      
+      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
     this._safeRender(() => {
       fill(100, 100, 100); // Gray default
       noStroke();
-      rect(pos.x, pos.y, size.x, size.y);
+      rectMode(CENTER); // Draw from center to match sprite rendering
+      rect(screenX, screenY, size.x, size.y);
+      rectMode(CORNER); // Reset to default
     });
   }
 
@@ -392,32 +430,41 @@ class RenderController {
       const isMoving = this._entity._movementController.getIsMoving();
       
       if (isMoving && target) {
+        // Get entity center in world coordinates, convert to screen
         const pos = this.getEntityCenter();
-        const size = this.getEntitySize();
+        const screenPos = this.worldToScreenPosition(pos);
+        
+        // Get target center in world coordinates, convert to screen
+        const targetCenter = {
+          x: target.x + this.getEntitySize().x / 2,
+          y: target.y + this.getEntitySize().y / 2
+        };
+        const targetScreenPos = this.worldToScreenPosition(targetCenter);
         
         this._safeRender(() => {
           stroke(255, 255, 255, 150);
           strokeWeight(2);
-          line(
-            pos.x, pos.y,
-            target.x + size.x / 2, target.y + size.y / 2
-          );
+          // Both positions are already centered screen coordinates
+          line(screenPos.x, screenPos.y, targetScreenPos.x, targetScreenPos.y);
           noStroke();
         });
       }
     } else if (this._entity._isMoving && this._entity._stats && this._entity._stats.pendingPos) {
       // Fallback to old system
-      const pos = this.getEntityPosition();
-      const size = this.getEntitySize();
+      const pos = this.getEntityCenter();
+      const screenPos = this.worldToScreenPosition(pos);
       const target = this._entity._stats.pendingPos.statValue;
+      const targetCenter = {
+        x: target.x + this.getEntitySize().x / 2,
+        y: target.y + this.getEntitySize().y / 2
+      };
+      const targetScreenPos = this.worldToScreenPosition(targetCenter);
       
       this._safeRender(() => {
         stroke(255);
         strokeWeight(2);
-        line(
-          pos.x + size.x / 2, pos.y + size.y / 2,
-          target.x + size.x / 2, target.y + size.y / 2
-        );
+        // Both positions are already centered screen coordinates
+        line(screenPos.x, screenPos.y, targetScreenPos.x, targetScreenPos.y);
         noStroke();
       });
     }
@@ -427,12 +474,15 @@ class RenderController {
    * Render highlighting around entity
    */
   renderHighlighting() {
-    if (!this._highlightState || !this._highlightColor) return;
+    if (!this._highlightState || !this._highlightColor) {
+      return;
+    }
 
     const highlightType = this.HIGHLIGHT_TYPES[this._highlightState];
     if (!highlightType) return;
 
     const pos = this.getEntityPosition();
+    const screenPos = this.worldToScreenPosition(pos);
     const size = this.getEntitySize();
     
     // Apply intensity to color
@@ -445,22 +495,22 @@ class RenderController {
 
     switch (highlightType.style) {
       case "outline":
-        this.renderOutlineHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderOutlineHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "pulse":
-        this.renderPulseHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderPulseHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "bob":
-        this.renderBobHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderBobHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "spin":
-        this.renderSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderSpinHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "slow_spin":
-        this.renderSlowSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderSlowSpinHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
       case "fast_spin":
-        this.renderFastSpinHighlight(pos, size, color, highlightType.strokeWeight);
+        this.renderFastSpinHighlight(screenPos, size, color, highlightType.strokeWeight);
         break;
     }
   }
@@ -480,13 +530,13 @@ class RenderController {
     strokeWeight(strokeWeightValue);
     noFill();
     
-    // Apply rotation around the entity's center
+    // pos is screen top-left position, but sprite renders centered
+    // Translate to center and draw rect centered (matching imageMode(CENTER) in Sprite2D)
     translate(pos.x + size.x / 2, pos.y + size.y / 2);
     rotate(rotation);
-    translate(-size.x / 2, -size.y / 2);
+    rectMode(CENTER);
+    rect(0, 0, size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
     
-    rect(-strokeWeightValue, -strokeWeightValue, 
-         size.x + strokeWeightValue * 2, size.y + strokeWeightValue * 2);
     noStroke();
     pop(); // Restore transformation matrix
   }
@@ -553,17 +603,6 @@ class RenderController {
   }
 
   /**
-   * Render fast spinning highlight
-   */
-  renderFastSpinHighlight(pos, size, color, strokeWeight) {
-    const time = Date.now() * 0.005; // Fast spin speed
-    const rotation = time % (Math.PI * 2);
-
-    const spinPos = { x: pos.x, y: pos.y };
-    this.renderOutlineHighlight(spinPos, size, color, strokeWeight, rotation);
-  }
-
-  /**
    * Render state indicators (icons, text)
    */
   renderStateIndicators() {
@@ -575,12 +614,13 @@ class RenderController {
     const indicator = this.STATE_INDICATORS[currentState];
     if (!indicator) return;
 
-    const pos = this.getEntityPosition();
-    const size = this.getEntitySize();
+    // Get center position in world coordinates, convert to screen
+    const centerPos = this.getEntityCenter();
+    const screenPos = this.worldToScreenPosition(centerPos);
     
-    // Position indicator above entity
-    const indicatorX = pos.x + size.x / 2;
-    const indicatorY = pos.y - 15;
+    // Position indicator above entity (screenPos is already centered)
+    const indicatorX = screenPos.x;
+    const indicatorY = screenPos.y - 15;
 
     this._safeRender(() => {
       // Draw background circle
@@ -589,6 +629,47 @@ class RenderController {
       ellipse(indicatorX, indicatorY, 16, 16);
 
       // Draw state indicator
+      fill(...indicator.color);
+      textAlign(CENTER, CENTER);
+      textSize(10);
+      text(indicator.symbol, indicatorX, indicatorY);
+    });
+  }
+
+  /**
+   * Render terrain effect indicator
+   * Shows visual feedback when terrain is affecting entity movement speed
+   */
+  renderTerrainIndicator() {
+    // Check if entity has state machine (required for terrain modifier)
+    if (!this._entity._stateMachine) return;
+    
+    // Get current terrain modifier
+    const terrainModifier = this._entity._stateMachine.terrainModifier;
+    
+    // Only show indicator for non-default terrain (when terrain affects movement)
+    if (!terrainModifier || terrainModifier === 'DEFAULT') return;
+    
+    // Get indicator configuration for this terrain type
+    const indicator = this.TERRAIN_INDICATORS[terrainModifier];
+    if (!indicator) return;
+    
+    // Get center position in world coordinates, convert to screen
+    const centerPos = this.getEntityCenter();
+    const screenPos = this.worldToScreenPosition(centerPos);
+    
+    // Render terrain indicator with safe render wrapper
+    this._safeRender(() => {
+      // Position above entity center (screenPos is already centered)
+      const indicatorX = screenPos.x;
+      const indicatorY = screenPos.y - 30; // Position above state indicator (which is at -15)
+
+      // Draw background circle
+      fill(0, 0, 0, 100);
+      noStroke();
+      ellipse(indicatorX, indicatorY, 16, 16);
+
+      // Draw terrain effect icon
       fill(...indicator.color);
       textAlign(CENTER, CENTER);
       textSize(10);
@@ -611,34 +692,35 @@ class RenderController {
 
       // Fallback to legacy behavior if DebugRenderer not available
       const pos = this.getEntityPosition();
+      const screenPos = this.worldToScreenPosition(pos);
       const size = this.getEntitySize();
       
       this._safeRender(() => {
         // Debug text background
         fill(0, 0, 0, 150);
         noStroke();
-        rect(pos.x, pos.y + size.y + 5, 120, 60);
+        rect(screenPos.x, screenPos.y + size.y + 5, 120, 60);
 
         // Debug text
         fill(255);
         textAlign(LEFT, TOP);
         textSize(8);
         
-        let debugY = pos.y + size.y + 10;
+        let debugY = screenPos.y + size.y + 10;
         const lineHeight = 10;
         
         // Entity info
-        text(`ID: ${this._entity._antIndex || "unknown"}`, pos.x + 2, debugY);
+        text(`ID: ${this._entity._antIndex || "unknown"}`, screenPos.x + 2, debugY);
         debugY += lineHeight;
         
         // Position
-        text(`Pos: (${Math.round(pos.x)}, ${Math.round(pos.y)})`, pos.x + 2, debugY);
+        text(`Pos: (${Math.round(pos.x)}, ${Math.round(pos.y)})`, screenPos.x + 2, debugY);
         debugY += lineHeight;
         
         // State
         if (this._entity._stateMachine) {
           const state = this._entity._stateMachine.primaryState || "UNKNOWN";
-          text(`State: ${state}`, pos.x + 2, debugY);
+          text(`State: ${state}`, screenPos.x + 2, debugY);
           debugY += lineHeight;
         }
         
@@ -646,14 +728,14 @@ class RenderController {
         const isMoving = this._entity._movementController ? 
           this._entity._movementController.getIsMoving() : 
           this._entity._isMoving;
-        text(`Moving: ${isMoving ? "YES" : "NO"}`, pos.x + 2, debugY);
+        text(`Moving: ${isMoving ? "YES" : "NO"}`, screenPos.x + 2, debugY);
       });
       debugY += lineHeight;
       
       // Tasks
       if (this._entity._taskManager) {
         const taskCount = this._entity._taskManager.getQueueLength();
-        text(`Tasks: ${taskCount}`, pos.x + 2, debugY);
+        text(`Tasks: ${taskCount}`, screenPos.x + 2, debugY);
       }
     } catch (e) {
       console.warn('RenderController.renderDebugInfo fallback failed', e);
@@ -720,10 +802,13 @@ class RenderController {
       color[3] *= alpha;
     }
     
+    // Convert world position to screen position
+    const screenPos = this.worldToScreenPosition(effect.position);
+    
     fill(...color);
     textAlign(CENTER, CENTER);
     textSize(effect.size || 12);
-    text(effect.text, effect.position.x, effect.position.y);
+    text(effect.text, screenPos.x, screenPos.y);
   }
 
   /**
@@ -739,12 +824,40 @@ class RenderController {
       color[3] *= alpha;
     }
     
+    // Convert world position to screen position
+    const screenPos = this.worldToScreenPosition(effect.position);
+    
     fill(...color);
     noStroke();
-    ellipse(effect.position.x, effect.position.y, effect.size || 4, effect.size || 4);
+    ellipse(screenPos.x, screenPos.y, effect.size || 4, effect.size || 4);
   }
 
   // --- Helper Methods ---
+
+  /**
+   * Convert world position to screen position using terrain's coordinate system
+   * @param {Object} worldPos - World position {x, y} in pixels
+   * @returns {Object} Screen position {x, y}
+   */
+  worldToScreenPosition(worldPos) {
+    // Use terrain's coordinate system if available (syncs entities with terrain camera)
+    // NOTE: This MUST match the logic in Sprite2d.render() to keep highlights synced with sprites
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert world pixel position to tile position
+      // Entity position is already tile-centered (+0.5 applied in Entity constructor)
+      const tileX = worldPos.x / TILE_SIZE;
+      const tileY = worldPos.y / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      
+      // Return top-left screen position (sprite adds offset to center for rendering)
+      return { x: screenPos[0], y: screenPos[1] };
+    }
+    
+    // Fallback: return world position unchanged
+    return { x: worldPos.x, y: worldPos.y };
+  }
 
   /**
    * Get entity position

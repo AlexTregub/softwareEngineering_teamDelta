@@ -90,8 +90,9 @@ class UIDebugManager {
     const loaded = this.loadElementPosition(element);
     
     this.registeredElements[elementId] = element;
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose(`UIDebugManager: Registered element '${elementId}'`);
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+    if (globalObj && typeof globalObj.logVerbose === 'function') {
+      globalObj.logVerbose(`UIDebugManager: Registered element '${elementId}'`);
     } else {
       console.log(`UIDebugManager: Registered element '${elementId}'`);
     }
@@ -522,6 +523,8 @@ class UIDebugManager {
 
     // Save position to storage
     this.saveElementPosition(element);
+    
+    return true; // Indicate success
   }
 
   /**
@@ -570,7 +573,13 @@ class UIDebugManager {
         };
       }
       
-      // Handle Node.js environment (no localStorage)
+      // Handle Node.js environment (prioritize mockLocalStorage for testing)
+      if (typeof global !== 'undefined' && global.mockLocalStorage) {
+        global.mockLocalStorage[this.storagePrefix + elementId] = JSON.stringify(data);
+        return;
+      }
+      
+      // Handle Node.js environment without mockLocalStorage
       if (typeof localStorage === 'undefined') {
         if (!global.mockLocalStorage) {
           global.mockLocalStorage = {};
@@ -579,6 +588,7 @@ class UIDebugManager {
         return;
       }
       
+      // Browser environment - use localStorage
       localStorage.setItem(this.storagePrefix + elementId, JSON.stringify(data));
     } catch (error) {
       console.error('UIDebugManager: Failed to save position to localStorage:', error);
@@ -595,10 +605,11 @@ class UIDebugManager {
       const elementId = typeof elementIdOrElement === 'string' ? elementIdOrElement : elementIdOrElement.id || elementIdOrElement.persistKey;
       const element = typeof elementIdOrElement === 'object' ? elementIdOrElement : null;
       
-      // Handle Node.js environment (no localStorage)
-      if (typeof localStorage === 'undefined') {
-        if (global.mockLocalStorage && global.mockLocalStorage[this.storagePrefix + elementId]) {
-          const positionData = JSON.parse(global.mockLocalStorage[this.storagePrefix + elementId]);
+      // Handle Node.js environment (prioritize mockLocalStorage for testing)
+      if (typeof global !== 'undefined' && global.mockLocalStorage) {
+        const saved = global.mockLocalStorage[this.storagePrefix + elementId];
+        if (saved) {
+          const positionData = JSON.parse(saved);
           if (element) {
             element.bounds.x = positionData.x;
             element.bounds.y = positionData.y;
@@ -613,6 +624,12 @@ class UIDebugManager {
         return null;
       }
       
+      // Handle Node.js environment without mockLocalStorage
+      if (typeof localStorage === 'undefined') {
+        return null;
+      }
+      
+      // Browser environment - use localStorage
       const saved = localStorage.getItem(this.storagePrefix + elementId);
       if (saved) {
         const positionData = JSON.parse(saved);

@@ -43,8 +43,9 @@ function initializeAntManager() { antManager = new AntManager(); }
 class ant extends Entity {
   constructor(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = antBaseSprite, JobName = "Scout", faction = "player") {
     // Initialize Entity with ant-specific options
+    // Use "Queen" type if JobName is "Queen", otherwise "Ant"
     super(posX, posY, sizex, sizey, {
-      type: "Ant",
+      type: JobName === "Queen" ? "Queen" : "Ant",
       imagePath: img,
       movementSpeed: movementSpeed,
       selectable: true,
@@ -636,9 +637,24 @@ class ant extends Entity {
       const pos = this.getPosition();
       const size = this.getSize();
       
+      // Convert world position to screen position using terrain's coordinate converter
+      let screenX = pos.x + size.x/2;
+      let screenY = pos.y - 12;
+      
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+        // Convert pixel position to tile position
+        const tileX = pos.x / TILE_SIZE;
+        const tileY = pos.y / TILE_SIZE;
+        
+        // Use terrain's converter to get screen position
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+        screenX = screenPos[0] + size.x/2;
+        screenY = screenPos[1] - 12;
+      }
+      
       fill(255, 255, 0);
       textAlign(CENTER);
-      text(resourceCount, pos.x + size.x/2, pos.y - 12);
+      text(resourceCount, screenX, screenY);
     }
   }
   
@@ -767,22 +783,37 @@ function spawnQueen(){
   let JobName = 'Queen'
   let sizeR = random(0, 15);
   
-  // Ensure queenSize is initialized, fallback to default if not
-  if (typeof queenSize === 'undefined' || !queenSize) {
-    queenSize = createVector(30, 30);
-    console.warn('⚠️ queenSize was undefined, using fallback values');
+  // Generate spawn position
+  let spawnX = random(0, 500);
+  let spawnY = random(0, 500);
+  
+  // Convert to terrain-aligned coordinates (applies Y-axis inversion)
+  if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
+      typeof g_activeMap.renderConversion.convCanvasToPos === 'function' &&
+      typeof g_activeMap.renderConversion.convPosToCanvas === 'function') {
+    const tilePos = g_activeMap.renderConversion.convCanvasToPos([spawnX, spawnY]);
+    const alignedPos = g_activeMap.renderConversion.convPosToCanvas(tilePos);
+    spawnX = alignedPos[0];
+    spawnY = alignedPos[1];
   }
   
+  // Create QueenAnt directly (no need for wrapper ant)
   let newAnt = new ant(
-    random(0, 500), random(0, 500), 
+    spawnX, spawnY, 
     queenSize.x + sizeR, 
     queenSize.y + sizeR, 
     30, 0,
     antBaseSprite,
-    'Queen',
-    'player'
+    'Queen',  // This makes it type "Queen"
+    'Player'
   );
 
+  // Wrap in QueenAnt to get Queen-specific behavior
+  // Note: This creates a NEW entity, so we need to remove the old one from spatial grid
+  if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+    spatialGridManager.removeEntity(newAnt);
+  }
+  
   newAnt = new QueenAnt(newAnt);
 
   newAnt.assignJob(JobName, JobImages[JobName]);
@@ -814,6 +845,18 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     } else {
       px = random(0, 500);
       py = random(0, 500);
+    }
+    
+    // Convert to terrain-aligned coordinates (applies Y-axis inversion)
+    // This ensures entities are stored in the same coordinate space as terrain
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
+        typeof g_activeMap.renderConversion.convCanvasToPos === 'function' &&
+        typeof g_activeMap.renderConversion.convPosToCanvas === 'function') {
+      // Convert screen -> tile -> back to terrain-aligned screen coords
+      const tilePos = g_activeMap.renderConversion.convCanvasToPos([px, py]);
+      const alignedPos = g_activeMap.renderConversion.convPosToCanvas(tilePos);
+      px = alignedPos[0];
+      py = alignedPos[1];
     }
 
     // Create ant directly with new job system

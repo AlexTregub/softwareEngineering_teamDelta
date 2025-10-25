@@ -136,6 +136,8 @@ class RenderController {
       noSmooth();
     }
 
+    push();
+    this.applyZoom();
     // Render the main entity
     this.renderEntity();
     
@@ -161,6 +163,15 @@ class RenderController {
     if (this._smoothing) {
       smooth();
     }
+    pop();
+  }
+
+  applyZoom(){
+    // Scale around the canvas center so world tiles scale about the view
+    const zoom = cameraManager.getZoom();
+    translate((g_canvasX/2), (g_canvasY/2));
+    scale(zoom);
+    translate(-(g_canvasX/2), -(g_canvasY/2));
   }
 
   /**

@@ -1,0 +1,470 @@
+{
+  "categories": {
+    "entity": {
+      "passed": 33,
+      "failed": 2,
+      "duration": 46430,
+      "suites": [
+        {
+          "id": 1,
+          "name": "Entity Construction",
+          "passed": 10,
+          "failed": 0,
+          "duration": 10718,
+          "exitCode": 0
+        },
+        {
+          "id": 2,
+          "name": "Entity Transform",
+          "passed": 8,
+          "failed": 0,
+          "duration": 10321,
+          "exitCode": 0
+        },
+        {
+          "id": 3,
+          "name": "Entity Collision",
+          "passed": 5,
+          "failed": 0,
+          "duration": 9220,
+          "exitCode": 0
+        },
+        {
+          "id": 4,
+          "name": "Entity Selection",
+          "passed": 6,
+          "failed": 0,
+          "duration": 11311,
+          "exitCode": 0
+        },
+        {
+          "id": 5,
+          "name": "Entity Sprite",
+          "passed": 4,
+          "failed": 2,
+          "duration": 4860,
+          "exitCode": 1
+        }
+      ]
+    },
+    "controllers": {
+      "passed": 77,
+      "failed": 1,
+      "duration": 84795,
+      "suites": [
+        {
+          "id": 6,
+          "name": "MovementController",
+          "passed": 5,
+          "failed": 1,
+          "duration": 11367,
+          "exitCode": 1
+        },
+        {
+          "id": 7,
+          "name": "RenderController",
+          "passed": 8,
+          "failed": 0,
+          "duration": 8592,
+          "exitCode": 0
+        },
+        {
+          "id": 8,
+          "name": "CombatController",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9575,
+          "exitCode": 0
+        },
+        {
+          "id": 9,
+          "name": "HealthController",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9655,
+          "exitCode": 0
+        },
+        {
+          "id": 10,
+          "name": "InventoryController",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9663,
+          "exitCode": 0
+        },
+        {
+          "id": 11,
+          "name": "TerrainController",
+          "passed": 8,
+          "failed": 0,
+          "duration": 8368,
+          "exitCode": 0
+        },
+        {
+          "id": 12,
+          "name": "SelectionController",
+          "passed": 8,
+          "failed": 0,
+          "duration": 8422,
+          "exitCode": 0
+        },
+        {
+          "id": 13,
+          "name": "TaskManager",
+          "passed": 10,
+          "failed": 0,
+          "duration": 10727,
+          "exitCode": 0
+        },
+        {
+          "id": 14,
+          "name": "TransformController",
+          "passed": 8,
+          "failed": 0,
+          "duration": 8426,
+          "exitCode": 0
+        }
+      ]
+    },
+    "ants": {
+      "passed": 0,
+      "failed": 60,
+      "duration": 36783,
+      "suites": [
+        {
+          "id": 15,
+          "name": "Ant Construction",
+          "passed": 0,
+          "failed": 10,
+          "duration": 6179,
+          "exitCode": 1
+        },
+        {
+          "id": 16,
+          "name": "Ant Job System",
+          "passed": 0,
+          "failed": 10,
+          "duration": 6192,
+          "exitCode": 1
+        },
+        {
+          "id": 17,
+          "name": "Ant Resources",
+          "passed": 0,
+          "failed": 10,
+          "duration": 6091,
+          "exitCode": 1
+        },
+        {
+          "id": 18,
+          "name": "Ant Combat",
+          "passed": 0,
+          "failed": 10,
+          "duration": 6137,
+          "exitCode": 1
+        },
+        {
+          "id": 19,
+          "name": "Ant Movement",
+          "passed": 0,
+          "failed": 10,
+          "duration": 6093,
+          "exitCode": 1
+        },
+        {
+          "id": 20,
+          "name": "Ant Gathering",
+          "passed": 0,
+          "failed": 10,
+          "duration": 6091,
+          "exitCode": 1
+        }
+      ]
+    },
+    "queen": {
+      "passed": 20,
+      "failed": 0,
+      "duration": 19187,
+      "suites": [
+        {
+          "id": 21,
+          "name": "Queen Construction",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9596,
+          "exitCode": 0
+        },
+        {
+          "id": 22,
+          "name": "Queen Abilities",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9591,
+          "exitCode": 0
+        }
+      ]
+    },
+    "state": {
+      "passed": 34,
+      "failed": 0,
+      "duration": 30870,
+      "suites": [
+        {
+          "id": 23,
+          "name": "AntStateMachine",
+          "passed": 12,
+          "failed": 0,
+          "duration": 10779,
+          "exitCode": 0
+        },
+        {
+          "id": 24,
+          "name": "GatherState",
+          "passed": 12,
+          "failed": 0,
+          "duration": 10685,
+          "exitCode": 0
+        },
+        {
+          "id": 25,
+          "name": "State Transitions",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9406,
+          "exitCode": 0
+        }
+      ]
+    },
+    "brain": {
+      "passed": 38,
+      "failed": 0,
+      "duration": 36839,
+      "suites": [
+        {
+          "id": 26,
+          "name": "AntBrain Init",
+          "passed": 8,
+          "failed": 0,
+          "duration": 8210,
+          "exitCode": 0
+        },
+        {
+          "id": 27,
+          "name": "AntBrain Decisions",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9393,
+          "exitCode": 0
+        },
+        {
+          "id": 28,
+          "name": "AntBrain Pheromones",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9531,
+          "exitCode": 0
+        },
+        {
+          "id": 29,
+          "name": "AntBrain Hunger",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9705,
+          "exitCode": 0
+        }
+      ]
+    },
+    "resources": {
+      "passed": 30,
+      "failed": 0,
+      "duration": 28911,
+      "suites": [
+        {
+          "id": 30,
+          "name": "Resource Spawning",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9565,
+          "exitCode": 0
+        },
+        {
+          "id": 31,
+          "name": "Resource Collection",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9715,
+          "exitCode": 0
+        },
+        {
+          "id": 32,
+          "name": "Resource Dropoff",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9631,
+          "exitCode": 0
+        }
+      ]
+    },
+    "spatial": {
+      "passed": 20,
+      "failed": 0,
+      "duration": 19317,
+      "suites": [
+        {
+          "id": 33,
+          "name": "Spatial Grid Registration",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9662,
+          "exitCode": 0
+        },
+        {
+          "id": 34,
+          "name": "Spatial Grid Queries",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9655,
+          "exitCode": 0
+        }
+      ]
+    },
+    "camera": {
+      "passed": 30,
+      "failed": 0,
+      "duration": 28823,
+      "suites": [
+        {
+          "id": 35,
+          "name": "Camera Movement",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9556,
+          "exitCode": 0
+        },
+        {
+          "id": 36,
+          "name": "Camera Zoom",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9671,
+          "exitCode": 0
+        },
+        {
+          "id": 37,
+          "name": "Camera Transforms",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9596,
+          "exitCode": 0
+        }
+      ]
+    },
+    "ui": {
+      "passed": 30,
+      "failed": 0,
+      "duration": 30160,
+      "suites": [
+        {
+          "id": 38,
+          "name": "Selection Box",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9858,
+          "exitCode": 0
+        },
+        {
+          "id": 39,
+          "name": "Draggable Panels",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9943,
+          "exitCode": 0
+        },
+        {
+          "id": 40,
+          "name": "UI Buttons",
+          "passed": 10,
+          "failed": 0,
+          "duration": 10359,
+          "exitCode": 0
+        }
+      ]
+    },
+    "integration": {
+      "passed": 40,
+      "failed": 0,
+      "duration": 38735,
+      "suites": [
+        {
+          "id": 41,
+          "name": "Ant Lifecycle",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9707,
+          "exitCode": 0
+        },
+        {
+          "id": 42,
+          "name": "Multi-Ant Coordination",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9634,
+          "exitCode": 0
+        },
+        {
+          "id": 43,
+          "name": "Camera-Entity Integration",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9652,
+          "exitCode": 0
+        },
+        {
+          "id": 44,
+          "name": "Resource System Integration",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9742,
+          "exitCode": 0
+        }
+      ]
+    },
+    "performance": {
+      "passed": 30,
+      "failed": 0,
+      "duration": 28823,
+      "suites": [
+        {
+          "id": 45,
+          "name": "Entity Performance",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9591,
+          "exitCode": 0
+        },
+        {
+          "id": 46,
+          "name": "State Performance",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9562,
+          "exitCode": 0
+        },
+        {
+          "id": 47,
+          "name": "Rendering Performance",
+          "passed": 10,
+          "failed": 0,
+          "duration": 9670,
+          "exitCode": 0
+        }
+      ]
+    }
+  },
+  "totalTests": 445,
+  "totalPassed": 382,
+  "totalFailed": 63,
+  "duration": 429673,
+  "startTime": "2025-10-21T10:02:14.788Z",
+  "endTime": "2025-10-21T10:09:24.496Z"
+}

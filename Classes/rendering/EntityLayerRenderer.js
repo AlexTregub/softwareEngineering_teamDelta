@@ -145,6 +145,8 @@ class EntityRenderer {
     if (!g_resourceList || !g_resourceList.resources) return;
     
     for (const resource of g_resourceList.resources) {
+      this.stats.totalEntities++;
+      
       if (this.shouldRenderEntity(resource)) {
         this.renderGroups.RESOURCES.push({
           entity: resource,
@@ -152,7 +154,8 @@ class EntityRenderer {
           depth: this.getEntityDepth(resource),
           position: this.getEntityPosition(resource)
         });
-        this.stats.totalEntities++;
+      } else {
+        this.stats.culledEntities++;
       }
     }
     
@@ -169,6 +172,7 @@ class EntityRenderer {
     for (let i = 0; i < ants.length; i++) {
       if (ants[i]) {
         const ant = ants[i];
+        this.stats.totalEntities++;
         
         if (this.shouldRenderEntity(ant)) {
           const entityData = {
@@ -178,7 +182,8 @@ class EntityRenderer {
             position: this.getEntityPosition(ant)
           };
           this.renderGroups.ANTS.push(entityData);
-          this.stats.totalEntities++;
+        } else {
+          this.stats.culledEntities++;
         }
       }
     }
@@ -196,18 +201,23 @@ class EntityRenderer {
     // Collect buildings
     if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
       for (const building of Buildings) {
-        if (building && this.shouldRenderEntity(building)) {
-          this.renderGroups.BACKGROUND.push({
-            entity: building,
-            type: 'building',
-            depth: this.getEntityDepth(building),
-            position: this.getEntityPosition(building)
-          });
+        if (building) {
           this.stats.totalEntities++;
           
-          // Update building if in playing state
-          if (gameState === 'PLAYING' && building.update) {
-            building.update();
+          if (this.shouldRenderEntity(building)) {
+            this.renderGroups.BACKGROUND.push({
+              entity: building,
+              type: 'building',
+              depth: this.getEntityDepth(building),
+              position: this.getEntityPosition(building)
+            });
+            
+            // Update building if in playing state
+            if (gameState === 'PLAYING' && building.update) {
+              building.update();
+            }
+          } else {
+            this.stats.culledEntities++;
           }
         }
       }
@@ -288,6 +298,8 @@ class EntityRenderer {
    * Sort entities within each group by depth
    */
   sortEntitiesByDepth() {
+    if (!this.config.enableDepthSorting) return; // Skip if depth sorting disabled
+    
     Object.keys(this.renderGroups).forEach(groupName => {
       this.renderGroups[groupName].sort((a, b) => a.depth - b.depth);
     });

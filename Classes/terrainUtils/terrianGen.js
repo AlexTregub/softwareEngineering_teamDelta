@@ -44,44 +44,24 @@ function renderMaterialToContext(materialName, x, y, size, context) {
     case 'moss_1':
       if (MOSS_IMAGE) {
         ctx.image(MOSS_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for moss
-        ctx.fill(85, 107, 47);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
     case 'stone':
       if (STONE_IMAGE) {
         ctx.image(STONE_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for stone
-        ctx.fill(128, 128, 128);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
     case 'dirt':
       if (DIRT_IMAGE) {
         ctx.image(DIRT_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for dirt
-        ctx.fill(139, 69, 19);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
     case 'grass':
       if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for grass
-        ctx.fill(34, 139, 34);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
@@ -89,15 +69,13 @@ function renderMaterialToContext(materialName, x, y, size, context) {
       // Unknown material - use default grass appearance
       if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
-      } else {
-        ctx.fill(100, 150, 100);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
   }
 }
 
-
+/**
+ * Loads in terrain images declared in global scope
+ */
 function terrainPreloader(){
   GRASS_IMAGE = loadImage('Images/16x16 Tiles/grass.png');
   DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
@@ -105,75 +83,75 @@ function terrainPreloader(){
   MOSS_IMAGE = loadImage('Images/16x16 Tiles/moss.png');
 }
 
-// class Terrain {
-//   constructor(canvasX, canvasY, tileSize) {
-//     //// Config...
-//     this._canvasX = canvasX;
-//     this._canvasY = canvasY;
+class Terrain {
+  constructor(canvasX, canvasY, tileSize) {
+    //// Config...
+    this._canvasX = canvasX;
+    this._canvasY = canvasY;
 
-//     // May result in partial-filling of canvas...
-//     this._xCount = round(this._canvasX/tileSize);
-//     this._yCount = round(this._canvasY/tileSize);
-//     this._tileSize = tileSize;
+    // May result in partial-filling of canvas...
+    this._xCount = round(this._canvasX/tileSize);
+    this._yCount = round(this._canvasY/tileSize);
+    this._tileSize = tileSize;
 
-//     // Initialize 1d _tileStore
-//     this._tileStore = [];
-//     for (let j = 0; j < this._yCount; ++j) { // ... then Y...
-//       for (let i = 0; i < this._xCount; ++i) { // row of X first... ^
-//         this._tileStore.push( // Add tile to...
-//           new Tile(
-//             i*this._tileSize,j*this._tileSize, // x,y position conversion.
-//             this._tileSize
-//           )
-//         );
-//       }
-//     }
-//   }
-
-
-
-//   //// Utility
-//   conv2dpos(posX,posY) { // Converts 2d -> 1d position
-//     return posX + this._xCount*posY;
-//   }
-
-//   // Imported from commit f7c2e00 on AF branch
-//   conv1dpos(arrayPos) { // Converts 1d array access position -> 2d position. X = ...[0], Y = ...[1]
-//     return [arrayPos%this._xCount,floor(arrayPos/this._xCount)]; // Return X,Y from array pos
-//   }
+    // Initialize 1d _tileStore
+    this._tileStore = [];
+    for (let j = 0; j < this._yCount; ++j) { // ... then Y...
+      for (let i = 0; i < this._xCount; ++i) { // row of X first... ^
+        this._tileStore.push( // Add tile to...
+          new Tile(
+            i*this._tileSize,j*this._tileSize, // x,y position conversion.
+            this._tileSize
+          )
+        );
+      }
+    }
+  }
 
 
 
-//   //// Access
-//   setTile(posX,posY,material) {
-//     return this._tileStore[this.conv2dpos(posX,posY)].setMaterial(material);
-//   }
+  //// Utility
+  conv2dpos(posX,posY) { // Converts 2d -> 1d position
+    return posX + this._xCount*posY;
+  }
 
-//   getTile(posX,posY) {
-//     return this._tileStore[this.conv2dpos(posX,posY)].getMaterial();
-//   }
-
-//   getCoordinateSystem() { // Return coordinate system, Backing canvas equivalent to View canvas
-//     return new CoordinateSystem(this._xCount,this._yCount,this._tileSize,0,0);
-//   }
+  // Imported from commit f7c2e00 on AF branch
+  conv1dpos(arrayPos) { // Converts 1d array access position -> 2d position. X = ...[0], Y = ...[1]
+    return [arrayPos%this._xCount,floor(arrayPos/this._xCount)]; // Return X,Y from array pos
+  }
 
 
 
-//   //// Usage
-//   randomize(g_seed) { // Randomize all values via set g_seed
-//     randomSeed(g_seed); // Set global g_seed.
+  //// Access
+  setTile(posX,posY,material) {
+    return this._tileStore[this.conv2dpos(posX,posY)].setMaterial(material);
+  }
 
-//     for (let i = 0; i < this._xCount*this._yCount; ++i) {
-//       this._tileStore[i].randomizeMaterial(); // Rng calls should use global g_seed
-//     }
-//   }
+  getTile(posX,posY) {
+    return this._tileStore[this.conv2dpos(posX,posY)].getMaterial();
+  }
 
-//   render() { // Render all tiles
-//     for (let i = 0; i < this._xCount*this._yCount; ++i) {
-//       this._tileStore[i].render();
-//     }
-//   }
-// }
+  getCoordinateSystem() { // Return coordinate system, Backing canvas equivalent to View canvas
+    return new CoordinateSystem(this._xCount,this._yCount,this._tileSize,0,0);
+  }
+
+
+
+  //// Usage
+  randomize(g_seed) { // Randomize all values via set g_seed
+    randomSeed(g_seed); // Set global g_seed.
+
+    for (let i = 0; i < this._xCount*this._yCount; ++i) {
+      this._tileStore[i].randomizeMaterial(); // Rng calls should use global g_seed
+    }
+  }
+
+  render() { // Render all tiles
+    for (let i = 0; i < this._xCount*this._yCount; ++i) {
+      this._tileStore[i].render();
+    }
+  }
+}
 
 class Tile { // Similar to former 'Grid'. Now internally stores material state.
   constructor(renderX,renderY,tileSize) {
@@ -189,36 +167,45 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
     this._coordSysUpdateId = -1; // Used for render conversion optimizations
     this._coordSysPos = NONE;
+    
+    // Entity tracking
+    this.entities = [];
+    this.tileX = renderX;
+    this.tileY = renderY;
+    this.x = renderX * tileSize;
+    this.y = renderY * tileSize;
+    this.width = tileSize;
+    this.height = tileSize;
   }
  
 
 
   //// Access/usage
-  // randomizeMaterial() { // Will select random material for current tile. No return.
-  //   let noiseScale = 0.1
-  //   let noiseX = noiseScale * this._x;
-  //   let noiseY = noiseScale * this._y;   
+  randomizeMaterial() { // Will select random material for current tile. No return.
+    let noiseScale = 0.1
+    let noiseX = noiseScale * this._x;
+    let noiseY = noiseScale * this._y;   
 
-  //   let noiseValue = noise(noiseX,noiseY);
-  //   for (let checkMat in TERRAIN_MATERIALS) {          
-  //     if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
-  //       this._materialSet = checkMat;
-  //       this.setMaterial();
-  //       this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
-  //       return;
-  //     }
-  //   }
-  // }
+    let noiseValue = noise(noiseX,noiseY);
+    for (let checkMat in TERRAIN_MATERIALS) {          
+      if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
+        this._materialSet = checkMat;
+        this.setMaterial();
+        this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
+        return;
+      }
+    }
+  }
 
-  // randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
-  //   let selected = random(); // [0-1)
-  //   for (let checkMat in TERRAIN_MATERIALS) {
-  //     if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
-  //       this._materialSet = checkMat;
-  //       return;
-  //     }
-  //   }
-  // }
+  randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
+    let selected = random(); // [0-1)
+    for (let checkMat in TERRAIN_MATERIALS) {
+      if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
+        this._materialSet = checkMat;
+        return;
+      }
+    }
+  }
 
   randomizePerlin(pos) {
     let newPos = [
@@ -263,12 +250,12 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     }
   }
 
-  // render() { // Render, previously draw
-  //   noSmooth(); // prevents pixels from getting blurry as the image is scaled up
-  //   TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
-  //   smooth();
-  //   return;
-  // }
+  render() { // Render, previously draw
+    noSmooth(); // prevents pixels from getting blurry as the image is scaled up
+    TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
+    smooth();
+    return;
+  }
 
   render(coordSys) {
     // coordSys.setViewCornerBC([0,0]);
@@ -284,5 +271,87 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
   toString() {
     return this._materialSet+'('+this._x+','+this._y+')';
+  }
+  
+  // =========================================================================
+  // Entity Tracking Methods
+  // =========================================================================
+  
+  /**
+   * Check if entity is on this tile
+   * @param {Object} entity - Entity to check
+   * @returns {boolean} True if entity is on tile
+   */
+  hasEntity(entity) {
+    return this.entities.includes(entity);
+  }
+  
+  /**
+   * Add entity to this tile
+   * @param {Object} entity - Entity to add
+   */
+  addEntity(entity) {
+    if (!this.entities.includes(entity)) {
+      this.entities.push(entity);
+    }
+  }
+  
+  /**
+   * Remove entity from this tile
+   * @param {Object} entity - Entity to remove
+   */
+  removeEntity(entity) {
+    const index = this.entities.indexOf(entity);
+    if (index !== -1) {
+      this.entities.splice(index, 1);
+    }
+  }
+  
+  /**
+   * Get all entities on this tile
+   * @returns {Array} Copy of entities array
+   */
+  getEntities() {
+    return [...this.entities];
+  }
+  
+  /**
+   * Get entity count on this tile
+   * @returns {number} Number of entities
+   */
+  getEntityCount() {
+    return this.entities.length;
+  }
+  
+  /**
+   * Get material property (alias for compatibility)
+   * @returns {string} Material type
+   */
+  get material() {
+    return this._materialSet;
+  }
+  
+  /**
+   * Set material property (alias for compatibility)
+   * @param {string} value - Material type
+   */
+  set material(value) {
+    this._materialSet = value;
+  }
+  
+  /**
+   * Get weight property (alias for compatibility)
+   * @returns {number} Weight value
+   */
+  get weight() {
+    return this._weight;
+  }
+  
+  /**
+   * Set weight property (alias for compatibility)
+   * @param {number} value - Weight value
+   */
+  set weight(value) {
+    this._weight = value;
   }
 }

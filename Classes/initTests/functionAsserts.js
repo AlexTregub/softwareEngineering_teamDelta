@@ -79,7 +79,7 @@ class FunctionAsserts {
             { name: 'g_canvasX', type: 'number', critical: true },
             { name: 'g_canvasY', type: 'number', critical: true },
             { name: 'TILE_SIZE', type: 'number', critical: false },
-            { name: 'g_map2', type: 'object', critical: true },
+            { name: 'g_activeMap', type: 'object', critical: true },
             { name: 'g_resourceList', type: 'object', critical: true },
             { name: 'ants', type: 'object', critical: true },
             { name: 'g_uiDebugManager', type: 'object', critical: true }
@@ -145,7 +145,7 @@ class FunctionAsserts {
 
         // Check object methods
         const objectMethods = [
-            { obj: 'g_map2', method: 'render', critical: true },
+            { obj: 'g_activeMap', method: 'render', critical: true },
             { obj: 'g_resourceList', method: 'updateAll', critical: true },
             { obj: 'g_resourceList', method: 'drawAll', critical: true },
             { obj: 'g_selectionBoxController', method: 'draw', critical: false }
@@ -199,7 +199,7 @@ class FunctionAsserts {
         }
 
         // Check terrain system
-        if (window.g_map2 && typeof window.g_map2.render === 'function') {
+        if (window.g_activeMap && typeof window.g_activeMap.render === 'function') {
             systems.push('✅ Terrain system initialized');
         }
 

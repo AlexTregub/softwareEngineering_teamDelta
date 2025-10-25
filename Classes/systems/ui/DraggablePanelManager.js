@@ -34,11 +34,12 @@ class DraggablePanelManager {
     this.currentlyDragging = null;
     
     // Panel visibility by game state (from Integration class)
+    // NOTE: 'combat' panel removed - Queen Powers now managed by QueenControlPanel (shows only when queen selected)
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
-      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'combat', 'tasks','buildings'],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'tasks','buildings',"resources", 'cheats', 'queen-powers-panel'],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
-      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'cheats'],
       'GAME_OVER': ['stats', 'debug'],
       'KANBAN': ['presentation-kanban-transition', 'debug']
     };
@@ -62,30 +63,84 @@ class DraggablePanelManager {
     this.createDefaultPanels();
     
     // Register with RenderLayerManager if available
-    if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
-      // Hook into the UI_GAME layer renderer
-      const originalUIRenderer = g_renderLayerManager.layerRenderers.get('ui_game');
+    // Register with RenderLayerManager using addDrawableToLayer
+    if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addDrawableToLayer === 'function') {
+      // Bind the renderPanels method to this instance
+      this._renderPanelsBound = this.renderPanels.bind(this);
       
-      g_renderLayerManager.layerRenderers.set('ui_game', (gameState) => {
-        // Call original UI renderer first
-        if (originalUIRenderer) {
-          originalUIRenderer(gameState);
-        }
-        
-        // Then render our panels
-        this.renderPanels(gameState);
-      });
+      // Add to UI_GAME layer (panels should render after base game UI)
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, this._renderPanelsBound);
       
       if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ DraggablePanelManager integrated into render pipeline');
+        globalThis.logVerbose('✅ DraggablePanelManager registered with RenderLayerManager');
       } else {
-        console.log('✅ DraggablePanelManager integrated into render pipeline');
+        console.log('✅ DraggablePanelManager registered with RenderLayerManager');
       }
     } else {
       console.warn('⚠️ RenderLayerManager not found - panels will need manual rendering');
     }
 
     this.isInitialized = true;
+
+    // Auto-register a minimal interactive adapter so panels receive pointer events
+    try {
+      if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
+        const adapter = {
+          hitTest: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              const panels = Array.from(this.panels.values()).reverse();
+              for (const p of panels) {
+                if (!p.state || !p.state.visible) continue;
+                if (typeof p.isPointInBounds === 'function' && p.isPointInBounds(x, y)) return true;
+              }
+            } catch (e) {}
+            return false;
+          },
+          onPointerDown: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              const handled = this.handleMouseEvents(x, y, true);
+              if (this.isAnyPanelBeingDragged && this.isAnyPanelBeingDragged()) return true;
+              return !!handled;
+            } catch (e) { return false; }
+          },
+          onPointerMove: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, pointer.isPressed === true);
+              return false;
+            } catch (e) { return false; }
+          },
+          onPointerUp: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, false);
+            } catch (e) {}
+            return false;
+          },
+          update: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, pointer.isPressed === true);
+            } catch (e) {}
+          },
+          render: (gameState, pointer) => {
+            try {
+              this.render();
+            } catch (e) {}
+          }
+        };
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, adapter);
+      }
+    } catch (e) {
+      console.warn('DraggablePanelManager: failed to auto-register interactive adapter', e);
+    }
   }
 
   /**
@@ -93,9 +148,9 @@ class DraggablePanelManager {
    */
   createDefaultPanels() {
     // Ant Spawn Panel (vertical layout with ant spawning options)
-    this.panels.set('ant_spawn2', new DraggablePanel({
-      id: 'ant-Spawn-panel2',
-      title: 'Ant Government Population Manager (🐜)2',
+    this.panels.set('ant_spawn', new DraggablePanel({
+      id: 'ant-Spawn-panel',
+      title: 'Ant Spawning',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
       scale: 1.0, // Initial scale
@@ -111,39 +166,19 @@ class DraggablePanelManager {
             style: ButtonStyles.SUCCESS
           },
           {
-            caption: 'Spawn building',
-            onClick: () => {
-              const building = createBuilding('antcone', 50, 50, 'Player');
-              if (building && typeof Buildings !== 'undefined') {
-                Buildings.push(building);
-                // Register with TileInteractionManager for mouse detection
-                if (g_tileInteractionManager) {
-                  g_tileInteractionManager.addObject(building, 'building');
-                }
-                console.log('Building created and registered:', building);
-              }
-            },
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#32CD32' }
+            caption: 'Spawn 10 Ants',
+            onClick: () => this.spawnAnts(10),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
           },
           {
             caption: 'Spawn 100 Ants',
             onClick: () => this.spawnAnts(100),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
-          },
-          {
-            caption: 'Spawn 1000 Ants (Don\'t do this!)',
-            onClick: () => this.spawnAnts(1000),
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
           },
           {
             caption: 'Paint Enemy Brush',
             onClick: () => this.toggleEnemyBrush(),
             style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
-          },
-          {
-            caption: 'Paint Resource Brush',
-            onClick: () => this.toggleResourceBrush(),
-            style: { ...ButtonStyles.INFO, backgroundColor: '#32CD32', color: '#FFFFFF' }
           },
           {
             caption: 'Kill 1 Ant',
@@ -186,32 +221,17 @@ class DraggablePanelManager {
       position: { x: 180, y: 80 },
       size: { width: 180, height: 150 },
       buttons: {
-        layout: 'grid',
+        layout: 'horizontal',
         columns: 2,
         spacing: 8,
-        buttonWidth: 70,
-        buttonHeight: 40,
+        buttonWidth: 160,
+        buttonHeight: 20,
         items: [
           {
-            caption: 'Wood',
-            onClick: () => this.selectResource('stick'),
-            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#8B4513' }
-          },
-          {
-            caption: 'Leaves',
-            onClick: () => this.selectResource('leaves'),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#11cd5cff' }
-          },
-          {
-            caption: 'Stone',
-            onClick: () => this.selectResource('stone'),
-            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#696969' }
-          }/*,
-          {
-            caption: 'Info',
-            onClick: () => this.showResourceInfo(),
-            style: ButtonStyles.PURPLE
-          }*/
+            caption: 'Paint Resource Brush',
+            onClick: () => this.toggleResourceBrush(),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#32CD32', color: '#FFFFFF' }
+          }
         ]
       }
     }));
@@ -247,32 +267,8 @@ class DraggablePanelManager {
       }
     }));
 
-    // Combat Panel (lightning button)
-    this.panels.set('combat', new DraggablePanel({
-      id: 'combat-panel',
-      title: 'Combat Controls',
-      position: { x: 20, y: 380 },
-      size: { width: 160, height: 120 },
-      buttons: {
-        layout: 'vertical',
-        spacing: 6,
-        buttonWidth: 140,
-        buttonHeight: 28,
-        items: [
-          {
-            caption: 'Shoot Lightning',
-            onClick: () => this.handleShootLightning(),
-            style: { ...ButtonStyles.DANGER, backgroundColor: '#4DA6FF', color: '#FFFFFF' }
-          }
-          ,
-          {
-            caption: 'Aim Lightning',
-            onClick: () => this.toggleLightningAimBrush(),
-            style: { ...ButtonStyles.INFO, backgroundColor: '#2E9AFE', color: '#FFFFFF' }
-          }
-        ]
-      }
-    }));
+    // NOTE: Combat/Queen Powers panel has been moved to QueenControlPanel.js
+    // It now only shows when the queen is selected (see Classes/systems/ui/QueenControlPanel.js)
 
     // Health Management Panel (horizontal layout with health controls)
     this.panels.set('health_controls', new DraggablePanel({
@@ -537,6 +533,52 @@ class DraggablePanelManager {
             caption: 'Clear Buildings',
             onClick: () => this.clearBuildings(),
             style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
+          }
+        ]
+      }
+    }));
+
+    // Cheats Panel (unlock powers and other debug features)
+    this.panels.set('cheats', new DraggablePanel({
+      id: 'cheats-panel',
+      title: '👑 Power Cheats',
+      position: { x: 780, y: 80 },
+      size: { width: 180, height: 220 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 4,
+        buttonWidth: 160,
+        buttonHeight: 32,
+        items: [
+          {
+            caption: '🔥 Unlock Fireball',
+            onClick: () => this.unlockPower('fireball'),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
+          },
+          {
+            caption: '⚡ Unlock Lightning',
+            onClick: () => this.unlockPower('lightning'),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#4DA6FF', color: '#FFFFFF' }
+          },
+          {
+            caption: '🌀 Unlock Black Hole',
+            onClick: () => this.unlockPower('blackhole'),
+            style: { ...ButtonStyles.PURPLE, backgroundColor: '#9400D3', color: '#FFFFFF' }
+          },
+          {
+            caption: '🧪 Unlock Sludge',
+            onClick: () => this.unlockPower('sludge'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#556B2F', color: '#FFFFFF' }
+          },
+          {
+            caption: '🌊 Unlock Tidal Wave',
+            onClick: () => this.unlockPower('tidalWave'),
+            style: { ...ButtonStyles.PRIMARY, backgroundColor: '#1E90FF', color: '#FFFFFF' }
+          },
+          {
+            caption: '🔓 Unlock All Powers',
+            onClick: () => this.unlockAllPowers(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#FFD700', color: '#000000' }
           }
         ]
       }
@@ -943,6 +985,8 @@ class DraggablePanelManager {
         panel.hide();
       }
     }
+
+    
     
     // Render all visible panels
     for (const panel of this.panels.values()) {
@@ -970,7 +1014,7 @@ class DraggablePanelManager {
    * Spawn multiple ants at random positions or near mouse
    */
   spawnAnts(count = 1) {
-    console.log(`🐜 Spawning ${count} ant(s)...`);
+    verboseLog(`🐜 Spawning ${count} ant(s)...`);
     
     let spawned = 0;
     
@@ -1030,7 +1074,7 @@ class DraggablePanelManager {
     // Try each method until one succeeds
     for (const method of spawnMethods) {
       if (method()) {
-        console.log(`✅ Successfully spawned ${spawned} ant(s)`);
+        verboseLog(`✅ Successfully spawned ${spawned} ant(s)`);
         return;
       }
     }
@@ -1279,21 +1323,95 @@ class DraggablePanelManager {
   }
 
   /**
+   * Unlock a specific power for the queen
+   * @param {string} powerName - Name of the power to unlock
+   */
+  unlockPower(powerName) {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.warn('⚠️ No queen found - cannot unlock powers');
+      return;
+    }
+
+    if (typeof queen.unlockPower === 'function') {
+      const success = queen.unlockPower(powerName);
+      if (success) {
+        console.log(`✅ Unlocked power: ${powerName}`);
+        
+        // Update the button to show it's unlocked
+        const button = this.findButtonByCaption(`Unlock ${powerName}`, true);
+        if (button) {
+          button.caption = `✅ ${powerName.charAt(0).toUpperCase() + powerName.slice(1)}`;
+        }
+
+        // Update the Use Power button state in QueenControlPanel if available
+        if (typeof window.g_queenControlPanel !== 'undefined' && window.g_queenControlPanel) {
+          window.g_queenControlPanel.updatePowerButtonState();
+        }
+      }
+    } else {
+      console.warn('⚠️ Queen does not support power unlocking (old queen class?)');
+    }
+  }
+
+  /**
+   * Unlock all powers for the queen
+   */
+  unlockAllPowers() {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.warn('⚠️ No queen found - cannot unlock powers');
+      return;
+    }
+
+    const powers = ['fireball', 'lightning', 'blackhole', 'sludge', 'tidalWave'];
+    let unlocked = 0;
+
+    for (const power of powers) {
+      if (typeof queen.unlockPower === 'function' && queen.unlockPower(power)) {
+        unlocked++;
+      }
+    }
+
+    console.log(`✅ Unlocked ${unlocked}/${powers.length} powers`);
+
+    // Update all unlock buttons to show they're unlocked
+    const panel = this.panels.get('cheats');
+    if (panel && panel.buttons && panel.buttons.items) {
+      panel.buttons.items.forEach(btn => {
+        if (btn.caption.includes('Unlock') && !btn.caption.includes('All')) {
+          const powerName = btn.caption.replace('🔥 Unlock ', '').replace('⚡ Unlock ', '')
+            .replace('🌀 Unlock ', '').replace('🧪 Unlock ', '').replace('🌊 Unlock ', '');
+          btn.caption = `✅ ${powerName}`;
+        }
+      });
+    }
+
+    // Update the Use Power button state in QueenControlPanel if available
+    if (typeof window.g_queenControlPanel !== 'undefined' && window.g_queenControlPanel) {
+      window.g_queenControlPanel.updatePowerButtonState();
+    }
+  }
+
+  /**
    * Helper method to find button by caption
    * @param {string} caption - Button caption to search for
    * @returns {Object|null} Button object or null if not found
    */
-  findButtonByCaption(caption) {
+  findButtonByCaption(caption, partialMatch = false) {
     // Search through all panels and their buttons
     for (const panel of this.panels.values()) {
       if (panel.buttons && panel.buttons.items) {
-        const button = panel.buttons.items.find(btn => 
-          btn.caption === caption || 
-          btn.caption.includes('Paint Brush') || 
-          btn.caption.includes('Brush:') ||
-          btn.caption.includes('Resource Brush') ||
-          btn.caption.includes('Paint Resource Brush')
-        );
+        const button = panel.buttons.items.find(btn => {
+          if (partialMatch) {
+            return btn.caption && btn.caption.includes(caption);
+          }
+          return btn.caption === caption || 
+            btn.caption.includes('Paint Brush') || 
+            btn.caption.includes('Brush:') ||
+            btn.caption.includes('Resource Brush') ||
+            btn.caption.includes('Paint Resource Brush');
+        });
         if (button) return button;
       }
     }
@@ -1477,7 +1595,7 @@ class DraggablePanelManager {
   }
 
   /**
-   * Toggle the lightning aim brush
+   * Toggle the lightning aim brush (LEGACY - replaced by power cycling)
    */
   toggleLightningAimBrush() {
     if (typeof g_lightningAimBrush === 'undefined' || !g_lightningAimBrush) {
@@ -1496,6 +1614,10 @@ class DraggablePanelManager {
       button.style.backgroundColor = active ? '#1E90FF' : '#2E9AFE';
     }
   }
+
+  // NOTE: handlePlaceDropoff, updatePowerButtonState, and cyclePower methods 
+  // have been moved to QueenControlPanel.js (Classes/systems/ui/QueenControlPanel.js)
+  // These methods are now part of the queen-specific panel that only shows when queen is selected
 
   /**
    * Toggle debug information display

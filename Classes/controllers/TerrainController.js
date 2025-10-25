@@ -68,6 +68,14 @@ class TerrainController {
         this._entity._stateMachine.setTerrainModifier(newTerrain);
       }
       
+      // Debug logging (enable with window.DEBUG_TERRAIN = true)
+      if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN) {
+        console.log(`[TerrainController] ${this._entity._type} terrain changed: ${oldTerrain} → ${newTerrain}`, {
+          entityId: this._entity._id,
+          position: this._getEntityPosition()
+        });
+      }
+      
       this._onTerrainChange(oldTerrain, newTerrain);
     }
   }
@@ -88,23 +96,51 @@ class TerrainController {
     
     let terrainType = "DEFAULT";
     
-    // Integration with terrain system (if available)
-    if (g_gridMap) {
+    // Try MapManager first, fallback to g_activeMap for compatibility
+    let tile = null;
+    let detectionMethod = 'none';
+    
+    if (typeof mapManager !== 'undefined' && mapManager.getActiveMap()) {
+      // Use MapManager (preferred)
+      tile = mapManager.getTileAtPosition(pos.x, pos.y);
+      detectionMethod = 'mapManager';
+    } else if (typeof g_activeMap !== 'undefined' && g_activeMap) {
+      // Fallback to direct g_activeMap access
       try {
-        const tileSize = window.tileSize || 32;
+        const tileSize = window.TILE_SIZE || 32;
         const tileX = Math.floor(pos.x / tileSize);
         const tileY = Math.floor(pos.y / tileSize);
         
-        const grid = g_gridMap.getGrid();
-        const tile = grid?.getArrPos([tileX, tileY]);
+        const chunkX = Math.floor(tileX / g_activeMap._chunkSize);
+        const chunkY = Math.floor(tileY / g_activeMap._chunkSize);
+        const chunk = g_activeMap.chunkArray?.get?.([chunkX, chunkY]);
         
-        if (tile && tile._terrainTile) {
-          terrainType = this._mapTerrainType(tile._terrainTile);
+        if (chunk) {
+          const localX = tileX - (chunkX * g_activeMap._chunkSize);
+          const localY = tileY - (chunkY * g_activeMap._chunkSize);
+          tile = chunk.tileData?.get?.([localX, localY]);
         }
+        detectionMethod = 'g_activeMap';
       } catch (error) {
-        // Terrain system not available or error occurred
         console.warn("Terrain detection error:", error);
       }
+    }
+    
+    // Map tile to terrain type
+    if (tile) {
+      terrainType = this._mapTerrainType(tile);
+      
+      // Debug logging for first detection
+      if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN && !this._terrainCache.has(cacheKey)) {
+        console.log(`[TerrainController] Detected terrain:`, {
+          method: detectionMethod,
+          position: pos,
+          tileMaterial: tile.material,
+          terrainType: terrainType
+        });
+      }
+    } else if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN && !this._terrainCache.has(cacheKey)) {
+      console.warn(`[TerrainController] No tile found at position:`, pos, `method: ${detectionMethod}`);
     }
     
     // Cache the result
@@ -125,8 +161,8 @@ class TerrainController {
    * @returns {string} Terrain modifier
    */
   _mapTerrainType(terrainTile) {
-    // This mapping should be customized based on your terrain system
-    const terrainName = terrainTile.getName ? terrainTile.getName() : terrainTile.type;
+    // Extract terrain type from Tile object (supports multiple formats for flexibility)
+    const terrainName = terrainTile.material || terrainTile.getName?.() || terrainTile.type || terrainTile._materialSet;
     
     switch (terrainName?.toLowerCase()) {
       case "water":
@@ -135,6 +171,9 @@ class TerrainController {
         return "IN_WATER";
       
       case "mud":
+      case "moss":
+      case "moss_0":
+      case "moss_1":
       case "swamp":
       case "marsh":
         return "IN_MUD";
@@ -143,6 +182,7 @@ class TerrainController {
       case "slippery":
         return "ON_SLIPPERY";
       
+      case "stone":
       case "rocks":
       case "rough":
       case "mountain":
@@ -150,7 +190,6 @@ class TerrainController {
       
       case "grass":
       case "dirt":
-      case "stone":
       case "default":
       default:
         return "DEFAULT";
@@ -171,7 +210,7 @@ class TerrainController {
       case "IN_MUD":
         return baseSpeed * 0.3; // 30% speed in mud
       case "ON_SLIPPERY":
-        return 0; // Can't move on slippery terrain
+        return baseSpeed * 1.2; // move very fast on slippery terrain
       case "ON_ROUGH":
         return baseSpeed * 0.8; // 80% speed on rough terrain
       case "DEFAULT":
@@ -210,19 +249,12 @@ class TerrainController {
   // --- Private Methods ---
 
   /**
-   * Get entity position (with fallbacks)
+   * Get entity position
    * @returns {Object} Position object with x, y
    */
   _getEntityPosition() {
-    if (this._entity._transformController) {
-      return this._entity._transformController.getPosition();
-    } else if (this._entity.getPosition) {
-      return this._entity.getPosition();
-    } else {
-      return { 
-        ...this._entity.getPosition() 
-      };
-    }
+    // Use Entity's public API to get position (delegates to transform controller)
+    return this._entity.getPosition();
   }
 
   /**
@@ -255,9 +287,7 @@ class TerrainController {
    */
   _onTerrainChange(oldTerrain, newTerrain) {
     // Override in subclasses or set callback for custom behavior
-    if (this._onTerrainChangeCallback) {
-      this._onTerrainChangeCallback(oldTerrain, newTerrain);
-    }
+    if (this._onTerrainChangeCallback) { this._onTerrainChangeCallback(oldTerrain, newTerrain);  }
   }
 
   /**

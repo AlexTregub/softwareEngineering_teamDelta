@@ -5,6 +5,37 @@
  * @see {@link docs/quick-reference.md} Layer system reference
  */
 
+
+
+// Visual timeline (per frame)
+//
+// render(gameState)
+//   layersToRender = getLayersForState(gameState)
+//   for each layerName in layersToRender:
+//     // Skip disabled layers
+//     if (disabledLayers.has(layerName)) -> continue
+//
+//     layerStart = now
+//
+//     // Get and call renderer for this layer (renderer usually handles push()/applyZoom()/pop())
+//     renderer = layerRenderers.get(layerName)
+//     if (renderer) {
+//       renderer(gameState)
+//     }
+//
+//     // Call any extra drawables registered for this layer (executed in global canvas state after renderer returned)
+//     drawables = layerDrawables.get(layerName)
+//     if (drawables && drawables.length) {
+//       for each fn in drawables:
+//         fn(gameState)
+//     }
+//
+//     layerEnd = now
+//     renderStats.layerTimes[layerName] = layerEnd - layerStart
+//
+// // After all layers: update button groups
+// // Update renderStats (frameCount, lastFrameTime, etc.)
+
 /**
  * Manages rendering layers from terrain to UI with performance optimization.
  * 
@@ -15,7 +46,9 @@
  */
 class RenderLayerManager {
   constructor() {
-    // Rendering layers in order (bottom to top)
+    /**
+     * Rendering layers in order (bottom to top)
+     */ 
     this.layers = {
       TERRAIN: 'terrain',      // Static terrain, cached
       ENTITIES: 'entities',    // Dynamic game objects (ants, resources)
@@ -27,6 +60,9 @@ class RenderLayerManager {
     
     // Layer rendering functions
     this.layerRenderers = new Map();
+    
+    // Layer drawables (additional callbacks appended to a layer)
+    this.layerDrawables = new Map();
     
     // Layer toggle state for debugging
     this.disabledLayers = new Set();
@@ -45,6 +81,25 @@ class RenderLayerManager {
     };
     
     this.isInitialized = false;
+
+  // Interactive drawables per layer (topmost last in array)
+  this.layerInteractives = new Map();
+
+  // Pointer capture info: { owner: interactiveObj, pointerId }
+  this._pointerCapture = null;
+
+    // set this to true in conjucntion with a seperate rendering function to skip the rendering pipeline
+    // Temp fix for draggable panels
+    this._RenderMangerOverwrite = false
+    /** When the renderer is overwritten, set this to true, then once the
+     * renderer overwrite is done, start a timer. when that timer is done
+     * set _RendererOverwritten to false
+    */
+    this._RendererOverwritten = false 
+    this.__RendererOverwriteTimer = 0
+    this.__RendererOverwriteLast = 0;
+    this._overwrittenRendererFn = null;
+    this._RendererOverwriteTimerMax = 1; // seconds (default)
   }
   
   /**
@@ -66,8 +121,139 @@ class RenderLayerManager {
     this.enableAllLayers();
     
     this.isInitialized = true;
+
+
+    // Register common drawables once (guarded to avoid double-registration)
+  try {
+    if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
+
+    // Register SelectionBoxController as an interactive so RenderManager dispatches pointer events to it
+    try {
+      if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
+        const selectionAdapter = {
+          hitTest: function(pointer) {
+            // Always allow selection adapter to receive events on the UI layer
+            return true;
+          },
+          _toWorld: function(px, py) {
+            try {
+              const cam = (typeof window !== 'undefined' && window.g_cameraManager) ? window.g_cameraManager : (typeof cameraManager !== 'undefined' ? cameraManager : null);
+              if (cam && typeof cam.screenToWorld === 'function') {
+                const w = cam.screenToWorld(px, py);
+                return { x: (w.worldX !== undefined ? w.worldX : (w.x !== undefined ? w.x : px)), y: (w.worldY !== undefined ? w.worldY : (w.y !== undefined ? w.y : py)) };
+              }
+              // fallback: use global camera offsets if present
+              const camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : 0;
+              const camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : 0;
+              return { x: px + camX, y: py + camY };
+            } catch (e) { return { x: px, y: py }; }
+          },
+          onPointerDown: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleClick === 'function') {
+                // SelectionBoxController expects screen-local coordinates (it adds cameraX internally)
+                g_selectionBoxController.handleClick(pointer.screen.x, pointer.screen.y, 'left');
+                return true;
+              }
+            } catch (e) { console.warn('selectionAdapter.onPointerDown failed', e); }
+            return false;
+          },
+          onPointerMove: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleDrag === 'function') {
+                g_selectionBoxController.handleDrag(pointer.screen.x, pointer.screen.y);
+                return true;
+              }
+            } catch (e) { /* ignore */ }
+            return false;
+          },
+          onPointerUp: function(pointer) {
+            try {
+              if (g_selectionBoxController && typeof g_selectionBoxController.handleRelease === 'function') {
+                g_selectionBoxController.handleRelease(pointer.screen.x, pointer.screen.y, 'left');
+                return true;
+              }
+            } catch (e) { /* ignore */ }
+            return false;
+          }
+        };
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, selectionAdapter);
+        RenderManager._registeredDrawables.selectionBoxInteractive = true;
+      }
+    } catch (e) { console.warn('Failed to register selection adapter with RenderManager', e); }
+    // Selection box should render in the UI_GAME layer
+    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBox) {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
+      RenderManager._registeredDrawables.selectionBox = true;
+    }
+
+    // Gather debug renderer overlays (effects layer)
+    if (typeof g_gatherDebugRenderer !== 'undefined' && g_gatherDebugRenderer && !RenderManager._registeredDrawables.gatherDebug) {
+      if (typeof g_gatherDebugRenderer.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.EFFECTS, g_gatherDebugRenderer.render.bind(g_gatherDebugRenderer));
+        RenderManager._registeredDrawables.gatherDebug = true;
+      }
+    }
+
+    // Dropoff UI and pause menu UI belong to UI_GAME layer if available
+    if (typeof window !== 'undefined') {
+      if (typeof window.drawDropoffUI === 'function' && !RenderManager._registeredDrawables.drawDropoffUI) {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.drawDropoffUI.bind(window));
+        RenderManager._registeredDrawables.drawDropoffUI = true;
+      }
+      if (typeof window.renderPauseMenuUI === 'function' && !RenderManager._registeredDrawables.renderPauseMenuUI) {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.renderPauseMenuUI.bind(window));
+        RenderManager._registeredDrawables.renderPauseMenuUI = true;
+      }
+    }
+
+    // Draggable panels: ensure the manager is registered to UI layer
+    if (typeof window !== 'undefined' && window.draggablePanelManager && !RenderManager._registeredDrawables.draggablePanelManager) {
+      if (typeof window.draggablePanelManager.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.draggablePanelManager.render.bind(window.draggablePanelManager));
+        RenderManager._registeredDrawables.draggablePanelManager = true;
+      }
+    }
+
+    // Button groups: update is still handled in update cycle, but rendering belongs to UI_GAME
+    if (window.buttonGroupManager && !RenderManager._registeredDrawables.buttonGroupManager) {
+      if (typeof window.buttonGroupManager.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.buttonGroupManager.render.bind(window.buttonGroupManager));
+        RenderManager._registeredDrawables.buttonGroupManager = true;
+      }
+    }
+
+    // Brush systems: register render methods to UI_GAME layer
+    if (window.g_enemyAntBrush && !RenderManager._registeredDrawables.enemyAntBrush) {
+      if (typeof window.g_enemyAntBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_enemyAntBrush.render.bind(window.g_enemyAntBrush));
+        RenderManager._registeredDrawables.enemyAntBrush = true;
+      }
+    }
     
-    console.log('🎨 RenderLayerManager initialized with all layers enabled:', this.getLayerStates());
+    if (window.g_resourceBrush && !RenderManager._registeredDrawables.resourceBrush) {
+      if (typeof window.g_resourceBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_resourceBrush.render.bind(window.g_resourceBrush));
+        RenderManager._registeredDrawables.resourceBrush = true;
+      }
+    }
+    
+    if (window.g_buildingBrush && !RenderManager._registeredDrawables.buildingBrush) {
+      if (typeof window.g_buildingBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_buildingBrush.render.bind(window.g_buildingBrush));
+        RenderManager._registeredDrawables.buildingBrush = true;
+      }
+    }
+    
+    if (window.g_lightningAimBrush && !RenderManager._registeredDrawables.lightningAimBrush) {
+      if (typeof window.g_lightningAimBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_lightningAimBrush.render.bind(window.g_lightningAimBrush));
+        RenderManager._registeredDrawables.lightningAimBrush = true;
+      }
+    }
+  } catch (err) {
+    console.error('❌ Error registering drawables with RenderManager:', err);
+  }
   }
   
   /**
@@ -75,6 +261,60 @@ class RenderLayerManager {
    */
   registerLayerRenderer(layerName, rendererFunction) {
     this.layerRenderers.set(layerName, rendererFunction);
+  }
+
+  /**
+   * Add a drawable callback to a layer (does not replace existing renderer).
+   * Drawable signature: function(gameState) { ...drawing code... }
+   * 
+   * This stores callbacks per layer
+   * Each frame, RenderLayerManager.render() will run the layer's registered
+   * renderer first, then call each drawable callback for that layer in order.
+   * All this is wrapped with the error handling and timing measurements
+   */
+  addDrawableToLayer(layerName, drawableFn) {
+    if (!this.layerDrawables.has(layerName)) {
+      this.layerDrawables.set(layerName, []);
+    }
+    this.layerDrawables.get(layerName).push(drawableFn);
+  }
+
+  /**
+   * Register an interactive drawable object for a layer.
+   * interactiveObj should implement:
+   *  - hitTest(pointer) => boolean
+   *  - onPointerDown(pointer) / onPointerMove(pointer) / onPointerUp(pointer) (optional)
+   *  - update(pointer) (optional)
+   *  - render(gameState, pointer) (optional)
+   * The object will be considered in top-down order (last registered is topmost).
+   */
+  addInteractiveDrawable(layerName, interactiveObj) {
+    if (!this.layerInteractives.has(layerName)) this.layerInteractives.set(layerName, []);
+    this.layerInteractives.get(layerName).push(interactiveObj);
+  }
+
+  /**
+   * Remove an interactive drawable from a layer.
+   */
+  removeInteractiveDrawable(layerName, interactiveObj) {
+    const arr = this.layerInteractives.get(layerName);
+    if (!arr) return false;
+    const idx = arr.indexOf(interactiveObj);
+    if (idx === -1) return false;
+    arr.splice(idx, 1);
+    return true;
+  }
+
+  /**
+   * Remove a drawable callback from a layer.
+   */
+  removeDrawableFromLayer(layerName, drawableFn) {
+    const arr = this.layerDrawables.get(layerName);
+    if (!arr) return false;
+    const idx = arr.indexOf(drawableFn);
+    if (idx === -1) return false;
+    arr.splice(idx, 1);
+    return true;
   }
   
   /**
@@ -85,7 +325,41 @@ class RenderLayerManager {
       console.warn('RenderLayerManager not initialized');
       return;
     }
-    
+    // If an external temporary renderer has been installed, call it and
+    // skip the normal pipeline until its timer expires. This supports
+    // short-lived overrides (e.g., draggable-panel special rendering).
+    if (this._RenderMangerOverwrite && this._RendererOverwritten && typeof this._overwrittenRendererFn === 'function') {
+      const overwriteStart = performance.now();
+      try {
+        // Call the custom renderer. It is responsible for doing its own
+        // push/pop and transforms as needed.
+        this._overwrittenRendererFn(gameState);
+      } catch (err) {
+        console.error('Error in overwritten renderer function:', err);
+      }
+
+      // Update overwrite timer using elapsed time since last tick
+      const now = performance.now();
+      if (!this.__RendererOverwriteLast) this.__RendererOverwriteLast = now;
+      const deltaSec = (now - this.__RendererOverwriteLast) / 1000.0;
+      this.__RendererOverwriteLast = now;
+      this.__RendererOverwriteTimer -= deltaSec;
+
+      if (this.__RendererOverwriteTimer <= 0) {
+        // Timer expired — clear overwrite state
+        this._RenderMangerOverwrite = false;
+        this._RendererOverwritten = false;
+        this.__RendererOverwriteTimer = 0;
+        this.__RendererOverwriteLast = 0;
+        this._overwrittenRendererFn = null;
+      }
+
+      // Update performance stats minimally and return (skip normal pipeline)
+      this.renderStats.frameCount++;
+      this.renderStats.lastFrameTime = performance.now() - overwriteStart;
+      return;
+    }
+
     const frameStart = performance.now();
     
     // Determine which layers to render based on game state
@@ -100,13 +374,112 @@ class RenderLayerManager {
       }
       
       const layerStart = performance.now();
-      
+
+      // Prepare pointer context for this layer (screen coords always available)
+      const pointer = {
+        screen: { x: mouseX, y: mouseY },
+        isPressed: mouseIsPressed,
+        // world will be populated below for layers that apply camera transforms
+        world: null,
+        // optional motion deltas for drag-aware interactives (world-space)
+        dx: 0,
+        dy: 0,
+        layer: layerName,
+        pointerId: 0
+      };
+
+      // If this layer applies camera zoom/translate, compute world coords
+      // using cameraManager.screenToWorld so interactive hit tests can use
+      // world coordinates without re-performing transforms in every adapter.
+      try {
+        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName)) {
+          try {
+            const cam = (typeof cameraManager !== 'undefined') ? cameraManager : (typeof window !== 'undefined' ? window.g_cameraManager : null);
+            if (cam && typeof cam.screenToWorld === 'function') {
+              const w = cam.screenToWorld(pointer.screen.x, pointer.screen.y);
+              if (w) {
+                const wx = (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null);
+                const wy = (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null);
+                // compute world deltas based on last known pointer per layer/pointerId
+                pointer.world = { x: wx, y: wy, worldX: wx, worldY: wy };
+                // compute dx/dy if previous sample exists
+                try {
+                  this.__lastPointerSamples = this.__lastPointerSamples || {};
+                  const key = `${layerName}:0`;
+                  const last = this.__lastPointerSamples[key];
+                  if (last && typeof last.x === 'number') {
+                    pointer.dx = pointer.world.x - last.x;
+                    pointer.dy = pointer.world.y - last.y;
+                  } else {
+                    pointer.dx = 0; pointer.dy = 0;
+                  }
+                  // store current sample for next frame
+                  this.__lastPointerSamples[key] = { x: pointer.world.x, y: pointer.world.y };
+                } catch (e) { /* non-fatal */ }
+              } else {
+                pointer.world = null;
+              }
+            } else {
+              pointer.world = null;
+            }
+          } catch (err) {
+            console.warn('Warning: failed to compute pointer.world for layer', layerName, err);
+            pointer.world = null;
+          }
+        }
+      } catch (err) {
+        // non-fatal: leave pointer.world null if conversion fails
+        console.warn('Warning: failed to compute pointer.world for layer', layerName, err);
+        pointer.world = null;
+      }
+
+      // Call interactive update hooks before rendering so visuals reflect input state
+      const interactives = this.layerInteractives.get(layerName);
+      if (interactives && interactives.length) {
+        // iterate in registration order; topmost being last in array
+        for (const interactive of interactives) {
+          try {
+            if (typeof interactive.update === 'function') {
+              interactive.update(pointer);
+            }
+          } catch (err) {
+            console.error('Error updating interactive drawable:', err);
+          }
+        }
+      }
+
       const renderer = this.layerRenderers.get(layerName);
       if (renderer) {
         try {
           renderer(gameState);
         } catch (error) {
           console.error(`Error rendering layer ${layerName}:`, error);
+        }
+      }
+      
+      // Call any extra drawables registered for this layer
+      const drawables = this.layerDrawables.get(layerName);
+      if (drawables && drawables.length) {
+        for (const fn of drawables) {
+          try {
+            fn(gameState);
+          } catch (err) {
+            console.error(`Error in drawable for layer ${layerName}:`, err);
+          }
+        }
+      }
+
+      // After renderer and drawables, render interactive visuals if they implement render()
+      if (interactives && interactives.length) {
+        // render in registration order so topmost is drawn last
+        for (const interactive of interactives) {
+          try {
+            if (typeof interactive.render === 'function') {
+              interactive.render(gameState, pointer);
+            }
+          } catch (err) {
+            console.error('Error rendering interactive drawable:', err);
+          }
         }
       }
       
@@ -163,13 +536,29 @@ class RenderLayerManager {
   renderTerrainLayer(gameState) {
     // Only render terrain for game states that need it
     if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
+      background(0);
       return;
     }
+    // Always draw a background to remove smearing pixels
+    background(0);
+    push();
+    this.applyZoom();
+    g_activeMap.render();
+    pop();
     
-    // Use the existing terrain rendering system
-    if (g_map2 && g_map2.render) {
-      g_map2.render();
-    }
+  }
+  /**
+   * Gets zoom from the cameraManager and applys it to the scale, 
+   * make sure you surrond this with push() and pop() or everything will scale incorrectly.
+   */
+  applyZoom(){
+    const zoom = cameraManager.getZoom();
+    // Scale around the canvas center so world tiles scale about the view
+    translate((g_canvasX/2), (g_canvasY/2));
+    scale(zoom);
+    translate(-(g_canvasX/2), -(g_canvasY/2));
+    g_canvasX = windowWidth;
+    g_canvasY = windowHeight;
   }
   
   /**
@@ -181,6 +570,9 @@ class RenderLayerManager {
       return;
     }
     
+    push();
+    this.applyZoom();
+    
     // Get the EntityRenderer instance (not the class)
     const entityRenderer = (typeof window !== 'undefined') ? window.EntityRenderer : 
                           (typeof global !== 'undefined') ? global.EntityRenderer : null;
@@ -189,6 +581,7 @@ class RenderLayerManager {
     if (entityRenderer && typeof entityRenderer.renderAllLayers === 'function') {
       entityRenderer.renderAllLayers(gameState);
     }
+    pop();
   }
 
   /**
@@ -200,6 +593,9 @@ class RenderLayerManager {
       return;
     }
     
+    
+    push();
+    this.applyZoom();
     // Get the EffectsRenderer instance
     const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer : 
                            (typeof global !== 'undefined') ? global.EffectsRenderer : null;
@@ -211,6 +607,7 @@ class RenderLayerManager {
     
     // Render Fireball System (projectile effects)
     this.renderFireballEffects(gameState);
+    pop();
   }
   
 
@@ -226,22 +623,20 @@ class RenderLayerManager {
                       (typeof global !== 'undefined') ? global.UIRenderer : null;
     
     if (uiRenderer) {
-      uiRenderer.renderUI(gameState);
-    } else {
-      // Fallback to legacy UI rendering
+      //uiRenderer.renderUI(gameState);
       this.renderBaseGameUI();
       this.renderInteractionUI(gameState);
-      
       // Render state-specific overlays
       if (gameState === 'PAUSED') { this.renderPauseOverlay(); } 
       if (gameState === 'GAME_OVER') { this.renderGameOverOverlay();  }
-    }
-    
-    // Render Universal Button Group System (always on top of other UI)
-    this.renderButtonGroups(gameState);
+          // Render Universal Button Group System (always on top of other UI)
+      this.renderButtonGroups(gameState);
     
     // Render Queen Control Panel (part of UI_GAME layer)
     this.renderQueenControlPanel(gameState);
+    } 
+    
+
   }
   
   /**
@@ -258,12 +653,6 @@ class RenderLayerManager {
     if (g_selectionBoxController) {
       g_selectionBoxController.draw();
     }
-    
-    // Recording indicator
-    if (g_recordingPath) {
-      // Recording logic here if needed
-      this.renderRecordingIndicator();
-    }
   }
   
   /**
@@ -274,31 +663,8 @@ class RenderLayerManager {
     // Only show interaction UI during active gameplay
     if (gameState !== 'PLAYING') return;
     
-    // Dropoff UI
-    if (window) {
-      if (window.updateDropoffUI) {
-        window.updateDropoffUI();
-      }
-      if (window.drawDropoffUI) {
-        window.drawDropoffUI();
-      }
-    }
-    
-    // Spawn UI (development/debug tool)
-    if (window.renderSpawnUI) {
-      window.renderSpawnUI();
-    }
-  }
-  
-  /**
-   * Render recording indicator
-   * @private
-   */
-  renderRecordingIndicator() {
-    fill(255, 0, 0);
-    textAlign(LEFT, TOP);
-    textSize(16);
-    text("● REC", 10, 10);
+    window.updateDropoffUI();
+    window.drawDropoffUI();
   }
   
   /**
@@ -310,22 +676,11 @@ class RenderLayerManager {
       return;
     }
     
-    // UI Debug System rendering disabled
-    // if (g_uiDebugManager) {
-    //   g_uiDebugManager.render();
-    // }
-    
     // Render existing PerformanceMonitor if enabled
     if (g_performanceMonitor && g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled &&
         typeof g_performanceMonitor.render === 'function') {
       g_performanceMonitor.render();
     }
-    
-    // Render existing debug console if active
-    if (isCommandLineActive()) {
-      drawCommandLine();
-    }
-
 
     // Render dev console indicator if enabled
     if (isDevConsoleEnabled()) {
@@ -342,15 +697,27 @@ class RenderLayerManager {
       }
     }
     
-    if (typeof debugRender === 'function') {
-      debugRender();
-    }
-    
     // Debug grid for playing state
     if (gameState === 'PLAYING' && drawDebugGrid) {
       if (g_gridMap) {
         drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
       }
+    }
+
+         // Render existing debug console if active
+    if (isCommandLineActive()) {
+      drawCommandLine();
+    }
+
+    // Render mouse crosshair
+    if (typeof g_mouseCrosshair !== 'undefined' && g_mouseCrosshair) {
+      g_mouseCrosshair.update();
+      g_mouseCrosshair.render();
+    }
+
+    // Render coordinate debug overlay
+    if (typeof g_coordinateDebugOverlay !== 'undefined' && g_coordinateDebugOverlay) {
+      g_coordinateDebugOverlay.render();
     }
   }
   
@@ -638,6 +1005,173 @@ class RenderLayerManager {
     console.log('✅ All render layers forced visible:', this.getLayerStates());
     return this.getLayerStates();
   }
+
+  /**
+   * Dispatch a pointer event (down/move/up) to interactive drawables.
+   * The dispatch proceeds top-down (topmost first) and stops when a handler
+   * returns true (consumes the event).
+   * eventType: 'pointerdown' | 'pointermove' | 'pointerup'
+   * evt: original event or { x, y, pointerId }
+   */
+  dispatchPointerEvent(eventType, evt) {
+    // Build a pointer object (screen coords for now)
+    // Normalize incoming coordinates: Puppeteer/page may pass client (page) coordinates.
+    // Convert to canvas-local coordinates (same coordinate space as p5 mouseX/mouseY)
+    let screenX = (evt.x !== undefined && evt.x !== null) ? evt.x : mouseX;
+    let screenY = (evt.y !== undefined && evt.y !== null) ? evt.y : mouseY;
+    try {
+      const canvas = (typeof document !== 'undefined') ? (document.getElementById('defaultCanvas0') || document.querySelector('canvas')) : null;
+      if (canvas && (evt.x !== undefined && evt.x !== null)) {
+        const rect = canvas.getBoundingClientRect();
+        screenX = evt.x - rect.left;
+        screenY = evt.y - rect.top;
+      }
+    } catch (e) { /* ignore normalization failures and fall back to provided coords */ }
+
+    const pointer = {
+      screen: { x: screenX, y: screenY },
+      pointerId: evt.pointerId ?? 0,
+      isPressed: !!evt.isPressed,
+      world: null,
+      layer: null,
+      dx: evt.dx ?? 0,
+      dy: evt.dy ?? 0
+    };
+
+    // If pointer is captured by something, forward directly
+    if (this._pointerCapture && this._pointerCapture.owner) {
+      const owner = this._pointerCapture.owner;
+      const handlerName = this._mapEventToHandler(eventType);
+      if (handlerName && typeof owner[handlerName] === 'function') {
+        try {
+          const consumed = owner[handlerName](pointer) === true;
+          if (eventType === 'pointerup') {
+            // release capture on pointerup
+            this._pointerCapture = null;
+          }
+          return consumed;
+        } catch (err) {
+          console.error('Error in captured pointer handler:', err);
+        }
+      }
+    }
+
+    // otherwise iterate layers top-to-bottom (we want topmost layers first)
+    const layers = Array.from(this.getLayersForState(window.GameState ? window.GameState.getState() : 'PLAYING'));
+    // iterate layers in reverse so UI_MENU (top) is first
+    for (let i = layers.length - 1; i >= 0; i--) {
+      const layerName = layers[i];
+      // compute layer-specific world coords for this event before dispatch
+      pointer.layer = layerName;
+      // compute layer-specific world coords and motion deltas
+      try {
+        const cam = (typeof cameraManager !== 'undefined') ? cameraManager : (typeof window !== 'undefined' ? window.g_cameraManager : null);
+        if ([this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS].includes(layerName) && cam && typeof cam.screenToWorld === 'function') {
+          const w = cam.screenToWorld(pointer.screen.x, pointer.screen.y);
+          if (w) {
+            const wx = (w.worldX !== undefined) ? w.worldX : (w.x !== undefined ? w.x : null);
+            const wy = (w.worldY !== undefined) ? w.worldY : (w.y !== undefined ? w.y : null);
+            pointer.world = { x: wx, y: wy, worldX: wx, worldY: wy };
+            // compute dx/dy using last sample stored per layer and pointerId
+            try {
+              this.__lastPointerSamples = this.__lastPointerSamples || {};
+              const key = `${layerName}:${pointer.pointerId}`;
+              const last = this.__lastPointerSamples[key];
+              if (last && typeof last.x === 'number') {
+                pointer.dx = pointer.world.x - last.x;
+                pointer.dy = pointer.world.y - last.y;
+              } else {
+                pointer.dx = 0; pointer.dy = 0;
+              }
+              this.__lastPointerSamples[key] = { x: pointer.world.x, y: pointer.world.y };
+            } catch (e) { /* ignore sample errors */ }
+          } else {
+            pointer.world = null;
+          }
+        } else {
+          pointer.world = null;
+        }
+      } catch (err) {
+        pointer.world = null;
+      }
+      const interactives = this.layerInteractives.get(layerName);
+      if (!interactives || !interactives.length) continue;
+
+      // iterate interactives from last registered (topmost) to first
+      for (let j = interactives.length - 1; j >= 0; j--) {
+        const interactive = interactives[j];
+        try {
+          if (typeof interactive.hitTest === 'function' && interactive.hitTest(pointer)) {
+            const handlerName = this._mapEventToHandler(eventType);
+            if (handlerName && typeof interactive[handlerName] === 'function') {
+              const consumed = interactive[handlerName](pointer) === true;
+              if (consumed) {
+                console.log(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
+                // If interactive wants pointer capture, it should set capture via return value or property
+                if (interactive.capturePointer) {
+                  this._pointerCapture = { owner: interactive, pointerId: pointer.pointerId };
+                }
+                return true; // stop propagation
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error dispatching pointer event to interactive:', err);
+        }
+      }
+    }
+
+    return false; // not consumed
+  }
+
+  _mapEventToHandler(eventType) {
+    switch (eventType) {
+      case 'pointerdown': return 'onPointerDown';
+      case 'pointermove': return 'onPointerMove';
+      case 'pointerup': return 'onPointerUp';
+      default: return null;
+    }
+  }
+
+  /**
+   * Start a temporary renderer overwrite.
+   * @param {function} rendererFn - function(gameState) that performs rendering while overwrite is active
+   * @param {number} durationSec - how many seconds the overwrite should run (optional, falls back to _RendererOverwriteTimerMax)
+   */
+  startRendererOverwrite(rendererFn, durationSec) {
+    if (typeof rendererFn !== 'function') {
+      console.warn('startRendererOverwrite requires a function');
+      return false;
+    }
+    this._overwrittenRendererFn = rendererFn;
+    this._RenderMangerOverwrite = true;
+    this._RendererOverwritten = true;
+    this.__RendererOverwriteTimer = typeof durationSec === 'number' ? durationSec : this._RendererOverwriteTimerMax;
+    this.__RendererOverwriteLast = 0; // reset last tick
+    return true;
+  }
+
+  /**
+   * Stop any active renderer overwrite immediately.
+   */
+  stopRendererOverwrite() {
+    this._RenderMangerOverwrite = false;
+    this._RendererOverwritten = false;
+    this.__RendererOverwriteTimer = 0;
+    this.__RendererOverwriteLast = 0;
+    this._overwrittenRendererFn = null;
+  }
+
+  /**
+   * Set default overwrite duration (seconds) used when startRendererOverwrite is called without duration.
+   */
+  setOverwriteDuration(seconds) {
+    if (typeof seconds === 'number' && seconds >= 0) {
+      this._RendererOverwriteTimerMax = seconds;
+      return true;
+    }
+    return false;
+  }
 }
 
 
@@ -650,7 +1184,9 @@ function renderPipelineInit() {
   g_uiDebugManager = window.g_uiDebugManager; // Make globally available
   
   // Initialize dropoff UI if present (creates the Place Dropoff button)
-  //window.initDropoffUI();
+  if (typeof window.initDropoffUI === 'function') {
+    window.initDropoffUI();
+  }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
@@ -658,57 +1194,20 @@ function renderPipelineInit() {
         g_resourceManager.forceSpawn();
       }
   } catch (e) { /* non-fatal; spawner will populate via interval */ }
-
-  // Initialize Universal Button Group System
-  initializeUniversalButtonSystem();
   
   // Initialize Draggable Panel System
   initializeDraggablePanelSystem();
-  
-  // Initialize Enhanced Draggable Panels with Button Arrays
-  if (typeof initializeDraggablePanels !== 'undefined') {
-    initializeDraggablePanels();
-  }
   
   // Initialize ant control panel for spawning and state management
   if (typeof initializeAntControlPanel !== 'undefined') {
     initializeAntControlPanel();
   }
   
-  // Initialize presentation panels for menu and kanban states
-  if (typeof initializePresentationPanels !== 'undefined') {
-    initializePresentationPanels();
-  }
-  
   // Initialize UI Selection Controller for effects layer selection box
   // This must happen after RenderManager.initialize() creates the EffectsRenderer
-  setTimeout(() => {
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('🎯 Initializing UI Selection Controller...');
-    } else {
-      console.log('🎯 Initializing UI Selection Controller...');
-    }
-    
-    // Check if required components exist
-    if (UISelectionController && window.EffectsRenderer) {
-      g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
-      if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ UISelectionController created successfully');
-      } else {
-        console.log('✅ UISelectionController created successfully');
-      }
-      
-      // Initialize the selection box system
-      if (initializeUISelectionBox) {
-        initializeUISelectionBox();
-      }
-    } else {
-      console.error('❌ Required components not available:');
-      console.log('UISelectionController available:', typeof UISelectionController !== 'undefined');
-      console.log('EffectsRenderer available:', typeof window.EffectsRenderer !== 'undefined');
-      console.log('window.EffectsRenderer object:', window.EffectsRenderer);
-    }
-  }, 200);
+  if (UISelectionController && window.EffectsRenderer) {
+    g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
+  }
 }
 
 

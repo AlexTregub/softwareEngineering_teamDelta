@@ -328,8 +328,23 @@ class EffectsLayerRenderer {
     for (const particle of effect.particles) {
       if (particle.dead) continue;
       
+      // Convert world position to screen position using terrain's coordinate converter
+      let screenX = particle.x;
+      let screenY = particle.y;
+      
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+        // Convert pixel position to tile position
+        const tileX = particle.x / TILE_SIZE;
+        const tileY = particle.y / TILE_SIZE;
+        
+        // Use terrain's converter to get screen position
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+        screenX = screenPos[0];
+        screenY = screenPos[1];
+      }
+      
       push();
-      translate(particle.x, particle.y);
+      translate(screenX, screenY);
       
       if (particle.rotation) {
         rotate(particle.rotation);

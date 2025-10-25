@@ -17,7 +17,7 @@ class HealthController {
     this.config = {
       barWidth: null, // Will be set to entity width
       barHeight: 4,
-      offsetY: 8, // Distance above entity
+      offsetY: 12, // Distance above entity (increased from 8)
       backgroundColor: [255, 0, 0], // Red background
       foregroundColor: [0, 255, 0], // Green foreground
       borderColor: [255, 255, 255], // White border
@@ -89,9 +89,19 @@ class HealthController {
     const barWidth = this.config.barWidth || size.x;
     const barHeight = this.config.barHeight;
     
-    // Calculate position (centered above entity)
-    const barX = pos.x + (size.x - barWidth) / 2;
-    const barY = pos.y - this.config.offsetY - barHeight;
+    // Convert entity position to screen coordinates first
+    let entityScreenX = pos.x;
+    let entityScreenY = pos.y;
+    
+    if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+      const entityScreenPos = CoordinateConverter.worldToScreen(pos.x, pos.y);
+      entityScreenX = entityScreenPos.x;
+      entityScreenY = entityScreenPos.y;
+    }
+    
+    // Now apply offset in screen space (above means negative Y in screen space)
+    const barX = entityScreenX + (size.x - barWidth) / 2;
+    const barY = entityScreenY - this.config.offsetY - barHeight;
     
     // Calculate health percentage
     const healthPercent = Math.max(0, Math.min(1, health / maxHealth));

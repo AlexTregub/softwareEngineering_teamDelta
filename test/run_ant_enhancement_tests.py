@@ -16,7 +16,7 @@ def run_bdd_tests():
     
     try:
         # Change to BDD test directory
-        os.chdir(Path(__file__).parent / "bdd_new")
+        os.chdir(Path(__file__).parent / "bdd")
         
         # Run the specific feature
         result = subprocess.run([
@@ -102,7 +102,7 @@ def validate_test_standards():
     violations = []
     
     # Check BDD feature file
-    feature_file = Path(__file__).parent / "bdd_new" / "features" / "ant_spawning_and_state_management.feature"
+    feature_file = Path(__file__).parent / "bdd" / "features" / "ant_spawning_and_state_management.feature"
     if feature_file.exists():
         content = feature_file.read_text()
         
@@ -117,7 +117,7 @@ def validate_test_standards():
                 violations.append(f"❌ RED FLAG language found in BDD feature: '{flag}'")
     
     # Check step definitions
-    steps_file = Path(__file__).parent / "bdd_new" / "steps" / "ant_spawning_and_state_management_steps.py"
+    steps_file = Path(__file__).parent / "bdd" / "steps" / "ant_spawning_and_state_management_steps.py"
     if steps_file.exists():
         content = steps_file.read_text()
         
