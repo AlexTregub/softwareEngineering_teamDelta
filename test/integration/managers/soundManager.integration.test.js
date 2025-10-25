@@ -50,19 +50,8 @@ describe('SoundManager Integration Tests (JSDOM)', function() {
     const match = fileContent.match(/(class SoundManager[\s\S]*?)(?=\/\/ Create global instance|$)/);
     const classCode = match ? match[1] : fileContent;
     
-    // Use eval in current scope (works because we delete the class each time)
-    try {
-      // Delete any previous SoundManager definition
-      if (typeof SoundManager !== 'undefined') {
-        SoundManager = undefined;
-      }
-      eval(classCode);
-    } catch (e) {
-      // If eval fails, just continue - the class might already be defined
-    }
-
-    vm.runInContext(classCode, context);
-    SoundManager = context.SoundManager;
+    // Create the class using Function constructor to capture it properly
+    SoundManager = new Function(classCode + '; return SoundManager;')();
 
     // Minimal mock for p5.sound (only what's needed for loading, not actual playback)
     mockSounds = {};

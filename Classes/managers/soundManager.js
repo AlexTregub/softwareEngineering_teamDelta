@@ -217,6 +217,7 @@ class SoundManager {
    * @param {string} name - Name/identifier for the sound
    * @param {string} path - Path to the sound file
    * @param {string} category - Category: 'Music', 'SoundEffects', or 'SystemSounds'
+   * @returns {boolean} - Returns false if invalid category, true if successful
    */
   registerSound(name, path, category) {
     // Validation
@@ -227,7 +228,8 @@ class SoundManager {
       throw new Error('Sound path must be a non-empty string');
     }
     if (!category || !this.categories[category]) {
-      throw new Error(`Invalid category: ${category}. Must be 'Music', 'SoundEffects', or 'SystemSounds'`);
+      console.warn(`Invalid category: ${category}. Must be 'Music', 'SoundEffects', or 'SystemSounds'`);
+      return false;
     }
 
     // Check if sound already exists in a different category
@@ -262,14 +264,16 @@ class SoundManager {
    * Set the volume for an entire category
    * @param {string} category - Category name
    * @param {number} volume - Volume level (0.0 to 1.0)
+   * @returns {boolean} - Returns false if invalid category, true if successful
    */
   setCategoryVolume(category, volume) {
     if (!this.categories[category]) {
-      throw new Error(`Invalid category: ${category}. Must be 'Music', 'SoundEffects', or 'SystemSounds'`);
+      console.warn(`Invalid category: ${category}. Must be 'Music', 'SoundEffects', or 'SystemSounds'`);
+      return false;
     }
-    if (typeof volume !== 'number' || volume < 0 || volume > 1) {
-      throw new Error('Volume must be a number between 0 and 1');
-    }
+    
+    // Clamp volume to valid range [0, 1]
+    volume = Math.max(0, Math.min(1, volume));
 
     this.categories[category].volume = volume;
     console.log(`🔊 Set ${category} volume to ${volume}`);
