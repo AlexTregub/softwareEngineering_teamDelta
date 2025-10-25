@@ -237,7 +237,6 @@ function disableContextMenu() {
 if (typeof window !== 'undefined') {
   window.testContextMenuPrevention = testContextMenuPrevention;
   window.disableContextMenu = disableContextMenu;
-  soundManager.play("bgMusic", 0.125, 1, true);
 }
 
 /**
