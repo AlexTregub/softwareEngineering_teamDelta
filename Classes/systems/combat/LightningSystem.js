@@ -68,28 +68,16 @@ class LightningManager {
     this.getKnockbackDurationMs = () => this.knockbackDurationMs;
     this.getActiveKnockbacks = () => (this._activeKnockbacks || []).map(k => ({ startX: k.startX, startY: k.startY, targetX: k.targetX, targetY: k.targetY, progress: Math.min(1, (millis() - k.startTime) / (k.duration || 1)) }));
     // Default playback volume (0.0 - 1.0)
-    this.volume = 0.25; // lower default so strikes aren't too loud
-    // Try to load a simple sound using HTMLAudioElement if available
-    try {
-      this.sound = new Audio('sounds/lightning_strike.wav');
-      //this.explosionSound = new Audio('sounds/explosion_small.wav');
-      // Apply initial volume if supported
-      try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; } catch (e) {}
-      //try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; } catch (e) {}
-    } catch (err) {
-      this.sound = null;
-      //this.explosionSound = null;
-    }
+    this.volume = 1.0; // lower default so strikes aren't too loud
+    
     this.lastUpdate = null;
+      
     console.log('⚡ Lightning system initialized');
   }
 
   strikeAtAnt(ant, damage = 50, radius = 3) {
     try {
-      if (!ant) {
-        console.warn('⚡ No target ant provided for lightning strike');
-        return;
-      }
+      if (!ant) {  return;  }
 
       // Determine position
       const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
@@ -114,14 +102,6 @@ class LightningManager {
       // Create explosion visuals (optional particle spawn)
       this.createExplosion(pos.x, pos.y);
 
-      // Play sounds if available
-      if (this.sound && typeof this.sound.play === 'function') {
-        try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
-      }
-      //if (this.explosionSound && typeof this.explosionSound.play === 'function') {
-        //try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; this.explosionSound.currentTime = 0; this.explosionSound.play(); } catch (e) {}
-     // }
-      
       // Damage nearby ants as well (area effect)
       try {
         const aoeRadius = TILE_SIZE * radius; // radius in tiles
@@ -276,10 +256,8 @@ class LightningManager {
 
 
   createFlash(x, y) {
-    // If EffectsRenderer exists use it for a short flash, otherwise we just log
-    if (typeof window.EffectsRenderer !== 'undefined' && window.EffectsRenderer && typeof window.EffectsRenderer.flash === 'function') {
-      window.EffectsRenderer.flash(x, y, { color: [180, 220, 255], intensity: 1.2, radius: 48 });
-    }
+    soundManager.play('lightningStrike');
+    window.EffectsRenderer.flash(x, y, { color: [180, 220, 255], intensity: 1.2, radius: 48 });
   }
 
   createExplosion(x, y) {
@@ -415,6 +393,7 @@ function initializeLightningSystem() {
     window.g_lightningManager = new LightningManager();
     window.LightningManager = LightningManager; // export class
   }
+  soundManager.registerSound('lightningStrike', 'sounds/lightning_strike.wav', 'SoundEffects');
   return window.g_lightningManager;
 }
 

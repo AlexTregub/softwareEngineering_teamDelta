@@ -35,17 +35,13 @@ let cameraManager;
 
 function preload(){
   terrainPreloader();
-  menuPreload();
-  antsPreloader();
+  soundManagerPreload();
   resourcePreLoad();
   preloadPauseImages();
   BuildingPreloader();
-  soundManager.preload();
-  
-  // Load presentation assets
-  if (typeof loadPresentationAssets !== 'undefined') {
-    loadPresentationAssets();
-  }
+  loadPresentationAssets();
+  menuPreload();
+  antsPreloader();
 }
 
 
@@ -54,6 +50,7 @@ function setup() {
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
   console.log('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
 */
+  
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   RenderMangerOverwrite = false
@@ -166,6 +163,11 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+  
+  // Start automatic BGM monitoring after menu initialization
+  if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
+    soundManager.startBGMMonitoring();
+  }
   
   // Initialize context menu prevention for better brush control
   initializeContextMenuPrevention();
@@ -294,6 +296,11 @@ function draw() {
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
   // Updates must happen BEFORE rendering to show current frame data
   // ============================================================
+  
+  // Track draw calls for sound manager
+  if (typeof soundManager !== 'undefined' && soundManager.onDraw) {
+    soundManager.onDraw();
+  }
   
   // Update camera (input processing, following, bounds clamping)
   if (GameState.isInGame() && cameraManager) {

@@ -745,23 +745,15 @@ class RenderLayerManager {
       return;
     }
     
-    // Use comprehensive UI renderer for menu states
-    const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
-                      (typeof global !== 'undefined') ? global.UIRenderer : null;
+    // Always use the legacy menu rendering directly - no UIRenderer fallback
+    if (updateMenu) {
+      updateMenu();
+    }
     
-    if (uiRenderer && ['MAIN_MENU', 'OPTIONS', 'SETTINGS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
-      uiRenderer.renderUI(gameState);
-    } else {
-      // Fallback to legacy menu rendering
-      if (updateMenu) {
-        updateMenu();
-      }
-      
-      // Render menu if in menu states
-      if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
-        if (renderMenu) {
-          renderMenu();
-        }
+    // Render menu if in menu states
+    if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
+      if (renderMenu) {
+        renderMenu();
       }
     }
     
