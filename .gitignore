@@ -41,3 +41,4 @@ test/smoke/**/screenshots/
 test/integration/**/screenshots/
 test/unit/**/screenshots/
 test/e2e/MORNING_QUICK_REFERENCE.md
+.github/copilot-instructions.md
