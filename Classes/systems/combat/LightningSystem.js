@@ -72,13 +72,13 @@ class LightningManager {
     // Try to load a simple sound using HTMLAudioElement if available
     try {
       this.sound = new Audio('Images/sounds/lightning_strike.wav');
-      this.explosionSound = new Audio('Images/sounds/explosion_small.wav');
+      //this.explosionSound = new Audio('Images/sounds/explosion_small.wav');
       // Apply initial volume if supported
       try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; } catch (e) {}
-      try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; } catch (e) {}
+      //try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; } catch (e) {}
     } catch (err) {
       this.sound = null;
-      this.explosionSound = null;
+      //this.explosionSound = null;
     }
     this.lastUpdate = null;
     console.log('⚡ Lightning system initialized');
@@ -118,9 +118,9 @@ class LightningManager {
       if (this.sound && typeof this.sound.play === 'function') {
         try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
       }
-      if (this.explosionSound && typeof this.explosionSound.play === 'function') {
-        try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; this.explosionSound.currentTime = 0; this.explosionSound.play(); } catch (e) {}
-      }
+      //if (this.explosionSound && typeof this.explosionSound.play === 'function') {
+        //try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; this.explosionSound.currentTime = 0; this.explosionSound.play(); } catch (e) {}
+     // }
       
       // Damage nearby ants as well (area effect)
       try {
