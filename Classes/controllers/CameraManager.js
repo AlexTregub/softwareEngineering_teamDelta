@@ -134,8 +134,8 @@ class CameraManager {
       // Move camera with arrow keys using CameraController
       if (left && typeof CameraController !== 'undefined') CameraController.moveCameraBy(-panStep, 0);
       if (right && typeof CameraController !== 'undefined') CameraController.moveCameraBy(panStep, 0);
-      if (up && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, panStep);
-      if (down && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, -panStep);
+      if (up && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, -panStep);
+      if (down && typeof CameraController !== 'undefined') CameraController.moveCameraBy(0, panStep);
 
       // Update local variables from CameraController
       if (typeof CameraController !== 'undefined') {

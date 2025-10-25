@@ -252,7 +252,7 @@ function initializeWorld() {
   g_seed = hour()*minute()*floor(second()/10);
 
   // OLD TERRAIN SYSTEM - Commented out, using gridTerrain instead
-  // g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
+   g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
   // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
   
   // New, Improved, and Chunked Terrain using MapManager
@@ -274,7 +274,7 @@ function initializeWorld() {
   // COORDSY = new CoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
   
-  g_gridMap = new PathMap(g_map2);
+  g_gridMap = new PathMap(g_map);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -341,9 +341,9 @@ function draw() {
     // Update queen movement (WASD keys)
     const playerQueen = getQueen();
     if (playerQueen) {
-      if (keyIsDown(87)) playerQueen.move("w");
+      if (keyIsDown(87)) playerQueen.move("s"); // lazy flip of w and s
       if (keyIsDown(65)) playerQueen.move("a");
-      if (keyIsDown(83)) playerQueen.move("s");
+      if (keyIsDown(83)) playerQueen.move("w");
       if (keyIsDown(68)) playerQueen.move("d");
     }
   }
@@ -904,7 +904,7 @@ function getMapPixelDimensions() {
 
   const width = g_activeMap._xCount ? g_activeMap._xCount * TILE_SIZE : g_canvasX;
   const height = g_activeMap._yCount ? g_activeMap._yCount * TILE_SIZE : g_canvasY;
-  const gridSize = g_activeMap.getGridSizePixels()
+  //const gridSize = g_activeMap.getGridSizePixels()
   return { width, height };
 }
 
