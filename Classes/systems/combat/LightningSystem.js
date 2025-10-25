@@ -71,8 +71,8 @@ class LightningManager {
     this.volume = 0.25; // lower default so strikes aren't too loud
     // Try to load a simple sound using HTMLAudioElement if available
     try {
-      this.sound = new Audio('Images/sounds/lightning_strike.wav');
-      //this.explosionSound = new Audio('Images/sounds/explosion_small.wav');
+      this.sound = new Audio('sounds/lightning_strike.wav');
+      //this.explosionSound = new Audio('sounds/explosion_small.wav');
       // Apply initial volume if supported
       try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; } catch (e) {}
       //try { if (typeof this.explosionSound.volume !== 'undefined') this.explosionSound.volume = this.volume; } catch (e) {}

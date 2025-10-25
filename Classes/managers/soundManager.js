@@ -14,8 +14,8 @@ class SoundManager {
 
     // define all sounds here with labels
     this.soundList = {
-      click: "/sounds/clickSound.mp3",
-      bgMusic: "/sounds/bgMusic.mp3"
+      click: "sounds/clickSound.mp3",
+      bgMusic: "sounds/bgMusic.mp3"
     };
   }
 

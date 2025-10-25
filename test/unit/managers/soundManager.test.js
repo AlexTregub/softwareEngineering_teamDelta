@@ -69,8 +69,8 @@ describe.skip('SoundManager', function() {
     });
 
     it('should have correct paths in soundList', function() {
-      expect(soundManager.soundList.click).to.equal('/sounds/clickSound.mp3');
-      expect(soundManager.soundList.bgMusic).to.equal('/sounds/bgMusic.mp3');
+      expect(soundManager.soundList.click).to.equal('sounds/clickSound.mp3');
+      expect(soundManager.soundList.bgMusic).to.equal('sounds/bgMusic.mp3');
     });
   });
 
@@ -90,8 +90,8 @@ describe.skip('SoundManager', function() {
     it('should load sounds with correct paths', function() {
       soundManager.preload();
       
-      expect(soundManager.sounds.click.path).to.equal('/sounds/clickSound.mp3');
-      expect(soundManager.sounds.bgMusic.path).to.equal('/sounds/bgMusic.mp3');
+      expect(soundManager.sounds.click.path).to.equal('sounds/clickSound.mp3');
+      expect(soundManager.sounds.bgMusic.path).to.equal('sounds/bgMusic.mp3');
     });
 
     it('should handle empty soundList', function() {
@@ -103,11 +103,11 @@ describe.skip('SoundManager', function() {
     });
 
     it('should handle additional sounds in soundList', function() {
-      soundManager.soundList.explosion = '/sounds/explosion.mp3';
+      soundManager.soundList.explosion = 'sounds/explosion.mp3';
       soundManager.preload();
       
       expect(soundManager.sounds).to.have.property('explosion');
-      expect(soundManager.sounds.explosion.path).to.equal('/sounds/explosion.mp3');
+      expect(soundManager.sounds.explosion.path).to.equal('sounds/explosion.mp3');
     });
   });
 
