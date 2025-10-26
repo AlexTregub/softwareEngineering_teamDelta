@@ -22,6 +22,7 @@ let PERLIN_SCALE = 0.08;
 // };
 
 let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y)
+  'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Testing... ALL IS FARM
   'moss' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
@@ -64,6 +65,12 @@ function renderMaterialToContext(materialName, x, y, size, context) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
       }
       break;
+
+    case 'farmland':
+      if (FARMLAND_IMAGE) {
+        ctx.image(FARMLAND_IMAGE,x,y,size,size);
+      }
+      break;
       
     default:
       // Unknown material - use default grass appearance
@@ -81,6 +88,7 @@ function terrainPreloader(){
   DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
   STONE_IMAGE = loadImage('Images/16x16 Tiles/stone.png');
   MOSS_IMAGE = loadImage('Images/16x16 Tiles/moss.png');
+  FARMLAND_IMAGE = loadImage('Images/16x16 Tiles/farmland.png');
 }
 
 class Terrain {
