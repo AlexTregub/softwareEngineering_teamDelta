@@ -164,6 +164,24 @@ function setup() {
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
   
+  // Register state change callback for level editor initialization
+  if (typeof GameState !== 'undefined' && typeof levelEditor !== 'undefined') {
+    GameState.onStateChange((newState, oldState) => {
+      if (newState === 'LEVEL_EDITOR') {
+        // Initialize level editor with current or new terrain
+        if (!levelEditor.isActive()) {
+          const terrain = window.g_activeMap || new gridTerrain(10, 10);
+          levelEditor.initialize(terrain);
+        }
+        console.log('🎨 Level Editor activated');
+      } else if (oldState === 'LEVEL_EDITOR') {
+        // Deactivate level editor when leaving
+        levelEditor.deactivate();
+        console.log('🎨 Level Editor deactivated');
+      }
+    });
+  }
+  
   // Start automatic BGM monitoring after menu initialization
   if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
     soundManager.startBGMMonitoring();
@@ -353,13 +371,29 @@ function draw() {
       if (keyIsDown(68)) playerQueen.move("d");
     }
   }
+  
+  // Update level editor (if active)
+  if (GameState.getState() === 'LEVEL_EDITOR') {
+    if (window.levelEditor) {
+      levelEditor.update();
+    }
+  }
 
   // ============================================================
   // GAME LOOP PHASE 2: RENDER EVERYTHING ONCE
   // RenderLayerManager handles all layered rendering
   // ============================================================
   
-  RenderManager.render(GameState.getState());
+  // Render level editor (takes over rendering when active)
+  if (GameState.getState() === 'LEVEL_EDITOR') {
+    if (window.levelEditor && levelEditor.isActive()) {
+      background(40, 40, 40); // Dark background for editor
+      levelEditor.render();
+    }
+  } else {
+    // Normal game rendering
+    RenderManager.render(GameState.getState());
+  }
 
   // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
   if (typeof window.drawCoordinateVisualization === 'function') {
@@ -402,6 +436,14 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() { 
+  // Level Editor - handle clicks first if active
+  if (GameState.getState() === 'LEVEL_EDITOR') {
+    if (window.levelEditor && levelEditor.isActive()) {
+      levelEditor.handleClick(mouseX, mouseY);
+      return; // Don't process other mouse events
+    }
+  }
+  
   // Tile Inspector - check first
   if (typeof tileInspectorEnabled !== 'undefined' && tileInspectorEnabled) {
     if (typeof inspectTileAtMouse === 'function') {
@@ -683,6 +725,13 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  // Level Editor keyboard shortcuts (if active)
+  if (GameState.getState() === 'LEVEL_EDITOR') {
+    if (window.levelEditor && levelEditor.isActive()) {
+      levelEditor.handleKeyPress(key);
+    }
+  }
+  
   // Coordinate Debug Overlay toggle (Tilde ~ key)
   if (key === '`' || key === '~') {
     if (typeof toggleCoordinateDebug === 'function') {

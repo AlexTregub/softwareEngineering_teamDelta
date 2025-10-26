@@ -17,7 +17,8 @@ class GameStateManager {
       PLAYING: "PLAYING",
       PAUSED: "PAUSED",
       GAME_OVER: "GAME_OVER",
-      KAN_BAN: "KANBAN"
+      KAN_BAN: "KANBAN",
+      LEVEL_EDITOR: "LEVEL_EDITOR"
     };
   }
 
@@ -131,11 +132,13 @@ class GameStateManager {
   isGameOver = () => this.currentState === this.STATES.GAME_OVER;
   isDebug = () => this.currentState === this.STATES.DEBUG_MENU;
   isKanban = () => this.currentState === this.STATES.KAN_BAN;
+  isLevelEditor = () => this.currentState === this.STATES.LEVEL_EDITOR;
 
   // Transition methods
   goToMenu = () => this.setState(this.STATES.MENU);
   goToOptions = () => this.setState(this.STATES.OPTIONS);
   goToDebug = () => this.setState(this.STATES.DEBUG_MENU);
+  goToLevelEditor = () => this.setState(this.STATES.LEVEL_EDITOR);
   startGame = () => { this.startFadeTransition(); return this.setState(this.STATES.PLAYING); };
   pauseGame = () => this.setState(this.STATES.PAUSED);
   resumeGame = () => this.setState(this.STATES.PLAYING);
