@@ -124,7 +124,7 @@ function setup() {
   temp = new PheromoneGrid();
   
   // temp.set([0,0],[new Pheromone("Pain.",100,100,0.05,0.01)],false);
-  for (let i = -1; i < 2; ++i) {
+  for (let i = -20; i < 20; ++i) {
     temp.set([i,i],[new Pheromone("Pain. 2x",100,100,0.1,0.5)],true);
     temp.set([-i,i],[new Pheromone("Pain.",100,100,0.1,0.5)],true);
   }
@@ -188,6 +188,16 @@ function draw() {
   // moving[0]-=0.02; moving[1]-= 0.02;
   // g_map2.renderConversion._camPosition = moving;
   // console.log(g_map2.renderConversion._camPosition);
+
+  if (frameNum % 60 == 0) {
+    temp.diffuse();
+    temp.swapSelGrid();
+  }
+
+  if ((frameNum-30) % 60 == 0 && frameNum > 60) {
+    temp.evaporate();
+    temp.swapSelGrid();
+  }
 
   // if(frameNum % 120 == 0) {
   //   console.log("diffusing..");
