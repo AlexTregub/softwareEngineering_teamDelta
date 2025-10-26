@@ -10,12 +10,18 @@
 class MaterialPalette {
     /**
      * Create a material palette
-     * @param {Array<string>} materials - Array of material names
+     * @param {Array<string>} materials - Array of material names (optional, auto-loads from TERRAIN_MATERIALS_RANGED if not provided)
      */
     constructor(materials = []) {
-        this.materials = materials;
+        // Auto-populate from TERRAIN_MATERIALS_RANGED if no materials provided
+        if (materials.length === 0 && typeof TERRAIN_MATERIALS_RANGED !== 'undefined') {
+            this.materials = Object.keys(TERRAIN_MATERIALS_RANGED);
+        } else {
+            this.materials = materials;
+        }
+        
         this.selectedIndex = 0;
-        this.selectedMaterial = materials.length > 0 ? materials[0] : null;
+        this.selectedMaterial = this.materials.length > 0 ? this.materials[0] : null;
         
         // Material color mapping for visual preview
         this.materialColors = {
@@ -258,9 +264,6 @@ class MaterialPalette {
         let col = 0;
         
         this.materials.forEach((material, index) => {
-            const color = this.getMaterialColor(material);
-            const rgb = this._hexToRgb(color);
-            
             // Highlight if selected
             if (this.isHighlighted(material)) {
                 fill(255, 255, 0);
@@ -269,13 +272,37 @@ class MaterialPalette {
                 rect(swatchX - 2, swatchY - 2, swatchSize + 4, swatchSize + 4, 3);
             }
             
-            // Material swatch
-            fill(rgb.r, rgb.g, rgb.b);
-            stroke(200);
-            strokeWeight(1);
-            rect(swatchX, swatchY, swatchSize, swatchSize, 2);
+            // Try to render with terrain texture first
+            let textureRendered = false;
+            if (typeof TERRAIN_MATERIALS_RANGED !== 'undefined' && TERRAIN_MATERIALS_RANGED[material]) {
+                // Use the terrain's render function to draw the texture
+                const renderFunction = TERRAIN_MATERIALS_RANGED[material][1];
+                if (typeof renderFunction === 'function') {
+                    push();
+                    noStroke();
+                    // Ensure imageMode is CORNER for correct texture positioning
+                    // (Menu and other UI elements may have set it to CENTER)
+                    if (typeof imageMode !== 'undefined') {
+                        const cornerMode = typeof CORNER !== 'undefined' ? CORNER : 'corner';
+                        imageMode(cornerMode);
+                    }
+                    renderFunction(swatchX, swatchY, swatchSize);
+                    pop();
+                    textureRendered = true;
+                }
+            }
             
-            // Material name (abbreviated)
+            // Fallback to color swatch if texture not available
+            if (!textureRendered) {
+                const color = this.getMaterialColor(material);
+                const rgb = this._hexToRgb(color);
+                fill(rgb.r, rgb.g, rgb.b);
+                stroke(200);
+                strokeWeight(1);
+                rect(swatchX, swatchY, swatchSize, swatchSize, 2);
+            }
+            
+            // Material name (abbreviated) - always draw on top
             fill(255);
             noStroke();
             textAlign(CENTER, CENTER);

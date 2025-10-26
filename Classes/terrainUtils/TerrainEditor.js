@@ -576,3 +576,7 @@ class TerrainEditor {
   }
 }
 
+// Export for use in Node.js tests and browser
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = TerrainEditor;
+}

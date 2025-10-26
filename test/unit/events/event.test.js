@@ -1,14 +1,34 @@
 /**
  * Unit Tests for Event Classes
- * Tests Event base class and specific event types (DialogueEvent, SpawnEvent, TutorialEvent, BossEvent)
+ * Tests GameEvent base class and specific event types (DialogueEvent, SpawnEvent, TutorialEvent, BossEvent)
  * 
  * Following TDD: These tests are written FIRST, implementation comes after review.
  */
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const {
+  GameEvent,
+  DialogueEvent,
+  SpawnEvent,
+  TutorialEvent,
+  BossEvent
+} = require('../../../Classes/events/Event');
 
-describe('Event Base Class', function() {
+// Import triggers for SpawnEvent integration
+const {
+  ViewportSpawnTrigger
+} = require('../../../Classes/events/EventTrigger');
+
+// Make globally available for tests
+global.GameEvent = GameEvent;
+global.DialogueEvent = DialogueEvent;
+global.SpawnEvent = SpawnEvent;
+global.TutorialEvent = TutorialEvent;
+global.BossEvent = BossEvent;
+global.ViewportSpawnTrigger = ViewportSpawnTrigger;
+
+describe('GameEvent Base Class', function() {
   let sandbox;
 
   beforeEach(function() {
@@ -27,9 +47,9 @@ describe('Event Base Class', function() {
 
   describe('Constructor', function() {
     it('should create event with required properties', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'test_event',
         type: 'dialogue',
         content: { message: 'Test' }
@@ -41,9 +61,9 @@ describe('Event Base Class', function() {
     });
 
     it('should initialize with default values', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'defaults',
         type: 'dialogue',
         content: {}
@@ -55,9 +75,9 @@ describe('Event Base Class', function() {
     });
 
     it('should accept optional priority', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'priority_test',
         type: 'tutorial',
         content: {},
@@ -68,9 +88,9 @@ describe('Event Base Class', function() {
     });
 
     it('should store metadata if provided', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'metadata_test',
         type: 'spawn',
         content: {},
@@ -87,9 +107,9 @@ describe('Event Base Class', function() {
     let event;
 
     beforeEach(function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
-      event = new Event({
+      event = new GameEvent({
         id: 'lifecycle_test',
         type: 'dialogue',
         content: {}
@@ -97,7 +117,7 @@ describe('Event Base Class', function() {
     });
 
     it('should trigger event and set active state', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       event.trigger();
 
@@ -106,7 +126,7 @@ describe('Event Base Class', function() {
     });
 
     it('should complete event and set completed state', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       event.trigger();
       event.complete();
@@ -117,7 +137,7 @@ describe('Event Base Class', function() {
     });
 
     it('should not complete event that is not active', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       const result = event.complete();
 
@@ -126,7 +146,7 @@ describe('Event Base Class', function() {
     });
 
     it('should pause active event', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       event.trigger();
       event.pause();
@@ -136,7 +156,7 @@ describe('Event Base Class', function() {
     });
 
     it('should resume paused event', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       event.trigger();
       event.pause();
@@ -149,10 +169,10 @@ describe('Event Base Class', function() {
 
   describe('Callback Execution', function() {
     it('should execute onTrigger callback when triggered', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       const onTrigger = sandbox.stub();
-      const event = new Event({
+      const event = new GameEvent({
         id: 'callback_test',
         type: 'dialogue',
         content: {},
@@ -166,10 +186,10 @@ describe('Event Base Class', function() {
     });
 
     it('should execute onComplete callback when completed', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       const onComplete = sandbox.stub();
-      const event = new Event({
+      const event = new GameEvent({
         id: 'complete_callback',
         type: 'dialogue',
         content: {},
@@ -183,10 +203,10 @@ describe('Event Base Class', function() {
     });
 
     it('should execute onUpdate callback during update', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       const onUpdate = sandbox.stub();
-      const event = new Event({
+      const event = new GameEvent({
         id: 'update_callback',
         type: 'dialogue',
         content: {},
@@ -200,10 +220,10 @@ describe('Event Base Class', function() {
     });
 
     it('should not execute callbacks when event is paused', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       const onUpdate = sandbox.stub();
-      const event = new Event({
+      const event = new GameEvent({
         id: 'paused_callback',
         type: 'dialogue',
         content: {},
@@ -220,10 +240,10 @@ describe('Event Base Class', function() {
 
   describe('Event Duration', function() {
     it('should track elapsed time since trigger', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       global.millis.returns(1000);
-      const event = new Event({
+      const event = new GameEvent({
         id: 'duration_test',
         type: 'dialogue',
         content: {}
@@ -238,9 +258,9 @@ describe('Event Base Class', function() {
     });
 
     it('should return 0 elapsed time for non-triggered event', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'not_triggered',
         type: 'dialogue',
         content: {}
@@ -254,10 +274,10 @@ describe('Event Base Class', function() {
 
   describe('Auto-Completion Strategies', function() {
     it('should auto-complete after specified duration', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       global.millis.returns(1000);
-      const event = new Event({
+      const event = new GameEvent({
         id: 'timed_event',
         type: 'dialogue',
         content: {},
@@ -278,14 +298,14 @@ describe('Event Base Class', function() {
     });
 
     it('should auto-complete when condition is met', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       // Mock EventManager for flag checking
       global.eventManager = {
         getFlag: sandbox.stub()
       };
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'conditional_complete',
         type: 'spawn',
         content: {},
@@ -311,9 +331,9 @@ describe('Event Base Class', function() {
     });
 
     it('should not auto-complete if no completion strategy specified', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'manual_complete',
         type: 'dialogue',
         content: {}
@@ -330,14 +350,14 @@ describe('Event Base Class', function() {
     });
 
     it('should support custom completion callback', function() {
-      if (typeof Event === 'undefined') return this.skip();
+      if (typeof GameEvent === 'undefined') return this.skip();
       
       const customCondition = sandbox.stub();
       customCondition.onCall(0).returns(false);
       customCondition.onCall(1).returns(false);
       customCondition.onCall(2).returns(true);
       
-      const event = new Event({
+      const event = new GameEvent({
         id: 'custom_complete',
         type: 'dialogue',
         content: {},

@@ -358,12 +358,19 @@ class CustomTerrain {
                 const tile = this.tiles[y][x];
                 const screenPos = this.tileToScreen(x, y);
                 
-                // Get material color
-                const color = this._getMaterialColor(tile.material);
-                fill(color[0], color[1], color[2]);
-                noStroke();
-                
-                rect(screenPos.x, screenPos.y, this.tileSize, this.tileSize);
+                // Use texture render functions from TERRAIN_MATERIALS_RANGED
+                if (typeof TERRAIN_MATERIALS_RANGED !== 'undefined' && 
+                    TERRAIN_MATERIALS_RANGED[tile.material] &&
+                    typeof TERRAIN_MATERIALS_RANGED[tile.material][1] === 'function') {
+                    // Call the render function with screen position and tile size
+                    TERRAIN_MATERIALS_RANGED[tile.material][1](screenPos.x, screenPos.y, this.tileSize);
+                } else {
+                    // Fallback to solid color if texture not available
+                    const color = this._getMaterialColor(tile.material);
+                    fill(color[0], color[1], color[2]);
+                    noStroke();
+                    rect(screenPos.x, screenPos.y, this.tileSize, this.tileSize);
+                }
             }
         }
         

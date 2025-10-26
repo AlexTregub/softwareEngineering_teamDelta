@@ -7,6 +7,22 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const {
+  EventTrigger,
+  TimeTrigger,
+  SpatialTrigger,
+  FlagTrigger,
+  ConditionalTrigger,
+  ViewportSpawnTrigger
+} = require('../../../Classes/events/EventTrigger');
+
+// Make globally available for tests
+global.EventTrigger = EventTrigger;
+global.TimeTrigger = TimeTrigger;
+global.SpatialTrigger = SpatialTrigger;
+global.FlagTrigger = FlagTrigger;
+global.ConditionalTrigger = ConditionalTrigger;
+global.ViewportSpawnTrigger = ViewportSpawnTrigger;
 
 describe('EventTrigger Base Class', function() {
   let sandbox;

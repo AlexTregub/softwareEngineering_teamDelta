@@ -29,6 +29,26 @@ class EventDebugManager {
       'boss': [200, 100, 255, 150],        // Purple
       'default': [150, 150, 150, 150]      // Grey
     };
+  }
+  
+  /**
+   * Get singleton instance
+   * @static
+   * @returns {EventDebugManager} - Singleton instance
+   */
+  static getInstance() {
+    if (!EventDebugManager._instance) {
+      EventDebugManager._instance = new EventDebugManager();
+    }
+    return EventDebugManager._instance;
+  }
+  
+  /**
+   * Reset singleton instance (for testing)
+   * @static
+   */
+  static resetInstance() {
+    EventDebugManager._instance = null;
     
     console.log('EventDebugManager initialized');
   }

@@ -13,112 +13,15 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupUITestEnvironment, cleanupUITestEnvironment } = require('../../helpers/uiTestHelpers');
 
 describe('Level Editor Panel Double Rendering Prevention (Integration)', function() {
   let DraggablePanel, DraggablePanelManager;
   let manager, panels;
   
   beforeEach(function() {
-    // Mock p5.js environment
-    global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
-    global.fill = sinon.stub();
-    global.rect = sinon.stub();
-    global.text = sinon.stub();
-    global.textSize = sinon.stub();
-    global.textAlign = sinon.stub();
-    global.stroke = sinon.stub();
-    global.strokeWeight = sinon.stub();
-    global.noStroke = sinon.stub();
-    global.push = sinon.stub();
-    global.pop = sinon.stub();
-    global.translate = sinon.stub();
-    global.line = sinon.stub();
-    global.noFill = sinon.stub();
-    
-    // Mock other globals required by DraggablePanel
-    global.devConsoleEnabled = false;
-    global.localStorage = {
-      getItem: sinon.stub().returns(null),
-      setItem: sinon.stub(),
-      removeItem: sinon.stub()
-    };
-    global.LEFT = 'left';
-    global.CENTER = 'center';
-    global.RIGHT = 'right';
-    global.TOP = 'top';
-    global.BOTTOM = 'bottom';
-    global.BASELINE = 'baseline';
-    global.ButtonStyles = {
-      SUCCESS: { bg: [0, 255, 0], fg: [255, 255, 255] },
-      DANGER: { bg: [255, 0, 0], fg: [255, 255, 255] },
-      WARNING: { bg: [255, 255, 0], fg: [0, 0, 0] }
-    };
-    global.Button = class Button {
-      constructor(config) {
-        this.x = config.x || 0;
-        this.y = config.y || 0;
-        this.width = config.width || 50;
-        this.height = config.height || 20;
-        this.label = config.label || '';
-        this.onClick = config.onClick || (() => {});
-      }
-      render() {}
-      setPosition(x, y) {
-        this.x = x;
-        this.y = y;
-      }
-      isMouseOver(mx, my) {
-        return mx >= this.x && mx <= this.x + this.width &&
-               my >= this.y && my <= this.y + this.height;
-      }
-    };
-    
-    // Sync to window
-    if (typeof window !== 'undefined') {
-      Object.assign(window, {
-        createVector: global.createVector,
-        fill: global.fill,
-        rect: global.rect,
-        text: global.text,
-        textSize: global.textSize,
-        textAlign: global.textAlign,
-        stroke: global.stroke,
-        strokeWeight: global.strokeWeight,
-        noStroke: global.noStroke,
-        push: global.push,
-        pop: global.pop,
-        translate: global.translate,
-        line: global.line,
-        noFill: global.noFill,
-        devConsoleEnabled: global.devConsoleEnabled,
-        localStorage: global.localStorage,
-        LEFT: global.LEFT,
-        CENTER: global.CENTER,
-        RIGHT: global.RIGHT,
-        TOP: global.TOP,
-        BOTTOM: global.BOTTOM,
-        BASELINE: global.BASELINE,
-        ButtonStyles: global.ButtonStyles,
-        Button: global.Button
-      });
-    }
-    
-    // Make p5.js functions globally available
-    if (typeof globalThis !== 'undefined') {
-      globalThis.push = global.push;
-      globalThis.pop = global.pop;
-      globalThis.fill = global.fill;
-      globalThis.rect = global.rect;
-      globalThis.text = global.text;
-      globalThis.textSize = global.textSize;
-      globalThis.textAlign = global.textAlign;
-      globalThis.stroke = global.stroke;
-      globalThis.strokeWeight = global.strokeWeight;
-      globalThis.noStroke = global.noStroke;
-      globalThis.translate = global.translate;
-      globalThis.line = global.line;
-      globalThis.noFill = global.noFill;
-    }
+    // Setup all UI test mocks (p5.js, window, Button, etc.)
+    setupUITestEnvironment();
     
     DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel');
     DraggablePanelManager = require('../../../Classes/systems/ui/DraggablePanelManager');
@@ -187,7 +90,7 @@ describe('Level Editor Panel Double Rendering Prevention (Integration)', functio
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupUITestEnvironment();
   });
   
   describe('Single frame rendering', function() {

@@ -75,6 +75,7 @@ function menuPreload(){
   audioButton = loadImage("Images/Assets/Menu/as_button.png");
   controlButton = loadImage("Images/Assets/Menu/controls_button.png");
   backButton = loadImage("Images/Assets/Menu/back_button.png");
+  backButtonImg = backButton; // Make available globally for LevelEditor
 }
 
 // Initialize menu system

@@ -80,11 +80,11 @@ class EventManager {
   
   /**
    * Get event by ID
-   * @param {string} eventId - Event ID
-   * @returns {Object|null} - Event config or null if not found
+   * @param {string} eventId - Event ID to retrieve
+   * @returns {Object|undefined} - Event config or undefined if not found
    */
   getEvent(eventId) {
-    return this.events.get(eventId) || null;
+    return this.events.get(eventId);
   }
   
   /**
@@ -198,6 +198,9 @@ class EventManager {
     
     const event = this.activeEvents[index];
     
+    // Auto-set completion flag
+    this.setFlag(`event_${eventId}_completed`, true);
+    
     // Call onComplete callback
     if (typeof event.onComplete === 'function') {
       event.onComplete();
@@ -273,10 +276,18 @@ class EventManager {
     
     const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
+    // Support both oneTime and repeatable properties
+    // oneTime: true means not repeatable
+    // repeatable: true means can trigger multiple times
+    let isRepeatable = triggerConfig.repeatable !== undefined ? triggerConfig.repeatable : false;
+    if (triggerConfig.oneTime !== undefined) {
+      isRepeatable = !triggerConfig.oneTime; // oneTime:true = not repeatable
+    }
+    
     this.triggers.set(triggerId, {
       ...triggerConfig,
       id: triggerId,
-      repeatable: triggerConfig.repeatable !== undefined ? triggerConfig.repeatable : false,
+      repeatable: isRepeatable,
       triggered: false
     });
     
@@ -315,8 +326,13 @@ class EventManager {
       // Evaluate trigger condition
       let shouldTrigger = false;
       
+      // Custom evaluate function takes precedence
       if (typeof trigger.evaluate === 'function') {
         shouldTrigger = trigger.evaluate(this);
+      }
+      // Built-in trigger type evaluation
+      else if (trigger.type && trigger.condition) {
+        shouldTrigger = this._evaluateTriggerByType(trigger);
       }
       
       // Trigger event if condition met
@@ -334,6 +350,121 @@ class EventManager {
     // Remove one-time triggers
     for (const triggerId of triggersToRemove) {
       this.triggers.delete(triggerId);
+    }
+  }
+  
+  /**
+   * Evaluate trigger based on its type
+   * @private
+   * @param {Object} trigger - Trigger configuration
+   * @returns {boolean} - True if trigger condition is met
+   */
+  _evaluateTriggerByType(trigger) {
+    const { type, condition } = trigger;
+    
+    switch (type) {
+      case 'time':
+        return this._evaluateTimeTrigger(trigger);
+        
+      case 'flag':
+        return this._evaluateFlagTrigger(trigger);
+        
+      case 'spatial':
+        // TODO: Implement spatial trigger evaluation
+        return false;
+        
+      case 'viewport':
+        // TODO: Implement viewport trigger evaluation
+        return false;
+        
+      default:
+        return false;
+    }
+  }
+  
+  /**
+   * Evaluate time-based trigger
+   * @private
+   * @param {Object} trigger - Trigger with time condition
+   * @returns {boolean} - True if enough time has passed
+   */
+  _evaluateTimeTrigger(trigger) {
+    const { condition } = trigger;
+    
+    // Initialize start time on first evaluation
+    if (trigger._startTime === undefined) {
+      trigger._startTime = typeof millis === 'function' ? millis() : 
+                          (typeof global !== 'undefined' && global.millis ? global.millis() : 0);
+      
+      // If delay is 0, trigger immediately
+      if (condition.delay === 0) {
+        return true;
+      }
+      return false;
+    }
+    
+    const currentTime = typeof millis === 'function' ? millis() : 
+                       (typeof global !== 'undefined' && global.millis ? global.millis() : 0);
+    const elapsed = currentTime - trigger._startTime;
+    
+    return elapsed >= condition.delay;
+  }
+  
+  /**
+   * Evaluate flag-based trigger
+   * @private
+   * @param {Object} trigger - Trigger with flag condition
+   * @returns {boolean} - True if flag conditions are met
+   */
+  _evaluateFlagTrigger(trigger) {
+    const { condition } = trigger;
+    
+    // Single flag condition
+    if (condition.flag) {
+      return this._checkFlagCondition(condition);
+    }
+    
+    // Multiple flag conditions (AND logic)
+    if (condition.flags && Array.isArray(condition.flags)) {
+      return condition.flags.every(flagCondition => this._checkFlagCondition(flagCondition));
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Check individual flag condition
+   * @private
+   * @param {Object} condition - Flag condition { flag, value, operator }
+   * @returns {boolean} - True if condition is met
+   */
+  _checkFlagCondition(condition) {
+    const { flag, value, operator = '==' } = condition;
+    const actualValue = this.getFlag(flag);
+    
+    switch (operator) {
+      case '==':
+      case '===':
+        return actualValue === value;
+        
+      case '!=':
+      case '!==':
+        return actualValue !== value;
+        
+      case '>':
+        return actualValue > value;
+        
+      case '>=':
+        return actualValue >= value;
+        
+      case '<':
+        return actualValue < value;
+        
+      case '<=':
+        return actualValue <= value;
+        
+      default:
+        return actualValue === value;
     }
   }
   
@@ -417,8 +548,8 @@ class EventManager {
     if (sortedEvents.length > 0) {
       const highestPriorityEvent = sortedEvents[0];
       
-      if (!highestPriorityEvent.paused && typeof highestPriorityEvent.update === 'function') {
-        highestPriorityEvent.update();
+      if (!highestPriorityEvent.paused && typeof highestPriorityEvent.onUpdate === 'function') {
+        highestPriorityEvent.onUpdate();
       }
     }
   }
@@ -429,39 +560,45 @@ class EventManager {
   
   /**
    * Load events and triggers from JSON configuration
-   * @param {Object} json - JSON configuration object
-   * @param {Array} [json.events] - Array of event configurations
-   * @param {Array} [json.triggers] - Array of trigger configurations
-   * @returns {boolean} - True if loaded successfully
+   * @param {string|Object} json - JSON string or object with events and triggers
+   * @returns {boolean} - True if loaded successfully, false if failed
    */
   loadFromJSON(json) {
-    if (!json || typeof json !== 'object') {
-      console.error('Invalid JSON: not an object');
-      return false;
-    }
-    
-    // Validate structure
-    if (!json.events || !Array.isArray(json.events)) {
-      console.error('Invalid JSON: missing or invalid events array');
-      return false;
-    }
-    
-    // Validate all events have required fields
-    for (const eventConfig of json.events) {
-      if (!eventConfig.id || !eventConfig.type) {
-        console.error('Invalid JSON: event missing required id or type');
+    // Parse string to object if needed
+    let config = json;
+    if (typeof json === 'string') {
+      try {
+        config = JSON.parse(json);
+      } catch (error) {
+        console.error('Invalid JSON: parse error', error.message);
         return false;
       }
     }
     
-    // Load events
-    for (const eventConfig of json.events) {
-      this.registerEvent(eventConfig);
+    if (!config || typeof config !== 'object') {
+      console.error('Invalid JSON: not an object');
+      return false;
+    }
+    
+    // Load events (optional)
+    if (config.events && Array.isArray(config.events)) {
+      // Validate all events have required fields
+      for (const eventConfig of config.events) {
+        if (!eventConfig.id || !eventConfig.type) {
+          console.error('Invalid JSON: event missing required id or type');
+          return false;
+        }
+      }
+      
+      // Register events
+      for (const eventConfig of config.events) {
+        this.registerEvent(eventConfig);
+      }
     }
     
     // Load triggers (optional)
-    if (json.triggers && Array.isArray(json.triggers)) {
-      for (const triggerConfig of json.triggers) {
+    if (config.triggers && Array.isArray(config.triggers)) {
+      for (const triggerConfig of config.triggers) {
         this.registerTrigger(triggerConfig);
       }
     }
@@ -554,6 +691,14 @@ class EventManager {
    */
   setEventDebugManager(debugManager) {
     this._eventDebugManager = debugManager;
+  }
+  
+  /**
+   * Connect debug manager (alias for setEventDebugManager)
+   * @param {Object} debugManager - EventDebugManager instance
+   */
+  connectDebugManager(debugManager) {
+    this.setEventDebugManager(debugManager);
   }
   
   /**

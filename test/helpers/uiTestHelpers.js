@@ -46,6 +46,8 @@ function setupUITestEnvironment() {
   global.translate = sinon.stub();
   global.line = sinon.stub();
   global.noFill = sinon.stub();
+  global.image = sinon.stub(); // For rendering terrain textures
+  global.tint = sinon.stub(); // For image color tinting
   
   // Mock UI globals
   global.devConsoleEnabled = false;
@@ -121,6 +123,8 @@ function setupUITestEnvironment() {
       translate: global.translate,
       line: global.line,
       noFill: global.noFill,
+      image: global.image,
+      tint: global.tint,
       devConsoleEnabled: global.devConsoleEnabled,
       localStorage: global.localStorage,
       LEFT: global.LEFT,
@@ -149,6 +153,8 @@ function setupUITestEnvironment() {
     globalThis.translate = global.translate;
     globalThis.line = global.line;
     globalThis.noFill = global.noFill;
+    globalThis.image = global.image;
+    globalThis.tint = global.tint;
   }
 }
 

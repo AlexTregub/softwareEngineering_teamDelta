@@ -172,9 +172,22 @@ function setup() {
     console.log('🔥 Fireball System initialized in setup');
   }
 
+  // Initialize Event Manager (singleton)
+  if (typeof EventManager !== 'undefined') {
+    window.eventManager = EventManager.getInstance();
+    console.log('🎯 Event Manager initialized in setup');
+  }
+
   // Initialize Event Debug Manager
   if (typeof EventDebugManager !== 'undefined') {
     window.eventDebugManager = new EventDebugManager();
+    
+    // Connect EventDebugManager to EventManager
+    if (window.eventManager) {
+      window.eventManager.setEventDebugManager(window.eventDebugManager);
+      console.log('🔗 Event Debug Manager connected to Event Manager');
+    }
+    
     console.log('🐛 Event Debug Manager initialized in setup');
   }
 
@@ -367,6 +380,11 @@ function draw() {
     }
     if (window.g_queenControlPanel) {
       window.g_queenControlPanel.update();
+    }
+
+    // Update Event Manager (triggers and active events)
+    if (window.eventManager) {
+      window.eventManager.update();
     }
 
     // Update effect systems
@@ -576,6 +594,12 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+  // Handle level editor drag events FIRST (before UI debug or RenderManager)
+  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
+    levelEditor.handleDrag(mouseX, mouseY);
+    return; // Don't process other drag events when level editor is active
+  }
+  
   // Handle UI Debug Manager drag events
   if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager !== null && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });

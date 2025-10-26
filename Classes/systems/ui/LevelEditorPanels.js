@@ -11,7 +11,8 @@ class LevelEditorPanels {
     this.panels = {
       materials: null,
       tools: null,
-      brush: null
+      brush: null,
+      events: null  // NEW: Event editor panel
     };
   }
 
@@ -108,10 +109,36 @@ class LevelEditorPanels {
       }
     });
 
+    // Event Editor Panel (NEW)
+    this.panels.events = new DraggablePanel({
+      id: 'level-editor-events',
+      title: 'Events',
+      position: { x: window.width - 270, y: 80 }, // Right side of screen
+      size: { width: 260, height: 310 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 0,
+        items: [],
+        autoSizeToContent: true,
+        verticalPadding: 10,
+        horizontalPadding: 10,
+        contentSizeCallback: () => {
+          return this.levelEditor?.eventEditor ? this.levelEditor.eventEditor.getContentSize() : { width: 250, height: 300 };
+        }
+      },
+      behavior: {
+        draggable: true,
+        persistent: true,
+        constrainToScreen: true,
+        managedExternally: true
+      }
+    });
+
     // Add panels to the manager
     manager.panels.set('level-editor-materials', this.panels.materials);
     manager.panels.set('level-editor-tools', this.panels.tools);
     manager.panels.set('level-editor-brush', this.panels.brush);
+    manager.panels.set('level-editor-events', this.panels.events);
 
     // Add to LEVEL_EDITOR state visibility
     if (!manager.stateVisibility.LEVEL_EDITOR) {
@@ -120,7 +147,8 @@ class LevelEditorPanels {
     manager.stateVisibility.LEVEL_EDITOR.push(
       'level-editor-materials',
       'level-editor-tools',
-      'level-editor-brush'
+      'level-editor-brush',
+      'level-editor-events'
     );
 
     console.log('✅ Level Editor panels initialized and added to DraggablePanelManager');
@@ -212,6 +240,31 @@ class LevelEditorPanels {
       }
     }
 
+    // Events Panel
+    if (this.panels.events && this.panels.events.state.visible) {
+      const eventPanel = this.panels.events;
+      const eventPos = eventPanel.getPosition();
+      const titleBarHeight = eventPanel.calculateTitleBarHeight();
+      const contentX = eventPos.x + eventPanel.config.style.padding;
+      const contentY = eventPos.y + titleBarHeight + eventPanel.config.style.padding;
+      
+      // Check if click is in the content area of events panel
+      if (this.levelEditor.eventEditor && this.levelEditor.eventEditor.containsPoint(mouseX, mouseY, contentX, contentY)) {
+        const action = this.levelEditor.eventEditor.handleClick(mouseX, mouseY, contentX, contentY);
+        if (action) {
+          // Handle different event editor actions
+          if (action.type === 'event_selected') {
+            this.levelEditor.notifications.show(`Selected event: ${action.eventId}`);
+          } else if (action.type === 'event_added') {
+            this.levelEditor.notifications.show(`Event added: ${action.eventId}`);
+          } else if (action.type === 'event_exported') {
+            this.levelEditor.notifications.show('Events exported to clipboard');
+          }
+          return true;
+        }
+      }
+    }
+
     return false;
   }
 
@@ -224,10 +277,9 @@ class LevelEditorPanels {
     if (this.panels.materials && this.panels.materials.state.visible && !this.panels.materials.state.minimized) {
       this.panels.materials.render((contentArea, style) => {
         if (this.levelEditor.palette) {
-          push();
-          translate(contentArea.x, contentArea.y);
-          this.levelEditor.palette.render(0, 0);
-          pop();
+          // Pass absolute coordinates directly (no translate)
+          // This fixes coordinate offset bug with TERRAIN_MATERIALS_RANGED image() calls
+          this.levelEditor.palette.render(contentArea.x, contentArea.y);
         }
       });
     } else if (this.panels.materials && this.panels.materials.state.visible) {
@@ -239,10 +291,8 @@ class LevelEditorPanels {
     if (this.panels.tools && this.panels.tools.state.visible && !this.panels.tools.state.minimized) {
       this.panels.tools.render((contentArea, style) => {
         if (this.levelEditor.toolbar) {
-          push();
-          translate(contentArea.x, contentArea.y);
-          this.levelEditor.toolbar.render(0, 0);
-          pop();
+          // Pass absolute coordinates directly (no translate)
+          this.levelEditor.toolbar.render(contentArea.x, contentArea.y);
         }
       });
     } else if (this.panels.tools && this.panels.tools.state.visible) {
@@ -253,14 +303,24 @@ class LevelEditorPanels {
     if (this.panels.brush && this.panels.brush.state.visible && !this.panels.brush.state.minimized) {
       this.panels.brush.render((contentArea, style) => {
         if (this.levelEditor.brushControl) {
-          push();
-          translate(contentArea.x, contentArea.y);
-          this.levelEditor.brushControl.render(0, 0);
-          pop();
+          // Pass absolute coordinates directly (no translate)
+          this.levelEditor.brushControl.render(contentArea.x, contentArea.y);
         }
       });
     } else if (this.panels.brush && this.panels.brush.state.visible) {
       this.panels.brush.render();
+    }
+
+    // Events Panel
+    if (this.panels.events && this.panels.events.state.visible && !this.panels.events.state.minimized) {
+      this.panels.events.render((contentArea, style) => {
+        if (this.levelEditor.eventEditor) {
+          // Pass absolute coordinates directly (no translate)
+          this.levelEditor.eventEditor.render(contentArea.x, contentArea.y);
+        }
+      });
+    } else if (this.panels.events && this.panels.events.state.visible) {
+      this.panels.events.render();
     }
   }
 

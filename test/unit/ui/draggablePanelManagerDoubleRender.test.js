@@ -14,117 +14,15 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupUITestEnvironment, cleanupUITestEnvironment } = require('../../helpers/uiTestHelpers');
 
 describe('DraggablePanelManager - Double Rendering Prevention', function() {
   let DraggablePanelManager, DraggablePanel;
   let manager;
   
   beforeEach(function() {
-    // Mock p5.js globals
-    global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
-    global.fill = sinon.stub();
-    global.rect = sinon.stub();
-    global.text = sinon.stub();
-    global.textSize = sinon.stub();
-    global.textAlign = sinon.stub();
-    global.stroke = sinon.stub();
-    global.strokeWeight = sinon.stub();
-    global.noStroke = sinon.stub();
-    global.push = sinon.stub();
-    global.pop = sinon.stub();
-    global.translate = sinon.stub();
-    global.line = sinon.stub();
-    global.noFill = sinon.stub();
-    
-    // Mock other globals
-    global.devConsoleEnabled = false;
-    global.localStorage = {
-      getItem: sinon.stub().returns(null),
-      setItem: sinon.stub(),
-      removeItem: sinon.stub()
-    };
-    global.LEFT = 'left';
-    global.CENTER = 'center';
-    global.RIGHT = 'right';
-    global.TOP = 'top';
-    global.BOTTOM = 'bottom';
-    global.BASELINE = 'baseline';
-    global.ButtonStyles = {
-      SUCCESS: { bg: [0, 255, 0], fg: [255, 255, 255] },
-      DANGER: { bg: [255, 0, 0], fg: [255, 255, 255] },
-      WARNING: { bg: [255, 255, 0], fg: [0, 0, 0] }
-    };
-    
-    // Mock Button class
-    global.Button = class Button {
-      constructor(config) {
-        this.x = config.x || 0;
-        this.y = config.y || 0;
-        this.width = config.width || 50;
-        this.height = config.height || 20;
-        this.label = config.label || '';
-        this.onClick = config.onClick || (() => {});
-      }
-      
-      render() {}
-      
-      setPosition(x, y) {
-        this.x = x;
-        this.y = y;
-      }
-      
-      isMouseOver(mx, my) {
-        return mx >= this.x && mx <= this.x + this.width &&
-               my >= this.y && my <= this.y + this.height;
-      }
-    };
-    
-    // Sync to window for JSDOM
-    if (typeof window !== 'undefined') {
-      window.createVector = global.createVector;
-      window.fill = global.fill;
-      window.rect = global.rect;
-      window.text = global.text;
-      window.textSize = global.textSize;
-      window.textAlign = global.textAlign;
-      window.stroke = global.stroke;
-      window.strokeWeight = global.strokeWeight;
-      window.noStroke = global.noStroke;
-      window.push = global.push;
-      window.pop = global.pop;
-      window.translate = global.translate;
-      window.line = global.line;
-      window.noFill = global.noFill;
-      window.devConsoleEnabled = global.devConsoleEnabled;
-      window.localStorage = global.localStorage;
-      window.LEFT = global.LEFT;
-      window.CENTER = global.CENTER;
-      window.RIGHT = global.RIGHT;
-      window.TOP = global.TOP;
-      window.BOTTOM = global.BOTTOM;
-      window.BASELINE = global.BASELINE;
-      window.ButtonStyles = global.ButtonStyles;
-      window.Button = global.Button;
-    }
-    
-    // Make p5.js functions globally available (bare function calls in source code)
-    // DraggablePanel.render() uses: if (typeof push === 'function')
-    // This check looks for bare `push` in the execution context
-    if (typeof globalThis !== 'undefined') {
-      globalThis.push = global.push;
-      globalThis.pop = global.pop;
-      globalThis.fill = global.fill;
-      globalThis.rect = global.rect;
-      globalThis.text = global.text;
-      globalThis.textSize = global.textSize;
-      globalThis.textAlign = global.textAlign;
-      globalThis.stroke = global.stroke;
-      globalThis.strokeWeight = global.strokeWeight;
-      globalThis.noStroke = global.noStroke;
-      globalThis.translate = global.translate;
-      globalThis.line = global.line;
-      globalThis.noFill = global.noFill;
-    }
+    // Setup all UI test mocks (p5.js, window, Button, etc.)
+    setupUITestEnvironment();
     
     // Load classes
     DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel');
@@ -135,7 +33,7 @@ describe('DraggablePanelManager - Double Rendering Prevention', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupUITestEnvironment();
   });
   
   describe('renderPanels() method', function() {

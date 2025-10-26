@@ -11,6 +11,7 @@ class LevelEditor {
     this.palette = null;
     this.toolbar = null;
     this.brushControl = null;
+    this.eventEditor = null; // NEW: Event editor panel
     this.minimap = null;
     this.propertiesPanel = null;
     this.gridOverlay = null;
@@ -18,9 +19,6 @@ class LevelEditor {
     this.loadDialog = null;
     this.notifications = null;
     this.draggablePanels = null; // NEW: Draggable panel integration
-    
-    // Available materials from TERRAIN_MATERIALS_RANGED
-    this.materials = ['moss', 'moss_1', 'stone', 'dirt', 'grass'];
     
     // UI state
     this.showGrid = true;
@@ -45,8 +43,8 @@ class LevelEditor {
     // Create terrain editor
     this.editor = new TerrainEditor(terrain);
     
-    // Create material palette
-    this.palette = new MaterialPalette(this.materials);
+    // Create material palette (auto-populates from TERRAIN_MATERIALS_RANGED)
+    this.palette = new MaterialPalette();
     this.palette.selectMaterial('grass'); // Default selection
     
     // Create toolbar with tools
@@ -60,6 +58,9 @@ class LevelEditor {
     
     // Create brush size control (initialSize, minSize, maxSize)
     this.brushControl = new BrushSizeControl(1, 1, 9);
+    
+    // Create event editor panel
+    this.eventEditor = new EventEditorPanel();
     
     // Create minimap
     this.minimap = new MiniMap(terrain, 200, 200);
@@ -135,11 +136,19 @@ class LevelEditor {
   handleClick(mouseX, mouseY) {
     if (!this.active) return;
     
-    // NEW: Let draggable panels handle clicks first
+    // FIRST: Let draggable panels handle content clicks (buttons, swatches, etc.)
     if (this.draggablePanels) {
       const handled = this.draggablePanels.handleClick(mouseX, mouseY);
       if (handled) {
-        return; // Panel consumed the click
+        return; // Panel content consumed the click
+      }
+    }
+    
+    // SECOND: Check if draggable panel manager consumed the event (for dragging/title bar)
+    if (typeof draggablePanelManager !== 'undefined' && draggablePanelManager) {
+      const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (panelConsumed) {
+        return; // Panel consumed the click - don't paint terrain
       }
     }
     
@@ -208,6 +217,42 @@ class LevelEditor {
         }
         break;
     }
+  }
+  
+  /**
+   * Handle mouse dragging in the editor (for continuous painting)
+   */
+  handleDrag(mouseX, mouseY) {
+    if (!this.active) return;
+    
+    // Check if draggable panel manager consumed the mouse event
+    if (typeof draggablePanelManager !== 'undefined' && draggablePanelManager) {
+      const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+      if (panelConsumed) {
+        return; // Panel consumed the drag - don't paint terrain
+      }
+    }
+    
+    // Only paint tool supports continuous dragging
+    const tool = this.toolbar.getSelectedTool();
+    if (tool !== 'paint') {
+      return; // Other tools don't support drag painting
+    }
+    
+    // Paint at current mouse position
+    const material = this.palette.getSelectedMaterial();
+    const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+    const gridX = Math.floor(mouseX / tileSize);
+    const gridY = Math.floor(mouseY / tileSize);
+    
+    const brushSize = this.brushControl.getSize();
+    this.editor.setBrushSize(brushSize);
+    this.editor.selectMaterial(material);
+    this.editor.paint(gridX, gridY);
+    
+    // Update undo/redo states
+    this.toolbar.setEnabled('undo', this.editor.canUndo());
+    this.toolbar.setEnabled('redo', this.editor.canRedo());
   }
   
   /**
@@ -284,24 +329,36 @@ class LevelEditor {
    * Render a button to return to main menu
    */
   renderBackButton() {
-    const btnW = 120;
-    const btnH = 40;
-    const btnX = g_canvasX - btnW - 10;
-    const btnY = 10;
+    // Position in top-left, slightly offset from edges
+    const btnSize = 64; // Square button to match icon size
+    const btnX = 10;  // Slightly offset from left edge
+    const btnY = 10;  // Slightly offset from top edge
     
     // Check hover
-    const isHovering = mouseX > btnX && mouseX < btnX + btnW && 
-                       mouseY > btnY && mouseY < btnY + btnH;
+    const isHovering = mouseX > btnX && mouseX < btnX + btnSize && 
+                       mouseY > btnY && mouseY < btnY + btnSize;
     
-    fill(isHovering ? color(220, 80, 80) : color(180, 50, 50));
-    stroke(255);
-    strokeWeight(2);
-    rect(btnX, btnY, btnW, btnH, 5);
-    
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(16);
-    text('Back to Menu', btnX + btnW / 2, btnY + btnH / 2);
+    // Load back button texture if available
+    if (typeof backButtonImg !== 'undefined' && backButtonImg) {
+      // Draw the textured button
+      push();
+      if (isHovering) {
+        tint(255, 220); // Slight highlight on hover
+      }
+      image(backButtonImg, btnX, btnY, btnSize, btnSize);
+      pop();
+    } else {
+      // Fallback: draw a simple button
+      fill(isHovering ? 100 : 80);
+      stroke(255);
+      strokeWeight(2);
+      rect(btnX, btnY, btnSize, btnSize, 5);
+      
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(12);
+      text('Back', btnX + btnSize / 2, btnY + btnSize / 2);
+    }
     
     // Handle click
     if (isHovering && mouseIsPressed) {
