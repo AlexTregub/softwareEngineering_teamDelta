@@ -22,9 +22,9 @@ class MiniMap {
         this.lastUpdate = 0;
         
         // Calculate scale based on terrain size
-        // Assuming terrain has a getGridSize() method or similar
-        this.terrainWidth = terrain.gridSize || 800;
-        this.terrainHeight = terrain.gridSize || 800;
+        // Support both CustomTerrain and gridTerrain
+        this.terrainWidth = terrain.width ? terrain.width * (terrain.tileSize || 32) : terrain.gridSize || 800;
+        this.terrainHeight = terrain.height ? terrain.height * (terrain.tileSize || 32) : terrain.gridSize || 800;
         this.scale = Math.min(width / this.terrainWidth, height / this.terrainHeight);
     }
     

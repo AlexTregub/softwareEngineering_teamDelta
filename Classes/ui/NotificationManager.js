@@ -5,15 +5,19 @@
  * - Multiple notification types (info, success, warning, error)
  * - Auto-dismiss functionality
  * - Type-based color coding
+ * - History tracking
  */
 class NotificationManager {
     /**
      * Create a notification manager
      * @param {number} defaultDuration - Default display duration in ms (default: 3000)
+     * @param {number} maxHistory - Maximum history size (default: 50)
      */
-    constructor(defaultDuration = 3000) {
+    constructor(defaultDuration = 3000, maxHistory = 50) {
         this.notifications = [];
+        this.history = []; // All notifications ever shown
         this.defaultDuration = defaultDuration;
+        this.maxHistory = maxHistory;
         this.nextId = 1;
         
         // Type color mapping
@@ -43,7 +47,40 @@ class NotificationManager {
         };
         
         this.notifications.push(notification);
+        
+        // Add to history
+        this.history.push({
+            id: notification.id,
+            message: message,
+            type: type,
+            timestamp: notification.timestamp
+        });
+        
+        // Trim history if too large
+        if (this.history.length > this.maxHistory) {
+            this.history.shift();
+        }
+        
         return notification;
+    }
+    
+    /**
+     * Get notification history
+     * @param {number} count - Number of recent items (default: all)
+     * @returns {Array<Object>} History items
+     */
+    getHistory(count = null) {
+        if (count === null) {
+            return [...this.history];
+        }
+        return this.history.slice(-count);
+    }
+    
+    /**
+     * Clear history
+     */
+    clearHistory() {
+        this.history = [];
     }
     
     /**
@@ -125,8 +162,9 @@ class NotificationManager {
     
     /**
      * Render active notifications
-     * @param {number} x - Center X position
-     * @param {number} y - Top Y position
+     * Bottom-left position, stacking upwards
+     * @param {number} x - Left X position
+     * @param {number} y - Bottom Y position
      */
     render(x, y) {
         if (typeof push === 'undefined') {
@@ -139,17 +177,21 @@ class NotificationManager {
         
         push();
         
-        const notifWidth = 300;
+        const notifWidth = 350;
         const notifHeight = 40;
         const spacing = 10;
-        let offsetY = 0;
         
-        textAlign(CENTER, CENTER);
+        textAlign(LEFT, CENTER);
         textSize(14);
         
-        active.forEach((notification, index) => {
-            const notifX = x - notifWidth / 2;
-            const notifY = y + offsetY;
+        // Render from bottom to top (newest at bottom)
+        let offsetY = 0;
+        
+        // Reverse so newest appears at bottom
+        for (let i = active.length - 1; i >= 0; i--) {
+            const notification = active[i];
+            const notifX = x;
+            const notifY = y - offsetY - notifHeight;
             
             // Calculate fade based on remaining time
             let alpha = 255;
@@ -173,10 +215,10 @@ class NotificationManager {
             // Text
             fill(255, 255, 255, alpha);
             noStroke();
-            text(notification.message, x, notifY + notifHeight / 2);
+            text(notification.message, notifX + 10, notifY + notifHeight / 2);
             
             offsetY += notifHeight + spacing;
-        });
+        }
         
         pop();
     }

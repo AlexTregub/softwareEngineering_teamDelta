@@ -489,54 +489,101 @@ describe('TerrainUI - Notification System', function() {
   describe('NotificationManager', function() {
     
     it('should show notification', function() {
-      const manager = {
-        notifications: [],
-        show: function(message, type = 'info') {
-          this.notifications.push({
-            message,
-            type,
-            timestamp: Date.now()
-          });
-        }
-      };
+      const manager = new NotificationManager();
       
       manager.show('Terrain saved', 'success');
-      expect(manager.notifications).to.have.lengthOf(1);
-      expect(manager.notifications[0].type).to.equal('success');
+      expect(manager.getNotifications()).to.have.lengthOf(1);
+      expect(manager.getNotifications()[0].type).to.equal('success');
     });
     
     it('should auto-dismiss after timeout', function() {
-      const manager = {
-        notifications: [
-          { message: 'Test', timestamp: Date.now() - 5000 }
-        ],
-        timeout: 3000,
-        removeExpired: function(currentTime) {
-          this.notifications = this.notifications.filter(n => {
-            return currentTime - n.timestamp < this.timeout;
-          });
-        }
-      };
+      const manager = new NotificationManager(3000);
       
-      manager.removeExpired(Date.now());
-      expect(manager.notifications).to.have.lengthOf(0);
+      manager.show('Test', 'info');
+      
+      // Simulate time passing
+      const futureTime = Date.now() + 5000;
+      manager.removeExpired(futureTime);
+      
+      expect(manager.getNotifications()).to.have.lengthOf(0);
     });
     
     it('should support different notification types', function() {
-      const manager = {
-        getColor: function(type) {
-          const colors = {
-            'info': '#0066cc',
-            'success': '#00cc66',
-            'warning': '#ff9900',
-            'error': '#cc0000'
-          };
-          return colors[type] || colors['info'];
-        }
-      };
+      const manager = new NotificationManager();
       
-      expect(manager.getColor('success')).to.equal('#00cc66');
+      expect(manager.getColor('success')).to.equal('#00cc00');
       expect(manager.getColor('error')).to.equal('#cc0000');
+      expect(manager.getColor('warning')).to.equal('#ff9900');
+      expect(manager.getColor('info')).to.equal('#0066cc');
+    });
+    
+    it('should track notification history', function() {
+      const manager = new NotificationManager();
+      
+      manager.show('First', 'info');
+      manager.show('Second', 'success');
+      manager.show('Third', 'warning');
+      
+      const history = manager.getHistory();
+      expect(history).to.have.lengthOf(3);
+      expect(history[0].message).to.equal('First');
+      expect(history[2].message).to.equal('Third');
+    });
+    
+    it('should maintain history after notifications dismiss', function() {
+      const manager = new NotificationManager(100);
+      
+      manager.show('Temporary', 'info');
+      
+      // Before expiration
+      expect(manager.getNotifications()).to.have.lengthOf(1);
+      expect(manager.getHistory()).to.have.lengthOf(1);
+      
+      // After expiration
+      const futureTime = Date.now() + 200;
+      manager.removeExpired(futureTime);
+      
+      expect(manager.getNotifications()).to.have.lengthOf(0);
+      expect(manager.getHistory()).to.have.lengthOf(1);
+    });
+    
+    it('should limit history size', function() {
+      const manager = new NotificationManager(3000, 5);
+      
+      for (let i = 1; i <= 10; i++) {
+        manager.show(`Message ${i}`, 'info');
+      }
+      
+      const history = manager.getHistory();
+      expect(history).to.have.lengthOf(5);
+      expect(history[0].message).to.equal('Message 6');
+      expect(history[4].message).to.equal('Message 10');
+    });
+    
+    it('should get recent history items', function() {
+      const manager = new NotificationManager();
+      
+      for (let i = 1; i <= 10; i++) {
+        manager.show(`Message ${i}`, 'info');
+      }
+      
+      const recent = manager.getHistory(3);
+      expect(recent).to.have.lengthOf(3);
+      expect(recent[0].message).to.equal('Message 8');
+      expect(recent[2].message).to.equal('Message 10');
+    });
+    
+    it('should clear history', function() {
+      const manager = new NotificationManager();
+      
+      manager.show('One', 'info');
+      manager.show('Two', 'info');
+      
+      expect(manager.getHistory()).to.have.lengthOf(2);
+      
+      manager.clearHistory();
+      
+      expect(manager.getHistory()).to.have.lengthOf(0);
     });
   });
 });

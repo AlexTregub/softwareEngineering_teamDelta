@@ -31,7 +31,7 @@ class LevelEditor {
   
   /**
    * Initialize the level editor with a terrain instance
-   * @param {gridTerrain} terrain - The terrain to edit
+   * @param {CustomTerrain} terrain - The terrain to edit
    */
   initialize(terrain) {
     if (!terrain) {
@@ -57,8 +57,8 @@ class LevelEditor {
     ]);
     this.toolbar.selectTool('paint');
     
-    // Create brush size control
-    this.brushControl = new BrushSizeControl(1, 10, 1);
+    // Create brush size control (initialSize, minSize, maxSize)
+    this.brushControl = new BrushSizeControl(1, 1, 9);
     
     // Create minimap
     this.minimap = new MiniMap(terrain, 200, 200);
@@ -116,11 +116,60 @@ class LevelEditor {
   handleClick(mouseX, mouseY) {
     if (!this.active) return;
     
+    // Define UI panel positions (must match render positions EXACTLY)
+    const panelX = 10;
+    let panelY = 10;
+    
+    // Check Material Palette clicks
+    if (this.palette) {
+      if (this.palette.containsPoint(mouseX, mouseY, panelX, panelY)) {
+        const handled = this.palette.handleClick(mouseX, mouseY, panelX, panelY);
+        if (handled) {
+          this.notifications.show(`Selected material: ${this.palette.getSelectedMaterial()}`);
+          return; // Stop processing other clicks
+        }
+      }
+      
+      panelY += 200; // Match render: panelY += 200
+    }
+    
+    // Check Toolbar clicks
+    if (this.toolbar) {
+      if (this.toolbar.containsPoint(mouseX, mouseY, panelX, panelY)) {
+        const tool = this.toolbar.handleClick(mouseX, mouseY, panelX, panelY);
+        if (tool) {
+          this.notifications.show(`Selected tool: ${tool}`);
+          
+          // Update undo/redo button states
+          this.toolbar.setEnabled('undo', this.editor.canUndo());
+          this.toolbar.setEnabled('redo', this.editor.canRedo());
+          
+          return; // Stop processing other clicks
+        }
+      }
+      
+      panelY += 80; // Match render: panelY += 80
+    }
+    
+    // Check Brush Size Control clicks
+    if (this.brushControl) {
+      if (this.brushControl.containsPoint(mouseX, mouseY, panelX, panelY)) {
+        const action = this.brushControl.handleClick(mouseX, mouseY, panelX, panelY);
+        if (action) {
+          this.notifications.show(`Brush size: ${this.brushControl.getSize()}`);
+          return; // Stop processing other clicks
+        }
+      }
+      
+      panelY += 60; // Match render: panelY += 60
+    }
+    
+    // If no UI was clicked, handle terrain editing
     const tool = this.toolbar.getSelectedTool();
     const material = this.palette.getSelectedMaterial();
     
     // Simple pixel-to-tile conversion (assuming tiles are TILE_SIZE pixels)
-    const tileSize = this.terrain._tileSize || TILE_SIZE || 32;
+    const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
     const gridX = Math.floor(mouseX / tileSize);
     const gridY = Math.floor(mouseY / tileSize);
     
@@ -132,17 +181,25 @@ class LevelEditor {
         this.editor.selectMaterial(material);
         this.editor.paint(gridX, gridY);
         this.notifications.show(`Painted ${material} at (${gridX}, ${gridY})`);
+        
+        // Update undo/redo states
+        this.toolbar.setEnabled('undo', this.editor.canUndo());
+        this.toolbar.setEnabled('redo', this.editor.canRedo());
         break;
         
       case 'fill':
         this.editor.selectMaterial(material);
         this.editor.fill(gridX, gridY);
         this.notifications.show(`Filled region with ${material}`);
+        
+        // Update undo/redo states
+        this.toolbar.setEnabled('undo', this.editor.canUndo());
+        this.toolbar.setEnabled('redo', this.editor.canRedo());
         break;
         
       case 'eyedropper':
         try {
-          const tile = this.terrain.getArrPos([gridX, gridY]);
+          const tile = this.terrain.getTile(gridX, gridY);
           if (tile && tile.getMaterial) {
             const pickedMaterial = tile.getMaterial();
             this.palette.selectMaterial(pickedMaterial);
@@ -151,6 +208,24 @@ class LevelEditor {
         } catch (e) {
           // Tile out of bounds
           this.notifications.show('Cannot pick material: tile out of bounds', 'error');
+        }
+        break;
+        
+      case 'undo':
+        if (this.editor.canUndo()) {
+          this.editor.undo();
+          this.notifications.show('Undid last action');
+          this.toolbar.setEnabled('undo', this.editor.canUndo());
+          this.toolbar.setEnabled('redo', this.editor.canRedo());
+        }
+        break;
+        
+      case 'redo':
+        if (this.editor.canRedo()) {
+          this.editor.redo();
+          this.notifications.show('Redid last action');
+          this.toolbar.setEnabled('undo', this.editor.canUndo());
+          this.toolbar.setEnabled('redo', this.editor.canRedo());
         }
         break;
     }
@@ -223,9 +298,11 @@ class LevelEditor {
       this.minimap.render(minimapX, minimapY);
     }
     
-    // Notifications (top center)
+    // Notifications (bottom left, stacking upwards)
     if (this.notifications) {
-      this.notifications.render(g_canvasX / 2, 50);
+      const notifX = 10;
+      const notifY = g_canvasY - 10; // Bottom of screen
+      this.notifications.render(notifX, notifY);
     }
     
     // Render dialogs if active

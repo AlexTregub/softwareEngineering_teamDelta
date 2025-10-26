@@ -170,10 +170,13 @@ function setup() {
       if (newState === 'LEVEL_EDITOR') {
         // Initialize level editor with current or new terrain
         if (!levelEditor.isActive()) {
-          const terrain = window.g_activeMap || new gridTerrain(10, 10);
+          // Always create a fresh blank terrain for the editor (ignore existing game map)
+          // CustomTerrain: simple 2D grid, much faster than gridTerrain
+          // Parameters: width (tiles), height (tiles), tileSize (pixels), defaultMaterial
+          const terrain = new CustomTerrain(50, 50, 32, 'dirt');
           levelEditor.initialize(terrain);
         }
-        console.log('🎨 Level Editor activated');
+        console.log('🎨 Level Editor activated with blank CustomTerrain');
       } else if (oldState === 'LEVEL_EDITOR') {
         // Deactivate level editor when leaving
         levelEditor.deactivate();

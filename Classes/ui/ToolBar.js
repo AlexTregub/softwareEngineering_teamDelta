@@ -158,6 +158,61 @@ class ToolBar {
     }
     
     /**
+     * Handle mouse click
+     * @param {number} mouseX - Mouse X coordinate
+     * @param {number} mouseY - Mouse Y coordinate
+     * @param {number} panelX - Panel X position
+     * @param {number} panelY - Panel Y position
+     * @returns {string|null} Tool name if clicked, null otherwise
+     */
+    handleClick(mouseX, mouseY, panelX, panelY) {
+        const buttonSize = 35;
+        const spacing = 5;
+        const tools = this.getAllTools();
+        
+        let buttonY = panelY + 30;
+        
+        for (const toolName of tools) {
+            const buttonX = panelX + spacing;
+            
+            // Check if click is within this button
+            if (mouseX >= buttonX && mouseX <= buttonX + buttonSize &&
+                mouseY >= buttonY && mouseY <= buttonY + buttonSize) {
+                // Only select if tool is enabled or if it's a drawing tool
+                const tool = this.tools[toolName];
+                if (tool.enabled || tool.group === 'drawing' || tool.group === 'selection') {
+                    this.selectTool(toolName);
+                    return toolName;
+                }
+                return null;
+            }
+            
+            buttonY += buttonSize + spacing;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if point is within the toolbar panel
+     * @param {number} mouseX - Mouse X coordinate
+     * @param {number} mouseY - Mouse Y coordinate
+     * @param {number} panelX - Panel X position
+     * @param {number} panelY - Panel Y position
+     * @returns {boolean} True if within bounds
+     */
+    containsPoint(mouseX, mouseY, panelX, panelY) {
+        const buttonSize = 35;
+        const spacing = 5;
+        const tools = this.getAllTools();
+        const panelWidth = buttonSize + spacing * 2;
+        const panelHeight = tools.length * (buttonSize + spacing) + spacing + 30;
+        
+        return mouseX >= panelX && mouseX <= panelX + panelWidth &&
+               mouseY >= panelY && mouseY <= panelY + panelHeight;
+    }
+    
+    /**
      * Render the toolbar
      * @param {number} x - X position
      * @param {number} y - Y position

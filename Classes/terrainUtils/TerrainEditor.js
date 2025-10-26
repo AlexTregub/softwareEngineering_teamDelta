@@ -285,6 +285,14 @@ class TerrainEditor {
   }
 
   /**
+   * Check if undo is available
+   * @returns {boolean}
+   */
+  canUndo() {
+    return this._undoStack.length > 0;
+  }
+
+  /**
    * Redo last undone action
    */
   redo() {
@@ -305,6 +313,14 @@ class TerrainEditor {
     }
 
     this._terrain.invalidateCache();
+  }
+
+  /**
+   * Check if redo is available
+   * @returns {boolean}
+   */
+  canRedo() {
+    return this._redoStack.length > 0;
   }
 
   /**

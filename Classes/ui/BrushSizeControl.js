@@ -133,6 +133,54 @@ class BrushSizeControl {
     }
     
     /**
+     * Handle mouse click
+     * @param {number} mouseX - Mouse X coordinate
+     * @param {number} mouseY - Mouse Y coordinate
+     * @param {number} panelX - Panel X position
+     * @param {number} panelY - Panel Y position
+     * @returns {string|null} 'increase', 'decrease', or null
+     */
+    handleClick(mouseX, mouseY, panelX, panelY) {
+        const panelWidth = 90;
+        
+        // Decrease button (left)
+        const decreaseX = panelX + 5;
+        const decreaseY = panelY + 25;
+        if (mouseX >= decreaseX && mouseX <= decreaseX + 20 &&
+            mouseY >= decreaseY && mouseY <= decreaseY + 20) {
+            this.decrease();
+            return 'decrease';
+        }
+        
+        // Increase button (right)
+        const increaseX = panelX + panelWidth - 25;
+        const increaseY = panelY + 25;
+        if (mouseX >= increaseX && mouseX <= increaseX + 20 &&
+            mouseY >= increaseY && mouseY <= increaseY + 20) {
+            this.increase();
+            return 'increase';
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if point is within the control panel
+     * @param {number} mouseX - Mouse X coordinate
+     * @param {number} mouseY - Mouse Y coordinate
+     * @param {number} panelX - Panel X position
+     * @param {number} panelY - Panel Y position
+     * @returns {boolean} True if within bounds
+     */
+    containsPoint(mouseX, mouseY, panelX, panelY) {
+        const panelWidth = 90;
+        const panelHeight = 50;
+        
+        return mouseX >= panelX && mouseX <= panelX + panelWidth &&
+               mouseY >= panelY && mouseY <= panelY + panelHeight;
+    }
+    
+    /**
      * Render the brush size control
      * @param {number} x - X position
      * @param {number} y - Y position

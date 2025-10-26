@@ -158,6 +158,64 @@ class MaterialPalette {
     }
     
     /**
+     * Handle mouse click
+     * @param {number} mouseX - Mouse X coordinate
+     * @param {number} mouseY - Mouse Y coordinate
+     * @param {number} panelX - Panel X position
+     * @param {number} panelY - Panel Y position
+     * @returns {boolean} True if click was handled
+     */
+    handleClick(mouseX, mouseY, panelX, panelY) {
+        const swatchSize = 40;
+        const spacing = 5;
+        const columns = 2;
+        
+        let swatchX = panelX + spacing;
+        let swatchY = panelY + 30;
+        let col = 0;
+        
+        for (let i = 0; i < this.materials.length; i++) {
+            // Check if click is within this swatch
+            if (mouseX >= swatchX && mouseX <= swatchX + swatchSize &&
+                mouseY >= swatchY && mouseY <= swatchY + swatchSize) {
+                this.selectMaterial(this.materials[i]);
+                return true;
+            }
+            
+            // Move to next position
+            col++;
+            if (col >= columns) {
+                col = 0;
+                swatchX = panelX + spacing;
+                swatchY += swatchSize + spacing;
+            } else {
+                swatchX += swatchSize + spacing;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if point is within the palette panel
+     * @param {number} mouseX - Mouse X coordinate
+     * @param {number} mouseY - Mouse Y coordinate
+     * @param {number} panelX - Panel X position
+     * @param {number} panelY - Panel Y position
+     * @returns {boolean} True if within bounds
+     */
+    containsPoint(mouseX, mouseY, panelX, panelY) {
+        const swatchSize = 40;
+        const spacing = 5;
+        const columns = 2;
+        const panelWidth = columns * swatchSize + (columns + 1) * spacing;
+        const panelHeight = Math.ceil(this.materials.length / columns) * (swatchSize + spacing) + spacing + 30;
+        
+        return mouseX >= panelX && mouseX <= panelX + panelWidth &&
+               mouseY >= panelY && mouseY <= panelY + panelHeight;
+    }
+    
+    /**
      * Render the material palette
      * @param {number} x - X position
      * @param {number} y - Y position
