@@ -273,6 +273,13 @@ function executeCommand(command) {
     case 'hurt': handleDamageCommand(args); break;
     case 'heal':
     case 'health': handleHealCommand(args); break;
+    // Event Debug Commands
+    case 'eventdebug': handleEventDebugCommand(args); break;
+    case 'triggerevent': handleTriggerEventCommand(args); break;
+    case 'showeventflags': handleShowEventFlags(); break;
+    case 'showeventlist': handleShowEventList(); break;
+    case 'showlevelinfo': handleShowLevelInfo(); break;
+    case 'listevents': handleListEvents(); break;
     default: console.log(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
   }
 }
@@ -298,12 +305,22 @@ function showCommandHelp() {
   console.log("  damage <amount> - Damage selected ants by amount");
   console.log("  heal <amount> - Heal selected ants by amount");
   console.log("  🚂 train [on|off|toggle] - TRAIN MODE! Panels follow each other like train cars!");
+  console.log("");
+  console.log("🎮 Event Debug Commands:");
+  console.log("  eventDebug <on|off|toggle> - Control event debug system");
+  console.log("  triggerEvent <eventId> - Manually trigger an event");
+  console.log("  showEventFlags - Toggle event flag overlay");
+  console.log("  showEventList - Toggle event list panel");
+  console.log("  showLevelInfo - Toggle level event info panel");
+  console.log("  listEvents - List all events with trigger commands");
   console.log("Examples:");
   console.log("  spawn 10 ant blue");
   console.log("  teleport 100 200");
   console.log("  select all");
   console.log("  perf toggle");
   console.log("  entity-perf report");
+  console.log("  eventDebug on");
+  console.log("  triggerEvent wave_1_spawn");
 }
 
 /**
@@ -820,4 +837,128 @@ function handleHealCommand(args) {
   });
   
   console.log(`💚 Healed ${healed} selected ant(s) by ${amount} HP`);
+}
+
+// ============================================================
+// EVENT DEBUG COMMAND HANDLERS
+// ============================================================
+
+/**
+ * handleEventDebugCommand
+ * Control the event debug system (enable/disable)
+ * @param {string[]} args - Command arguments [on|off|toggle]
+ */
+function handleEventDebugCommand(args) {
+  if (typeof window === 'undefined' || !window.eventDebugManager) {
+    console.log("❌ EventDebugManager not initialized");
+    return;
+  }
+  
+  const subCommand = (args[0] || 'toggle').toLowerCase();
+  
+  switch (subCommand) {
+    case 'on':
+    case 'enable':
+      window.eventDebugManager.enable();
+      console.log("🎮 Event debug system enabled");
+      break;
+      
+    case 'off':
+    case 'disable':
+      window.eventDebugManager.disable();
+      console.log("🎮 Event debug system disabled");
+      break;
+      
+    case 'toggle':
+      window.eventDebugManager.toggle();
+      const state = window.eventDebugManager.enabled ? 'enabled' : 'disabled';
+      console.log(`🎮 Event debug system ${state}`);
+      break;
+      
+    default:
+      console.log("❌ Usage: eventDebug <on|off|toggle>");
+  }
+}
+
+/**
+ * handleTriggerEventCommand
+ * Manually trigger an event, bypassing normal restrictions
+ * @param {string[]} args - Command arguments [eventId]
+ */
+function handleTriggerEventCommand(args) {
+  if (typeof window === 'undefined' || !window.eventDebugManager) {
+    console.log("❌ EventDebugManager not initialized");
+    return;
+  }
+  
+  if (args.length === 0) {
+    console.log("❌ Usage: triggerEvent <eventId>");
+    console.log("Example: triggerEvent wave_1_spawn");
+    return;
+  }
+  
+  const eventId = args[0];
+  const result = window.eventDebugManager.manualTriggerEvent(eventId);
+  
+  if (!result) {
+    console.log(`❌ Failed to trigger event: ${eventId}`);
+  }
+}
+
+/**
+ * handleShowEventFlags
+ * Toggle the event flag overlay visualization
+ */
+function handleShowEventFlags() {
+  if (typeof window === 'undefined' || !window.eventDebugManager) {
+    console.log("❌ EventDebugManager not initialized");
+    return;
+  }
+  
+  window.eventDebugManager.toggleEventFlags();
+  const state = window.eventDebugManager.showEventFlags ? 'ON' : 'OFF';
+  console.log(`🏴 Event flags overlay: ${state}`);
+}
+
+/**
+ * handleShowEventList
+ * Toggle the event list panel
+ */
+function handleShowEventList() {
+  if (typeof window === 'undefined' || !window.eventDebugManager) {
+    console.log("❌ EventDebugManager not initialized");
+    return;
+  }
+  
+  window.eventDebugManager.toggleEventList();
+  const state = window.eventDebugManager.showEventList ? 'ON' : 'OFF';
+  console.log(`📋 Event list panel: ${state}`);
+}
+
+/**
+ * handleShowLevelInfo
+ * Toggle the level event info panel
+ */
+function handleShowLevelInfo() {
+  if (typeof window === 'undefined' || !window.eventDebugManager) {
+    console.log("❌ EventDebugManager not initialized");
+    return;
+  }
+  
+  window.eventDebugManager.toggleLevelInfo();
+  const state = window.eventDebugManager.showLevelInfo ? 'ON' : 'OFF';
+  console.log(`ℹ️ Level event info panel: ${state}`);
+}
+
+/**
+ * handleListEvents
+ * List all events with their trigger commands
+ */
+function handleListEvents() {
+  if (typeof window === 'undefined' || !window.eventDebugManager) {
+    console.log("❌ EventDebugManager not initialized");
+    return;
+  }
+  
+  window.eventDebugManager.listAllEvents();
 }

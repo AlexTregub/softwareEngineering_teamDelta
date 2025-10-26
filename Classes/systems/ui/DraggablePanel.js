@@ -49,6 +49,10 @@ class DraggablePanel {
         buttonHeight: config.buttons?.buttonHeight || 30,
         buttonWidth: config.buttons?.buttonWidth || 120,
         columns: config.buttons?.columns || 2, // for grid layout
+        autoSizeToContent: config.buttons?.autoSizeToContent || false, // Auto-size panel to fit button content
+        verticalPadding: config.buttons?.verticalPadding || 10, // Padding above/below buttons when auto-sizing
+        horizontalPadding: config.buttons?.horizontalPadding || 10, // Padding left/right of buttons when auto-sizing
+        contentSizeCallback: config.buttons?.contentSizeCallback || null, // Callback for externally-managed content sizing: () => {width, height}
         ...config.buttons
       }
     };
@@ -310,8 +314,15 @@ class DraggablePanel {
       dragConsumedEvent = this.isDragging || wasDragging;
     }
 
-    // Return true if mouse is over panel and we consumed the event
-    return mouseOverPanel && (buttonConsumedEvent || dragConsumedEvent || minimizeButtonClicked);
+    // Always consume mouse events when over visible panel (click OR hover)
+    // This prevents tile placement and other game actions beneath UI panels
+    // Hover consumption prevents accidental terrain interactions when cursor is over UI
+    if (mouseOverPanel) {
+      return true;
+    }
+
+    // Fallback: consume if any specific interaction occurred (should not reach here if mouseOverPanel=true)
+    return buttonConsumedEvent || dragConsumedEvent || minimizeButtonClicked;
   }  /**
    * Handle dragging behavior (adapted from ButtonGroup.js)
    * 
@@ -966,36 +977,248 @@ class DraggablePanel {
   /**
    * Auto-resize the entire panel to fit its content
    */
+  /**
+   * Calculate the height of the tallest column in grid layout
+   * Used for auto-sizing panel height to fit content
+   * @returns {number} Height of tallest column (including spacing)
+   */
+  calculateTallestColumnHeight() {
+    if (this.buttons.length === 0) {
+      return 0;
+    }
+
+    const layout = this.config.buttons.layout;
+    const spacing = this.config.buttons.spacing;
+    const columns = this.config.buttons.columns || 2;
+
+    // For grid layout, calculate height of each column
+    if (layout === 'grid') {
+      const columnHeights = new Array(columns).fill(0);
+      
+      this.buttons.forEach((button, index) => {
+        const col = index % columns;
+        columnHeights[col] += button.height + spacing;
+      });
+
+      // Return the tallest column height (subtract last spacing)
+      const maxHeight = Math.max(...columnHeights);
+      return maxHeight > 0 ? maxHeight - spacing : 0;
+    }
+
+    // For vertical layout, sum all button heights
+    if (layout === 'vertical') {
+      let totalHeight = 0;
+      this.buttons.forEach(button => {
+        totalHeight += button.height + spacing;
+      });
+      return totalHeight > 0 ? totalHeight - spacing : 0;
+    }
+
+    // For horizontal layout, use the tallest button
+    if (layout === 'horizontal') {
+      const maxHeight = Math.max(...this.buttons.map(btn => btn.height));
+      return maxHeight;
+    }
+
+    return 0;
+  }
+
+  /**
+   * Calculate the width of the widest row in grid layout
+   * Used for auto-sizing panel width to fit content
+   * @returns {number} Width of widest row (including spacing)
+   */
+  calculateWidestRowWidth() {
+    if (this.buttons.length === 0) {
+      return 0;
+    }
+
+    const layout = this.config.buttons.layout;
+    const spacing = this.config.buttons.spacing;
+    const columns = this.config.buttons.columns || 2;
+
+    // For grid layout, calculate width of each row
+    if (layout === 'grid') {
+      const rows = Math.ceil(this.buttons.length / columns);
+      let maxRowWidth = 0;
+
+      for (let row = 0; row < rows; row++) {
+        let rowWidth = 0;
+        const startIdx = row * columns;
+        const endIdx = Math.min(startIdx + columns, this.buttons.length);
+
+        for (let i = startIdx; i < endIdx; i++) {
+          rowWidth += this.buttons[i].width + spacing;
+        }
+
+        // Remove last spacing
+        if (rowWidth > 0) {
+          rowWidth -= spacing;
+        }
+
+        maxRowWidth = Math.max(maxRowWidth, rowWidth);
+      }
+
+      return maxRowWidth;
+    }
+
+    // For horizontal layout, sum all button widths
+    if (layout === 'horizontal') {
+      let totalWidth = 0;
+      this.buttons.forEach(button => {
+        totalWidth += button.width + spacing;
+      });
+      return totalWidth > 0 ? totalWidth - spacing : 0;
+    }
+
+    // For vertical layout, use the widest button
+    if (layout === 'vertical') {
+      const maxWidth = Math.max(...this.buttons.map(btn => btn.width));
+      return maxWidth;
+    }
+
+    return 0;
+  }
+
   autoResizeToFitContent() {
+    // Skip auto-resize if auto-sizing is not enabled
+    if (!this.config.buttons.autoSizeToContent) {
+      return;
+    }
+    
+    // Check if content size callback is provided (for externally-managed content)
+    if (this.config.buttons.contentSizeCallback && typeof this.config.buttons.contentSizeCallback === 'function') {
+      // Use callback to get content dimensions
+      const scale = 1.0;
+      const titleBarHeight = this.calculateTitleBarHeight();
+      const verticalPadding = this.config.buttons.verticalPadding;
+      const horizontalPadding = this.config.buttons.horizontalPadding;
+      
+      try {
+        const contentSize = this.config.buttons.contentSizeCallback();
+        
+        if (contentSize && typeof contentSize.width === 'number' && typeof contentSize.height === 'number') {
+          const newPanelHeight = titleBarHeight + contentSize.height + (verticalPadding * 2);
+          const newPanelWidth = contentSize.width + (horizontalPadding * 2);
+          
+          // Update panel size if significantly different
+          const currentScaledHeight = this.config.size.height * scale;
+          const currentScaledWidth = this.config.size.width * scale;
+          const heightDifference = Math.abs(newPanelHeight - currentScaledHeight);
+          const widthDifference = Math.abs(newPanelWidth - currentScaledWidth);
+          
+          let resized = false;
+          
+          if (heightDifference > 0.5) {
+            this.config.size.height = newPanelHeight / scale;
+            resized = true;
+          }
+          
+          if (widthDifference > 0.5) {
+            this.config.size.width = newPanelWidth / scale;
+            resized = true;
+          }
+          
+          if (resized) {
+            // Update button positions after resize (if buttons exist)
+            if (this.buttons && this.buttons.length > 0) {
+              this.updateButtonPositions();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error calling contentSizeCallback:', error);
+      }
+      
+      // Skip button-based auto-sizing when using content callback
+      return;
+    }
+    
+    // Skip auto-resize for panels with no buttons (contentRenderer panels without callback)
+    if (this.buttons.length === 0) {
+      return;
+    }
+    
     // First, auto-resize buttons
     this.autoResizeButtons();
     
-    // Calculate new dimensions
-    const scale = 1.0;
-    const titleBarHeight = this.calculateTitleBarHeight();
-    const contentHeight = this.calculateContentHeight();
-    const newPanelHeight = titleBarHeight + contentHeight;
-    
-    // Update panel size if significantly different
-    const currentScaledHeight = this.config.size.height * scale;
-    const heightDifference = Math.abs(newPanelHeight - currentScaledHeight);
-    
-    if (heightDifference > 5) { // Only resize if difference is notable
-      this.config.size.height = newPanelHeight / scale; // Store unscaled size
-      this.config.style.titleBarHeight = titleBarHeight / scale; // Store unscaled title height
+    // Button-based auto-sizing behavior depends on layout:
+    // - GRID layout: Resize both width AND height based on button content
+    // - Other layouts (vertical/horizontal): Only resize height (legacy behavior)
       
-      // Update button positions after resize
-      this.updateButtonPositions();
+    const isGridLayout = this.config.buttons.layout === 'grid';
+    
+    if (isGridLayout) {
+      // Use new auto-sizing feature (width AND height based on actual content)
+      const scale = 1.0;
+      const titleBarHeight = this.calculateTitleBarHeight();
+      const verticalPadding = this.config.buttons.verticalPadding;
+      const horizontalPadding = this.config.buttons.horizontalPadding;
       
-      // Save the new size
-      this.saveState();
+      // Calculate new dimensions based on actual button content
+      const tallestColumnHeight = this.calculateTallestColumnHeight();
+      const widestRowWidth = this.calculateWidestRowWidth();
+      
+      const newPanelHeight = titleBarHeight + tallestColumnHeight + (verticalPadding * 2);
+      const newPanelWidth = widestRowWidth + (horizontalPadding * 2);
+      
+      // Update panel size if significantly different
+      const currentScaledHeight = this.config.size.height * scale;
+      const currentScaledWidth = this.config.size.width * scale;
+      const heightDifference = Math.abs(newPanelHeight - currentScaledHeight);
+      const widthDifference = Math.abs(newPanelWidth - currentScaledWidth);
+      
+      let resized = false;
+      
+      if (heightDifference > 0.5) { // Only resize if difference is notable (reduced threshold for precision)
+        this.config.size.height = newPanelHeight / scale; // Store unscaled size
+        resized = true;
+      }
+      
+      if (widthDifference > 0.5) { // Only resize if difference is notable (reduced threshold for precision)
+        this.config.size.width = newPanelWidth / scale; // Store unscaled size
+        resized = true;
+      }
+      
+      if (resized) {
+        // Update button positions after resize
+        this.updateButtonPositions();
+        
+        // DON'T save auto-resize changes to localStorage
+        // Auto-resize happens every frame and can cause incremental growth due to rounding
+        // Only save position changes from manual dragging (see handleDragging method)
+        // this.saveState();
+      }
+    } else {
+      // For non-grid layouts, fall back to legacy height-only calculation
+      const scale = 1.0;
+      const titleBarHeight = this.calculateTitleBarHeight();
+      const contentHeight = this.calculateContentHeight();
+      const newPanelHeight = titleBarHeight + contentHeight;
+      
+      // Update panel size if significantly different
+      const currentScaledHeight = this.config.size.height * scale;
+      const heightDifference = Math.abs(newPanelHeight - currentScaledHeight);
+      
+      if (heightDifference > 5) { // Only resize if difference is notable
+        this.config.size.height = newPanelHeight / scale; // Store unscaled size
+        this.config.style.titleBarHeight = titleBarHeight / scale; // Store unscaled title height
+        
+        // Update button positions after resize
+        this.updateButtonPositions();
+        
+        // DON'T save auto-resize changes to localStorage
+        // Auto-resize happens every frame and can cause incremental growth due to rounding
+        // Only save position changes from manual dragging (see handleDragging method)
+        // this.saveState();
+      }
     }
   }
 
   /**
    * Minimized state getter, returns current minimized state
    */
-  isMinimized() { return this.state.minimized}
+  isMinimized() { return this.state.minimized; }
 }
 
 

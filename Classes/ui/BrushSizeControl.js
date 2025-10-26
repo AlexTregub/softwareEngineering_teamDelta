@@ -133,6 +133,14 @@ class BrushSizeControl {
     }
     
     /**
+     * Get content size for panel auto-sizing
+     * @returns {Object} {width, height} Content dimensions in pixels
+     */
+    getContentSize() {
+        return { width: 90, height: 50 };
+    }
+    
+    /**
      * Handle mouse click
      * @param {number} mouseX - Mouse X coordinate
      * @param {number} mouseY - Mouse Y coordinate

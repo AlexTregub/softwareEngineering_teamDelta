@@ -172,6 +172,12 @@ function setup() {
     console.log('🔥 Fireball System initialized in setup');
   }
 
+  // Initialize Event Debug Manager
+  if (typeof EventDebugManager !== 'undefined') {
+    window.eventDebugManager = new EventDebugManager();
+    console.log('🐛 Event Debug Manager initialized in setup');
+  }
+
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
   
@@ -769,6 +775,41 @@ function keyPressed() {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
     if (handled) {
       return; // UI shortcut was handled, don't process further
+    }
+  }
+  
+  // Handle Event Debug shortcuts (Ctrl+Shift combinations)
+  if (keyIsDown(CONTROL) && keyIsDown(SHIFT) && window.eventDebugManager) {
+    let handled = false;
+    
+    switch (keyCode) {
+      case 69: // Ctrl+Shift+E - Toggle event debug system
+        window.eventDebugManager.toggle();
+        console.log(`🎮 Event debug: ${window.eventDebugManager.enabled ? 'ON' : 'OFF'}`);
+        handled = true;
+        break;
+        
+      case 70: // Ctrl+Shift+F - Toggle event flags overlay
+        window.eventDebugManager.toggleEventFlags();
+        console.log(`🏴 Event flags: ${window.eventDebugManager.showEventFlags ? 'ON' : 'OFF'}`);
+        handled = true;
+        break;
+        
+      case 76: // Ctrl+Shift+L - Toggle level info panel
+        window.eventDebugManager.toggleLevelInfo();
+        console.log(`ℹ️ Level info: ${window.eventDebugManager.showLevelInfo ? 'ON' : 'OFF'}`);
+        handled = true;
+        break;
+        
+      case 65: // Ctrl+Shift+A - Toggle event list (All events)
+        window.eventDebugManager.toggleEventList();
+        console.log(`📋 Event list: ${window.eventDebugManager.showEventList ? 'ON' : 'OFF'}`);
+        handled = true;
+        break;
+    }
+    
+    if (handled) {
+      return; // Event debug shortcut was handled
     }
   }
   

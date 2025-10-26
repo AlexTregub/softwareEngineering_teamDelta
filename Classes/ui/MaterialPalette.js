@@ -158,6 +158,22 @@ class MaterialPalette {
     }
     
     /**
+     * Get content size for panel auto-sizing
+     * @returns {Object} {width, height} Content dimensions in pixels
+     */
+    getContentSize() {
+        const swatchSize = 40;
+        const spacing = 5;
+        const columns = 2;
+        
+        const width = columns * swatchSize + (columns + 1) * spacing;
+        const rows = Math.ceil(this.materials.length / columns);
+        const height = rows * (swatchSize + spacing) + spacing;
+        
+        return { width, height };
+    }
+    
+    /**
      * Handle mouse click
      * @param {number} mouseX - Mouse X coordinate
      * @param {number} mouseY - Mouse Y coordinate

@@ -158,6 +158,21 @@ class ToolBar {
     }
     
     /**
+     * Get content size for panel auto-sizing
+     * @returns {Object} {width, height} Content dimensions in pixels
+     */
+    getContentSize() {
+        const buttonSize = 35;
+        const spacing = 5;
+        const tools = this.getAllTools();
+        
+        const width = buttonSize + spacing * 2;
+        const height = tools.length * (buttonSize + spacing) + spacing;
+        
+        return { width, height };
+    }
+    
+    /**
      * Handle mouse click
      * @param {number} mouseX - Mouse X coordinate
      * @param {number} mouseY - Mouse Y coordinate

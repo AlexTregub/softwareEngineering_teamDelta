@@ -27,7 +27,8 @@ const TEST_CATEGORIES = {
     'selection-box.test.js'
   ],
   ui: [
-    'pw_panel_dragging.js'
+    'pw_panel_dragging.js',
+    'pw_draggable_panel_growth.js'
   ]
 };
 

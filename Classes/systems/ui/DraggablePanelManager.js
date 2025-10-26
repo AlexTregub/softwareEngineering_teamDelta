@@ -132,7 +132,7 @@ class DraggablePanelManager {
           },
           render: (gameState, pointer) => {
             try {
-              this.render();
+              this.renderPanels(gameState);
             } catch (e) {}
           }
         };
@@ -159,6 +159,9 @@ class DraggablePanelManager {
         spacing: 3,
         buttonWidth: 120,
         buttonHeight: 24,
+        autoSizeToContent: true,  // Enable auto-sizing for height
+        verticalPadding: 10,
+        horizontalPadding: 10,
         items: [
           {
             caption: 'Spawn 1 Ant',
@@ -226,6 +229,9 @@ class DraggablePanelManager {
         spacing: 8,
         buttonWidth: 160,
         buttonHeight: 20,
+        autoSizeToContent: true,  // Auto-resize to fit button content
+        verticalPadding: 10,
+        horizontalPadding: 10,
         items: [
           {
             caption: 'Paint Resource Brush',
@@ -281,6 +287,9 @@ class DraggablePanelManager {
         spacing: 5,
         buttonWidth: 110,
         buttonHeight: 30,
+        autoSizeToContent: true,  // Enable auto-sizing for height
+        verticalPadding: 10,
+        horizontalPadding: 10,
         items: [
           {
             caption: 'Select All',
@@ -337,6 +346,9 @@ class DraggablePanelManager {
         spacing: 3,
         buttonWidth: 140,
         buttonHeight: 25,
+        autoSizeToContent: true,  // Auto-resize to fit button content
+        verticalPadding: 10,
+        horizontalPadding: 10,
         items: [
           /*{
             caption: 'Reset Scale',
@@ -405,6 +417,9 @@ class DraggablePanelManager {
         spacing: 3,
         buttonWidth: 140,
         buttonHeight: 25,
+        autoSizeToContent: true,  // Auto-resize to fit button content
+        verticalPadding: 10,
+        horizontalPadding: 10,
         items: [
           {
             caption: 'Gather 10 wood',
@@ -513,6 +528,9 @@ class DraggablePanelManager {
         spacing: 5,
         buttonWidth: 180,
         buttonHeight: 35,
+        autoSizeToContent: true,  // Enable auto-sizing for height
+        verticalPadding: 10,
+        horizontalPadding: 10,
         items: [
           {
             caption: 'Ant Cone (Paint)',
@@ -549,6 +567,9 @@ class DraggablePanelManager {
         spacing: 4,
         buttonWidth: 160,
         buttonHeight: 32,
+        autoSizeToContent: true,  // Auto-resize to fit button content
+        verticalPadding: 10,
+        horizontalPadding: 10,
         items: [
           {
             caption: '🔥 Unlock Fireball',

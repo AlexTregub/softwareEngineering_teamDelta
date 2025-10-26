@@ -28,7 +28,7 @@ class LevelEditorPanels {
     }
 
     // Material Palette Panel
-    // Size: 2 cols × 40px swatches, 3 materials = 2 rows, height = 2×(40+10)+10 = 110px
+    // Size: 2 cols × 40px swatches, 3 materials = 2 rows, height = 2×(40+5)+5 = 95px
     this.panels.materials = new DraggablePanel({
       id: 'level-editor-materials',
       title: 'Materials',
@@ -37,7 +37,14 @@ class LevelEditorPanels {
       buttons: {
         layout: 'vertical',
         spacing: 0,
-        items: [] // We'll render MaterialPalette directly in content
+        items: [], // We'll render MaterialPalette directly in content
+        autoSizeToContent: true, // Enable auto-sizing
+        verticalPadding: 10, // Padding above/below content
+        horizontalPadding: 10, // Padding left/right of content
+        contentSizeCallback: () => {
+          // Get size from MaterialPalette instance
+          return this.levelEditor?.palette ? this.levelEditor.palette.getContentSize() : { width: 95, height: 95 };
+        }
       },
       behavior: {
         draggable: true,
@@ -57,7 +64,14 @@ class LevelEditorPanels {
       buttons: {
         layout: 'vertical',
         spacing: 0,
-        items: [] // We'll render ToolBar directly in content
+        items: [], // We'll render ToolBar directly in content
+        autoSizeToContent: true, // Enable auto-sizing
+        verticalPadding: 10, // Padding above/below content
+        horizontalPadding: 10, // Padding left/right of content
+        contentSizeCallback: () => {
+          // Get size from ToolBar instance
+          return this.levelEditor?.toolbar ? this.levelEditor.toolbar.getContentSize() : { width: 45, height: 285 };
+        }
       },
       behavior: {
         draggable: true,
@@ -77,7 +91,14 @@ class LevelEditorPanels {
       buttons: {
         layout: 'vertical',
         spacing: 0,
-        items: [] // We'll render BrushSizeControl directly in content
+        items: [], // We'll render BrushSizeControl directly in content
+        autoSizeToContent: true, // Enable auto-sizing
+        verticalPadding: 10, // Padding above/below content
+        horizontalPadding: 10, // Padding left/right of content
+        contentSizeCallback: () => {
+          // Get size from BrushSizeControl instance
+          return this.levelEditor?.brushSizeControl ? this.levelEditor.brushSizeControl.getContentSize() : { width: 90, height: 50 };
+        }
       },
       behavior: {
         draggable: true,
