@@ -28,7 +28,9 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
   'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
   'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
   'grass' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
-  'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Fallback rendering availability...
+
+  // Un-spawned materials, Needed for fallback rendering.
+  'farmland' : [[0,0] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], 
 };
 
 /**
@@ -259,12 +261,12 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     }
   }
 
-  render() { // Render, previously draw
-    noSmooth(); // prevents pixels from getting blurry as the image is scaled up
-    TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
-    smooth();
-    return;
-  }
+  // render() { // Render, previously draw
+  //   noSmooth(); // prevents pixels from getting blurry as the image is scaled up
+  //   TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
+  //   smooth();
+  //   return;
+  // }
 
   render(coordSys) {
     // coordSys.setViewCornerBC([0,0]);
