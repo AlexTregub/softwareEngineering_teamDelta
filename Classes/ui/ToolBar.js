@@ -170,7 +170,7 @@ class ToolBar {
         const spacing = 5;
         const tools = this.getAllTools();
         
-        let buttonY = panelY + 30;
+        let buttonY = panelY + spacing;
         
         for (const toolName of tools) {
             const buttonX = panelX + spacing;
@@ -206,7 +206,7 @@ class ToolBar {
         const spacing = 5;
         const tools = this.getAllTools();
         const panelWidth = buttonSize + spacing * 2;
-        const panelHeight = tools.length * (buttonSize + spacing) + spacing + 30;
+        const panelHeight = tools.length * (buttonSize + spacing) + spacing;
         
         return mouseX >= panelX && mouseX <= panelX + panelWidth &&
                mouseY >= panelY && mouseY <= panelY + panelHeight;
@@ -231,21 +231,10 @@ class ToolBar {
         const panelWidth = buttonSize + spacing * 2;
         const panelHeight = tools.length * (buttonSize + spacing) + spacing + 30;
         
-        // Background panel
-        fill(40, 40, 40, 230);
-        stroke(100, 150, 255);
-        strokeWeight(2);
-        rect(x, y, panelWidth, panelHeight, 5);
-        
-        // Title
-        fill(255);
-        noStroke();
-        textAlign(CENTER, TOP);
-        textSize(14);
-        text('Tools', x + panelWidth / 2, y + 5);
+        // NO background panel or title - draggable panel provides this
         
         // Tool buttons
-        let buttonY = y + 30;
+        let buttonY = y + spacing;
         
         tools.forEach(toolName => {
             const tool = this.tools[toolName];

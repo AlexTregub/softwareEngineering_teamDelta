@@ -71,11 +71,12 @@ class BDDTestRunner:
             driver = self._setup_browser()
             
             # Run test scenarios
-            self._run_button_system_tests(driver)
+            # ButtonGroupManager and Action System have been removed from codebase
+            # self._run_button_system_tests(driver)
             self._run_render_pipeline_tests(driver)
             self._run_integration_tests(driver)
-            self._run_edge_case_tests(driver)
-            self._run_comprehensive_action_tests(driver)
+            # self._run_edge_case_tests(driver)  # Depends on ButtonGroupManager
+            # self._run_comprehensive_action_tests(driver)  # Action system removed
             self._run_image_texture_tests(driver)
             
             # Cleanup
@@ -262,21 +263,9 @@ class BDDTestRunner:
             'scenarios': []
         }
         
-        # Test 1: ButtonGroupManager Initialization
-        scenario_result = self._test_button_manager_initialization(driver)
-        feature_results['scenarios'].append(scenario_result)
-        
-        # Test 2: Button Group Creation
-        scenario_result = self._test_button_group_creation(driver)
-        feature_results['scenarios'].append(scenario_result)
-        
-        # Test 3: Button Click Functionality
-        scenario_result = self._test_button_click_functionality(driver)
-        feature_results['scenarios'].append(scenario_result)
-        
-        # Test 4: Button Drag Functionality
-        scenario_result = self._test_button_drag_functionality(driver)
-        feature_results['scenarios'].append(scenario_result)
+        # ButtonGroupManager has been removed from the codebase
+        # Skipping all ButtonGroupManager tests
+        print("  [SKIP] ButtonGroupManager tests - component removed")
         
         self.test_results['features'].append(feature_results)
         self._update_totals(feature_results)
@@ -312,13 +301,9 @@ class BDDTestRunner:
             'scenarios': []
         }
         
-        # Test 1: Complete Debug Button Workflow
-        scenario_result = self._test_complete_debug_workflow(driver)
-        feature_results['scenarios'].append(scenario_result)
-        
-        # Test 2: System Recovery After Errors
-        scenario_result = self._test_system_recovery(driver)
-        feature_results['scenarios'].append(scenario_result)
+        # Action system has been removed - skipping workflow tests
+        print("  [SKIP] Complete Debug Button Workflow - action system removed")
+        print("  [SKIP] System Error Recovery - action system removed")
         
         self.test_results['features'].append(feature_results)
         self._update_totals(feature_results)

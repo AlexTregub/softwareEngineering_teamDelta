@@ -171,7 +171,7 @@ class MaterialPalette {
         const columns = 2;
         
         let swatchX = panelX + spacing;
-        let swatchY = panelY + 30;
+        let swatchY = panelY + spacing;
         let col = 0;
         
         for (let i = 0; i < this.materials.length; i++) {
@@ -209,7 +209,7 @@ class MaterialPalette {
         const spacing = 5;
         const columns = 2;
         const panelWidth = columns * swatchSize + (columns + 1) * spacing;
-        const panelHeight = Math.ceil(this.materials.length / columns) * (swatchSize + spacing) + spacing + 30;
+        const panelHeight = Math.ceil(this.materials.length / columns) * (swatchSize + spacing) + spacing;
         
         return mouseX >= panelX && mouseX <= panelX + panelWidth &&
                mouseY >= panelY && mouseY <= panelY + panelHeight;
@@ -234,22 +234,11 @@ class MaterialPalette {
         const panelWidth = columns * swatchSize + (columns + 1) * spacing;
         const panelHeight = Math.ceil(this.materials.length / columns) * (swatchSize + spacing) + spacing + 30;
         
-        // Background panel
-        fill(40, 40, 40, 230);
-        stroke(100, 150, 255);
-        strokeWeight(2);
-        rect(x, y, panelWidth, panelHeight, 5);
-        
-        // Title
-        fill(255);
-        noStroke();
-        textAlign(CENTER, TOP);
-        textSize(14);
-        text('Materials', x + panelWidth / 2, y + 5);
+        // NO background panel or title - draggable panel provides this
         
         // Material swatches
         let swatchX = x + spacing;
-        let swatchY = y + 30;
+        let swatchY = y + spacing;
         let col = 0;
         
         this.materials.forEach((material, index) => {

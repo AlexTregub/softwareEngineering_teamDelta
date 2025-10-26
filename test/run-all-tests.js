@@ -5,8 +5,11 @@
  * Executes all test suites in order: Unit → Integration → BDD → E2E
  */
 
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const path = require('path');
+
+// HTTP server process
+let httpServer = null;
 
 // ANSI color codes
 const colors = {
@@ -30,22 +33,24 @@ const testSuites = [
   },
   {
     name: 'Integration Tests',
-    command: 'npx mocha "test/integration/**/*.test.js" --reporter spec',
+    command: 'npx mocha "test/integration/**/*.test.js" --reporter spec --timeout 10000 --exit',
     color: colors.blue,
     description: 'Running integration tests...',
-    optional: true // Skip if no integration tests exist
+    requiresServer: false
   },
   {
     name: 'BDD Tests',
     command: 'python test/bdd/run_bdd_tests.py',
     color: colors.magenta,
-    description: 'Running BDD/Behave tests...'
+    description: 'Running BDD/Behave tests...',
+    requiresServer: true
   },
   {
     name: 'E2E Tests',
     command: 'node test/e2e/run-tests.js',
     color: colors.yellow,
-    description: 'Running Puppeteer E2E tests...'
+    description: 'Running Puppeteer E2E tests...',
+    requiresServer: true
   }
 ];
 
@@ -61,6 +66,70 @@ const results = {
 // Current suite index
 let currentSuiteIndex = 0;
 const startTime = Date.now();
+
+/**
+ * Start HTTP server for BDD/E2E tests
+ */
+function startHttpServer() {
+  return new Promise((resolve, reject) => {
+    console.log(`${colors.cyan}${colors.bright}Starting HTTP server on port 8000...${colors.reset}`);
+    
+    // Use Python's http.server module
+    httpServer = spawn('python', ['-m', 'http.server', '8000'], {
+      cwd: path.resolve(__dirname, '..'),
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    // Wait for server to be ready
+    const checkServer = setInterval(() => {
+      const http = require('http');
+      const options = {
+        hostname: 'localhost',
+        port: 8000,
+        path: '/',
+        method: 'GET',
+        timeout: 1000
+      };
+
+      const req = http.request(options, (res) => {
+        if (res.statusCode === 200) {
+          clearInterval(checkServer);
+          console.log(`${colors.green}${colors.bright}✓ HTTP server started successfully${colors.reset}\n`);
+          resolve();
+        }
+      });
+
+      req.on('error', () => {
+        // Server not ready yet, keep checking
+      });
+
+      req.end();
+    }, 500);
+
+    // Timeout after 10 seconds
+    setTimeout(() => {
+      clearInterval(checkServer);
+      reject(new Error('HTTP server failed to start within 10 seconds'));
+    }, 10000);
+
+    httpServer.on('error', (error) => {
+      clearInterval(checkServer);
+      reject(error);
+    });
+  });
+}
+
+/**
+ * Stop HTTP server
+ */
+function stopHttpServer() {
+  if (httpServer) {
+    console.log(`\n${colors.cyan}${colors.bright}Stopping HTTP server...${colors.reset}`);
+    httpServer.kill();
+    httpServer = null;
+    console.log(`${colors.green}${colors.bright}✓ HTTP server stopped${colors.reset}`);
+  }
+}
 
 /**
  * Print section header
@@ -91,11 +160,13 @@ function runTestSuite(suite) {
     const startTime = Date.now();
     const childProcess = exec(suite.command, { 
       cwd: path.resolve(__dirname, '..'),
-      maxBuffer: 10 * 1024 * 1024 // 10MB buffer for large output
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large output
+      timeout: 300000 // 5 minute timeout for the entire command
     });
 
     let stdout = '';
     let stderr = '';
+    let killed = false;
 
     childProcess.stdout.on('data', (data) => {
       stdout += data;
@@ -107,16 +178,35 @@ function runTestSuite(suite) {
       process.stderr.write(data);
     });
 
+    // Set a watchdog timer to kill hung processes
+    const watchdog = setTimeout(() => {
+      if (!killed) {
+        console.log(`\n${colors.yellow}⚠️  Test suite exceeded 5 minute timeout, terminating...${colors.reset}`);
+        killed = true;
+        childProcess.kill('SIGTERM');
+        // Force kill after 5 seconds if still alive
+        setTimeout(() => {
+          try {
+            childProcess.kill('SIGKILL');
+          } catch (e) {
+            // Process already dead
+          }
+        }, 5000);
+      }
+    }, 300000); // 5 minutes
+
     childProcess.on('close', (code) => {
+      clearTimeout(watchdog);
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-      const passed = code === 0;
+      const passed = code === 0 && !killed;
 
       const suiteResult = {
         name: suite.name,
         passed,
-        code,
+        code: killed ? -2 : code,
         duration,
-        output: stdout + stderr
+        output: stdout + stderr,
+        killed
       };
 
       results.suites.push(suiteResult);
@@ -125,9 +215,9 @@ function runTestSuite(suite) {
       if (passed) {
         results.passed++;
         console.log(`\n${colors.green}${colors.bright}✓ ${suite.name} PASSED${colors.reset} (${duration}s)`);
-      } else if (suite.optional && code !== 0) {
-        results.skipped++;
-        console.log(`\n${colors.yellow}${colors.bright}⊘ ${suite.name} SKIPPED${colors.reset} (${duration}s)`);
+      } else if (killed) {
+        results.failed++;
+        console.log(`\n${colors.red}${colors.bright}✗ ${suite.name} TIMEOUT${colors.reset} (exceeded 5 minutes)`);
       } else {
         results.failed++;
         console.log(`\n${colors.red}${colors.bright}✗ ${suite.name} FAILED${colors.reset} (${duration}s)`);
@@ -138,6 +228,7 @@ function runTestSuite(suite) {
     });
 
     childProcess.on('error', (error) => {
+      clearTimeout(watchdog);
       console.error(`\n${colors.red}Error executing ${suite.name}:${colors.reset}`, error);
       
       const suiteResult = {
@@ -150,12 +241,7 @@ function runTestSuite(suite) {
 
       results.suites.push(suiteResult);
       results.total++;
-      
-      if (suite.optional) {
-        results.skipped++;
-      } else {
-        results.failed++;
-      }
+      results.failed++;
 
       resolve(suiteResult);
     });
@@ -170,8 +256,42 @@ async function runAllTests() {
   console.log(`${colors.bright}Running all test suites in sequence...${colors.reset}\n`);
   console.log(`${colors.cyan}Test Order: Unit → Integration → BDD → E2E${colors.reset}\n`);
 
+  let serverStarted = false;
+
   for (const suite of testSuites) {
+    // Start server if needed and not already started
+    if (suite.requiresServer && !serverStarted) {
+      try {
+        await startHttpServer();
+        serverStarted = true;
+      } catch (error) {
+        console.error(`${colors.red}Failed to start HTTP server:${colors.reset}`, error.message);
+        console.log(`${colors.yellow}Skipping tests that require HTTP server${colors.reset}\n`);
+        // Skip remaining tests that require server
+        const remainingSuites = testSuites.slice(testSuites.indexOf(suite));
+        remainingSuites.forEach(s => {
+          if (s.requiresServer) {
+            results.total++;
+            results.skipped++;
+            results.suites.push({
+              name: s.name,
+              passed: false,
+              code: -1,
+              duration: 0,
+              error: 'HTTP server not available'
+            });
+          }
+        });
+        break;
+      }
+    }
+
     await runTestSuite(suite);
+  }
+
+  // Stop server if it was started
+  if (serverStarted) {
+    stopHttpServer();
   }
 
   printTestSummary();
@@ -214,11 +334,17 @@ function printTestSummary() {
 // Handle process termination
 process.on('SIGINT', () => {
   console.log(`\n\n${colors.yellow}Test run interrupted by user${colors.reset}`);
+  stopHttpServer();
   printTestSummary();
+});
+
+process.on('exit', () => {
+  stopHttpServer();
 });
 
 // Run all tests
 runAllTests().catch((error) => {
   console.error(`\n${colors.red}Fatal error:${colors.reset}`, error);
+  stopHttpServer();
   process.exit(1);
 });

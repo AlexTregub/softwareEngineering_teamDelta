@@ -20,17 +20,20 @@ class LevelEditorPanels {
    * Adds them to the global draggablePanelManager
    */
   initialize() {
-    if (!window.draggablePanelManager) {
+    const manager = (typeof window !== 'undefined') ? window.draggablePanelManager : global.draggablePanelManager;
+    
+    if (!manager) {
       console.error('LevelEditorPanels: DraggablePanelManager not found');
       return false;
     }
 
     // Material Palette Panel
+    // Size: 2 cols × 40px swatches, 3 materials = 2 rows, height = 2×(40+10)+10 = 110px
     this.panels.materials = new DraggablePanel({
       id: 'level-editor-materials',
       title: 'Materials',
       position: { x: 10, y: 80 },
-      size: { width: 180, height: 250 },
+      size: { width: 120, height: 115 },
       buttons: {
         layout: 'vertical',
         spacing: 0,
@@ -39,16 +42,18 @@ class LevelEditorPanels {
       behavior: {
         draggable: true,
         persistent: true,
-        constrainToScreen: true
+        constrainToScreen: true,
+        managedExternally: true // Don't auto-render, LevelEditorPanels handles it
       }
     });
 
     // Tool Bar Panel
+    // Size: 4 tools × (35px + 5px spacing) + 5px = 165px
     this.panels.tools = new DraggablePanel({
       id: 'level-editor-tools',
       title: 'Tools',
-      position: { x: 10, y: 350 },
-      size: { width: 180, height: 140 },
+      position: { x: 10, y: 210 },
+      size: { width: 70, height: 170 },
       buttons: {
         layout: 'vertical',
         spacing: 0,
@@ -57,16 +62,18 @@ class LevelEditorPanels {
       behavior: {
         draggable: true,
         persistent: true,
-        constrainToScreen: true
+        constrainToScreen: true,
+        managedExternally: true // Don't auto-render, LevelEditorPanels handles it
       }
     });
 
     // Brush Size Panel
+    // Size: 90px width × 50px height
     this.panels.brush = new DraggablePanel({
       id: 'level-editor-brush',
       title: 'Brush Size',
-      position: { x: 10, y: 510 },
-      size: { width: 180, height: 120 },
+      position: { x: 10, y: 395 },
+      size: { width: 110, height: 60 },
       buttons: {
         layout: 'vertical',
         spacing: 0,
@@ -75,20 +82,21 @@ class LevelEditorPanels {
       behavior: {
         draggable: true,
         persistent: true,
-        constrainToScreen: true
+        constrainToScreen: true,
+        managedExternally: true // Don't auto-render, LevelEditorPanels handles it
       }
     });
 
     // Add panels to the manager
-    window.draggablePanelManager.panels.set('level-editor-materials', this.panels.materials);
-    window.draggablePanelManager.panels.set('level-editor-tools', this.panels.tools);
-    window.draggablePanelManager.panels.set('level-editor-brush', this.panels.brush);
+    manager.panels.set('level-editor-materials', this.panels.materials);
+    manager.panels.set('level-editor-tools', this.panels.tools);
+    manager.panels.set('level-editor-brush', this.panels.brush);
 
     // Add to LEVEL_EDITOR state visibility
-    if (!window.draggablePanelManager.stateVisibility.LEVEL_EDITOR) {
-      window.draggablePanelManager.stateVisibility.LEVEL_EDITOR = [];
+    if (!manager.stateVisibility.LEVEL_EDITOR) {
+      manager.stateVisibility.LEVEL_EDITOR = [];
     }
-    window.draggablePanelManager.stateVisibility.LEVEL_EDITOR.push(
+    manager.stateVisibility.LEVEL_EDITOR.push(
       'level-editor-materials',
       'level-editor-tools',
       'level-editor-brush'
@@ -257,10 +265,12 @@ class LevelEditorPanels {
    * Cleanup and remove panels from manager
    */
   destroy() {
-    if (window.draggablePanelManager) {
-      window.draggablePanelManager.removePanel('level-editor-materials');
-      window.draggablePanelManager.removePanel('level-editor-tools');
-      window.draggablePanelManager.removePanel('level-editor-brush');
+    const manager = (typeof window !== 'undefined') ? window.draggablePanelManager : global.draggablePanelManager;
+    
+    if (manager) {
+      manager.removePanel('level-editor-materials');
+      manager.removePanel('level-editor-tools');
+      manager.removePanel('level-editor-brush');
     }
 
     this.panels = {

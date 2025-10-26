@@ -426,3 +426,9 @@ const levelEditor = new LevelEditor();
 if (typeof window !== 'undefined') {
   window.levelEditor = levelEditor;
 }
+
+// Export for Node.js testing
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = LevelEditor;
+  module.exports.levelEditor = levelEditor;
+}

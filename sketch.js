@@ -78,6 +78,17 @@ function setup() {
   
   initializeWorld();
 
+  // Initialize Draggable Panel System (must be after initializeWorld, before any UI that uses panels)
+  if (typeof initializeDraggablePanelSystem !== 'undefined') {
+    initializeDraggablePanelSystem().then(() => {
+      console.log('✅ DraggablePanelSystem ready');
+    }).catch((error) => {
+      console.error('❌ Failed to initialize DraggablePanelSystem:', error);
+    });
+  } else {
+    console.warn('⚠️ initializeDraggablePanelSystem not found - draggable panels will not work');
+  }
+
   // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
@@ -330,11 +341,6 @@ function draw() {
 
   // Update game systems (only if playing)
   if (GameState.getState() === 'PLAYING') {
-    // Update button groups
-    if (window.buttonGroupManager) {
-      window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
-    }
-
     // Update brush systems
     if (window.g_enemyAntBrush) {
       window.g_enemyAntBrush.update();
@@ -393,6 +399,9 @@ function draw() {
       background(40, 40, 40); // Dark background for editor
       levelEditor.render();
     }
+    // IMPORTANT: Also call RenderManager.render() in Level Editor mode
+    // This ensures draggable panels get their interactive.update() calls
+    RenderManager.render(GameState.getState());
   } else {
     // Normal game rendering
     RenderManager.render(GameState.getState());
@@ -536,17 +545,6 @@ function mousePressed() {
 
   // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
   
-  // Handle Universal Button Group System clicks
-  if (window.buttonGroupManager && 
-      typeof window.buttonGroupManager.handleClick === 'function') {
-    try {
-      const handled = window.buttonGroupManager.handleClick(mouseX, mouseY);
-      if (handled) return; // Button was clicked, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling button click:', error);
-    }
-  }
-
   // Handle DraggablePanel mouse events
   if (window.draggablePanelManager && 
       typeof window.draggablePanelManager.handleMouseEvents === 'function') {

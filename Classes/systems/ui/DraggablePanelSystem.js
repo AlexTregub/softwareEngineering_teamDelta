@@ -231,8 +231,7 @@ function renderPerformanceMonitorContent(contentArea, style) {
     yOffset += lineHeight;
     
     // UI elements (estimated)
-    const uiElements = (window.buttonGroupManager ? window.buttonGroupManager.getActiveGroupCount() : 0) + 
-                      (window.draggablePanelManager ? window.draggablePanelManager.getVisiblePanelCount() : 0);
+    const uiElements = (window.draggablePanelManager ? window.draggablePanelManager.getVisiblePanelCount() : 0);
     text(`UI Elements: ${uiElements}`, contentArea.x, contentArea.y + yOffset);
     yOffset += lineHeight;
     

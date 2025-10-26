@@ -988,9 +988,9 @@ class DraggablePanelManager {
 
     
     
-    // Render all visible panels
+    // Render all visible panels (skip panels managed externally)
     for (const panel of this.panels.values()) {
-      if (panel.isVisible()) {
+      if (panel.isVisible() && !panel.config.behavior.managedExternally) {
         panel.render();
       }
     }

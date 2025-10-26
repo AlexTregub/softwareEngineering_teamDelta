@@ -145,7 +145,7 @@ class BrushSizeControl {
         
         // Decrease button (left)
         const decreaseX = panelX + 5;
-        const decreaseY = panelY + 25;
+        const decreaseY = panelY + 10;
         if (mouseX >= decreaseX && mouseX <= decreaseX + 20 &&
             mouseY >= decreaseY && mouseY <= decreaseY + 20) {
             this.decrease();
@@ -154,7 +154,7 @@ class BrushSizeControl {
         
         // Increase button (right)
         const increaseX = panelX + panelWidth - 25;
-        const increaseY = panelY + 25;
+        const increaseY = panelY + 10;
         if (mouseX >= increaseX && mouseX <= increaseX + 20 &&
             mouseY >= increaseY && mouseY <= increaseY + 20) {
             this.increase();
@@ -196,43 +196,34 @@ class BrushSizeControl {
         const panelWidth = 90;
         const panelHeight = 50;
         
-        // Background panel
-        fill(40, 40, 40, 230);
-        stroke(100, 150, 255);
-        strokeWeight(2);
-        rect(x, y, panelWidth, panelHeight, 5);
-        
-        // Title
-        fill(255);
-        noStroke();
-        textAlign(LEFT, TOP);
-        textSize(12);
-        text('Brush Size', x + 5, y + 5);
+        // NO background panel or title - draggable panel provides this
         
         // Size value
+        fill(255);
+        noStroke();
         textAlign(CENTER, CENTER);
         textSize(16);
-        text(this.size, x + panelWidth / 2, y + 30);
+        text(this.size, x + panelWidth / 2, y + 15);
         
         // Decrease button
         fill(60, 60, 60);
         stroke(150);
         strokeWeight(1);
-        rect(x + 5, y + 25, 20, 20, 3);
+        rect(x + 5, y + 10, 20, 20, 3);
         fill(255);
         noStroke();
         textSize(18);
-        text('-', x + 15, y + 35);
+        text('-', x + 15, y + 20);
         
         // Increase button
         fill(60, 60, 60);
         stroke(150);
         strokeWeight(1);
-        rect(x + panelWidth - 25, y + 25, 20, 20, 3);
+        rect(x + panelWidth - 25, y + 10, 20, 20, 3);
         fill(255);
         noStroke();
         textSize(18);
-        text('+', x + panelWidth - 15, y + 35);
+        text('+', x + panelWidth - 15, y + 20);
         
         pop();
     }
