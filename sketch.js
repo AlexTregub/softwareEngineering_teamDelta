@@ -67,7 +67,7 @@ function setup() {
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 
-  g_tileInteractionManager.turnToFarmland(-10,-10,10,10);
+  g_tileInteractionManager.turnToFarmland(-10,-10,10,0);
 }
 
 /**
