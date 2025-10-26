@@ -6,19 +6,35 @@
 
 class CustomTerrain {
     /**
+     * Maximum allowed terrain dimensions to prevent performance issues
+     */
+    static MAX_TERRAIN_SIZE = 100;
+    
+    /**
      * Create a new custom terrain
-     * @param {number} width - Width in tiles
-     * @param {number} height - Height in tiles
+     * @param {number} width - Width in tiles (max 100)
+     * @param {number} height - Height in tiles (max 100)
      * @param {number} tileSize - Size of each tile in pixels
      * @param {string} defaultMaterial - Default material for all tiles
+     * @throws {Error} If dimensions exceed maximum allowed size
      */
     constructor(width, height, tileSize = 32, defaultMaterial = 'dirt') {
+        // Validate terrain size
+        if (width > CustomTerrain.MAX_TERRAIN_SIZE || height > CustomTerrain.MAX_TERRAIN_SIZE) {
+            throw new Error(`Terrain dimensions cannot exceed ${CustomTerrain.MAX_TERRAIN_SIZE}x${CustomTerrain.MAX_TERRAIN_SIZE}. Requested: ${width}x${height}`);
+        }
+        
+        if (width < 1 || height < 1) {
+            throw new Error(`Terrain dimensions must be at least 1x1. Requested: ${width}x${height}`);
+        }
+        
         this.width = width;
         this.height = height;
         this.tileSize = tileSize;
         this.defaultMaterial = defaultMaterial;
         
         // Compatibility with gridTerrain for TerrainEditor
+        this._tileSize = tileSize; // TerrainEditor uses _tileSize
         this._gridSizeX = 1; // CustomTerrain doesn't use chunks, treat as 1 chunk
         this._gridSizeY = 1;
         this._chunkSize = Math.max(width, height); // Entire terrain is "one chunk"
@@ -414,6 +430,47 @@ class CustomTerrain {
      */
     invalidateCache() {
         // No-op for CustomTerrain (no caching)
+    }
+
+    /**
+     * Get terrain statistics for Properties panel
+     * @returns {Object} Statistics including total tiles, materials, diversity
+     */
+    getStatistics() {
+        const stats = {
+            totalTiles: this.width * this.height,
+            materials: {},
+            diversity: 0
+        };
+
+        // Count materials
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                const material = this.tiles[y][x].material;
+                stats.materials[material] = (stats.materials[material] || 0) + 1;
+            }
+        }
+
+        // Calculate diversity (Shannon diversity index)
+        const materialCount = Object.keys(stats.materials).length;
+        if (materialCount > 1) {
+            let diversity = 0;
+            for (const material in stats.materials) {
+                const proportion = stats.materials[material] / stats.totalTiles;
+                diversity -= proportion * Math.log(proportion);
+            }
+            stats.diversity = diversity / Math.log(materialCount); // Normalize to 0-1
+        }
+
+        return stats;
+    }
+
+    /**
+     * Get total tile count
+     * @returns {number} Total number of tiles
+     */
+    getTileCount() {
+        return this.width * this.height;
     }
 }
 

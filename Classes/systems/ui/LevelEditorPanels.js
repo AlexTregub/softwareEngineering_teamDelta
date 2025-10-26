@@ -12,7 +12,8 @@ class LevelEditorPanels {
       materials: null,
       tools: null,
       brush: null,
-      events: null  // NEW: Event editor panel
+      events: null,      // Event editor panel
+      properties: null   // NEW: Properties panel
     };
   }
 
@@ -134,11 +135,37 @@ class LevelEditorPanels {
       }
     });
 
+    // Properties Panel (NEW)
+    this.panels.properties = new DraggablePanel({
+      id: 'level-editor-properties',
+      title: 'Properties',
+      position: { x: window.width - 270, y: 405 }, // Right side, below events
+      size: { width: 200, height: 380 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 0,
+        items: [],
+        autoSizeToContent: true,
+        verticalPadding: 10,
+        horizontalPadding: 10,
+        contentSizeCallback: () => {
+          return this.levelEditor?.propertiesPanel ? this.levelEditor.propertiesPanel.getContentSize() : { width: 180, height: 360 };
+        }
+      },
+      behavior: {
+        draggable: true,
+        persistent: true,
+        constrainToScreen: true,
+        managedExternally: true
+      }
+    });
+
     // Add panels to the manager
     manager.panels.set('level-editor-materials', this.panels.materials);
     manager.panels.set('level-editor-tools', this.panels.tools);
     manager.panels.set('level-editor-brush', this.panels.brush);
     manager.panels.set('level-editor-events', this.panels.events);
+    manager.panels.set('level-editor-properties', this.panels.properties);
 
     // Add to LEVEL_EDITOR state visibility
     if (!manager.stateVisibility.LEVEL_EDITOR) {
@@ -148,7 +175,8 @@ class LevelEditorPanels {
       'level-editor-materials',
       'level-editor-tools',
       'level-editor-brush',
-      'level-editor-events'
+      'level-editor-events',
+      'level-editor-properties'
     );
 
     console.log('✅ Level Editor panels initialized and added to DraggablePanelManager');
@@ -322,6 +350,20 @@ class LevelEditorPanels {
     } else if (this.panels.events && this.panels.events.state.visible) {
       this.panels.events.render();
     }
+
+    // Properties Panel (NEW)
+    if (this.panels.properties && this.panels.properties.state.visible && !this.panels.properties.state.minimized) {
+      this.panels.properties.render((contentArea, style) => {
+        if (this.levelEditor.propertiesPanel) {
+          // Update panel data before rendering
+          this.levelEditor.propertiesPanel.update();
+          // Pass absolute coordinates and flag as panel content (no background)
+          this.levelEditor.propertiesPanel.render(contentArea.x, contentArea.y, { isPanelContent: true });
+        }
+      });
+    } else if (this.panels.properties && this.panels.properties.state.visible) {
+      this.panels.properties.render();
+    }
   }
 
   /**
@@ -352,12 +394,16 @@ class LevelEditorPanels {
       manager.removePanel('level-editor-materials');
       manager.removePanel('level-editor-tools');
       manager.removePanel('level-editor-brush');
+      manager.removePanel('level-editor-events');
+      manager.removePanel('level-editor-properties');
     }
 
     this.panels = {
       materials: null,
       tools: null,
-      brush: null
+      brush: null,
+      events: null,
+      properties: null
     };
   }
 }

@@ -125,6 +125,27 @@ class PropertiesPanel {
     }
     
     /**
+     * Update panel data (refresh statistics)
+     * Call this when terrain changes to update tile counts
+     */
+    update() {
+        // Force re-calculation of statistics
+        // This is a no-op but allows external code to signal updates
+        // The getStatistics() method will fetch fresh data
+    }
+    
+    /**
+     * Get content size for DraggablePanel integration
+     * @returns {Object} Size object with width and height
+     */
+    getContentSize() {
+        return {
+            width: 180,
+            height: 360
+        };
+    }
+    
+    /**
      * Get formatted property display
      * @returns {Array<Object>} Display items with label and value
      */
@@ -160,34 +181,39 @@ class PropertiesPanel {
      * Render properties panel
      * @param {number} x - X position
      * @param {number} y - Y position
+     * @param {Object} options - Render options
+     * @param {boolean} options.isPanelContent - True if rendering as panel content (no background)
      */
-    render(x, y) {
+    render(x, y, options = {}) {
         // Check if p5.js is available
         if (typeof push === 'undefined') return;
 
         push();
 
-        const panelWidth = 200;
-        const panelHeight = 400;
+        const panelWidth = 180;
+        const panelHeight = 360;
         const lineHeight = 20;
         const padding = 10;
 
-        // Panel background
-        fill(40, 40, 40, 230);
-        stroke(100, 150, 255);
-        strokeWeight(2);
-        rect(x, y, panelWidth, panelHeight, 5);
+        // Only render background if NOT panel content
+        if (!options.isPanelContent) {
+            // Panel background
+            fill(40, 40, 40, 230);
+            stroke(100, 150, 255);
+            strokeWeight(2);
+            rect(x, y, panelWidth, panelHeight, 5);
 
-        // Title
-        fill(100, 150, 255);
-        noStroke();
-        textAlign(CENTER, TOP);
-        textSize(14);
-        text('Properties', x + panelWidth / 2, y + padding);
+            // Title
+            fill(100, 150, 255);
+            noStroke();
+            textAlign(CENTER, TOP);
+            textSize(14);
+            text('Properties', x + panelWidth / 2, y + padding);
+        }
 
         // Get display items
         const items = this.getDisplayItems();
-        let currentY = y + padding + lineHeight + 5;
+        let currentY = y + (options.isPanelContent ? 0 : padding + lineHeight + 5);
 
         // Render each property
         fill(255);

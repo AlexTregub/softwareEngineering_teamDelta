@@ -606,6 +606,52 @@ class EventManager {
     return true;
   }
   
+  /**
+   * Export events and triggers to JSON
+   * @param {boolean} [includeActiveState=false] - Whether to include active/paused states
+   * @returns {string} - JSON string with events and triggers
+   */
+  exportToJSON(includeActiveState = false) {
+    const events = [];
+    const triggers = [];
+    
+    // Export events
+    for (const [id, eventConfig] of this.events) {
+      const exported = { ...eventConfig };
+      
+      // Remove functions (not serializable)
+      delete exported.onTrigger;
+      delete exported.onComplete;
+      delete exported.onPause;
+      delete exported.update;
+      
+      // Optionally remove active state
+      if (!includeActiveState) {
+        delete exported.active;
+        delete exported.paused;
+      }
+      
+      events.push(exported);
+    }
+    
+    // Export triggers
+    for (const [id, triggerConfig] of this.triggers) {
+      const exported = { ...triggerConfig };
+      
+      // Remove internal state
+      delete exported._startTime;
+      delete exported._lastCheckTime;
+      
+      triggers.push(exported);
+    }
+    
+    return JSON.stringify({
+      events,
+      triggers,
+      exportedAt: new Date().toISOString()
+    }, null, 2);
+  }
+  
   // ===========================
   // ENABLE/DISABLE CONTROL
   // ===========================

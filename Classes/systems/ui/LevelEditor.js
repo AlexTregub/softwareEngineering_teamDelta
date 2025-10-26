@@ -61,12 +61,15 @@ class LevelEditor {
     
     // Create event editor panel
     this.eventEditor = new EventEditorPanel();
+    this.eventEditor.initialize(); // Connect to EventManager
     
     // Create minimap
     this.minimap = new MiniMap(terrain, 200, 200);
     
     // Create properties panel
     this.propertiesPanel = new PropertiesPanel();
+    this.propertiesPanel.setTerrain(terrain);
+    this.propertiesPanel.setEditor(this.editor);
     
     // Create grid overlay
     this.gridOverlay = new GridOverlay(terrain);
@@ -170,6 +173,11 @@ class LevelEditor {
         this.editor.paint(gridX, gridY);
         this.notifications.show(`Painted ${material} at (${gridX}, ${gridY})`);
         
+        // Notify minimap of terrain edit (debounced cache invalidation)
+        if (this.minimap && this.minimap.notifyTerrainEditStart) {
+          this.minimap.notifyTerrainEditStart();
+        }
+        
         // Update undo/redo states
         this.toolbar.setEnabled('undo', this.editor.canUndo());
         this.toolbar.setEnabled('redo', this.editor.canRedo());
@@ -179,6 +187,11 @@ class LevelEditor {
         this.editor.selectMaterial(material);
         this.editor.fill(gridX, gridY);
         this.notifications.show(`Filled region with ${material}`);
+        
+        // Notify minimap of terrain edit (immediate invalidation for fill)
+        if (this.minimap && this.minimap.invalidateCache) {
+          this.minimap.invalidateCache();
+        }
         
         // Update undo/redo states
         this.toolbar.setEnabled('undo', this.editor.canUndo());
@@ -205,6 +218,11 @@ class LevelEditor {
           this.notifications.show('Undid last action');
           this.toolbar.setEnabled('undo', this.editor.canUndo());
           this.toolbar.setEnabled('redo', this.editor.canRedo());
+          
+          // Invalidate minimap cache after undo
+          if (this.minimap && this.minimap.invalidateCache) {
+            this.minimap.invalidateCache();
+          }
         }
         break;
         
@@ -214,6 +232,11 @@ class LevelEditor {
           this.notifications.show('Redid last action');
           this.toolbar.setEnabled('undo', this.editor.canUndo());
           this.toolbar.setEnabled('redo', this.editor.canRedo());
+          
+          // Invalidate minimap cache after redo
+          if (this.minimap && this.minimap.invalidateCache) {
+            this.minimap.invalidateCache();
+          }
         }
         break;
     }
@@ -250,7 +273,12 @@ class LevelEditor {
     this.editor.selectMaterial(material);
     this.editor.paint(gridX, gridY);
     
-    // Update undo/redo states
+    // Notify minimap of terrain edit (debounced cache invalidation)
+    if (this.minimap && this.minimap.scheduleInvalidation) {
+      this.minimap.scheduleInvalidation();
+    }
+    
+    // Update undo/redo buttons
     this.toolbar.setEnabled('undo', this.editor.canUndo());
     this.toolbar.setEnabled('redo', this.editor.canRedo());
   }
@@ -290,12 +318,6 @@ class LevelEditor {
     // NEW: Render draggable panels (replaces old hardcoded panel rendering)
     if (this.draggablePanels) {
       this.draggablePanels.render();
-    }
-    
-    // Properties panel (right side)
-    if (this.propertiesPanel) {
-      const propsX = g_canvasX - 220;
-      this.propertiesPanel.render(propsX, 10);
     }
     
     // Minimap (bottom right)

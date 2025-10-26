@@ -517,24 +517,49 @@ class EventEditorPanel {
    * @private
    */
   _exportEvents() {
-    const events = this.eventManager.getAllEvents();
-    const triggers = Array.from(this.eventManager.triggers.values());
-    
-    const config = {
-      events: events,
-      triggers: triggers
-    };
-    
-    const json = JSON.stringify(config, null, 2);
-    console.log('Event Configuration:\n', json);
-    
-    // Copy to clipboard if available
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(json).then(() => {
-        console.log('✅ Configuration copied to clipboard');
-      }).catch(err => {
-        console.error('Failed to copy to clipboard:', err);
-      });
+    try {
+      // Use EventManager's exportToJSON method
+      const json = this.eventManager.exportToJSON(false);
+      
+      console.log('Event Configuration:\n', json);
+      
+      // Copy to clipboard if available
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        navigator.clipboard.writeText(json).then(() => {
+          console.log('✅ Configuration copied to clipboard');
+        }).catch(err => {
+          console.error('Failed to copy to clipboard:', err);
+        });
+      }
+      
+      // Also trigger download
+      this._downloadJSON(json, 'events-config.json');
+      
+      return { type: 'event_exported', success: true };
+    } catch (error) {
+      console.error('Export failed:', error);
+      return { type: 'event_exported', success: false, error: error.message };
+    }
+  }
+  
+  /**
+   * Download JSON as file
+   * @private
+   */
+  _downloadJSON(json, filename) {
+    try {
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      console.log('✅ Downloaded:', filename);
+    } catch (error) {
+      console.error('Download failed:', error);
     }
   }
   
@@ -543,8 +568,44 @@ class EventEditorPanel {
    * @private
    */
   _importEvents() {
-    // TODO: Implement JSON import UI (dialog with textarea)
-    console.log('Import events - UI coming soon');
+    // Create file input for JSON upload
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const json = event.target.result;
+          const success = this.eventManager.loadFromJSON(json);
+          
+          if (success) {
+            console.log('✅ Events imported successfully');
+            this.selectedEventId = null;
+            this.editMode = null;
+            return { type: 'event_imported', success: true };
+          } else {
+            console.error('❌ Failed to import events');
+            return { type: 'event_imported', success: false };
+          }
+        } catch (error) {
+          console.error('Import error:', error);
+          return { type: 'event_imported', success: false, error: error.message };
+        }
+      };
+      
+      reader.onerror = (error) => {
+        console.error('File read error:', error);
+      };
+      
+      reader.readAsText(file);
+    };
+    
+    input.click();
   }
   
   /**
