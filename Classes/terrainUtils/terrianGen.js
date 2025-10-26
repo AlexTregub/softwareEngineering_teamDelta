@@ -2,6 +2,7 @@ let GRASS_IMAGE;
 let DIRT_IMAGE;
 let STONE_IMAGE;
 let MOSS_IMAGE;
+let FARMLAND_IMAGE;
 
 let xCount = 32;
 let yCount = 32;
@@ -192,31 +193,32 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
 
   //// Access/usage
-  randomizeMaterial() { // Will select random material for current tile. No return.
-    let noiseScale = 0.1
-    let noiseX = noiseScale * this._x;
-    let noiseY = noiseScale * this._y;   
+  // Unused...
+  // randomizeMaterial() { // Will select random material for current tile. No return.
+  //   let noiseScale = 0.1
+  //   let noiseX = noiseScale * this._x;
+  //   let noiseY = noiseScale * this._y;   
 
-    let noiseValue = noise(noiseX,noiseY);
-    for (let checkMat in TERRAIN_MATERIALS) {          
-      if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
-        this._materialSet = checkMat;
-        this.setMaterial();
-        this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
-        return;
-      }
-    }
-  }
+  //   let noiseValue = noise(noiseX,noiseY);
+  //   for (let checkMat in TERRAIN_MATERIALS) {          
+  //     if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
+  //       // this._materialSet = checkMat; // What the fuck was I thinking....
+  //       this.setMaterial(checkMat);
+  //       this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
+  //       return;
+  //     }
+  //   }
+  // }
 
-  randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
-    let selected = random(); // [0-1)
-    for (let checkMat in TERRAIN_MATERIALS) {
-      if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
-        this._materialSet = checkMat;
-        return;
-      }
-    }
-  }
+  // randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
+  //   let selected = random(); // [0-1)
+  //   for (let checkMat in TERRAIN_MATERIALS) {
+  //     if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
+  //       this._materialSet = checkMat;
+  //       return;
+  //     }
+  //   }
+  // }
 
   randomizePerlin(pos) {
     let newPos = [
@@ -250,15 +252,31 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 
   assignWeight(){ //Sets weight depending on the material
-    if(this._materialSet == 'grass'){
-      this._weight = 1;
+    switch(this._materialSet){
+      case 'grass':
+        this._weight = 1;
+        break;
+      case 'dirt':
+        this._weight = 3;
+        break;
+      case 'stone':
+        this._weight = 100;
+        break;
+      default:
+        this._weight = 10;
+        break;
     }
-    else if(this._materialSet == 'dirt'){
-      this._weight = 3;
-    }
-    else if(this._materialSet == 'stone'){
-      this._weight = 100;
-    }
+    
+    // Old def...
+    // if(this._materialSet == 'grass'){
+    //   this._weight = 1;
+    // }
+    // else if(this._materialSet == 'dirt'){
+    //   this._weight = 3;
+    // }
+    // else if(this._materialSet == 'stone'){
+    //   this._weight = 100;
+    // }
   }
 
   // render() { // Render, previously draw
