@@ -10,9 +10,12 @@
     <link rel="icon" type="image/x-icon" href="Images/favicon.ico">
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
+    
+    <script src="Classes/managers/soundManager.js"></script>
 
         <!-- Type Checks -->
      <script src="debug/typeChecks/vectorCheck.js"></script>
+     <script src="Classes/systems/shapes/rect.js"> </script>
 
     <!-- Rendering System - Load First -->
     <script src="Classes/rendering/EntityLayerRenderer.js"></script>
@@ -23,19 +26,29 @@
     <script src="Classes/rendering/EntityDelegationBuilder.js"></script>
     <script src="Classes/rendering/UIController.js"></script>
     <script src="Classes/rendering/UIDebugManager.js"></script>
-    <script src="Classes/rendering/UIDebugIntegration.js"></script>
     <script src="Classes/rendering/RenderLayerManager.js"></script>
     <script src="Classes/controllers/RenderController.js"></script>
     <script src="Classes/rendering/EntityAccessor.js"></script>
     <script src="Classes/rendering/Sprite2d.js"></script>
     
     <!-- Base Systems - Load Second -->
+    <script src="Classes/systems/SpatialGrid.js"></script>
+    <script src="Classes/managers/SpatialGridManager.js"></script>
     <script src="Classes/containers/StatsContainer.js"></script>
     <script src="Classes/containers/Entity.js"></script>
     <script src="Classes/systems/text/textRenderer.js"></script>
 
+            <!-- Emmanuel's addition -->
+        <!-- ant tasks addition -->
+    <script src="Classes/tasks/tasks.js"></script> 
+    <script src="Classes/tasks/TaskUI.js"></script> 
+
     <!-- Core Systems -->
+    <script src="Classes/systems/CoordinateConverter.js"></script>
+    <script src="Classes/systems/MouseCrosshair.js"></script>
+    <script src="Classes/systems/ResourceNode.js"></script>
     <script src="Classes/managers/ResourceSystemManager.js"></script>
+    <script src="Classes/managers/BuildingManager.js"></script>
     <script src="Classes/resource.js"></script>
     <script src="Classes/resources.js"></script>
     <script src="Classes/managers/ResourceManager.js"></script>
@@ -43,24 +56,27 @@
     <script src="Classes/systems/Button.js"></script>
     
     <!-- Universal Button Group System -->
-    <script src="Classes/systems/ui/UIObjectPoolManager.js"></script>
-    <script src="Classes/systems/ui/UIQuadTree.js"></script>
     <script src="Classes/systems/ui/UIVisibilityCuller.js"></script>
-    <script src="Classes/systems/ui/ButtonGroupConfigLoader.js"></script>
-    <script src="Classes/systems/ui/ButtonGroup.js"></script>
-    <script src="Classes/systems/ui/ButtonGroupManager.js"></script>
-    <script src="Classes/systems/ui/UniversalButtonSystem.js"></script>
-    <script src="Classes/systems/ui/GameActionFactory.js"></script>
     
     <!-- Draggable Panel System -->
     <script src="Classes/systems/ui/DraggablePanel.js"></script>
     <script src="Classes/systems/ui/DraggablePanelManager.js"></script>
     <script src="Classes/systems/ui/DraggablePanelSystem.js"></script>
-    <script src="Classes/systems/ui/AntControlPanel.js"></script>
     <script src="Classes/systems/ui/PresentationPanel.js"></script>
     
-    <!-- UI Selection Box System -->
-    <script src="Classes/systems/ui/UISelectionBoxIntegration.js"></script>
+    <!-- Queen Control Panel -->
+    <script src="Classes/systems/ui/QueenControlPanel.js"></script>
+    
+    <!-- Combat Systems -->
+    <script src="Classes/systems/combat/FireballSystem.js"></script>
+  <script src="Classes/systems/combat/LightningSystem.js"></script>
+    
+    <!-- Brush Tools -->
+  <script src="Classes/systems/tools/BrushBase.js"></script>
+    <script src="Classes/systems/tools/EnemyAntBrush.js"></script>
+    <script src="Classes/systems/tools/ResourceBrush.js"></script>
+    <script src="Classes/systems/tools/BuildingBrush.js"></script>
+    <script src="Classes/systems/tools/LightningAimBrush.js"></script>
     
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
@@ -70,13 +86,13 @@
 
     <!-- Controller System - Load all controllers before ant classes -->
     <script src="Classes/controllers/CameraController.js"></script>
+    <script src="Classes/controllers/CameraManager.js"></script>
     <script src="Classes/controllers/MovementController.js"></script>
     <script src="Classes/controllers/TaskManager.js"></script>
     <script src="Classes/controllers/CombatController.js"></script>
     <script src="Classes/controllers/TransformController.js"></script>
     <script src="Classes/controllers/SelectionController.js"></script>
     <script src="Classes/controllers/TerrainController.js"></script>
-    <script src="Classes/controllers/InteractionController.js"></script>
     <script src="Classes/controllers/MouseInputController.js"></script>
     <script src="Classes/controllers/KeyboardInputController.js"> </script>
     <script src="Classes/controllers/SelectionBoxController.js"></script>
@@ -88,60 +104,70 @@
 
     <!-- <script src="Classes/coordinateSystem.js"></script> -->
     <script src="Classes/containers/DropoffLocation.js"></script>
+    <script src="Classes/systems/ui/dropoffButton.js"></script>
+    <script src="Classes/systems/ui/verticalButtonList.js"></script>
+    <script src="Classes/systems/ui/pauseMenu.js"></script>
+    <script src="debug/menu_debug.js"></script>
+   
     
     <!-- Universal Button System Integration -->
     <script src="Classes/systems/ui/dropoffButton_universal.js"></script>
-    <script src="Classes/systems/ui/spawnGreenLeafButton_universal.js"></script>
     
     <!-- Legacy fallbacks (commented out - kept for reference) -->
     <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
     <!-- <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script> -->
     <!-- <script src="Classes/systems/ui/spawnControlsUI.js"></script> -->
     
-    <script src="Classes/systems/ui/verticalButtonList.js"></script>
     <script src="Classes/systems/ui/menu.js"></script>
     <script src="debug/menu_debug.js"></script>
 
    <!-- Entity Debugging System -->
    <script src="debug/UniversalDebugger.js"></script>
    <script src="debug/EntityDebugManager.js"></script>
+   <script src="debug/coordinateDebugOverlay.js"></script>
    <script src="debug/debuggerDemo.js"></script>
     <script src="debug/selectionBoxDebug.js"></script>
     <script src="debug/selectionRenderDebug.js"></script>
-    <script src="debug/mouseEventDebug.js"></script>
-    <script src="debug/selectionStateMachine.js"></script>    <!-- Ant Classes - Load in proper order -->
+    <script src="debug/selectionStateMachine.js"></script>
     <script src="Classes/ants/JobComponent.js"></script>
+    <script src="Classes/ants/GatherState.js"></script>
+    <script src="Classes/systems/GatherDebugRenderer.js"></script>
     <script src="Classes/ants/ants.js"></script>
+    <script src="Classes/ants/antBrain.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
     <script src="Classes/ants/Queen.js"></script>
     <script src="debug/commandLine.js"></script>
     <script src="debug/verboseLogger.js"></script>
     <script src="debug/globalTestRunner.js"></script>
     <script src="debug/testing.js"></script>
-    
-    <!-- Resource System Integration Test -->
-    <script src="test/integration/resourceSystemManagerIntegration.test.js"></script>
-    
-    <!-- Shareholder Demo System -->
-    <script src="Classes/testing/ShareholderDemo.js"></script>
 
     <!-- Testing suites, comment these out for final build -->
-    <script src="test/unit/selectionBox.test.js"></script>
-    <script src="test/unit/selectionBox.integration.test.js"></script>
-    <script src="test/unit/controllerIntegration.browser.test.js"></script>
-    <script src="test/unit/UISelectionBoxTest.js"></script>
     <script src="debug/tracing.js"></script>
-    <script src="test/integration/manual-highlight-debug.js"></script>
 
     <script src="Classes/terrainUtils/chunk.js"></script>
     <script src="Classes/terrainUtils/coordinateSystem.js"></script>
     <script src="Classes/terrainUtils/grid.js"></script>
     <script src="Classes/terrainUtils/gridTerrain.js"></script>
     <script src="Classes/terrainUtils/terrianGen.js"></script>
+    <script src="Classes/terrainUtils/customLevels.js"></script>
+    
+    <!-- Map Management -->
+    <script src="Classes/managers/MapManager.js"></script>
+    
+    <script src="debug/test_helpers.js"></script>
+    <script src="debug/terrainSystemTests.js"></script>
+    <script src="debug/coordinateDebug.js"></script>
+    <script src="debug/tileInspector.js"></script>
+    <script src="debug/terrainDetectionTest.js"></script>
+    <script src="debug/terrainSpeedTest.js"></script>
+    <script src="debug/terrainIndicatorTest.js"></script>
+    <script src="debug/mossStoneTest.js"></script>
+    <script src="debug/coordinateSystemTest.js"></script>
+    <script src="debug/terrainGridDebug.js"></script>
   </head>
 
   <body>
-    <script src="demo_ant_enhancements.js"></script>
     <script src="sketch.js"></script>
+    <!-- Run in console after load -->
   </body>
 </html>

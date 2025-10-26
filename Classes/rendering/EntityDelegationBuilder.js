@@ -231,9 +231,17 @@ class EntityDelegationBuilder {
     
     const className = entityClass.name;
     this.stats.classesWithDelegation.add(className);
-    this.stats.methodsPerClass[className] = 0;
+    if (!this.stats.methodsPerClass[className]) {
+      this.stats.methodsPerClass[className] = 0;
+    }
     
     for (const [namespaceName, methodList] of Object.entries(namespaceConfig)) {
+      // Track statistics for each method during creation (not on access)
+      methodList.forEach(methodName => {
+        this.stats.totalDelegatedMethods++;
+        this.stats.methodsPerClass[className]++;
+      });
+      
       Object.defineProperty(entityClass.prototype, namespaceName, {
         get: function() {
           if (!this[`_${namespaceName}Namespace`]) {
@@ -250,10 +258,6 @@ class EntityDelegationBuilder {
                   return null;
                 }
               };
-              
-              // Update statistics
-              EntityDelegationBuilder.stats.totalDelegatedMethods++;
-              EntityDelegationBuilder.stats.methodsPerClass[className]++;
             });
             
             this[`_${namespaceName}Namespace`] = namespace;

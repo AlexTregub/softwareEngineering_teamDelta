@@ -17,8 +17,9 @@ let g_mapRendered
 // window.menuLayoutData = { debugRects:[], groupRects:[], centers:[], debugImgs:[], headerTop }
 // global vertical offset (px) to move the menu up/down. Negative moves up.
 // default offset and persisted storage key
-const DEFAULT_MENU_YOFFSET = -100;
+const DEFAULT_MENU_YOFFSET = 0;
 const MENU_YOFFSET_KEY = 'antgame.menuYOffset';
+
 
 // load persisted offset if available, otherwise fall back to default
 let menuYOffset = (function(){
@@ -44,13 +45,14 @@ const initialMenuYOffset = DEFAULT_MENU_YOFFSET;
 const MENU_CONFIGS = {
   MENU: [
     { x: -10, y: -200, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
+    { x: -10, y: -100, w: 220, h: 80, text: "Moss & Stone Level", style: 'info', action: () => switchToLevel('mossStone') },
     { x: -10, y: -10,  w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
     { x: -10, y: 70,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
     { x: -60, y: 100, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
     { x: 0,   y: 100,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
-    { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => console.log("Audio Settings") },
+    { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => showAudioSettings() },
     { x: -10, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
     { x: -10, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => console.log("Controls") },
     { x: 60,   y: 148,  w: 145, h: 70, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
@@ -78,13 +80,18 @@ function menuPreload(){
 function initializeMenu() {
   titleTargetY = g_canvasY / 2 - 150 + menuYOffset;
   loadButtons();
+  soundManager.play("bgMusic");
   
   // Register callback to reload buttons when state changes
   GameState.onStateChange((newState, oldState) => {
+    if (newState === "PLAYING") {
+      soundManager.stop("bgMusic", true); // Use fade-out when transitioning to gameplay
+    }
     if (newState === "MENU" || newState === "OPTIONS") {
       loadButtons();
     }
   });
+  
 
   // Debug system initialization disabled
   // if (window.initializeMenuDebug) window.initializeMenuDebug();
@@ -104,6 +111,7 @@ function loadButtons() {
   const layout = container.buildFromConfigs(configs);
   menuButtons = layout.buttons;
   menuHeader = layout.header || null;
+  
   // publish layout debug data for the debug module (if present)
   try {
     window.menuLayoutData = {
@@ -126,6 +134,7 @@ function loadButtons() {
 function startGameTransition() {
     // Only start fade out, do NOT switch state yet
     GameState.startFadeTransition("out");
+    soundManager.stop("bgMusic");
 }
 
 // Main menu render function
@@ -145,7 +154,7 @@ function drawMenu() {
     // If we have a header laid out by the container, draw it centered at its computed position.
     if (menuHeader && menuHeader.img) {
       const hx = g_canvasX / 2;
-      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset + 70;
+      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset;
       image(menuHeader.img, hx, hy, menuHeader.w + 150, menuHeader.h + 100);
     } else if (menuImage) {
       // fallback to previous large logo behavior if header wasn't provided
@@ -179,6 +188,7 @@ function updateMenu() {
         } else {
           // Fade-in done → stop fading
           GameState.stopFadeTransition();
+          
         }
       }
     }
@@ -190,7 +200,12 @@ function updateMenu() {
 // Render complete menu system
 function renderMenu() {
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
-    drawMenu()
+    drawMenu();
+    
+    // Draw audio settings overlay if active
+    if (audioSettingsActive) {
+      drawAudioSettings();
+    }
     
     const fadeAlpha = GameState.getFadeAlpha();
     if (GameState.isFadingTransition() && fadeAlpha > 0) {
@@ -200,6 +215,134 @@ function renderMenu() {
     return true;
   }
   return false;
+}
+
+// ============================================================================
+// AUDIO SETTINGS SYSTEM
+// ============================================================================
+
+let audioSettingsActive = false;
+let musicSlider, sfxSlider, systemSlider;
+
+function showAudioSettings() {
+  audioSettingsActive = true;
+  
+  // Create sliders if they don't exist
+  if (!musicSlider) {
+    const centerX = g_canvasX / 2;
+    const startY = g_canvasY / 2 - 80;
+    
+    musicSlider = createSlider(0, 100, soundManager.getCategoryVolume('Music') * 100);
+    musicSlider.position(centerX - 100, startY);
+    musicSlider.size(200);
+    musicSlider.style('z-index', '1000');
+    
+    sfxSlider = createSlider(0, 100, soundManager.getCategoryVolume('SoundEffects') * 100);
+    sfxSlider.position(centerX - 100, startY + 60);
+    sfxSlider.size(200);
+    sfxSlider.style('z-index', '1000');
+    
+    systemSlider = createSlider(0, 100, soundManager.getCategoryVolume('SystemSounds') * 100);
+    systemSlider.position(centerX - 100, startY + 120);
+    systemSlider.size(200);
+    systemSlider.style('z-index', '1000');
+  } else {
+    // Update slider values to reflect current saved settings
+    musicSlider.value(soundManager.getCategoryVolume('Music') * 100);
+    sfxSlider.value(soundManager.getCategoryVolume('SoundEffects') * 100);
+    systemSlider.value(soundManager.getCategoryVolume('SystemSounds') * 100);
+    
+    // Show existing sliders
+    musicSlider.show();
+    sfxSlider.show();
+    systemSlider.show();
+  }
+  
+}
+
+function hideAudioSettings() {
+  audioSettingsActive = false;
+  if (musicSlider) {
+    musicSlider.hide();
+    sfxSlider.hide();
+    systemSlider.hide();
+  }
+}
+
+function drawAudioSettings() {
+  // Semi-transparent dark overlay
+  fill(0, 0, 0, 200);
+  rect(0, 0, g_canvasX, g_canvasY);
+  
+  // Settings panel background
+  const panelW = 500;
+  const panelH = 400;
+  const panelX = g_canvasX / 2 - panelW / 2;
+  const panelY = g_canvasY / 2 - panelH / 2;
+  
+  fill(40, 40, 40);
+  stroke(100, 150, 255);
+  strokeWeight(3);
+  rect(panelX, panelY, panelW, panelH, 10);
+  
+  // Title
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  text('Audio Settings', g_canvasX / 2, panelY + 40);
+  
+  // Update volumes from sliders
+  if (musicSlider) {
+    soundManager.setCategoryVolume('Music', musicSlider.value() / 100);
+    soundManager.setCategoryVolume('SoundEffects', sfxSlider.value() / 100);
+    soundManager.setCategoryVolume('SystemSounds', systemSlider.value() / 100);
+  }
+  
+  // Labels
+  const labelX = g_canvasX / 2 - 120;
+  const startY = g_canvasY / 2 - 80;
+  
+  textAlign(RIGHT, CENTER);
+  textSize(20);
+  fill(200, 200, 255);
+  text('Music Volume:', labelX, startY + 10);
+  text('Sound Effects:', labelX, startY + 70);
+  text('System Sounds:', labelX, startY + 130);
+  
+  // Volume percentages
+  textAlign(LEFT, CENTER);
+  const valueX = g_canvasX / 2 + 120;
+  fill(255, 255, 100);
+  if (musicSlider) {
+    text(musicSlider.value() + '%', valueX, startY + 10);
+    text(sfxSlider.value() + '%', valueX, startY + 70);
+    text(systemSlider.value() + '%', valueX, startY + 130);
+  }
+  
+  // Close button
+  const btnW = 120;
+  const btnH = 40;
+  const btnX = g_canvasX / 2 - btnW / 2;
+  const btnY = panelY + panelH - 70;
+  
+  // Check if mouse is over close button
+  const isHovering = mouseX > btnX && mouseX < btnX + btnW && 
+                     mouseY > btnY && mouseY < btnY + btnH;
+  
+  fill(isHovering ? color(80, 180, 80) : color(50, 150, 50));
+  stroke(255);
+  strokeWeight(2);
+  rect(btnX, btnY, btnW, btnH, 5);
+  
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  text('Close', g_canvasX / 2, btnY + btnH / 2);
+  
+  // Handle close button click
+  if (isHovering && mouseIsPressed) {
+    hideAudioSettings();
+  }
 }
 
 

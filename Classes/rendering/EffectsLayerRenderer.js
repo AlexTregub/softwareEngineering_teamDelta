@@ -328,8 +328,23 @@ class EffectsLayerRenderer {
     for (const particle of effect.particles) {
       if (particle.dead) continue;
       
+      // Convert world position to screen position using terrain's coordinate converter
+      let screenX = particle.x;
+      let screenY = particle.y;
+      
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+        // Convert pixel position to tile position
+        const tileX = particle.x / TILE_SIZE;
+        const tileY = particle.y / TILE_SIZE;
+        
+        // Use terrain's converter to get screen position
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+        screenX = screenPos[0];
+        screenY = screenPos[1];
+      }
+      
       push();
-      translate(particle.x, particle.y);
+      translate(screenX, screenY);
       
       if (particle.rotation) {
         rotate(particle.rotation);
@@ -948,6 +963,40 @@ class EffectsLayerRenderer {
   }
 
   /**
+   * Convenience: small localized flash effect (particle burst + optional screen flash)
+   * Kept for backwards compatibility with code that calls EffectsRenderer.flash(x,y,opts)
+   */
+  flash(x, y, options = {}) {
+    try {
+      // Spawn a visible particle burst at the position
+      this.spawnParticleBurst(x, y, { count: options.count || 10, color: options.color || [255,255,255], size: options.size || 6 });
+
+      // Optional screen flash (short full-screen flash) if requested or intensity provided
+      if (options.screen || options.intensity) {
+        this.addVisualEffect({ type: 'screen_flash', color: options.color || [255,255,255], duration: options.duration || 150 });
+      }
+    } catch (e) {
+      console.warn('⚠️ EffectsRenderer.flash failed:', e);
+    }
+    return true;
+  }
+
+  /**
+   * Convenience: spawn a burst of impact particles at a point.
+   * Backwards-compat for EffectsRenderer.spawnParticleBurst(x,y,opts)
+   */
+  spawnParticleBurst(x, y, options = {}) {
+    try {
+      const count = options.count || 12;
+      const opt = { x, y, particleCount: count, color: options.color, size: options.size };
+      return this.addEffect('IMPACT_SPARKS', opt);
+    } catch (e) {
+      console.warn('⚠️ EffectsRenderer.spawnParticleBurst failed:', e);
+      return null;
+    }
+  }
+
+  /**
    * ADD VISUAL EFFECT - Specialized visual effects (different from particles)
    * Handles UI animations, screen effects, and non-particle visuals
    */
@@ -997,6 +1046,41 @@ class EffectsLayerRenderer {
 
   getStats() {
     return { ...this.stats };
+  }
+
+  /**
+   * Diagnostic helpers for runtime inspection
+   */
+  getActiveParticlesCount() {
+    return this.stats.activeParticles || (this.activeParticleEffects ? this.activeParticleEffects.reduce((acc, e) => acc + (e.particles ? e.particles.length : 0), 0) : 0);
+  }
+
+  getActiveEffectsSummary() {
+    return {
+      particleEffects: this.activeParticleEffects ? this.activeParticleEffects.length : 0,
+      visualEffects: this.activeVisualEffects ? this.activeVisualEffects.length : 0,
+      audioEffects: this.activeAudioEffects ? this.activeAudioEffects.length : 0,
+      screenEffects: {
+        shake: this.screenEffects.shake.active,
+        fade: this.screenEffects.fade.active,
+        flash: this.screenEffects.flash.active
+      }
+    };
+  }
+
+  getConfig() {
+    return { ...this.config };
+  }
+
+  setConfig(newCfg) {
+    this.updateConfig(newCfg);
+    return this.getConfig();
+  }
+
+  toggleParticles(enabled) {
+    if (typeof enabled === 'boolean') this.config.enableParticles = enabled;
+    else this.config.enableParticles = !this.config.enableParticles;
+    return this.config.enableParticles;
   }
 
   clearAllEffects() {

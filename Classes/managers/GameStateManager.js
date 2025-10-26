@@ -172,3 +172,8 @@ if (typeof window !== 'undefined') {
 } else if (typeof global !== 'undefined') {
   global.GameState = GameState;
 }
+
+// Export for Node.js compatibility
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = GameStateManager;
+}

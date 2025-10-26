@@ -47,8 +47,9 @@ class UIController {
       // Enable performance overlay by default in development
       this.uiRenderer.debugUI.performanceOverlay.enabled = true;
       
-      if (typeof globalThis.logNormal === 'function') {
-        globalThis.logNormal('UIController initialized successfully');
+      const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+      if (globalObj && typeof globalObj.logNormal === 'function') {
+        globalObj.logNormal('UIController initialized successfully');
       } else {
         console.log('UIController initialized successfully');
       }
@@ -66,8 +67,9 @@ class UIController {
   setupKeyboardControls() {
     // Note: Keyboard integration is handled via g_keyboardController.onKeyPress() in sketch.js setup()
     // The handleKeyPress method below processes the actual key combinations
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
+    if (globalObj && typeof globalObj.logNormal === 'function') {
+      globalObj.logNormal('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
     } else {
       console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
     }
@@ -148,7 +150,8 @@ class UIController {
     }
 
     // Show context menu on right click
-    if (button === RIGHT || button === 2) {
+    const RIGHT_BUTTON = typeof RIGHT !== 'undefined' ? RIGHT : 2;
+    if (button === RIGHT_BUTTON || button === 2) {
       const contextItems = this.getContextMenuItems(x, y);
       if (contextItems.length > 0) {
         this.uiRenderer.showContextMenu(contextItems, x, y);
@@ -284,7 +287,7 @@ class UIController {
    */
   togglePerformanceOverlay() {
     // Use existing PerformanceMonitor system
-    if (g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
+    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
       const currentState = g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled;
       g_performanceMonitor.setDebugDisplay(!currentState);
       console.log('UIController: Performance Monitor', !currentState ? 'ENABLED' : 'DISABLED');
@@ -361,7 +364,7 @@ class UIController {
    * @see {@link docs/api/UIController.md#startGame} Complete documentation
    */
   startGame() {
-    if (GameState && GameState.startGame) {
+    if (typeof GameState !== 'undefined' && GameState && GameState.startGame) {
       console.log('UIController: Starting game (MENU -> PLAYING state)');
       GameState.startGame();
     } else {

@@ -19,6 +19,8 @@ class Sprite2D {
     this.pos = pos.copy ? pos.copy() : createVector(pos.x, pos.y); // p5.Vector
     this.size = size.copy ? size.copy() : createVector(size.x, size.y); // p5.Vector
     this.rotation = rotation;
+    this.flipX = false;
+    this.flipY = false;
   }
 
   setImage(img) { this.img = img; }
@@ -37,16 +39,36 @@ class Sprite2D {
       return; // Don't render if no image
     }
     
+    // Convert world position (pixels) to screen position using terrain's coordinate converter
+    let screenX = this.pos.x;
+    let screenY = this.pos.y;
+    
+    // Use terrain's coordinate system if available (syncs entities with terrain camera)
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Entity positions are already tile-centered (+0.5 applied in Entity constructor)
+      // GridTerrain works in tile coordinates and handles screen conversion
+      const tileX = this.pos.x / TILE_SIZE;
+      const tileY = this.pos.y / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
     push();
-    translate(this.pos.x + this.size.x / 2, this.pos.y + this.size.y / 2);
-    rotate(radians(this.rotation));
+    // Use CENTER mode for proper flipping/rotation around sprite center
     imageMode(CENTER);
+    // Translate to center of sprite (screenX/Y is top-left, add half size for center)
+    translate(screenX + this.size.x / 2, screenY + this.size.y / 2);
+    scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
+    rotate(radians(this.rotation));
     
     // Apply opacity if set
     if (this.alpha && this.alpha < 255) {
       tint(255, this.alpha);
     }
-    
+    // Render sprite centered at origin (position is now center)
     image(this.img, 0, 0, this.size.x, this.size.y);
     pop();
   }

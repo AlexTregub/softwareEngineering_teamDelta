@@ -229,7 +229,78 @@ class UniversalDebugger {
       this._drawPerformanceGraph();
     }
     
+    // Log hover detection details if mouse is moving
+    this._logHoverDebugInfo();
+    
     this._recordPerformance('render', startTime);
+  }
+  
+  /**
+   * Logs hover detection debugging information when mouse moves.
+   * Only active when debugger is visible and mouse has moved.
+   * 
+   * @private
+   */
+  _logHoverDebugInfo() {
+    if (typeof mouseX === 'undefined' || typeof mouseY === 'undefined') return;
+    
+    // Track last mouse position to only log on movement
+    if (!this._lastDebugMouseX) this._lastDebugMouseX = mouseX;
+    if (!this._lastDebugMouseY) this._lastDebugMouseY = mouseY;
+    
+    const mouseMoved = (mouseX !== this._lastDebugMouseX || mouseY !== this._lastDebugMouseY);
+    if (!mouseMoved) return;
+    
+    this._lastDebugMouseX = mouseX;
+    this._lastDebugMouseY = mouseY;
+    
+    // Gather coordinate information
+    const screenMouse = { x: mouseX, y: mouseY };
+    let worldMouse = { x: mouseX, y: mouseY };
+    
+    if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+      worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
+    }
+    
+    // Get entity positions
+    const entityWorldPos = this.target.getPosition ? this.target.getPosition() : 
+                           (this.target._collisionBox ? { x: this.target._collisionBox.x, y: this.target._collisionBox.y } : null);
+    const spritePos = this.target._sprite ? { x: this.target._sprite.pos.x, y: this.target._sprite.pos.y } : null;
+    const collisionPos = this.target._collisionBox ? { x: this.target._collisionBox.x, y: this.target._collisionBox.y } : null;
+    
+    // Calculate screen position of entity
+    let entityScreenPos = entityWorldPos;
+    if (entityWorldPos && this.target._renderController && typeof this.target._renderController.worldToScreenPosition === 'function') {
+      entityScreenPos = this.target._renderController.worldToScreen(entityWorldPos);
+    } else if (entityWorldPos && typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+      entityScreenPos = CoordinateConverter.worldToScreen(entityWorldPos.x, entityWorldPos.y);
+    }
+    
+    // Check if hovering
+    const isHovering = this.target._selectionController ? this.target._selectionController.isHovered() : false;
+    
+    // Log comprehensive info
+    console.log(`[UniversalDebugger] ${this.target.type || 'Entity'} Hover Debug:`);
+    console.log(`  Screen Mouse: (${screenMouse.x.toFixed(0)}, ${screenMouse.y.toFixed(0)})`);
+    console.log(`  World Mouse:  (${worldMouse.x.toFixed(2)}, ${worldMouse.y.toFixed(2)})`);
+    if (entityWorldPos) {
+      console.log(`  Entity World: (${entityWorldPos.x.toFixed(2)}, ${entityWorldPos.y.toFixed(2)})`);
+    }
+    if (entityScreenPos && entityScreenPos !== entityWorldPos) {
+      console.log(`  Entity Screen: (${entityScreenPos.x.toFixed(0)}, ${entityScreenPos.y.toFixed(0)})`);
+    }
+    
+    // ALWAYS show sprite and collision positions
+    if (spritePos) {
+      const match = spritePos.x === entityWorldPos?.x && spritePos.y === entityWorldPos?.y;
+      console.log(`  Sprite Pos:    (${spritePos.x.toFixed(2)}, ${spritePos.y.toFixed(2)})${match ? ' [OK]' : ' [MISMATCH!]'}`);
+    }
+    if (collisionPos) {
+      const match = collisionPos.x === entityWorldPos?.x && collisionPos.y === entityWorldPos?.y;
+      console.log(`  Collision Pos: (${collisionPos.x.toFixed(2)}, ${collisionPos.y.toFixed(2)})${match ? ' [OK]' : ' [MISMATCH!]'}`);
+    }
+    
+    console.log(`  Is Hovering: ${isHovering}`);
   }
 
   /**
@@ -584,7 +655,7 @@ class UniversalDebugger {
    */
   _extractBoundingInfo() {
     const obj = this.target;
-    const bounds = {
+    let bounds = {
       x: 0,
       y: 0,
       width: 0,
@@ -600,27 +671,6 @@ class UniversalDebugger {
         bounds.detected = true;
         return bounds;
       }
-    }
-
-    // Strategy 2: Check for direct position/size properties
-    if (this._tryExtractFromPositionSize(obj, bounds)) {
-      bounds.source = 'position-size';
-      bounds.detected = true;
-      return bounds;
-    }
-
-    // Strategy 3: Check for sprite property
-    if (obj._sprite && this._tryExtractFromSprite(obj._sprite, bounds)) {
-      bounds.source = 'sprite';
-      bounds.detected = true;
-      return bounds;
-    }
-
-    // Strategy 4: Check for center and size properties
-    if (this._tryExtractFromCenterSize(obj, bounds)) {
-      bounds.source = 'center-size';
-      bounds.detected = true;
-      return bounds;
     }
 
     return bounds;
@@ -767,7 +817,9 @@ class UniversalDebugger {
    */
   _drawBoundingBox() {
     if (!this.boundingBox || !this.boundingBox.detected) return;
-
+    let convertPos = worldToScreen([this.boundingBox.x,this.boundingBox.y])
+    this.boundingBox.x = convertPos[0]
+    this.boundingBox.y = convertPos[1]
     const bounds = this.boundingBox;
     
     // Save current drawing state

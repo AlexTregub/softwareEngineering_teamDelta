@@ -15,14 +15,14 @@ let PERLIN_SCALE = 0.08;
 // FIRST IN PAIR IS PROBABILITY, SECOND IS RENDER FUNCTION
 // NOTE: PROBABILITIES SHOULD BE IN ORDER: LEAST->GREATEST. 'REAL' PROBABILITY IS (A_i - A_(i-1)).
 // LAST IS DEFAULT aka PROB=1
-let TERRAIN_MATERIALS = { // All-in-one configuration object.
-  'stone' : [0.01, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
-  'dirt' : [0.15, (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
-  'grass' : [1 , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
-};
+// let TERRAIN_MATERIALS = { // All-in-one configuration object.
+//   'stone' : [0.01, (x,y,squareSize) => {fill(77,77,77); strokeWeight(0);rect(x,y,squareSize,squareSize);}], // Example of more advanced lambda.
+//   'dirt' : [0.15, (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+//   'grass' : [1 , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
+// };
 
 let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y)
-  'moss_0' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+  'moss' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
   'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
@@ -44,44 +44,24 @@ function renderMaterialToContext(materialName, x, y, size, context) {
     case 'moss_1':
       if (MOSS_IMAGE) {
         ctx.image(MOSS_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for moss
-        ctx.fill(85, 107, 47);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
     case 'stone':
       if (STONE_IMAGE) {
         ctx.image(STONE_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for stone
-        ctx.fill(128, 128, 128);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
     case 'dirt':
       if (DIRT_IMAGE) {
         ctx.image(DIRT_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for dirt
-        ctx.fill(139, 69, 19);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
     case 'grass':
       if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
-      } else {
-        // Fallback color for grass
-        ctx.fill(34, 139, 34);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
       break;
       
@@ -89,15 +69,13 @@ function renderMaterialToContext(materialName, x, y, size, context) {
       // Unknown material - use default grass appearance
       if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
-      } else {
-        ctx.fill(100, 150, 100);
-        ctx.noStroke();
-        ctx.rect(x, y, size, size);
       }
   }
 }
 
-
+/**
+ * Loads in terrain images declared in global scope
+ */
 function terrainPreloader(){
   GRASS_IMAGE = loadImage('Images/16x16 Tiles/grass.png');
   DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
@@ -189,6 +167,15 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
     this._coordSysUpdateId = -1; // Used for render conversion optimizations
     this._coordSysPos = NONE;
+    
+    // Entity tracking
+    this.entities = [];
+    this.tileX = renderX;
+    this.tileY = renderY;
+    this.x = renderX * tileSize;
+    this.y = renderY * tileSize;
+    this.width = tileSize;
+    this.height = tileSize;
   }
  
 
@@ -240,7 +227,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
   
   setMaterial(matName) { // Returns success / fail.
-    if (TERRAIN_MATERIALS[matName]) {
+    if (TERRAIN_MATERIALS_RANGED[matName]) {
       this._materialSet = matName;
       return true;
     }
@@ -270,7 +257,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     return;
   }
 
-  render2(coordSys) {
+  render(coordSys) {
     // coordSys.setViewCornerBC([0,0]);
     if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
       this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
@@ -284,5 +271,87 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
   toString() {
     return this._materialSet+'('+this._x+','+this._y+')';
+  }
+  
+  // =========================================================================
+  // Entity Tracking Methods
+  // =========================================================================
+  
+  /**
+   * Check if entity is on this tile
+   * @param {Object} entity - Entity to check
+   * @returns {boolean} True if entity is on tile
+   */
+  hasEntity(entity) {
+    return this.entities.includes(entity);
+  }
+  
+  /**
+   * Add entity to this tile
+   * @param {Object} entity - Entity to add
+   */
+  addEntity(entity) {
+    if (!this.entities.includes(entity)) {
+      this.entities.push(entity);
+    }
+  }
+  
+  /**
+   * Remove entity from this tile
+   * @param {Object} entity - Entity to remove
+   */
+  removeEntity(entity) {
+    const index = this.entities.indexOf(entity);
+    if (index !== -1) {
+      this.entities.splice(index, 1);
+    }
+  }
+  
+  /**
+   * Get all entities on this tile
+   * @returns {Array} Copy of entities array
+   */
+  getEntities() {
+    return [...this.entities];
+  }
+  
+  /**
+   * Get entity count on this tile
+   * @returns {number} Number of entities
+   */
+  getEntityCount() {
+    return this.entities.length;
+  }
+  
+  /**
+   * Get material property (alias for compatibility)
+   * @returns {string} Material type
+   */
+  get material() {
+    return this._materialSet;
+  }
+  
+  /**
+   * Set material property (alias for compatibility)
+   * @param {string} value - Material type
+   */
+  set material(value) {
+    this._materialSet = value;
+  }
+  
+  /**
+   * Get weight property (alias for compatibility)
+   * @returns {number} Weight value
+   */
+  get weight() {
+    return this._weight;
+  }
+  
+  /**
+   * Set weight property (alias for compatibility)
+   * @param {number} value - Weight value
+   */
+  set weight(value) {
+    this._weight = value;
   }
 }

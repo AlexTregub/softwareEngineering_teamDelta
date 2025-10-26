@@ -225,39 +225,94 @@ class DraggablePanel {
   }
 
   /**
+   * Check if mouse is over this panel (including title bar and content area)
+   * 
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position
+   * @returns {boolean} True if mouse is over the panel
+   */
+  isMouseOver(mouseX, mouseY) {
+    if (!this.state.visible) return false;
+    
+    const height = this.state.minimized ? this.calculateTitleBarHeight() : this.config.size.height;
+    const panelBounds = {
+      x: this.state.position.x,
+      y: this.state.position.y,
+      width: this.config.size.width,
+      height: height
+    };
+    
+    return this.isPointInBounds(mouseX, mouseY, panelBounds);
+  }
+
+  /**
    * Update method for handling mouse interaction and dragging
    * Based on ButtonGroup.js drag handling
    * 
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position  
    * @param {boolean} mousePressed - Whether mouse button is currently pressed
+   * @returns {boolean} True if mouse event was consumed by this panel
    */
   update(mouseX, mouseY, mousePressed) {
-    if (!this.state.visible) return;
-    
+    if (!this.state.visible) return false;
+
+    // Check if mouse is over this panel
+    const mouseOverPanel = this.isMouseOver(mouseX, mouseY);
+
     // Check if content needs resizing (this happens once per frame maximum)
     if (!this._lastResizeCheck || Date.now() - this._lastResizeCheck > 100) {
       this.autoResizeToFitContent();
       this._lastResizeCheck = Date.now();
     }
-    
+
     // Update button positions when panel moves
     this.updateButtonPositions();
+
+    // Check for built-in minimize button click (on right side of title bar)
+    let minimizeButtonClicked = false;
+    if (!this.isDragging && mousePressed && !this._lastMinimizeClick) {
+      const titleBarHeight = this.calculateTitleBarHeight();
+      const scale = 1; // TODO: Get from camera if needed
+      const buttonSize = 18 * scale; // Match rendering size
+      const buttonX = this.state.position.x + (this.config.size.width * scale) - (16 * scale);
+      const buttonY = this.state.position.y + titleBarHeight / 2;
+      
+      // Check if click is within minimize button bounds
+      const dist = Math.sqrt(Math.pow(mouseX - buttonX, 2) + Math.pow(mouseY - buttonY, 2));
+      if (dist < buttonSize / 2) {
+        this.toggleMinimized();
+        minimizeButtonClicked = true;
+        this._lastMinimizeClick = Date.now();
+      }
+    }
     
-    // Update button interactions (only if not dragging panel)
-    if (!this.isDragging) {
+    // Reset minimize click cooldown after 200ms
+    if (this._lastMinimizeClick && Date.now() - this._lastMinimizeClick > 200) {
+      this._lastMinimizeClick = null;
+    }
+
+    // Update button interactions (only if not dragging panel and didn't click minimize)
+    let buttonConsumedEvent = false;
+    if (!this.isDragging && !this.isMinimized()) {
       this.buttons.forEach(button => {
-        button.update(mouseX, mouseY, mousePressed);
+        const consumed = button.update(mouseX, mouseY, mousePressed);
+        if (consumed) buttonConsumedEvent = true;
       });
     }
-    
-    // Handle panel dragging
-    if (this.config.behavior.draggable) {
-      this.handleDragging(mouseX, mouseY, mousePressed);
-    }
-  }
 
-  /**
+    // Handle panel dragging
+    let dragConsumedEvent = false;
+    if (this.config.behavior.draggable) {
+      const wasDragging = this.isDragging;
+      this.handleDragging(mouseX, mouseY, mousePressed);
+      // If we started dragging or were already dragging, consume the event
+      dragConsumedEvent = this.isDragging || wasDragging;
+    }
+
+    // Return true if mouse is over panel and we consumed the event
+    return mouseOverPanel && (buttonConsumedEvent || dragConsumedEvent || minimizeButtonClicked);
+  }  /**
    * Handle dragging behavior (adapted from ButtonGroup.js)
    * 
    * @param {number} mouseX - Current mouse X position
@@ -309,6 +364,12 @@ class DraggablePanel {
     let constrainedX = x;
     let constrainedY = y;
     
+    // Calculate current height based on minimize state
+    // When minimized, only the title bar is visible, so use that for bounds checking
+    const currentHeight = this.state.minimized 
+      ? this.calculateTitleBarHeight() 
+      : this.config.size.height;
+    
     // Constrain to screen bounds if enabled
     if (this.config.behavior.constrainToScreen) {
       const canvas = { 
@@ -317,7 +378,7 @@ class DraggablePanel {
       };
       
       constrainedX = Math.max(0, Math.min(constrainedX, canvas.width - this.config.size.width));
-      constrainedY = Math.max(0, Math.min(constrainedY, canvas.height - this.config.size.height));
+      constrainedY = Math.max(0, Math.min(constrainedY, canvas.height - currentHeight));
     }
     
     // Apply snap to edges if enabled
@@ -342,8 +403,8 @@ class DraggablePanel {
         constrainedY = 0;
       }
       // Snap to bottom edge
-      else if (Math.abs(constrainedY - (canvas.height - this.config.size.height)) < snapThreshold) {
-        constrainedY = canvas.height - this.config.size.height;
+      else if (Math.abs(constrainedY - (canvas.height - currentHeight)) < snapThreshold) {
+        constrainedY = canvas.height - currentHeight;
       }
     }
     
@@ -387,9 +448,9 @@ class DraggablePanel {
    */
   isPointInBounds(x, y, bounds) {
     return x >= bounds.x && 
-           x <= bounds.x + bounds.width &&
+           x < bounds.x + bounds.width &&
            y >= bounds.y && 
-           y <= bounds.y + bounds.height;
+           y < bounds.y + bounds.height;
   }
 
   /**
@@ -500,19 +561,60 @@ class DraggablePanel {
         this.state.position.x + (this.config.style.padding * scale),
         this.state.position.y + (this.config.style.padding * scale / 2)
       );
-      
-      // Minimize/maximize button (simple indicator)
-      const buttonX = this.state.position.x + (this.config.size.width * scale) - (20 * scale);
+
+      // Minimize/maximize button (on right side of title bar)
+      const buttonSize = 18 * scale; // Smaller, more subtle size
+      const buttonX = this.state.position.x + (this.config.size.width * scale) - (16 * scale);
       const buttonY = this.state.position.y + titleBarHeight / 2;
+
+      // Check if mouse is hovering over button
+      const mouseOver = typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined' && 
+                        Math.sqrt(Math.pow(mouseX - buttonX, 2) + Math.pow(mouseY - buttonY, 2)) < buttonSize / 2;
+
+      // Get title bar color (same as title bar background)
+      const btnBgColor = this.config.style.backgroundColor.slice();
+      btnBgColor[3] = Math.min(255, btnBgColor[3] + 50); // Match title bar (slightly lighter than main bg)
+      const baseR = btnBgColor[0];
+      const baseG = btnBgColor[1];
+      const baseB = btnBgColor[2];
+
+      // Draw button with subtle raised/sunken 3D effect
+      noStroke();
       
-      fill(150, 150, 150);
+      // Main button background (slightly lighter on hover, but very subtle)
+      if (mouseOver) {
+        fill(baseR + 15, baseG + 15, baseB + 15, btnBgColor[3]); // Subtle lighter on hover
+      } else {
+        fill(baseR, baseG, baseB, btnBgColor[3]); // Match title bar exactly
+      }
+      
+      if (typeof rect === 'function') {
+        const btnLeft = buttonX - buttonSize/2;
+        const btnTop = buttonY - buttonSize/2;
+        rect(btnLeft, btnTop, buttonSize, buttonSize, 3 * scale); // Subtle rounded corners
+        
+        // Add very subtle 3D bevel effect
+        strokeWeight(1);
+        
+        // Top-left highlight (very subtle)
+        stroke(baseR + 25, baseG + 25, baseB + 25, 150);
+        line(btnLeft + 1, btnTop + 1, btnLeft + buttonSize - 2, btnTop + 1); // Top edge
+        line(btnLeft + 1, btnTop + 1, btnLeft + 1, btnTop + buttonSize - 2); // Left edge
+        
+        // Bottom-right shadow (very subtle)
+        stroke(Math.max(0, baseR - 25), Math.max(0, baseG - 25), Math.max(0, baseB - 25), 150);
+        line(btnLeft + buttonSize - 1, btnTop + 2, btnLeft + buttonSize - 1, btnTop + buttonSize - 1); // Right edge
+        line(btnLeft + 2, btnTop + buttonSize - 1, btnLeft + buttonSize - 1, btnTop + buttonSize - 1); // Bottom edge
+      }
+
+      // Draw minimize/restore symbol (smaller text)
+      noStroke();
+      fill(this.config.style.titleColor || [255, 255, 255]); // Match title text color
       if (typeof textAlign === 'function') textAlign(CENTER, CENTER);
-      if (typeof textSize === 'function') textSize(12 * scale);
+      if (typeof textSize === 'function') textSize(14 * scale); // Smaller text
       text(this.state.minimized ? '+' : '−', buttonX, buttonY);
     }
-  }
-
-  /**
+  }  /**
    * Render content area
    * 
    * @param {Function} contentRenderer - Function to render panel content
@@ -541,7 +643,7 @@ class DraggablePanel {
    */
   renderButtons() {
     this.buttons.forEach(button => {
-      button.render();
+      if (!this.isMinimized()) { button.render() };
     });
   }
 
@@ -889,7 +991,14 @@ class DraggablePanel {
       this.saveState();
     }
   }
+
+  /**
+   * Minimized state getter, returns current minimized state
+   */
+  isMinimized() { return this.state.minimized}
 }
+
+
 
 // Export for browser environments
 if (typeof window !== 'undefined') {

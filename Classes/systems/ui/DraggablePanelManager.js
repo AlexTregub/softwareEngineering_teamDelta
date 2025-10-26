@@ -20,9 +20,11 @@ class DraggablePanelManager {
    * Creates a new DraggablePanelManager instance
    */
   constructor() {
+    // keep previous initialization
     this.panels = new Map();
     this.isInitialized = false;
-    
+  
+
     // Debug mode: Panel Train Mode (panels follow each other when dragged) 🚂
     this.debugMode = {
       panelTrainMode: false
@@ -32,13 +34,14 @@ class DraggablePanelManager {
     this.currentlyDragging = null;
     
     // Panel visibility by game state (from Integration class)
+    // NOTE: 'combat' panel removed - Queen Powers now managed by QueenControlPanel (shows only when queen selected)
     this.stateVisibility = {
-      'MENU': ['presentation-control'],
-      'PLAYING': ['ant_spawn', 'health_controls'],
-      'PAUSED': ['ant_spawn', 'health_controls'],
-      'DEBUG_MENU': ['ant_spawn', 'health_controls'],
-      'GAME_OVER': ['stats'],
-      'KANBAN': ['presentation-kanban-transition']
+      'MENU': ['presentation-control', 'debug'],
+      'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'tasks','buildings',"resources", 'cheats', 'queen-powers-panel'],
+      'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
+      'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'cheats'],
+      'GAME_OVER': ['stats', 'debug'],
+      'KANBAN': ['presentation-kanban-transition', 'debug']
     };
     
     // Current game state for visibility management
@@ -60,30 +63,84 @@ class DraggablePanelManager {
     this.createDefaultPanels();
     
     // Register with RenderLayerManager if available
-    if (typeof g_renderLayerManager !== 'undefined' && g_renderLayerManager) {
-      // Hook into the UI_GAME layer renderer
-      const originalUIRenderer = g_renderLayerManager.layerRenderers.get('ui_game');
+    // Register with RenderLayerManager using addDrawableToLayer
+    if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addDrawableToLayer === 'function') {
+      // Bind the renderPanels method to this instance
+      this._renderPanelsBound = this.renderPanels.bind(this);
       
-      g_renderLayerManager.layerRenderers.set('ui_game', (gameState) => {
-        // Call original UI renderer first
-        if (originalUIRenderer) {
-          originalUIRenderer(gameState);
-        }
-        
-        // Then render our panels
-        this.renderPanels(gameState);
-      });
+      // Add to UI_GAME layer (panels should render after base game UI)
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, this._renderPanelsBound);
       
       if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ DraggablePanelManager integrated into render pipeline');
+        globalThis.logVerbose('✅ DraggablePanelManager registered with RenderLayerManager');
       } else {
-        console.log('✅ DraggablePanelManager integrated into render pipeline');
+        console.log('✅ DraggablePanelManager registered with RenderLayerManager');
       }
     } else {
       console.warn('⚠️ RenderLayerManager not found - panels will need manual rendering');
     }
 
     this.isInitialized = true;
+
+    // Auto-register a minimal interactive adapter so panels receive pointer events
+    try {
+      if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
+        const adapter = {
+          hitTest: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              const panels = Array.from(this.panels.values()).reverse();
+              for (const p of panels) {
+                if (!p.state || !p.state.visible) continue;
+                if (typeof p.isPointInBounds === 'function' && p.isPointInBounds(x, y)) return true;
+              }
+            } catch (e) {}
+            return false;
+          },
+          onPointerDown: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              const handled = this.handleMouseEvents(x, y, true);
+              if (this.isAnyPanelBeingDragged && this.isAnyPanelBeingDragged()) return true;
+              return !!handled;
+            } catch (e) { return false; }
+          },
+          onPointerMove: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, pointer.isPressed === true);
+              return false;
+            } catch (e) { return false; }
+          },
+          onPointerUp: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, false);
+            } catch (e) {}
+            return false;
+          },
+          update: (pointer) => {
+            try {
+              const x = pointer.screen.x;
+              const y = pointer.screen.y;
+              this.update(x, y, pointer.isPressed === true);
+            } catch (e) {}
+          },
+          render: (gameState, pointer) => {
+            try {
+              this.render();
+            } catch (e) {}
+          }
+        };
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, adapter);
+      }
+    } catch (e) {
+      console.warn('DraggablePanelManager: failed to auto-register interactive adapter', e);
+    }
   }
 
   /**
@@ -93,7 +150,7 @@ class DraggablePanelManager {
     // Ant Spawn Panel (vertical layout with ant spawning options)
     this.panels.set('ant_spawn', new DraggablePanel({
       id: 'ant-Spawn-panel',
-      title: 'Ant Government Population Manager (🐜)',
+      title: 'Ant Spawning',
       position: { x: 20, y: 80 },
       size: { width: 140, height: 280 },
       scale: 1.0, // Initial scale
@@ -111,17 +168,17 @@ class DraggablePanelManager {
           {
             caption: 'Spawn 10 Ants',
             onClick: () => this.spawnAnts(10),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#32CD32' }
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
           },
           {
             caption: 'Spawn 100 Ants',
             onClick: () => this.spawnAnts(100),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
           },
           {
-            caption: 'Spawn 1000 Ants (Don\'t do this!)',
-            onClick: () => this.spawnAnts(1000),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#218221ff' }
+            caption: 'Paint Enemy Brush',
+            onClick: () => this.toggleEnemyBrush(),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
           },
           {
             caption: 'Kill 1 Ant',
@@ -164,32 +221,17 @@ class DraggablePanelManager {
       position: { x: 180, y: 80 },
       size: { width: 180, height: 150 },
       buttons: {
-        layout: 'grid',
+        layout: 'horizontal',
         columns: 2,
         spacing: 8,
-        buttonWidth: 70,
-        buttonHeight: 40,
+        buttonWidth: 160,
+        buttonHeight: 20,
         items: [
           {
-            caption: 'Wood',
-            onClick: () => this.selectResource('stick'),
-            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#8B4513' }
-          },
-          {
-            caption: 'Leaves',
-            onClick: () => this.selectResource('leaves'),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#11cd5cff' }
-          },
-          {
-            caption: 'Stone',
-            onClick: () => this.selectResource('stone'),
-            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#696969' }
-          }/*,
-          {
-            caption: 'Info',
-            onClick: () => this.showResourceInfo(),
-            style: ButtonStyles.PURPLE
-          }*/
+            caption: 'Paint Resource Brush',
+            onClick: () => this.toggleResourceBrush(),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#32CD32', color: '#FFFFFF' }
+          }
         ]
       }
     }));
@@ -225,16 +267,19 @@ class DraggablePanelManager {
       }
     }));
 
+    // NOTE: Combat/Queen Powers panel has been moved to QueenControlPanel.js
+    // It now only shows when the queen is selected (see Classes/systems/ui/QueenControlPanel.js)
+
     // Health Management Panel (horizontal layout with health controls)
     this.panels.set('health_controls', new DraggablePanel({
       id: 'health-controls-panel',
-      title: 'Health & Selection Manager 💚',
+      title: 'Health Debug',
       position: { x: 20, y: 400 },
-      size: { width: 560, height: 100 },
+      size: { width: 130, height: 100 },
       buttons: {
-        layout: 'horizontal',
+        layout: 'vertical',
         spacing: 5,
-        buttonWidth: 65,
+        buttonWidth: 110,
         buttonHeight: 30,
         items: [
           {
@@ -286,47 +331,53 @@ class DraggablePanelManager {
       id: 'debug-panel',
       title: 'Debug Controls',
       position: { x: 600, y: 80 },
-      size: { width: 160, height: 320 },
+      size: { width: 160, height: 450 },
       buttons: {
         layout: 'vertical',
         spacing: 3,
         buttonWidth: 140,
         buttonHeight: 25,
         items: [
-          {
-            caption: 'Toggle Rendering',
-            onClick: () => this.toggleRendering(),
-            style: ButtonStyles.WARNING
-          },
-          {
-            caption: 'Performance',
-            onClick: () => this.togglePerformance(),
-            style: ButtonStyles.PURPLE
-          },
-          {
-            caption: 'Entity Debug',
-            onClick: () => this.toggleEntityDebug(),
-            style: ButtonStyles.DEFAULT
-          },
-          {
-            caption: 'Scale Up (+)',
-            onClick: () => this.scaleUp(),
-            style: ButtonStyles.SUCCESS
-          },
-          {
-            caption: 'Scale Down (-)',
-            onClick: () => this.scaleDown(),
-            style: ButtonStyles.WARNING
-          },
-          {
+          /*{
             caption: 'Reset Scale',
             onClick: () => this.resetScale(),
             style: ButtonStyles.DEFAULT
+          }, */
+          // --- Ant State Control Buttons ---
+          {
+            caption: 'Set Idle',
+            onClick: () => this.setSelectedAntsIdle(),
+            style: { ...ButtonStyles.DEFAULT, backgroundColor: '#808080' }
           },
           {
-            caption: 'Responsive Scale',
-            onClick: () => this.toggleResponsiveScaling(),
-            style: ButtonStyles.PURPLE
+            caption: 'Set Gathering',
+            onClick: () => this.setSelectedAntsGathering(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },          
+          {
+            caption: 'Gathering Visuals',
+            onClick: () => g_gatherDebugRenderer.toggle(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },
+          {
+            caption: 'Gathering All Lines',
+            onClick: () => g_gatherDebugRenderer.toggleAllLines(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22' }
+          },/*
+          {
+            caption: 'Set Patrol',
+            onClick: () => this.setSelectedAntsPatrol(),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FFA500' }
+          },
+          {
+            caption: 'Set Combat',
+            onClick: () => this.setSelectedAntsCombat(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#DC143C' }
+          },
+          {
+            caption: 'Set Building',
+            onClick: () => this.setSelectedAntsBuilding(),
+            style: { ...ButtonStyles.PRIMARY, backgroundColor: '#4169E1' }
           },
           {
             caption: 'Apply Responsive',
@@ -337,6 +388,197 @@ class DraggablePanelManager {
             caption: 'Console Log',
             onClick: () => this.dumpConsole(),
             style: ButtonStyles.DANGER
+          } */
+        ]
+      }
+    }));
+
+    
+    //task panel
+    this.panels.set('tasks', new DraggablePanel({
+      id: 'task-panel',
+      title: 'Task objectives',
+      position: { x: 600, y: 80 },
+      size: { width: 160, height: 320 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 3,
+        buttonWidth: 140,
+        buttonHeight: 25,
+        items: [
+          {
+            caption: 'Gather 10 wood',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('Gather 10 wood clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T1') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('10 wood')));
+              if (!task) { console.warn('Task T1 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Gather 10 wood'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
+          },
+          {
+            caption: 'spawn 5 new ants',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('spawn 5 new ants clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T2') || (t.description && t.description.toLowerCase().includes('spawn') && t.description.includes('5')));
+              if (!task) { console.warn('Task T2 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.toLowerCase().includes('spawn 5'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
+          },
+          {
+            caption: 'Kill 10 ants',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('Kill 10 ants clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T3') || (t.description && t.description.toLowerCase().includes('kill') && t.description.includes('10')));
+              if (!task) { console.warn('Task T3 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Kill 10'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
+          },
+          {
+            caption: 'Gather 20 leaves',
+            style: ButtonStyles.SUCCESS,
+            onClick: () => {
+              console.log('Gather 20 leaves clicked');
+              const lib = window.taskLibrary;
+              if (!lib) { console.warn('No TaskLibrary available'); return; }
+              const task = lib.availableTasks.find(t => (t.ID === 'T4') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('20 leaves')));
+              if (!task) { console.warn('Task T4 not found'); return; }
+              const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
+              if (satisfied) {
+                task.status = 'COMPLETE';
+                console.log(`Task ${task.ID} complete`);
+                const panel = this.panels.get('tasks');
+                if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
+                  const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('20 leaves'));
+                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                }
+              } else {
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+              }
+            }
+          }
+        ]
+      }
+    }));
+
+    // Building Panel (grid layout with building types)
+    this.panels.set('buildings', new DraggablePanel({
+      id: 'buildings-panel',
+      title: 'Building Manager 🏗️',
+      position: { x: 380, y: 80 },
+      size: { width: 200, height: 180 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 5,
+        buttonWidth: 180,
+        buttonHeight: 35,
+        items: [
+          {
+            caption: 'Ant Cone (Paint)',
+            onClick: () => this.toggleBuildingBrush('antcone'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#8B4513', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Ant Hill (Paint)',
+            onClick: () => this.toggleBuildingBrush('anthill'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#A0522D', color: '#FFFFFF' }
+          },
+          {
+            caption: 'Hive Source (Paint)',
+            onClick: () => this.toggleBuildingBrush('hivesource'),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#DAA520', color: '#000000' }
+          },
+          {
+            caption: 'Clear Buildings',
+            onClick: () => this.clearBuildings(),
+            style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
+          }
+        ]
+      }
+    }));
+
+    // Cheats Panel (unlock powers and other debug features)
+    this.panels.set('cheats', new DraggablePanel({
+      id: 'cheats-panel',
+      title: '👑 Power Cheats',
+      position: { x: 780, y: 80 },
+      size: { width: 180, height: 220 },
+      buttons: {
+        layout: 'vertical',
+        spacing: 4,
+        buttonWidth: 160,
+        buttonHeight: 32,
+        items: [
+          {
+            caption: '🔥 Unlock Fireball',
+            onClick: () => this.unlockPower('fireball'),
+            style: { ...ButtonStyles.WARNING, backgroundColor: '#FF4500', color: '#FFFFFF' }
+          },
+          {
+            caption: '⚡ Unlock Lightning',
+            onClick: () => this.unlockPower('lightning'),
+            style: { ...ButtonStyles.INFO, backgroundColor: '#4DA6FF', color: '#FFFFFF' }
+          },
+          {
+            caption: '🌀 Unlock Black Hole',
+            onClick: () => this.unlockPower('blackhole'),
+            style: { ...ButtonStyles.PURPLE, backgroundColor: '#9400D3', color: '#FFFFFF' }
+          },
+          {
+            caption: '🧪 Unlock Sludge',
+            onClick: () => this.unlockPower('sludge'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#556B2F', color: '#FFFFFF' }
+          },
+          {
+            caption: '🌊 Unlock Tidal Wave',
+            onClick: () => this.unlockPower('tidalWave'),
+            style: { ...ButtonStyles.PRIMARY, backgroundColor: '#1E90FF', color: '#FFFFFF' }
+          },
+          {
+            caption: '🔓 Unlock All Powers',
+            onClick: () => this.unlockAllPowers(),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#FFD700', color: '#000000' }
           }
         ]
       }
@@ -450,6 +692,31 @@ class DraggablePanelManager {
     for (const panel of this.panels.values()) {
       panel.update(mouseX, mouseY, mousePressed);
     }
+  }
+
+  /**
+   * Handle mouse events for all panels and return if any consumed the event
+   * 
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position
+   * @param {boolean} mousePressed - Whether mouse button is currently pressed
+   * @returns {boolean} True if any panel consumed the mouse event
+   */
+  handleMouseEvents(mouseX, mouseY, mousePressed) {
+    if (!this.isInitialized) return false;
+    
+    // Update all panels and check if any consumed the mouse event
+    // Process panels in reverse order (topmost panels first)
+    const panelArray = Array.from(this.panels.values()).reverse();
+    
+    for (const panel of panelArray) {
+      if (panel.update(mouseX, mouseY, mousePressed)) {
+        // Panel consumed the event, no need to check other panels
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   /**
@@ -718,6 +985,8 @@ class DraggablePanelManager {
         panel.hide();
       }
     }
+
+    
     
     // Render all visible panels
     for (const panel of this.panels.values()) {
@@ -745,7 +1014,7 @@ class DraggablePanelManager {
    * Spawn multiple ants at random positions or near mouse
    */
   spawnAnts(count = 1) {
-    console.log(`🐜 Spawning ${count} ant(s)...`);
+    verboseLog(`🐜 Spawning ${count} ant(s)...`);
     
     let spawned = 0;
     
@@ -805,12 +1074,348 @@ class DraggablePanelManager {
     // Try each method until one succeeds
     for (const method of spawnMethods) {
       if (method()) {
-        console.log(`✅ Successfully spawned ${spawned} ant(s)`);
+        verboseLog(`✅ Successfully spawned ${spawned} ant(s)`);
         return;
       }
     }
     
     console.warn('⚠️ Could not spawn ants - no compatible ant system found');
+  }
+
+  /**
+   * Spawn a single enemy ant near the mouse cursor or screen center
+   */
+  spawnEnemyAnt() {
+    console.log('🔴 Spawning enemy ant...');
+    
+    // Try multiple spawning methods until we find one that works
+    const spawnMethods = [
+      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
+          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+          const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 50;
+          const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 50;
+          
+          const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
+          if (enemyAnt) {
+            console.log('✅ Successfully spawned enemy ant using AntUtilities');
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Try command line spawning system
+      () => {
+        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+          const initialAntCount = ants.length;
+          try {
+            executeCommand(`spawn 1 ant enemy`);
+            const spawned = ants.length - initialAntCount;
+            if (spawned > 0) {
+              console.log('✅ Successfully spawned enemy ant using command system');
+              return true;
+            }
+          } catch (error) {
+            console.warn('⚠️ Command line spawn method failed:', error.message);
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of spawnMethods) {
+      if (method()) {
+        return;
+      }
+    }
+    
+    console.warn('⚠️ Could not spawn enemy ant - no compatible ant system found');
+  }
+
+  /**
+   * Spawn multiple enemy ants near the mouse cursor or screen center
+   */
+  spawnEnemyAnts(count = 1) {
+    console.log(`🔴 Spawning ${count} enemy ant(s)...`);
+    
+    let spawned = 0;
+    
+    // Try multiple spawning methods until we find one that works
+    const spawnMethods = [
+      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      () => {
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
+          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+          
+          for (let i = 0; i < count; i++) {
+            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+            
+            const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
+            if (enemyAnt) {
+              spawned++;
+            }
+          }
+          
+          if (spawned > 0) {
+            console.log(`✅ Successfully spawned ${spawned} enemy ant(s) using AntUtilities`);
+            return true;
+          }
+        }
+        return false;
+      },
+      
+      // Method 2: Try command line spawning system
+      () => {
+        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+          const initialAntCount = ants.length;
+          try {
+            executeCommand(`spawn ${count} ant enemy`);
+            spawned = ants.length - initialAntCount;
+            if (spawned > 0) {
+              console.log(`✅ Successfully spawned ${spawned} enemy ant(s) using command system`);
+              return true;
+            }
+          } catch (error) {
+            console.warn('⚠️ Command line spawn method failed:', error.message);
+          }
+        }
+        return false;
+      }
+    ];
+    
+    // Try each method until one succeeds
+    for (const method of spawnMethods) {
+      if (method()) {
+        return;
+      }
+    }
+    
+    console.warn(`⚠️ Could not spawn ${count} enemy ant(s) - no compatible ant system found`);
+  }
+
+  /**
+   * Toggle the enemy ant paint brush tool
+   */
+  toggleEnemyBrush() {
+    // Initialize brush if not already done
+    if (typeof g_enemyAntBrush === 'undefined' || !g_enemyAntBrush) {
+      if (typeof initializeEnemyAntBrush === 'function') {
+        window.g_enemyAntBrush = initializeEnemyAntBrush();
+      } else {
+        console.warn('⚠️ Enemy Ant Brush system not available');
+        return;
+      }
+    }
+    
+    // Toggle the brush
+    const isActive = g_enemyAntBrush.toggle();
+    
+    // Update button text to reflect current state
+    const button = this.findButtonByCaption('Paint Brush');
+    if (button) {
+      button.caption = isActive ? 'Brush: ON' : 'Paint Brush';
+      button.style.backgroundColor = isActive ? '#32CD32' : '#FF4500'; // Green when active, orange when inactive
+    }
+    
+    console.log(`🎨 Enemy Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
+  }
+
+  /**
+   * Toggle the resource paint brush tool
+   */
+  toggleResourceBrush() {
+    // Initialize brush if not already done
+    if (typeof g_resourceBrush === 'undefined' || !g_resourceBrush) {
+      if (typeof initializeResourceBrush === 'function') {
+        window.g_resourceBrush = initializeResourceBrush();
+      } else {
+        console.warn('⚠️ Resource Brush system not available');
+        return;
+      }
+    }
+    
+    // Toggle the brush
+    const isActive = g_resourceBrush.toggle();
+    
+    // Update button text to reflect current state
+    const button = this.findButtonByCaption('Paint Resource Brush');
+    if (button) {
+      button.caption = isActive ? 'Resource Brush: ON' : 'Paint Resource Brush';
+      button.style.backgroundColor = isActive ? '#228B22' : '#32CD32'; // Darker green when active
+    }
+    
+    console.log(`🎨 Resource Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
+  }
+
+  /**
+   * Toggle the building paint brush tool
+   * @param {string} buildingType - Type of building to paint ('antcone', 'anthill', 'hivesource')
+   */
+  toggleBuildingBrush(buildingType) {
+    // Initialize building brush if not already done
+    if (typeof g_buildingBrush === 'undefined' || !g_buildingBrush) {
+      if (typeof initializeBuildingBrush === 'function') {
+        window.g_buildingBrush = initializeBuildingBrush();
+      } else {
+        console.warn('⚠️ Building Brush system not available');
+        return;
+      }
+    }
+    
+    // Check if clicking the same building type that's already active
+    const wasActive = g_buildingBrush.isActive;
+    const wasSameType = g_buildingBrush.getBuildingType() === buildingType;
+    
+    if (wasActive && wasSameType) {
+      // Deactivate if clicking the same brush again
+      g_buildingBrush.deactivate();
+    } else {
+      // Activate with new building type
+      g_buildingBrush.activate(buildingType);
+    }
+    
+    const isActive = g_buildingBrush.isActive;
+    
+    // Update button states
+    const buildingNames = {
+      'antcone': '🏔️ Ant Cone',
+      'anthill': '🏔️ Ant Hill',
+      'hivesource': '🏠 Hive Source'
+    };
+    
+    // Find and update all building buttons
+    const panel = this.panels.get('buildings');
+    if (panel && panel.buttons && panel.buttons.items) {
+      panel.buttons.items.forEach(btn => {
+        if (btn.caption.includes('🏔️') || btn.caption.includes('🏠')) {
+          const btnType = btn.caption.includes('Cone') ? 'antcone' : 
+                         btn.caption.includes('Hill') ? 'anthill' : 'hivesource';
+          
+          if (btnType === buildingType && isActive) {
+            btn.caption = `${buildingNames[btnType]} (ON)`;
+            btn.style.fontWeight = 'bold';
+          } else {
+            btn.caption = `${buildingNames[btnType]} (Paint)`;
+            btn.style.fontWeight = 'normal';
+          }
+        }
+      });
+    }
+    
+    console.log(`🏗️ Building Brush ${isActive ? 'activated' : 'deactivated'}: ${buildingType}`);
+  }
+
+  /**
+   * Clear all buildings from the map
+   */
+  clearBuildings() {
+    if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
+      const count = Buildings.length;
+      Buildings.length = 0; // Clear the array
+      console.log(`🏗️ Cleared ${count} building(s)`);
+    }
+  }
+
+  /**
+   * Unlock a specific power for the queen
+   * @param {string} powerName - Name of the power to unlock
+   */
+  unlockPower(powerName) {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.warn('⚠️ No queen found - cannot unlock powers');
+      return;
+    }
+
+    if (typeof queen.unlockPower === 'function') {
+      const success = queen.unlockPower(powerName);
+      if (success) {
+        console.log(`✅ Unlocked power: ${powerName}`);
+        
+        // Update the button to show it's unlocked
+        const button = this.findButtonByCaption(`Unlock ${powerName}`, true);
+        if (button) {
+          button.caption = `✅ ${powerName.charAt(0).toUpperCase() + powerName.slice(1)}`;
+        }
+
+        // Update the Use Power button state in QueenControlPanel if available
+        if (typeof window.g_queenControlPanel !== 'undefined' && window.g_queenControlPanel) {
+          window.g_queenControlPanel.updatePowerButtonState();
+        }
+      }
+    } else {
+      console.warn('⚠️ Queen does not support power unlocking (old queen class?)');
+    }
+  }
+
+  /**
+   * Unlock all powers for the queen
+   */
+  unlockAllPowers() {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.warn('⚠️ No queen found - cannot unlock powers');
+      return;
+    }
+
+    const powers = ['fireball', 'lightning', 'blackhole', 'sludge', 'tidalWave'];
+    let unlocked = 0;
+
+    for (const power of powers) {
+      if (typeof queen.unlockPower === 'function' && queen.unlockPower(power)) {
+        unlocked++;
+      }
+    }
+
+    console.log(`✅ Unlocked ${unlocked}/${powers.length} powers`);
+
+    // Update all unlock buttons to show they're unlocked
+    const panel = this.panels.get('cheats');
+    if (panel && panel.buttons && panel.buttons.items) {
+      panel.buttons.items.forEach(btn => {
+        if (btn.caption.includes('Unlock') && !btn.caption.includes('All')) {
+          const powerName = btn.caption.replace('🔥 Unlock ', '').replace('⚡ Unlock ', '')
+            .replace('🌀 Unlock ', '').replace('🧪 Unlock ', '').replace('🌊 Unlock ', '');
+          btn.caption = `✅ ${powerName}`;
+        }
+      });
+    }
+
+    // Update the Use Power button state in QueenControlPanel if available
+    if (typeof window.g_queenControlPanel !== 'undefined' && window.g_queenControlPanel) {
+      window.g_queenControlPanel.updatePowerButtonState();
+    }
+  }
+
+  /**
+   * Helper method to find button by caption
+   * @param {string} caption - Button caption to search for
+   * @returns {Object|null} Button object or null if not found
+   */
+  findButtonByCaption(caption, partialMatch = false) {
+    // Search through all panels and their buttons
+    for (const panel of this.panels.values()) {
+      if (panel.buttons && panel.buttons.items) {
+        const button = panel.buttons.items.find(btn => {
+          if (partialMatch) {
+            return btn.caption && btn.caption.includes(caption);
+          }
+          return btn.caption === caption || 
+            btn.caption.includes('Paint Brush') || 
+            btn.caption.includes('Brush:') ||
+            btn.caption.includes('Resource Brush') ||
+            btn.caption.includes('Paint Resource Brush');
+        });
+        if (button) return button;
+      }
+    }
+    return null;
   }
   
   /**
@@ -906,6 +1511,113 @@ class DraggablePanelManager {
       console.warn('⚠️ No pause system available');
     }
   }
+
+  /**
+   * Handle the Shoot Lightning button from the combat panel
+   */
+  handleShootLightning() {
+    // Ensure LightningSystem exists
+    if (typeof window.LightningManager === 'undefined' || !window.LightningManager) {
+      if (typeof initializeLightningSystem === 'function') {
+        window.g_lightningManager = initializeLightningSystem();
+      } else {
+        console.warn('⚠️ Lightning system not available');
+        return;
+      }
+    }
+
+    // Determine target: prefer selected ant, otherwise nearest ant under mouse or nearest overall
+    let targetAnt = null;
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        const selected = g_selectionBoxController.getSelectedEntities();
+        if (Array.isArray(selected) && selected.length > 0) {
+          // Prefer first selected ant entity
+          targetAnt = selected.find(e => e && e.isAnt) || selected[0];
+        }
+      }
+
+      // If none selected, try nearest ant under mouse
+      if (!targetAnt && typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) {
+        // Find nearest to mouse position within reasonable radius
+        const radius = 80;
+        let best = null;
+        let bestDist = Infinity;
+        for (const ant of ants) {
+          if (!ant || !ant.isActive) continue;
+          const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
+          const d = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+          if (d < bestDist && d <= radius) {
+            bestDist = d;
+            best = ant;
+          }
+        }
+        targetAnt = best || ants[0]; // fallback to first ant
+      }
+
+      // Ask lightning manager to strike (respects cooldown)
+      if (g_lightningManager && typeof g_lightningManager.requestStrike === 'function') {
+        const executed = g_lightningManager.requestStrike(targetAnt);
+        const button = this.findButtonByCaption('Shoot Lightning');
+        if (executed) {
+          console.log('⚡ Lightning strike executed', targetAnt && (targetAnt._antIndex || targetAnt.id || 'ant'));
+          // Show cooldown on the button if available
+          if (button) {
+            const cooldownMs = g_lightningManager.cooldown || 3000;
+            const seconds = Math.ceil(cooldownMs / 1000);
+            const originalCaption = button._originalCaption || button.caption;
+            button._originalCaption = originalCaption;
+            button.caption = `Cooldown (${seconds}s)`;
+            button.style.backgroundColor = '#999999';
+            // Restore after cooldown
+            setTimeout(() => {
+              try {
+                button.caption = originalCaption;
+                button.style.backgroundColor = '#4DA6FF';
+              } catch (e) {}
+            }, cooldownMs + 50);
+          }
+        } else {
+          console.log('⏳ Lightning on cooldown');
+          if (button) {
+            // Briefly flash the button to indicate cooldown
+            const prevColor = button.style.backgroundColor;
+            button.style.backgroundColor = '#555';
+            setTimeout(() => { button.style.backgroundColor = prevColor; }, 200);
+          }
+        }
+      } else {
+        console.warn('⚠️ Lightning manager not initialized or missing requestStrike()');
+      }
+    } catch (err) {
+      console.error('❌ Error in handleShootLightning():', err);
+    }
+  }
+
+  /**
+   * Toggle the lightning aim brush (LEGACY - replaced by power cycling)
+   */
+  toggleLightningAimBrush() {
+    if (typeof g_lightningAimBrush === 'undefined' || !g_lightningAimBrush) {
+      if (typeof initializeLightningAimBrush === 'function') {
+        window.g_lightningAimBrush = initializeLightningAimBrush();
+      } else {
+        console.warn('⚠️ Lightning Aim Brush system not available');
+        return;
+      }
+    }
+
+    const active = g_lightningAimBrush.toggle();
+    const button = this.findButtonByCaption('Aim Lightning');
+    if (button) {
+      button.caption = active ? 'Aim: ON' : 'Aim Lightning';
+      button.style.backgroundColor = active ? '#1E90FF' : '#2E9AFE';
+    }
+  }
+
+  // NOTE: handlePlaceDropoff, updatePowerButtonState, and cyclePower methods 
+  // have been moved to QueenControlPanel.js (Classes/systems/ui/QueenControlPanel.js)
+  // These methods are now part of the queen-specific panel that only shows when queen is selected
 
   /**
    * Toggle debug information display
@@ -1207,136 +1919,218 @@ class DraggablePanelManager {
    * Damage selected ants by specified amount
    */
   damageSelectedAnts(amount) {
-    console.log(`💥 Damaging selected ants by ${amount} HP...`);
-    
-    // Try multiple damage methods
-    const damageMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand(`damage ${amount}`);
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command damage method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Direct ant manipulation with AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
-          let damaged = 0;
-          selectedAnts.forEach(ant => {
-            if (ant && typeof ant.takeDamage === 'function') {
-              ant.takeDamage(amount);
-              damaged++;
-            }
-          });
-          if (damaged > 0) {
-            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP`);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array damage
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let damaged = 0;
-          ants.forEach(ant => {
-            if (ant && ant.isSelected && typeof ant.takeDamage === 'function') {
-              ant.takeDamage(amount);
-              damaged++;
-            }
-          });
-          if (damaged > 0) {
-            console.log(`✅ Damaged ${damaged} selected ants by ${amount} HP directly`);
-            return true;
-          }
-        }
-        return false;
+    console.log(`💥 Damaging selected entities by ${amount} HP...`);
+
+    // Preferred: use selection controller to get selected entities (ants/buildings)
+    let selected = [];
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        selected = g_selectionBoxController.getSelectedEntities() || [];
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of damageMethods) {
-      if (method()) return;
+    } catch (e) { selected = []; }
+
+    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
+    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
+      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
+      else selected = ants.filter(a => a && a.isSelected);
     }
-    
-    console.warn('⚠️ Could not damage ants - no selected ants or compatible damage system found');
+
+    // If still nothing selected, warn and return
+    if (!selected || selected.length === 0) {
+      console.warn('⚠️ No selected entities found to damage');
+      return;
+    }
+
+    // Apply damage to any selected entity that supports takeDamage()
+    let damagedCount = 0;
+    selected.forEach(entity => {
+      if (entity && typeof entity.takeDamage === 'function') {
+        try { entity.takeDamage(amount); damagedCount++; } catch (e) { console.warn('Damage call failed', e); }
+      }
+    });
+
+    if (damagedCount > 0) console.log(`✅ Damaged ${damagedCount} selected entities by ${amount} HP`);
+    else console.warn('⚠️ No selected entities supported takeDamage()');
   }
 
   /**
    * Heal selected ants by specified amount
    */
   healSelectedAnts(amount) {
-    console.log(`💚 Healing selected ants by ${amount} HP...`);
+    console.log(`💚 Healing selected entities by ${amount} HP...`);
     
-    // Try multiple healing methods
-    const healMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand(`heal ${amount}`);
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command heal method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Direct ant manipulation with AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          const selectedAnts = AntUtilities.getSelectedAnts ? AntUtilities.getSelectedAnts(ants) : ants.filter(ant => ant && ant.isSelected);
-          let healed = 0;
-          selectedAnts.forEach(ant => {
-            if (ant && typeof ant.heal === 'function') {
-              ant.heal(amount);
-              healed++;
-            }
-          });
-          if (healed > 0) {
-            console.log(`✅ Healed ${healed} selected ants by ${amount} HP`);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array healing
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let healed = 0;
-          ants.forEach(ant => {
-            if (ant && ant.isSelected && typeof ant.heal === 'function') {
-              ant.heal(amount);
-              healed++;
-            }
-          });
-          if (healed > 0) {
-            console.log(`✅ Healed ${healed} selected ants by ${amount} HP directly`);
-            return true;
-          }
-        }
-        return false;
+    // Preferred: use selection controller to get selected entities (ants/buildings)
+    let selected = [];
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        selected = g_selectionBoxController.getSelectedEntities() || [];
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of healMethods) {
-      if (method()) return;
+    } catch (e) { selected = []; }
+
+    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
+    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
+      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
+      else selected = ants.filter(a => a && a.isSelected);
+    }
+
+    if (!selected || selected.length === 0) {
+      console.warn('⚠️ No selected entities found to heal');
+      return;
+    }
+
+    // Apply heal() to any selected entity that supports it
+    let healedCount = 0;
+    selected.forEach(entity => {
+      if (entity && typeof entity.heal === 'function') {
+        try { entity.heal(amount); healedCount++; } catch (e) { console.warn('Heal call failed', e); }
+      }
+    });
+
+    if (healedCount > 0) console.log(`✅ Healed ${healedCount} selected entities by ${amount} HP`);
+    else console.warn('⚠️ No selected entities supported heal()');
+  }
+
+  // --- Ant State Control Methods ---
+
+  /**
+   * Set selected ants to IDLE state
+   */
+  setSelectedAntsIdle() {
+    console.log('😴 Setting selected ants to IDLE state...');
+    this._setSelectedAntsState('IDLE', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to PATROL state
+   */
+  setSelectedAntsPatrol() {
+    console.log('🚶 Setting selected ants to PATROL state...');
+    this._setSelectedAntsState('PATROL', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to combat state
+   */
+  setSelectedAntsCombat() {
+    console.log('⚔️ Setting selected ants to COMBAT state...');
+    this._setSelectedAntsState('MOVING', 'IN_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to BUILDING state
+   */
+  setSelectedAntsBuilding() {
+    console.log('🏗️ Setting selected ants to BUILDING state...');
+    this._setSelectedAntsState('BUILDING', 'OUT_OF_COMBAT', 'DEFAULT');
+  }
+
+  /**
+   * Set selected ants to GATHERING state for autonomous resource collection
+   */
+  setSelectedAntsGathering() {
+    console.log('🔍 Setting selected ants to GATHERING state (7-grid radius)...');
+    if (typeof AntUtilities !== 'undefined' && AntUtilities.setSelectedAntsGathering && typeof ants !== 'undefined' && Array.isArray(ants)) {
+      const count = AntUtilities.setSelectedAntsGathering(ants);
+      console.log(`✅ Set ${count} ants to autonomous gathering mode`);
+    } else {
+      console.warn('AntUtilities.setSelectedAntsGathering not available - using fallback');
+      // Fallback to basic state setting
+      this._setSelectedAntsState('GATHERING', 'OUT_OF_COMBAT', 'DEFAULT');
+    }
+  }
+
+  /**
+   * Internal method to set ant states using multiple fallback approaches
+   * @param {string} primaryState - Primary state to set
+   * @param {string} combatModifier - Combat modifier to set
+   * @param {string} terrainModifier - Terrain modifier to set
+   */
+  _setSelectedAntsState(primaryState, combatModifier, terrainModifier) {
+    // Method 1: Use AntUtilities if available
+    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+      if (typeof AntUtilities.changeSelectedAntsState === 'function') {
+        AntUtilities.changeSelectedAntsState(ants, primaryState, combatModifier, terrainModifier);
+        
+        // Synchronize selection systems after successful state change
+        if (typeof AntUtilities.synchronizeSelections === 'function') {
+          AntUtilities.synchronizeSelections(ants);
+        }
+        return;
+      }
+      
+      // Method 2: Use specific AntUtilities method based on state
+      const stateMethodMap = {
+        'IDLE': 'setSelectedAntsIdle',
+        'GATHERING': 'setSelectedAntsGathering', 
+        'PATROL': 'setSelectedAntsPatrol',
+        'BUILDING': 'setSelectedAntsBuilding'
+      };
+      
+      const methodName = stateMethodMap[primaryState];
+      if (methodName && typeof AntUtilities[methodName] === 'function') {
+        AntUtilities[methodName](ants);
+        
+        // Synchronize selection systems after successful state change
+        if (typeof AntUtilities.synchronizeSelections === 'function') {
+          AntUtilities.synchronizeSelections(ants);
+        }
+        return;
+      }
+      
+      // Method 3: Manual state change using AntUtilities.getSelectedAnts
+      if (typeof AntUtilities.getSelectedAnts === 'function') {
+        const selectedAnts = AntUtilities.getSelectedAnts(ants);
+        let changedCount = 0;
+        
+        selectedAnts.forEach(ant => {
+          if (ant && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
+            const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
+            if (success) changedCount++;
+          }
+        });
+        
+        if (changedCount > 0) {
+          console.log(`✅ Changed state of ${changedCount} ants to ${primaryState}`);
+          return;
+        }
+      }
     }
     
-    console.warn('⚠️ Could not heal ants - no selected ants or compatible heal system found');
+    // Method 4: Direct ant array manipulation (fallback)
+    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      let changedCount = 0;
+      
+      ants.forEach(ant => {
+        // Check if ant is selected
+        const isSelected = ant._selectionController ? 
+          ant._selectionController.isSelected() : 
+          (ant.isSelected || false);
+          
+        if (isSelected && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
+          const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
+          if (success) changedCount++;
+        }
+      });
+      
+      if (changedCount > 0) {
+        console.log(`✅ Changed state of ${changedCount} ants to ${primaryState} (direct manipulation)`);
+        
+        // Synchronize selection systems after successful state change
+        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.synchronizeSelections === 'function') {
+          AntUtilities.synchronizeSelections(ants);
+        }
+        return;
+      }
+    }
+    
+    console.warn(`⚠️ Could not change ant states - no selected ants found or compatible state system unavailable`);
+    
+    // After any state change attempt, synchronize the selection systems
+    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
+      if (typeof AntUtilities.synchronizeSelections === 'function') {
+        AntUtilities.synchronizeSelections(ants);
+      }
+    }
   }
 
   /**
@@ -1345,7 +2139,12 @@ class DraggablePanelManager {
   dumpConsole() {
     console.log('📝 Dumping debug information...');
     console.table({
-      'Panel Manager': this.getStatus(),
+      'Panel Manager': {
+        initialized: this.isInitialized,
+        panelCount: this.panels.size,
+        currentlyDragging: (this.currentlyDragging && this.currentlyDragging.config && this.currentlyDragging.config.id) ? this.currentlyDragging.config.id : 'none',
+        trainMode: this.debugMode.panelTrainMode
+      },
       'Game State': this.gameState,
       'Visible Panels': this.stateVisibility[this.gameState]
     });

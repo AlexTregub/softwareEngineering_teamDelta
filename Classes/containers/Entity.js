@@ -26,12 +26,18 @@ class Entity {
     this._type = options.type || "Entity";
     this._isActive = true;
 
-    // Initialize collision box first (required by some controllers)
-    this._collisionBox = new CollisionBox2D(x, y, width, height);
+    // Apply +0.5 tile offset for tile-centered positioning
+    // This moves entities to the visual center of their tile, so rendering doesn't need offset
+    const TILE_SIZE = typeof window !== 'undefined' && window.TILE_SIZE ? window.TILE_SIZE : 32;
+    const centeredX = x + (TILE_SIZE * 0.5);
+    const centeredY = y + (TILE_SIZE * 0.5);
 
-    // Initialize sprite component (if Sprite2D available)
+    // Initialize collision box first (required by some controllers)
+    this._collisionBox = new CollisionBox2D(centeredX, centeredY, width, height);
+
+    // Initialize sprite component (if Sprite2D available) - use centered position
     this._sprite = typeof Sprite2D !== 'undefined' ?
-      new Sprite2D(options.imagePath || null, createVector(x, y), createVector(width, height), 0) : null;
+      new Sprite2D(options.imagePath || null, createVector(centeredX, centeredY), createVector(width, height), 0) : null;
 
     // Initialize debugger system (if UniversalDebugger available)
     this._debugger = null;
@@ -43,9 +49,14 @@ class Entity {
     // Initialize enhanced API
     this._initializeEnhancedAPI();
 
-    // Ensure transform state propagated to collision box and sprite
-    this.setPosition(x, y);
+    // Ensure transform state propagated to collision box and sprite (use centered position)
+    this.setPosition(centeredX, centeredY);
     this.setSize(width, height);
+
+    // Register with spatial grid manager (if available and not disabled)
+    if (options.useSpatialGrid !== false && typeof spatialGridManager !== 'undefined') {
+      spatialGridManager.addEntity(this);
+    }
   }
 
   // --- Core Properties ---
@@ -105,7 +116,6 @@ class Entity {
       'movement': typeof MovementController !== 'undefined' ? MovementController : null,
       'render': typeof RenderController !== 'undefined' ? RenderController : null,
       'selection': typeof SelectionController !== 'undefined' ? SelectionController : null,
-      'interaction': typeof InteractionController !== 'undefined' ? InteractionController : null,
       'combat': typeof CombatController !== 'undefined' ? CombatController : null,
       'terrain': typeof TerrainController !== 'undefined' ? TerrainController : null,
       'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null,
@@ -163,10 +173,87 @@ class Entity {
   }
 
   // --- Position & Transform ---
-  /** Set position (delegates to transform controller if present). */
-  setPosition(x, y) { this._collisionBox.setPosition(x, y); return this._delegate('transform', 'setPosition', x, y); }
-  /** Get position (from transform controller or collision box). */
-  getPosition() { return this._delegate('transform', 'getPosition') || { x: this._collisionBox.x, y: this._collisionBox.y }; }
+  /**
+   * Set position in world coordinates (collision box is single source of truth)
+   * @param {number} x - X coordinate in world space (pixels)
+   * @param {number} y - Y coordinate in world space (pixels)
+   */
+  setPosition(x, y) { 
+    // Collision box is the authoritative position storage
+    this._collisionBox.setPosition(x, y); 
+    
+    // Notify transform controller to sync sprite and mark dirty
+    const result = this._delegate('transform', 'setPosition', this._collisionBox.getPosX(), this._collisionBox.getPosY());
+    
+    // Update spatial grid when entity moves
+    if (typeof spatialGridManager !== 'undefined') {
+      spatialGridManager.updateEntity(this);
+    }
+    
+    return result;
+  }
+  
+  /**
+   * Set position from screen coordinates (converts to world space)
+   * Useful for mouse clicks and UI interactions
+   * @param {number} screenX - X coordinate in screen space (canvas pixels)
+   * @param {number} screenY - Y coordinate in screen space (canvas pixels)
+   */
+  setPositionFromScreen(screenX, screenY) {
+    const worldPos = CoordinateConverter.screenToWorld(screenX, screenY);
+    this.setPosition(worldPos.x, worldPos.y);
+  }
+  
+  /** Get position (from transform controller which reads from collision box). */
+  getPosition() { return this._delegate('transform', 'getPosition') }
+  
+  /**
+   * Get screen position (converts world position to screen coordinates for rendering)
+   * This matches the coordinate transformation used by Sprite2D rendering
+   * @returns {{x: number, y: number}} Screen coordinates
+   */
+  getScreenPosition() {
+    const worldPos = this.getPosition();
+    let screenX = worldPos.x;
+    let screenY = worldPos.y;
+    
+    // Use terrain's coordinate system if available (syncs with sprite rendering)
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert world pixels to tile coordinates
+      // Entity position is already tile-centered (+0.5 applied in Entity constructor)
+      const tileX = worldPos.x / TILE_SIZE;
+      const tileY = worldPos.y / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
+    return { x: screenX, y: screenY };
+  }
+  
+  /**
+   * Get position in tile coordinates
+   * @returns {{x: number, y: number}} Tile coordinates (floored integers)
+   */
+  getTilePosition() {
+    const pos = this.getPosition();
+    if (typeof CoordinateConverter !== 'undefined') {
+      return CoordinateConverter.worldToTile(pos.x, pos.y);
+    }
+  }
+  
+  /** Get X coordinate. */
+  getX() { 
+    const pos = this.getPosition(); 
+    return pos.x; 
+  }
+  /** Get Y coordinate. */
+  getY() { 
+    const pos = this.getPosition(); 
+    return pos.y; 
+  }
   /** Set size (delegates to transform controller if present). */
   setSize(w, h) { this._collisionBox.setSize(w, h); return this._delegate('transform', 'setSize', w, h); }
   /** Get size (from transform controller or collision box). */
@@ -197,11 +284,33 @@ class Entity {
   // --- Selection ---
   setSelected(selected) { return this._delegate('selection', 'setSelected', selected); }
   isSelected() { return this._delegate('selection', 'isSelected') || false; }
-  toggleSelection() { return this._delegate('selection', 'toggleSelected'); }
+  toggleSelection() { return this._delegate('selection', 'toggleSelection'); }
 
   // --- Interaction ---
-  isMouseOver() { return this._delegate('interaction', 'isMouseOver') || this._collisionBox.contains(mouseX, mouseY); }
-  onClick() { return this._delegate('interaction', 'onClick'); }
+  isMouseOver() { 
+    // Convert mouse screen coordinates to world coordinates for collision detection
+    // Uses CoordinateConverter utility which handles Y-axis inversion automatically
+    const worldMouse = (typeof CoordinateConverter !== 'undefined') ?
+      CoordinateConverter.screenToWorld(mouseX, mouseY) :
+      { x: mouseX, y: mouseY }; // Fallback if converter not available
+    
+    const isOver = this._collisionBox.contains(worldMouse.x, worldMouse.y);
+    
+    // Only log if mouse moved and hovering
+    if (isOver && (!window._lastDebugMouseX || !window._lastDebugMouseY || 
+        window._lastDebugMouseX !== mouseX || window._lastDebugMouseY !== mouseY)) {
+      const pos = this.getPosition();
+      const size = this.getSize();
+      console.log(`[Entity.js:isMouseOver:225] Screen:(${mouseX},${mouseY}) World:(${worldMouse.x},${worldMouse.y}) EntityPos:(${pos.x},${pos.y}) Size:(${size.x},${size.y}) isOver:${isOver}`);
+      window._lastDebugMouseX = mouseX;
+      window._lastDebugMouseY = mouseY;
+    }
+    
+    return isOver;
+  }
+
+  // TODO: The interaction controller has been removed, need to delegate this somewhere else.
+  onClick() { return this._delegate('interaction', 'onClick'); }  
 
   // --- Combat ---
   isInCombat() { return this._delegate('combat', 'isInCombat') || false; }
@@ -272,36 +381,11 @@ class Entity {
     }
     
     const renderController = this._controllers.get('render');
-    if (renderController) {
-      renderController.render();
-    } else {
-      this._fallbackRender();
-    }
+    renderController.render();
 
     // Render debugger overlay if active
     if (this._debugger?.isActive) {
       try { this._debugger.render(); } catch (error) { console.warn('Error rendering entity debugger:', error); }
-    }
-  }
-
-  /**
-   * _fallbackRender
-   * ---------------
-   * Simple rectangle or sprite rendering used when no render controller exists.
-   * Highlights selection state visually.
-   * @private
-   */
-  _fallbackRender() {
-    const pos = this.getPosition();
-    const size = this.getSize();
-    
-    if (this._sprite && this.hasImage()) {
-      this._sprite.render();
-    } else {
-      fill(100, 150, 200);
-      if (this.isSelected()) { stroke(255, 255, 0); strokeWeight(2); }
-      else noStroke();
-      rect(pos.x, pos.y, size.x, size.y);
     }
   }
 
@@ -570,6 +654,7 @@ class Entity {
         this.rendering.setOpacity(value);
       }
     };
+    
   }
 
   /**
@@ -647,13 +732,9 @@ class Entity {
     return this._stateMachine.primaryState || null;
   }
 
-  /**
-   * Check if entity is selected (for Selenium validation)
-   * @returns {boolean} True if entity is selected
-   */
-  isSelected() {
-    return this._isSelected || false;
-  }
+  // NOTE: isSelected() method is defined earlier at line ~213 and delegates to SelectionController
+  // Removed duplicate isSelected() that was incorrectly reading _isSelected property (which is never set)
+  // The correct implementation delegates: isSelected() { return this._delegate('selection', 'isSelected') || false; }
 
   /**
    * Check if entity is active (for Selenium validation)
@@ -695,9 +776,67 @@ class Entity {
     };
   }
 
+  // --- Terrain Information (convenience methods) ---
+  
+  /**
+   * Get current terrain type at entity position
+   * @returns {string} Current terrain modifier ("DEFAULT", "IN_WATER", "IN_MUD", "ON_SLIPPERY", "ON_ROUGH")
+   */
+  getCurrentTerrain() {
+    const terrainController = this._controllers.get('terrain');
+    return terrainController?.getCurrentTerrain() || "DEFAULT";
+  }
+  
+  /**
+   * Get the underlying tile material at entity position
+   * @returns {string|null} Tile material ('grass', 'dirt', 'stone', etc.) or null if unavailable
+   */
+  getCurrentTileMaterial() {
+    const pos = this.getPosition();
+    
+    // Try MapManager first (preferred)
+    if (typeof mapManager !== 'undefined' && mapManager.getActiveMap()) {
+      return mapManager.getTileMaterial(pos.x, pos.y);
+    }
+    
+    // Fallback to g_activeMap for backwards compatibility
+    if (typeof g_activeMap === 'undefined' || !g_activeMap) {
+      return null;
+    }
+    
+    try {
+      const tileSize = window.TILE_SIZE || 32;
+      const tileX = Math.floor(pos.x / tileSize);
+      const tileY = Math.floor(pos.y / tileSize);
+      
+      const chunkX = Math.floor(tileX / g_activeMap._chunkSize);
+      const chunkY = Math.floor(tileY / g_activeMap._chunkSize);
+      const chunk = g_activeMap.chunkArray?.get?.([chunkX, chunkY]);
+      
+      if (chunk) {
+        const localX = tileX - (chunkX * g_activeMap._chunkSize);
+        const localY = tileY - (chunkY * g_activeMap._chunkSize);
+        const tile = chunk.tileData?.get?.([localX, localY]);
+        
+        return tile?.material || null;
+      }
+    } catch (error) {
+      console.warn("getCurrentTileMaterial error:", error);
+    }
+    
+    return null;
+  }
+
   // --- Cleanup ---
   /** Mark entity inactive; controllers will be released for GC. */
-  destroy() { this._isActive = false; }
+  destroy() { 
+    this._isActive = false;
+    
+    // Remove from spatial grid
+    if (typeof spatialGridManager !== 'undefined') {
+      spatialGridManager.removeEntity(this);
+    }
+  }
 }
 
 // Export for Node.js testing

@@ -18,7 +18,7 @@ def run_job_component_tests():
     
     # Get the test directory path
     test_dir = Path(__file__).parent
-    bdd_dir = test_dir / "bdd_new"
+    bdd_dir = test_dir / "bdd"
     
     # Change to the BDD test directory
     os.chdir(bdd_dir)
@@ -70,7 +70,7 @@ def validate_test_setup():
     
     # Check if feature file exists
     test_dir = Path(__file__).parent
-    feature_file = test_dir / "bdd_new" / "features" / "job_component_system.feature"
+    feature_file = test_dir / "bdd" / "features" / "job_component_system.feature"
     
     if feature_file.exists():
         print("✅ JobComponent feature file found")
@@ -79,7 +79,7 @@ def validate_test_setup():
         return False
     
     # Check if step definitions exist
-    steps_file = test_dir / "bdd_new" / "steps" / "job_component_system_steps.py"
+    steps_file = test_dir / "bdd" / "steps" / "job_component_system_steps.py"
     
     if steps_file.exists():
         print("✅ JobComponent step definitions found")

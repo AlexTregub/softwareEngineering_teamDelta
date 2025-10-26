@@ -170,12 +170,6 @@ class VerticalButtonList {
   }
 }
 
-// expose the class globally in browser environments so existing code that uses
-// `new VerticalButtonList()` continues working
-if (window) {
-  window.VerticalButtonList = VerticalButtonList;
-}
-
 // Export for Node.js tests
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = VerticalButtonList;

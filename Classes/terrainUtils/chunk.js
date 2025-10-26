@@ -34,13 +34,136 @@ class Chunk {
         }
     }
 
+    /**
+     * Apply terrain generation based on mode
+     * @param {string} mode - Generation mode ('perlin', 'columns', 'checkerboard', 'flat')
+     * @param {Array} chunkPos - Position of this chunk [x, y]
+     * @param {Array} tileSpanRange - Global tile span range
+     * @param {number} seed - Random seed
+     */
+    applyGenerationMode(mode, chunkPos, tileSpanRange, seed) {
+        switch(mode) {
+            case 'perlin':
+                // Default perlin noise generation
+                this.randomize(tileSpanRange || [0, 0]);
+                break;
+                
+            case 'columns':
+                // Alternating vertical columns of moss and stone
+                this.applyColumnPattern(chunkPos);
+                break;
+                
+            case 'checkerboard':
+                // Checkerboard pattern of moss and stone
+                this.applyCheckerboardPattern(chunkPos);
+                break;
+                
+            case 'flat':
+                // Flat terrain (all one material)
+                this.applyFlatTerrain('grass');
+                break;
+                
+            default:
+                console.warn(`Unknown generation mode '${mode}', defaulting to perlin`);
+                this.randomize(tileSpanRange || [0, 0]);
+        }
+    }
+
+    /**
+     * Apply alternating moss and stone column pattern
+     * @param {Array} chunkPos - Position of this chunk [x, y]
+     */
+    applyColumnPattern(chunkPos) {
+        const width = this.tileData.getSize()[0];
+        const height = this.tileData.getSize()[1];
+        
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const tileIndex = this.tileData.convToFlat([x, y]);
+                const tile = this.tileData.rawArray[tileIndex];
+                
+                // Calculate absolute X position
+                const absoluteX = chunkPos[0] * width + x;
+                
+                // Even columns = moss, Odd columns = stone
+                if (absoluteX % 2 === 0) {
+                    tile._materialSet = 'moss_0';
+                    tile._weight = 2;
+                } else {
+                    tile._materialSet = 'stone';
+                    tile._weight = 100;
+                }
+            }
+        }
+    }
+
+    /**
+     * Apply checkerboard pattern
+     * @param {Array} chunkPos - Position of this chunk [x, y]
+     */
+    applyCheckerboardPattern(chunkPos) {
+        const width = this.tileData.getSize()[0];
+        const height = this.tileData.getSize()[1];
+        
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const tileIndex = this.tileData.convToFlat([x, y]);
+                const tile = this.tileData.rawArray[tileIndex];
+                
+                // Calculate absolute position
+                const absoluteX = chunkPos[0] * width + x;
+                const absoluteY = chunkPos[1] * height + y;
+                
+                // Checkerboard: moss if (x+y) even, stone if odd
+                if ((absoluteX + absoluteY) % 2 === 0) {
+                    tile._materialSet = 'moss_0';
+                    tile._weight = 2;
+                } else {
+                    tile._materialSet = 'stone';
+                    tile._weight = 100;
+                }
+            }
+        }
+    }
+
+    /**
+     * Apply flat terrain (all one material)
+     * @param {string} material - Material name to fill with
+     */
+    applyFlatTerrain(material = 'grass') {
+        const width = this.tileData.getSize()[0];
+        const height = this.tileData.getSize()[1];
+        
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const tileIndex = this.tileData.convToFlat([x, y]);
+                const tile = this.tileData.rawArray[tileIndex];
+                
+                tile._materialSet = material;
+                
+                // Set appropriate weight
+                if (material === 'grass') {
+                    tile._weight = 1;
+                } else if (material === 'dirt') {
+                    tile._weight = 3;
+                } else if (material === 'stone') {
+                    tile._weight = 100;
+                } else if (material === 'moss_0' || material === 'moss_1') {
+                    tile._weight = 2;
+                } else {
+                    tile._weight = 1;
+                }
+            }
+        }
+    }
+
     render(coordSys) { // Render through coordinate system
         // let temp = coordSys;
         // coordSys.setViewCornerBC([0,0]);
         let len = this.tileData.getSize()[0]*this.tileData.getSize()[1];
         
         for (let i = 0; i < len; ++i) {
-            this.tileData.rawArray[i].render2(coordSys);
+            this.tileData.rawArray[i].render(coordSys);
         }
     }
 

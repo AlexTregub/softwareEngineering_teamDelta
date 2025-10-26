@@ -1,6 +1,6 @@
 /**
  * @fileoverview Draggable Panel System Initialization
- * Sets up draggable panels for UI el    });
+ * Sets up draggable panels for UI});
     
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Debug info panel created');s like resource display and performance monitor
@@ -52,7 +52,7 @@ async function initializeDraggablePanelSystem() {
     const resourceDisplayPanel = window.draggablePanelManager.addPanel({
       id: 'resource-display',
       title: 'Resources',
-      position: { x: 20, y: 20 },
+      position: { x: window.innerWidth - 200, y: window.innerHeight - 120 }, // Bottom right
       size: { width: 180, height: 100 },
       style: {
         backgroundColor: [0, 0, 0, 150],
@@ -81,7 +81,7 @@ async function initializeDraggablePanelSystem() {
     const performancePanel = window.draggablePanelManager.addPanel({
       id: 'performance-monitor',
       title: 'Performance Monitor',
-      position: { x: 20, y: 140 },
+      position: { x: window.innerWidth - 440, y: window.innerHeight - 200 }, // Bottom right, left of resources
       size: { width: 220, height: 180 },
       style: {
         backgroundColor: [0, 0, 0, 180],
@@ -111,7 +111,7 @@ async function initializeDraggablePanelSystem() {
     const debugInfoPanel = window.draggablePanelManager.addPanel({
       id: 'debug-info',
       title: 'Debug Info',
-      position: { x: 260, y: 20 },
+      position: { x: window.innerWidth - 700, y: window.innerHeight - 200 }, // Bottom right, left of performance
       size: { width: 240, height: 180 },
       style: {
         backgroundColor: [0, 0, 0, 180],
@@ -379,8 +379,9 @@ function coordinateWithUIRenderer() {
  */
 function updateDraggablePanels() {
   if (window.draggablePanelManager && mouseX !== undefined && mouseY !== undefined) {
-    const isPressed = typeof mouseIsPressed !== 'undefined' ? mouseIsPressed : false;
-    window.draggablePanelManager.update(mouseX, mouseY, isPressed);
+    if (mouseIsPressed || true) {
+      RenderManager.startRendererOverwrite(window.draggablePanelManager.update(mouseX, mouseY, mouse),1)
+    }
   }
 }
 

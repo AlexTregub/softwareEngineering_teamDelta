@@ -143,3 +143,72 @@ if (typeof window !== 'undefined') {
   window.drawDropoffUI = drawDropoffUI;
   window.dropoffUI = dropoffUI;
 }
+
+// Inline adapter to integrate with RenderLayerManager interactive API
+try {
+  if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
+    const dropoffAdapter = {
+      hitTest: (pointer) => {
+        try {
+          // Use screen coords for UI elements
+          const x = pointer.screen.x;
+          const y = pointer.screen.y;
+          if (dropoffUI && dropoffUI.button && typeof dropoffUI.button.isMouseOver === 'function') {
+            return dropoffUI.button.isMouseOver(x, y);
+          }
+        } catch (e) {}
+        return false;
+      },
+      onPointerDown: (pointer) => {
+        try {
+          const x = pointer.screen.x;
+          const y = pointer.screen.y;
+          if (dropoffUI && dropoffUI.button && typeof dropoffUI.button.update === 'function') {
+            // Delegate to existing update which handles click edges
+            dropoffUI.button.update(x, y, pointer.isPressed === true);
+            // If placing mode started, consume
+            if (dropoffUI.placing) return true;
+          }
+        } catch (e) {}
+        return false;
+      },
+      onPointerMove: (pointer) => {
+        try {
+          const x = pointer.screen.x;
+          const y = pointer.screen.y;
+          if (dropoffUI && dropoffUI.button && typeof dropoffUI.button.update === 'function') {
+            dropoffUI.button.update(x, y, pointer.isPressed === true);
+          }
+        } catch (e) {}
+        return false;
+      },
+      onPointerUp: (pointer) => {
+        try {
+          const x = pointer.screen.x;
+          const y = pointer.screen.y;
+          if (dropoffUI && dropoffUI.prevMousePressed !== undefined) {
+            // Let updateDropoffUI detect placement on release if needed
+            // We don't consume to allow other systems to receive the event
+            return false;
+          }
+        } catch (e) {}
+        return false;
+      },
+      update: (pointer) => {
+        try {
+          // call existing per-frame updater if present
+          if (typeof updateDropoffUI === 'function') updateDropoffUI();
+        } catch (e) {}
+      },
+      render: (gameState, pointer) => {
+        try {
+          if (typeof drawDropoffUI === 'function') drawDropoffUI();
+        } catch (e) {}
+      }
+    };
+
+    RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, dropoffAdapter);
+  }
+} catch (e) {
+  console.warn('dropoffButton: failed to register RenderManager adapter', e);
+}

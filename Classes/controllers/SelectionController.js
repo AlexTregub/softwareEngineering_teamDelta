@@ -10,6 +10,10 @@ class SelectionController {
     this._highlightType = "none";
     this._selectionCallbacks = [];
     this._selectable = false;
+    this._lastMouseX = -1;
+    this._lastMouseY = -1;
+    this._lastCameraX = undefined;
+    this._lastCameraY = undefined;
   }
 
   // --- Public API ---
@@ -18,10 +22,22 @@ class SelectionController {
    * Update selection state and highlighting
    */
   update() {
-    // Update hover state based on mouse position
+    // Check if camera has moved
+    const cameraX = typeof cameraManager !== 'undefined' ? cameraManager.cameraX : 0;
+    const cameraY = typeof cameraManager !== 'undefined' ? cameraManager.cameraY : 0;
+    const cameraMoved = (cameraX !== this._lastCameraX || cameraY !== this._lastCameraY);
+    
+    // Update hover state if mouse moved OR camera moved
     if (mouseX !== undefined && mouseY !== undefined) {
-      this.updateHoverState(mouseX, mouseY);
+      const mouseMoved = (mouseX !== this._lastMouseX || mouseY !== this._lastMouseY);
+      if (mouseMoved || cameraMoved) {
+        this.updateHoverState(mouseX, mouseY);
+      }
     }
+    
+    // Store camera position for next frame
+    this._lastCameraX = cameraX;
+    this._lastCameraY = cameraY;
     
     // Update highlight type based on current states
     this.updateHighlightType();
@@ -90,6 +106,10 @@ class SelectionController {
    * @param {boolean} hovered - Whether entity is hovered
    */
   setHovered(hovered) {
+    // Debug: log when hover state changes
+    if (this._isHovered !== hovered && this._entity._debugger && this._entity._debugger.isActive) {
+      console.log(`[SelectionController.setHovered] ${this._entity.type || 'Entity'} hover changed: ${this._isHovered} → ${hovered}`);
+    }
     this._isHovered = hovered;
   }
 
@@ -119,30 +139,76 @@ class SelectionController {
 
   /**
    * Update hover state based on mouse position
-   * @param {number} mouseX - Mouse X position
-   * @param {number} mouseY - Mouse Y position
+   * @param {number} mouseX - Mouse X position (screen coordinates)
+   * @param {number} mouseY - Mouse Y position (screen coordinates)
    */
   updateHoverState(mouseX, mouseY) {
-    // Use transform controller if available, otherwise fallback
+    // Only log if mouse has moved
+    const mouseMoved = (mouseX !== this._lastMouseX || mouseY !== this._lastMouseY);
+    
+    // Get entity position and size in world pixels
+    const pos = this._entity.getPosition(); // World coords in pixels
+    const size = this._entity.getSize();
+    
+    // Convert mouse screen coordinates and entity world coordinates using GridTerrain's coordinate system
     let isOver = false;
     
-    if (this._entity._transformController) {
-      isOver = this._entity._transformController.contains(mouseX, mouseY);
-    } else if (this._entity.isMouseOver) {
-      isOver = this._entity.isMouseOver(mouseX, mouseY);
-    } else {
-      // Fallback calculation
-      const pos = this._entity.getPosition();
-      const size = this._entity.getSize();
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert screen mouse position to world coordinates
+      const mouseTilePos = g_activeMap.renderConversion.convCanvasToPos([mouseX, mouseY]);
+      const mouseWorldX = mouseTilePos[0] * TILE_SIZE;
+      const mouseWorldY = mouseTilePos[1] * TILE_SIZE;
       
+      // Collision detection happens in WORLD SPACE (where collision box is stored)
+      // Sprite rendering adds +0.5 tiles for visual centering, but collision uses actual stored position
+      // Check if mouse is within entity's collision box bounds
       isOver = (
-        mouseX >= pos.x &&
-        mouseX <= pos.x + size.x &&
-        mouseY >= pos.y &&
-        mouseY <= pos.y + size.y
+        mouseWorldX >= pos.x &&
+        mouseWorldX <= pos.x + size.x &&
+        mouseWorldY >= pos.y &&
+        mouseWorldY <= pos.y + size.y
       );
+    } /*else if (this._entity._transformController) {
+      // Fallback: Use TransformController if terrain system not available
+      // TransformController.contains() expects WORLD coordinates, not screen coordinates
+      // Convert screen mouse position to world position
+      let worldMouseX = mouseX;
+      let worldMouseY = mouseY;
+      
+      if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+        const worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
+        worldMouseX = worldMouse.x;
+        worldMouseY = worldMouse.y;
+      }
+      
+      isOver = this._entity._transformController.contains(worldMouseX, worldMouseY);
+    } else {
+      // Final fallback: Direct collision box check with coordinate conversion
+      let worldMouseX = mouseX;
+      let worldMouseY = mouseY;
+      
+      if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+        const worldMouse = CoordinateConverter.screenToWorld(mouseX, mouseY);
+        worldMouseX = worldMouse.x;
+        worldMouseY = worldMouse.y;
+      }
+      
+      // Use collision box directly with converted coords
+      if (this._entity._collisionBox) {
+        isOver = this._entity._collisionBox.contains(worldMouseX, worldMouseY);
+      } else {
+        // Last resort: direct bounds check
+        isOver = (
+          worldMouseX >= pos.x &&
+          worldMouseX <= pos.x + size.x &&
+          worldMouseY >= pos.y &&
+          worldMouseY <= pos.y + size.y
+        );
+      }
     }
-    
+    */
+    this._lastMouseX = mouseX;
+    this._lastMouseY = mouseY;
     this.setHovered(isOver);
   }
 

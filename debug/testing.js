@@ -38,50 +38,6 @@ function toggleDevConsole() {
   }
 }
 
-// TEST HOTKEY HANDLERS
-function handleTestHotkeys(key) {
-  if (!devConsoleEnabled) {
-    if ((key === 't' || key === 'T') || (key === 'p' || key === 'P') || (key === 'i' || key === 'I')) {
-      console.log("🛠️  Dev console is disabled. Press ` to enable testing commands.");
-    }
-    return false;
-  }
-
-  // Handle test hotkeys when dev console is enabled
-  if (key === 't' || key === 'T') {
-    console.log("🧪 Running Selection Box Tests...");
-    if (typeof runSelectionBoxTests === 'function') {
-      runSelectionBoxTests();
-    } else {
-      console.log("❌ Test functions not loaded");
-    }
-    return true;
-  }
-  
-  if (key === 'p' || key === 'P') {
-    console.log("⚡ Running Performance Tests...");
-    if (typeof testSelectionPerformance === 'function') {
-      testSelectionPerformance();
-    } else {
-      console.log("❌ Performance test function not loaded");
-    }
-    return true;
-  }
-  
-  if (key === 'i' || key === 'I') {
-    console.log("🔗 Running Integration Tests...");
-    if (typeof testRealSelectionBoxIntegration === 'function') {
-      testRealSelectionBoxIntegration();
-      testSelectionScenarios();
-    } else {
-      console.log("❌ Integration test functions not loaded");
-    }
-    return true;
-  }
-
-  return false; // Key not handled
-}
-
 // DEV CONSOLE VISUAL INDICATOR
 function drawDevConsoleIndicator() {
   if (devConsoleEnabled) {
@@ -132,21 +88,6 @@ function handleDebugConsoleKeys(keyCode, key) {
   // Toggle dev console with ` key (backtick) - now also toggles UI Debug Manager
   if (key === '`') {
     toggleDevConsole();
-    // Also toggle UI Debug Manager if available
-    if (g_uiDebugManager) {
-      g_uiDebugManager.toggle();
-    }
-    return true;
-  }
-  
-  // Toggle UI Debug Manager only with ~ key (tilde)
-  if (key === '~') {
-    if (g_uiDebugManager) {
-      g_uiDebugManager.toggle();
-      console.log('🎯 UI Debug Manager toggled via ~ key');
-    } else {
-      console.log('❌ UI Debug Manager not available');
-    }
     return true;
   }
   
@@ -156,7 +97,4 @@ function handleDebugConsoleKeys(keyCode, key) {
     if (isCommandLineActive()) {stopConsoleCapture(); openCommandLine();}
     return true;
   }
-  
-  // Handle test hotkeys
-  return handleTestHotkeys(key);
 }

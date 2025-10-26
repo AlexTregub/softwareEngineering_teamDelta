@@ -319,9 +319,9 @@ function hideKanbanTransitionPanel() {
  */
 function loadPresentationAssets() {
   if (typeof loadImage !== 'undefined') {
-    sprint5Image = loadImage('Images/KanBan/Sprint 5.png', 
+    sprint5Image = loadImage('Images/KanBan/Sprint 6.png', 
       () => {
-        console.log('✅ Sprint 5.png loaded successfully');
+        logVerbose('✅ Sprint 5.png loaded successfully');
       },
       () => {
         console.warn('⚠️ Failed to load Sprint 5.png, using fallback');
@@ -412,11 +412,11 @@ function renderSprintImageInMenu() {
 
     image(sprint5Image, imgX, imgY, imgWidth, imgHeight);
     
-    // Add "Press Shift+0 to toggle" text
+    // Add "Press Shift+Z to toggle" text
     fill(255, 255, 255, 200);
     textAlign(RIGHT, BOTTOM);
     textSize(14);
-    text('Press Shift+0 to toggle', width - 20, height - 20);
+    text('Press Shift+Z to toggle', width - 20, height - 20);
   }
 }
 

@@ -2,22 +2,35 @@ let g_resourceList;
 let g_resourceManager;
 let resourceIndex = 0;
 
+const RESOURCE_SPAWN_INTERVAL = 1; // seconds
+const MAX_RESOURCE_CAPACITY = 300;
+
 function resourcePreLoad(){
   // Create the new unified resource system manager
-  g_resourceManager = new ResourceSystemManager(1, 50); // (Interval, Capacity)
+  g_resourceManager = new ResourceSystemManager(RESOURCE_SPAWN_INTERVAL, MAX_RESOURCE_CAPACITY); // (Interval, Capacity)
   
   // Keep g_resourceList for backward compatibility - it will delegate to g_resourceManager
   g_resourceList = new resourcesArrayCompat(g_resourceManager);
   
-  // Register all resource types declaratively
-  registerAllResourceTypes();
+  // Register all resource types declaratively (but defer spawning until setup())
+  registerAllResourceTypes(true); // true = defer spawning
+}
+
+/**
+ * Spawn initial resources after setup() when spatial grid exists
+ */
+function spawnInitialResources() {
+  if (g_resourceManager && g_resourceManager.spawnDeferredResources) {
+    g_resourceManager.spawnDeferredResources();
+  }
 }
 
 /**
  * Register all resource types used in the game.
  * This centralizes all resource definitions in one place.
+ * @param {boolean} deferSpawning - If true, don't spawn resources immediately
  */
-function registerAllResourceTypes() {
+function registerAllResourceTypes(deferSpawning = false) {
   // Existing leaf resources
   g_resourceManager.registerResourceType('greenLeaf', {
     imagePath: 'Images/Resources/leaf.png',
@@ -25,7 +38,8 @@ function registerAllResourceTypes() {
     canBePickedUp: true,
     size: { width: 20, height: 20 },
     displayName: 'Green Leaf',
-    category: 'food'
+    category: 'food',
+    deferSpawning: deferSpawning
   });
   
   g_resourceManager.registerResourceType('mapleLeaf', {
@@ -34,7 +48,8 @@ function registerAllResourceTypes() {
     canBePickedUp: true,
     size: { width: 20, height: 20 },
     displayName: 'Maple Leaf',
-    category: 'food'
+    category: 'food',
+    deferSpawning: deferSpawning
   });
 
   g_resourceManager.registerResourceType('stick', {
@@ -44,7 +59,8 @@ function registerAllResourceTypes() {
     initialSpawnCount: 25, 
     size: { width: 20, height: 20 },
     displayName: 'Stick',
-    category: 'materials'
+    category: 'materials',
+    deferSpawning: deferSpawning
   });
 
   g_resourceManager.registerResourceType('stone', {
@@ -56,7 +72,8 @@ function registerAllResourceTypes() {
     size: { width: 20, height: 20 },
     isObstacle: true,  // Acts as terrain obstacle
     displayName: 'Stone',
-    category: 'terrain'
+    category: 'terrain',
+    deferSpawning: deferSpawning
   });
 }
 
@@ -74,6 +91,7 @@ class resourcesArray {
   getResourceList() {
     return this.resources;
   }
+
 
   drawAll() {
     for (const r of this.resources) {
@@ -414,13 +432,13 @@ class Resource extends Entity {
     const resourceType = options.resourceType || 'leaf';
     const imagePath = options.imagePath || Resource._getImageForType(resourceType);
 
-    // Configure Entity options
+    // Configure Entity options - spread options first, then override critical properties
     const entityOptions = {
-      type: 'Resource',
-      imagePath: imagePath,
       selectable: true,
       movementSpeed: 0,  // Resources should not move
-      ...options
+      ...options,        // Spread first
+      type: 'Resource',  // Then force type to Resource (cannot be overridden)
+      imagePath: imagePath  // Override imagePath with resolved value
     };
 
     // Call Entity constructor
@@ -456,7 +474,16 @@ class Resource extends Entity {
     return new Resource(x, y, 20, 20, { resourceType: 'mapleLeaf' });
   }
 
-  get type() { return this._resourceType; }
+  static createStick(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stick' });
+  }
+
+  static createStone(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'stone' });
+  }
+
+  // Don't override type getter - use Entity's type getter which returns "Resource"
+  // Use resourceType getter for the specific resource variety (greenLeaf, stick, etc.)
   get resourceType() { return this._resourceType; }
   get isCarried() { return !!this._isCarried; }
   get carrier() { return this._carrier; }
@@ -464,47 +491,34 @@ class Resource extends Entity {
   // Rendering: delegate to Entity.render() which will use RenderController if available
   render() {
     super.render();
-    // Apply hover highlight in the modern path using enhanced API
-    if (this.isMouseOver(mouseX, mouseY)) {
-      this.highlight.spinning();
+    // Use SelectionController's hover detection (handles camera/coordinate conversion)
+    const isHovered = this._selectionController ? this._selectionController.isHovered() : false;
+    
+    // Apply hover highlight using the highlight API
+    if (isHovered) {
+      if (this.highlight && typeof this.highlight.spinning === 'function') {
+        this.highlight.spinning();
+      }
     } else {
-      this.highlight.clear();
+      if (this.highlight && typeof this.highlight.clear === 'function') {
+        this.highlight.clear();
+      }
     }
   }
 
+  // Deprecated: Use SelectionController's isHovered() instead
+  // This method doesn't account for camera movement
   isMouseOver(mx, my) {
+    console.warn('Resource.isMouseOver() is deprecated - use SelectionController.isHovered() instead');
     const pos = this.getPosition(); const size = this.getSize();
     return (mx >= pos.x && mx <= pos.x + size.x && my >= pos.y && my <= pos.y + size.y);
   }
 
   applyHighlight() {
-    // Try to use the enhanced API first (Phase 3 feature)
     if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
-      // Use InteractionController for hover detection if available
         this.highlight.hover();
     } else {
-      verboseLog("No hover effect available");
-    }
-  }
-
-  drawManualHighlight() {
-    // Use InteractionController for hover detection if available
-    const interactionController = this.getController('interaction');
-    const isHovered = interactionController ? 
-      interactionController.isMouseOver() : 
-      this.isMouseOver(mouseX, mouseY);
-
-    if (isHovered) {
-      const pos = this.getPosition();
-      const size = this.getSize();
-      
-      // Draw highlight overlay
-      push();
-      noFill();
-      stroke(255, 255, 0, 150); // Yellow highlight
-      strokeWeight(2);
-      rect(pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
-      pop();
+      logVerbose("No hover effect available");
     }
   }
 

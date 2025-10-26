@@ -118,12 +118,14 @@ class CameraController {
    * @param {number} worldY - World Y coordinate to center on
    */
   static centerCameraOn(worldX, worldY) {
+    // Center the camera so the given world position is in the middle of the screen
+    // Camera position is top-left corner, so subtract half the canvas dimensions
     const canvasWidth = typeof g_canvasX !== 'undefined' ? g_canvasX : 800;
     const canvasHeight = typeof g_canvasY !== 'undefined' ? g_canvasY : 800;
     
     this.setCameraPosition(
-      worldX - canvasWidth / 2,
-      worldY - canvasHeight / 2
+      worldX - (canvasWidth / 2),
+      worldY - (canvasHeight / 2)
     );
   }
 
@@ -155,6 +157,37 @@ class CameraController {
     return worldX >= bounds.left && worldX <= bounds.right &&
            worldY >= bounds.top && worldY <= bounds.bottom;
   }
+}
+
+// Camera functions have been moved to CameraManager.js
+// Use cameraManager.methodName() instead of these functions:
+
+function screenToWorld(px = mouseX, py = mouseY) {
+  return cameraManager ? cameraManager.screenToWorld(px, py) : { worldX: px, worldY: py };
+}
+
+function getWorldMousePosition(px = mouseX, py = mouseY) {
+  return cameraManager ? cameraManager.screenToWorld(px, py) : { worldX: px, worldY: py };
+}
+
+function worldToScreen(worldX, worldY) {
+  return cameraManager ? cameraManager.worldToScreen(worldX, worldY) : { screenX: worldX, screenY: worldY };
+}
+
+function setCameraZoom(targetZoom, focusX, focusY) {
+  return cameraManager ? cameraManager.setZoom(targetZoom, focusX, focusY) : false;
+}
+
+function centerCameraOn(worldX, worldY) {
+  if (cameraManager) cameraManager.centerOn(worldX, worldY);
+}
+
+function centerCameraOnEntity(entity) {
+  if (cameraManager) cameraManager.centerOnEntity(entity);
+}
+
+function toggleCameraFollow() {
+  if (cameraManager) cameraManager.toggleFollow();
 }
 
 // Expose camera controller and utilities globally

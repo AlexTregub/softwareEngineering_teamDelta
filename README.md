@@ -27,14 +27,41 @@ Team contrib repo for Software Engineering course with Dr. Delozier (CS33901)
 
 ## 🧪 Testing
 
-### Node.js Tests
+### Quick Start
+```bash
+npm run dev                # Start dev server (required for E2E tests)
+npm test                   # Run all unit tests
+npm run test:e2e          # Run all E2E browser tests
+```
+
+### E2E Browser Tests (Puppeteer)
+```bash
+npm run test:e2e:ui       # UI panel interaction tests
+npm run test:e2e:camera   # Camera zoom/pan tests
+npm run test:e2e:spawn    # Entity spawning tests
+npm run test:e2e:combat   # Combat system tests
+
+# Run individual test
+node test/e2e/ui/pw_panel_minimize.js
+```
+
+**For AI Agents**: See [`docs/guides/E2E_TESTING_QUICKSTART.md`](docs/guides/E2E_TESTING_QUICKSTART.md) for complete E2E testing guide including:
+- Server setup and management
+- Advancing past main menu (critical!)
+- Force rendering after state changes
+- Screenshot verification expectations
+- Complete working examples
+
+Full E2E documentation: [`test/e2e/README.md`](test/e2e/README.md)
+
+### Node.js Unit Tests
 ```bash
 npm test                    # Run all tests
 npm run test:ant           # Run ant-specific tests
 npm run test:all           # Run comprehensive test suite
 ```
 
-### Browser Tests
+### Legacy Browser Tests (Being Migrated to E2E)
 ```bash
 python -m http.server 8000                                    # Start server
 # Then visit:
@@ -43,6 +70,11 @@ python -m http.server 8000                                    # Start server
 # http://localhost:8000/test/browser/speed-test.html          # Speed validation
 # http://localhost:8000/test/browser/validation-test.html     # Property validation
 ```
+
+### Testing Standards
+- **Methodology**: [`docs/standards/testing/TESTING_METHODOLOGY_STANDARDS.md`](docs/standards/testing/TESTING_METHODOLOGY_STANDARDS.md)
+- **BDD Language**: [`docs/standards/testing/BDD_LANGUAGE_STYLE_GUIDE.md`](docs/standards/testing/BDD_LANGUAGE_STYLE_GUIDE.md)
+- **Core Principle**: Tests must use system APIs and catch real bugs, not test internal mechanics
 
 ## 🎮 Running the Game
 

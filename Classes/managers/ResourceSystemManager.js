@@ -55,6 +55,24 @@ class ResourceSystemManager {
           return Resource.createMapleLeaf(x, y);
         }
       },
+
+      stick: { 
+        weight: 0.6, 
+        make: () => {
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createStick(x, y);
+        }
+      },
+
+      stone: { 
+        weight: 0.3, 
+        make: () => {
+          const x = random(0, g_canvasX - 20);
+          const y = random(0, g_canvasY - 20);
+          return Resource.createStone(x, y);
+        }
+      },
     };
 
     // Configuration options
@@ -442,6 +460,7 @@ class ResourceSystemManager {
       isObstacle: false,
       displayName: resourceType,
       category: 'resource',
+      deferSpawning: false,  // New option to defer spawning
       ...config
     };
 
@@ -532,9 +551,15 @@ class ResourceSystemManager {
       }
     }
 
-    // 5. Handle initial bulk spawning
-    if (resourceConfig.initialSpawnCount > 0) {
+    // 5. Handle initial bulk spawning (unless deferred)
+    if (resourceConfig.initialSpawnCount > 0 && !resourceConfig.deferSpawning) {
       this._spawnResourcesAtStartup(resourceType, resourceConfig);
+    } else if (resourceConfig.deferSpawning) {
+      // Store for later spawning
+      if (!this._deferredSpawns) {
+        this._deferredSpawns = [];
+      }
+      this._deferredSpawns.push({ resourceType, config: resourceConfig });
     }
 
     // Store the config for later reference
@@ -548,6 +573,25 @@ class ResourceSystemManager {
     } else {
       console.log(`ResourceSystemManager: Successfully registered resource type '${resourceType}'`);
     }
+  }
+
+  /**
+   * Spawn all deferred resources (call this after spatial grid is initialized)
+   */
+  spawnDeferredResources() {
+    if (!this._deferredSpawns || this._deferredSpawns.length === 0) {
+      console.log('ResourceSystemManager: No deferred spawns to process');
+      return;
+    }
+
+    console.log(`ResourceSystemManager: Spawning ${this._deferredSpawns.length} deferred resource types`);
+    
+    for (const { resourceType, config } of this._deferredSpawns) {
+      this._spawnResourcesAtStartup(resourceType, config);
+    }
+    
+    // Clear deferred list
+    this._deferredSpawns = [];
   }
 
   /**
@@ -585,6 +629,7 @@ class ResourceSystemManager {
 
   /**
    * Generate spawn positions based on pattern.
+   * Converts all positions to terrain-aligned coordinates.
    * @private
    */
   _generateSpawnPositions(count, config) {
@@ -601,10 +646,17 @@ class ResourceSystemManager {
         
         for (let row = 0; row < rows && positions.length < count; row++) {
           for (let col = 0; col < cols && positions.length < count; col++) {
-            positions.push({
-              x: stepX * (col + 1),
-              y: stepY * (row + 1)
-            });
+            let x = stepX * (col + 1);
+            let y = stepY * (row + 1);
+            
+            // Convert to terrain-aligned coordinates
+            if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+              const worldPos = CoordinateConverter.screenToWorld(x, y);
+              x = worldPos.x;
+              y = worldPos.y;
+            }
+            
+            positions.push({ x, y });
           }
         }
         break;
@@ -630,6 +682,13 @@ class ResourceSystemManager {
             y = random(height, g_canvasY - height);
           }
           
+          // Convert to terrain-aligned coordinates
+          if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+            const worldPos = CoordinateConverter.screenToWorld(x, y);
+            x = worldPos.x;
+            y = worldPos.y;
+          }
+          
           positions.push({ x, y });
         }
         break;
@@ -637,6 +696,7 @@ class ResourceSystemManager {
       case 'random':
       default:
         // Use improved distribution algorithm for better spread
+        // Note: _generateWellDistributedPositions will also apply coordinate conversion
         positions = this._generateWellDistributedPositions(count, width, height);
         break;
     }
@@ -647,6 +707,7 @@ class ResourceSystemManager {
   /**
    * Generate well-distributed positions across the canvas using Poisson disk sampling approach.
    * This ensures resources are spread out evenly without clustering.
+   * All positions are converted to terrain-aligned coordinates.
    * @private
    */
   _generateWellDistributedPositions(count, resourceWidth, resourceHeight) {
@@ -665,8 +726,15 @@ class ResourceSystemManager {
       
       while (!placed && attempts < maxAttempts) {
         // Generate candidate position
-        const candidateX = random(padding, g_canvasX - padding - resourceWidth);
-        const candidateY = random(padding, g_canvasY - padding - resourceHeight);
+        let candidateX = random(padding, g_canvasX - padding - resourceWidth);
+        let candidateY = random(padding, g_canvasY - padding - resourceHeight);
+        
+        // Convert to terrain-aligned coordinates
+        if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+          const worldPos = CoordinateConverter.screenToWorld(candidateX, candidateY);
+          candidateX = worldPos.x;
+          candidateY = worldPos.y;
+        }
         
         // Check minimum distance from existing positions
         let tooClose = false;
@@ -692,10 +760,17 @@ class ResourceSystemManager {
       
       // If we couldn't place with minimum distance, place randomly as fallback
       if (!placed) {
-        positions.push({
-          x: random(padding, g_canvasX - padding - resourceWidth),
-          y: random(padding, g_canvasY - padding - resourceHeight)
-        });
+        let fallbackX = random(padding, g_canvasX - padding - resourceWidth);
+        let fallbackY = random(padding, g_canvasY - padding - resourceHeight);
+        
+        // Convert fallback position too
+        if (typeof CoordinateConverter !== 'undefined' && CoordinateConverter.isAvailable()) {
+          const worldPos = CoordinateConverter.screenToWorld(fallbackX, fallbackY);
+          fallbackX = worldPos.x;
+          fallbackY = worldPos.y;
+        }
+        
+        positions.push({ x: fallbackX, y: fallbackY });
       }
     }
     
