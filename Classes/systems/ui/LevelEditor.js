@@ -17,6 +17,7 @@ class LevelEditor {
     this.saveDialog = null;
     this.loadDialog = null;
     this.notifications = null;
+    this.draggablePanels = null; // NEW: Draggable panel integration
     
     // Available materials from TERRAIN_MATERIALS_RANGED
     this.materials = ['moss', 'moss_1', 'stone', 'dirt', 'grass'];
@@ -81,6 +82,14 @@ class LevelEditor {
       this.editorCamera = cameraManager;
     }
     
+    // NEW: Initialize draggable panels
+    if (typeof LevelEditorPanels !== 'undefined') {
+      this.draggablePanels = new LevelEditorPanels(this);
+      this.draggablePanels.initialize();
+    } else {
+      console.warn('LevelEditorPanels not found - panels will not be draggable');
+    }
+    
     this.active = true;
     
     console.log('Level Editor initialized');
@@ -101,6 +110,11 @@ class LevelEditor {
     
     this.active = true;
     GameState.setState('LEVEL_EDITOR');
+    
+    // Show draggable panels
+    if (this.draggablePanels) {
+      this.draggablePanels.show();
+    }
   }
   
   /**
@@ -108,6 +122,11 @@ class LevelEditor {
    */
   deactivate() {
     this.active = false;
+    
+    // Hide draggable panels
+    if (this.draggablePanels) {
+      this.draggablePanels.hide();
+    }
   }
   
   /**
@@ -116,52 +135,12 @@ class LevelEditor {
   handleClick(mouseX, mouseY) {
     if (!this.active) return;
     
-    // Define UI panel positions (must match render positions EXACTLY)
-    const panelX = 10;
-    let panelY = 10;
-    
-    // Check Material Palette clicks
-    if (this.palette) {
-      if (this.palette.containsPoint(mouseX, mouseY, panelX, panelY)) {
-        const handled = this.palette.handleClick(mouseX, mouseY, panelX, panelY);
-        if (handled) {
-          this.notifications.show(`Selected material: ${this.palette.getSelectedMaterial()}`);
-          return; // Stop processing other clicks
-        }
+    // NEW: Let draggable panels handle clicks first
+    if (this.draggablePanels) {
+      const handled = this.draggablePanels.handleClick(mouseX, mouseY);
+      if (handled) {
+        return; // Panel consumed the click
       }
-      
-      panelY += 200; // Match render: panelY += 200
-    }
-    
-    // Check Toolbar clicks
-    if (this.toolbar) {
-      if (this.toolbar.containsPoint(mouseX, mouseY, panelX, panelY)) {
-        const tool = this.toolbar.handleClick(mouseX, mouseY, panelX, panelY);
-        if (tool) {
-          this.notifications.show(`Selected tool: ${tool}`);
-          
-          // Update undo/redo button states
-          this.toolbar.setEnabled('undo', this.editor.canUndo());
-          this.toolbar.setEnabled('redo', this.editor.canRedo());
-          
-          return; // Stop processing other clicks
-        }
-      }
-      
-      panelY += 80; // Match render: panelY += 80
-    }
-    
-    // Check Brush Size Control clicks
-    if (this.brushControl) {
-      if (this.brushControl.containsPoint(mouseX, mouseY, panelX, panelY)) {
-        const action = this.brushControl.handleClick(mouseX, mouseY, panelX, panelY);
-        if (action) {
-          this.notifications.show(`Brush size: ${this.brushControl.getSize()}`);
-          return; // Stop processing other clicks
-        }
-      }
-      
-      panelY += 60; // Match render: panelY += 60
     }
     
     // If no UI was clicked, handle terrain editing
@@ -263,26 +242,9 @@ class LevelEditor {
       this.gridOverlay.render();
     }
     
-    // Render UI panels
-    const panelX = 10;
-    let panelY = 10;
-    
-    // Material Palette
-    if (this.palette) {
-      this.palette.render(panelX, panelY);
-      panelY += 200; // Adjust based on palette height
-    }
-    
-    // Toolbar
-    if (this.toolbar) {
-      this.toolbar.render(panelX, panelY);
-      panelY += 80;
-    }
-    
-    // Brush size control
-    if (this.brushControl) {
-      this.brushControl.render(panelX, panelY);
-      panelY += 60;
+    // NEW: Render draggable panels (replaces old hardcoded panel rendering)
+    if (this.draggablePanels) {
+      this.draggablePanels.render();
     }
     
     // Properties panel (right side)
