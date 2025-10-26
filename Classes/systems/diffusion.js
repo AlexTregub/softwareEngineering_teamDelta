@@ -525,6 +525,23 @@ class Pheromone {
 }
 
 
+//// String hacky-workaround for Sets. GETTING HASH TO WORK ON CUSTOM CLASS NOT WELL DOCUMENTED.
+function convPosToStr(x,y) {
+    console.log(x,y);
+    return x.toString()+'_'+y.toString();
+}
+
+function convArrToStr(arr) {
+    return String(arr[0])+'_'+String(arr[1]);
+}
+
+function convStrToPos(str) { // Uses hashmapPosition for maximal compat. Can be removed.
+    posArr = str.split('_');
+
+    return new hashmapPosition(parseInt(posArr[0]),parseInt(posArr[1]));
+}
+
+
 //// Testing funcs
 function testSets() { // SET NOT WORKING CORRECTLY.
     let stringSet = new Set(); // Good.
@@ -537,16 +554,22 @@ function testSets() { // SET NOT WORKING CORRECTLY.
     let temp = new Set();
     let key = new hashmapPosition(2,5);
     
-    temp.add(key);
-    temp.add(new hashmapPosition(1,1));
-    temp.add(new hashmapPosition(1,1));
+    temp.add(convPosToStr(key.x,key.y));
+    temp.add(convPosToStr(1,1));
+    temp.add(convPosToStr(1,1));
+    temp.add(convPosToStr(-1,-1));
     console.log("-======");
     console.log(temp);
+
+    for (let test of temp) {
+        console.log(test);
+        console.log(convStrToPos(test));
+    } 
 
     let nextTemp = temp;
 
     console.log(nextTemp);
 
     console.log("Check for key retrieve with pos helper:");
-    console.log(temp.has(key));
+    console.log(temp.has(convPosToStr(key.x,key.y)));
 }
