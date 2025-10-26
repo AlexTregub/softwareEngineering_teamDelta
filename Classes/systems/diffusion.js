@@ -398,7 +398,7 @@ class PheromoneGrid {
     }
 
     // For whatever reason, this updates both grids simultaneously?
-    evaporate(selLeft=this._selLeft,delThresh=0.05) { // WILL HAVE THRESHOLD (ie. <5% of initial strength, AND WILL DESTROY THAT PHER.)
+    evaporate(selLeft=this._selLeft,delThresh=0.01) { // WILL HAVE THRESHOLD (ie. <5% of initial strength, AND WILL DESTROY THAT PHER.)
         // console.log(this._leftSet);
         // for (let test of this._leftSet) {
         //     console.log(test);
