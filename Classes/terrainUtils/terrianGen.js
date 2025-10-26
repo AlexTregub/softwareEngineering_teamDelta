@@ -22,12 +22,13 @@ let PERLIN_SCALE = 0.08;
 // };
 
 let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y)
-  'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Testing... ALL IS FARM
+  // 'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Testing... ALL IS FARM
   'moss' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
   'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
   'grass' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
+  'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Fallback rendering availability...
 };
 
 /**
@@ -41,7 +42,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
   
   // Known material mappings (based on TERRAIN_MATERIALS_RANGED above)
   switch (materialName) {
-    case 'moss_0':
+    case 'moss':
     case 'moss_1':
       if (MOSS_IMAGE) {
         ctx.image(MOSS_IMAGE, x, y, size, size);
