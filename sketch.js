@@ -164,7 +164,9 @@ function setup() {
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
 
-  g_tileInteractionManager.turnToFarmland(-10,-10,10,0);
+  // Farmland working...
+  // g_tileInteractionManager.turnToFarmland(-60,-60,0,0); // NOTE: current Y is flipped...
+  // g_tileInteractionManager.turnToFarmland(0,0); // NOTE: current Y is flipped...
   
   // Start automatic BGM monitoring after menu initialization
   if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
