@@ -163,6 +163,10 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+
+  // Farmland working...
+  // g_tileInteractionManager.turnToFarmland(-60,-60,0,0); // NOTE: current Y is flipped...
+  // g_tileInteractionManager.turnToFarmland(0,0); // NOTE: current Y is flipped...
   
   // Start automatic BGM monitoring after menu initialization
   if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
@@ -721,7 +725,7 @@ function keyPressed() {
       return; // UI shortcut was handled, don't process further
     }
   }
-  
+
   // Handle render layer toggles (Shift + C/V/B/N/M)
   if (keyIsDown(SHIFT) && RenderManager && RenderManager.isInitialized) {
     let handled = false;
