@@ -66,6 +66,8 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+
+  g_tileInteractionManager.turnToFarmland(-10,-10,10,10);
 }
 
 /**
@@ -95,8 +97,7 @@ function initializeWorld() {
   g_gridMap = new PathMap(g_map);
   
    // Initialize the render layer manager if not already done
-  RenderManager.initialize();
- 
+  RenderManager.initialize();  
 }
 
 /**

@@ -23,7 +23,7 @@ class TileInteractionManager {
     // takes tile coordinates as parameters
     // start is bottom left corner of an area
     // end is top right corner of an area
-    turnToFarmland(startX, startY, endX = startX, endY = startY) {
+  turnToFarmland(startX, startY, endX = startX, endY = startY) {
     for (let x = startX; x <= endX; x++) {
         for (let y = startY; y <= endY; y++) {
             const tile = g_map2.getTileAt(x, y);
@@ -38,7 +38,7 @@ class TileInteractionManager {
     
     // Invalidate the cache because we are changing the terrain
     g_map2.invalidateCache();
-    }
+  }
 
   // --- Coordinate Conversion ---
 
