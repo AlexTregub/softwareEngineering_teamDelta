@@ -309,24 +309,40 @@ it('should avoid water when pathfinding', function() {
 
 **Performance**: 50-200x faster than iteration
 
-## Upcoming Systems (Design Phase)
+## Current Systems Status
 
-### Pheromone System
+### EventManager System (COMPLETE)
+**Status**: Production-ready, fully tested
+- EventManager singleton with full API (`Classes/managers/EventManager.js`)
+- Event types: dialogue, spawn, tutorial, boss
+- Trigger system: time, flag, spatial, conditional, viewport
+- Flag-based conditions and state tracking
+- JSON import/export for level design
+- EventEditorPanel integration (Level Editor)
+- **API Reference**: `docs/api/EventManager_API_Reference.md`
+
+### Level Editor System (IN PROGRESS - DEBUGGING)
+**Status**: Core complete, debugging visual/rendering issues
+- **Complete**:
+  - Terrain editing (paint, fill, eyedropper, select tools)
+  - Material palette (moss, stone, dirt, grass variants)
+  - TerrainEditor, TerrainExporter, TerrainImporter
+  - Save/Load dialogs with LocalStorage
+  - MiniMap with cache system (performance optimized)
+  - EventEditorPanel for random events
+  - Full test coverage (unit, integration, E2E)
+- **Current Focus**: Debugging rendering issues, panel visibility
+- **Documentation**: `docs/LEVEL_EDITOR_SETUP.md`
+
+### Upcoming Systems (Design Phase)
+
+#### Pheromone System
 **TDD Plan**:
 1. Write unit tests for PheromoneManager (creation, decay, diffusion)
 2. Write integration tests for ant-pheromone interaction
 3. E2E tests with visual pheromone trails (screenshots)
 4. Add PheromoneController to Entity
 5. Register in EFFECTS rendering layer
-
-### Level Editor System
-**Current**: LevelEditorPanels (partial)
-**Planned**: Terrain editing, entity placement, save/load
-**TDD Plan**:
-- Unit tests for terrain modification (`setTileType()`, `paintBrush()`)
-- Integration tests for JSON serialization roundtrip
-- E2E tests for UI interactions with screenshots
-- BDD tests for complete level creation workflow
 
 ## E2E Testing Critical Patterns
 
@@ -388,7 +404,23 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 
 **Location**: `test/e2e/screenshots/{category}/{success|failure}/{name}.png`
 
-## Development Process Checklists
+## Development Process & Checklists
+
+**CRITICAL**: **ALWAYS use checklists** for feature development, bug fixes, and refactoring. Checklists ensure systematic, test-driven development and prevent missed steps.
+
+### Why Checklists Matter
+
+**Checklists enforce**:
+- TDD at every phase (unit → integration → E2E)
+- Systematic verification (no missed steps)
+- Documentation updates (keep docs current)
+- Quality gates (all tests pass before commit)
+- Consistent process (reproducible outcomes)
+
+**Available Checklists**:
+- `docs/checklists/FEATURE_ENHANCEMENT_CHECKLIST.md` - New features (TDD phases)
+- `docs/checklists/FEATURE_DEVELOPMENT_CHECKLIST.md` - Full development lifecycle
+- Inline checklists in this document (Bug Fix, New Feature, Refactoring)
 
 ### Bug Fix Process (TDD)
 
@@ -398,19 +430,65 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 4. **Fix the bug** with minimal code change
 5. **Run test** (confirm pass)
 6. **Run full suite** (`npm test` - no regressions)
-7. **Update docs** (move to "Fixed Issues", add comments)
+7. **Update docs** (move to "Fixed Issues", add comments in code)
 
-### New Feature Process (TDD)
+### New Feature Process (TDD + Roadmap)
 
-1. **Design** (create doc in `docs/architecture/`, list affected systems)
+**MANDATORY**: Create a roadmap document for features requiring >2 hours work
+
+1. **Create Roadmap** in `docs/roadmaps/[FEATURE_NAME]_ROADMAP.md`
+   - Break feature into phases
+   - Add checklists for each phase (TDD: unit → integration → E2E)
+   - List deliverables, files affected, documentation needs
+   - Estimate time per phase
+   
 2. **Write unit tests FIRST** (tests will fail)
 3. **Run tests** (confirm failure)
 4. **Implement feature** (minimal code to pass)
 5. **Run tests** (confirm pass)
 6. **Integration tests** (real system interactions)
 7. **E2E tests** (browser with screenshots)
-8. **Documentation** (usage examples, CHANGELOG)
-9. **Full test suite** (`npm test` - all pass before commit)
+8. **Update roadmap** (mark phases complete, update existing doc)
+9. **Update docs** (usage examples, CHANGELOG, architecture docs)
+10. **Full test suite** (`npm test` - all pass before commit)
+
+**Roadmap Template Structure**:
+```markdown
+# [Feature Name] Roadmap
+
+## Overview
+Brief description, goals, affected systems
+
+## Phases
+
+### Phase 1: Core Implementation
+- [ ] Write unit tests (TDD)
+- [ ] Implement core class
+- [ ] Run tests (pass)
+**Deliverables**: [List files created/modified]
+
+### Phase 2: Integration
+- [ ] Write integration tests
+- [ ] Connect to existing systems
+- [ ] Run tests (pass)
+**Deliverables**: [List files]
+
+### Phase 3: E2E & Documentation
+- [ ] Write E2E tests with screenshots
+- [ ] Create API reference
+- [ ] Update architecture docs
+**Deliverables**: [List docs]
+
+## Testing Strategy
+Unit → Integration → E2E breakdown
+
+## Documentation Updates
+- [ ] API reference
+- [ ] Architecture docs
+- [ ] Usage examples
+```
+
+**Example**: See `docs/roadmaps/RANDOM_EVENTS_ROADMAP.md` (EventManager implementation)
 
 ### Refactoring Process
 
@@ -543,26 +621,94 @@ window.SomeClass = global.SomeClass; // Required
 - `screenToWorld(mouseX, mouseY)` - screen to world coords
 - `worldToScreen(entityX, entityY)` - world to screen coords
 
+## Documentation Standards
+
+### Update, Don't Create
+
+**ALWAYS update existing documentation** instead of creating new summary files.
+
+**Correct approach**:
+- Update existing `docs/roadmaps/[FEATURE]_ROADMAP.md` with progress
+- Update `docs/api/[System]_API_Reference.md` with new methods
+- Update `docs/LEVEL_EDITOR_SETUP.md` with new features
+- Update `test/KNOWN_ISSUES.md` when fixing bugs
+- Update `CHANGELOG.md` with user-facing changes
+
+**WRONG approach** (DO NOT DO THIS):
+- Creating `FEATURE_COMPLETE_SUMMARY.md` (update roadmap instead)
+- Creating `BUG_FIX_REPORT.md` (update KNOWN_ISSUES.md instead)
+- Creating `TEST_RESULTS_[DATE].md` (update test docs instead)
+- Creating duplicate documentation (confuses maintainers)
+
+**Exception**: Only create NEW documentation for:
+- New major features (architecture docs, API references)
+- New subsystems (quick reference guides)
+- Entirely new processes (testing guides, checklists)
+
+### Emoji Usage Policy
+
+**Use emojis ONLY for visual clarity** in documentation, NOT in code comments.
+
+**Allowed** (visual scanning):
+- Checkmarks and X marks in checklists
+- Warning symbols for critical sections
+- Status indicators in roadmaps
+
+**Examples**:
+```markdown
+<!-- CORRECT: Visual clarity in docs -->
+- ✅ Unit tests passing
+- ❌ E2E tests failing
+- ⚠️ CRITICAL: Must call ensureGameStarted()
+
+<!-- WRONG: Decorative emojis -->
+- 🎨 Paint tool (use "Paint" instead)
+- 🪣 Fill tool (use "Fill" instead)
+- 💧 Eyedropper (use "Eyedropper" instead)
+```
+
+**Code comments**: NEVER use emojis
+```javascript
+// CORRECT
+// CRITICAL: Must initialize before use
+
+// WRONG
+// ⚠️ CRITICAL: Must initialize before use
+```
+
 ## Critical Reminders
 
-1. **TDD FIRST** - Write tests before implementation (unit → integration → E2E)
-2. **Script load order matters** - Rendering before Entity, Entity before controllers
-3. **System APIs only** - Never manual property injection in tests
-4. **Headless only** - `--headless=new` for all browser tests
-5. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
-6. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
-7. **E2E screenshots** - Visual proof required, not just internal state
-8. **Force redraw** - Call `window.redraw()` multiple times after state changes
-9. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
-10. **Controllers optional** - Check availability before delegation
+1. **TDD ALWAYS** - Write tests before implementation (unit → integration → E2E)
+2. **USE CHECKLISTS** - Follow `FEATURE_ENHANCEMENT_CHECKLIST.md` for all features
+3. **CREATE ROADMAPS** - Document phases for features >2 hours work
+4. **UPDATE DOCS** - Modify existing docs, don't create new summaries
+5. **Script load order matters** - Rendering before Entity, Entity before controllers
+6. **System APIs only** - Never manual property injection in tests
+7. **Headless only** - `--headless=new` for all browser tests
+8. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
+9. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
+10. **E2E screenshots** - Visual proof required, not just internal state
+11. **Force redraw** - Call `window.redraw()` multiple times after state changes
+12. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
+13. **Controllers optional** - Check availability before delegation
+14. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
 
 ## Quick Reference
 
+**Core APIs**:
 - **Entity API**: `Classes/containers/Entity.js`
+- **EventManager API**: `docs/api/EventManager_API_Reference.md`
 - **Rendering**: `docs/pipelines/RENDERING_PIPELINE.md`
 - **Spatial Grid**: `docs/quick-reference-spatial-grid.md`
 - **MapManager**: `docs/quick-reference-mapmanager.md`
+
+**Testing & Development**:
 - **Testing Guide**: `docs/guides/TESTING_TYPES_GUIDE.md`
 - **E2E Quickstart**: `docs/guides/E2E_TESTING_QUICKSTART.md`
-- **Feature Checklist**: `docs/FEATURE_DEVELOPMENT_CHECKLIST.md`
+- **Feature Enhancement Checklist**: `docs/checklists/FEATURE_ENHANCEMENT_CHECKLIST.md`
+- **Feature Development Checklist**: `docs/checklists/FEATURE_DEVELOPMENT_CHECKLIST.md`
 - **Known Issues**: `test/KNOWN_ISSUES.md`
+
+**Current Work**:
+- **Level Editor Setup**: `docs/LEVEL_EDITOR_SETUP.md`
+- **Random Events Roadmap**: `docs/roadmaps/RANDOM_EVENTS_ROADMAP.md` (Phase 3A complete)

@@ -19,6 +19,7 @@ class LevelEditor {
     this.loadDialog = null;
     this.notifications = null;
     this.draggablePanels = null; // NEW: Draggable panel integration
+    this.fileMenuBar = null; // NEW: File menu bar for save/load/export
     
     // UI state
     this.showGrid = true;
@@ -78,25 +79,54 @@ class LevelEditor {
     this.saveDialog = new SaveDialog();
     this.loadDialog = new LoadDialog();
     
+    // Enable native file dialogs (Windows file explorer instead of custom UI)
+    this.saveDialog.useNativeDialogs = true;
+    this.loadDialog.useNativeDialogs = true;
+    
+    // Wire up dialog callbacks
+    this.saveDialog.onSave = () => {
+      this.save();
+      this.saveDialog.hide();
+    };
+    this.saveDialog.onCancel = () => {
+      this.saveDialog.hide();
+    };
+    
+    this.loadDialog.onLoad = (data) => {
+      // When using native dialogs, data is passed directly to callback
+      if (this.loadDialog.useNativeDialogs && data) {
+        this.loadFromData(data);
+        this.loadDialog.hide();
+      } else {
+        // Custom dialog flow
+        const selectedFile = this.loadDialog.getSelectedFile();
+        if (selectedFile) {
+          this.load();
+          this.loadDialog.hide();
+        }
+      }
+    };
+    this.loadDialog.onCancel = () => {
+      this.loadDialog.hide();
+    };
+    
     // Create notification manager
     this.notifications = new NotificationManager();
     
+    // Create file menu bar for save/load/export operations
+    this.fileMenuBar = new FileMenuBar();
+    this.fileMenuBar.setLevelEditor(this);
+    
     // Setup camera for editor
-    if (typeof cameraManager !== 'undefined') {
-      this.editorCamera = cameraManager;
-    }
+    this.editorCamera = cameraManager;
     
     // NEW: Initialize draggable panels
-    if (typeof LevelEditorPanels !== 'undefined') {
-      this.draggablePanels = new LevelEditorPanels(this);
-      this.draggablePanels.initialize();
-    } else {
-      console.warn('LevelEditorPanels not found - panels will not be draggable');
-    }
+    this.draggablePanels = new LevelEditorPanels(this);
+    this.draggablePanels.initialize();
     
     this.active = true;
     
-    console.log('Level Editor initialized');
+    verboseLog('Level Editor initialized');
     return true;
   }
   
@@ -126,11 +156,7 @@ class LevelEditor {
    */
   deactivate() {
     this.active = false;
-    
-    // Hide draggable panels
-    if (this.draggablePanels) {
-      this.draggablePanels.hide();
-    }
+    this.draggablePanels.hide();
   }
   
   /**
@@ -139,7 +165,30 @@ class LevelEditor {
   handleClick(mouseX, mouseY) {
     if (!this.active) return;
     
-    // FIRST: Let draggable panels handle content clicks (buttons, swatches, etc.)
+    // FIRST: Check if dialogs are open and handle their clicks
+    if (this.saveDialog && this.saveDialog.isVisible()) {
+      const consumed = this.saveDialog.handleClick(mouseX, mouseY);
+      if (consumed) {
+        return; // Dialog consumed the click
+      }
+    }
+    
+    if (this.loadDialog && this.loadDialog.isVisible()) {
+      const consumed = this.loadDialog.handleClick(mouseX, mouseY);
+      if (consumed) {
+        return; // Dialog consumed the click
+      }
+    }
+    
+    // SECOND: Check if file menu bar handled the click
+    if (this.fileMenuBar) {
+      const handled = this.fileMenuBar.handleClick(mouseX, mouseY);
+      if (handled) {
+        return; // Menu bar consumed the click
+      }
+    }
+    
+    // THIRD: Let draggable panels handle content clicks (buttons, swatches, etc.)
     if (this.draggablePanels) {
       const handled = this.draggablePanels.handleClick(mouseX, mouseY);
       if (handled) {
@@ -147,7 +196,7 @@ class LevelEditor {
       }
     }
     
-    // SECOND: Check if draggable panel manager consumed the event (for dragging/title bar)
+    // FOURTH: Check if draggable panel manager consumed the event (for dragging/title bar)
     if (typeof draggablePanelManager !== 'undefined' && draggablePanelManager) {
       const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
       if (panelConsumed) {
@@ -289,6 +338,11 @@ class LevelEditor {
   update() {
     if (!this.active) return;
     
+    // Update file menu bar states (undo/redo availability)
+    if (this.fileMenuBar) {
+      this.fileMenuBar.updateMenuStates();
+    }
+    
     // Update UI components
     if (this.minimap) {
       this.minimap.update();
@@ -309,16 +363,9 @@ class LevelEditor {
     if (this.terrain) {
       this.terrain.render();
     }
-    
-    // Render grid overlay
-    if (this.showGrid && this.gridOverlay) {
-      this.gridOverlay.render();
-    }
-    
-    // NEW: Render draggable panels (replaces old hardcoded panel rendering)
-    if (this.draggablePanels) {
-      this.draggablePanels.render();
-    }
+    this.gridOverlay.render();
+    this.fileMenuBar.render();
+    this.draggablePanels.render();
     
     // Minimap (bottom right)
     if (this.showMinimap && this.minimap) {
@@ -335,16 +382,11 @@ class LevelEditor {
     }
     
     // Render dialogs if active
-    if (this.saveDialog && this.saveDialog.isVisible()) {
-      this.saveDialog.render();
-    }
-    
-    if (this.loadDialog && this.loadDialog.isVisible()) {
-      this.loadDialog.render();
-    }
+    if (this.saveDialog.isVisible()) { this.saveDialog.render(); }
+    if (this.loadDialog.isVisible()) { this.loadDialog.render(); }
     
     // Render back button
-    this.renderBackButton();
+    //this.renderBackButton();
   }
   
   /**
@@ -353,34 +395,19 @@ class LevelEditor {
   renderBackButton() {
     // Position in top-left, slightly offset from edges
     const btnSize = 64; // Square button to match icon size
-    const btnX = 10;  // Slightly offset from left edge
-    const btnY = 10;  // Slightly offset from top edge
+    const btnX = 32;  // Slightly offset from left edge
+    const btnY = 32;  // Slightly offset from top edge
     
     // Check hover
     const isHovering = mouseX > btnX && mouseX < btnX + btnSize && 
                        mouseY > btnY && mouseY < btnY + btnSize;
     
-    // Load back button texture if available
-    if (typeof backButtonImg !== 'undefined' && backButtonImg) {
-      // Draw the textured button
-      push();
-      if (isHovering) {
-        tint(255, 220); // Slight highlight on hover
-      }
-      image(backButtonImg, btnX, btnY, btnSize, btnSize);
-      pop();
-    } else {
-      // Fallback: draw a simple button
-      fill(isHovering ? 100 : 80);
-      stroke(255);
-      strokeWeight(2);
-      rect(btnX, btnY, btnSize, btnSize, 5);
-      
-      fill(255);
-      textAlign(CENTER, CENTER);
-      textSize(12);
-      text('Back', btnX + btnSize / 2, btnY + btnSize / 2);
-    }
+    // Draw the textured button
+    push();
+    if (isHovering) { tint(255, 220); }
+
+    image(backButtonImg, btnX, btnY, btnSize, btnSize);
+    pop();
     
     // Handle click
     if (isHovering && mouseIsPressed) {
@@ -397,29 +424,34 @@ class LevelEditor {
     const exporter = new TerrainExporter(this.terrain);
     const data = exporter.exportToJSON();
     
-    // Show save dialog
-    this.saveDialog.show();
-    this.saveDialog.setFilename('my_level');
-    this.saveDialog.setFormat('json');
-    
-    // For now, save to localStorage
-    const storage = new LocalStorageManager('level_');
-    const saved = storage.save('current', data);
-    
-    if (saved) {
-      this.notifications.show('Level saved successfully!', 'success');
+    // Check if using native dialogs
+    if (this.saveDialog.useNativeDialogs) {
+      // Use native browser save dialog
+      this.saveDialog.saveWithNativeDialog(data, 'my_level.json');
+      this.notifications.show('Level downloaded!', 'success');
     } else {
-      this.notifications.show('Failed to save level', 'error');
+      // Use custom dialog UI
+      this.saveDialog.show();
+      this.saveDialog.setFilename('my_level');
+      this.saveDialog.setFormat('json');
+      
+      // For now, save to localStorage
+      const storage = new LocalStorageManager('level_');
+      const saved = storage.save('current', data);
+      
+      if (saved) {
+        this.notifications.show('Level saved successfully!', 'success');
+      } else {
+        this.notifications.show('Failed to save level', 'error');
+      }
     }
   }
   
   /**
-   * Load a terrain
+   * Load a terrain from file data
+   * @param {Object} data - Terrain data to load
    */
-  load() {
-    const storage = new LocalStorageManager('level_');
-    const data = storage.load('current');
-    
+  loadFromData(data) {
     if (data && this.terrain) {
       const importer = new TerrainImporter(this.terrain);
       const success = importer.importFromJSON(data);
@@ -428,6 +460,25 @@ class LevelEditor {
         this.notifications.show('Level loaded successfully!', 'success');
       } else {
         this.notifications.show('Failed to load level', 'error');
+      }
+    }
+  }
+  
+  /**
+   * Load a terrain
+   */
+  load() {
+    // Check if using native dialogs
+    if (this.loadDialog.useNativeDialogs) {
+      // Open native file picker (callback handles loading)
+      this.loadDialog.openNativeFileDialog();
+    } else {
+      // Use custom dialog with localStorage
+      const storage = new LocalStorageManager('level_');
+      const data = storage.load('current');
+      
+      if (data && this.terrain) {
+        this.loadFromData(data);
       }
     }
   }
@@ -458,6 +509,28 @@ class LevelEditor {
   handleKeyPress(key) {
     if (!this.active) return;
     
+    // FIRST: Check if save dialog is open and handle keyboard input
+    if (this.saveDialog && this.saveDialog.isVisible()) {
+      const consumed = this.saveDialog.handleKeyPress(key);
+      if (consumed) {
+        return; // Dialog consumed the key press
+      }
+    }
+    
+    // SECOND: Check if file menu bar handles the key press (keyboard shortcuts)
+    if (this.fileMenuBar) {
+      const modifiers = {
+        ctrl: keyIsDown(CONTROL),
+        shift: keyIsDown(SHIFT),
+        alt: keyIsDown(ALT)
+      };
+      const handled = this.fileMenuBar.handleKeyPress(key, modifiers);
+      if (handled) {
+        return; // Menu bar consumed the key press
+      }
+    }
+    
+    // keyboard shortcuts
     switch(key.toLowerCase()) {
       case 's':
         if (keyIsDown(CONTROL)) {
