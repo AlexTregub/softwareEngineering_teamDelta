@@ -73,7 +73,7 @@ class PheromoneGrid {
     push(posArr,pheromone,selLeft=this._selLeft) { // Merges ONE pheromone into cell
         // ENSURE MERGE LOGIC IS THE SAME IN BOTH...
         if (selLeft) {
-            if (this._leftSet.has(posArr)) { // If exists, merge...
+            if (this._leftSet.has(convArrToStr(posArr))) { // If exists, merge...
                 // Key exists...
                 let gridAccessPos = this._left.convToFlat(this._left.convPosToArr(posArr));
                 let length = this._left.rawArray[gridAccessPos].length;
@@ -94,14 +94,17 @@ class PheromoneGrid {
                 this._left.rawArray[gridAccessPos].push(pheromone);
             } else { // Easy set...
                 this._left.set(posArr,[pheromone]);
-                this._leftSet.add(new hashmapPosition(posArr[0],posArr[1]));
+                this._leftSet.add(
+                    convPosToStr(posArr[0],posArr[1])
+                    // new hashmapPosition(posArr[0],posArr[1])
+                );
             }
 
             return;
         }
 
         // selRight
-        if (this._rightSet.has(posArr)) { // If exists, merge...
+        if (this._rightSet.has(convArrToStr(posArr))) { // If exists, merge...
             // Key exists...
             let gridAccessPos = this._right.convToFlat(this._right.convPosToArr(posArr));
             let length = this._right.rawArray[gridAccessPos].length;
@@ -122,7 +125,10 @@ class PheromoneGrid {
             this._right.rawArray[gridAccessPos].push(pheromone);
         } else { // Easy set...
             this._right.set(posArr,[pheromone]);
-            this._rightSet.add(new hashmapPosition(posArr[0],posArr[1]));
+            this._rightSet.add(
+                convPosToStr(posArr[0],posArr[1])
+                // new hashmapPosition(posArr[0],posArr[1])
+            );
         }
     }
 
@@ -133,9 +139,15 @@ class PheromoneGrid {
             // console.log(this._left.get(posArr));
             
             if (pheromoneArray.length == 0) { // If setting to empty...
-                this._leftSet.delete(new hashmapPosition(posArr[0],posArr[1]));
+                this._leftSet.delete(
+                    convPosToStr(posArr[0],posArr[1])
+                    // new hashmapPosition(posArr[0],posArr[1])
+                );
             } else {
-                this._leftSet.add(new hashmapPosition(posArr[0],posArr[1]));
+                this._leftSet.add(
+                    convPosToStr(posArr[0],posArr[1])
+                    // new hashmapPosition(posArr[0],posArr[1])
+                );
                 // console.log(this._leftSet)
             }
 
@@ -148,9 +160,15 @@ class PheromoneGrid {
         this._right.set(posArr,pheromoneArray); // Grid Update
             
         if (pheromoneArray.length == 0) { // If setting to empty...
-            this._rightSet.delete(new hashmapPosition(posArr[0],posArr[1]));
+            this._rightSet.delete(
+                convPosToStr(posArr[0],posArr[1])
+                // new hashmapPosition(posArr[0],posArr[1])
+            );
         } else {
-            this._rightSet.add(new hashmapPosition(posArr[0],posArr[1]));
+            this._rightSet.add(
+                convPosToStr(posArr[0],posArr[1])
+                // new hashmapPosition(posArr[0],posArr[1])
+            );
         }
 
         return;
@@ -173,20 +191,22 @@ class PheromoneGrid {
             for (let pos of this._leftSet) { 
                 // console.log(pos.x,pos.y);
                 // initTargets.add(new hashmapPosition(pos.x,pos.y)); // Should also be needed...
+                pos = convStrToPos(pos);
 
-                initTargets.add(new hashmapPosition(pos.x,pos.y+1));
-                initTargets.add(new hashmapPosition(pos.x,pos.y-1));
-                initTargets.add(new hashmapPosition(pos.x-1,pos.y));
-                initTargets.add(new hashmapPosition(pos.x+1,pos.y));
+                initTargets.add(convPosToStr(pos.x,pos.y+1)); // new hashmapPosition(pos.x,pos.y+1));
+                initTargets.add(convPosToStr(pos.x,pos.y-1)); // new hashmapPosition(pos.x,pos.y-1));
+                initTargets.add(convPosToStr(pos.x-1,pos.y)); // new hashmapPosition(pos.x-1,pos.y));
+                initTargets.add(convPosToStr(pos.x+1,pos.y)); // new hashmapPosition(pos.x+1,pos.y));
             }
 
             // Drop OOB - increase mem cost temporarily to potentially save on compute
             let rightSet = new Set();
-            for (let pos of initTargets) {
+            for (let posStr of initTargets) {
+                let pos = convStrToPos(posStr);
                 if (pos.x >= this._left._spanTopLeft[0] && pos.x < this._left._spanBotRight[0]
                     && pos.y >= this._left._spanTopLeft[1] && pos.y < this._left._spanBotRight[1]
                 ) {
-                    rightSet.add(pos);
+                    rightSet.add(posStr);
                 }
             }
             // console.log("RIGHTSET:",rightSet);
@@ -195,6 +215,8 @@ class PheromoneGrid {
             // this._rightSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
             for (let pos of rightSet) {
                 // Collect all pheromones. Store as list of pheromonesTypeArrays of pheromone arrays.
+                pos = convStrToPos(pos);
+                
                 let target = this.get([pos.x,pos.y],selLeft);
                 let vnNeighborhood = [
                     target, // Target
@@ -278,20 +300,22 @@ class PheromoneGrid {
         for (let pos of this._rightSet) { 
             // console.log(pos.x,pos.y);
             // initTargets.add(new hashmapPosition(pos.x,pos.y)); // Should also be needed...
+            pos = convStrToPos(pos);
 
-            initTargets.add(new hashmapPosition(pos.x,pos.y+1));
-            initTargets.add(new hashmapPosition(pos.x,pos.y-1));
-            initTargets.add(new hashmapPosition(pos.x-1,pos.y));
-            initTargets.add(new hashmapPosition(pos.x+1,pos.y));
+            initTargets.add(convPosToStr(pos.x,pos.y+1)); // new hashmapPosition(pos.x,pos.y+1));
+            initTargets.add(convPosToStr(pos.x,pos.y-1)); // new hashmapPosition(pos.x,pos.y-1));
+            initTargets.add(convPosToStr(pos.x-1,pos.y)); // new hashmapPosition(pos.x-1,pos.y));
+            initTargets.add(convPosToStr(pos.x+1,pos.y)); // new hashmapPosition(pos.x+1,pos.y));
         }
 
         // Drop OOB - increase mem cost temporarily to potentially save on compute
         let leftSet = new Set();
-        for (let pos of initTargets) {
+        for (let posStr of initTargets) {
+            let pos = convStrToPos(posStr);
             if (pos.x >= this._right._spanTopLeft[0] && pos.x < this._right._spanBotRight[0]
                 && pos.y >= this._right._spanTopLeft[1] && pos.y < this._right._spanBotRight[1]
             ) {
-                leftSet.add(pos);
+                leftSet.add(posStr);
             }
         }
         // console.log("RIGHTSET:",leftSet);
@@ -299,6 +323,8 @@ class PheromoneGrid {
         // Diffusion (of targeted cells) - needs to handle neighbor merge conflicts, and store to _left.
         // this._leftSet = targets; // Given at least 1 neighbor has value if in targets, diffusion will produce a value in this cell.
         for (let pos of leftSet) {
+            pos = convStrToPos(pos);
+            
             // Collect all pheromones. Store as list of pheromonesTypeArrays of pheromone arrays.
             let target = this.get([pos.x,pos.y],selLeft);
             let vnNeighborhood = [
@@ -373,10 +399,10 @@ class PheromoneGrid {
 
     // For whatever reason, this updates both grids simultaneously?
     evaporate(selLeft=this._selLeft,delThresh=0.05) { // WILL HAVE THRESHOLD (ie. <5% of initial strength, AND WILL DESTROY THAT PHER.)
-        console.log(this._leftSet);
-        for (let test of this._leftSet) {
-            console.log(test);
-        }
+        // console.log(this._leftSet);
+        // for (let test of this._leftSet) {
+        //     console.log(test);
+        // }
         
         if (selLeft) { // Left->Right
             // Clear right grid
@@ -384,7 +410,9 @@ class PheromoneGrid {
             this.initSelGrid(!selLeft);
 
             // Left grid vals:
-            for (let target of this._leftSet) {
+            for (let targetStr of this._leftSet) {
+                let target = convStrToPos(targetStr);
+
                 let updated = [];
                 let init = this.get([target.x,target.y],selLeft); // Get current pheromones
                 // console.log(init);
@@ -393,6 +421,8 @@ class PheromoneGrid {
                     pher.strength*=(1-pher.evaporate);
                     if (pher.strength/pher.initial > delThresh) {
                         updated.push(pher);
+                    } else {
+                        this._rightSet.delete(targetStr);
                     }
                 }
 
@@ -410,7 +440,9 @@ class PheromoneGrid {
         this.initSelGrid(!selLeft);
 
         // Left grid vals:
-        for (let target of this._rightSet) {
+        for (let targetStr of this._rightSet) {
+            let target = convStrToPos(targetStr);
+
             let updated = [];
             let init = this.get([target.x,target.y],selLeft); // Get current pheromones
             // console.log(init);
@@ -419,6 +451,8 @@ class PheromoneGrid {
                 pher.strength*=(1-pher.evaporate);
                 if (pher.strength/pher.initial > delThresh) {
                     updated.push(pher);
+                } else {
+                    this._leftSet.delete(targetStr);
                 }
             }
 
@@ -527,7 +561,7 @@ class Pheromone {
 
 //// String hacky-workaround for Sets. GETTING HASH TO WORK ON CUSTOM CLASS NOT WELL DOCUMENTED.
 function convPosToStr(x,y) {
-    console.log(x,y);
+    // console.log(x,y);
     return x.toString()+'_'+y.toString();
 }
 
