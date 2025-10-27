@@ -350,8 +350,8 @@ function draw() {
     if (window.g_lightningManager) {
       window.g_lightningManager.update();
     }
-    if (window.g_globalTime) {
-      window.g_globalTime.update();
+    if (g_globalTime) {
+      g_globalTime.update();
     }
 
     // Update queen movement (WASD keys)
