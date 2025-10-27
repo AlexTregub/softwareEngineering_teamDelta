@@ -11,7 +11,7 @@ class NewPathMap{
     _pGrid = new PheromoneGrid(terrain);
     for (let y = -72; y < 88; y++){
       for (let x = -72; x < 88; x++){
-        let weight = 1;
+        let weight = Math.random()*5;
         let node = new NewNode(weight, x, y, _pGrid);
         this._grid.set([x, y], node);
       }

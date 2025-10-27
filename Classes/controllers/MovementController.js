@@ -326,14 +326,23 @@ class MovementController {
     let grid = g_pathMap.getGrid();
 
     if (!ant?.brain || !ant.brain.travelledTiles) return;
-
-    const node = grid.get([20,50]); //doing this can actually skip ants over terrain (of course). Useful for expedited travel, like moving all ants to boss fight area
+    const pos = ant.getPosition();
+    const size = ant.getSize();
+    this.entityCenterX = pos.x + size.x / 2;
+    this.entityCenterY = pos.y + size.y / 2;
+    const entityX = Math.floor(this.entityCenterX / tileSize);
+    const entityY = Math.floor(this.entityCenterY / tileSize);
+    const mapTopLeft = g_pathMap._mapTL;
+    const offsetX = entityX - mapTopLeft[0];
+    const offsetY = entityY - mapTopLeft[1];
+    console.log(`X: ${entityX}`);
+    const node = grid.getArrPos([offsetX, offsetY]); //doing this can actually skip ants over terrain (of course). Useful for expedited travel, like moving all ants to boss fight area
 
     // Wander or track depending on ant state
     const nextNode = wander(grid, node, ant.brain.travelledTiles, ant, ant.brain.movementState || "idle");
     if (nextNode) {
-      const nextX = nextNode._x;
-      const nextY = nextNode._y;
+      const nextX = nextNode._x * tileSize + tileSize / 2;
+      const nextY = nextNode._y * tileSize + tileSize / 2;
       this.moveToLocation(nextX, nextY);
     }
   }
