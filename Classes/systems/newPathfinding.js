@@ -50,7 +50,9 @@ class NewNode{
     _pGrid.push(this._x,this._y, {type: tag, strength: 1, initial: 1, rate: 0.1}) //Change it so Ant Class has one single array? that holds all info (allegience, )
   }
   getScents() {
-    return _pGrid.get([this._x, this._y]); 
+    let scents = _pGrid.get([this._x, this._y]);
+    console.log(`scents`);
+    return scents;
   }
   //Takes coordinates. If potential neighbor is in bounds, adds it
 }
@@ -67,6 +69,7 @@ function wander(grid, node, travelled, ant, state){
     return track(grid, node, ant, priority);
   }
   if(scents && scents.length > 0){
+    console.log(`YES!`);
     let result = tryTrack(scents, ant);
     if(result === 0){
       return findBestNeighbor(grid, node, travelled);

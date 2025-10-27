@@ -91,6 +91,7 @@ class AntBrain{
     }
 
     checkTrail(pheromone){
+        console.log(`Checking a pheromone`);
         /*Check Trail:
             Checks a trail using trail type and ant type. Generates number from 0-1. If it falls in the bounds, the ant follows the path, else sets to ignore that type until next state change (maybe make it dynamic (-50% chance))
         */
