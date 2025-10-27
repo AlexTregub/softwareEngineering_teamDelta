@@ -31,16 +31,30 @@ Track bugs and their status with test coverage.
   - Implemented: Click-drag rectangle selection, paint all tiles under selection, hover highlights affected tiles
   - Tests: 19 unit + 13 integration + 4 E2E tests passing
 
+- [x] **Level Editor: Menu Bar Interaction Blocks All Input**
+  - Files: `Classes/ui/FileMenuBar.js`, `Classes/systems/ui/LevelEditor.js`
+  - Issue: Opening any menu dropdown blocked ALL input including menu bar itself
+  - Fix: Reordered click handling priority - menu bar checked FIRST, then block terrain if menu open
+  - Result: Menu bar remains clickable, can switch menus, canvas click closes menu
+  - Tests: 10 FileMenuBar unit + 9 LevelEditor unit + 4 E2E with screenshots (all passing)
+
 ### Open ❌
 
-*(No open issues)*
+- [ ] **Level Editor: Terrain Paints Under Menu Bar on Hover**
+  - File: `Classes/systems/ui/LevelEditor.js`
+  - Issue: While hover highlight is correctly disabled over menu bar, terrain still paints when hovering over menu bar
+  - Expected Behavior: Menu bar should block ALL terrain interaction (painting and highlighting)
+  - Current Behavior: Highlight disabled ✅, but painting still occurs ❌
+  - Priority: MEDIUM
+  - Fix Needed: Add menu bar check in handleMouseMove() to block drag painting over menu bar
+  - Tests Needed: Unit + E2E tests for drag painting over menu bar
 
 ---
 
 ## Statistics
 
-- **Total Issues**: 4
-- **Fixed**: 4
-- **Open**: 0
+- **Total Issues**: 6
+- **Fixed**: 5
+- **Open**: 1
 - **High Priority Open**: 0
 - **Missing Features**: 0

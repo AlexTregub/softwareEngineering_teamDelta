@@ -16,6 +16,9 @@ class ToolBar {
     constructor(toolConfigs = null) {
         this.selectedTool = toolConfigs ? toolConfigs[0].name : 'brush';
         
+        // Callback for tool changes
+        this.onToolChange = null;
+        
         // If tool configs provided, use them
         if (toolConfigs) {
             this.tools = {};
@@ -60,7 +63,14 @@ class ToolBar {
      */
     selectTool(tool) {
         if (this.tools[tool]) {
+            const oldTool = this.selectedTool;
             this.selectedTool = tool;
+            
+            // Call callback if tool changed
+            if (oldTool !== tool && this.onToolChange) {
+                this.onToolChange(tool, oldTool);
+            }
+            
             return true;
         }
         return false;

@@ -64,8 +64,15 @@ class LevelEditor {
     ]);
     this.toolbar.selectTool('paint');
     
+    // Listen for tool changes to update brush size visibility
+    this.toolbar.onToolChange = (newTool, oldTool) => {
+      if (this.fileMenuBar && typeof this.fileMenuBar.updateBrushSizeVisibility === 'function') {
+        this.fileMenuBar.updateBrushSizeVisibility(newTool);
+      }
+    };
+    
     // Create brush size control (initialSize, minSize, maxSize)
-    this.brushControl = new BrushSizeControl(1, 1, 9);
+    this.brushControl = new BrushSizeControl(1, 1, 99);
     
     // Create event editor panel
     this.eventEditor = new EventEditorPanel();
@@ -124,6 +131,11 @@ class LevelEditor {
     // Create file menu bar for save/load/export operations
     this.fileMenuBar = new FileMenuBar();
     this.fileMenuBar.setLevelEditor(this);
+    
+    // Set initial brush size visibility (paint tool is selected by default)
+    if (this.fileMenuBar && typeof this.fileMenuBar.updateBrushSizeVisibility === 'function') {
+      this.fileMenuBar.updateBrushSizeVisibility('paint');
+    }
     
     // NEW: Initialize selection manager for select tool
     this.selectionManager = new SelectionManager();
@@ -189,6 +201,20 @@ class LevelEditor {
   handleMouseMove(mouseX, mouseY) {
     if (!this.active) return;
     
+    // Update file menu bar hover effects
+    if (this.fileMenuBar && typeof this.fileMenuBar.handleMouseMove === 'function') {
+      this.fileMenuBar.handleMouseMove(mouseX, mouseY);
+    }
+    
+    // Check if mouse is over menu bar - disable hover preview
+    if (this.fileMenuBar && this.fileMenuBar.containsPoint(mouseX, mouseY)) {
+      // Disable hover preview when over menu bar
+      if (this.hoverPreviewManager && typeof this.hoverPreviewManager.clearHover === 'function') {
+        this.hoverPreviewManager.clearHover();
+      }
+      return;
+    }
+    
     // Skip hover preview if menu is open
     if (this.isMenuOpen) {
       // Disable hover preview when menu is open
@@ -225,12 +251,15 @@ class LevelEditor {
       currentSize = this.editor.getBrushSize();
     }
     
-    // Calculate new size (delta positive = scroll up = increase)
-    const delta = event.delta || 0;
+    // Calculate new size (delta negative = scroll up = increase)
+    // Mouse wheel: negative deltaY = scroll up, positive deltaY = scroll down
+    const delta = event.deltaY || event.delta || 0;
     let newSize = currentSize;
-    if (delta > 0) {
-      newSize = Math.min(currentSize + 1, 9);
-    } else if (delta < 0) {
+    if (delta < 0) {
+      // Scroll up = increase size
+      newSize = Math.min(currentSize + 1, 99);
+    } else if (delta > 0) {
+      // Scroll down = decrease size
       newSize = Math.max(currentSize - 1, 1);
     }
     
@@ -246,6 +275,11 @@ class LevelEditor {
         this.editor.setBrushSize(newSize);
       }
       
+      // Update menu bar brush size module if available
+      if (this.fileMenuBar && this.fileMenuBar.brushSizeModule && typeof this.fileMenuBar.brushSizeModule.setSize === 'function') {
+        this.fileMenuBar.brushSizeModule.setSize(newSize);
+      }
+      
       return true; // Event handled
     }
     
@@ -258,12 +292,7 @@ class LevelEditor {
   handleClick(mouseX, mouseY) {
     if (!this.active) return;
     
-    // Check if menu is open - block all terrain editing
-    if (this.isMenuOpen) {
-      return false; // Menu is open, block terrain interaction
-    }
-    
-    // FIRST: Check if dialogs are open and handle their clicks
+    // PRIORITY 1: Check if dialogs are open and handle their clicks
     if (this.saveDialog && this.saveDialog.isVisible()) {
       const consumed = this.saveDialog.handleClick(mouseX, mouseY);
       if (consumed) {
@@ -278,15 +307,27 @@ class LevelEditor {
       }
     }
     
-    // SECOND: Check if file menu bar handled the click
+    // PRIORITY 2: Check if file menu bar handled the click (ALWAYS check, even if menu open)
     if (this.fileMenuBar) {
       const handled = this.fileMenuBar.handleClick(mouseX, mouseY);
       if (handled) {
-        return; // Menu bar consumed the click
+        return; // Menu bar consumed the click (could be menu switching or closing)
       }
     }
     
-    // THIRD: Let draggable panels handle content clicks (buttons, swatches, etc.)
+    // PRIORITY 3: If menu is open but click wasn't handled by menu bar, block terrain interaction
+    // (User clicked on canvas while menu was open - this closes menu but doesn't paint)
+    if (this.isMenuOpen) {
+      return false; // Menu was open, click consumed (terrain blocked)
+    }
+    
+    // PRIORITY 3.5: Check if mouse is over menu bar - block terrain painting
+    // (Even if menu bar didn't consume the click, we don't want to paint over the menu bar area)
+    if (this.fileMenuBar && this.fileMenuBar.containsPoint(mouseX, mouseY)) {
+      return; // Mouse over menu bar, don't paint terrain
+    }
+    
+    // PRIORITY 4: Let draggable panels handle content clicks (buttons, swatches, etc.)
     if (this.draggablePanels) {
       const handled = this.draggablePanels.handleClick(mouseX, mouseY);
       if (handled) {
@@ -294,7 +335,7 @@ class LevelEditor {
       }
     }
     
-    // FOURTH: Check if draggable panel manager consumed the event (for dragging/title bar)
+    // PRIORITY 5: Check if draggable panel manager consumed the event (for dragging/title bar)
     if (typeof draggablePanelManager !== 'undefined' && draggablePanelManager) {
       const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
       if (panelConsumed) {
@@ -414,13 +455,23 @@ class LevelEditor {
   handleDrag(mouseX, mouseY) {
     if (!this.active) return;
     
-    // FIRST: Check if EventEditorPanel is dragging an event for placement
+    // FIRST: Check if mouse is over menu bar - block ALL terrain interaction
+    if (this.fileMenuBar && this.fileMenuBar.containsPoint(mouseX, mouseY)) {
+      return; // Don't paint over menu bar
+    }
+    
+    // SECOND: Block terrain interaction if menu is open
+    if (this.isMenuOpen) {
+      return; // Menu is open, don't paint terrain
+    }
+    
+    // THIRD: Check if EventEditorPanel is dragging an event for placement
     if (this.eventEditor && this.eventEditor.isDragging()) {
       this.eventEditor.updateDragPosition(mouseX, mouseY);
       return; // Event drag in progress, don't do terrain editing
     }
     
-    // SECOND: Check if draggable panel manager consumed the mouse event
+    // FOURTH: Check if draggable panel manager consumed the mouse event
     if (typeof draggablePanelManager !== 'undefined' && draggablePanelManager) {
       const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
       if (panelConsumed) {
@@ -531,6 +582,18 @@ class LevelEditor {
    */
   handleHover(mouseX, mouseY) {
     if (!this.active) return;
+    
+    // Don't show hover preview if hovering over menu bar
+    if (this.fileMenuBar && this.fileMenuBar.containsPoint(mouseX, mouseY)) {
+      this.hoverPreviewManager.clearHover();
+      return;
+    }
+    
+    // Don't show hover preview if menu is open
+    if (this.isMenuOpen) {
+      this.hoverPreviewManager.clearHover();
+      return;
+    }
     
     const tool = this.toolbar.getSelectedTool();
     

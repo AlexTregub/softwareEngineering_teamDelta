@@ -49,6 +49,9 @@ class FileMenuBar {
     this.hoveredItem = null;
     this.levelEditor = null;
     
+    // Brush size menu module
+    this.brushSizeModule = null;
+    
     // Menu items
     this.menuItems = this._createDefaultMenuItems();
     
@@ -188,6 +191,39 @@ class FileMenuBar {
   setLevelEditor(levelEditor) {
     this.levelEditor = levelEditor;
     this.updateMenuStates();
+    
+    // Initialize brush size module if available
+    if (typeof BrushSizeMenuModule !== 'undefined') {
+      this.brushSizeModule = new BrushSizeMenuModule({
+        x: 0, // Will be calculated during render
+        y: this.position.y,
+        initialSize: 1,
+        onSizeChange: (newSize) => {
+          // Update TerrainEditor brush size
+          if (this.levelEditor && this.levelEditor.editor && typeof this.levelEditor.editor.setBrushSize === 'function') {
+            this.levelEditor.editor.setBrushSize(newSize);
+          }
+          // Update BrushControl if still present
+          if (this.levelEditor && this.levelEditor.brushControl && typeof this.levelEditor.brushControl.setSize === 'function') {
+            this.levelEditor.brushControl.setSize(newSize);
+          }
+        }
+      });
+      
+      // Set initial visibility to false
+      this.brushSizeModule.setVisible(false);
+    }
+  }
+  
+  /**
+   * Update brush size module visibility based on current tool
+   * @param {string} currentTool - Currently selected tool ('paint', 'fill', etc.)
+   */
+  updateBrushSizeVisibility(currentTool) {
+    if (this.brushSizeModule) {
+      // Show only when paint tool is active
+      this.brushSizeModule.setVisible(currentTool === 'paint');
+    }
   }
   
   /**
@@ -244,6 +280,11 @@ class FileMenuBar {
       this._calculateMenuPositions();
     }
     this.openMenuName = label;
+    
+    // Notify LevelEditor that menu is open
+    if (this.levelEditor && typeof this.levelEditor.setMenuOpen === 'function') {
+      this.levelEditor.setMenuOpen(true);
+    }
   }
   
   /**
@@ -251,6 +292,11 @@ class FileMenuBar {
    */
   closeMenu() {
     this.openMenuName = null;
+    
+    // Notify LevelEditor that menu is closed
+    if (this.levelEditor && typeof this.levelEditor.setMenuOpen === 'function') {
+      this.levelEditor.setMenuOpen(false);
+    }
   }
   
   /**
@@ -319,6 +365,14 @@ class FileMenuBar {
     // If menu positions haven't been calculated yet, calculate them now
     if (this.menuPositions.length === 0) {
       this._calculateMenuPositions();
+    }
+    
+    // Check if click is on brush size module (if visible)
+    if (this.brushSizeModule && this.brushSizeModule.isVisible()) {
+      const consumed = this.brushSizeModule.handleClick(mouseX, mouseY);
+      if (consumed) {
+        return true;
+      }
     }
     
     // Check if click is in menu bar
@@ -438,6 +492,18 @@ class FileMenuBar {
   }
   
   /**
+   * Handle mouse move for hover effects
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   */
+  handleMouseMove(mouseX, mouseY) {
+    // Update brush size module hover state
+    if (this.brushSizeModule && this.brushSizeModule.isVisible()) {
+      this.brushSizeModule.handleMouseMove(mouseX, mouseY);
+    }
+  }
+  
+  /**
    * Render the menu bar
    */
   render() {
@@ -483,6 +549,14 @@ class FileMenuBar {
       });
       
       currentX += menuWidth;
+    }
+    
+    // Render brush size module (inline, after menu items)
+    if (this.brushSizeModule && this.brushSizeModule.isVisible()) {
+      // Position at the end of menu items with some padding
+      this.brushSizeModule.x = currentX + 20;
+      this.brushSizeModule.y = this.position.y;
+      this.brushSizeModule.render();
     }
     
     // Render dropdown if open
@@ -604,14 +678,17 @@ class FileMenuBar {
   
   // Action handlers
   _handleNew() {
-    if (this.levelEditor) {
-      // TODO: Implement new level confirmation dialog
-      logNormal('New level');
+    if (this.levelEditor && typeof this.levelEditor.handleFileNew === 'function') {
+      this.levelEditor.handleFileNew();
+    } else if (this.levelEditor) {
+      logNormal('New level (handleFileNew not available)');
     }
   }
   
   _handleSave() {
-    if (this.levelEditor && typeof this.levelEditor.save === 'function') {
+    if (this.levelEditor && typeof this.levelEditor.handleFileSave === 'function') {
+      this.levelEditor.handleFileSave();
+    } else if (this.levelEditor && typeof this.levelEditor.save === 'function') {
       this.levelEditor.save();
     }
   }
@@ -623,9 +700,10 @@ class FileMenuBar {
   }
   
   _handleExport() {
-    if (this.levelEditor) {
-      // TODO: Implement export dialog
-      logNormal('Export level');
+    if (this.levelEditor && typeof this.levelEditor.handleFileExport === 'function') {
+      this.levelEditor.handleFileExport();
+    } else if (this.levelEditor) {
+      logNormal('Export level (handleFileExport not available)');
     }
   }
   

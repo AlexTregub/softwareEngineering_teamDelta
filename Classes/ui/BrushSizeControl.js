@@ -12,9 +12,9 @@ class BrushSizeControl {
      * Create a brush size control
      * @param {number} initialSize - Initial brush size (default: 1)
      * @param {number} minSize - Minimum size (default: 1)
-     * @param {number} maxSize - Maximum size (default: 9)
+     * @param {number} maxSize - Maximum size (default: 99)
      */
-    constructor(initialSize = 1, minSize = 1, maxSize = 9) {
+    constructor(initialSize = 1, minSize = 1, maxSize = 99) {
         this.minSize = minSize;
         this.maxSize = maxSize;
         this.size = this._validateSize(initialSize);

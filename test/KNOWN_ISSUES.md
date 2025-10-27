@@ -48,6 +48,23 @@ Track bugs and their status with test coverage.
   - Tests: 9 integration tests + 3 E2E tests with screenshots passing
   - Fixed: October 27, 2025
 
+- [x] **Level Editor: Terrain Paints Under Menu Bar on Drag**
+  - Files: `Classes/systems/ui/LevelEditor.js` (handleDrag and handleClick methods)
+  - Issue: Drag painting and click painting still occur when mouse is over menu bar (even though hover preview was correctly disabled)
+  - Priority: MEDIUM (UX - unintended painting)
+  - Root Cause: `handleDrag()` and `handleClick()` methods didn't check if mouse was over menu bar before painting
+  - Fix: 
+    - Added menu bar containsPoint() check FIRST in handleDrag (before panel/event checks) to block painting
+    - Added menu bar containsPoint() check in handleClick (PRIORITY 3.5) to block painting
+  - Implementation: 
+    1. Check if mouse over menu bar → block painting
+    2. Check if menu is open → block painting
+    3. EventEditor drag → allow
+    4. Panel drag → allow
+    5. Terrain painting (lowest priority)
+  - Tests: 14 unit tests + 6 E2E tests with screenshots passing
+  - Fixed: January 2025
+
 ### Open ❌
 
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
@@ -62,8 +79,9 @@ Track bugs and their status with test coverage.
 
 ## Statistics
 
-- **Total Issues**: 7
-- **Fixed**: 6
+- **Total Issues**: 8
+- **Fixed**: 7
 - **Open**: 1
 - **High Priority Open**: 0
 - **Missing Features**: 0
+

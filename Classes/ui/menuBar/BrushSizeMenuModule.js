@@ -1,9 +1,9 @@
 /**
- * BrushSizeMenuModule - Brush size selection dropdown for menu bar
+ * BrushSizeMenuModule - Inline brush size controls for menu bar
  * 
- * Provides a menu dropdown for selecting brush sizes 1-9
- * Integrates with FileMenuBar as an additional menu item
- * Emits events when size changes
+ * Provides inline +/- buttons in the menu bar for brush size control
+ * Shows only when paint tool is active
+ * Automatically hides when other tools are selected
  * 
  * @author Software Engineering Team Delta
  */
@@ -12,44 +12,40 @@ class BrushSizeMenuModule {
   /**
    * Create a brush size menu module
    * @param {Object} options - Configuration options
-   * @param {string} options.label - Label for the menu item
    * @param {number} options.x - X position
    * @param {number} options.y - Y position  
-   * @param {number} options.initialSize - Initial brush size (1-9, default: 1)
+   * @param {number} options.initialSize - Initial brush size (1-99, default: 1)
    */
   constructor(options = {}) {
     // Position
-    this.label = options.label || 'Brush Size';
     this.x = options.x || 0;
     this.y = options.y || 0;
     
     // Clamp initial size to valid range
     const initialSize = options.initialSize !== undefined ? options.initialSize : 1;
-    this.currentSize = Math.max(1, Math.min(9, initialSize));
+    this.currentSize = Math.max(1, Math.min(99, initialSize));
     
     // Callback
     this.onSizeChange = options.onSizeChange || null;
     
-    // Event listeners
-    this.listeners = {
-      brushSizeChanged: []
-    };
-    
-    // State
-    this.isOpen = false;
-    this.hoveredSize = null;
+    // Visibility (controlled by tool selection)
+    this.visible = false;
     
     // Style (matches FileMenuBar style)
     this.style = {
       backgroundColor: [45, 45, 45],
       textColor: [220, 220, 220],
-      hoverColor: [70, 70, 70],
-      highlightColor: [100, 150, 255],
-      dropdownBg: [50, 50, 50],
-      itemHeight: 30,
-      itemPadding: 10,
-      fontSize: 14
+      buttonColor: [60, 60, 60],
+      buttonHoverColor: [80, 80, 80],
+      buttonStroke: [150, 150, 150],
+      width: 90,
+      height: 40,
+      buttonSize: 20,
+      fontSize: 16
     };
+    
+    // Hover state
+    this.hoveredButton = null; // 'decrease', 'increase', or null
   }
   
   /**
@@ -60,7 +56,7 @@ class BrushSizeMenuModule {
     const oldSize = this.currentSize;
     
     // Clamp to valid range
-    const newSize = Math.max(1, Math.min(9, size));
+    const newSize = Math.max(1, Math.min(99, size));
     
     if (newSize !== oldSize) {
       this.currentSize = newSize;
@@ -69,9 +65,6 @@ class BrushSizeMenuModule {
       if (this.onSizeChange) {
         this.onSizeChange(newSize);
       }
-      
-      // Emit event for listeners
-      this._emit('brushSizeChanged', { size: newSize, oldSize });
     }
   }
   
@@ -84,180 +77,162 @@ class BrushSizeMenuModule {
   }
   
   /**
-   * Register event listener
-   * @param {string} eventName - Event name ('brushSizeChanged')
-   * @param {Function} callback - Callback function
+   * Increase brush size
    */
-  on(eventName, callback) {
-    if (this.listeners[eventName]) {
-      this.listeners[eventName].push(callback);
-    }
+  increase() {
+    this.setSize(this.currentSize + 1);
   }
   
   /**
-   * Emit event to all listeners
-   * @param {string} eventName - Event name
-   * @param {*} data - Event data
-   * @private
+   * Decrease brush size
    */
-  _emit(eventName, data) {
-    if (this.listeners[eventName]) {
-      this.listeners[eventName].forEach(callback => callback(data));
-    }
+  decrease() {
+    this.setSize(this.currentSize - 1);
   }
   
   /**
-   * Render the dropdown menu (simple version using position from constructor)
+   * Set visibility based on tool selection
+   * @param {boolean} visible - Whether module should be visible
    */
-  render() {
-    if (!this.isOpen) return;
-    
-    // Calculate dropdown position (starts right at module position)
-    const dropdownX = this.x;
-    const dropdownY = this.y;
-    const dropdownWidth = 120;
-    
-    this.renderDropdown(dropdownX, dropdownY, dropdownWidth);
+  setVisible(visible) {
+    this.visible = visible;
   }
   
   /**
-   * Render the dropdown menu (called by FileMenuBar or directly)
-   * @param {number} x - X position
-   * @param {number} y - Y position
-   * @param {number} width - Dropdown width
+   * Check if module is visible
+   * @returns {boolean} True if visible
    */
-  renderDropdown(x, y, width) {
-    if (!this.isOpen) return;
-    
-    push();
-    
-    // Dropdown background
-    fill(this.style.dropdownBg[0], this.style.dropdownBg[1], this.style.dropdownBg[2]);
-    noStroke();
-    const dropdownHeight = 9 * this.style.itemHeight; // 9 sizes
-    rect(x, y, width, dropdownHeight);
-    
-    // Render size options
-    for (let size = 1; size <= 9; size++) {
-      const itemY = y + (size - 1) * this.style.itemHeight;
-      
-      // Highlight current size or hovered size
-      if (size === this.currentSize) {
-        fill(this.style.highlightColor[0], this.style.highlightColor[1], this.style.highlightColor[2]);
-        rect(x, itemY, width, this.style.itemHeight);
-      } else if (size === this.hoveredSize) {
-        fill(this.style.hoverColor[0], this.style.hoverColor[1], this.style.hoverColor[2]);
-        rect(x, itemY, width, this.style.itemHeight);
-      }
-      
-      // Size text
-      fill(this.style.textColor[0], this.style.textColor[1], this.style.textColor[2]);
-      textSize(this.style.fontSize);
-      textAlign(LEFT, CENTER);
-      text(`Size ${size}`, x + this.style.itemPadding, itemY + this.style.itemHeight / 2);
-    }
-    
-    pop();
-  }
-  
-  /**
-   * Handle click on dropdown
-   * @param {number} mouseX - Mouse X position
-   * @param {number} mouseY - Mouse Y position
-   * @param {Object} dropdownBounds - Optional dropdown bounds {x, y, width, height}
-   * @returns {boolean} True if click was consumed
-   */
-  handleClick(mouseX, mouseY, dropdownBounds = null) {
-    if (!this.isOpen) return false;
-    
-    // Use provided bounds or calculate from position
-    const x = dropdownBounds ? dropdownBounds.x : this.x;
-    const y = dropdownBounds ? dropdownBounds.y : this.y;
-    const width = dropdownBounds ? dropdownBounds.width : 120;
-    const dropdownHeight = 9 * this.style.itemHeight;
-    
-    // Check if click is within dropdown
-    if (mouseX >= x && mouseX <= x + width &&
-        mouseY >= y && mouseY <= y + dropdownHeight) {
-      
-      // Calculate which size was clicked
-      const relativeY = mouseY - y;
-      const clickedSize = Math.floor(relativeY / this.style.itemHeight) + 1;
-      
-      if (clickedSize >= 1 && clickedSize <= 9) {
-        this.setSize(clickedSize);
-        this.isOpen = false;
-        return true;
-      }
-    }
-    
-    return false;
+  isVisible() {
+    return this.visible;
   }
   
   /**
    * Handle mouse move for hover effects
    * @param {number} mouseX - Mouse X position
    * @param {number} mouseY - Mouse Y position
-   * @param {Object} dropdownBounds - Dropdown bounds {x, y, width, height}
    */
-  handleMouseMove(mouseX, mouseY, dropdownBounds) {
-    if (!this.isOpen) {
-      this.hoveredSize = null;
+  handleMouseMove(mouseX, mouseY) {
+    if (!this.visible) {
+      this.hoveredButton = null;
       return;
     }
     
-    const { x, y, width } = dropdownBounds;
-    const dropdownHeight = 9 * this.style.itemHeight;
+    const decreaseX = this.x + 5;
+    const decreaseY = this.y + (this.style.height - this.style.buttonSize) / 2;
     
-    // Check if mouse is within dropdown
-    if (mouseX >= x && mouseX <= x + width &&
-        mouseY >= y && mouseY <= y + dropdownHeight) {
-      
-      // Calculate which size is hovered
-      const relativeY = mouseY - y;
-      const hoveredSize = Math.floor(relativeY / this.style.itemHeight) + 1;
-      
-      if (hoveredSize >= 1 && hoveredSize <= 9) {
-        this.hoveredSize = hoveredSize;
-      } else {
-        this.hoveredSize = null;
-      }
-    } else {
-      this.hoveredSize = null;
+    const increaseX = this.x + this.style.width - 25;
+    const increaseY = this.y + (this.style.height - this.style.buttonSize) / 2;
+    
+    // Check decrease button hover
+    if (mouseX >= decreaseX && mouseX <= decreaseX + this.style.buttonSize &&
+        mouseY >= decreaseY && mouseY <= decreaseY + this.style.buttonSize) {
+      this.hoveredButton = 'decrease';
+      return;
     }
-  }
-  
-  /**
-   * Toggle dropdown open/closed
-   */
-  toggle() {
-    this.isOpen = !this.isOpen;
-  }
-  
-  /**
-   * Set dropdown open state
-   * @param {boolean} open - Whether dropdown should be open
-   */
-  setOpen(open) {
-    this.isOpen = open;
-    if (!open) {
-      this.hoveredSize = null;
+    
+    // Check increase button hover
+    if (mouseX >= increaseX && mouseX <= increaseX + this.style.buttonSize &&
+        mouseY >= increaseY && mouseY <= increaseY + this.style.buttonSize) {
+      this.hoveredButton = 'increase';
+      return;
     }
+    
+    this.hoveredButton = null;
   }
   
   /**
-   * Open dropdown
+   * Handle click on module
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @returns {boolean} True if click was consumed
    */
-  open() {
-    this.isOpen = true;
+  handleClick(mouseX, mouseY) {
+    if (!this.visible) return false;
+    
+    const decreaseX = this.x + 5;
+    const decreaseY = this.y + (this.style.height - this.style.buttonSize) / 2;
+    
+    const increaseX = this.x + this.style.width - 25;
+    const increaseY = this.y + (this.style.height - this.style.buttonSize) / 2;
+    
+    // Check decrease button
+    if (mouseX >= decreaseX && mouseX <= decreaseX + this.style.buttonSize &&
+        mouseY >= decreaseY && mouseY <= decreaseY + this.style.buttonSize) {
+      this.decrease();
+      return true;
+    }
+    
+    // Check increase button
+    if (mouseX >= increaseX && mouseX <= increaseX + this.style.buttonSize &&
+        mouseY >= increaseY && mouseY <= increaseY + this.style.buttonSize) {
+      this.increase();
+      return true;
+    }
+    
+    return false;
   }
   
   /**
-   * Close dropdown
+   * Render the inline brush size control
    */
-  close() {
-    this.isOpen = false;
-    this.hoveredSize = null;
+  render() {
+    if (!this.visible) return;
+    if (typeof push !== 'function') return; // Guard for tests
+    
+    push();
+    
+    const centerY = this.y + this.style.height / 2;
+    
+    // Size value (centered)
+    fill(this.style.textColor[0], this.style.textColor[1], this.style.textColor[2]);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(this.style.fontSize);
+    text(this.currentSize, this.x + this.style.width / 2, centerY);
+    
+    // Decrease button
+    const decreaseX = this.x + 5;
+    const decreaseY = this.y + (this.style.height - this.style.buttonSize) / 2;
+    const decreaseColor = this.hoveredButton === 'decrease' ? 
+      this.style.buttonHoverColor : this.style.buttonColor;
+    
+    fill(decreaseColor[0], decreaseColor[1], decreaseColor[2]);
+    stroke(this.style.buttonStroke[0], this.style.buttonStroke[1], this.style.buttonStroke[2]);
+    strokeWeight(1);
+    rect(decreaseX, decreaseY, this.style.buttonSize, this.style.buttonSize, 3);
+    
+    fill(this.style.textColor[0], this.style.textColor[1], this.style.textColor[2]);
+    noStroke();
+    textSize(18);
+    textAlign(CENTER, CENTER);
+    text('-', decreaseX + this.style.buttonSize / 2, decreaseY + this.style.buttonSize / 2);
+    
+    // Increase button
+    const increaseX = this.x + this.style.width - 25;
+    const increaseY = this.y + (this.style.height - this.style.buttonSize) / 2;
+    const increaseColor = this.hoveredButton === 'increase' ? 
+      this.style.buttonHoverColor : this.style.buttonColor;
+    
+    fill(increaseColor[0], increaseColor[1], increaseColor[2]);
+    stroke(this.style.buttonStroke[0], this.style.buttonStroke[1], this.style.buttonStroke[2]);
+    strokeWeight(1);
+    rect(increaseX, increaseY, this.style.buttonSize, this.style.buttonSize, 3);
+    
+    fill(this.style.textColor[0], this.style.textColor[1], this.style.textColor[2]);
+    noStroke();
+    textSize(18);
+    textAlign(CENTER, CENTER);
+    text('+', increaseX + this.style.buttonSize / 2, increaseY + this.style.buttonSize / 2);
+    
+    pop();
+  }
+  
+  /**
+   * Get the width of the module (for layout calculation)
+   * @returns {number} Width in pixels
+   */
+  getWidth() {
+    return this.visible ? this.style.width : 0;
   }
 }
 

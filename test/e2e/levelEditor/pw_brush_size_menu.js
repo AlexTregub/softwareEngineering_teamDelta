@@ -35,35 +35,42 @@ const cameraHelper = require('../camera_helper');
     // Test 1: Verify brush size menu exists
     console.log('Test 1: Verifying brush size menu exists...');
     const menuExists = await page.evaluate(() => {
-      if (!window.levelEditor || !window.levelEditor.brushSizeMenu) {
-        return { exists: false, error: 'BrushSizeMenu not found' };
+      if (!window.levelEditor || !window.levelEditor.fileMenuBar || !window.levelEditor.fileMenuBar.brushSizeModule) {
+        return { exists: false, error: 'BrushSizeMenuModule not found on fileMenuBar' };
       }
       
       return {
         exists: true,
-        currentSize: window.levelEditor.brushSizeMenu.getSize()
+        currentSize: window.levelEditor.fileMenuBar.brushSizeModule.getSize()
       };
     });
     
     console.log('Menu exists result:', menuExists);
     
     if (!menuExists.exists) {
-      throw new Error('BrushSizeMenu not found on levelEditor');
+      throw new Error('BrushSizeMenuModule not found on levelEditor.fileMenuBar');
     }
     
     // Test 2: Open brush size menu with MOUSE CLICK
     console.log('Test 2: Opening brush size menu with mouse click...');
     const menuPosition = await page.evaluate(() => {
-      if (!window.levelEditor ||!window.levelEditor.brushSizeMenu) {
+      if (!window.levelEditor || !window.levelEditor.fileMenuBar || !window.levelEditor.fileMenuBar.brushSizeModule) {
         return null;
       }
       
-      const menu = window.levelEditor.brushSizeMenu;
+      const menuBar = window.levelEditor.fileMenuBar;
+      // Find the position of the "Brush Size" menu item
+      const brushMenuItem = menuBar.menuPositions.find(item => item.label === 'Brush Size');
+      
+      if (!brushMenuItem) {
+        return null;
+      }
+      
       return {
-        x: menu.x || 100,
-        y: menu.y || 10,
-        width: 80,
-        height: 20
+        x: brushMenuItem.x,
+        y: menuBar.position.y,
+        width: brushMenuItem.width,
+        height: menuBar.height
       };
     });
     
@@ -78,7 +85,7 @@ const cameraHelper = require('../camera_helper');
       
       const menuOpened = await page.evaluate(() => {
         return {
-          isOpen: window.levelEditor.brushSizeMenu.isOpen || false
+          isOpen: window.levelEditor.fileMenuBar.brushSizeModule.isOpen || false
         };
       });
       
@@ -91,9 +98,9 @@ const cameraHelper = require('../camera_helper');
     
     // First, set initial size to 1
     await page.evaluate(() => {
-      if (window.levelEditor && window.levelEditor.brushSizeMenu) {
-        window.levelEditor.brushSizeMenu.setSize(1);
-        window.levelEditor.brushSizeMenu.open();
+      if (window.levelEditor && window.levelEditor.fileMenuBar && window.levelEditor.fileMenuBar.brushSizeModule) {
+        window.levelEditor.fileMenuBar.brushSizeModule.setSize(1);
+        window.levelEditor.fileMenuBar.brushSizeModule.open();
       }
     });
     
@@ -101,20 +108,20 @@ const cameraHelper = require('../camera_helper');
     
     // Get dropdown position and click size 5
     const size5Selected = await page.evaluate(() => {
-      const menu = window.levelEditor.brushSizeMenu;
-      if (!menu) return { success: false };
+      const module = window.levelEditor.fileMenuBar.brushSizeModule;
+      if (!module) return { success: false };
       
       // Open dropdown
-      menu.open();
+      module.open();
       
       // Simulate clicking on size 5 option
       // In a real dropdown, we'd calculate the position
       // For now, use the API directly and verify click handler works
-      menu.setSize(5);
+      module.setSize(5);
       
       return {
         success: true,
-        currentSize: menu.getSize(),
+        currentSize: module.getSize(),
         expected: 5
       };
     });
@@ -133,8 +140,8 @@ const cameraHelper = require('../camera_helper');
     
     await page.evaluate(() => {
       // Ensure paint tool is selected
-      if (window.levelEditor) {
-        window.levelEditor.currentTool = 'paint';
+      if (window.levelEditor && window.levelEditor.toolbar) {
+        window.levelEditor.toolbar.selectTool('paint');
       }
       
       // Force redraw
@@ -157,14 +164,17 @@ const cameraHelper = require('../camera_helper');
       }
       
       // Verify brush size is still 5
-      const brushSize = window.levelEditor.brushSizeMenu ? 
-        window.levelEditor.brushSizeMenu.getSize() : null;
+      const brushSize = window.levelEditor.fileMenuBar && window.levelEditor.fileMenuBar.brushSizeModule ? 
+        window.levelEditor.fileMenuBar.brushSizeModule.getSize() : null;
+      
+      const toolActive = window.levelEditor.toolbar ? 
+        window.levelEditor.toolbar.getSelectedTool() === 'paint' : false;
       
       return {
         brushSize: brushSize,
         clickX: centerX,
         clickY: centerY,
-        toolActive: window.levelEditor.currentTool === 'paint'
+        toolActive: toolActive
       };
     });
     
@@ -180,10 +190,10 @@ const cameraHelper = require('../camera_helper');
     console.log('Test 5: Changing size to 9...');
     
     const size9Selected = await page.evaluate(() => {
-      const menu = window.levelEditor.brushSizeMenu;
-      if (!menu) return { success: false };
+      const module = window.levelEditor.fileMenuBar.brushSizeModule;
+      if (!module) return { success: false };
       
-      menu.setSize(9);
+      module.setSize(9);
       
       if (typeof window.redraw === 'function') {
         window.redraw();
@@ -193,7 +203,7 @@ const cameraHelper = require('../camera_helper');
       
       return {
         success: true,
-        currentSize: menu.getSize(),
+        currentSize: module.getSize(),
         expected: 9
       };
     });
@@ -211,11 +221,11 @@ const cameraHelper = require('../camera_helper');
     console.log('Test 6: Testing minimum size (1)...');
     
     const size1Result = await page.evaluate(() => {
-      const menu = window.levelEditor.brushSizeMenu;
-      menu.setSize(1);
+      const module = window.levelEditor.fileMenuBar.brushSizeModule;
+      module.setSize(1);
       
       return {
-        currentSize: menu.getSize(),
+        currentSize: module.getSize(),
         expected: 1
       };
     });

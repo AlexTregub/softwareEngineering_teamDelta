@@ -28,7 +28,11 @@ function setupUITestEnvironment() {
   // Mock window object (needed for drag constraints and other browser APIs)
   global.window = {
     innerWidth: 1920,
-    innerHeight: 1080
+    innerHeight: 1080,
+    mouseX: 0,
+    mouseY: 0,
+    width: 1920,
+    height: 1080
   };
   
   // Mock p5.js drawing functions
@@ -38,6 +42,7 @@ function setupUITestEnvironment() {
   global.text = sinon.stub();
   global.textSize = sinon.stub();
   global.textAlign = sinon.stub();
+  global.textWidth = sinon.stub().returns(50); // Return default width for text
   global.stroke = sinon.stub();
   global.strokeWeight = sinon.stub();
   global.noStroke = sinon.stub();
@@ -62,6 +67,7 @@ function setupUITestEnvironment() {
   global.logDebug = sinon.stub();
   global.logWarning = sinon.stub();
   global.logError = sinon.stub();
+  global.logVerbose = sinon.stub();
   
   // Mock p5.js text alignment constants
   global.LEFT = 'left';
@@ -112,6 +118,197 @@ function setupUITestEnvironment() {
     }
   };
   
+  // Mock Level Editor UI classes
+  global.TerrainEditor = class TerrainEditor {
+    constructor() {
+      this.setBrushSize = sinon.stub();
+      this.selectMaterial = sinon.stub();
+      this.paint = sinon.stub();
+      this.fill = sinon.stub();
+      this.canUndo = sinon.stub().returns(false);
+      this.canRedo = sinon.stub().returns(false);
+      this.getBrushSize = sinon.stub().returns(1);
+    }
+  };
+  
+  global.MaterialPalette = class MaterialPalette {
+    constructor() {
+      this.selectedMaterial = 'grass';
+    }
+    selectMaterial(material) {
+      this.selectedMaterial = material;
+    }
+    getSelectedMaterial() {
+      return this.selectedMaterial;
+    }
+  };
+  
+  global.ToolBar = class ToolBar {
+    constructor() {
+      this.onToolChange = null;
+      this.selectedTool = 'paint';
+    }
+    selectTool(tool) {
+      this.selectedTool = tool;
+      if (this.onToolChange) {
+        this.onToolChange(tool);
+      }
+    }
+    getSelectedTool() {
+      return this.selectedTool;
+    }
+    setEnabled() {}
+  };
+  
+  global.BrushSizeControl = class BrushSizeControl {
+    constructor(initialSize = 1, minSize = 1, maxSize = 9) {
+      this.size = initialSize;
+      this.minSize = minSize;
+      this.maxSize = maxSize;
+    }
+    getSize() {
+      return this.size;
+    }
+    setSize(size) {
+      this.size = Math.max(this.minSize, Math.min(this.maxSize, size));
+    }
+    increase() {
+      this.setSize(this.size + 1);
+    }
+    decrease() {
+      this.setSize(this.size - 1);
+    }
+  };
+  
+  global.EventEditorPanel = class EventEditorPanel {
+    constructor() {}
+    initialize() {}
+  };
+  
+  global.MiniMap = class MiniMap {
+    constructor() {}
+    update() {}
+    notifyTerrainEditStart() {}
+    invalidateCache() {}
+    scheduleInvalidation() {}
+  };
+  
+  global.PropertiesPanel = class PropertiesPanel {
+    constructor() {}
+    setTerrain() {}
+    setEditor() {}
+  };
+  
+  global.GridOverlay = class GridOverlay {
+    constructor() {}
+  };
+  
+  global.SaveDialog = class SaveDialog {
+    constructor() {
+      this.useNativeDialogs = false;
+    }
+    isVisible() {
+      return false;
+    }
+    handleClick() {
+      return false;
+    }
+  };
+  
+  global.LoadDialog = class LoadDialog {
+    constructor() {
+      this.useNativeDialogs = false;
+    }
+    isVisible() {
+      return false;
+    }
+    handleClick() {
+      return false;
+    }
+  };
+  
+  global.NotificationManager = class NotificationManager {
+    constructor() {}
+    show() {}
+    update() {}
+  };
+  
+  global.SelectionManager = class SelectionManager {
+    constructor() {
+      this.isSelecting = false;
+    }
+    startSelection() {
+      this.isSelecting = true;
+    }
+    updateSelection() {}
+    endSelection() {
+      this.isSelecting = false;
+    }
+    getTilesInSelection() {
+      return [];
+    }
+  };
+  
+  global.HoverPreviewManager = class HoverPreviewManager {
+    constructor() {}
+    updateHover() {}
+    clearHover() {}
+  };
+  
+  global.FileMenuBar = class FileMenuBar {
+    constructor() {
+      this.openMenuName = null;
+    }
+    openMenu(label) {
+      this.openMenuName = label;
+      // Notify LevelEditor if connected
+      if (this.levelEditor && typeof this.levelEditor.setMenuOpen === 'function') {
+        this.levelEditor.setMenuOpen(true);
+      }
+    }
+    closeMenu() {
+      this.openMenuName = null;
+      // Notify LevelEditor if connected
+      if (this.levelEditor && typeof this.levelEditor.setMenuOpen === 'function') {
+        this.levelEditor.setMenuOpen(false);
+      }
+    }
+    containsPoint() {
+      return false;
+    }
+    handleClick() {
+      return false;
+    }
+    handleMouseMove() {}
+    updateMenuStates() {}
+    updateBrushSizeVisibility() {}
+    setLevelEditor(editor) {
+      this.levelEditor = editor;
+    }
+  };
+  
+  global.LevelEditorPanels = class LevelEditorPanels {
+    static initialize() {}
+    initialize() {}
+    handleClick() {
+      return false; // Not consumed
+    }
+  };
+  
+  // Mock camera manager
+  global.cameraManager = {
+    getZoom: () => 1,
+    getPosition: () => ({ x: 0, y: 0 }),
+    screenToWorld: (x, y) => ({ x, y }),
+    worldToScreen: (x, y) => ({ x, y }),
+    setPosition: sinon.stub(),
+    setZoom: sinon.stub(),
+    update: sinon.stub()
+  };
+  
+  // Mock constants
+  global.TILE_SIZE = 32;
+  
   // Sync to window object for JSDOM compatibility
   if (typeof window !== 'undefined') {
     Object.assign(window, {
@@ -121,6 +318,7 @@ function setupUITestEnvironment() {
       text: global.text,
       textSize: global.textSize,
       textAlign: global.textAlign,
+      textWidth: global.textWidth,
       stroke: global.stroke,
       strokeWeight: global.strokeWeight,
       noStroke: global.noStroke,
@@ -141,10 +339,28 @@ function setupUITestEnvironment() {
       BASELINE: global.BASELINE,
       ButtonStyles: global.ButtonStyles,
       Button: global.Button,
+      TerrainEditor: global.TerrainEditor,
+      MaterialPalette: global.MaterialPalette,
+      ToolBar: global.ToolBar,
+      BrushSizeControl: global.BrushSizeControl,
+      EventEditorPanel: global.EventEditorPanel,
+      MiniMap: global.MiniMap,
+      PropertiesPanel: global.PropertiesPanel,
+      GridOverlay: global.GridOverlay,
+      SaveDialog: global.SaveDialog,
+      LoadDialog: global.LoadDialog,
+      NotificationManager: global.NotificationManager,
+      SelectionManager: global.SelectionManager,
+      HoverPreviewManager: global.HoverPreviewManager,
+      FileMenuBar: global.FileMenuBar,
+      LevelEditorPanels: global.LevelEditorPanels,
+      cameraManager: global.cameraManager,
+      TILE_SIZE: global.TILE_SIZE,
       logNormal: global.logNormal,
       logDebug: global.logDebug,
       logWarning: global.logWarning,
-      logError: global.logError
+      logError: global.logError,
+      logVerbose: global.logVerbose
     });
   }
   

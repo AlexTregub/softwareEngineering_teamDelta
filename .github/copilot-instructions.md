@@ -1,6 +1,18 @@
 # GitHub Copilot Instructions - Ant Colony Simulation Game
 
-## ⚠️ CRITICAL: Test-Driven Development (TDD)
+## ⚠️ CRITICAL: Development Principles
+
+**BE CONCISE**: Short, focused responses. No unnecessary explanations.
+
+**REUSE FIRST**: Before creating anything new:
+1. **Scan codebase** - Search for existing classes/functions that do what you need
+2. **Use existing tests** - Add to existing test files instead of creating new ones
+3. **Use test helpers** - Add to `test/helpers/uiTestHelpers.js` if code used >1 time
+4. **Check documentation** - Review `docs/` for existing patterns and APIs
+
+**AVOID DUPLICATION**: If you write the same code twice, extract it to a helper/utility.
+
+### ⚠️ CRITICAL:  Test-Driven Development (TDD)
 
 **WE FOLLOW STRICT TDD**. Write tests FIRST, then implement.
 
