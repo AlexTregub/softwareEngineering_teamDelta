@@ -635,7 +635,6 @@ class CameraManager {
     // Screen point (px, py) -> World point calculation:
     // Inverse of: translate(-cameraX, -cameraY) then scale(zoom)
     
-    // DEBUG: Log coordinate conversion details
     const result = {
       worldX: this.cameraX + px / this.cameraZoom,
       worldY: this.cameraY + py / this.cameraZoom
@@ -664,8 +663,6 @@ class CameraManager {
     // Zoom-aware conversion from world to screen coordinates.
     // With corrected transform order: translate first, then scale
     // Forward transform: translate(-cameraX, -cameraY) then scale(zoom)
-    //logVerbose (`screenX: ${(worldX - this.cameraX) * this.cameraZoom}`)
-    //logVerbose (`screenX: ${(worldY - this.cameraY) * this.cameraZoom}`)
     return {
       screenX: (worldX - this.cameraX) * this.cameraZoom,
       screenY: (worldY - this.cameraY) * this.cameraZoom

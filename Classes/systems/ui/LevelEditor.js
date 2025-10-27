@@ -217,13 +217,23 @@ class LevelEditor {
     const tool = this.toolbar.getSelectedTool();
     const material = this.palette.getSelectedMaterial();
     
+    // Debug: Check if parameter mouseX/Y differs from global
+    console.log(`🖱️ [MOUSE] Parameter: (${mouseX}, ${mouseY}), Global: (${window.mouseX}, ${window.mouseY})`);
+    
     // Convert screen coordinates to world coordinates (accounts for camera)
     const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
+    const worldCoordsGlobal = this.convertScreenToWorld(window.mouseX, window.mouseY);
+    
+    console.log(`🎨 [PAINT] Screen: (${mouseX}, ${mouseY}) → World: (${worldCoords.worldX.toFixed(1)}, ${worldCoords.worldY.toFixed(1)})`);
+    console.log(`🎨 [PAINT] Screen (global): (${window.mouseX}, ${window.mouseY}) → World: (${worldCoordsGlobal.worldX.toFixed(1)}, ${worldCoordsGlobal.worldY.toFixed(1)})`);
+    console.log(`📷 [CAMERA] Position: (${this.editorCamera.cameraX.toFixed(1)}, ${this.editorCamera.cameraY.toFixed(1)}), Zoom: ${this.editorCamera.cameraZoom.toFixed(2)}`);
     
     // Convert world coordinates to tile coordinates
     const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
     const gridX = Math.floor(worldCoords.worldX / tileSize);
     const gridY = Math.floor(worldCoords.worldY / tileSize);
+    
+    console.log(`🔲 [TILE] Grid: (${gridX}, ${gridY})`);
     
     // Apply tool action
     switch(tool) {
@@ -515,12 +525,9 @@ class LevelEditor {
       y: this.editorCamera.cameraY !== undefined ? this.editorCamera.cameraY : 0
     };
     
-    // Apply zoom scaling around canvas center (same as main game)
-    translate(g_canvasX / 2, g_canvasY / 2);
+    // CRITICAL: Apply zoom FIRST, then translate
+    // This prevents the translation from being scaled
     scale(zoom);
-    translate(-g_canvasX / 2, -g_canvasY / 2);
-    
-    // Apply camera offset
     translate(-cameraPos.x, -cameraPos.y);
   }
   
@@ -562,10 +569,10 @@ class LevelEditor {
     const worldCoords = this.editorCamera.screenToWorld(mouseX, mouseY);
     
     const tileSize = this.terrain?.tileSize || TILE_SIZE || 32;
-    const gridX = Math.floor(worldCoords.x / tileSize);
-    const gridY = Math.floor(worldCoords.y / tileSize);
+    const gridX = Math.floor(worldCoords.worldX / tileSize);
+    const gridY = Math.floor(worldCoords.worldY / tileSize);
     
-    logNormal(`🎯 [HIGHLIGHT] Mouse: (${mouseX}, ${mouseY}) → World: (${worldCoords.x.toFixed(1)}, ${worldCoords.y.toFixed(1)}) → Grid: (${gridX}, ${gridY})`);
+    logNormal(`🎯 [HIGHLIGHT] Mouse: (${mouseX}, ${mouseY}) → World: (${worldCoords.worldX.toFixed(1)}, ${worldCoords.worldY.toFixed(1)}) → Grid: (${gridX}, ${gridY})`);
     
     return { gridX, gridY };
   }

@@ -31,22 +31,39 @@ Track bugs and their status with test coverage.
   - Implemented: Click-drag rectangle selection, paint all tiles under selection, hover highlights affected tiles
   - Tests: 19 unit + 13 integration + 4 E2E tests passing
 
+- [x] **Level Editor Material Palette: Material Names Truncated**
+  - File: `Classes/ui/MaterialPalette.js` (line 285)
+  - Issue: Material names were truncated to 4 characters (e.g., "stone" appeared as "ston")
+  - Priority: LOW (cosmetic)
+  - Fix: Removed `.substring(0, 4)` truncation, now renders full material names
+  - Tests: 10 unit tests passing
+
 ### Open ❌
 
-- [ ] **Level Editor Material Palette: Material Names Truncated**
-  - File: Material palette rendering (likely in `Classes/systems/ui/LevelEditor.js` or related UI component)
-  - Issue: Material names are being truncated too early (e.g., "stone" appears as "ston")
-  - Priority: LOW (cosmetic)
-  - Expected: Full material names should be visible
-  - Current: Names cut off prematurely
-  - Tests Needed: Unit test for text rendering/truncation logic
+- [ ] **Level Editor: Zoom Focus Point Incorrect**
+  - File: `Classes/systems/ui/LevelEditor.js` (handleZoom method)
+  - Issue: When zooming with mouse wheel in Level Editor, zoom doesn't focus on mouse pointer correctly
+  - Priority: MEDIUM (UX)
+  - Expected: Zoom should focus on mouse cursor position (like PLAYING state does)
+  - Current: Zoom focuses on incorrect point, not following mouse cursor
+  - Note: PLAYING state zoom works correctly via cameraManager
+  - Root Cause: Level Editor uses center-based scaling transform while CameraManager uses simple transform
+  - Tests Needed: Integration test comparing zoom behavior between states
 
----
+- [ ] **Level Editor: Paint Tool Offset When Zoomed**
+  - File: `Classes/systems/ui/LevelEditor.js` (applyCameraTransform, convertScreenToWorld)
+  - Issue: When zoomed in/out, painted tiles appear far from mouse cursor position
+  - Priority: HIGH (blocks Level Editor usage)
+  - Expected: Tiles paint exactly where mouse cursor is positioned
+  - Current: Tiles paint at offset location (e.g., mouse bottom-left, tile paints top-left)
+  - Root Cause: Transform mismatch between rendering (applyCameraTransform) and mouse coordinate conversion (screenToWorld)
+  - Reproduction: Zoom to any level != 1.0, try to paint - tiles appear offset from cursor
+  - Tests Needed: Integration test verifying screenToWorld matches applyCameraTransform inverse
 
 ## Statistics
 
-- **Total Issues**: 4
-- **Fixed**: 4
-- **Open**: 0
-- **High Priority Open**: 0
+- **Total Issues**: 7
+- **Fixed**: 5
+- **Open**: 2
+- **High Priority Open**: 1
 - **Missing Features**: 0

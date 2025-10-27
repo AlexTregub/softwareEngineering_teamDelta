@@ -307,8 +307,8 @@ class MaterialPalette {
             noStroke();
             textAlign(CENTER, CENTER);
             textSize(8);
-            const abbrev = material.substring(0, 4);
-            text(abbrev, swatchX + swatchSize / 2, swatchY + swatchSize / 2);
+            // Don't truncate - render full material name
+            text(material, swatchX + swatchSize / 2, swatchY + swatchSize / 2);
             
             // Move to next position
             col++;
