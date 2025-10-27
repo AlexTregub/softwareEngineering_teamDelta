@@ -20,7 +20,7 @@ async function initializeDraggablePanelSystem() {
     // called this previously). If a manager already exists and is initialized, just
     // reuse it to prevent duplicate panel creation and double rendering.
     if (typeof window !== 'undefined' && window.draggablePanelManager && window.draggablePanelManager.isInitialized) {
-      console.log('ℹ️ DraggablePanelSystem already initialized — skipping duplicate init');
+      logVerbose('ℹ️ DraggablePanelSystem already initialized — skipping duplicate init');
       return true;
     }
 
@@ -37,7 +37,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ DraggablePanelManager instance created');
     } else {
-      console.log('✅ DraggablePanelManager instance created');
+      logNormal('✅ DraggablePanelManager instance created');
     }
     
     // Initialize the manager
@@ -45,7 +45,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ DraggablePanelManager initialized');
     } else {
-      console.log('✅ DraggablePanelManager initialized');
+      logNormal('✅ DraggablePanelManager initialized');
     }
     
     // Create the resource display panel
@@ -74,7 +74,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Resource display panel created');
     } else {
-      console.log('✅ Resource display panel created');
+      logNormal('✅ Resource display panel created');
     }
     
     // Create the performance monitor panel
@@ -104,7 +104,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Performance monitor panel created');
     } else {
-      console.log('✅ Performance monitor panel created');
+      logNormal('✅ Performance monitor panel created');
     }
     
     // Create the debug info panel
@@ -133,7 +133,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Debug info panel created');
     } else {
-      console.log('✅ Debug info panel created');
+      logNormal('✅ Debug info panel created');
     }
     
     // Set up content renderers
@@ -145,7 +145,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Panel content renderers configured');
     } else {
-      console.log('✅ Panel content renderers configured');
+      logNormal('✅ Panel content renderers configured');
     }
     
     // Add keyboard shortcuts for toggling panels
@@ -153,7 +153,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Panel keyboard shortcuts configured');
     } else {
-      console.log('✅ Panel keyboard shortcuts configured');
+      logNormal('✅ Panel keyboard shortcuts configured');
     }
     
     // Coordinate with UILayerRenderer to avoid double rendering
@@ -162,7 +162,7 @@ async function initializeDraggablePanelSystem() {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal('🎉 Draggable Panel System initialization complete!');
     } else {
-      console.log('🎉 Draggable Panel System initialization complete!');
+      logNormal('🎉 Draggable Panel System initialization complete!');
     }
     return true;
     
@@ -327,23 +327,23 @@ function setupPanelKeyboardShortcuts() {
         // Keep individual toggles for legacy (Ctrl+Shift+1-3)
         if (keyCode === 49 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '1' key
           const visible = window.draggablePanelManager.togglePanel('performance-monitor');
-          console.log(`Performance Monitor ${visible ? 'ENABLED' : 'DISABLED'}`);
+          logNormal(`Performance Monitor ${visible ? 'ENABLED' : 'DISABLED'}`);
         }
         
         if (keyCode === 50 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '2' key
           const visible = window.draggablePanelManager.togglePanel('resource-display');
-          console.log(`Resource Display ${visible ? 'ENABLED' : 'DISABLED'}`);
+          logNormal(`Resource Display ${visible ? 'ENABLED' : 'DISABLED'}`);
         }
         
         if (keyCode === 51 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '3' key
           const visible = window.draggablePanelManager.togglePanel('debug-info');
-          console.log(`Debug Info ${visible ? 'ENABLED' : 'DISABLED'}`);
+          logNormal(`Debug Info ${visible ? 'ENABLED' : 'DISABLED'}`);
         }
         
         // Ctrl+Shift+R: Reset all panels to default positions
         if (keyCode === 82 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // 'R' key
           window.draggablePanelManager.resetAllPanels();
-          console.log('All panels reset to default positions');
+          logNormal('All panels reset to default positions');
         }
       }
     };
@@ -359,7 +359,7 @@ function coordinateWithUIRenderer() {
     // Disable the static performance overlay since we're using draggable panels
     if (window.uiLayerRenderer.debugUI && window.uiLayerRenderer.debugUI.performanceOverlay) {
       window.uiLayerRenderer.debugUI.performanceOverlay.enabled = false;
-      console.log('✅ Static performance overlay disabled - using draggable panel');
+      logNormal('✅ Static performance overlay disabled - using draggable panel');
     }
   }
   
@@ -368,7 +368,7 @@ function coordinateWithUIRenderer() {
     if (window.uiLayerRenderer && 
         window.uiLayerRenderer.debugUI && window.uiLayerRenderer.debugUI.performanceOverlay) {
       window.uiLayerRenderer.debugUI.performanceOverlay.enabled = false;
-      console.log('✅ Static performance overlay disabled (delayed) - using draggable panel');
+      logNormal('✅ Static performance overlay disabled (delayed) - using draggable panel');
     }
   }, 1000);
 }

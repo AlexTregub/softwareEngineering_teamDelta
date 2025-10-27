@@ -34,7 +34,7 @@ class GatherDebugRenderer {
    */
   toggle() {
     this.enabled = !this.enabled;
-    console.log(`🔍 Gather Debug Renderer: ${this.enabled ? 'ENABLED' : 'DISABLED'}`);
+    logNormal(`🔍 Gather Debug Renderer: ${this.enabled ? 'ENABLED' : 'DISABLED'}`);
   }
 
     /**
@@ -49,7 +49,7 @@ class GatherDebugRenderer {
    */
   enable() {
     this.enabled = true;
-    console.log('🔍 Gather Debug Renderer: ENABLED');
+    logNormal('🔍 Gather Debug Renderer: ENABLED');
   }
 
   /**
@@ -57,7 +57,7 @@ class GatherDebugRenderer {
    */
   disable() {
     this.enabled = false;
-    console.log('🔍 Gather Debug Renderer: DISABLED');
+    logNormal('🔍 Gather Debug Renderer: DISABLED');
   }
 
   /**
@@ -252,7 +252,7 @@ function createTestResourcesNearAnt(ant, count = 3) {
     const antPos = ant.getPosition();
     const radius = 100; // Create within 100px of ant
     
-    console.log(`Creating ${count} test resources near ant at (${antPos.x.toFixed(0)}, ${antPos.y.toFixed(0)})`);
+    logNormal(`Creating ${count} test resources near ant at (${antPos.x.toFixed(0)}, ${antPos.y.toFixed(0)})`);
     
     for (let i = 0; i < count; i++) {
       // Random position within radius
@@ -277,8 +277,8 @@ function createTestResourcesNearAnt(ant, count = 3) {
       }
       
       g_resourceManager.addResource(resource);
-      console.log(`  ✅ Created ${resource.resourceType} at (${x.toFixed(0)}, ${y.toFixed(0)})`);
+      logNormal(`  ✅ Created ${resource.resourceType} at (${x.toFixed(0)}, ${y.toFixed(0)})`);
     }
     
-    console.log(`total resources now: ${g_resourceManager.getResourceList().length}`);
+    logNormal(`total resources now: ${g_resourceManager.getResourceList().length}`);
   }

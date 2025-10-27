@@ -262,7 +262,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     // coordSys.setViewCornerBC([0,0]);
     if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
       this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
-      // console.log("updating tile...");
+      // logNormal("updating tile...");
     }
     
     noSmooth();

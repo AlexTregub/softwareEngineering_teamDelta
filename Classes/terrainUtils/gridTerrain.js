@@ -249,9 +249,9 @@ class gridTerrain {
         let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
 
         // CONVERSIONS HAVE FAILED?
-        // console.log(access)
-        // console.log(this.chunkArray.convRelToArrPos(access[0]))
-        // console.log(chunkRawAccess)
+        // logNormal(access)
+        // logNormal(this.chunkArray.convRelToArrPos(access[0]))
+        // logNormal(chunkRawAccess)
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
     }
 
@@ -267,7 +267,7 @@ class gridTerrain {
     render() {
         // Use caching system for performance optimization
         if (!this._shouldUseCache()) {
-            console.log('GridTerrain: Caching disabled, using direct rendering');
+            logNormal('GridTerrain: Caching disabled, using direct rendering');
             // this.renderConversion.forceTileUpdate();  // Improves performance, leaves inconsistent framerate.
             this.renderDirect();
             return;
@@ -282,7 +282,7 @@ class gridTerrain {
             if (typeof globalThis.logNormal === 'function') {
               globalThis.logNormal(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
             } else {
-              console.log(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
+              logNormal(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
             }
             this._generateTerrainCache();
         }
@@ -308,7 +308,7 @@ class gridTerrain {
             if (typeof globalThis.logNormal === 'function') {
               globalThis.logNormal('GridTerrain: Generating terrain cache...');
             } else {
-              console.log('GridTerrain: Generating terrain cache...');
+              logNormal('GridTerrain: Generating terrain cache...');
             }
             
             // Use current canvas dimensions (g_canvasX, g_canvasY) instead of stored _canvasSize
@@ -324,7 +324,7 @@ class gridTerrain {
             if (typeof globalThis.logVerbose === 'function') {
               globalThis.logVerbose(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
             } else {
-              console.log(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
+              logNormal(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
             }
             
             // Safely create off-screen graphics buffer - use current canvas size for viewport-based caching
@@ -376,7 +376,7 @@ class gridTerrain {
             if (typeof globalThis.logNormal === 'function') {
               globalThis.logNormal('GridTerrain: Terrain cache generated successfully');
             } else {
-              console.log('GridTerrain: Terrain cache generated successfully');
+              logNormal('GridTerrain: Terrain cache generated successfully');
             }
             
         } catch (error) {
@@ -500,7 +500,7 @@ class gridTerrain {
         const currentCanvasHeight = this._canvasSize[1];
         if (currentCanvasWidth !== this._cacheViewport.canvasSize[0] || 
             currentCanvasHeight !== this._cacheViewport.canvasSize[1]) {
-            verboseLog(`GridTerrain: Canvas size changed from ${this._cacheViewport.canvasSize[0]}x${this._cacheViewport.canvasSize[1]} to ${currentCanvasWidth}x${currentCanvasHeight}`);
+            logVerbose(`GridTerrain: Canvas size changed from ${this._cacheViewport.canvasSize[0]}x${this._cacheViewport.canvasSize[1]} to ${currentCanvasWidth}x${currentCanvasHeight}`);
             return true;
         }
         
@@ -516,7 +516,7 @@ class gridTerrain {
         if (typeof globalThis.logNormal === 'function') {
           globalThis.logNormal('GridTerrain: Cache invalidated manually');
         } else {
-          console.log('GridTerrain: Cache invalidated manually');
+          logNormal('GridTerrain: Cache invalidated manually');
         }
     }
 
@@ -626,7 +626,7 @@ class gridTerrain {
         //     // Cull rendering of un-viewable chunks
         //     let chunkLoc = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
         //     if (chunkLoc[0] < chunkSpan[0][0] || chunkLoc[0] > chunkSpan[1][0] || chunkLoc[1] > chunkSpan[0][1] || chunkLoc[1] < chunkSpan[1][1]) {
-        //         // console.log("Chunk "+i+'/'+chunkLoc+" skipped.");
+        //         // logNormal("Chunk "+i+'/'+chunkLoc+" skipped.");
         //         chunksSkipped += 1;
         //         continue;
         //     }
@@ -645,8 +645,8 @@ class gridTerrain {
             }
         }
 
-        // console.log("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
-        console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
+        // logNormal("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
+        logNormal("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
     
     }
 
@@ -666,10 +666,10 @@ class gridTerrain {
 function checkTerrainCacheStatus() {
     if (typeof g_activeMap !== 'undefined' && g_activeMap && typeof g_activeMap.getCacheStats === 'function') {
         const stats = g_activeMap.getCacheStats();
-        console.log('Terrain Cache Status:', stats);
+        logNormal('Terrain Cache Status:', stats);
         return stats;
     } else {
-        console.log('Terrain cache not available');
+        logNormal('Terrain cache not available');
         return null;
     }
 }
@@ -678,19 +678,19 @@ function enableTerrainCache() {
     window.DISABLE_TERRAIN_CACHE = false;
     if (g_activeMap) {
         g_activeMap.invalidateCache();
-        console.log('Terrain cache enabled');
+        logNormal('Terrain cache enabled');
     }
 }
 
 function disableTerrainCache() {
     window.DISABLE_TERRAIN_CACHE = true;
-    console.log('Terrain cache disabled');
+    logNormal('Terrain cache disabled');
 }
 
 function forceTerrainCacheRegeneration() {
     if (g_activeMap) {
         g_activeMap.invalidateCache();
-        console.log('Terrain cache regeneration forced');
+        logNormal('Terrain cache regeneration forced');
     }
 }
 
@@ -763,14 +763,14 @@ class camRenderConverter {
 
         // Store new canvas dimensions
         this._canvasSize = sizePair;
-        //console.log(this._canvasSize)
+        //logNormal(this._canvasSize)
         // Calculate new canvas center point (viewport origin in pixels)
         this._canvasCenter = [
             this._canvasSize[0]/2,  // Center X in pixels
             this._canvasSize[1]/2   // Center Y in pixels
         ];
 
-        //console.log(this._canvasCenter)
+        //logNormal(this._canvasCenter)
 
         // Calculate how many tiles fit from center to edge of viewport
         let tileOffsets = [
@@ -788,10 +788,10 @@ class camRenderConverter {
             ]
         ];
         /*
-        console.log("TOP:",this._viewSpan[0][1])
-        console.log("LEFT:",this._viewSpan[0][0])
-        console.log("RIGHT:",this._viewSpan[1][0])
-        console.log("BOTTOM:",this._viewSpan[1][1]) */
+        logNormal("TOP:",this._viewSpan[0][1])
+        logNormal("LEFT:",this._viewSpan[0][0])
+        logNormal("RIGHT:",this._viewSpan[1][0])
+        logNormal("BOTTOM:",this._viewSpan[1][1]) */
     }
 
     setTileSize(size) {
@@ -815,7 +815,7 @@ class camRenderConverter {
 
         let alignOffsetX = floor(alignPos[0]) - alignPos[0];
         let alignOffsetY = floor(alignPos[1]) - alignPos[1];
-        // console.log(alignOffsetX,alignOffsetY);
+        // logNormal(alignOffsetX,alignOffsetY);
 
         this._camPosition = [alignOffsetX,alignOffsetY];
     }

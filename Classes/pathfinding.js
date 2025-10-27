@@ -30,7 +30,7 @@ class PathMap{
     }
 
 
-    console.log("Pathfinding using "+this._grid.infoStr());
+    logNormal("Pathfinding using "+this._grid.infoStr());
 
     this._gridSize = this._grid.getSize();
     // for(let y = 0; y < this._gridSize[1]; y++){ 

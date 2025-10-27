@@ -135,7 +135,7 @@ class LevelEditor {
     
     this.active = true;
     
-    verboseLog('Level Editor initialized');
+    logVerbose('Level Editor initialized');
     return true;
   }
   
@@ -217,10 +217,13 @@ class LevelEditor {
     const tool = this.toolbar.getSelectedTool();
     const material = this.palette.getSelectedMaterial();
     
-    // Simple pixel-to-tile conversion (assuming tiles are TILE_SIZE pixels)
+    // Convert screen coordinates to world coordinates (accounts for camera)
+    const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
+    
+    // Convert world coordinates to tile coordinates
     const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
-    const gridX = Math.floor(mouseX / tileSize);
-    const gridY = Math.floor(mouseY / tileSize);
+    const gridX = Math.floor(worldCoords.worldX / tileSize);
+    const gridY = Math.floor(worldCoords.worldY / tileSize);
     
     // Apply tool action
     switch(tool) {
@@ -312,7 +315,13 @@ class LevelEditor {
   handleDrag(mouseX, mouseY) {
     if (!this.active) return;
     
-    // Check if draggable panel manager consumed the mouse event
+    // FIRST: Check if EventEditorPanel is dragging an event for placement
+    if (this.eventEditor && this.eventEditor.isDragging()) {
+      this.eventEditor.updateDragPosition(mouseX, mouseY);
+      return; // Event drag in progress, don't do terrain editing
+    }
+    
+    // SECOND: Check if draggable panel manager consumed the mouse event
     if (typeof draggablePanelManager !== 'undefined' && draggablePanelManager) {
       const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
       if (panelConsumed) {
@@ -321,9 +330,12 @@ class LevelEditor {
     }
     
     const tool = this.toolbar.getSelectedTool();
+    
+    // Convert screen coordinates to world coordinates (accounts for camera)
+    const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
     const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
-    const gridX = Math.floor(mouseX / tileSize);
-    const gridY = Math.floor(mouseY / tileSize);
+    const gridX = Math.floor(worldCoords.worldX / tileSize);
+    const gridY = Math.floor(worldCoords.worldY / tileSize);
     
     // Handle select tool dragging
     if (tool === 'select') {
@@ -364,9 +376,11 @@ class LevelEditor {
     
     // Handle select tool completion
     if (tool === 'select' && this.selectionManager.isSelecting) {
+      // Convert screen coordinates to world coordinates (accounts for camera)
+      const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
       const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
-      const gridX = Math.floor(mouseX / tileSize);
-      const gridY = Math.floor(mouseY / tileSize);
+      const gridX = Math.floor(worldCoords.worldX / tileSize);
+      const gridY = Math.floor(worldCoords.worldY / tileSize);
       
       this.selectionManager.updateSelection(gridX, gridY);
       this.selectionManager.endSelection();
@@ -383,8 +397,18 @@ class LevelEditor {
           this.terrain.setTile(tile.x, tile.y, material);
         });
         
-        // Add to undo history
-        this.editor._recordState();
+        // Add to undo history (TerrainEditor uses _recordAction, not _recordState)
+        // We need to manually record the action since we're bypassing TerrainEditor's paint method
+        const affectedTiles = tiles.map(tile => ({
+          x: tile.x,
+          y: tile.y,
+          oldMaterial: this.terrain.getTile(tile.x, tile.y),
+          newMaterial: material
+        }));
+        
+        if (this.editor && typeof this.editor._recordAction === 'function') {
+          this.editor._recordAction({ type: 'paint', tiles: affectedTiles });
+        }
         
         this.notifications.show(`Painted ${tiles.length} tiles with ${material}`);
         
@@ -410,9 +434,12 @@ class LevelEditor {
     if (!this.active) return;
     
     const tool = this.toolbar.getSelectedTool();
+    
+    // Convert screen coordinates to world coordinates (accounts for camera)
+    const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
     const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
-    const gridX = Math.floor(mouseX / tileSize);
-    const gridY = Math.floor(mouseY / tileSize);
+    const gridX = Math.floor(worldCoords.worldX / tileSize);
+    const gridY = Math.floor(worldCoords.worldY / tileSize);
     
     // Update hover preview for current tool
     const brushSize = this.brushControl.getSize();
@@ -434,6 +461,9 @@ class LevelEditor {
   update() {
     if (!this.active) return;
     
+    // Update camera (panning, zooming, input)
+    this.updateCamera();
+    
     // Update file menu bar states (undo/redo availability)
     if (this.fileMenuBar) {
       this.fileMenuBar.updateMenuStates();
@@ -450,10 +480,159 @@ class LevelEditor {
   }
   
   /**
+   * Update camera for Level Editor
+   * Enables panning and zooming in the editor
+   */
+  updateCamera() {
+    if (!this.active || !this.editorCamera) return;
+    
+    // Update camera (handles input, following, bounds)
+    if (typeof this.editorCamera.update === 'function') {
+      this.editorCamera.update();
+    }
+  }
+  
+  /**
+   * Apply camera transformation for rendering
+   * Call before rendering world objects (terrain, grid)
+   */
+  applyCameraTransform() {
+    if (!this.editorCamera) {
+      console.warn('⚠️ [RENDER] No camera for transform!');
+      return;
+    }
+    
+    push();
+    
+    // Get camera position and zoom
+    const zoom = typeof this.editorCamera.getZoom === 'function' 
+      ? this.editorCamera.getZoom() 
+      : (this.editorCamera.cameraZoom || 1);
+    
+    // CameraManager doesn't have getCameraPosition(), use properties directly
+    const cameraPos = {
+      x: this.editorCamera.cameraX !== undefined ? this.editorCamera.cameraX : 0,
+      y: this.editorCamera.cameraY !== undefined ? this.editorCamera.cameraY : 0
+    };
+    
+    // Apply zoom scaling around canvas center (same as main game)
+    translate(g_canvasX / 2, g_canvasY / 2);
+    scale(zoom);
+    translate(-g_canvasX / 2, -g_canvasY / 2);
+    
+    // Apply camera offset
+    translate(-cameraPos.x, -cameraPos.y);
+  }
+  
+  /**
+   * Restore transformation after rendering
+   * Call after rendering world objects
+   */
+  restoreCameraTransform() {
+    if (!this.editorCamera) return;
+    pop();
+  }
+  
+  /**
+   * Convert screen coordinates to world coordinates
+   * Accounts for camera position and zoom
+   * @param {number} screenX - Screen X coordinate
+   * @param {number} screenY - Screen Y coordinate
+   * @returns {{worldX: number, worldY: number}} World coordinates
+   */
+  convertScreenToWorld(screenX, screenY) {
+    if (!this.editorCamera || typeof this.editorCamera.screenToWorld !== 'function') {
+      // No camera - return screen coords as world coords
+      return { worldX: screenX, worldY: screenY };
+    }
+    
+    return this.editorCamera.screenToWorld(screenX, screenY);
+  }
+  
+  /**
+   * Get highlighted tile grid coordinates (uses screenToWorld for camera alignment)
+   * @returns {Object} { gridX, gridY } - Grid coordinates of tile under mouse
+   */
+  getHighlightedTileCoords() {
+    if (!this.editorCamera) {
+      return { gridX: 0, gridY: 0 };
+    }
+    
+    // Use screenToWorld to convert mouse position
+    const worldCoords = this.editorCamera.screenToWorld(mouseX, mouseY);
+    
+    const tileSize = this.terrain?.tileSize || TILE_SIZE || 32;
+    const gridX = Math.floor(worldCoords.x / tileSize);
+    const gridY = Math.floor(worldCoords.y / tileSize);
+    
+    logNormal(`🎯 [HIGHLIGHT] Mouse: (${mouseX}, ${mouseY}) → World: (${worldCoords.x.toFixed(1)}, ${worldCoords.y.toFixed(1)}) → Grid: (${gridX}, ${gridY})`);
+    
+    return { gridX, gridY };
+  }
+  
+  /**
+   * Render single tile highlight under mouse cursor
+   * Uses getHighlightedTileCoords() for camera-aligned positioning
+   */
+  renderTerrainHighlight() {
+    if (!this.editorCamera || !this.currentTool) return;
+    
+    const coords = this.getHighlightedTileCoords();
+    const tileSize = this.terrain?.tileSize || TILE_SIZE || 32;
+    
+    push();
+    noStroke();
+    fill(255, 255, 0, 100); // Yellow semi-transparent
+    rect(coords.gridX * tileSize, coords.gridY * tileSize, tileSize, tileSize);
+    pop();
+  }
+  
+  /**
+   * Handle camera input (arrow keys for panning)
+   * Called from sketch.js keyboard handlers
+   */
+  handleCameraInput() {
+    // Camera input is handled by cameraManager.update()
+    // This method exists for explicit control if needed
+    if (this.editorCamera && typeof this.editorCamera.handleInput === 'function') {
+      this.editorCamera.handleInput();
+    }
+  }
+  
+  /**
+   * Handle zoom input (mouse wheel)
+   * @param {number} delta - Wheel delta (negative = zoom in, positive = zoom out)
+   */
+  handleZoom(delta) {
+    if (!this.editorCamera) return;
+    
+    // Get current zoom
+    const currentZoom = typeof this.editorCamera.getZoom === 'function'
+      ? this.editorCamera.getZoom()
+      : 1;
+    
+    // Calculate new zoom
+    // Mouse wheel: negative delta = scroll up = zoom IN (increase zoom)
+    // Mouse wheel: positive delta = scroll down = zoom OUT (decrease zoom)
+    const zoomFactor = delta < 0 ? 1.1 : 0.9;
+    const newZoom = currentZoom * zoomFactor;
+    
+    logNormal('🔍 [ZOOM]', delta < 0 ? 'IN' : 'OUT', '- Current:', currentZoom.toFixed(2), '→ New:', newZoom.toFixed(2));
+    
+    // Apply zoom centered on mouse position
+    if (typeof this.editorCamera.setZoom === 'function') {
+      this.editorCamera.setZoom(newZoom, mouseX, mouseY);
+    }
+  }
+  
+  /**
    * Render the level editor UI
    */
   render() {
     if (!this.active) return;
+    
+    // Apply camera transform for world-space rendering
+    this.applyCameraTransform();
     
     // Render terrain
     if (this.terrain) {
@@ -464,6 +643,15 @@ class LevelEditor {
     if (this.showGrid) {
       this.gridOverlay.render();
     }
+    
+    // Render hover preview (tiles that will be affected) - MUST be inside camera transform
+    this.renderHoverPreview();
+    
+    // Render selection rectangle (if selecting) - MUST be inside camera transform
+    this.renderSelectionRectangle();
+    
+    // Restore camera transform
+    this.restoreCameraTransform();
     
     // File menu bar (has its own visible check)
     this.fileMenuBar.render();
@@ -484,12 +672,6 @@ class LevelEditor {
       const notifY = g_canvasY - 10; // Bottom of screen
       this.notifications.render(notifX, notifY);
     }
-    
-    // Render hover preview (tiles that will be affected)
-    this.renderHoverPreview();
-    
-    // Render selection rectangle (if selecting)
-    this.renderSelectionRectangle();
     
     // Render dialogs if active
     if (this.saveDialog.isVisible()) { this.saveDialog.render(); }

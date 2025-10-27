@@ -100,7 +100,7 @@ class EntityDebugManager {
       if (typeof globalThis.logNormal === 'function') {
         globalThis.logNormal('EntityDebugManager: Event listeners attached');
       } else {
-        console.log('EntityDebugManager: Event listeners attached');
+        logNormal('EntityDebugManager: Event listeners attached');
       }
     }
   }
@@ -153,7 +153,7 @@ class EntityDebugManager {
     const oldLimit = this.config.maxVisibleDebuggers;
     this.config.maxVisibleDebuggers = Math.max(1, limit);
     
-    console.log(`EntityDebugManager: Debug limit changed from ${oldLimit} to ${this.config.maxVisibleDebuggers}`);
+    logNormal(`EntityDebugManager: Debug limit changed from ${oldLimit} to ${this.config.maxVisibleDebuggers}`);
     
     // If currently showing debuggers, refresh with new limit
     if (this.isDebugEnabled) {
@@ -207,7 +207,7 @@ class EntityDebugManager {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose(`EntityDebugManager: Registered entity ${entity.type} (${entity.id})`);
     } else {
-      console.log(`EntityDebugManager: Registered entity ${entity.type} (${entity.id})`);
+      logNormal(`EntityDebugManager: Registered entity ${entity.type} (${entity.id})`);
     }
   }
 
@@ -222,7 +222,7 @@ class EntityDebugManager {
       this._focusedEntity = null;
     }
     
-    console.log(`EntityDebugManager: Unregistered entity ${entity.type} (${entity.id})`);
+    logNormal(`EntityDebugManager: Unregistered entity ${entity.type} (${entity.id})`);
   }
 
   /**
@@ -265,7 +265,7 @@ class EntityDebugManager {
     if (activeEntities.length > 0) {
       activeEntities.forEach(entity => entity.toggleDebugger(false));
       this.isDebugEnabled = false;
-      console.log('EntityDebugManager: Disabled active entity debuggers');
+      logNormal('EntityDebugManager: Disabled active entity debuggers');
       this._updateDebugState();
       return;
     }
@@ -275,7 +275,7 @@ class EntityDebugManager {
     if (closestEntity) {
       closestEntity.toggleDebugger(true);
       this.isDebugEnabled = true;
-      console.log(`EntityDebugManager: Enabled debugger for closest entity (${closestEntity.constructor.name})`);
+      logNormal(`EntityDebugManager: Enabled debugger for closest entity (${closestEntity.constructor.name})`);
       this._updateDebugState();
     }
   }
@@ -287,12 +287,12 @@ class EntityDebugManager {
       this.toggleClosestEntity();
       // Automatically show global performance graph when debug mode is enabled
       this.showGlobalPerformance = true;
-      console.log('EntityDebugManager: Global debug enabled (with performance graph)');
+      logNormal('EntityDebugManager: Global debug enabled (with performance graph)');
     } else {
       this.hideAllDebuggers();
       // Hide global performance graph when debug mode is disabled
       this.showGlobalPerformance = false;
-      console.log('EntityDebugManager: Global debug disabled (performance graph hidden)');
+      logNormal('EntityDebugManager: Global debug disabled (performance graph hidden)');
     }
     
     this._updateDebugState();
@@ -310,11 +310,11 @@ class EntityDebugManager {
     if (forceAll) {
       // When forcing, use higher limit or all entities
       limit = Math.min(entities.length, this.config.forceShowAllLimit);
-      console.log(`EntityDebugManager: Force showing ${limit} entity debuggers (ignoring performance limit)`);
+      logNormal(`EntityDebugManager: Force showing ${limit} entity debuggers (ignoring performance limit)`);
     } else {
       // Normal operation with performance limit
       limit = Math.min(entities.length, this.config.maxVisibleDebuggers);
-      console.log(`EntityDebugManager: Showing ${limit} entity debuggers (limit: ${this.config.maxVisibleDebuggers})`);
+      logNormal(`EntityDebugManager: Showing ${limit} entity debuggers (limit: ${this.config.maxVisibleDebuggers})`);
     }
     
     // Hide all first
@@ -336,7 +336,7 @@ class EntityDebugManager {
     this.isDebugEnabled = false;
     this._focusedEntity = null;
     
-    console.log('EntityDebugManager: All debuggers hidden');
+    logNormal('EntityDebugManager: All debuggers hidden');
     this._updateDebugState();
   }
 
@@ -347,7 +347,7 @@ class EntityDebugManager {
     const selectedEntities = this.getAllEntities().filter(entity => entity.isSelected && entity.isSelected());
     
     if (selectedEntities.length === 0) {
-      console.log('EntityDebugManager: No selected entities to cycle');
+      logNormal('EntityDebugManager: No selected entities to cycle');
       return;
     }
     
@@ -364,7 +364,7 @@ class EntityDebugManager {
     this._focusedEntity = selectedEntities[nextIndex];
     this._focusedEntity.toggleDebugger(true);
     
-    console.log(`EntityDebugManager: Focused on ${this._focusedEntity.type} (${this._focusedEntity.id})`);
+    logNormal(`EntityDebugManager: Focused on ${this._focusedEntity.type} (${this._focusedEntity.id})`);
     this._updateDebugState();
   }
 
@@ -400,7 +400,7 @@ class EntityDebugManager {
       entitiesWithDistance[i].entity.toggleDebugger(true);
     }
     
-    console.log(`EntityDebugManager: Showing ${limit} nearest entities`);
+    logNormal(`EntityDebugManager: Showing ${limit} nearest entities`);
   }
 
   /**
@@ -492,7 +492,7 @@ class EntityDebugManager {
       const timeSinceActivity = Date.now() - this._lastActivity;
       if (timeSinceActivity > this.config.autoHideDelay) {
         this.hideAllDebuggers();
-        console.log('EntityDebugManager: Auto-hidden debuggers due to inactivity');
+        logNormal('EntityDebugManager: Auto-hidden debuggers due to inactivity');
       }
     }
     
@@ -518,7 +518,7 @@ class EntityDebugManager {
       this._collectPerformanceDataFromAllEntities();
       this.collectedPerformanceData.lastCollectionTime = currentTime;
       
-      console.log(`EntityDebugManager: Collected performance data from ${this.entities.size} entities`);
+      logNormal(`EntityDebugManager: Collected performance data from ${this.entities.size} entities`);
     }
   }
 
@@ -884,7 +884,7 @@ class EntityDebugManager {
       if (mouseX >= buttonX && mouseX <= buttonX + buttonW &&
           mouseY >= buttonY && mouseY <= buttonY + buttonH) {
         this.showGlobalPerformance = !this.showGlobalPerformance;
-        console.log(`Global performance summary ${this.showGlobalPerformance ? 'enabled' : 'disabled'}`);
+        logNormal(`Global performance summary ${this.showGlobalPerformance ? 'enabled' : 'disabled'}`);
       }
     }
   }
@@ -980,7 +980,7 @@ class EntityDebugManager {
       this.showGlobalPerformance = !this.showGlobalPerformance;
     }
     
-    console.log(`Global performance summary ${this.showGlobalPerformance ? 'enabled' : 'disabled'}`);
+    logNormal(`Global performance summary ${this.showGlobalPerformance ? 'enabled' : 'disabled'}`);
     return this.showGlobalPerformance;
   }
 
@@ -1166,7 +1166,7 @@ class EntityDebugManager {
       this._listenersAttached = false;
     }
     
-    console.log('EntityDebugManager: Destroyed');
+    logNormal('EntityDebugManager: Destroyed');
   }
 }
 
@@ -1181,7 +1181,7 @@ function initializeEntityDebugManager() {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal('EntityDebugManager: Global instance initialized');
     } else {
-      console.log('EntityDebugManager: Global instance initialized');
+      logNormal('EntityDebugManager: Global instance initialized');
     }
     return window.EntityDebugManager;
   }

@@ -255,18 +255,311 @@ class GameEvent {
 /**
  * DialogueEvent - Display dialogue/messages to player
  * 
- * Shows text messages with optional title, speaker, and button responses.
+ * Shows interactive dialogue panels with speaker names, messages, and choice buttons.
+ * Integrates with DraggablePanelManager for UI and EventManager for choice tracking.
+ * 
+ * Features:
+ * - Speaker names and messages
+ * - Multiple choice buttons
+ * - Branching dialogues via nextEventId
+ * - Choice tracking with event flags
+ * - Word-wrapped text rendering
+ * - Auto-continue support
+ * - Portrait support (future)
  */
 class DialogueEvent extends GameEvent {
+  /**
+   * Create a new dialogue event
+   * @param {Object} config - Event configuration
+   * @param {string} config.id - Unique event identifier
+   * @param {Object} config.content - Dialogue content
+   * @param {string} [config.content.speaker='Dialogue'] - Speaker name
+   * @param {string} config.content.message - Dialogue message text (required)
+   * @param {Array} [config.content.choices] - Array of choice objects (defaults to "Continue")
+   * @param {string} [config.content.portrait] - Optional portrait image path
+   * @param {boolean} [config.content.autoContinue] - Auto-close dialogue
+   * @param {number} [config.content.autoContinueDelay=0] - Delay before auto-close (ms)
+   */
   constructor(config) {
     super({ ...config, type: 'dialogue' });
+    
+    // Validate message is not empty
+    if (!config.content || !config.content.message || config.content.message.trim() === '') {
+      throw new Error('DialogueEvent requires a non-empty message');
+    }
+    
+    // Set default speaker if not provided
+    if (!this.content.speaker) {
+      this.content.speaker = 'Dialogue';
+    }
+    
+    // Create default "Continue" choice if no choices provided
+    if (!this.content.choices || this.content.choices.length === 0) {
+      this.content.choices = [{ text: 'Continue' }];
+    }
+    
+    // Store reference to dialogue panel (created on trigger)
+    this._panel = null;
     this._response = null;
     this.onResponse = config.onResponse;
     this.autoCompleteOnResponse = config.autoCompleteOnResponse;
   }
   
   /**
-   * Handle button response
+   * Get array of choices (can be filtered in future)
+   * @returns {Array} Array of choice objects
+   */
+  getChoices() {
+    return this.content.choices || [];
+  }
+  
+  /**
+   * Trigger the dialogue event
+   * Shows the dialogue panel with choices
+   * @param {*} data - Optional data to pass to parent trigger
+   */
+  trigger(data) {
+    // Call parent trigger
+    super.trigger(data);
+    
+    // Check if draggablePanelManager exists
+    const panelManager = (typeof global !== 'undefined' && global.draggablePanelManager) ||
+                        (typeof window !== 'undefined' && window.draggablePanelManager);
+    
+    if (!panelManager) {
+      console.warn('DialogueEvent: draggablePanelManager not available');
+      return;
+    }
+    
+    // Get window dimensions (with fallbacks for testing)
+    const winWidth = (typeof window !== 'undefined' && window.innerWidth) || 1920;
+    const winHeight = (typeof window !== 'undefined' && window.innerHeight) || 1080;
+    
+    // Create panel configuration
+    const panelConfig = {
+      id: 'dialogue-display',
+      title: this.content.speaker,
+      position: {
+        x: (winWidth / 2) - 250,
+        y: winHeight - 200
+      },
+      size: {
+        width: 500,
+        height: 160
+      },
+      behavior: {
+        draggable: false,
+        closeable: false,
+        minimizable: false
+      },
+      buttons: {
+        layout: 'horizontal',
+        autoSizeToContent: true,
+        spacing: 10,
+        items: this._generateChoiceButtons()
+      }
+    };
+    
+    // Get or create panel (update if exists to handle dialogue changes)
+    this._panel = panelManager.getOrCreatePanel('dialogue-display', panelConfig, true);
+    
+    // Set contentSizeCallback for custom rendering
+    if (this._panel && this._panel.config) {
+      this._panel.config.contentSizeCallback = (contentArea) => {
+        return this.renderDialogueContent(contentArea);
+      };
+    }
+    
+    // Show the panel
+    if (this._panel && this._panel.show) {
+      this._panel.show();
+    }
+  }
+  
+  /**
+   * Generate button configurations from choices
+   * @private
+   * @returns {Array} Array of button configs
+   */
+  _generateChoiceButtons() {
+    return this.getChoices().map((choice, index) => ({
+      caption: choice.text,
+      onClick: () => this.handleChoice(choice, index)
+    }));
+  }
+  
+  /**
+   * Handle player choice selection
+   * @param {Object} choice - The selected choice object
+   * @param {number} index - Index of the choice
+   */
+  handleChoice(choice, index) {
+    // Execute choice callback if exists
+    if (choice.onSelect && typeof choice.onSelect === 'function') {
+      choice.onSelect(choice);
+    }
+    
+    // Set event flag for choice tracking
+    const eventManager = (typeof global !== 'undefined' && global.eventManager) ||
+                        (typeof window !== 'undefined' && window.eventManager);
+    
+    if (eventManager && eventManager.setFlag) {
+      eventManager.setFlag(`${this.id}_choice`, index);
+    }
+    
+    // Trigger next event if specified
+    if (choice.nextEventId && eventManager && eventManager.triggerEvent) {
+      eventManager.triggerEvent(choice.nextEventId);
+    }
+    
+    // Hide the panel
+    const panelManager = (typeof global !== 'undefined' && global.draggablePanelManager) ||
+                        (typeof window !== 'undefined' && window.draggablePanelManager);
+    
+    if (panelManager && panelManager.hidePanel) {
+      panelManager.hidePanel('dialogue-display');
+    }
+    
+    // Store response
+    this._response = choice.text;
+    
+    // Execute onResponse callback if exists
+    if (this.onResponse && typeof this.onResponse === 'function') {
+      this.onResponse(choice.text);
+    }
+    
+    // Complete this dialogue event
+    this.complete();
+  }
+  
+  /**
+   * Render dialogue content with word wrapping
+   * @param {Object} contentArea - Area to render within
+   * @param {number} contentArea.x - Left edge
+   * @param {number} contentArea.y - Top edge
+   * @param {number} contentArea.width - Available width
+   * @param {number} contentArea.height - Available height
+   * @returns {Object} Content size { width, height }
+   */
+  renderDialogueContent(contentArea) {
+    // Get p5.js functions (with fallbacks for testing)
+    const p5Push = (typeof global !== 'undefined' && global.push) ||
+                   (typeof window !== 'undefined' && window.push);
+    const p5Pop = (typeof global !== 'undefined' && global.pop) ||
+                  (typeof window !== 'undefined' && window.pop);
+    const p5Fill = (typeof global !== 'undefined' && global.fill) ||
+                   (typeof window !== 'undefined' && window.fill);
+    const p5TextSize = (typeof global !== 'undefined' && global.textSize) ||
+                       (typeof window !== 'undefined' && window.textSize);
+    const p5TextAlign = (typeof global !== 'undefined' && global.textAlign) ||
+                        (typeof window !== 'undefined' && window.textAlign);
+    const p5TextWidth = (typeof global !== 'undefined' && global.textWidth) ||
+                        (typeof window !== 'undefined' && window.textWidth);
+    const p5Text = (typeof global !== 'undefined' && global.text) ||
+                   (typeof window !== 'undefined' && window.text);
+    const p5Image = (typeof global !== 'undefined' && global.image) ||
+                    (typeof window !== 'undefined' && window.image);
+    const p5LoadImage = (typeof global !== 'undefined' && global.loadImage) ||
+                        (typeof window !== 'undefined' && window.loadImage);
+    const LEFT = (typeof global !== 'undefined' && global.LEFT) ||
+                 (typeof window !== 'undefined' && window.LEFT) || 'left';
+    const TOP = (typeof global !== 'undefined' && global.TOP) ||
+                (typeof window !== 'undefined' && window.TOP) || 'top';
+    
+    // Use push/pop for rendering isolation
+    if (p5Push) p5Push();
+    
+    // Set text properties
+    if (p5Fill) p5Fill(0);
+    if (p5TextSize) p5TextSize(14);
+    if (p5TextAlign) p5TextAlign(LEFT, TOP);
+    
+    // Calculate starting position (offset for portrait if exists)
+    let startX = contentArea.x + 10;
+    let startY = contentArea.y + 10;
+    
+    // Render portrait if exists
+    if (this.content.portrait && p5Image) {
+      // Load portrait image (in real game, would cache this)
+      let portraitImg = this.content.portrait;
+      
+      // If loadImage is available, try to load it
+      if (p5LoadImage && typeof this.content.portrait === 'string') {
+        portraitImg = p5LoadImage(this.content.portrait);
+      }
+      
+      // Draw portrait (64x64px)
+      if (portraitImg) {
+        p5Image(portraitImg, contentArea.x + 10, startY, 64, 64);
+      }
+      
+      // Offset text to make room for portrait
+      startX += 74; // 64px portrait + 10px padding
+    }
+    
+    // Render word-wrapped text
+    const words = this.content.message.split(' ');
+    let line = '';
+    let y = startY;
+    const maxWidth = contentArea.width - (startX - contentArea.x) - 10;
+    
+    for (let word of words) {
+      const testLine = line + word + ' ';
+      const testWidth = p5TextWidth ? p5TextWidth(testLine) : testLine.length * 7;
+      
+      if (testWidth > maxWidth && line !== '') {
+        // Draw current line
+        if (p5Text) p5Text(line, startX, y);
+        line = word + ' ';
+        y += 18; // Line height
+      } else {
+        line = testLine;
+      }
+    }
+    
+    // Draw final line
+    if (line.length > 0 && p5Text) {
+      p5Text(line, startX, y);
+    }
+    
+    if (p5Pop) p5Pop();
+    
+    // Return content size
+    return {
+      width: contentArea.width,
+      height: 100 // Approximate height for dialogue text
+    };
+  }
+  
+  /**
+   * Update method (called each frame while active)
+   * Handles auto-continue functionality
+   */
+  update() {
+    super.update();
+    
+    // Handle auto-continue if configured
+    if (this.content.autoContinue && this.active) {
+      const delay = this.content.autoContinueDelay || 0;
+      const elapsed = this.getElapsedTime();
+      
+      // Only auto-continue if there's a single choice (prevent auto-continue with multiple choices)
+      if (this.getChoices().length === 1 && elapsed >= delay) {
+        this.handleChoice(this.getChoices()[0], 0);
+      }
+    }
+  }
+  
+  /**
+   * Get the user's response
+   * @returns {string|null} - Response text or null if no response yet
+   */
+  getResponse() {
+    return this._response;
+  }
+  
+  /**
+   * Handle button response (legacy method for compatibility)
    * @param {string} buttonText - Text of clicked button
    */
   handleResponse(buttonText) {
@@ -280,14 +573,6 @@ class DialogueEvent extends GameEvent {
     if (this.autoCompleteOnResponse) {
       this.complete();
     }
-  }
-  
-  /**
-   * Get the user's response
-   * @returns {string|null} - Response text or null if no response yet
-   */
-  getResponse() {
-    return this._response;
   }
 }
 

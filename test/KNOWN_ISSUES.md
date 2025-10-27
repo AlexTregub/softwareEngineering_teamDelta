@@ -33,7 +33,13 @@ Track bugs and their status with test coverage.
 
 ### Open ❌
 
-*(No open issues)*
+- [ ] **Level Editor Material Palette: Material Names Truncated**
+  - File: Material palette rendering (likely in `Classes/systems/ui/LevelEditor.js` or related UI component)
+  - Issue: Material names are being truncated too early (e.g., "stone" appears as "ston")
+  - Priority: LOW (cosmetic)
+  - Expected: Full material names should be visible
+  - Current: Names cut off prematurely
+  - Tests Needed: Unit test for text rendering/truncation logic
 
 ---
 

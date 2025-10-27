@@ -24,8 +24,8 @@
  * - ON_ROUGH (🪨 gray)
  */
 window.testTerrainIndicators = function() {
-  console.log("🎨 Testing Terrain Visual Indicators");
-  console.log("====================================");
+  logNormal("🎨 Testing Terrain Visual Indicators");
+  logNormal("====================================");
   
   // Get all ants from spatial grid
   const ants = spatialGridManager.getEntitiesByType('Ant');
@@ -43,8 +43,8 @@ window.testTerrainIndicators = function() {
     return;
   }
   
-  console.log(`📍 Testing with ant at position (${Math.round(testAnt.x)}, ${Math.round(testAnt.y)})`);
-  console.log("");
+  logNormal(`📍 Testing with ant at position (${Math.round(testAnt.x)}, ${Math.round(testAnt.y)})`);
+  logNormal("");
   
   // Define terrain types to test
   const terrainTypes = ['DEFAULT', 'IN_WATER', 'IN_MUD', 'ON_SLIPPERY', 'ON_ROUGH'];
@@ -58,9 +58,9 @@ window.testTerrainIndicators = function() {
   
   let currentIndex = 0;
   
-  console.log("⏱️ Cycling through terrain types every 2 seconds...");
-  console.log("   Watch the indicator above the ant change!");
-  console.log("");
+  logNormal("⏱️ Cycling through terrain types every 2 seconds...");
+  logNormal("   Watch the indicator above the ant change!");
+  logNormal("");
   
   // Cycle through terrains
   const interval = setInterval(() => {
@@ -71,13 +71,13 @@ window.testTerrainIndicators = function() {
     testAnt._stateMachine.setTerrainModifier(terrain);
     
     // Log current terrain
-    console.log(`${info.icon} ${terrain}: ${info.description} (Speed: ${info.speed})`);
+    logNormal(`${info.icon} ${terrain}: ${info.description} (Speed: ${info.speed})`);
     
     // Check if ant has render controller
     if (testAnt.getController && testAnt.getController('RenderController')) {
       const renderController = testAnt.getController('RenderController');
       const currentModifier = testAnt._stateMachine.terrainModifier;
-      console.log(`   ✓ Visual indicator active: ${currentModifier !== 'DEFAULT'}`);
+      logNormal(`   ✓ Visual indicator active: ${currentModifier !== 'DEFAULT'}`);
     }
     
     currentIndex++;
@@ -85,12 +85,12 @@ window.testTerrainIndicators = function() {
     // Stop after cycling through all terrains
     if (currentIndex >= terrainTypes.length) {
       clearInterval(interval);
-      console.log("");
-      console.log("✅ Test complete!");
-      console.log("💡 Try these commands:");
-      console.log("   - setAntTerrain(0, 'IN_WATER') - Set first ant to water");
-      console.log("   - showAllTerrainEffects() - Show all terrain types at once");
-      console.log("   - clearTerrainEffects() - Reset all to normal");
+      logNormal("");
+      logNormal("✅ Test complete!");
+      logNormal("💡 Try these commands:");
+      logNormal("   - setAntTerrain(0, 'IN_WATER') - Set first ant to water");
+      logNormal("   - showAllTerrainEffects() - Show all terrain types at once");
+      logNormal("   - clearTerrainEffects() - Reset all to normal");
     }
   }, 2000);
 };
@@ -140,9 +140,9 @@ window.setAntTerrain = function(antIndex, terrainType) {
     speedInfo = ` (Speed: ${effectiveSpeed.toFixed(2)})`;
   }
   
-  console.log(`✅ Ant ${antIndex} set to ${terrainType}${speedInfo}`);
-  console.log(`   Position: (${Math.round(ant.x)}, ${Math.round(ant.y)})`);
-  console.log(`   Visual indicator: ${terrainType !== 'DEFAULT' ? 'ACTIVE' : 'HIDDEN'}`);
+  logNormal(`✅ Ant ${antIndex} set to ${terrainType}${speedInfo}`);
+  logNormal(`   Position: (${Math.round(ant.x)}, ${Math.round(ant.y)})`);
+  logNormal(`   Visual indicator: ${terrainType !== 'DEFAULT' ? 'ACTIVE' : 'HIDDEN'}`);
 };
 
 /**
@@ -151,8 +151,8 @@ window.setAntTerrain = function(antIndex, terrainType) {
  * Usage: showAllTerrainEffects()
  */
 window.showAllTerrainEffects = function() {
-  console.log("🌈 Showing All Terrain Effects");
-  console.log("===============================");
+  logNormal("🌈 Showing All Terrain Effects");
+  logNormal("===============================");
   
   const ants = spatialGridManager.getEntitiesByType('Ant');
   
@@ -188,17 +188,17 @@ window.showAllTerrainEffects = function() {
         speedInfo = ` - Speed: ${effectiveSpeed.toFixed(2)}`;
       }
       
-      console.log(`${terrainIcons[terrain]} Ant ${i}: ${terrain}${speedInfo}`);
+      logNormal(`${terrainIcons[terrain]} Ant ${i}: ${terrain}${speedInfo}`);
     }
   }
   
-  console.log("");
-  console.log("✅ Terrain effects applied!");
-  console.log("💡 Look for icons above the ants:");
-  console.log("   💧 = Water (blue)");
-  console.log("   🟫 = Mud (brown)");
-  console.log("   ❄️ = Ice (light blue)");
-  console.log("   🪨 = Rough (gray)");
+  logNormal("");
+  logNormal("✅ Terrain effects applied!");
+  logNormal("💡 Look for icons above the ants:");
+  logNormal("   💧 = Water (blue)");
+  logNormal("   🟫 = Mud (brown)");
+  logNormal("   ❄️ = Ice (light blue)");
+  logNormal("   🪨 = Rough (gray)");
 };
 
 /**
@@ -207,8 +207,8 @@ window.showAllTerrainEffects = function() {
  * Usage: clearTerrainEffects()
  */
 window.clearTerrainEffects = function() {
-  console.log("🧹 Clearing All Terrain Effects");
-  console.log("================================");
+  logNormal("🧹 Clearing All Terrain Effects");
+  logNormal("================================");
   
   const ants = spatialGridManager.getEntitiesByType('Ant');
   
@@ -226,8 +226,8 @@ window.clearTerrainEffects = function() {
     }
   }
   
-  console.log(`✅ Cleared terrain effects from ${cleared} ants`);
-  console.log("   All ants now at normal speed (no visual indicators)");
+  logNormal(`✅ Cleared terrain effects from ${cleared} ants`);
+  logNormal("   All ants now at normal speed (no visual indicators)");
 };
 
 /**
@@ -236,8 +236,8 @@ window.clearTerrainEffects = function() {
  * Usage: getTerrainIndicatorStatus()
  */
 window.getTerrainIndicatorStatus = function() {
-  console.log("📊 Terrain Indicator Status Report");
-  console.log("===================================");
+  logNormal("📊 Terrain Indicator Status Report");
+  logNormal("===================================");
   
   const ants = spatialGridManager.getEntitiesByType('Ant');
   
@@ -269,22 +269,22 @@ window.getTerrainIndicatorStatus = function() {
     }
   }
   
-  console.log(`📈 Total ants: ${ants.length}`);
-  console.log(`🎨 Ants with visible indicators: ${totalWithIndicators}`);
-  console.log("");
-  console.log("Breakdown by terrain:");
-  console.log(`  🟢 DEFAULT (no indicator): ${terrainCounts['DEFAULT']}`);
-  console.log(`  💧 IN_WATER: ${terrainCounts['IN_WATER']}`);
-  console.log(`  🟫 IN_MUD: ${terrainCounts['IN_MUD']}`);
-  console.log(`  ❄️ ON_SLIPPERY: ${terrainCounts['ON_SLIPPERY']}`);
-  console.log(`  🪨 ON_ROUGH: ${terrainCounts['ON_ROUGH']}`);
+  logNormal(`📈 Total ants: ${ants.length}`);
+  logNormal(`🎨 Ants with visible indicators: ${totalWithIndicators}`);
+  logNormal("");
+  logNormal("Breakdown by terrain:");
+  logNormal(`  🟢 DEFAULT (no indicator): ${terrainCounts['DEFAULT']}`);
+  logNormal(`  💧 IN_WATER: ${terrainCounts['IN_WATER']}`);
+  logNormal(`  🟫 IN_MUD: ${terrainCounts['IN_MUD']}`);
+  logNormal(`  ❄️ ON_SLIPPERY: ${terrainCounts['ON_SLIPPERY']}`);
+  logNormal(`  🪨 ON_ROUGH: ${terrainCounts['ON_ROUGH']}`);
 };
 
 // Auto-register functions on load
-console.log("🎨 Terrain Indicator Test Suite Loaded");
-console.log("Available commands:");
-console.log("  - testTerrainIndicators() - Cycle through all terrain types");
-console.log("  - setAntTerrain(index, type) - Set specific ant terrain");
-console.log("  - showAllTerrainEffects() - Show all effects at once");
-console.log("  - clearTerrainEffects() - Reset all to normal");
-console.log("  - getTerrainIndicatorStatus() - Show current status");
+logNormal("🎨 Terrain Indicator Test Suite Loaded");
+logNormal("Available commands:");
+logNormal("  - testTerrainIndicators() - Cycle through all terrain types");
+logNormal("  - setAntTerrain(index, type) - Set specific ant terrain");
+logNormal("  - showAllTerrainEffects() - Show all effects at once");
+logNormal("  - clearTerrainEffects() - Reset all to normal");
+logNormal("  - getTerrainIndicatorStatus() - Show current status");

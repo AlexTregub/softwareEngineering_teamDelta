@@ -47,7 +47,7 @@ class SoundManager {
       }
     };
 
-    console.log('🔊 Audio settings loaded:', {
+    logNormal('🔊 Audio settings loaded:', {
       Music: this.categories.Music.volume,
       SoundEffects: this.categories.SoundEffects.volume,
       SystemSounds: this.categories.SystemSounds.volume
@@ -92,13 +92,13 @@ class SoundManager {
       const saved = localStorage.getItem('antgame.audioSettings');
       if (saved) {
         const settings = JSON.parse(saved);
-        console.log('✅ Loaded audio settings from localStorage:', settings);
+        logVerbose('✅ Loaded audio settings from localStorage:', settings);
         return settings;
       }
     } catch (error) {
       console.warn('⚠️ Failed to load audio settings from localStorage:', error);
     }
-    console.log('ℹ️ No saved audio settings found, using defaults');
+    logNormal('ℹ️ No saved audio settings found, using defaults');
     return {};
   }
 
@@ -113,7 +113,7 @@ class SoundManager {
         SystemSounds: this.categories.SystemSounds.volume
       };
       localStorage.setItem('antgame.audioSettings', JSON.stringify(settings));
-      console.log('💾 Saved audio settings to localStorage:', settings);
+      logNormal('💾 Saved audio settings to localStorage:', settings);
     } catch (error) {
       console.warn('⚠️ Failed to save audio settings to localStorage:', error);
     }
@@ -140,7 +140,7 @@ class SoundManager {
     if (this.bgmCheckInterval) {
       clearInterval(this.bgmCheckInterval);
       this.bgmCheckInterval = null;
-      console.log("🎵 BGM monitoring stopped");
+      logNormal("🎵 BGM monitoring stopped");
     }
   }
 
@@ -165,7 +165,7 @@ class SoundManager {
     
     // Don't interfere while a fade is in progress
     if (this.isFading) {
-      console.log('🎵 BGM Check: Skipping check - fade in progress');
+      logNormal('🎵 BGM Check: Skipping check - fade in progress');
       return;
     }
 
@@ -173,7 +173,7 @@ class SoundManager {
     const currentState = typeof GameState !== 'undefined' ? GameState.getState() : "MENU";
     const expectedBGM = this.stateBGMMap[currentState];
     
-    console.log('🎵 BGM Check:', {
+    logNormal('🎵 BGM Check:', {
       currentState: currentState,
       expectedBGM: expectedBGM,
       currentBGM: this.currentBGM,
@@ -184,7 +184,7 @@ class SoundManager {
     if (expectedBGM === null) {
       // No BGM should be playing in this state
       if (this.currentBGM && this.sounds[this.currentBGM]?.isPlaying()) {
-        console.log(`🎵 Fading out BGM (not needed in ${currentState} state)`);
+        logNormal(`🎵 Fading out BGM (not needed in ${currentState} state)`);
         this.fadeOut(this.currentBGM);
       }
     } else {
@@ -200,14 +200,14 @@ class SoundManager {
       const isCorrectMusicPlaying = expectedSound.isPlaying();
       
       if (!isCorrectMusicPlaying) {
-        console.log(`🎵 Auto-correcting BGM: Starting "${expectedBGM}" for ${currentState} state at volume ${this.bgmVolume}`);
+        logNormal(`🎵 Auto-correcting BGM: Starting "${expectedBGM}" for ${currentState} state at volume ${this.bgmVolume}`);
         this.currentBGM = expectedBGM;
         this.musicCorrect = false;
         this.play(expectedBGM, this.bgmVolume, 1, true);
-        console.log(`🎵 ✅ BGM "${expectedBGM}" is now playing`);
+        logNormal(`🎵 ✅ BGM "${expectedBGM}" is now playing`);
         this.musicCorrect = true;
       } else {
-        console.log(`🎵 ✅ Correct BGM "${expectedBGM}" is already playing`);
+        logNormal(`🎵 ✅ Correct BGM "${expectedBGM}" is already playing`);
       }
     }
   }
@@ -250,13 +250,13 @@ class SoundManager {
       // Check if loadSound is available (p5.js is ready)
       if (typeof loadSound === 'function') {
         this.sounds[name] = loadSound(path);
-        console.log(`🔊 Registered and loaded sound "${name}" in category "${category}" with path "${path}"`);
+        logNormal(`🔊 Registered and loaded sound "${name}" in category "${category}" with path "${path}"`);
       } else {
         // Store for later loading
         console.warn(`⚠️ loadSound not available yet. Sound "${name}" registered but not loaded. Add to soundList for preload.`);
       }
     } else {
-      console.log(`🔊 Registered existing sound "${name}" in category "${category}"`);
+      logNormal(`🔊 Registered existing sound "${name}" in category "${category}"`);
     }
   }
 
@@ -276,7 +276,7 @@ class SoundManager {
     volume = Math.max(0, Math.min(1, volume));
 
     this.categories[category].volume = volume;
-    console.log(`🔊 Set ${category} volume to ${volume}`);
+    logNormal(`🔊 Set ${category} volume to ${volume}`);
 
     // Save settings to localStorage
     this.saveVolumeSettings();
@@ -344,7 +344,7 @@ class SoundManager {
           this.currentBGM = null;
         }
         
-        console.log(`🎵 Fade out complete for "${name}"`);
+        logNormal(`🎵 Fade out complete for "${name}"`);
       } else {
         // Calculate new volume (linear fade)
         const newVolume = startVolume * (1 - progress);
@@ -361,7 +361,7 @@ class SoundManager {
         const category = this.getSoundCategory(name);
         if (category && this.categories[category].sounds[name]) {
           const path = this.categories[category].sounds[name].path;
-          console.log(`🔊 Lazy-loading sound "${name}" from path "${path}"`);
+          logNormal(`🔊 Lazy-loading sound "${name}" from path "${path}"`);
           if (typeof loadSound === 'function') {
             // Get category volume NOW (before async load) to apply when sound is ready
             const categoryVolume = this.categories[category].volume;
@@ -369,7 +369,7 @@ class SoundManager {
             
             // Load with callback to play when ready
             this.sounds[name] = loadSound(path, () => {
-              console.log(`🔊 Sound "${name}" loaded and ready, playing with final volume: ${finalVolume.toFixed(3)} (base: ${volume.toFixed(3)} × category: ${categoryVolume.toFixed(3)})`);
+              logNormal(`🔊 Sound "${name}" loaded and ready, playing with final volume: ${finalVolume.toFixed(3)} (base: ${volume.toFixed(3)} × category: ${categoryVolume.toFixed(3)})`);
               
               // Set volume before playing
               this.sounds[name].setVolume(finalVolume);
@@ -409,7 +409,7 @@ class SoundManager {
         const categoryVolume = this.categories[category].volume;
         // Final volume = base volume × category volume (both 0.0 to 1.0)
         finalVolume = volume * categoryVolume;
-        console.log(`🔊 Playing "${name}" (${category}) - base: ${volume.toFixed(3)}, category: ${categoryVolume.toFixed(3)}, final: ${finalVolume.toFixed(3)}, rate: ${rate}, loop: ${loop}`);
+        logNormal(`🔊 Playing "${name}" (${category}) - base: ${volume.toFixed(3)}, category: ${categoryVolume.toFixed(3)}, final: ${finalVolume.toFixed(3)}, rate: ${rate}, loop: ${loop}`);
       } else {
         // Legacy sound without category - use passed volume directly
         finalVolume = volume;
@@ -458,10 +458,10 @@ class SoundManager {
 
   // Example helper for debug testing
   testSounds() {
-    console.log("Testing sounds...");
+    logNormal("Testing sounds...");
     Object.keys(this.sounds).forEach((name, i) => {
       setTimeout(() => {
-        console.log(`Playing: ${name}`);
+        logNormal(`Playing: ${name}`);
         this.play(name);
       }, i * 1500);
     });

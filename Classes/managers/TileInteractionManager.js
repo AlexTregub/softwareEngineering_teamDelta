@@ -122,7 +122,7 @@ class TileInteractionManager {
     this.addObjectToTile(object, newTileX, newTileY);
     
     if (this.debugEnabled) {
-      console.log(`Moved object from tile (${oldTileX},${oldTileY}) to (${newTileX},${newTileY})`);
+      logNormal(`Moved object from tile (${oldTileX},${oldTileY}) to (${newTileX},${newTileY})`);
     }
   }
 
@@ -182,7 +182,7 @@ class TileInteractionManager {
    */
   handleMouseClick(mouseX, mouseY, button = 'LEFT') {
     if (this.debugEnabled) {
-      console.log(`Mouse click at (${mouseX}, ${mouseY}) with ${button} button`);
+      logNormal(`Mouse click at (${mouseX}, ${mouseY}) with ${button} button`);
     }
 
     // 1. Check UI elements first (highest priority)

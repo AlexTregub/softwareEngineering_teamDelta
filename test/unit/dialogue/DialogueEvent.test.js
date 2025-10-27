@@ -17,6 +17,9 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 
+// Load Event classes (includes DialogueEvent)
+const { GameEvent, DialogueEvent: DialogueEventClass } = require('../../../Classes/events/Event.js');
+
 describe('DialogueEvent', function() {
   let sandbox;
   let mockEventManager;
@@ -90,9 +93,15 @@ describe('DialogueEvent', function() {
       window.draggablePanelManager = mockDraggablePanelManager;
     }
 
-    // DialogueEvent will be defined after tests are reviewed
-    if (typeof global.DialogueEvent !== 'undefined') {
-      DialogueEvent = global.DialogueEvent;
+    // Use the loaded DialogueEvent class
+    DialogueEvent = DialogueEventClass;
+    
+    // Also set it globally for compatibility
+    global.DialogueEvent = DialogueEventClass;
+    global.GameEvent = GameEvent;
+    if (typeof window !== 'undefined') {
+      window.DialogueEvent = DialogueEventClass;
+      window.GameEvent = GameEvent;
     }
   });
 
@@ -100,15 +109,18 @@ describe('DialogueEvent', function() {
     sandbox.restore();
     delete global.eventManager;
     delete global.draggablePanelManager;
+    delete global.DialogueEvent;
+    delete global.GameEvent;
     if (typeof window !== 'undefined') {
       delete window.eventManager;
       delete window.draggablePanelManager;
+      delete window.DialogueEvent;
+      delete window.GameEvent;
     }
   });
 
   describe('Constructor', function() {
     it('should create dialogue event with required properties', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const dialogue = new DialogueEvent({
         id: 'test_dialogue',
@@ -129,7 +141,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should default to "Dialogue" speaker if not provided', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const dialogue = new DialogueEvent({
         id: 'no_speaker',
@@ -142,7 +153,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should create default "Continue" choice if no choices provided', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const dialogue = new DialogueEvent({
         id: 'auto_continue',
@@ -157,7 +167,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should store portrait image path if provided', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const dialogue = new DialogueEvent({
         id: 'with_portrait',
@@ -172,7 +181,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should validate message is not empty', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       expect(() => {
         new DialogueEvent({
@@ -186,7 +194,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should store optional metadata', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const dialogue = new DialogueEvent({
         id: 'with_metadata',
@@ -208,7 +215,6 @@ describe('DialogueEvent', function() {
 
   describe('Panel Creation and Display', function() {
     it('should create dialogue panel when triggered', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -235,7 +241,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should show panel after creation', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -258,7 +263,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should configure panel as non-draggable', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -279,7 +283,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should configure panel as non-closeable', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -300,7 +303,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should position panel at bottom-center of screen', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -328,7 +330,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should set panel width based on content', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -352,7 +353,6 @@ describe('DialogueEvent', function() {
 
   describe('Choice Button Generation', function() {
     it('should create buttons for each choice', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -383,7 +383,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should use horizontal layout for buttons', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -407,7 +406,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should enable auto-sizing for button area', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -431,7 +429,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should attach onClick handlers to choice buttons', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -457,7 +454,6 @@ describe('DialogueEvent', function() {
 
   describe('Choice Selection and Callbacks', function() {
     it('should execute choice callback when selected', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -487,7 +483,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should trigger next event when choice has nextEventId', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -517,7 +512,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should set event flag when choice is selected', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -547,7 +541,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should hide panel after choice selection', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -574,7 +567,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should complete dialogue event after choice selection', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -601,7 +593,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should pass choice data to callback', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -640,7 +631,6 @@ describe('DialogueEvent', function() {
 
   describe('Content Rendering with contentSizeCallback', function() {
     it('should set contentSizeCallback for custom dialogue rendering', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -662,7 +652,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should render dialogue text with word wrapping', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -690,7 +679,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should return content size from contentSizeCallback', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -718,7 +706,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should use push/pop for rendering isolation', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -744,7 +731,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should set text properties for dialogue rendering', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -773,7 +759,6 @@ describe('DialogueEvent', function() {
 
   describe('Portrait Rendering (Future Extension)', function() {
     it('should render portrait if provided', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -805,7 +790,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should reserve space for portrait in layout', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -841,7 +825,6 @@ describe('DialogueEvent', function() {
 
   describe('Auto-Continue Behavior', function() {
     it('should auto-continue after delay if configured', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -876,7 +859,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should not auto-continue if user has choices', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -912,7 +894,6 @@ describe('DialogueEvent', function() {
 
   describe('Panel Reuse', function() {
     it('should reuse existing dialogue panel if available', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -943,7 +924,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should update panel content for new dialogue', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -982,19 +962,16 @@ describe('DialogueEvent', function() {
 
   describe('Integration with Event System', function() {
     it('should inherit from Event base class', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
-      if (typeof Event === 'undefined') return this.skip();
       
       const dialogue = new DialogueEvent({
         id: 'inheritance_test',
         content: { message: 'Test' }
       });
 
-      expect(dialogue).to.be.instanceOf(Event);
+      expect(dialogue).to.be.instanceOf(GameEvent);
     });
 
     it('should support event priority', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const dialogue = new DialogueEvent({
         id: 'priority_test',
@@ -1006,7 +983,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should support onTrigger callback', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -1029,7 +1005,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should support onComplete callback', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const mockPanel = {
         show: sandbox.stub(),
@@ -1061,7 +1036,6 @@ describe('DialogueEvent', function() {
 
   describe('JSON Configuration Loading', function() {
     it('should load from JSON event definition', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       const jsonConfig = {
         id: 'json_dialogue',
@@ -1088,7 +1062,6 @@ describe('DialogueEvent', function() {
 
   describe('Error Handling', function() {
     it('should handle missing eventManager gracefully', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       delete global.eventManager;
       if (typeof window !== 'undefined') {
@@ -1120,7 +1093,6 @@ describe('DialogueEvent', function() {
     });
 
     it('should handle missing draggablePanelManager gracefully', function() {
-      if (typeof DialogueEvent === 'undefined') return this.skip();
       
       delete global.draggablePanelManager;
       if (typeof window !== 'undefined') {

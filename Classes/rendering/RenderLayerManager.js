@@ -957,7 +957,7 @@ class RenderLayerManager {
    */
   forceAllLayersVisible() {
     this.enableAllLayers();
-    console.log('✅ All render layers forced visible:', this.getLayerStates());
+    logNormal('✅ All render layers forced visible:', this.getLayerStates());
     return this.getLayerStates();
   }
 
@@ -1061,7 +1061,7 @@ class RenderLayerManager {
             if (handlerName && typeof interactive[handlerName] === 'function') {
               const consumed = interactive[handlerName](pointer) === true;
               if (consumed) {
-                console.log(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
+                logNormal(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
                 // If interactive wants pointer capture, it should set capture via return value or property
                 if (interactive.capturePointer) {
                   this._pointerCapture = { owner: interactive, pointerId: pointer.pointerId };
@@ -1181,7 +1181,7 @@ if (typeof window !== 'undefined') {
   
   // Add global console command to check layer states
   window.checkLayerStates = function() {
-    console.log('🎨 Current layer states:', RenderManager.getLayerStates());
+    logNormal('🎨 Current layer states:', RenderManager.getLayerStates());
     return RenderManager.getLayerStates();
   };
   

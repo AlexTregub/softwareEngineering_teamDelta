@@ -606,7 +606,7 @@ class FileMenuBar {
   _handleNew() {
     if (this.levelEditor) {
       // TODO: Implement new level confirmation dialog
-      console.log('New level');
+      logNormal('New level');
     }
   }
   
@@ -625,7 +625,7 @@ class FileMenuBar {
   _handleExport() {
     if (this.levelEditor) {
       // TODO: Implement export dialog
-      console.log('Export level');
+      logNormal('Export level');
     }
   }
   

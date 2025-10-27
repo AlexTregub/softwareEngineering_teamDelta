@@ -179,7 +179,7 @@ class LevelEditorPanels {
       'level-editor-properties'
     );
 
-    console.log('✅ Level Editor panels initialized and added to DraggablePanelManager');
+    logNormal('✅ Level Editor panels initialized and added to DraggablePanelManager');
     return true;
   }
 

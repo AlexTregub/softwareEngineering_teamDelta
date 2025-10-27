@@ -41,6 +41,15 @@ class EventEditorPanel {
       oneTime: true,
       condition: {}
     };
+    
+    // Drag-to-place state
+    this.dragState = {
+      isDragging: false,
+      eventId: null,
+      cursorX: 0,
+      cursorY: 0,
+      triggerRadius: 64 // Default trigger radius in pixels
+    };
   }
   
   /**
@@ -53,7 +62,7 @@ class EventEditorPanel {
     }
     
     this.eventManager = EventManager.getInstance();
-    console.log('✅ EventEditorPanel initialized');
+    logNormal('✅ EventEditorPanel initialized');
     return true;
   }
   
@@ -184,6 +193,21 @@ class EventEditorPanel {
       textSize(9);
       fill(180);
       text(`(${event.type})`, x + this.listPadding + 5, itemY + 22);
+      
+      // Drag button (🚩 icon) on the right side
+      const dragBtnX = x + width - 55;
+      const dragBtnY = itemY + 5;
+      const dragBtnSize = 20;
+      
+      // Drag button background
+      fill(70, 120, 180, 200);
+      rect(dragBtnX, dragBtnY, dragBtnSize, dragBtnSize, 3);
+      
+      // Drag icon (flag emoji or simple triangle)
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(14);
+      text('🚩', dragBtnX + dragBtnSize / 2, dragBtnY + dragBtnSize / 2);
       
       // Priority badge
       fill(200, 150, 50);
@@ -397,8 +421,22 @@ class EventEditorPanel {
         const event = events[i];
         
         if (relY >= itemY && relY <= itemY + this.listItemHeight) {
+          // Check if clicking drag button
+          const dragBtnX = width - 55;
+          const dragBtnY = itemY + 5;
+          const dragBtnSize = 20;
+          
+          if (relX >= dragBtnX && relX <= dragBtnX + dragBtnSize &&
+              relY >= dragBtnY && relY <= dragBtnY + dragBtnSize) {
+            // Start drag operation
+            this.startDragPlacement(event.id);
+            logNormal(`Starting drag for event: ${event.id}`);
+            return true;
+          }
+          
+          // Otherwise, just select the event
           this.selectedEventId = event.id;
-          console.log('Selected event:', event.id);
+          logNormal('Selected event:', event.id);
           return true;
         }
         
@@ -504,7 +542,7 @@ class EventEditorPanel {
     const success = this.eventManager.registerEvent(eventConfig);
     
     if (success) {
-      console.log('Event saved:', eventConfig.id);
+      logNormal('Event saved:', eventConfig.id);
       this.editMode = null;
       this.selectedEventId = eventConfig.id;
     } else {
@@ -521,12 +559,12 @@ class EventEditorPanel {
       // Use EventManager's exportToJSON method
       const json = this.eventManager.exportToJSON(false);
       
-      console.log('Event Configuration:\n', json);
+      logNormal('Event Configuration:\n', json);
       
       // Copy to clipboard if available
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
         navigator.clipboard.writeText(json).then(() => {
-          console.log('✅ Configuration copied to clipboard');
+          logNormal('✅ Configuration copied to clipboard');
         }).catch(err => {
           console.error('Failed to copy to clipboard:', err);
         });
@@ -557,7 +595,7 @@ class EventEditorPanel {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      console.log('✅ Downloaded:', filename);
+      logNormal('✅ Downloaded:', filename);
     } catch (error) {
       console.error('Download failed:', error);
     }
@@ -584,7 +622,7 @@ class EventEditorPanel {
           const success = this.eventManager.loadFromJSON(json);
           
           if (success) {
-            console.log('✅ Events imported successfully');
+            logNormal('✅ Events imported successfully');
             this.selectedEventId = null;
             this.editMode = null;
             return { type: 'event_imported', success: true };
@@ -630,6 +668,170 @@ class EventEditorPanel {
     if (this.editMode) return; // No scrolling in edit mode
     
     this.scrollOffset = Math.max(0, Math.min(this.maxScrollOffset, this.scrollOffset + delta * 20));
+  }
+  
+  // ========================================
+  // DRAG-TO-PLACE FUNCTIONALITY
+  // ========================================
+  
+  /**
+   * Start drag operation for placing an event on the map
+   * @param {string} eventId - Event ID to place
+   * @returns {boolean} - True if drag started successfully
+   */
+  startDragPlacement(eventId) {
+    // Validate event ID
+    if (!eventId || typeof eventId !== 'string' || eventId.trim() === '') {
+      return false;
+    }
+    
+    // Prevent multiple simultaneous drags
+    if (this.dragState.isDragging) {
+      return false;
+    }
+    
+    // Initialize drag state
+    this.dragState.isDragging = true;
+    this.dragState.eventId = eventId;
+    this.dragState.cursorX = 0;
+    this.dragState.cursorY = 0;
+    
+    logNormal(`EventEditorPanel: Started drag for event '${eventId}'`);
+    return true;
+  }
+  
+  /**
+   * Update cursor position during drag
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position
+   */
+  updateDragPosition(mouseX, mouseY) {
+    if (!this.dragState.isDragging) {
+      return;
+    }
+    
+    this.dragState.cursorX = mouseX;
+    this.dragState.cursorY = mouseY;
+  }
+  
+  /**
+   * Complete drag operation and create spatial trigger
+   * @param {number} worldX - World X coordinate for trigger placement
+   * @param {number} worldY - World Y coordinate for trigger placement
+   * @returns {Object} - Result object {success, eventId, worldX, worldY}
+   */
+  completeDrag(worldX, worldY) {
+    if (!this.dragState.isDragging) {
+      return { success: false, error: 'Not currently dragging' };
+    }
+    
+    const eventId = this.dragState.eventId;
+    const radius = this.dragState.triggerRadius;
+    
+    // Create unique trigger ID
+    const triggerId = `${eventId}_spatial_${Date.now()}`;
+    
+    // Create spatial trigger configuration
+    const triggerConfig = {
+      id: triggerId,
+      eventId: eventId,
+      type: 'spatial',
+      oneTime: true,
+      condition: {
+        x: worldX,
+        y: worldY,
+        radius: radius
+      }
+    };
+    
+    // Register trigger with EventManager
+    const success = this.eventManager.registerTrigger(triggerConfig);
+    
+    if (success) {
+      logNormal(`EventEditorPanel: Placed trigger for '${eventId}' at (${worldX}, ${worldY}) with radius ${radius}`);
+      
+      // Reset drag state
+      this._resetDragState();
+      
+      return {
+        success: true,
+        eventId: eventId,
+        worldX: worldX,
+        worldY: worldY,
+        triggerId: triggerId
+      };
+    } else {
+      // Registration failed, but still reset drag state
+      this._resetDragState();
+      
+      return {
+        success: false,
+        error: 'Failed to register trigger with EventManager'
+      };
+    }
+  }
+  
+  /**
+   * Cancel drag operation without creating trigger
+   */
+  cancelDrag() {
+    if (this.dragState.isDragging) {
+      logNormal(`EventEditorPanel: Cancelled drag for '${this.dragState.eventId}'`);
+    }
+    this._resetDragState();
+  }
+  
+  /**
+   * Check if currently dragging an event
+   * @returns {boolean} - True if dragging
+   */
+  isDragging() {
+    return this.dragState.isDragging === true;
+  }
+  
+  /**
+   * Get event ID being dragged
+   * @returns {string|null} - Event ID or null if not dragging
+   */
+  getDragEventId() {
+    return this.dragState.isDragging ? this.dragState.eventId : null;
+  }
+  
+  /**
+   * Get current cursor position during drag
+   * @returns {{x: number, y: number}|null} - Cursor position or null if not dragging
+   */
+  getDragCursorPosition() {
+    if (!this.dragState.isDragging) {
+      return null;
+    }
+    
+    return {
+      x: this.dragState.cursorX,
+      y: this.dragState.cursorY
+    };
+  }
+  
+  /**
+   * Set trigger radius for next placement
+   * @param {number} radius - Radius in pixels (must be > 0)
+   */
+  setTriggerRadius(radius) {
+    if (typeof radius === 'number' && radius > 0) {
+      this.dragState.triggerRadius = radius;
+    }
+  }
+  
+  /**
+   * Reset drag state to defaults (private)
+   * @private
+   */
+  _resetDragState() {
+    this.dragState.isDragging = false;
+    this.dragState.eventId = null;
+    this.dragState.cursorX = 0;
+    this.dragState.cursorY = 0;
+    this.dragState.triggerRadius = 64; // Reset to default
   }
 }
 

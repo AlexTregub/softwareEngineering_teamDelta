@@ -74,7 +74,7 @@ function initializePresentationPanels() {
       contentFunction: renderKanbanTransitionContent
     });
 
-    console.log('✅ Presentation panels created successfully');
+    logNormal('✅ Presentation panels created successfully');
     return true;
   } catch (error) {
     console.error('❌ Error initializing presentation panels:', error);
@@ -192,8 +192,8 @@ function transitionToPresentation() {
     // Transition to KANBAN state
     GameState.goToKanban();
     
-    console.log('🎯 Transitioned to Presentation (KANBAN) state');
-    console.log('⏰ Started 5-minute countdown timer');
+    logNormal('🎯 Transitioned to Presentation (KANBAN) state');
+    logNormal('⏰ Started 5-minute countdown timer');
   } else {
     console.error('❌ GameState not available for transition');
   }
@@ -211,7 +211,7 @@ function transitionToPlaying() {
     // Transition to PLAYING state
     GameState.setState('PLAYING');
     
-    console.log('🎯 Transitioned back to PLAYING state');
+    logNormal('🎯 Transitioned back to PLAYING state');
   } else {
     console.error('❌ GameState not available for transition');
   }
@@ -242,7 +242,7 @@ function updatePresentationPanels(currentState) {
     
     // Auto-transition when timer expires
     if (presentationTimer <= 0) {
-      console.log('⏰ Presentation timer expired, returning to menu');
+      logNormal('⏰ Presentation timer expired, returning to menu');
       if (typeof GameState !== 'undefined') {
         GameState.goToMenu();
       }
@@ -425,7 +425,7 @@ function renderSprintImageInMenu() {
  */
 function toggleSprintImageInMenu() {
   showSprintImageInMenu = !showSprintImageInMenu;
-  console.log(`Sprint 5 image in menu: ${showSprintImageInMenu ? 'ON' : 'OFF'}`);
+  logNormal(`Sprint 5 image in menu: ${showSprintImageInMenu ? 'ON' : 'OFF'}`);
 }
 
 /**

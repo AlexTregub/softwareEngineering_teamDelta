@@ -50,7 +50,7 @@ class EventDebugManager {
   static resetInstance() {
     EventDebugManager._instance = null;
     
-    console.log('EventDebugManager initialized');
+    logNormal('EventDebugManager initialized');
   }
   
   // ============================================================
@@ -313,7 +313,7 @@ class EventDebugManager {
     const levelId = this.getCurrentLevelId() || 'manual';
     this.onEventTriggered(eventId, levelId);
     
-    console.log(`Debug: Manually triggered event ${eventId}`);
+    logNormal(`Debug: Manually triggered event ${eventId}`);
     return true;
   }
   
@@ -425,13 +425,13 @@ class EventDebugManager {
   listAllEvents() {
     const events = this.getAllEventCommands();
     if (events.length === 0) {
-      console.log('No events found');
+      logNormal('No events found');
       return;
     }
     
-    console.log('All Events:');
+    logNormal('All Events:');
     events.forEach(e => {
-      console.log(`  ${e.id} (${e.type}) - ${e.command}`);
+      logNormal(`  ${e.id} (${e.type}) - ${e.command}`);
     });
   }
   

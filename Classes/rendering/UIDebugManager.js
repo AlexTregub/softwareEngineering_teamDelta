@@ -94,7 +94,7 @@ class UIDebugManager {
     if (globalObj && typeof globalObj.logVerbose === 'function') {
       globalObj.logVerbose(`UIDebugManager: Registered element '${elementId}'`);
     } else {
-      console.log(`UIDebugManager: Registered element '${elementId}'`);
+      logNormal(`UIDebugManager: Registered element '${elementId}'`);
     }
     return true;
   }
@@ -106,7 +106,7 @@ class UIDebugManager {
   unregisterElement(elementId) {
     if (this.registeredElements[elementId]) {
       delete this.registeredElements[elementId];
-      console.log(`UIDebugManager: Unregistered element '${elementId}'`);
+      logNormal(`UIDebugManager: Unregistered element '${elementId}'`);
       return true;
     }
     return false;
@@ -163,7 +163,7 @@ class UIDebugManager {
    */
   toggle() {
     this.isActive = !this.isActive;
-    console.log(`UIDebugManager: Debug mode ${this.isActive ? 'ENABLED' : 'DISABLED'}`);
+    logNormal(`UIDebugManager: Debug mode ${this.isActive ? 'ENABLED' : 'DISABLED'}`);
   }
 
   /**
@@ -171,7 +171,7 @@ class UIDebugManager {
    */
   enable() {
     this.isActive = true;
-    console.log('UIDebugManager: Debug mode ENABLED');
+    logNormal('UIDebugManager: Debug mode ENABLED');
   }
 
   /**
@@ -180,7 +180,7 @@ class UIDebugManager {
   disable() {
     this.enabled = false;
     this.stopDragging();
-    console.log('UIDebugManager: Debug mode DISABLED');
+    logNormal('UIDebugManager: Debug mode DISABLED');
   }
 
   /**
@@ -431,7 +431,7 @@ class UIDebugManager {
     // Toggle grid snap
     if (event.key === 'g' || event.key === 'G') {
       this.config.snapToGrid = !this.config.snapToGrid;
-      console.log(`UIDebugManager: Grid snap ${this.config.snapToGrid ? 'ENABLED' : 'DISABLED'}`);
+      logNormal(`UIDebugManager: Grid snap ${this.config.snapToGrid ? 'ENABLED' : 'DISABLED'}`);
       event.preventDefault();
     }
   }
@@ -452,7 +452,7 @@ class UIDebugManager {
       elementStartY: element.bounds.y
     };
 
-    console.log(`UIDebugManager: Started dragging '${elementId}'`);
+    logNormal(`UIDebugManager: Started dragging '${elementId}'`);
   }
 
   /**
@@ -532,7 +532,7 @@ class UIDebugManager {
    */
   stopDragging() {
     if (this.dragState.active) {
-      console.log(`UIDebugManager: Stopped dragging '${this.dragState.elementId}'`);
+      logNormal(`UIDebugManager: Stopped dragging '${this.dragState.elementId}'`);
     }
     
     this.dragState = {
@@ -642,7 +642,7 @@ class UIDebugManager {
             element.positionCallback(positionData.x, positionData.y);
           }
           
-          console.log(`UIDebugManager: Loaded saved position for '${element.id}': (${positionData.x}, ${positionData.y})`);
+          logNormal(`UIDebugManager: Loaded saved position for '${element.id}': (${positionData.x}, ${positionData.y})`);
         }
         return positionData;
       }

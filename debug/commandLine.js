@@ -110,13 +110,13 @@ function gameLog(...args) {
  */
 function handleUIDebugCommand(args) {
   if (typeof g_uiDebugManager === 'undefined' || !g_uiDebugManager) {
-    console.log("❌ UI Debug Manager not available");
+    logNormal("❌ UI Debug Manager not available");
     return;
   }
   
   if (args.length === 0) {
-    console.log(`🎯 UI Debug Manager Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
-    console.log(`📊 Registered Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
+    logNormal(`🎯 UI Debug Manager Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
+    logNormal(`📊 Registered Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
     return;
   }
   
@@ -124,27 +124,27 @@ function handleUIDebugCommand(args) {
   switch (action) {
     case 'toggle':
       g_uiDebugManager.toggle();
-      console.log(`🎯 UI Debug Manager: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
+      logNormal(`🎯 UI Debug Manager: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
       break;
       
     case 'enable':
     case 'on':
       g_uiDebugManager.enable();
-      console.log("🎯 UI Debug Manager ENABLED");
+      logNormal("🎯 UI Debug Manager ENABLED");
       break;
       
     case 'disable':
     case 'off':
       g_uiDebugManager.disable();
-      console.log("🎯 UI Debug Manager DISABLED");
+      logNormal("🎯 UI Debug Manager DISABLED");
       break;
       
     case 'reset':
       if (g_uiDebugManager.resetAllPositions) {
         g_uiDebugManager.resetAllPositions();
-        console.log("🔄 All UI elements reset to original positions");
+        logNormal("🔄 All UI elements reset to original positions");
       } else {
-        console.log("❌ Reset function not available");
+        logNormal("❌ Reset function not available");
       }
       break;
       
@@ -152,32 +152,32 @@ function handleUIDebugCommand(args) {
       const elements = g_uiDebugManager.registeredElements;
       const elementCount = Object.keys(elements).length;
       if (elementCount === 0) {
-        console.log("📝 No UI elements registered yet");
+        logNormal("📝 No UI elements registered yet");
       } else {
-        console.log(`📝 Registered UI Elements (${elementCount}):`);
+        logNormal(`📝 Registered UI Elements (${elementCount}):`);
         Object.entries(elements).forEach(([id, element], index) => {
           const status = element.isDraggable ? '🖱️' : '🔒';
           const pos = `(${element.bounds.x}, ${element.bounds.y})`;
-          console.log(`   ${index + 1}. ${status} ${element.label || id} - ${pos}`);
+          logNormal(`   ${index + 1}. ${status} ${element.label || id} - ${pos}`);
         });
       }
       break;
       
     case 'info':
-      console.log("🎯 UI Debug Manager Information:");
-      console.log(`   Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
-      console.log(`   Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
-      console.log(`   Debug Mode: Press ~ or \` to toggle`);
-      console.log(`   Drag: Click yellow handles when debug mode is ON`);
+      logNormal("🎯 UI Debug Manager Information:");
+      logNormal(`   Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
+      logNormal(`   Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
+      logNormal(`   Debug Mode: Press ~ or \` to toggle`);
+      logNormal(`   Drag: Click yellow handles when debug mode is ON`);
       break;
       
     default:
-      console.log("❌ Usage: ui <toggle|enable|disable|reset|list|info>");
-      console.log("Examples:");
-      console.log("  ui toggle    - Toggle debug mode on/off");
-      console.log("  ui enable    - Enable UI debug mode");
-      console.log("  ui list      - List all registered UI elements");
-      console.log("  ui reset     - Reset all positions to original");
+      logNormal("❌ Usage: ui <toggle|enable|disable|reset|list|info>");
+      logNormal("Examples:");
+      logNormal("  ui toggle    - Toggle debug mode on/off");
+      logNormal("  ui enable    - Enable UI debug mode");
+      logNormal("  ui list      - List all registered UI elements");
+      logNormal("  ui reset     - Reset all positions to original");
   }
 }
 
@@ -280,7 +280,7 @@ function executeCommand(command) {
     case 'showeventlist': handleShowEventList(); break;
     case 'showlevelinfo': handleShowLevelInfo(); break;
     case 'listevents': handleListEvents(); break;
-    default: console.log(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
+    default: logNormal(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
   }
 }
 
@@ -290,37 +290,37 @@ function executeCommand(command) {
  * Prints available commands and usage examples to the console output.
  */
 function showCommandHelp() {
-  console.log("💻 Available Commands:");
-  console.log("  help - Show this help message");
-  console.log("  spawn <count> [type] [faction] - Spawn ants (e.g., 'spawn 5 ant player')");
-  console.log("  clear - Clear console output");
-  console.log("  debug <on|off> - Toggle debug logging");
-  console.log("  select <all|none|index> - Select entities");
-  console.log("  kill <all|selected|index> - Remove entities");
-  console.log("  teleport <x> <y> - Move selected ant to coordinates");
-  console.log("  info - Show game state information");
-  console.log("  perf [toggle|stats] - Control performance monitor");
-  console.log("  entity-perf [report|reset] - Entity performance analysis");
-  console.log("  ui <toggle|enable|disable|reset|list> - Control UI Debug Manager");
-  console.log("  damage <amount> - Damage selected ants by amount");
-  console.log("  heal <amount> - Heal selected ants by amount");
-  console.log("  🚂 train [on|off|toggle] - TRAIN MODE! Panels follow each other like train cars!");
-  console.log("");
-  console.log("🎮 Event Debug Commands:");
-  console.log("  eventDebug <on|off|toggle> - Control event debug system");
-  console.log("  triggerEvent <eventId> - Manually trigger an event");
-  console.log("  showEventFlags - Toggle event flag overlay");
-  console.log("  showEventList - Toggle event list panel");
-  console.log("  showLevelInfo - Toggle level event info panel");
-  console.log("  listEvents - List all events with trigger commands");
-  console.log("Examples:");
-  console.log("  spawn 10 ant blue");
-  console.log("  teleport 100 200");
-  console.log("  select all");
-  console.log("  perf toggle");
-  console.log("  entity-perf report");
-  console.log("  eventDebug on");
-  console.log("  triggerEvent wave_1_spawn");
+  logNormal("💻 Available Commands:");
+  logNormal("  help - Show this help message");
+  logNormal("  spawn <count> [type] [faction] - Spawn ants (e.g., 'spawn 5 ant player')");
+  logNormal("  clear - Clear console output");
+  logNormal("  debug <on|off> - Toggle debug logging");
+  logNormal("  select <all|none|index> - Select entities");
+  logNormal("  kill <all|selected|index> - Remove entities");
+  logNormal("  teleport <x> <y> - Move selected ant to coordinates");
+  logNormal("  info - Show game state information");
+  logNormal("  perf [toggle|stats] - Control performance monitor");
+  logNormal("  entity-perf [report|reset] - Entity performance analysis");
+  logNormal("  ui <toggle|enable|disable|reset|list> - Control UI Debug Manager");
+  logNormal("  damage <amount> - Damage selected ants by amount");
+  logNormal("  heal <amount> - Heal selected ants by amount");
+  logNormal("  🚂 train [on|off|toggle] - TRAIN MODE! Panels follow each other like train cars!");
+  logNormal("");
+  logNormal("🎮 Event Debug Commands:");
+  logNormal("  eventDebug <on|off|toggle> - Control event debug system");
+  logNormal("  triggerEvent <eventId> - Manually trigger an event");
+  logNormal("  showEventFlags - Toggle event flag overlay");
+  logNormal("  showEventList - Toggle event list panel");
+  logNormal("  showLevelInfo - Toggle level event info panel");
+  logNormal("  listEvents - List all events with trigger commands");
+  logNormal("Examples:");
+  logNormal("  spawn 10 ant blue");
+  logNormal("  teleport 100 200");
+  logNormal("  select all");
+  logNormal("  perf toggle");
+  logNormal("  entity-perf report");
+  logNormal("  eventDebug on");
+  logNormal("  triggerEvent wave_1_spawn");
 }
 
 /**
@@ -335,8 +335,8 @@ function handleSpawnCommand(args) {
   const count = Number.isNaN(parsed) ? 1 : parsed;
   const type = args[1] || 'ant';
   const faction = args[2] || 'neutral';
-  if (count < 1 || count > 5000) { console.log("❌ Spawn count must be between 1 and 5000"); return; }
-  verboseLog(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
+  if (count < 1 || count > 5000) { logNormal("❌ Spawn count must be between 1 and 5000"); return; }
+  logVerbose(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
   const startingCount = antIndex;
   for (let i = 0; i < count; i++) {
     try {
@@ -355,11 +355,11 @@ function handleSpawnCommand(args) {
       // Store ant directly
       ants.push(newAnt);
       
-      if (!newAnt) { console.log(`❌ Failed to create ant ${i + 1}`); continue; }
-    } catch (error) { console.log(`❌ Error creating ant ${i + 1}: ${error.message}`); }
+      if (!newAnt) { logNormal(`❌ Failed to create ant ${i + 1}`); continue; }
+    } catch (error) { logNormal(`❌ Error creating ant ${i + 1}: ${error.message}`); }
   }
   const actualSpawned = ants.length - startingCount;
-  verboseLog(`✅ Spawned ${actualSpawned} ants. Total ants: ${ants.length}`);
+  logVerbose(`✅ Spawned ${actualSpawned} ants. Total ants: ${ants.length}`);
   if (g_selectionBoxController) g_selectionBoxController.entities = ants;
 }
 
@@ -370,16 +370,16 @@ function handleSpawnCommand(args) {
  * @param {string[]} args - Command arguments, expects 'on' or 'off'.
  */
 function handleDebugCommand(args) {
-  if (args.length === 0) { console.log(`🛠️  Debug logging is currently: ${devConsoleEnabled ? 'ON' : 'OFF'}`); return; }
+  if (args.length === 0) { logNormal(`🛠️  Debug logging is currently: ${devConsoleEnabled ? 'ON' : 'OFF'}`); return; }
   switch (args[0].toLowerCase()) {
     case 'on':
     case 'true':
-      devConsoleEnabled = true; console.log("🛠️  Debug logging enabled"); break;
+      devConsoleEnabled = true; logNormal("🛠️  Debug logging enabled"); break;
     case 'off':
     case 'false':
-      devConsoleEnabled = false; console.log("🛠️  Debug logging disabled"); break;
+      devConsoleEnabled = false; logNormal("🛠️  Debug logging disabled"); break;
     default:
-      console.log("❌ Use 'debug on' or 'debug off'");
+      logNormal("❌ Use 'debug on' or 'debug off'");
   }
 }
 
@@ -391,26 +391,26 @@ function handleDebugCommand(args) {
  * @param {string[]} args
  */
 function handleSelectCommand(args){
-  if(!args.length){ console.log("❌ Specify 'all','none', or an ant index"); return; }
+  if(!args.length){ logNormal("❌ Specify 'all','none', or an ant index"); return; }
   const target = args[0].toLowerCase();
   switch(target){
     case 'all': {
       let count = 0;
       for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a){ a.isSelected = true; count++; } }
-      console.log(`✅ Selected ${count} ants`);
+      logNormal(`✅ Selected ${count} ants`);
       break;
     }
     case 'none': {
       for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a) a.isSelected = false; }
-      selectedAnt = null; console.log("✅ Deselected all ants");
+      selectedAnt = null; logNormal("✅ Deselected all ants");
       break;
     }
     default: {
       const index = Number.parseInt(target, 10);
-      if(!Number.isInteger(index) || index < 0 || index >= ants.length || !ants[index]) { console.log(`❌ Invalid ant index: ${target}`); return; }
+      if(!Number.isInteger(index) || index < 0 || index >= ants.length || !ants[index]) { logNormal(`❌ Invalid ant index: ${target}`); return; }
       for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a) a.isSelected = false; }
       const a = ants[index]?.antObject ?? ants[index];
-      if(a){ a.isSelected = true; selectedAnt = a; console.log(`✅ Selected ant ${index}`); }
+      if(a){ a.isSelected = true; selectedAnt = a; logNormal(`✅ Selected ant ${index}`); }
     }
   }
 }
@@ -423,13 +423,13 @@ function handleSelectCommand(args){
  * @param {string[]} args
  */
 function handleKillCommand(args) {
-  if (!args.length) { console.log("❌ Specify 'all', 'selected', or an ant index"); return; }
+  if (!args.length) { logNormal("❌ Specify 'all', 'selected', or an ant index"); return; }
   const target = args[0].toLowerCase();
   switch (target) {
     case 'all': {
       const count = antIndex;
       ants = []; antIndex = 0; selectedAnt = null;
-      console.log(`💀 Removed all ${count} ants`);
+      logNormal(`💀 Removed all ${count} ants`);
       break;
     }
     case 'selected': {
@@ -439,16 +439,16 @@ function handleKillCommand(args) {
         if (antObj && antObj.isSelected) { ants.splice(i, 1); count++; }
       }
       antIndex = ants.length; selectedAnt = null;
-      console.log(`💀 Removed ${count} selected ants`);
+      logNormal(`💀 Removed ${count} selected ants`);
       break;
     }
     default: {
       const index = Number.parseInt(target, 10);
       if (!Number.isInteger(index) || index < 0 || index >= ants.length || !ants[index]) {
-        console.log(`❌ Invalid ant index: ${target}`); return;
+        logNormal(`❌ Invalid ant index: ${target}`); return;
       }
       ants.splice(index, 1); antIndex = ants.length; selectedAnt = null;
-      console.log(`💀 Removed ant ${index}`);
+      logNormal(`💀 Removed ant ${index}`);
     }
   }
 }
@@ -461,11 +461,11 @@ function handleKillCommand(args) {
  * @param {string[]} args
  */
 function handleTeleportCommand(args) {
-  if (args.length < 2) { console.log("❌ Usage: teleport <x> <y>"); return; }
+  if (args.length < 2) { logNormal("❌ Usage: teleport <x> <y>"); return; }
   const x = parseInt(args[0], 10); const y = parseInt(args[1], 10);
-  if (isNaN(x) || isNaN(y)) { console.log("❌ Coordinates must be numbers"); return; }
-  if (!selectedAnt) { console.log("❌ No ant selected. Use 'select <index>' first."); return; }
-  selectedAnt.setPosition(x, y); console.log(`🚀 Teleported selected ant to (${x}, ${y})`);
+  if (isNaN(x) || isNaN(y)) { logNormal("❌ Coordinates must be numbers"); return; }
+  if (!selectedAnt) { logNormal("❌ No ant selected. Use 'select <index>' first."); return; }
+  selectedAnt.setPosition(x, y); logNormal(`🚀 Teleported selected ant to (${x}, ${y})`);
 }
 
 /**
@@ -474,14 +474,14 @@ function handleTeleportCommand(args) {
  * Prints summary information about the current game state.
  */
 function showGameInfo() {
-  console.log("🎮 Game State Information:");
-  console.log(`  Total Ants: ${antIndex}`);
-  console.log(`  Canvas Size: ${width} x ${height}`);
-  console.log(`  Dev Console: ${devConsoleEnabled ? 'ON' : 'OFF'}`);
-  console.log(`  Selected Ant: ${selectedAnt ? 'Yes' : 'None'}`);
+  logNormal("🎮 Game State Information:");
+  logNormal(`  Total Ants: ${antIndex}`);
+  logNormal(`  Canvas Size: ${width} x ${height}`);
+  logNormal(`  Dev Console: ${devConsoleEnabled ? 'ON' : 'OFF'}`);
+  logNormal(`  Selected Ant: ${selectedAnt ? 'Yes' : 'None'}`);
   const factions = {};
   for (let i = 0; i < antIndex; i++) if (ants[i]) { const antObj = ants[i].antObject ? ants[i].antObject : ants[i]; if (antObj && antObj.faction) factions[antObj.faction] = (factions[antObj.faction] || 0) + 1; }
-  if (Object.keys(factions).length > 0) { console.log("  Factions:"); for (const [faction, count] of Object.entries(factions)) console.log(`    ${faction}: ${count} ants`); }
+  if (Object.keys(factions).length > 0) { logNormal("  Factions:"); for (const [faction, count] of Object.entries(factions)) logNormal(`    ${faction}: ${count} ants`); }
 }
 
 /**
@@ -563,7 +563,7 @@ if (typeof window !== 'undefined') {
 
 // Debug: Log that the file loaded successfully (using original console.log to avoid circular capture)
 if (globalThis.globalDebugVerbosity >= 1) {
-  console.log('✅ commandLine.js loaded successfully with non-intrusive console capture');
+  logNormal('✅ commandLine.js loaded successfully with non-intrusive console capture');
 }
 
 /**
@@ -574,7 +574,7 @@ if (globalThis.globalDebugVerbosity >= 1) {
  */
 function handlePerformanceCommand(args) {
   if (typeof g_performanceMonitor === 'undefined' || !g_performanceMonitor) {
-    console.log("❌ Performance monitor not available");
+    logNormal("❌ Performance monitor not available");
     return;
   }
 
@@ -584,24 +584,24 @@ function handlePerformanceCommand(args) {
     case 'toggle':
       const currentState = g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled;
       g_performanceMonitor.setDebugDisplay(!currentState);
-      console.log(`🔍 Performance monitor ${!currentState ? 'ENABLED' : 'DISABLED'}`);
+      logNormal(`🔍 Performance monitor ${!currentState ? 'ENABLED' : 'DISABLED'}`);
       break;
       
     case 'stats':
       const stats = g_performanceMonitor.getFrameStats();
-      console.log("📊 Performance Statistics:");
-      console.log(`   FPS: ${stats.fps} (avg: ${stats.avgFPS}, min: ${stats.minFPS})`);
-      console.log(`   Frame Time: ${stats.frameTime}ms (avg: ${stats.avgFrameTime}ms)`);
-      console.log(`   Performance Level: ${stats.performanceLevel}`);
-      console.log(`   Entities: ${stats.entityStats.totalEntities} total, ${stats.entityStats.renderedEntities} rendered`);
+      logNormal("📊 Performance Statistics:");
+      logNormal(`   FPS: ${stats.fps} (avg: ${stats.avgFPS}, min: ${stats.minFPS})`);
+      logNormal(`   Frame Time: ${stats.frameTime}ms (avg: ${stats.avgFrameTime}ms)`);
+      logNormal(`   Performance Level: ${stats.performanceLevel}`);
+      logNormal(`   Entities: ${stats.entityStats.totalEntities} total, ${stats.entityStats.renderedEntities} rendered`);
       if (stats.entityPerformance) {
-        console.log(`   Entity Render Time: ${stats.entityPerformance.totalEntityRenderTime.toFixed(2)}ms`);
-        console.log(`   Entity Efficiency: ${stats.entityPerformance.entityRenderEfficiency.toFixed(1)}%`);
+        logNormal(`   Entity Render Time: ${stats.entityPerformance.totalEntityRenderTime.toFixed(2)}ms`);
+        logNormal(`   Entity Efficiency: ${stats.entityPerformance.entityRenderEfficiency.toFixed(1)}%`);
       }
       break;
       
     default:
-      console.log("❌ Usage: perf [toggle|stats]");
+      logNormal("❌ Usage: perf [toggle|stats]");
   }
 }
 
@@ -613,7 +613,7 @@ function handlePerformanceCommand(args) {
  */
 function handleEntityPerformanceCommand(args) {
   if (typeof g_performanceMonitor === 'undefined' || !g_performanceMonitor) {
-    console.log("❌ Performance monitor not available");
+    logNormal("❌ Performance monitor not available");
     return;
   }
 
@@ -622,30 +622,30 @@ function handleEntityPerformanceCommand(args) {
   switch (action.toLowerCase()) {
     case 'report':
       const report = g_performanceMonitor.getEntityPerformanceReport();
-      console.log("🎯 Entity Performance Report:");
-      console.log(`   Total Render Time: ${report.totalRenderTime.toFixed(2)}ms`);
-      console.log(`   Average per Entity: ${report.averageRenderTime.toFixed(2)}ms`);
-      console.log(`   Render Efficiency: ${report.renderEfficiency.toFixed(1)}%`);
+      logNormal("🎯 Entity Performance Report:");
+      logNormal(`   Total Render Time: ${report.totalRenderTime.toFixed(2)}ms`);
+      logNormal(`   Average per Entity: ${report.averageRenderTime.toFixed(2)}ms`);
+      logNormal(`   Render Efficiency: ${report.renderEfficiency.toFixed(1)}%`);
       
       if (report.typePerformance.length > 0) {
-        console.log("\n📋 Entity Types (by performance):");
+        logNormal("\n📋 Entity Types (by performance):");
         report.typePerformance.forEach(type => {
-          console.log(`   ${type.type}: ${type.currentAverage.toFixed(2)}ms avg (${type.count}x) - ${type.efficiency.toFixed(0)} entities/sec`);
+          logNormal(`   ${type.type}: ${type.currentAverage.toFixed(2)}ms avg (${type.count}x) - ${type.efficiency.toFixed(0)} entities/sec`);
         });
       }
       
       if (report.slowestEntities.length > 0) {
-        console.log("\n⚠️  Slowest Entities:");
+        logNormal("\n⚠️  Slowest Entities:");
         report.slowestEntities.slice(0, 5).forEach((entity, i) => {
-          console.log(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms`);
+          logNormal(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms`);
         });
       }
       
       if (report.phaseBreakdown.length > 0) {
-        console.log("\n⏱️  Render Phases:");
+        logNormal("\n⏱️  Render Phases:");
         report.phaseBreakdown.forEach(phase => {
           if (phase.time > 0) {
-            console.log(`   ${phase.phase}: ${phase.time.toFixed(2)}ms (${phase.percentage.toFixed(1)}%)`);
+            logNormal(`   ${phase.phase}: ${phase.time.toFixed(2)}ms (${phase.percentage.toFixed(1)}%)`);
           }
         });
       }
@@ -656,23 +656,23 @@ function handleEntityPerformanceCommand(args) {
       g_performanceMonitor.entityPerformance.slowestEntities = [];
       g_performanceMonitor.entityPerformance.typeHistory.clear();
       g_performanceMonitor.entityPerformance.typeAverages.clear();
-      console.log("🔄 Entity performance data reset");
+      logNormal("🔄 Entity performance data reset");
       break;
       
     case 'slowest':
       const slowest = g_performanceMonitor.entityPerformance.slowestEntities.slice(0, 10);
       if (slowest.length > 0) {
-        console.log("🐌 Top 10 Slowest Entities:");
+        logNormal("🐌 Top 10 Slowest Entities:");
         slowest.forEach((entity, i) => {
-          console.log(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms (frame ${entity.frame})`);
+          logNormal(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms (frame ${entity.frame})`);
         });
       } else {
-        console.log("📊 No entity performance data available yet");
+        logNormal("📊 No entity performance data available yet");
       }
       break;
       
     default:
-      console.log("❌ Usage: entity-perf [report|reset|slowest]");
+      logNormal("❌ Usage: entity-perf [report|reset|slowest]");
   }
 }
 
@@ -684,7 +684,7 @@ function handleEntityPerformanceCommand(args) {
  */
 function handlePanelTrainCommand(args) {
   if (!window.draggablePanelManager) {
-    console.log("❌ Draggable Panel Manager not available");
+    logNormal("❌ Draggable Panel Manager not available");
     return;
   }
 
@@ -699,43 +699,43 @@ function handlePanelTrainCommand(args) {
     case 'enable':
       window.draggablePanelManager.setPanelTrainMode(true);
       const onMsg = onMessages[Math.floor(Math.random() * onMessages.length)];
-      console.log(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
+      logNormal(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
       break;
       
     case 'off':
     case 'disable':
       window.draggablePanelManager.setPanelTrainMode(false);
       const offMsg = offMessages[Math.floor(Math.random() * offMessages.length)];
-      console.log(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
+      logNormal(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
       break;
       
     case 'toggle':
       const newState = window.draggablePanelManager.togglePanelTrainMode();
       if (newState) {
         const onMsg = onMessages[Math.floor(Math.random() * onMessages.length)];
-        console.log(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
+        logNormal(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
       } else {
         const offMsg = offMessages[Math.floor(Math.random() * offMessages.length)];
-        console.log(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
+        logNormal(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
       }
       break;
       
     case 'status':
       const isEnabled = window.draggablePanelManager.isPanelTrainModeEnabled();
       if (isEnabled) {
-        console.log(`🚂 TRAIN MODE: Currently ENABLED! CHOO CHOO! 🚂💨`);
+        logNormal(`🚂 TRAIN MODE: Currently ENABLED! CHOO CHOO! 🚂💨`);
       } else {
-        console.log(`🚂 TRAIN MODE: Currently disabled. How boring. 😴`);
+        logNormal(`🚂 TRAIN MODE: Currently disabled. How boring. 😴`);
       }
       break;
       
     default:
-      console.log("❌ Usage: train [on|off|toggle|status]");
-      console.log("🚂 Examples:");
-      console.log("  train on     - Enable TRAIN MODE! (panels follow each other)");
-      console.log("  train off    - Disable train mode (boring normal dragging)");
-      console.log("  train toggle - Switch between modes");
-      console.log("  train status - Check current mode");
+      logNormal("❌ Usage: train [on|off|toggle|status]");
+      logNormal("🚂 Examples:");
+      logNormal("  train on     - Enable TRAIN MODE! (panels follow each other)");
+      logNormal("  train off    - Disable train mode (boring normal dragging)");
+      logNormal("  train toggle - Switch between modes");
+      logNormal("  train status - Check current mode");
   }
 }
 
@@ -747,14 +747,14 @@ function handlePanelTrainCommand(args) {
  */
 function handleDamageCommand(args) {
   if (args.length === 0) {
-    console.log("❌ Usage: damage <amount>");
-    console.log("Example: damage 25 (damages selected ants by 25 HP)");
+    logNormal("❌ Usage: damage <amount>");
+    logNormal("Example: damage 25 (damages selected ants by 25 HP)");
     return;
   }
   
   const amount = parseInt(args[0], 10);
   if (isNaN(amount) || amount <= 0) {
-    console.log("❌ Damage amount must be a positive number");
+    logNormal("❌ Damage amount must be a positive number");
     return;
   }
   
@@ -767,7 +767,7 @@ function handleDamageCommand(args) {
   }
   
   if (selectedAnts.length === 0) {
-    console.log("❌ No ants selected. Use 'select <index>' or 'select all' first.");
+    logNormal("❌ No ants selected. Use 'select <index>' or 'select all' first.");
     return;
   }
   
@@ -786,7 +786,7 @@ function handleDamageCommand(args) {
     }
   });
   
-  console.log(`💥 Damaged ${damaged} selected ant(s) by ${amount} HP`);
+  logNormal(`💥 Damaged ${damaged} selected ant(s) by ${amount} HP`);
 }
 
 /**
@@ -797,14 +797,14 @@ function handleDamageCommand(args) {
  */
 function handleHealCommand(args) {
   if (args.length === 0) {
-    console.log("❌ Usage: heal <amount>");
-    console.log("Example: heal 50 (heals selected ants by 50 HP)");
+    logNormal("❌ Usage: heal <amount>");
+    logNormal("Example: heal 50 (heals selected ants by 50 HP)");
     return;
   }
   
   const amount = parseInt(args[0], 10);
   if (isNaN(amount) || amount <= 0) {
-    console.log("❌ Heal amount must be a positive number");
+    logNormal("❌ Heal amount must be a positive number");
     return;
   }
   
@@ -817,7 +817,7 @@ function handleHealCommand(args) {
   }
   
   if (selectedAnts.length === 0) {
-    console.log("❌ No ants selected. Use 'select <index>' or 'select all' first.");
+    logNormal("❌ No ants selected. Use 'select <index>' or 'select all' first.");
     return;
   }
   
@@ -836,7 +836,7 @@ function handleHealCommand(args) {
     }
   });
   
-  console.log(`💚 Healed ${healed} selected ant(s) by ${amount} HP`);
+  logNormal(`💚 Healed ${healed} selected ant(s) by ${amount} HP`);
 }
 
 // ============================================================
@@ -850,7 +850,7 @@ function handleHealCommand(args) {
  */
 function handleEventDebugCommand(args) {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    console.log("❌ EventDebugManager not initialized");
+    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
@@ -860,23 +860,23 @@ function handleEventDebugCommand(args) {
     case 'on':
     case 'enable':
       window.eventDebugManager.enable();
-      console.log("🎮 Event debug system enabled");
+      logNormal("🎮 Event debug system enabled");
       break;
       
     case 'off':
     case 'disable':
       window.eventDebugManager.disable();
-      console.log("🎮 Event debug system disabled");
+      logNormal("🎮 Event debug system disabled");
       break;
       
     case 'toggle':
       window.eventDebugManager.toggle();
       const state = window.eventDebugManager.enabled ? 'enabled' : 'disabled';
-      console.log(`🎮 Event debug system ${state}`);
+      logNormal(`🎮 Event debug system ${state}`);
       break;
       
     default:
-      console.log("❌ Usage: eventDebug <on|off|toggle>");
+      logNormal("❌ Usage: eventDebug <on|off|toggle>");
   }
 }
 
@@ -887,13 +887,13 @@ function handleEventDebugCommand(args) {
  */
 function handleTriggerEventCommand(args) {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    console.log("❌ EventDebugManager not initialized");
+    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   if (args.length === 0) {
-    console.log("❌ Usage: triggerEvent <eventId>");
-    console.log("Example: triggerEvent wave_1_spawn");
+    logNormal("❌ Usage: triggerEvent <eventId>");
+    logNormal("Example: triggerEvent wave_1_spawn");
     return;
   }
   
@@ -901,7 +901,7 @@ function handleTriggerEventCommand(args) {
   const result = window.eventDebugManager.manualTriggerEvent(eventId);
   
   if (!result) {
-    console.log(`❌ Failed to trigger event: ${eventId}`);
+    logNormal(`❌ Failed to trigger event: ${eventId}`);
   }
 }
 
@@ -911,13 +911,13 @@ function handleTriggerEventCommand(args) {
  */
 function handleShowEventFlags() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    console.log("❌ EventDebugManager not initialized");
+    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   window.eventDebugManager.toggleEventFlags();
   const state = window.eventDebugManager.showEventFlags ? 'ON' : 'OFF';
-  console.log(`🏴 Event flags overlay: ${state}`);
+  logNormal(`🏴 Event flags overlay: ${state}`);
 }
 
 /**
@@ -926,13 +926,13 @@ function handleShowEventFlags() {
  */
 function handleShowEventList() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    console.log("❌ EventDebugManager not initialized");
+    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   window.eventDebugManager.toggleEventList();
   const state = window.eventDebugManager.showEventList ? 'ON' : 'OFF';
-  console.log(`📋 Event list panel: ${state}`);
+  logNormal(`📋 Event list panel: ${state}`);
 }
 
 /**
@@ -941,13 +941,13 @@ function handleShowEventList() {
  */
 function handleShowLevelInfo() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    console.log("❌ EventDebugManager not initialized");
+    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   window.eventDebugManager.toggleLevelInfo();
   const state = window.eventDebugManager.showLevelInfo ? 'ON' : 'OFF';
-  console.log(`ℹ️ Level event info panel: ${state}`);
+  logNormal(`ℹ️ Level event info panel: ${state}`);
 }
 
 /**
@@ -956,7 +956,7 @@ function handleShowLevelInfo() {
  */
 function handleListEvents() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    console.log("❌ EventDebugManager not initialized");
+    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   

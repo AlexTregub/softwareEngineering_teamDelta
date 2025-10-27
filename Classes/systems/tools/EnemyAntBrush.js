@@ -30,7 +30,7 @@ class EnemyAntBrush extends BrushBase {
    */
   toggle() {
     this.isActive = !this.isActive;
-    console.log(`🎨 Enemy Ant Brush ${this.isActive ? 'activated' : 'deactivated'}`);
+    logNormal(`🎨 Enemy Ant Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 
@@ -39,7 +39,7 @@ class EnemyAntBrush extends BrushBase {
    */
   activate() {
     this.isActive = true;
-    console.log('🎨 Enemy Ant Brush activated');
+    logNormal('🎨 Enemy Ant Brush activated');
   }
 
   /**
@@ -47,7 +47,7 @@ class EnemyAntBrush extends BrushBase {
    */
   deactivate() {
     this.isActive = false;
-    console.log('🎨 Enemy Ant Brush deactivated');
+    logNormal('🎨 Enemy Ant Brush deactivated');
   }
 
   /**
@@ -167,7 +167,7 @@ class EnemyAntBrush extends BrushBase {
       const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
       if (enemyAnt) {
         spawned = true;
-        console.log(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)})`);
+        logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)})`);
       }
     }
 
@@ -184,7 +184,7 @@ class EnemyAntBrush extends BrushBase {
             newAnt.setPosition(spawnX, spawnY);
           }
           spawned = true;
-          console.log(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)}) via command`);
+          logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)}) via command`);
         }
       } catch (error) {
         console.warn('⚠️ Brush spawn via command failed:', error.message);
@@ -204,7 +204,7 @@ class EnemyAntBrush extends BrushBase {
    */
   setBrushSize(size) {
     this.brushSize = Math.max(10, Math.min(100, size)); // Clamp between 10-100
-    console.log(`🎨 Brush size set to ${this.brushSize}px`);
+    logNormal(`🎨 Brush size set to ${this.brushSize}px`);
   }
 
   /**
@@ -231,7 +231,7 @@ let g_enemyAntBrush = null;
 function initializeEnemyAntBrush() {
   if (!g_enemyAntBrush) {
     g_enemyAntBrush = new EnemyAntBrush();
-    console.log('🎨 Enemy Ant Brush system initialized');
+    logNormal('🎨 Enemy Ant Brush system initialized');
   }
   return g_enemyAntBrush;
 }

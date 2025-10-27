@@ -12,7 +12,7 @@
 
 class EventManager {
   constructor() {
-    console.log('EventManager initialized');
+    logNormal('EventManager initialized');
     
     // Event storage
     this.events = new Map(); // id => eventConfig

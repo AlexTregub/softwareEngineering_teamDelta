@@ -48,7 +48,7 @@ function preload(){
 function setup() {
   // Initialize TaskLibrary before other systems that depend on it
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
-  console.log('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
+  logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
 */
   
   g_canvasX = windowWidth;
@@ -81,7 +81,7 @@ function setup() {
   // Initialize Draggable Panel System (must be after initializeWorld, before any UI that uses panels)
   if (typeof initializeDraggablePanelSystem !== 'undefined') {
     initializeDraggablePanelSystem().then(() => {
-      console.log('✅ DraggablePanelSystem ready');
+      logVerbose('✅ DraggablePanelSystem ready');
     }).catch((error) => {
       console.error('❌ Failed to initialize DraggablePanelSystem:', error);
     });
@@ -95,9 +95,9 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  console.log('[SETUP] About to create SelectionBoxController, g_mouseController:', g_mouseController, 'ants:', ants);
+  logVerbose('[SETUP] About to create SelectionBoxController, g_mouseController:', g_mouseController, 'ants:', ants);
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-  console.log('[SETUP] Created g_selectionBoxController:', g_selectionBoxController);
+  logVerbose('[SETUP] Created g_selectionBoxController:', g_selectionBoxController);
   window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
 
   // Ensure selection adapter is registered with RenderManager now that controller exists
@@ -157,25 +157,25 @@ function setup() {
       }
     });
     
-    console.log('🚫 Right-click context menu disabled for brush controls');
+    logVerbose('🚫 Right-click context menu disabled for brush controls');
   }
 
   // Initialize Queen Control Panel system
   if (typeof initializeQueenControlPanel !== 'undefined') {
     initializeQueenControlPanel();
-    console.log('👑 Queen Control Panel initialized in setup');
+    logVerbose('👑 Queen Control Panel initialized in setup');
   }
 
   // Initialize Fireball System
   if (typeof window !== 'undefined' && typeof FireballManager !== 'undefined') {
     window.g_fireballManager = new FireballManager();
-    console.log('🔥 Fireball System initialized in setup');
+    logVerbose('🔥 Fireball System initialized in setup');
   }
 
   // Initialize Event Manager (singleton)
   if (typeof EventManager !== 'undefined') {
     window.eventManager = EventManager.getInstance();
-    console.log('🎯 Event Manager initialized in setup');
+    logVerbose('🎯 Event Manager initialized in setup');
   }
 
   // Initialize Event Debug Manager
@@ -185,10 +185,10 @@ function setup() {
     // Connect EventDebugManager to EventManager
     if (window.eventManager) {
       window.eventManager.setEventDebugManager(window.eventDebugManager);
-      console.log('🔗 Event Debug Manager connected to Event Manager');
+      logVerbose('🔗 Event Debug Manager connected to Event Manager');
     }
     
-    console.log('🐛 Event Debug Manager initialized in setup');
+    logVerbose('🐛 Event Debug Manager initialized in setup');
   }
 
   initializeMenu();  // Initialize the menu system
@@ -206,11 +206,11 @@ function setup() {
           const terrain = new CustomTerrain(50, 50, 32, 'dirt');
           levelEditor.initialize(terrain);
         }
-        console.log('🎨 Level Editor activated with blank CustomTerrain');
+        logVerbose('🎨 Level Editor activated with blank CustomTerrain');
       } else if (oldState === 'LEVEL_EDITOR') {
         // Deactivate level editor when leaving
         levelEditor.deactivate();
-        console.log('🎨 Level Editor deactivated');
+        logVerbose('🎨 Level Editor deactivated');
       }
     });
   }
@@ -264,16 +264,16 @@ function initializeContextMenuPrevention() {
     console.warn('⚠️ Could not set canvas context menu prevention:', error);
   }
   
-  console.log('🚫 Multiple layers of right-click context menu prevention initialized');
+  logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
 }
 
 /**
  * Global function to test context menu prevention
  */
 function testContextMenuPrevention() {
-  console.log('🧪 Testing context menu prevention...');
-  console.log('Right-click anywhere to test - context menu should NOT appear');
-  console.log('If context menu still appears, try: disableContextMenu()');
+  logVerbose('🧪 Testing context menu prevention...');
+  logVerbose('Right-click anywhere to test - context menu should NOT appear');
+  logVerbose('If context menu still appears, try: disableContextMenu()');
   return true;
 }
 
@@ -282,7 +282,7 @@ function testContextMenuPrevention() {
  */
 function disableContextMenu() {
   initializeContextMenuPrevention();
-  console.log('🔒 Context menu prevention forcibly re-applied');
+  logVerbose('🔒 Context menu prevention forcibly re-applied');
   return true;
 }
 
@@ -320,7 +320,7 @@ function initializeWorld() {
   // Register with MapManager (which will also update g_activeMap)
   if (typeof mapManager !== 'undefined') {
     mapManager.registerMap('level1', g_map2, true);
-    console.log("Main map registered with MapManager as 'level1' and set as active");
+    logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
   
   // COORDSY = new CoordinateSystem();
@@ -354,7 +354,8 @@ function draw() {
   }
   
   // Update camera (input processing, following, bounds clamping)
-  if (GameState.isInGame() && cameraManager) {
+  // Enable for both in-game states AND Level Editor
+  if (cameraManager && (GameState.isInGame() || GameState.getState() === 'LEVEL_EDITOR')) {
     cameraManager.update();
   }
 
@@ -461,7 +462,7 @@ function handleMouseEvent(type, ...args) {
   if (GameState.isInGame()) {
     g_mouseController[type](...args);
     if (g_activeMap && g_activeMap.renderConversion) {
-      console.log(g_activeMap.renderConversion.convCanvasToPos([mouseX,mouseY]));
+      logVerbose(g_activeMap.renderConversion.convCanvasToPos([mouseX,mouseY]));
     }
   }
 }
@@ -556,10 +557,10 @@ function mousePressed() {
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
     if (consumed) {
-      console.log('🖱️ Mouse click consumed by RenderManager');
+      logVerbose('🖱️ Mouse click consumed by RenderManager');
       return; // consumed by an interactive (buttons/panels/etc.)
     }
-    console.log('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
+    logVerbose('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
     // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
   } catch (e) {
     console.error('Error dispatching pointerdown to RenderManager:', e);
@@ -698,6 +699,16 @@ function mouseMoved() {
  */
 function mouseWheel(event) {
   try {
+    // Level Editor zoom handling
+    if (GameState.getState() === 'LEVEL_EDITOR') {
+      if (window.levelEditor && levelEditor.isActive()) {
+        const delta = event.deltaY || 0;
+        levelEditor.handleZoom(delta);
+        event.preventDefault();
+        return false;
+      }
+    }
+
     if (!GameState.isInGame()) return false;
 
     // Determine scroll direction (positive = down, negative = up)
@@ -741,6 +752,11 @@ function mouseWheel(event) {
     if (window.g_queenControlPanel && window.g_queenControlPanel.handleMouseWheel(delta)) {
       event.preventDefault();
       return false;
+    }
+    
+    // If no brush consumed the event, delegate to CameraManager for zoom (PLAYING state)
+    if (cameraManager && typeof cameraManager.handleMouseWheel === 'function') {
+      return cameraManager.handleMouseWheel(event);
     }
 
   } catch (e) {
@@ -824,25 +840,25 @@ function keyPressed() {
     switch (keyCode) {
       case 69: // Ctrl+Shift+E - Toggle event debug system
         window.eventDebugManager.toggle();
-        console.log(`🎮 Event debug: ${window.eventDebugManager.enabled ? 'ON' : 'OFF'}`);
+        logVerbose(`🎮 Event debug: ${window.eventDebugManager.enabled ? 'ON' : 'OFF'}`);
         handled = true;
         break;
         
       case 70: // Ctrl+Shift+F - Toggle event flags overlay
         window.eventDebugManager.toggleEventFlags();
-        console.log(`🏴 Event flags: ${window.eventDebugManager.showEventFlags ? 'ON' : 'OFF'}`);
+        logVerbose(`🏴 Event flags: ${window.eventDebugManager.showEventFlags ? 'ON' : 'OFF'}`);
         handled = true;
         break;
         
       case 76: // Ctrl+Shift+L - Toggle level info panel
         window.eventDebugManager.toggleLevelInfo();
-        console.log(`ℹ️ Level info: ${window.eventDebugManager.showLevelInfo ? 'ON' : 'OFF'}`);
+        logVerbose(`ℹ️ Level info: ${window.eventDebugManager.showLevelInfo ? 'ON' : 'OFF'}`);
         handled = true;
         break;
         
       case 65: // Ctrl+Shift+A - Toggle event list (All events)
         window.eventDebugManager.toggleEventList();
-        console.log(`📋 Event list: ${window.eventDebugManager.showEventList ? 'ON' : 'OFF'}`);
+        logVerbose(`📋 Event list: ${window.eventDebugManager.showEventList ? 'ON' : 'OFF'}`);
         handled = true;
         break;
     }
@@ -898,7 +914,7 @@ function keyPressed() {
     
     if (handled) {
       // Display current layer states
-      console.log('🔧 Layer States:', RenderManager.getLayerStates());
+      logVerbose('🔧 Layer States:', RenderManager.getLayerStates());
       return; // Layer toggle was handled, don't process further
     }
   }
@@ -1046,13 +1062,6 @@ function getMapPixelDimensions() {
 
 
 
-function mouseWheel(event) {
-  // Delegate to CameraManager
-  if (cameraManager) {
-    return cameraManager.handleMouseWheel(event);
-  }
-  return true;
-}
   
 
 /**
@@ -1063,12 +1072,12 @@ function deactivateActiveBrushes() {
   let deactivated = false;
   if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
     g_resourceBrush.toggle();
-    console.log('🎨 Resource brush deactivated via ESC key');
+    logNormal('🎨 Resource brush deactivated via ESC key');
     deactivated = true;
   }
   if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
     g_enemyAntBrush.toggle();
-    console.log('🎨 Enemy brush deactivated via ESC key');
+    logNormal('🎨 Enemy brush deactivated via ESC key');
     deactivated = true;
   }
   return deactivated;
@@ -1165,7 +1174,7 @@ function getActiveMap() {
  * @returns {boolean} True if successful, false otherwise
  */
 function loadMossStoneLevel() {
-  console.log("🏛️ Loading Moss & Stone Column Level");
+  logNormal("🏛️ Loading Moss & Stone Column Level");
   
   try {
     // Create the moss/stone column level
@@ -1181,7 +1190,7 @@ function loadMossStoneLevel() {
     // Register with MapManager
     if (typeof mapManager !== 'undefined') {
       mapManager.registerMap('mossStone', mossStoneLevel, true);
-      console.log("✅ Moss & Stone level registered and set as active");
+      logNormal("✅ Moss & Stone level registered and set as active");
       return true;
     } else {
       console.error("❌ MapManager not available");
@@ -1202,7 +1211,7 @@ function loadMossStoneLevel() {
  * @param {string} levelId - The ID of the level to switch to
  */
 function switchToLevel(levelId) {
-  console.log(`🔄 Switching to level: ${levelId}`);
+  logNormal(`🔄 Switching to level: ${levelId}`);
   
   // If the level is 'mossStone' and doesn't exist yet, create it
   if (levelId === 'mossStone') {
@@ -1220,7 +1229,7 @@ function switchToLevel(levelId) {
   // CRITICAL: Invalidate terrain cache to force re-render with new terrain
   if (g_activeMap && typeof g_activeMap.invalidateCache === 'function') {
     g_activeMap.invalidateCache();
-    console.log("✅ Terrain cache invalidated - new terrain will render");
+    logNormal("✅ Terrain cache invalidated - new terrain will render");
   }
   
   // Start the game
