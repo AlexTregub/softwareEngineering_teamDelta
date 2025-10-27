@@ -335,7 +335,8 @@ class MovementController {
     const mapTopLeft = g_pathMap._mapTL;
     const offsetX = entityX - mapTopLeft[0];
     const offsetY = entityY - mapTopLeft[1];
-    console.log(`X: ${entityX}`);
+    console.log(`X: ${offsetX}`);
+    console.log(`Y: ${offsetY}`);
     const node = grid.getArrPos([offsetX, offsetY]); //doing this can actually skip ants over terrain (of course). Useful for expedited travel, like moving all ants to boss fight area
 
     // Wander or track depending on ant state

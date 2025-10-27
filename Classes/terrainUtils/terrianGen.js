@@ -257,6 +257,12 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     else if(this._materialSet == 'stone'){
       this._weight = 100;
     }
+    else if(this._materialSet == 'moss_0'){
+      this.weight = 1;
+    }
+    else if(this._materialSet == 'moss_1'){
+      this.weight = 1;
+    }
   }
 
   render() { // Render, previously draw
