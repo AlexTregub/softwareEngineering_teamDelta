@@ -1,5 +1,5 @@
 /*
- * soundmanager.js
+ * soundManager.js
  * Centralized sound management system for the game.
  * Handles loading, playing, and organizing all sound effects + music.
  * Add new sounds easily by editing the `soundList` object.

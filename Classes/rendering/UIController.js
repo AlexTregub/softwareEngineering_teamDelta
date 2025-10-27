@@ -48,10 +48,10 @@ class UIController {
       this.uiRenderer.debugUI.performanceOverlay.enabled = true;
       
       const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-      if (globalObj && typeof globalObj.logNormal === 'function') {
-        globalObj.logNormal('UIController initialized successfully');
+      if (globalObj && typeof globalObj.console === 'object') {
+        console.log('UIController initialized successfully');
       } else {
-        logNormal('UIController initialized successfully');
+        console.log('UIController initialized successfully');
       }
       return true;
     } else {
@@ -68,10 +68,10 @@ class UIController {
     // Note: Keyboard integration is handled via g_keyboardController.onKeyPress() in sketch.js setup()
     // The handleKeyPress method below processes the actual key combinations
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.logNormal === 'function') {
-      globalObj.logNormal('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
+    if (globalObj && typeof globalObj.console === 'object') {
+      console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
     } else {
-      logNormal('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
+      console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
     }
   }
 
@@ -290,7 +290,7 @@ class UIController {
     if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
       const currentState = g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled;
       g_performanceMonitor.setDebugDisplay(!currentState);
-      logNormal('UIController: Performance Monitor', !currentState ? 'ENABLED' : 'DISABLED');
+      console.log('UIController: Performance Monitor', !currentState ? 'ENABLED' : 'DISABLED');
     } else if (this.uiRenderer && typeof this.uiRenderer.togglePerformanceOverlay === 'function') {
       this.uiRenderer.togglePerformanceOverlay();
     }
@@ -306,7 +306,7 @@ class UIController {
       const manager = getEntityDebugManager();
       if (manager && typeof manager.toggleGlobalDebug === 'function') {
         manager.toggleGlobalDebug();
-        logNormal('UIController: Using existing entity debug manager');
+        console.log('UIController: Using existing entity debug manager');
         return;
       }
     }
@@ -325,7 +325,7 @@ class UIController {
     // Use existing debug console system from debug/testing.js
     /*if (typeof toggleDevConsole === 'function') {
       toggleDevConsole();
-      logNormal('UIController: Using existing debug console system');
+      console.log('UIController: Using existing debug console system');
     } else if (this.uiRenderer && typeof this.uiRenderer.toggleDebugConsole === 'function') { */
       this.uiRenderer.toggleDebugConsole();
     //}
@@ -365,7 +365,7 @@ class UIController {
    */
   startGame() {
     if (typeof GameState !== 'undefined' && GameState && GameState.startGame) {
-      logNormal('UIController: Starting game (MENU -> PLAYING state)');
+      console.log('UIController: Starting game (MENU -> PLAYING state)');
       GameState.startGame();
     } else {
       console.warn('UIController: GameState.startGame() not available');
@@ -412,7 +412,7 @@ class UIController {
             this.showEntityInspector();
             this.showDebugConsole();
             this.showMinimap();
-            logNormal('👁️ All UI panels shown');
+            console.log('👁️ All UI panels shown');
         } else {
             // Hide all panels
             if (typeof window.hideAntControlPanel === 'function') window.hideAntControlPanel();
@@ -429,7 +429,7 @@ class UIController {
             this.hideEntityInspector();
             this.hideDebugConsole();
             this.hideMinimap();
-            logNormal('🙈 All UI panels hidden');
+            console.log('🙈 All UI panels hidden');
         }
     } else {
         console.warn('⚠️ DraggablePanelManager not available for UI toggle');

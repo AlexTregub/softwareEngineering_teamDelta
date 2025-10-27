@@ -8,7 +8,7 @@ class TileInteractionManager {
     this.gridWidth = gridWidth;
     this.gridHeight = gridHeight;
     
-    // Spatial hash g_map: "x,y" -> [objects in that tile]
+    // Spatial hash map: "x,y" -> [objects in that tile]
     this.tileMap = new Map();
     
     // UI elements (buttons, menus) - checked first
@@ -36,7 +36,7 @@ class TileInteractionManager {
   }
 
   /**
-   * Get tile key for spatial hash g_map
+   * Get tile key for spatial hash map
    * @param {number} tileX - Tile X coordinate
    * @param {number} tileY - Tile Y coordinate
    * @returns {string} Tile key
@@ -280,7 +280,7 @@ class TileInteractionManager {
   }
 
   /**
-   * Get debug information about the tile g_map
+   * Get debug information about the tile map
    * @returns {Object} Debug information
    */
   getDebugInfo() {
@@ -298,7 +298,7 @@ class TileInteractionManager {
   }
 
   /**
-   * Clear all objects from the tile g_map
+   * Clear all objects from the tile map
    */
   clear() {
     this.tileMap.clear();
