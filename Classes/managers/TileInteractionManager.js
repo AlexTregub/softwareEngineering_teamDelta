@@ -18,6 +18,28 @@ class TileInteractionManager {
     this.debugEnabled = false;
   }
 
+  // --- Building System / Modifying Tiles ---
+
+    // takes tile coordinates as parameters
+    // start is bottom left corner of an area
+    // end is top right corner of an area
+  turnToFarmland(startX, startY, endX = startX, endY = startY) {
+    for (let x = startX; x <= endX; x++) {
+        for (let y = startY; y <= endY; y++) {
+            const tile = g_activeMap.get([x, y]); // Works by getting obj as reference... Interesting...
+            if (tile) {
+                tile._materialSet = 'farmland';
+                console.log(`Tile at (${x}, ${y}) changed to farmland.`);
+            } else {
+                console.warn(`No tile found at (${x}, ${y})`);
+            }
+        }
+    }
+    
+    // Invalidate the cache because we are changing the terrain
+    g_activeMap.invalidateCache();
+  }
+
   // --- Coordinate Conversion ---
 
   /**

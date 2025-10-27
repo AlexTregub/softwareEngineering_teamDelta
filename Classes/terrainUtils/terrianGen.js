@@ -9,6 +9,7 @@ let CAVE_EXDARK_IMAGE;
 let CAVE_DIRT_IMAGE;
 let WATER;
 let WATER_CAVE;
+let FARMLAND_IMAGE;
 
 let xCount = 32;
 let yCount = 32;
@@ -37,11 +38,15 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
   'cave_dirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
   'water' : [[0,0], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
   'water_cave' : [[0,0], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
+  // 'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Testing... ALL IS FARM
   'moss' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
   'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
   'grass' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
+
+  // Un-spawned materials, Needed for fallback rendering.
+  'farmland' : [[0,0] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], 
 };
 
 /**
@@ -55,7 +60,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
   
   // Known material mappings (based on TERRAIN_MATERIALS_RANGED above)
   switch (materialName) {
-    case 'moss_0':
+    case 'moss':
     case 'moss_1':
       if (MOSS_IMAGE) {
         ctx.image(MOSS_IMAGE, x, y, size, size);
@@ -77,6 +82,12 @@ function renderMaterialToContext(materialName, x, y, size, context) {
     case 'grass':
       if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
+      }
+      break;
+
+    case 'farmland':
+      if (FARMLAND_IMAGE) {
+        ctx.image(FARMLAND_IMAGE,x,y,size,size);
       }
       break;
       
@@ -103,6 +114,7 @@ function terrainPreloader(){
   CAVE_EXDARK_IMAGE = loadImage('Images/16x16 Tiles/cave_extraDark.png');
   WATER = loadImage('Images/16x16 Tiles/water.png');
   WATER_CAVE = loadImage('Images/16x16 Tiles/water_cave.png');
+  FARMLAND_IMAGE = loadImage('Images/16x16 Tiles/farmland.png');
 }
 
 class Terrain {
@@ -203,31 +215,32 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
 
 
   //// Access/usage
-  randomizeMaterial() { // Will select random material for current tile. No return.
-    let noiseScale = 0.1
-    let noiseX = noiseScale * this._x;
-    let noiseY = noiseScale * this._y;   
+  // Unused...
+  // randomizeMaterial() { // Will select random material for current tile. No return.
+  //   let noiseScale = 0.1
+  //   let noiseX = noiseScale * this._x;
+  //   let noiseY = noiseScale * this._y;   
 
-    let noiseValue = noise(noiseX,noiseY);
-    for (let checkMat in TERRAIN_MATERIALS) {          
-      if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
-        this._materialSet = checkMat;
-        this.setMaterial();
-        this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
-        return;
-      }
-    }
-  }
+  //   let noiseValue = noise(noiseX,noiseY);
+  //   for (let checkMat in TERRAIN_MATERIALS) {          
+  //     if(TERRAIN_MATERIALS[checkMat][0] >= noiseValue){
+  //       // this._materialSet = checkMat; // What the fuck was I thinking....
+  //       this.setMaterial(checkMat);
+  //       this.assignWeight(); //Makes sure each tile has a weight associated with terrain type
+  //       return;
+  //     }
+  //   }
+  // }
 
-  randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
-    let selected = random(); // [0-1)
-    for (let checkMat in TERRAIN_MATERIALS) {
-      if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
-        this._materialSet = checkMat;
-        return;
-      }
-    }
-  }
+  // randomizeLegacy() { // Old code used for randomization, extracted from commit 8854cd2145ff60b63e8996bf8987156a4d43236d
+  //   let selected = random(); // [0-1)
+  //   for (let checkMat in TERRAIN_MATERIALS) {
+  //     if (selected < TERRAIN_MATERIALS[checkMat][0]) { // Fixed less-than logic
+  //       this._materialSet = checkMat;
+  //       return;
+  //     }
+  //   }
+  // }
 
   randomizePerlin(pos) {
     let newPos = [
@@ -261,23 +274,39 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
   }
 
   assignWeight(){ //Sets weight depending on the material
-    if(this._materialSet == 'grass'){
-      this._weight = 1;
+    switch(this._materialSet){
+      case 'grass':
+        this._weight = 1;
+        break;
+      case 'dirt':
+        this._weight = 3;
+        break;
+      case 'stone':
+        this._weight = 100;
+        break;
+      default:
+        this._weight = 10;
+        break;
     }
-    else if(this._materialSet == 'dirt'){
-      this._weight = 3;
-    }
-    else if(this._materialSet == 'stone'){
-      this._weight = 100;
-    }
+    
+    // Old def...
+    // if(this._materialSet == 'grass'){
+    //   this._weight = 1;
+    // }
+    // else if(this._materialSet == 'dirt'){
+    //   this._weight = 3;
+    // }
+    // else if(this._materialSet == 'stone'){
+    //   this._weight = 100;
+    // }
   }
 
-  render() { // Render, previously draw
-    noSmooth(); // prevents pixels from getting blurry as the image is scaled up
-    TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
-    smooth();
-    return;
-  }
+  // render() { // Render, previously draw
+  //   noSmooth(); // prevents pixels from getting blurry as the image is scaled up
+  //   TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // Call render lambda
+  //   smooth();
+  //   return;
+  // }
 
   render(coordSys) {
     // coordSys.setViewCornerBC([0,0]);

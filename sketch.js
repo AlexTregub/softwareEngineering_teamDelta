@@ -27,6 +27,8 @@ let g_menuFont;
 let g_recordingPath;
 // -- Queen ---
 let queenAnt;
+// -- Time ---
+let g_globalTime;
 
 // Buildings
 let Buildings = [];
@@ -193,6 +195,10 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+
+  // Farmland working...
+  // g_tileInteractionManager.turnToFarmland(-60,-60,0,0); // NOTE: current Y is flipped...
+  // g_tileInteractionManager.turnToFarmland(0,0); // NOTE: current Y is flipped...
   
   // Register state change callback for level editor initialization
   if (typeof GameState !== 'undefined' && typeof levelEditor !== 'undefined') {
@@ -327,6 +333,7 @@ function initializeWorld() {
   // COORDSY.setViewCornerBC(0,0);
   
   g_gridMap = new PathMap(g_map);
+  g_globalTime = new GlobalTime();
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -394,6 +401,9 @@ function draw() {
     }
     if (window.g_lightningManager) {
       window.g_lightningManager.update();
+    }
+    if (g_globalTime) {
+      g_globalTime.update();
     }
 
     // Update queen movement (WASD keys)
@@ -842,41 +852,6 @@ function keyPressed() {
     const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
     if (handled) {
       return; // UI shortcut was handled, don't process further
-    }
-  }
-  
-  // Handle Event Debug shortcuts (Ctrl+Shift combinations)
-  if (keyIsDown(CONTROL) && keyIsDown(SHIFT) && window.eventDebugManager) {
-    let handled = false;
-    
-    switch (keyCode) {
-      case 69: // Ctrl+Shift+E - Toggle event debug system
-        window.eventDebugManager.toggle();
-        logVerbose(`🎮 Event debug: ${window.eventDebugManager.enabled ? 'ON' : 'OFF'}`);
-        handled = true;
-        break;
-        
-      case 70: // Ctrl+Shift+F - Toggle event flags overlay
-        window.eventDebugManager.toggleEventFlags();
-        logVerbose(`🏴 Event flags: ${window.eventDebugManager.showEventFlags ? 'ON' : 'OFF'}`);
-        handled = true;
-        break;
-        
-      case 76: // Ctrl+Shift+L - Toggle level info panel
-        window.eventDebugManager.toggleLevelInfo();
-        logVerbose(`ℹ️ Level info: ${window.eventDebugManager.showLevelInfo ? 'ON' : 'OFF'}`);
-        handled = true;
-        break;
-        
-      case 65: // Ctrl+Shift+A - Toggle event list (All events)
-        window.eventDebugManager.toggleEventList();
-        logVerbose(`📋 Event list: ${window.eventDebugManager.showEventList ? 'ON' : 'OFF'}`);
-        handled = true;
-        break;
-    }
-    
-    if (handled) {
-      return; // Event debug shortcut was handled
     }
   }
   
