@@ -27,6 +27,8 @@ let g_menuFont;
 let g_recordingPath;
 // -- Queen ---
 let queenAnt;
+// -- Time ---
+let g_globalTime;
 
 // Buildings
 let Buildings = [];
@@ -280,6 +282,7 @@ function initializeWorld() {
   // COORDSY.setViewCornerBC(0,0);
   
   g_gridMap = new PathMap(g_map);
+  g_globalTime = new GlobalTime();
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -346,6 +349,9 @@ function draw() {
     }
     if (window.g_lightningManager) {
       window.g_lightningManager.update();
+    }
+    if (window.g_globalTime) {
+      window.g_globalTime.update();
     }
 
     // Update queen movement (WASD keys)
