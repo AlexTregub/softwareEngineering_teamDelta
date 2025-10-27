@@ -20,6 +20,8 @@ class GridOverlay {
         this.height = height;
         this.visible = true;
         this.opacity = 0.3;
+        this.alpha = 0.3; // Rendering alpha (same as opacity)
+        this.gridSpacing = 1; // Draw grid every tile
         this.hoveredTile = null;
     }
     
@@ -54,6 +56,7 @@ class GridOverlay {
      */
     setOpacity(opacity) {
         this.opacity = Math.max(0, Math.min(1, opacity));
+        this.alpha = this.opacity; // Sync alpha for rendering
     }
     
     /**
@@ -183,25 +186,32 @@ class GridOverlay {
         stroke(255, 255, 255, this.alpha * 255);
         strokeWeight(1);
 
+        // FIX: Add 0.5px offset to align stroke edge with tile edge
+        // p5.js draws strokes CENTERED on coordinates. With strokeWeight(1):
+        // - A line at x=64 draws from 63.5 to 64.5 (centered)
+        // - A tile at x=64 draws from 64 to 96 (CORNER mode)
+        // Adding 0.5px offset aligns the stroke's LEFT edge with the tile's LEFT edge
+        const strokeOffset = 0.5;
+
         // Vertical lines (every tile if spacing is 1, every chunk if spacing is chunk size)
         for (let x = 0; x <= this.width; x += this.gridSpacing) {
-            const screenX = x * this.tileSize + offsetX;
+            const screenX = x * this.tileSize + offsetX + strokeOffset;
             line(screenX, offsetY, screenX, this.height * this.tileSize + offsetY);
         }
 
         // Horizontal lines
         for (let y = 0; y <= this.height; y += this.gridSpacing) {
-            const screenY = y * this.tileSize + offsetY;
+            const screenY = y * this.tileSize + offsetY + strokeOffset;
             line(offsetX, screenY, this.width * this.tileSize + offsetX, screenY);
         }
 
         // Hovered tile highlight
         if (this.hoveredTile) {
-            const rect = this.getHighlightRect();
+            const highlightRect = this.getHighlightRect();
             stroke(255, 255, 0);
             strokeWeight(2);
             noFill();
-            rect(rect.x + offsetX, rect.y + offsetY, rect.width, rect.height);
+            rect(highlightRect.x + offsetX, highlightRect.y + offsetY, highlightRect.width, highlightRect.height);
         }
 
         pop();

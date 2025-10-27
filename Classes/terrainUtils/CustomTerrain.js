@@ -369,6 +369,13 @@ class CustomTerrain {
         
         push();
         
+        // CRITICAL: Set imageMode(CORNER) to ensure tiles render at correct positions
+        // The image() calls in TERRAIN_MATERIALS_RANGED assume CORNER mode
+        // Without this, imageMode could be inherited from previous rendering (e.g., CENTER)
+        if (typeof imageMode !== 'undefined' && typeof CORNER !== 'undefined') {
+            imageMode(CORNER);
+        }
+        
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 const tile = this.tiles[y][x];

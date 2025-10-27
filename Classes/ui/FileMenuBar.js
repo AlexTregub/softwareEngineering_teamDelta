@@ -113,16 +113,68 @@ class FileMenuBar {
         label: 'View',
         items: [
           { 
-            label: 'Grid', 
-            shortcut: 'G',
+            label: 'Grid Overlay', 
+            shortcut: 'Ctrl+G',
             enabled: true,
+            checkable: true,
+            checked: true,
             action: () => this._handleToggleGrid()
           },
           { 
             label: 'Minimap', 
-            shortcut: 'M',
+            shortcut: 'Ctrl+M',
             enabled: true,
+            checkable: true,
+            checked: true,
             action: () => this._handleToggleMinimap()
+          },
+          { 
+            label: 'Materials Panel', 
+            shortcut: 'Ctrl+1',
+            enabled: true,
+            checkable: true,
+            checked: true,
+            action: () => this._handleTogglePanel('materials')
+          },
+          { 
+            label: 'Tools Panel', 
+            shortcut: 'Ctrl+2',
+            enabled: true,
+            checkable: true,
+            checked: true,
+            action: () => this._handleTogglePanel('tools')
+          },
+          { 
+            label: 'Brush Panel', 
+            shortcut: 'Ctrl+3',
+            enabled: true,
+            checkable: true,
+            checked: true,
+            action: () => this._handleTogglePanel('brush')
+          },
+          { 
+            label: 'Events Panel', 
+            shortcut: 'Ctrl+4',
+            enabled: true,
+            checkable: true,
+            checked: true,
+            action: () => this._handleTogglePanel('events')
+          },
+          { 
+            label: 'Properties Panel', 
+            shortcut: 'Ctrl+5',
+            enabled: true,
+            checkable: true,
+            checked: true,
+            action: () => this._handleTogglePanel('properties')
+          },
+          { 
+            label: 'Notifications', 
+            shortcut: 'Ctrl+I',
+            enabled: true,
+            checkable: true,
+            checked: true,
+            action: () => this._handleToggleNotifications()
           }
         ]
       }
@@ -499,7 +551,14 @@ class FileMenuBar {
       // Render text
       const textColor = item.enabled ? this.style.textColor : this.style.disabledColor;
       fill(...textColor);
-      text(item.label, menuPos.x + this.style.itemPadding, itemY + this.style.itemHeight / 2);
+      
+      // Add checkmark for checkable items
+      const textOffset = item.checkable ? 20 : 0;
+      if (item.checkable && item.checked) {
+        text('✓', menuPos.x + this.style.itemPadding, itemY + this.style.itemHeight / 2);
+      }
+      
+      text(item.label, menuPos.x + this.style.itemPadding + textOffset, itemY + this.style.itemHeight / 2);
       
       // Render shortcut (right-aligned)
       if (item.shortcut) {
@@ -585,12 +644,62 @@ class FileMenuBar {
   _handleToggleGrid() {
     if (this.levelEditor) {
       this.levelEditor.showGrid = !this.levelEditor.showGrid;
+      
+      // Update checked state
+      const viewMenu = this.menuItems.find(m => m.label === 'View');
+      const gridItem = viewMenu.items.find(i => i.label === 'Grid Overlay');
+      if (gridItem) {
+        gridItem.checked = this.levelEditor.showGrid;
+      }
     }
   }
   
   _handleToggleMinimap() {
     if (this.levelEditor) {
       this.levelEditor.showMinimap = !this.levelEditor.showMinimap;
+      
+      // Update checked state
+      const viewMenu = this.menuItems.find(m => m.label === 'View');
+      const minimapItem = viewMenu.items.find(i => i.label === 'Minimap');
+      if (minimapItem) {
+        minimapItem.checked = this.levelEditor.showMinimap;
+      }
+    }
+  }
+  
+  _handleTogglePanel(panelName) {
+    if (this.levelEditor && this.levelEditor.draggablePanels && this.levelEditor.draggablePanels.panels) {
+      const panel = this.levelEditor.draggablePanels.panels[panelName];
+      if (panel && typeof panel.toggleVisibility === 'function') {
+        panel.toggleVisibility();
+        
+        // Update checked state based on panel visibility
+        const viewMenu = this.menuItems.find(m => m.label === 'View');
+        const labelMap = {
+          'materials': 'Materials Panel',
+          'tools': 'Tools Panel',
+          'brush': 'Brush Panel',
+          'events': 'Events Panel',
+          'properties': 'Properties Panel'
+        };
+        const menuItem = viewMenu.items.find(i => i.label === labelMap[panelName]);
+        if (menuItem && typeof panel.isVisible === 'function') {
+          menuItem.checked = panel.isVisible();
+        }
+      }
+    }
+  }
+  
+  _handleToggleNotifications() {
+    if (this.levelEditor && this.levelEditor.notifications) {
+      this.levelEditor.notifications.visible = !this.levelEditor.notifications.visible;
+      
+      // Update checked state
+      const viewMenu = this.menuItems.find(m => m.label === 'View');
+      const notificationsItem = viewMenu.items.find(i => i.label === 'Notifications');
+      if (notificationsItem) {
+        notificationsItem.checked = this.levelEditor.notifications.visible;
+      }
     }
   }
 }

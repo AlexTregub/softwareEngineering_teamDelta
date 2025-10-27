@@ -30,17 +30,20 @@ class TerrainEditor {
 
     const affectedTiles = [];
     const brushRadius = Math.floor(this._brushSize / 2);
+    const isOddSize = this._brushSize % 2 !== 0;
 
     for (let dy = -brushRadius; dy <= brushRadius; dy++) {
       for (let dx = -brushRadius; dx <= brushRadius; dx++) {
         const x = tilePos.x + dx;
         const y = tilePos.y + dy;
 
-        // Check circular brush pattern
-        if (this._brushSize > 1) {
+        // Pattern logic: Even sizes = circular, Odd sizes = square
+        if (!isOddSize) {
+          // EVEN SIZES (2,4,6,8): Circular pattern
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance > brushRadius) continue;
         }
+        // ODD SIZES (1,3,5,7,9): Full square pattern (no distance check)
 
         if (this._isInBounds(x, y)) {
           const tile = this._terrain.getArrPos([x, y]);
@@ -534,17 +537,20 @@ class TerrainEditor {
 
     const affectedTiles = [];
     const brushRadius = Math.floor(this._brushSize / 2);
+    const isOddSize = this._brushSize % 2 !== 0;
 
     for (let dy = -brushRadius; dy <= brushRadius; dy++) {
       for (let dx = -brushRadius; dx <= brushRadius; dx++) {
         const x = gridX + dx;
         const y = gridY + dy;
 
-        // Check circular brush pattern
-        if (this._brushSize > 1) {
+        // Pattern logic: Even sizes = circular, Odd sizes = square
+        if (!isOddSize) {
+          // EVEN SIZES (2,4,6,8): Circular pattern
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance > brushRadius) continue;
         }
+        // ODD SIZES (1,3,5,7,9): Full square pattern (no distance check)
 
         if (this._isInBounds(x, y)) {
           const tile = this._terrain.getArrPos([x, y]);

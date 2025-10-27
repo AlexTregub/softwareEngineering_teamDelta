@@ -618,6 +618,11 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+  // Handle level editor release events FIRST
+  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
+    levelEditor.handleMouseRelease(mouseX, mouseY);
+  }
+  
   // Handle UI Debug Manager release events
   if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
@@ -672,6 +677,16 @@ function mouseReleased() {
   } catch (e) {
     console.error('Error dispatching pointerup to RenderManager:', e);
     try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (er) {}
+  }
+}
+
+/**
+ * mouseMoved - Handle hover events for Level Editor
+ */
+function mouseMoved() {
+  // Handle level editor hover for preview highlighting
+  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
+    levelEditor.handleHover(mouseX, mouseY);
   }
 }
 

@@ -20,6 +20,8 @@ class LevelEditor {
     this.notifications = null;
     this.draggablePanels = null; // NEW: Draggable panel integration
     this.fileMenuBar = null; // NEW: File menu bar for save/load/export
+    this.selectionManager = null; // NEW: Rectangle selection for select tool
+    this.hoverPreviewManager = null; // NEW: Hover preview for all tools
     
     // UI state
     this.showGrid = true;
@@ -72,8 +74,9 @@ class LevelEditor {
     this.propertiesPanel.setTerrain(terrain);
     this.propertiesPanel.setEditor(this.editor);
     
-    // Create grid overlay
-    this.gridOverlay = new GridOverlay(terrain);
+    // Create grid overlay (tileSize, width, height)
+    const TILE_SIZE = 32; // Standard tile size
+    this.gridOverlay = new GridOverlay(TILE_SIZE, terrain.width, terrain.height);
     
     // Create save/load dialogs
     this.saveDialog = new SaveDialog();
@@ -116,6 +119,12 @@ class LevelEditor {
     // Create file menu bar for save/load/export operations
     this.fileMenuBar = new FileMenuBar();
     this.fileMenuBar.setLevelEditor(this);
+    
+    // NEW: Initialize selection manager for select tool
+    this.selectionManager = new SelectionManager();
+    
+    // NEW: Initialize hover preview manager for all tools
+    this.hoverPreviewManager = new HoverPreviewManager();
     
     // Setup camera for editor
     this.editorCamera = cameraManager;
@@ -261,6 +270,12 @@ class LevelEditor {
         }
         break;
         
+      case 'select':
+        // Start rectangle selection
+        this.selectionManager.startSelection(gridX, gridY);
+        this.notifications.show('Selection started - drag to define area');
+        break;
+        
       case 'undo':
         if (this.editor.canUndo()) {
           this.editor.undo();
@@ -305,17 +320,24 @@ class LevelEditor {
       }
     }
     
-    // Only paint tool supports continuous dragging
     const tool = this.toolbar.getSelectedTool();
+    const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+    const gridX = Math.floor(mouseX / tileSize);
+    const gridY = Math.floor(mouseY / tileSize);
+    
+    // Handle select tool dragging
+    if (tool === 'select') {
+      this.selectionManager.updateSelection(gridX, gridY);
+      return;
+    }
+    
+    // Paint tool supports continuous dragging
     if (tool !== 'paint') {
       return; // Other tools don't support drag painting
     }
     
     // Paint at current mouse position
     const material = this.palette.getSelectedMaterial();
-    const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
-    const gridX = Math.floor(mouseX / tileSize);
-    const gridY = Math.floor(mouseY / tileSize);
     
     const brushSize = this.brushControl.getSize();
     this.editor.setBrushSize(brushSize);
@@ -330,6 +352,80 @@ class LevelEditor {
     // Update undo/redo buttons
     this.toolbar.setEnabled('undo', this.editor.canUndo());
     this.toolbar.setEnabled('redo', this.editor.canRedo());
+  }
+  
+  /**
+   * Handle mouse release (end of drag operation)
+   */
+  handleMouseRelease(mouseX, mouseY) {
+    if (!this.active) return;
+    
+    const tool = this.toolbar.getSelectedTool();
+    
+    // Handle select tool completion
+    if (tool === 'select' && this.selectionManager.isSelecting) {
+      const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+      const gridX = Math.floor(mouseX / tileSize);
+      const gridY = Math.floor(mouseY / tileSize);
+      
+      this.selectionManager.updateSelection(gridX, gridY);
+      this.selectionManager.endSelection();
+      
+      // Paint all tiles in selection with current material
+      const tiles = this.selectionManager.getTilesInSelection();
+      const material = this.palette.getSelectedMaterial();
+      
+      if (tiles.length > 0) {
+        this.editor.selectMaterial(material);
+        
+        // Paint each tile in selection
+        tiles.forEach(tile => {
+          this.terrain.setTile(tile.x, tile.y, material);
+        });
+        
+        // Add to undo history
+        this.editor._recordState();
+        
+        this.notifications.show(`Painted ${tiles.length} tiles with ${material}`);
+        
+        // Invalidate minimap cache
+        if (this.minimap && this.minimap.invalidateCache) {
+          this.minimap.invalidateCache();
+        }
+        
+        // Update undo/redo states
+        this.toolbar.setEnabled('undo', this.editor.canUndo());
+        this.toolbar.setEnabled('redo', this.editor.canRedo());
+        
+        // Clear selection after painting
+        this.selectionManager.clearSelection();
+      }
+    }
+  }
+  
+  /**
+   * Handle mouse hover (for preview highlighting)
+   */
+  handleHover(mouseX, mouseY) {
+    if (!this.active) return;
+    
+    const tool = this.toolbar.getSelectedTool();
+    const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+    const gridX = Math.floor(mouseX / tileSize);
+    const gridY = Math.floor(mouseY / tileSize);
+    
+    // Update hover preview for current tool
+    const brushSize = this.brushControl.getSize();
+    this.hoverPreviewManager.updateHover(gridX, gridY, tool, brushSize);
+  }
+  
+  /**
+   * Clear hover preview when mouse leaves canvas
+   */
+  clearHover() {
+    if (this.hoverPreviewManager) {
+      this.hoverPreviewManager.clearHover();
+    }
   }
   
   /**
@@ -363,8 +459,16 @@ class LevelEditor {
     if (this.terrain) {
       this.terrain.render();
     }
-    this.gridOverlay.render();
+    
+    // Grid overlay (respects both showGrid flag and gridOverlay.visible)
+    if (this.showGrid) {
+      this.gridOverlay.render();
+    }
+    
+    // File menu bar (has its own visible check)
     this.fileMenuBar.render();
+    
+    // Draggable panels (has its own visible check)
     this.draggablePanels.render();
     
     // Minimap (bottom right)
@@ -375,11 +479,17 @@ class LevelEditor {
     }
     
     // Notifications (bottom left, stacking upwards)
-    if (this.notifications) {
+    if (this.notifications && this.notifications.visible) {
       const notifX = 10;
       const notifY = g_canvasY - 10; // Bottom of screen
       this.notifications.render(notifX, notifY);
     }
+    
+    // Render hover preview (tiles that will be affected)
+    this.renderHoverPreview();
+    
+    // Render selection rectangle (if selecting)
+    this.renderSelectionRectangle();
     
     // Render dialogs if active
     if (this.saveDialog.isVisible()) { this.saveDialog.render(); }
@@ -387,6 +497,72 @@ class LevelEditor {
     
     // Render back button
     //this.renderBackButton();
+  }
+  
+  /**
+   * Render hover preview (highlight tiles that will be affected)
+   */
+  renderHoverPreview() {
+    if (!this.hoverPreviewManager) return;
+    
+    const tiles = this.hoverPreviewManager.getHoveredTiles();
+    if (tiles.length === 0) return;
+    
+    const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+    
+    push();
+    noStroke();
+    fill(255, 255, 0, 80); // Yellow semi-transparent overlay
+    
+    tiles.forEach(tile => {
+      const pixelX = tile.x * tileSize;
+      const pixelY = tile.y * tileSize;
+      rect(pixelX, pixelY, tileSize, tileSize);
+    });
+    
+    pop();
+  }
+  
+  /**
+   * Render selection rectangle (during drag)
+   */
+  renderSelectionRectangle() {
+    if (!this.selectionManager) return;
+    if (!this.selectionManager.hasSelection()) return;
+    
+    const bounds = this.selectionManager.getSelectionBounds();
+    if (!bounds) return;
+    
+    const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+    
+    // Calculate pixel coordinates
+    const pixelX = bounds.minX * tileSize;
+    const pixelY = bounds.minY * tileSize;
+    const pixelWidth = (bounds.maxX - bounds.minX + 1) * tileSize;
+    const pixelHeight = (bounds.maxY - bounds.minY + 1) * tileSize;
+    
+    push();
+    
+    // Fill with semi-transparent blue
+    fill(100, 150, 255, 60);
+    noStroke();
+    rect(pixelX, pixelY, pixelWidth, pixelHeight);
+    
+    // Border with animated dashed line
+    stroke(100, 150, 255, 200);
+    strokeWeight(2);
+    noFill();
+    
+    // Animated dashing effect
+    const dashLength = 10;
+    const offset = (frameCount * 2) % (dashLength * 2);
+    
+    drawingContext.setLineDash([dashLength, dashLength]);
+    drawingContext.lineDashOffset = -offset;
+    rect(pixelX, pixelY, pixelWidth, pixelHeight);
+    drawingContext.setLineDash([]); // Reset
+    
+    pop();
   }
   
   /**

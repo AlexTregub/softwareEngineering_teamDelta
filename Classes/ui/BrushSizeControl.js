@@ -2,9 +2,10 @@
  * BrushSizeControl - UI component for brush size selection
  * 
  * Controls the size of the painting brush with:
- * - Size validation (odd numbers only)
+ * - Size validation (1-9, step by 1)
  * - Min/max constraints
- * - Brush pattern preview
+ * - Even sizes: Circular pattern
+ * - Odd sizes: Square pattern
  */
 class BrushSizeControl {
     /**
@@ -20,18 +21,13 @@ class BrushSizeControl {
     }
     
     /**
-     * Validate size (must be odd number within range)
+     * Validate size (must be within range)
      * @param {number} size - Size to validate
      * @returns {number} Valid size
      * @private
      */
     _validateSize(size) {
-        // Must be odd number
-        if (size % 2 === 0) {
-            size = size + 1;
-        }
-        
-        // Clamp to range
+        // Clamp to range (no odd-only restriction)
         if (size < this.minSize) {
             size = this.minSize;
         }
@@ -66,7 +62,7 @@ class BrushSizeControl {
      * @returns {number} New size
      */
     increase() {
-        const newSize = this.size + 2; // Jump by 2 to keep odd
+        const newSize = this.size + 1; // Step by 1
         this.setSize(newSize);
         return this.size;
     }
@@ -76,7 +72,7 @@ class BrushSizeControl {
      * @returns {number} New size
      */
     decrease() {
-        const newSize = this.size - 2; // Jump by 2 to keep odd
+        const newSize = this.size - 1; // Step by 1
         this.setSize(newSize);
         return this.size;
     }

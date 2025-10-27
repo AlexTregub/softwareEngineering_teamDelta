@@ -545,12 +545,16 @@ class gridTerrain {
                 globalThis.logVerbose(`Cache buffer size: ${this._terrainCache.width}x${this._terrainCache.height}`);
             }
             
-            // Try drawing with imageMode CENTER to center the buffer on canvas
+            // Draw cache using CORNER mode to match how tiles were rendered into cache
+            // CRITICAL FIX: Using CENTER mode caused a 0.5-tile offset because the cache
+            // content was rendered with CORNER mode. We must use CORNER for both.
             push();
-            imageMode(CENTER);
-            image(this._terrainCache, 
-                  this.renderConversion._canvasCenter[0], 
-                  this.renderConversion._canvasCenter[1]); 
+            imageMode(CORNER);
+            // Calculate top-left corner position for CORNER mode
+            // (was centered, now need top-left corner)
+            const cacheX = this.renderConversion._canvasCenter[0] - this._terrainCache.width / 2;
+            const cacheY = this.renderConversion._canvasCenter[1] - this._terrainCache.height / 2;
+            image(this._terrainCache, cacheX, cacheY); 
             pop();
             
         } catch (error) {

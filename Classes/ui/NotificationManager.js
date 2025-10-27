@@ -19,6 +19,7 @@ class NotificationManager {
         this.defaultDuration = defaultDuration;
         this.maxHistory = maxHistory;
         this.nextId = 1;
+        this.visible = true; // Global visibility toggle
         
         // Type color mapping
         this.colors = {
@@ -167,6 +168,8 @@ class NotificationManager {
      * @param {number} y - Bottom Y position
      */
     render(x, y) {
+        if (!this.visible) return; // Don't render if hidden
+        
         if (typeof push === 'undefined') {
             // p5.js not available
             return;
