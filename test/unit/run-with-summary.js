@@ -16,8 +16,9 @@ const Mocha = require('mocha');
 const glob = require('glob');
 const path = require('path');
 
-// Run all manager and rendering tests (comprehensive tests created in this session)
-const testFiles = glob.sync('test/unit/{managers,rendering}/*.test.js', {
+// Run all unit tests (managers, rendering, levelEditor)
+// Exclude old UI tests with missing helpers (verticalButtonList)
+const testFiles = glob.sync('test/unit/{managers,rendering,levelEditor,ui/menuBar}/**/*.test.js', {
   cwd: path.join(__dirname, '..', '..')
 });
 

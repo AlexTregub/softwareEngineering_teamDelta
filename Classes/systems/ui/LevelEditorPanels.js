@@ -168,15 +168,18 @@ class LevelEditorPanels {
     manager.panels.set('level-editor-properties', this.panels.properties);
 
     // Add to LEVEL_EDITOR state visibility
+    // NOTE: Properties and Events panels are NOT added here - they're hidden by default (Features 7 & 8)
+    // Properties: Toggle via View menu
+    // Events: Toggle via Tools panel button
     if (!manager.stateVisibility.LEVEL_EDITOR) {
       manager.stateVisibility.LEVEL_EDITOR = [];
     }
     manager.stateVisibility.LEVEL_EDITOR.push(
       'level-editor-materials',
       'level-editor-tools',
-      'level-editor-brush',
-      'level-editor-events',
-      'level-editor-properties'
+      'level-editor-brush'
+      // 'level-editor-events' - Hidden by default (Feature 8)
+      // 'level-editor-properties' - Hidden by default (Feature 7)
     );
 
     logNormal('✅ Level Editor panels initialized and added to DraggablePanelManager');

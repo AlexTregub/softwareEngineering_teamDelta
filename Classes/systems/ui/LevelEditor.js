@@ -23,6 +23,11 @@ class LevelEditor {
     this.selectionManager = null; // NEW: Rectangle selection for select tool
     this.hoverPreviewManager = null; // NEW: Hover preview for all tools
     
+    // File management
+    this.currentFilename = 'Untitled'; // Current filename (no extension)
+    this.isModified = false; // Track if terrain has been modified
+    this.isMenuOpen = false; // Track if menu dropdown is open
+    
     // UI state
     this.showGrid = true;
     this.showMinimap = true;
@@ -169,10 +174,94 @@ class LevelEditor {
   }
   
   /**
+   * Set menu open state (called by FileMenuBar)
+   * @param {boolean} isOpen - Whether menu is open
+   */
+  setMenuOpen(isOpen) {
+    this.isMenuOpen = isOpen;
+  }
+  
+  /**
+   * Handle mouse move for hover effects
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   */
+  handleMouseMove(mouseX, mouseY) {
+    if (!this.active) return;
+    
+    // Skip hover preview if menu is open
+    if (this.isMenuOpen) {
+      // Disable hover preview when menu is open
+      if (this.hoverPreviewManager && typeof this.hoverPreviewManager.clear === 'function') {
+        this.hoverPreviewManager.clear();
+      }
+      return;
+    }
+    
+    // Normal hover behavior (hover preview, etc.)
+    // This would be handled by the hover preview system
+  }
+  
+  /**
+   * Handle mouse wheel for brush size adjustment
+   * @param {Object} event - Mouse wheel event with delta property
+   * @param {boolean} shiftKey - Whether shift key is pressed
+   * @returns {boolean} True if event was handled, false otherwise
+   */
+  handleMouseWheel(event, shiftKey) {
+    if (!this.active) return false;
+    if (!event) return false; // Null check
+    if (!shiftKey) return false;
+    
+    // Get current tool from toolbar
+    const currentTool = this.toolbar ? this.toolbar.getSelectedTool() : null;
+    if (!currentTool || currentTool !== 'paint') return false;
+    
+    // Get current brush size from brushControl
+    let currentSize = 1;
+    if (this.brushControl && typeof this.brushControl.getSize === 'function') {
+      currentSize = this.brushControl.getSize();
+    } else if (this.editor && typeof this.editor.getBrushSize === 'function') {
+      currentSize = this.editor.getBrushSize();
+    }
+    
+    // Calculate new size (delta positive = scroll up = increase)
+    const delta = event.delta || 0;
+    let newSize = currentSize;
+    if (delta > 0) {
+      newSize = Math.min(currentSize + 1, 9);
+    } else if (delta < 0) {
+      newSize = Math.max(currentSize - 1, 1);
+    }
+    
+    // Only update if size changed
+    if (newSize !== currentSize) {
+      // Update brush control if available
+      if (this.brushControl && typeof this.brushControl.setSize === 'function') {
+        this.brushControl.setSize(newSize);
+      }
+      
+      // Update terrain editor brush size
+      if (this.editor && typeof this.editor.setBrushSize === 'function') {
+        this.editor.setBrushSize(newSize);
+      }
+      
+      return true; // Event handled
+    }
+    
+    return false;
+  }
+  
+  /**
    * Handle mouse clicks in the editor
    */
   handleClick(mouseX, mouseY) {
     if (!this.active) return;
+    
+    // Check if menu is open - block all terrain editing
+    if (this.isMenuOpen) {
+      return false; // Menu is open, block terrain interaction
+    }
     
     // FIRST: Check if dialogs are open and handle their clicks
     if (this.saveDialog && this.saveDialog.isVisible()) {
@@ -660,6 +749,9 @@ class LevelEditor {
     // Restore camera transform
     this.restoreCameraTransform();
     
+    // Render filename display (top-center)
+    this.renderFilenameDisplay();
+    
     // File menu bar (has its own visible check)
     this.fileMenuBar.render();
     
@@ -782,6 +874,124 @@ class LevelEditor {
   
   /**
    * Save the current terrain
+   */
+  /**
+   * Handle File → New (creates blank terrain with unsaved prompt)
+   */
+  handleFileNew() {
+    // Check if terrain has been modified
+    if (this.isModified) {
+      const confirmed = confirm("Discard unsaved changes?");
+      if (!confirmed) {
+        return false; // User cancelled
+      }
+    }
+    
+    // Create new blank terrain
+    // Use CustomTerrain if available, otherwise gridTerrain
+    if (typeof CustomTerrain !== 'undefined') {
+      this.terrain = new CustomTerrain(50, 50);
+    } else {
+      this.terrain = new gridTerrain(10, 10);
+    }
+    
+    // Reinitialize editor components with new terrain
+    this.editor = new TerrainEditor(this.terrain);
+    this.minimap = new MiniMap(this.terrain, 200, 200);
+    this.propertiesPanel.setTerrain(this.terrain);
+    
+    // Reset filename to "Untitled"
+    this.currentFilename = 'Untitled';
+    
+    // Clear undo/redo history
+    if (this.editor && typeof this.editor.clearHistory === 'function') {
+      this.editor.clearHistory();
+    }
+    
+    // Reset modified flag
+    this.isModified = false;
+    
+    this.notifications.show('New blank terrain created', 'info');
+    return true;
+  }
+  
+  /**
+   * Handle File → Save (shows naming dialog, sets filename)
+   */
+  handleFileSave() {
+    if (!this.terrain) return;
+    
+    // Show save dialog to get filename
+    this.saveDialog.show();
+    this.saveDialog.setFilename(this.currentFilename);
+    this.saveDialog.setFormat('json');
+    
+    // Override the onSave callback for this workflow
+    const originalCallback = this.saveDialog.onSave;
+    this.saveDialog.onSave = () => {
+      // Get filename from dialog (will be without extension)
+      const filename = this.saveDialog.getFilename();
+      if (filename) {
+        // Store filename internally (strips .json if present)
+        this.setFilename(filename);
+        
+        // Clear modified flag
+        this.isModified = false;
+        
+        this.notifications.show(`Saved as "${this.currentFilename}"`, 'success');
+      }
+      
+      this.saveDialog.hide();
+      
+      // Restore original callback
+      this.saveDialog.onSave = originalCallback;
+    };
+  }
+  
+  /**
+   * Handle File → Export (downloads file using current filename)
+   */
+  handleFileExport() {
+    if (!this.terrain) return;
+    
+    // If no filename is set (still "Untitled"), prompt for one first
+    if (this.currentFilename === 'Untitled') {
+      this.handleFileSave();
+      
+      // After save dialog completes, export will happen
+      const originalCallback = this.saveDialog.onSave;
+      this.saveDialog.onSave = () => {
+        originalCallback();
+        // Now export with the new filename
+        this._performExport();
+      };
+      return;
+    }
+    
+    // Filename is set, proceed with export
+    this._performExport();
+  }
+  
+  /**
+   * Perform the actual export/download
+   * @private
+   */
+  _performExport() {
+    if (!this.terrain) return;
+    
+    const exporter = new TerrainExporter(this.terrain);
+    const data = exporter.exportToJSON();
+    
+    // Append .json extension for download
+    const downloadFilename = `${this.currentFilename}.json`;
+    
+    // Use native browser save dialog
+    this.saveDialog.saveWithNativeDialog(data, downloadFilename);
+    this.notifications.show(`Exported as "${downloadFilename}"`, 'success');
+  }
+  
+  /**
+   * Save a terrain (legacy method - kept for compatibility)
    */
   save() {
     if (!this.terrain) return;
@@ -926,6 +1136,50 @@ class LevelEditor {
         this.notifications.show(`Minimap ${this.showMinimap ? 'shown' : 'hidden'}`, 'info');
         break;
     }
+  }
+  
+  /**
+   * Set the current filename (strips .json extension if present)
+   * @param {string} name - Filename to set
+   */
+  setFilename(name) {
+    // Strip .json extension if present (case insensitive)
+    this.currentFilename = name.replace(/\.json$/i, '');
+  }
+  
+  /**
+   * Get the current filename (without extension)
+   * @returns {string} Current filename
+   */
+  getFilename() {
+    return this.currentFilename;
+  }
+  
+  /**
+   * Render the filename display at top-center of canvas
+   */
+  renderFilenameDisplay() {
+    if (!this.currentFilename) return;
+    
+    const canvasWidth = g_canvasX || 800;
+    const centerX = canvasWidth / 2;
+    const topY = 40;
+    
+    push();
+    
+    // Semi-transparent background for readability
+    fill(0, 0, 0, 150);
+    noStroke();
+    const textWidth = this.currentFilename.length * 10; // Rough estimate
+    rect(centerX - textWidth/2 - 10, topY - 5, textWidth + 20, 30, 5);
+    
+    // Filename text
+    fill(255, 255, 255);
+    textAlign(CENTER, TOP);
+    textSize(16);
+    text(this.currentFilename, centerX, topY);
+    
+    pop();
   }
   
   /**

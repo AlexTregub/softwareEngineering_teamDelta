@@ -57,6 +57,12 @@ function setupUITestEnvironment() {
     removeItem: sinon.stub()
   };
   
+  // Mock debug logging functions
+  global.logNormal = sinon.stub();
+  global.logDebug = sinon.stub();
+  global.logWarning = sinon.stub();
+  global.logError = sinon.stub();
+  
   // Mock p5.js text alignment constants
   global.LEFT = 'left';
   global.CENTER = 'center';
@@ -134,7 +140,11 @@ function setupUITestEnvironment() {
       BOTTOM: global.BOTTOM,
       BASELINE: global.BASELINE,
       ButtonStyles: global.ButtonStyles,
-      Button: global.Button
+      Button: global.Button,
+      logNormal: global.logNormal,
+      logDebug: global.logDebug,
+      logWarning: global.logWarning,
+      logError: global.logError
     });
   }
   
