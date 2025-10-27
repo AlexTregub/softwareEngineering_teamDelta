@@ -147,14 +147,7 @@ class FileMenuBar {
             checked: true,
             action: () => this._handleTogglePanel('tools')
           },
-          { 
-            label: 'Brush Panel', 
-            shortcut: 'Ctrl+3',
-            enabled: true,
-            checkable: true,
-            checked: true,
-            action: () => this._handleTogglePanel('brush')
-          },
+          // Brush Panel removed - brush size now controlled via menu bar (Enhancement 9)
           { 
             label: 'Events Panel', 
             shortcut: 'Ctrl+4',
@@ -746,23 +739,36 @@ class FileMenuBar {
   }
   
   _handleTogglePanel(panelName) {
-    if (this.levelEditor && this.levelEditor.draggablePanels && this.levelEditor.draggablePanels.panels) {
-      const panel = this.levelEditor.draggablePanels.panels[panelName];
-      if (panel && typeof panel.toggleVisibility === 'function') {
-        panel.toggleVisibility();
+    // Use global draggablePanelManager with correct panel IDs
+    if (typeof draggablePanelManager !== 'undefined' && draggablePanelManager) {
+      // Map short names to full panel IDs
+      const panelIdMap = {
+        'materials': 'level-editor-materials',
+        'tools': 'level-editor-tools',
+        'brush': 'level-editor-brush',
+        'events': 'level-editor-events',
+        'properties': 'level-editor-properties'
+      };
+      
+      const panelId = panelIdMap[panelName];
+      if (panelId) {
+        // togglePanel returns new visibility state
+        const newVisibility = draggablePanelManager.togglePanel(panelId);
         
-        // Update checked state based on panel visibility
-        const viewMenu = this.menuItems.find(m => m.label === 'View');
-        const labelMap = {
-          'materials': 'Materials Panel',
-          'tools': 'Tools Panel',
-          'brush': 'Brush Panel',
-          'events': 'Events Panel',
-          'properties': 'Properties Panel'
-        };
-        const menuItem = viewMenu.items.find(i => i.label === labelMap[panelName]);
-        if (menuItem && typeof panel.isVisible === 'function') {
-          menuItem.checked = panel.isVisible();
+        // Update checked state in menu
+        if (newVisibility !== null) {
+          const viewMenu = this.menuItems.find(m => m.label === 'View');
+          const labelMap = {
+            'materials': 'Materials Panel',
+            'tools': 'Tools Panel',
+            'brush': 'Brush Panel',
+            'events': 'Events Panel',
+            'properties': 'Properties Panel'
+          };
+          const menuItem = viewMenu.items.find(i => i.label === labelMap[panelName]);
+          if (menuItem) {
+            menuItem.checked = newVisibility;
+          }
         }
       }
     }

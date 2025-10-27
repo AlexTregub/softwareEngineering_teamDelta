@@ -38,23 +38,31 @@ Track bugs and their status with test coverage.
   - Result: Menu bar remains clickable, can switch menus, canvas click closes menu
   - Tests: 10 FileMenuBar unit + 9 LevelEditor unit + 4 E2E with screenshots (all passing)
 
-### Open ❌
+- [x] **Level Editor: Terrain Paints Under Menu Bar (Click and Drag)**
+  - Files: `Classes/systems/ui/LevelEditor.js` (handleDrag and handleClick methods)
+  - Issue: Both drag painting and click painting occurred when mouse was over menu bar
+  - Priority: MEDIUM (UX - unintended painting)
+  - Root Cause: `handleDrag()` and `handleClick()` didn't check if mouse was over menu bar before painting
+  - Fix: 
+    - Added menu bar containsPoint() check FIRST in handleDrag (before panel/event checks)
+    - Added menu bar containsPoint() check in handleClick (PRIORITY 3.5)
+  - Implementation: 
+    1. Check if mouse over menu bar → block painting
+    2. Check if menu is open → block painting
+    3. EventEditor drag → allow
+    4. Panel drag → allow
+    5. Terrain painting (lowest priority)
+  - Tests: 14 unit tests + 6 E2E tests with screenshots passing
+  - Fixed: October 27, 2025
 
-- [ ] **Level Editor: Terrain Paints Under Menu Bar on Hover**
-  - File: `Classes/systems/ui/LevelEditor.js`
-  - Issue: While hover highlight is correctly disabled over menu bar, terrain still paints when hovering over menu bar
-  - Expected Behavior: Menu bar should block ALL terrain interaction (painting and highlighting)
-  - Current Behavior: Highlight disabled ✅, but painting still occurs ❌
-  - Priority: MEDIUM
-  - Fix Needed: Add menu bar check in handleMouseMove() to block drag painting over menu bar
-  - Tests Needed: Unit + E2E tests for drag painting over menu bar
+### Open ❌
 
 ---
 
 ## Statistics
 
-- **Total Issues**: 6
-- **Fixed**: 5
-- **Open**: 1
+- **Total Issues**: 7
+- **Fixed**: 7
+- **Open**: 0
 - **High Priority Open**: 0
 - **Missing Features**: 0

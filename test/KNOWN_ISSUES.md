@@ -65,6 +65,36 @@ Track bugs and their status with test coverage.
   - Tests: 14 unit tests + 6 E2E tests with screenshots passing
   - Fixed: January 2025
 
+- [x] **Level Editor: Terrain Paints Under Save/Load Dialogs**
+  - Files: `Classes/systems/ui/LevelEditor.js` (handleClick and handleDrag methods)
+  - Issue: User can accidentally paint terrain while save/load dialogs are open
+  - Priority: HIGH (data corruption - unexpected terrain changes)
+  - Root Cause: 
+    - `handleClick()` only returned early if dialog **consumed** the click
+    - `handleDrag()` didn't check for dialog visibility at all
+  - Fix:
+    - `handleClick()`: Return immediately if either dialog is visible (block terrain regardless of consumption)
+    - `handleDrag()`: Check dialog visibility FIRST (PRIORITY 0) before any terrain interaction
+  - Implementation: Dialog check moved to highest priority, blocks terrain even if user clicks outside dialog
+  - Tests: 12 unit tests passing
+  - Fixed: October 27, 2025
+
+- [x] **Level Editor: View Menu Panel Toggle Not Working**
+  - Files: `Classes/ui/FileMenuBar.js` (_handleTogglePanel method)
+  - Issue: Panels disappear briefly then reappear, menu shows incorrect checked state
+  - Priority: MEDIUM (UX - confusing behavior)
+  - Root Cause:
+    - Used `this.levelEditor.draggablePanels.panels[panelName]` instead of global `draggablePanelManager`
+    - Used short names ('materials') instead of full panel IDs ('level-editor-materials')
+    - Called `panel.isVisible()` after `toggleVisibility()` but state hadn't updated yet
+  - Fix:
+    - Use global `draggablePanelManager.togglePanel(panelId)` method
+    - Map short names to full IDs: `'materials' → 'level-editor-materials'`
+    - Use return value from `togglePanel()` (new visibility state) instead of querying
+  - Implementation: Direct use of draggablePanelManager API, synchronous state updates
+  - Tests: 9 unit tests passing
+  - Fixed: October 27, 2025
+
 ### Open ❌
 
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
@@ -79,8 +109,8 @@ Track bugs and their status with test coverage.
 
 ## Statistics
 
-- **Total Issues**: 8
-- **Fixed**: 7
+- **Total Issues**: 10
+- **Fixed**: 9
 - **Open**: 1
 - **High Priority Open**: 0
 - **Missing Features**: 0

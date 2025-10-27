@@ -10,7 +10,7 @@ class LevelEditor {
     this.editor = null;
     this.palette = null;
     this.toolbar = null;
-    this.brushControl = null;
+    // this.brushControl = null; // REMOVED: Brush size now controlled via menu bar (Enhancement 9)
     this.eventEditor = null; // NEW: Event editor panel
     this.minimap = null;
     this.propertiesPanel = null;
@@ -71,8 +71,8 @@ class LevelEditor {
       }
     };
     
-    // Create brush size control (initialSize, minSize, maxSize)
-    this.brushControl = new BrushSizeControl(1, 1, 99);
+    // REMOVED: BrushSizeControl - brush size now controlled via menu bar (Enhancement 9)
+    // this.brushControl = new BrushSizeControl(1, 1, 99);
     
     // Create event editor panel
     this.eventEditor = new EventEditorPanel();
@@ -243,10 +243,10 @@ class LevelEditor {
     const currentTool = this.toolbar ? this.toolbar.getSelectedTool() : null;
     if (!currentTool || currentTool !== 'paint') return false;
     
-    // Get current brush size from brushControl
+    // Get current brush size from menu bar brush size module
     let currentSize = 1;
-    if (this.brushControl && typeof this.brushControl.getSize === 'function') {
-      currentSize = this.brushControl.getSize();
+    if (this.fileMenuBar && this.fileMenuBar.brushSizeModule && typeof this.fileMenuBar.brushSizeModule.getSize === 'function') {
+      currentSize = this.fileMenuBar.brushSizeModule.getSize();
     } else if (this.editor && typeof this.editor.getBrushSize === 'function') {
       currentSize = this.editor.getBrushSize();
     }
@@ -265,9 +265,9 @@ class LevelEditor {
     
     // Only update if size changed
     if (newSize !== currentSize) {
-      // Update brush control if available
-      if (this.brushControl && typeof this.brushControl.setSize === 'function') {
-        this.brushControl.setSize(newSize);
+      // Update menu bar brush size module if available
+      if (this.fileMenuBar && this.fileMenuBar.brushSizeModule && typeof this.fileMenuBar.brushSizeModule.setSize === 'function') {
+        this.fileMenuBar.brushSizeModule.setSize(newSize);
       }
       
       // Update terrain editor brush size
@@ -292,19 +292,15 @@ class LevelEditor {
   handleClick(mouseX, mouseY) {
     if (!this.active) return;
     
-    // PRIORITY 1: Check if dialogs are open and handle their clicks
+    // PRIORITY 1: Check if dialogs are open and block ALL terrain interaction
     if (this.saveDialog && this.saveDialog.isVisible()) {
       const consumed = this.saveDialog.handleClick(mouseX, mouseY);
-      if (consumed) {
-        return; // Dialog consumed the click
-      }
+      return; // Dialog is visible - block terrain interaction regardless of consumption
     }
     
     if (this.loadDialog && this.loadDialog.isVisible()) {
       const consumed = this.loadDialog.handleClick(mouseX, mouseY);
-      if (consumed) {
-        return; // Dialog consumed the click
-      }
+      return; // Dialog is visible - block terrain interaction regardless of consumption
     }
     
     // PRIORITY 2: Check if file menu bar handled the click (ALWAYS check, even if menu open)
@@ -368,7 +364,8 @@ class LevelEditor {
     // Apply tool action
     switch(tool) {
       case 'paint':
-        const brushSize = this.brushControl.getSize();
+        const brushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
+          this.fileMenuBar.brushSizeModule.getSize() : 1;
         this.editor.setBrushSize(brushSize);
         this.editor.selectMaterial(material);
         this.editor.paint(gridX, gridY);
@@ -455,6 +452,12 @@ class LevelEditor {
   handleDrag(mouseX, mouseY) {
     if (!this.active) return;
     
+    // PRIORITY 0: Check if dialogs are open - block ALL terrain interaction
+    if ((this.saveDialog && this.saveDialog.isVisible()) || 
+        (this.loadDialog && this.loadDialog.isVisible())) {
+      return; // Dialog is visible, block terrain interaction
+    }
+    
     // FIRST: Check if mouse is over menu bar - block ALL terrain interaction
     if (this.fileMenuBar && this.fileMenuBar.containsPoint(mouseX, mouseY)) {
       return; // Don't paint over menu bar
@@ -501,7 +504,8 @@ class LevelEditor {
     // Paint at current mouse position
     const material = this.palette.getSelectedMaterial();
     
-    const brushSize = this.brushControl.getSize();
+    const brushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
+      this.fileMenuBar.brushSizeModule.getSize() : 1;
     this.editor.setBrushSize(brushSize);
     this.editor.selectMaterial(material);
     this.editor.paint(gridX, gridY);
@@ -604,7 +608,8 @@ class LevelEditor {
     const gridY = Math.floor(worldCoords.worldY / tileSize);
     
     // Update hover preview for current tool
-    const brushSize = this.brushControl.getSize();
+    const brushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
+      this.fileMenuBar.brushSizeModule.getSize() : 1;
     this.hoverPreviewManager.updateHover(gridX, gridY, tool, brushSize);
   }
   
