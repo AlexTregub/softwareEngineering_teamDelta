@@ -10,8 +10,8 @@
  * Usage: testMossStoneLevel()
  */
 window.testMossStoneLevel = function() {
-  console.log("🏛️ Testing Moss & Stone Level");
-  console.log("==============================");
+  logNormal("🏛️ Testing Moss & Stone Level");
+  logNormal("==============================");
   
   // Check if custom levels module is loaded
   if (typeof createMossStoneColumnLevel === 'undefined') {
@@ -19,7 +19,7 @@ window.testMossStoneLevel = function() {
     return;
   }
   
-  console.log("✅ Custom levels module loaded");
+  logNormal("✅ Custom levels module loaded");
   
   // Check if MapManager is available
   if (typeof mapManager === 'undefined') {
@@ -27,10 +27,10 @@ window.testMossStoneLevel = function() {
     return;
   }
   
-  console.log("✅ MapManager available");
+  logNormal("✅ MapManager available");
   
   // Load the moss/stone level
-  console.log("📦 Creating moss/stone level...");
+  logNormal("📦 Creating moss/stone level...");
   const success = loadMossStoneLevel();
   
   if (!success) {
@@ -38,7 +38,7 @@ window.testMossStoneLevel = function() {
     return;
   }
   
-  console.log("✅ Moss/stone level created and registered as 'mossStone'");
+  logNormal("✅ Moss/stone level created and registered as 'mossStone'");
   
   // Verify the level is registered
   const mossStoneMap = mapManager.getMap('mossStone');
@@ -47,11 +47,11 @@ window.testMossStoneLevel = function() {
     return;
   }
   
-  console.log("✅ Level found in MapManager");
+  logNormal("✅ Level found in MapManager");
   
   // Check a few tiles to verify pattern
-  console.log("");
-  console.log("🔍 Checking tile pattern:");
+  logNormal("");
+  logNormal("🔍 Checking tile pattern:");
   
   // Sample some tiles at different X positions
   for (let x = 0; x < 10; x++) {
@@ -61,19 +61,19 @@ window.testMossStoneLevel = function() {
       const expectedMaterial = (x % 2 === 0) ? 'moss_0' : 'stone';
       const match = material === expectedMaterial ? '✅' : '❌';
       
-      console.log(`  Column ${x}: ${material} (expected: ${expectedMaterial}) ${match}`);
+      logNormal(`  Column ${x}: ${material} (expected: ${expectedMaterial}) ${match}`);
     }
   }
   
-  console.log("");
-  console.log("✅ Moss & Stone Level Test Complete!");
-  console.log("");
-  console.log("💡 Next steps:");
-  console.log("   1. Click 'Moss & Stone Level' button on main menu");
-  console.log("   2. Spawn some ants");
-  console.log("   3. Watch them move between moss (🟫 30%) and stone (🪨 80%) columns");
-  console.log("   4. Use testTerrainIndicators() to cycle through terrain types");
-  console.log("   5. Use showAllTerrainEffects() to see all indicators at once");
+  logNormal("");
+  logNormal("✅ Moss & Stone Level Test Complete!");
+  logNormal("");
+  logNormal("💡 Next steps:");
+  logNormal("   1. Click 'Moss & Stone Level' button on main menu");
+  logNormal("   2. Spawn some ants");
+  logNormal("   3. Watch them move between moss (🟫 30%) and stone (🪨 80%) columns");
+  logNormal("   4. Use testTerrainIndicators() to cycle through terrain types");
+  logNormal("   5. Use showAllTerrainEffects() to see all indicators at once");
 };
 
 /**
@@ -82,24 +82,24 @@ window.testMossStoneLevel = function() {
  * Usage: verifyTerrainMappings()
  */
 window.verifyTerrainMappings = function() {
-  console.log("🗺️ Verifying Terrain Mappings");
-  console.log("==============================");
+  logNormal("🗺️ Verifying Terrain Mappings");
+  logNormal("==============================");
   
   // Check if we have ants to test with
   const ants = spatialGridManager?.getEntitiesByType('Ant');
   
   if (!ants || ants.length === 0) {
     console.warn("⚠️ No ants found. Spawn ants to test terrain detection.");
-    console.log("💡 Testing with mock data instead...");
+    logNormal("💡 Testing with mock data instead...");
     
     // Mock test
-    console.log("");
-    console.log("Expected mappings:");
-    console.log("  moss_0 → IN_MUD (🟫 30% speed)");
-    console.log("  moss_1 → IN_MUD (🟫 30% speed)");
-    console.log("  stone  → ON_ROUGH (🪨 80% speed)");
-    console.log("  grass  → DEFAULT (no indicator, 100% speed)");
-    console.log("  dirt   → DEFAULT (no indicator, 100% speed)");
+    logNormal("");
+    logNormal("Expected mappings:");
+    logNormal("  moss_0 → IN_MUD (🟫 30% speed)");
+    logNormal("  moss_1 → IN_MUD (🟫 30% speed)");
+    logNormal("  stone  → ON_ROUGH (🪨 80% speed)");
+    logNormal("  grass  → DEFAULT (no indicator, 100% speed)");
+    logNormal("  dirt   → DEFAULT (no indicator, 100% speed)");
     
     return;
   }
@@ -112,8 +112,8 @@ window.verifyTerrainMappings = function() {
     return;
   }
   
-  console.log(`Testing with ant at (${Math.round(ant.x)}, ${Math.round(ant.y)})`);
-  console.log("");
+  logNormal(`Testing with ant at (${Math.round(ant.x)}, ${Math.round(ant.y)})`);
+  logNormal("");
   
   // Get current tile
   const tile = g_activeMap.getTileAtPosition(ant.x, ant.y);
@@ -125,9 +125,9 @@ window.verifyTerrainMappings = function() {
   const material = tile._materialSet || tile.material || 'unknown';
   const terrainType = ant._stateMachine?.terrainModifier || 'UNKNOWN';
   
-  console.log(`📍 Current position:`);
-  console.log(`   Material: ${material}`);
-  console.log(`   Terrain Type: ${terrainType}`);
+  logNormal(`📍 Current position:`);
+  logNormal(`   Material: ${material}`);
+  logNormal(`   Terrain Type: ${terrainType}`);
   
   // Expected mappings
   const expectedMappings = {
@@ -141,17 +141,17 @@ window.verifyTerrainMappings = function() {
   const expected = expectedMappings[material] || 'UNKNOWN';
   const match = terrainType === expected ? '✅' : '❌';
   
-  console.log(`   Expected: ${expected}`);
-  console.log(`   Match: ${match}`);
+  logNormal(`   Expected: ${expected}`);
+  logNormal(`   Match: ${match}`);
   
-  console.log("");
-  console.log("📊 All expected mappings:");
+  logNormal("");
+  logNormal("📊 All expected mappings:");
   for (const [mat, terrain] of Object.entries(expectedMappings)) {
-    console.log(`   ${mat} → ${terrain}`);
+    logNormal(`   ${mat} → ${terrain}`);
   }
   
-  console.log("");
-  console.log("💡 Move ants around to test different terrain types!");
+  logNormal("");
+  logNormal("💡 Move ants around to test different terrain types!");
 };
 
 /**
@@ -160,8 +160,8 @@ window.verifyTerrainMappings = function() {
  * Usage: testLevelSwitching()
  */
 window.testLevelSwitching = function() {
-  console.log("🔄 Testing Level Switching");
-  console.log("==========================");
+  logNormal("🔄 Testing Level Switching");
+  logNormal("==========================");
   
   if (typeof mapManager === 'undefined') {
     console.error("❌ MapManager not available!");
@@ -169,20 +169,20 @@ window.testLevelSwitching = function() {
   }
   
   // List all available maps
-  console.log("📋 Available maps:");
+  logNormal("📋 Available maps:");
   const maps = mapManager._maps;
   for (const [id, map] of maps.entries()) {
     const isActive = (mapManager.getActiveMap() === map) ? '🟢' : '⚪';
-    console.log(`   ${isActive} ${id}`);
+    logNormal(`   ${isActive} ${id}`);
   }
   
-  console.log("");
-  console.log("💡 Switch levels with:");
-  console.log("   switchToLevel('level1')    - Normal level");
-  console.log("   switchToLevel('mossStone') - Moss & stone columns");
+  logNormal("");
+  logNormal("💡 Switch levels with:");
+  logNormal("   switchToLevel('level1')    - Normal level");
+  logNormal("   switchToLevel('mossStone') - Moss & stone columns");
   
-  console.log("");
-  console.log("🎮 Or use the menu button: 'Moss & Stone Level'");
+  logNormal("");
+  logNormal("🎮 Or use the menu button: 'Moss & Stone Level'");
 };
 
 /**
@@ -191,46 +191,46 @@ window.testLevelSwitching = function() {
  * Usage: fullMossStoneTest()
  */
 window.fullMossStoneTest = function() {
-  console.log("🧪 Full Moss & Stone Level Test Suite");
-  console.log("=====================================");
-  console.log("");
+  logNormal("🧪 Full Moss & Stone Level Test Suite");
+  logNormal("=====================================");
+  logNormal("");
   
   // Test 1: Level creation
-  console.log("Test 1: Level Creation");
+  logNormal("Test 1: Level Creation");
   testMossStoneLevel();
   
-  console.log("");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("");
+  logNormal("");
+  logNormal("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  logNormal("");
   
   // Test 2: Terrain mappings
-  console.log("Test 2: Terrain Mappings");
+  logNormal("Test 2: Terrain Mappings");
   verifyTerrainMappings();
   
-  console.log("");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("");
+  logNormal("");
+  logNormal("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  logNormal("");
   
   // Test 3: Level switching
-  console.log("Test 3: Level Switching");
+  logNormal("Test 3: Level Switching");
   testLevelSwitching();
   
-  console.log("");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("");
+  logNormal("");
+  logNormal("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  logNormal("");
   
-  console.log("✅ All tests complete!");
-  console.log("");
-  console.log("🎮 Ready to play!");
-  console.log("   1. Return to menu (ESC or game state change)");
-  console.log("   2. Click 'Moss & Stone Level' button");
-  console.log("   3. Spawn ants and watch them navigate the terrain");
+  logNormal("✅ All tests complete!");
+  logNormal("");
+  logNormal("🎮 Ready to play!");
+  logNormal("   1. Return to menu (ESC or game state change)");
+  logNormal("   2. Click 'Moss & Stone Level' button");
+  logNormal("   3. Spawn ants and watch them navigate the terrain");
 };
 
 // Auto-register on load
-console.log("🏛️ Moss & Stone Level Test Suite Loaded");
-console.log("Available commands:");
-console.log("  - testMossStoneLevel() - Test level creation");
-console.log("  - verifyTerrainMappings() - Verify terrain detection");
-console.log("  - testLevelSwitching() - Test map switching");
-console.log("  - fullMossStoneTest() - Run all tests");
+logNormal("🏛️ Moss & Stone Level Test Suite Loaded");
+logNormal("Available commands:");
+logNormal("  - testMossStoneLevel() - Test level creation");
+logNormal("  - verifyTerrainMappings() - Verify terrain detection");
+logNormal("  - testLevelSwitching() - Test map switching");
+logNormal("  - fullMossStoneTest() - Run all tests");

@@ -11,6 +11,9 @@
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
     
+    <!-- Verbose Logger - MUST load first so logNormal is available everywhere -->
+    <script src="debug/verboseLogger.js"></script>
+    
     <script src="Classes/managers/soundManager.js"></script>
 
         <!-- Type Checks -->
@@ -30,6 +33,10 @@
     <script src="Classes/controllers/RenderController.js"></script>
     <script src="Classes/rendering/EntityAccessor.js"></script>
     <script src="Classes/rendering/Sprite2d.js"></script>
+    
+    <!-- Cache System - Load Before UI Components -->
+    <script src="Classes/rendering/CacheManager.js"></script>
+    <script src="Classes/rendering/caches/FullBufferCache.js"></script>
     
     <!-- Base Systems - Load Second -->
     <script src="Classes/systems/SpatialGrid.js"></script>
@@ -136,8 +143,12 @@
     <script src="Classes/ants/antBrain.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
     <script src="Classes/ants/Queen.js"></script>
+    <script src="Classes/managers/EventManager.js"></script>
+    <script src="Classes/events/EventTrigger.js"></script>
+    <script src="Classes/events/Event.js"></script>
+    <script src="Classes/systems/dialogue/DialogueDemo.js"></script>
     <script src="debug/commandLine.js"></script>
-    <script src="debug/verboseLogger.js"></script>
+    <script src="debug/EventDebugManager.js"></script>
     <script src="debug/globalTestRunner.js"></script>
     <script src="debug/testing.js"></script>
     <script src="Classes/systems/Nature.js"></script>
@@ -149,11 +160,38 @@
     <script src="Classes/terrainUtils/coordinateSystem.js"></script>
     <script src="Classes/terrainUtils/grid.js"></script>
     <script src="Classes/terrainUtils/gridTerrain.js"></script>
+    <script src="Classes/terrainUtils/CustomTerrain.js"></script>
     <script src="Classes/terrainUtils/terrianGen.js"></script>
     <script src="Classes/terrainUtils/customLevels.js"></script>
     
     <!-- Map Management -->
     <script src="Classes/managers/MapManager.js"></script>
+    
+    <!-- Terrain Editing System -->
+    <script src="Classes/terrainUtils/TerrainEditor.js"></script>
+    <script src="Classes/terrainUtils/TerrainExporter.js"></script>
+    <script src="Classes/terrainUtils/TerrainImporter.js"></script>
+    <script src="Classes/ui/MaterialPalette.js"></script>
+    <script src="Classes/ui/ToolBar.js"></script>
+    <script src="Classes/ui/BrushSizeControl.js"></script>
+    <script src="Classes/ui/MiniMap.js"></script>
+    <script src="Classes/ui/PropertiesPanel.js"></script>
+    <script src="Classes/ui/GridOverlay.js"></script>
+    <script src="Classes/ui/NotificationManager.js"></script>
+    <script src="Classes/ui/ConfirmationDialog.js"></script>
+    <script src="Classes/ui/SaveDialog.js"></script>
+    <script src="Classes/ui/LoadDialog.js"></script>
+    <script src="Classes/ui/LocalStorageManager.js"></script>
+    <script src="Classes/ui/AutoSave.js"></script>
+    <script src="Classes/ui/ServerIntegration.js"></script>
+    <script src="Classes/ui/FormatConverter.js"></script>
+    <script src="Classes/ui/FileMenuBar.js"></script>
+    <script src="Classes/ui/menuBar/BrushSizeMenuModule.js"></script>
+    <script src="Classes/ui/SelectionManager.js"></script>
+    <script src="Classes/ui/HoverPreviewManager.js"></script>
+    <script src="Classes/systems/ui/EventEditorPanel.js"></script>
+    <script src="Classes/systems/ui/LevelEditor.js"></script>
+    <script src="Classes/systems/ui/LevelEditorPanels.js"></script>
     
     <script src="debug/test_helpers.js"></script>
     <script src="debug/terrainSystemTests.js"></script>
@@ -165,6 +203,7 @@
     <script src="debug/mossStoneTest.js"></script>
     <script src="debug/coordinateSystemTest.js"></script>
     <script src="debug/terrainGridDebug.js"></script>
+    <script src="debug/test_getOrCreatePanel.js"></script>
   </head>
 
   <body>

@@ -85,7 +85,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal('ResourceSystemManager: Initialized with spawn interval:', spawnInterval, 'max capacity:', maxCapacity);
     } else {
-      console.log('ResourceSystemManager: Initialized with spawn interval:', spawnInterval, 'max capacity:', maxCapacity);
+      logNormal('ResourceSystemManager: Initialized with spawn interval:', spawnInterval, 'max capacity:', maxCapacity);
     }
 
     // Initialize the system
@@ -182,7 +182,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal(`ResourceSystemManager: Cleared ${removedResources.length} resources`);
     } else {
-      console.log(`ResourceSystemManager: Cleared ${removedResources.length} resources`);
+      logNormal(`ResourceSystemManager: Cleared ${removedResources.length} resources`);
     }
     
     return removedResources;
@@ -225,7 +225,7 @@ class ResourceSystemManager {
       if (typeof globalThis.logNormal === 'function') {
         globalThis.logNormal('ResourceSystemManager: Started spawning resources');
       } else {
-        console.log('ResourceSystemManager: Started spawning resources');
+        logNormal('ResourceSystemManager: Started spawning resources');
       }
     }
   }
@@ -244,7 +244,7 @@ class ResourceSystemManager {
       if (typeof globalThis.logNormal === 'function') {
         globalThis.logNormal('ResourceSystemManager: Stopped spawning resources');
       } else {
-        console.log('ResourceSystemManager: Stopped spawning resources');
+        logNormal('ResourceSystemManager: Stopped spawning resources');
       }
     }
   }
@@ -303,7 +303,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose(`ResourceSystemManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
     } else {
-      console.log(`ResourceSystemManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
+      logNormal(`ResourceSystemManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
     }
     
     // Notify resources of selection change if they support it
@@ -334,7 +334,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose(`ResourceSystemManager: Cleared resource selection (was: ${previousSelection})`);
     } else {
-      console.log(`ResourceSystemManager: Cleared resource selection (was: ${previousSelection})`);
+      logNormal(`ResourceSystemManager: Cleared resource selection (was: ${previousSelection})`);
     }
     
     // Clear selection from all resources
@@ -407,7 +407,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose(`ResourceSystemManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
     } else {
-      console.log(`ResourceSystemManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
+      logNormal(`ResourceSystemManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
     }
   }
 
@@ -467,7 +467,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal(`ResourceSystemManager: Registering resource type '${resourceType}'`, resourceConfig);
     } else {
-      console.log(`ResourceSystemManager: Registering resource type '${resourceType}'`, resourceConfig);
+      logNormal(`ResourceSystemManager: Registering resource type '${resourceType}'`, resourceConfig);
     }
 
     // 1. Load and cache the image
@@ -571,7 +571,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal(`ResourceSystemManager: Successfully registered resource type '${resourceType}'`);
     } else {
-      console.log(`ResourceSystemManager: Successfully registered resource type '${resourceType}'`);
+      logNormal(`ResourceSystemManager: Successfully registered resource type '${resourceType}'`);
     }
   }
 
@@ -580,11 +580,11 @@ class ResourceSystemManager {
    */
   spawnDeferredResources() {
     if (!this._deferredSpawns || this._deferredSpawns.length === 0) {
-      console.log('ResourceSystemManager: No deferred spawns to process');
+      logNormal('ResourceSystemManager: No deferred spawns to process');
       return;
     }
 
-    console.log(`ResourceSystemManager: Spawning ${this._deferredSpawns.length} deferred resource types`);
+    logNormal(`ResourceSystemManager: Spawning ${this._deferredSpawns.length} deferred resource types`);
     
     for (const { resourceType, config } of this._deferredSpawns) {
       this._spawnResourcesAtStartup(resourceType, config);
@@ -623,7 +623,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal(`ResourceSystemManager: Spawned ${spawnedCount}/${spawnCount} ${resourceType} resources at startup`);
     } else {
-      console.log(`ResourceSystemManager: Spawned ${spawnedCount}/${spawnCount} ${resourceType} resources at startup`);
+      logNormal(`ResourceSystemManager: Spawned ${spawnedCount}/${spawnCount} ${resourceType} resources at startup`);
     }
   }
 
@@ -854,7 +854,7 @@ class ResourceSystemManager {
     if (typeof globalThis.logNormal === 'function') {
       globalThis.logNormal('ResourceSystemManager: Destroyed');
     } else {
-      console.log('ResourceSystemManager: Destroyed');
+      logNormal('ResourceSystemManager: Destroyed');
     }
   }
 }

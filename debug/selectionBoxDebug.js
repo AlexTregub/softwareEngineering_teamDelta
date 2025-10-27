@@ -4,107 +4,107 @@
  */
 
 function debugSelectionBox() {
-  console.log('🔍 SELECTION BOX DIAGNOSTIC REPORT');
-  console.log('=====================================\n');
+  logNormal('🔍 SELECTION BOX DIAGNOSTIC REPORT');
+  logNormal('=====================================\n');
 
   // Check basic components
-  console.log('📦 COMPONENT AVAILABILITY:');
-  console.log('UISelectionController class:', typeof UISelectionController !== 'undefined' ? '✅' : '❌');
-  console.log('EffectsLayerRenderer class:', typeof EffectsLayerRenderer !== 'undefined' ? '✅' : '❌');
-  console.log('MouseInputController class:', typeof MouseInputController !== 'undefined' ? '✅' : '❌');
-  console.log('window.EffectsRenderer instance:', typeof window.EffectsRenderer !== 'undefined' ? '✅' : '❌');
-  console.log('g_uiSelectionController instance:', typeof g_uiSelectionController !== 'undefined' ? '✅' : '❌');
-  console.log('g_mouseController instance:', typeof g_mouseController !== 'undefined' ? '✅' : '❌');
-  console.log('');
+  logNormal('📦 COMPONENT AVAILABILITY:');
+  logNormal('UISelectionController class:', typeof UISelectionController !== 'undefined' ? '✅' : '❌');
+  logNormal('EffectsLayerRenderer class:', typeof EffectsLayerRenderer !== 'undefined' ? '✅' : '❌');
+  logNormal('MouseInputController class:', typeof MouseInputController !== 'undefined' ? '✅' : '❌');
+  logNormal('window.EffectsRenderer instance:', typeof window.EffectsRenderer !== 'undefined' ? '✅' : '❌');
+  logNormal('g_uiSelectionController instance:', typeof g_uiSelectionController !== 'undefined' ? '✅' : '❌');
+  logNormal('g_mouseController instance:', typeof g_mouseController !== 'undefined' ? '✅' : '❌');
+  logNormal('');
 
   // Check RenderLayerManager
-  console.log('🎨 RENDER SYSTEM:');
-  console.log('RenderManager class:', typeof RenderManager !== 'undefined' ? '✅' : '❌');
-  console.log('RenderManager initialized:', (RenderManager && RenderManager.isInitialized) ? '✅' : '❌');
+  logNormal('🎨 RENDER SYSTEM:');
+  logNormal('RenderManager class:', typeof RenderManager !== 'undefined' ? '✅' : '❌');
+  logNormal('RenderManager initialized:', (RenderManager && RenderManager.isInitialized) ? '✅' : '❌');
   
   if (RenderManager && RenderManager.layerRenderers) {
-    console.log('Effects layer registered:', RenderManager.layerRenderers.has('effects') ? '✅' : '❌');
-    console.log('Disabled layers:', Array.from(RenderManager.disabledLayers || []));
+    logNormal('Effects layer registered:', RenderManager.layerRenderers.has('effects') ? '✅' : '❌');
+    logNormal('Disabled layers:', Array.from(RenderManager.disabledLayers || []));
   }
-  console.log('');
+  logNormal('');
 
   // Check EffectsRenderer details
   if (typeof window.EffectsRenderer !== 'undefined') {
-    console.log('🎯 EFFECTS RENDERER:');
-    console.log('Selection box methods available:');
-    console.log('  startSelectionBox:', typeof window.EffectsRenderer.startSelectionBox === 'function' ? '✅' : '❌');
-    console.log('  updateSelectionBox:', typeof window.EffectsRenderer.updateSelectionBox === 'function' ? '✅' : '❌');
-    console.log('  endSelectionBox:', typeof window.EffectsRenderer.endSelectionBox === 'function' ? '✅' : '❌');
-    console.log('  renderSelectionBox:', typeof window.EffectsRenderer.renderSelectionBox === 'function' ? '✅' : '❌');
+    logNormal('🎯 EFFECTS RENDERER:');
+    logNormal('Selection box methods available:');
+    logNormal('  startSelectionBox:', typeof window.EffectsRenderer.startSelectionBox === 'function' ? '✅' : '❌');
+    logNormal('  updateSelectionBox:', typeof window.EffectsRenderer.updateSelectionBox === 'function' ? '✅' : '❌');
+    logNormal('  endSelectionBox:', typeof window.EffectsRenderer.endSelectionBox === 'function' ? '✅' : '❌');
+    logNormal('  renderSelectionBox:', typeof window.EffectsRenderer.renderSelectionBox === 'function' ? '✅' : '❌');
     
-    console.log('Selection box state:', window.EffectsRenderer.selectionBox);
-    console.log('');
+    logNormal('Selection box state:', window.EffectsRenderer.selectionBox);
+    logNormal('');
   }
 
   // Check UISelectionController details
   if (g_uiSelectionController) {
-    console.log('🎛️ UI SELECTION CONTROLLER:');
+    logNormal('🎛️ UI SELECTION CONTROLLER:');
     const debugInfo = g_uiSelectionController.getDebugInfo();
-    console.log('Debug info:', debugInfo);
-    console.log('');
+    logNormal('Debug info:', debugInfo);
+    logNormal('');
   }
 
   // Check mouse controller
   if (g_mouseController) {
-    console.log('🖱️ MOUSE CONTROLLER:');
-    console.log('Click handlers:', g_mouseController.clickHandlers?.length || 0);
-    console.log('Drag handlers:', g_mouseController.dragHandlers?.length || 0);
-    console.log('Release handlers:', g_mouseController.releaseHandlers?.length || 0);
-    console.log('');
+    logNormal('🖱️ MOUSE CONTROLLER:');
+    logNormal('Click handlers:', g_mouseController.clickHandlers?.length || 0);
+    logNormal('Drag handlers:', g_mouseController.dragHandlers?.length || 0);
+    logNormal('Release handlers:', g_mouseController.releaseHandlers?.length || 0);
+    logNormal('');
   }
 
   // Check integration functions
-  console.log('🔗 INTEGRATION:');
-  console.log('initializeUISelectionBox:', typeof initializeUISelectionBox === 'function' ? '✅' : '❌');
-  console.log('updateUISelectionEntities:', typeof updateUISelectionEntities === 'function' ? '✅' : '❌');
-  console.log('getUISelectionDebugInfo:', typeof getUISelectionDebugInfo === 'function' ? '✅' : '❌');
-  console.log('');
+  logNormal('🔗 INTEGRATION:');
+  logNormal('initializeUISelectionBox:', typeof initializeUISelectionBox === 'function' ? '✅' : '❌');
+  logNormal('updateUISelectionEntities:', typeof updateUISelectionEntities === 'function' ? '✅' : '❌');
+  logNormal('getUISelectionDebugInfo:', typeof getUISelectionDebugInfo === 'function' ? '✅' : '❌');
+  logNormal('');
 
   // Check ant system
-  console.log('🐜 ANT SYSTEM:');
-  console.log('ants array available:', typeof ants !== 'undefined' ? '✅' : '❌');
-  console.log('ants count:', (ants && Array.isArray(ants)) ? ants.length : 'N/A');
-  console.log('');
+  logNormal('🐜 ANT SYSTEM:');
+  logNormal('ants array available:', typeof ants !== 'undefined' ? '✅' : '❌');
+  logNormal('ants count:', (ants && Array.isArray(ants)) ? ants.length : 'N/A');
+  logNormal('');
 
   // Provide suggestions
-  console.log('💡 SUGGESTIONS:');
+  logNormal('💡 SUGGESTIONS:');
   
   if (typeof g_uiSelectionController === 'undefined') {
-    console.log('❌ UISelectionController not initialized. Try refreshing the page.');
+    logNormal('❌ UISelectionController not initialized. Try refreshing the page.');
   }
   
   if (typeof window.EffectsRenderer === 'undefined') {
-    console.log('❌ EffectsRenderer not available. Check if RenderManager.initialize() was called.');
+    logNormal('❌ EffectsRenderer not available. Check if RenderManager.initialize() was called.');
   }
   
   if (typeof RenderManager !== 'undefined' && RenderManager.disabledLayers && RenderManager.disabledLayers.has('effects')) {
-    console.log('❌ Effects layer is disabled. Enable it with: RenderManager.toggleLayer("effects")');
+    logNormal('❌ Effects layer is disabled. Enable it with: RenderManager.toggleLayer("effects")');
   }
 
-  console.log('\n📋 QUICK TESTS:');
-  console.log('Run these commands to test:');
-  console.log('1. testSelectionBoxVisual() - Interactive visual test');
-  console.log('2. manualTestSelection() - Force create selection box');
-  console.log('3. RenderManager.toggleLayer("effects") - Toggle effects layer');
+  logNormal('\n📋 QUICK TESTS:');
+  logNormal('Run these commands to test:');
+  logNormal('1. testSelectionBoxVisual() - Interactive visual test');
+  logNormal('2. manualTestSelection() - Force create selection box');
+  logNormal('3. RenderManager.toggleLayer("effects") - Toggle effects layer');
   
   return 'Diagnostic complete! Check the output above.';
 }
 
 function manualTestSelection() {
-  console.log('🧪 Manual Selection Test');
+  logNormal('🧪 Manual Selection Test');
   
   if (typeof window.EffectsRenderer === 'undefined') {
-    console.log('❌ EffectsRenderer not available');
+    logNormal('❌ EffectsRenderer not available');
     return;
   }
 
   // Force create a selection box
-  console.log('📍 Creating test selection box...');
+  logNormal('📍 Creating test selection box...');
   window.EffectsRenderer.startSelectionBox(100, 100, {
     color: [255, 0, 0], // Red for testing
     strokeWidth: 3,
@@ -113,42 +113,42 @@ function manualTestSelection() {
   
   window.EffectsRenderer.updateSelectionBox(200, 200);
   
-  console.log('✅ Test selection box created (should be visible as red box)');
-  console.log('Selection box state:', window.EffectsRenderer.selectionBox);
+  logNormal('✅ Test selection box created (should be visible as red box)');
+  logNormal('Selection box state:', window.EffectsRenderer.selectionBox);
   
   // End it after 3 seconds
   setTimeout(() => {
     window.EffectsRenderer.endSelectionBox();
-    console.log('🔚 Test selection box ended');
+    logNormal('🔚 Test selection box ended');
   }, 3000);
 }
 
 function forceInitializeSelection() {
-  console.log('🔄 Force initializing selection system...');
+  logNormal('🔄 Force initializing selection system...');
   
   if (typeof UISelectionController !== 'undefined' && typeof window.EffectsRenderer !== 'undefined' && typeof g_mouseController !== 'undefined') {
     // Force create the controller
     window.g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
-    console.log('✅ UISelectionController force-created');
+    logNormal('✅ UISelectionController force-created');
     
     // Initialize the integration
     if (typeof initializeUISelectionBox === 'function') {
       initializeUISelectionBox();
-      console.log('✅ Selection box integration initialized');
+      logNormal('✅ Selection box integration initialized');
     }
     
     return true;
   } else {
-    console.log('❌ Required components not available for force initialization');
+    logNormal('❌ Required components not available for force initialization');
     return false;
   }
 }
 
 function quickSelectionTest() {
-  console.log('⚡ Quick Selection Test');
-  console.log('1. Click and drag on the canvas');
-  console.log('2. Watch the console for selection events');
-  console.log('3. Look for a cyan selection box');
+  logNormal('⚡ Quick Selection Test');
+  logNormal('1. Click and drag on the canvas');
+  logNormal('2. Watch the console for selection events');
+  logNormal('3. Look for a cyan selection box');
   
   // Enable debug logging for selection events
   if (g_uiSelectionController) {
@@ -156,28 +156,28 @@ function quickSelectionTest() {
     
     g_uiSelectionController.setCallbacks({
       onSelectionStart: (x, y) => {
-        console.log(`🎯 Selection started at (${x}, ${y})`);
+        logNormal(`🎯 Selection started at (${x}, ${y})`);
       },
       onSelectionUpdate: (bounds, entities) => {
-        console.log(`🔄 Selection updated: ${entities.length} entities`);
+        logNormal(`🔄 Selection updated: ${entities.length} entities`);
       },
       onSelectionEnd: (bounds, entities) => {
-        console.log(`✅ Selection ended: ${entities.length} entities selected`);
+        logNormal(`✅ Selection ended: ${entities.length} entities selected`);
       },
       onSingleClick: (x, y, button, entity) => {
-        console.log(`👆 Single click at (${x}, ${y}), entity: ${entity ? 'Yes' : 'No'}`);
+        logNormal(`👆 Single click at (${x}, ${y}), entity: ${entity ? 'Yes' : 'No'}`);
       }
     });
     
-    console.log('✅ Debug callbacks enabled');
+    logNormal('✅ Debug callbacks enabled');
     
     // Restore original callbacks after 30 seconds
     setTimeout(() => {
       g_uiSelectionController.setCallbacks(originalCallbacks);
-      console.log('🔄 Debug callbacks restored');
+      logNormal('🔄 Debug callbacks restored');
     }, 30000);
   } else {
-    console.log('❌ UISelectionController not available');
+    logNormal('❌ UISelectionController not available');
   }
 }
 
@@ -204,12 +204,12 @@ if (typeof window !== 'undefined') {
         globalThis.logQuiet('- forceInitializeSelection() - Force initialize system');
         globalThis.logQuiet('- quickSelectionTest() - Enable debug logging');
       } else {
-        console.log('🛠️ Selection box debug tools loaded!');
-        console.log('Available commands:');
-        console.log('- debugSelectionBox() - Full diagnostic');
-        console.log('- manualTestSelection() - Force create selection box');
-        console.log('- forceInitializeSelection() - Force initialize system');
-        console.log('- quickSelectionTest() - Enable debug logging');
+        logNormal('🛠️ Selection box debug tools loaded!');
+        logNormal('Available commands:');
+        logNormal('- debugSelectionBox() - Full diagnostic');
+        logNormal('- manualTestSelection() - Force create selection box');
+        logNormal('- forceInitializeSelection() - Force initialize system');
+        logNormal('- quickSelectionTest() - Enable debug logging');
       }
     }
   })();

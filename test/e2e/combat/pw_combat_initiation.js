@@ -90,7 +90,11 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
 
     // Force combat deterministically using testHelpers if available, otherwise fall back to polling AI
     let combatDetected = null;
-    if (await page.evaluate(() => !!(window.testHelpers && typeof window.testHelpers.forceCombat === 'function'))) {
+    const hasTestHelpers = await page.evaluate(() => !!(window.testHelpers && typeof window.testHelpers.forceCombat === 'function'));
+    
+    if (process.env.TEST_VERBOSE) console.log('Has testHelpers.forceCombat:', hasTestHelpers);
+    
+    if (hasTestHelpers) {
       // Force combat
       await page.evaluate((pair) => {
         try {
@@ -99,63 +103,79 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
       }, pair);
 
       // Immediately verify combat flags were set. Try module-scoped `ants` first, then window.ants.
-      combatDetected = await page.evaluate((pair) => {
-        try {
-          function lookup(i) {
-            // Try module-scoped ants
+      try {
+        combatDetected = await Promise.race([
+          page.evaluate((pair) => {
             try {
-              if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-                // find by _antIndex/antIndex
-                const found = ants.find(a => a && (a._antIndex === i || a.antIndex === i));
-                if (found) return found;
-                // allow numeric index fallback
-                if (Number.isInteger(i) && i >= 0 && i < ants.length) return ants[i];
+              function lookup(i) {
+                // Try module-scoped ants
+                try {
+                  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+                    // find by _antIndex/antIndex
+                    const found = ants.find(a => a && (a._antIndex === i || a.antIndex === i));
+                    if (found) return found;
+                    // allow numeric index fallback
+                    if (Number.isInteger(i) && i >= 0 && i < ants.length) return ants[i];
+                  }
+                } catch (e) { /* ignore */ }
+                // Try window.ants
+                try {
+                  if (typeof window !== 'undefined' && window.ants && Array.isArray(window.ants)) {
+                    const found2 = window.ants.find(a => a && (a._antIndex === i || a.antIndex === i));
+                    if (found2) return found2;
+                    if (Number.isInteger(i) && i >= 0 && i < window.ants.length) return window.ants[i];
+                  }
+                } catch (e) { /* ignore */ }
+                return null;
               }
-            } catch (e) { /* ignore */ }
-            // Try window.ants
-            try {
-              if (typeof window !== 'undefined' && window.ants && Array.isArray(window.ants)) {
-                const found2 = window.ants.find(a => a && (a._antIndex === i || a.antIndex === i));
-                if (found2) return found2;
-                if (Number.isInteger(i) && i >= 0 && i < window.ants.length) return window.ants[i];
-              }
-            } catch (e) { /* ignore */ }
-            return null;
-          }
 
-          const a1 = lookup(pair.idx1);
-          const a2 = lookup(pair.idx2);
-          if (!a1 || !a2) {
-            // provide diagnostic details
-            const info = { moduleAntsLength: (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : null, windowAntsLength: (window.ants && Array.isArray(window.ants)) ? window.ants.length : null };
-            return { error: 'ants-not-found', info };
-          }
-          const inCombat1 = !!(a1.isInCombat || (a1._stateMachine && typeof a1._stateMachine.getCombatModifier === 'function' && a1._stateMachine.getCombatModifier() !== 'DEFAULT') || a1.target);
-          const inCombat2 = !!(a2.isInCombat || (a2._stateMachine && typeof a2._stateMachine.getCombatModifier === 'function' && a2._stateMachine.getCombatModifier() !== 'DEFAULT') || a2.target);
-          // also include a debug snapshot of the two ants
-          const snap = { a1Index: pair.idx1, a2Index: pair.idx2, a1_hasIsInCombat: !!a1.isInCombat, a2_hasIsInCombat: !!a2.isInCombat };
-          return { inCombat1, inCombat2, snap };
-        } catch (e) { return { error: '' + e }; }
-      }, pair);
+              const a1 = lookup(pair.idx1);
+              const a2 = lookup(pair.idx2);
+              if (!a1 || !a2) {
+                // provide diagnostic details
+                const info = { moduleAntsLength: (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : null, windowAntsLength: (window.ants && Array.isArray(window.ants)) ? window.ants.length : null };
+                return { error: 'ants-not-found', info };
+              }
+              const inCombat1 = !!(a1.isInCombat || (a1._stateMachine && typeof a1._stateMachine.getCombatModifier === 'function' && a1._stateMachine.getCombatModifier() !== 'DEFAULT') || a1.target);
+              const inCombat2 = !!(a2.isInCombat || (a2._stateMachine && typeof a2._stateMachine.getCombatModifier === 'function' && a2._stateMachine.getCombatModifier() !== 'DEFAULT') || a2.target);
+              // also include a debug snapshot of the two ants
+              const snap = { a1Index: pair.idx1, a2Index: pair.idx2, a1_hasIsInCombat: !!a1.isInCombat, a2_hasIsInCombat: !!a2.isInCombat };
+              return { inCombat1, inCombat2, snap };
+            } catch (e) { return { error: '' + e }; }
+          }, pair),
+          new Promise((resolve) => setTimeout(() => resolve({ timedOut: true, reason: 'combat-verification-timeout' }), 5000))
+        ]);
+      } catch (e) {
+        console.error('Error checking combat status:', e);
+        combatDetected = { error: 'evaluation-failed: ' + e.message };
+      }
     } else {
-      // Fallback: wait/poll for AI-driven combat
-      combatDetected = await page.evaluate(async (pair) => {
-        try {
-          const maxMs = 3000; const start = Date.now();
-          while (Date.now() - start < maxMs) {
-            await new Promise(r => setTimeout(r, 100));
-            // lookup ants by index
-            const a1 = (window.ants || []).find(a => (a._antIndex === pair.idx1 || a.antIndex === pair.idx1)) || (Array.isArray(window.ants) ? window.ants[pair.idx1] : null);
-            const a2 = (window.ants || []).find(a => (a._antIndex === pair.idx2 || a.antIndex === pair.idx2)) || (Array.isArray(window.ants) ? window.ants[pair.idx2] : null);
-            if (!a1 || !a2) continue;
-            // check common combat indicators: inCombat flag, _stateMachine combat modifier, or target set
-            const inCombat1 = !!(a1.isInCombat || (a1._stateMachine && typeof a1._stateMachine.getCombatModifier === 'function' && a1._stateMachine.getCombatModifier() !== 'DEFAULT') || a1.target);
-            const inCombat2 = !!(a2.isInCombat || (a2._stateMachine && typeof a2._stateMachine.getCombatModifier === 'function' && a2._stateMachine.getCombatModifier() !== 'DEFAULT') || a2.target);
-            if (inCombat1 || inCombat2) return { inCombat1, inCombat2 };
-          }
-          return { timedOut: true };
-        } catch (e) { return { error: '' + e }; }
-      }, pair);
+      // Fallback: wait/poll for AI-driven combat with timeout
+      try {
+        combatDetected = await Promise.race([
+          page.evaluate(async (pair) => {
+            try {
+              const maxMs = 3000; const start = Date.now();
+              while (Date.now() - start < maxMs) {
+                await new Promise(r => setTimeout(r, 100));
+                // lookup ants by index
+                const a1 = (window.ants || []).find(a => (a._antIndex === pair.idx1 || a.antIndex === pair.idx1)) || (Array.isArray(window.ants) ? window.ants[pair.idx1] : null);
+                const a2 = (window.ants || []).find(a => (a._antIndex === pair.idx2 || a.antIndex === pair.idx2)) || (Array.isArray(window.ants) ? window.ants[pair.idx2] : null);
+                if (!a1 || !a2) continue;
+                // check common combat indicators: inCombat flag, _stateMachine combat modifier, or target set
+                const inCombat1 = !!(a1.isInCombat || (a1._stateMachine && typeof a1._stateMachine.getCombatModifier === 'function' && a1._stateMachine.getCombatModifier() !== 'DEFAULT') || a1.target);
+                const inCombat2 = !!(a2.isInCombat || (a2._stateMachine && typeof a2._stateMachine.getCombatModifier === 'function' && a2._stateMachine.getCombatModifier() !== 'DEFAULT') || a2.target);
+                if (inCombat1 || inCombat2) return { inCombat1, inCombat2 };
+              }
+              return { timedOut: true };
+            } catch (e) { return { error: '' + e }; }
+          }, pair),
+          new Promise((resolve) => setTimeout(() => resolve({ timedOut: true, reason: 'ai-polling-timeout' }), 10000))
+        ]);
+      } catch (e) {
+        console.error('Error polling for combat:', e);
+        combatDetected = { error: 'polling-failed: ' + e.message };
+      }
     }
 
     if (process.env.TEST_VERBOSE) console.log('Combat detection result:', combatDetected);

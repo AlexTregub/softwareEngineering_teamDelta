@@ -154,19 +154,19 @@ class AntBrain{
         logVerbose(`my belly is bellying`);
         //Checks hunger meter every second
         if(this.hunger === HUNGRY){
-            console.log('hungry')
+            logNormal('hungry')
             this.flag_ = "hungry";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === STARVING){
-            console.log(`starving`);
+            logNormal(`starving`);
             this.flag_ = "starving";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === DEATH){
-            console.log(`dead`);
+            logNormal(`dead`);
             this.flag_ = "death";
             this.runFlagState();
             //this.killAnt();//Need to make this
@@ -199,7 +199,7 @@ class AntBrain{
             //this.penalizedTrails = []; Move this reset somewhere else
             break;
         }
-        console.log(`
+        logNormal(`
                 ${this.flag_}:
                 Build: ${this.followBuildTrail}
                 Forage: ${this.followForageTrail}

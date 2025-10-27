@@ -249,7 +249,7 @@ class SpatialGridManager {
    * Get count of all entities
    * @returns {number} Total entity count
    * @example
-   * console.log(`Total entities: ${spatialGridManager.getEntityCount()}`);
+   * logNormal(`Total entities: ${spatialGridManager.getEntityCount()}`);
    */
   getEntityCount() {
     return this._allEntities.length;
@@ -260,7 +260,7 @@ class SpatialGridManager {
    * @param {string} type - Entity type
    * @returns {number} Count of entities of this type
    * @example
-   * console.log(`Ants: ${spatialGridManager.getEntityCountByType('Ant')}`);
+   * logNormal(`Ants: ${spatialGridManager.getEntityCountByType('Ant')}`);
    */
   getEntityCountByType(type) {
     const entities = this._entitiesByType.get(type);
@@ -321,7 +321,7 @@ class SpatialGridManager {
    * @returns {Object} Statistics object
    * @example
    * const stats = spatialGridManager.getStats();
-   * console.log('Manager stats:', stats);
+   * logNormal('Manager stats:', stats);
    */
   getStats() {
     const gridStats = this._grid.getStats();
@@ -372,7 +372,7 @@ if (typeof window !== 'undefined') {
   window.queryNearbyEntities = function(x, y, radius) {
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
       const results = spatialGridManager.getNearbyEntities(x, y, radius);
-      console.log(`Found ${results.length} entities within ${radius}px of (${x}, ${y})`);
+      logNormal(`Found ${results.length} entities within ${radius}px of (${x}, ${y})`);
       console.table(results.map(e => ({
         id: e.id,
         type: e.type,
@@ -381,7 +381,7 @@ if (typeof window !== 'undefined') {
       })));
       return results;
     } else {
-      console.log('SpatialGridManager not available');
+      logNormal('SpatialGridManager not available');
       return [];
     }
   };
@@ -396,7 +396,7 @@ if (typeof window !== 'undefined') {
   window.queryNearbyAnts = function(x, y, radius) {
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
       const results = spatialGridManager.getNearbyEntities(x, y, radius, { type: 'Ant' });
-      console.log(`Found ${results.length} ants within ${radius}px of (${x}, ${y})`);
+      logNormal(`Found ${results.length} ants within ${radius}px of (${x}, ${y})`);
       console.table(results.map(e => ({
         id: e.id,
         x: e.getX().toFixed(1),
@@ -404,7 +404,7 @@ if (typeof window !== 'undefined') {
       })));
       return results;
     } else {
-      console.log('SpatialGridManager not available');
+      logNormal('SpatialGridManager not available');
       return [];
     }
   };
@@ -417,7 +417,7 @@ if (typeof window !== 'undefined') {
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager && typeof mouseX !== 'undefined') {
       const nearest = spatialGridManager.findNearestEntity(mouseX, mouseY, maxRadius);
       if (nearest) {
-        console.log('Nearest entity:', {
+        logNormal('Nearest entity:', {
           id: nearest.id,
           type: nearest.type,
           x: nearest.getX().toFixed(1),
@@ -425,11 +425,11 @@ if (typeof window !== 'undefined') {
           distance: dist(mouseX, mouseY, nearest.getX(), nearest.getY()).toFixed(1)
         });
       } else {
-        console.log(`No entities within ${maxRadius}px of mouse`);
+        logNormal(`No entities within ${maxRadius}px of mouse`);
       }
       return nearest;
     } else {
-      console.log('SpatialGridManager or mouse position not available');
+      logNormal('SpatialGridManager or mouse position not available');
       return null;
     }
   };

@@ -4,7 +4,7 @@
 //Rewards/currency system for completing tasks
 //tasks has to be completed by the player controlling the ants
 
-console.log("loading tasks.js");
+logNormal("loading tasks.js");
 class Task {
   constructor(ID, description, requiredResources = {}) {
     this.ID = ID; //unique identifier for the task

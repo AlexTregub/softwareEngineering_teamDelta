@@ -889,7 +889,7 @@ class PerformanceMonitor {
             this.memoryTracking.peak = this.memoryTracking.baseline;
         }
 
-        console.log('Performance monitor reset');
+        logNormal('Performance monitor reset');
     }
 
     /**

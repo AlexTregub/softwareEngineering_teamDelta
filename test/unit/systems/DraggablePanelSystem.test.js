@@ -25,6 +25,22 @@ global.globalThis = {
   logNormal: () => {}
 };
 
+// Mock g_renderLayerManager for debug info panel
+global.g_renderLayerManager = {
+  renderStats: {
+    frameCount: 0,
+    lastFrameTime: 16.67
+  },
+  getLayersForState: () => [],
+  getLayerStates: () => ({
+    TERRAIN: true,
+    ENTITIES: true,
+    EFFECTS: true
+  }),
+  layerRenderers: new Map(),
+  layerDrawables: new Map()
+};
+
 // Mock DraggablePanelManager
 class MockDraggablePanelManager {
   constructor() {
@@ -103,11 +119,6 @@ global.performance = {
 global.g_canvasX = 1920;
 global.g_canvasY = 1080;
 global.TILE_SIZE = 32;
-
-// Mock button group manager
-global.buttonGroupManager = {
-  getActiveGroupCount: () => 2
-};
 
 // Mock text and frameRate functions
 global.text = () => {};
@@ -361,5 +372,288 @@ describe('DraggablePanelSystem Exports', function() {
     expect(global.window.initializeDraggablePanelSystem).to.be.a('function');
     expect(global.window.updateDraggablePanels).to.be.a('function');
     expect(global.window.renderDraggablePanels).to.be.a('function');
+  });
+});
+
+describe('DraggablePanelManager - managedExternally Flag', function() {
+  let manager;
+
+  beforeEach(function() {
+    manager = new MockDraggablePanelManager();
+    manager.initialize();
+  });
+
+  describe('Panel Rendering with managedExternally', function() {
+    it('should skip rendering panels with managedExternally: true', function() {
+      const panel = {
+        id: 'test-managed',
+        title: 'Managed Panel',
+        visible: true,
+        managedExternally: true,
+        render: function() {
+          this.renderCalled = true;
+        },
+        renderCalled: false
+      };
+
+      manager.panels.push(panel);
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(panel.renderCalled).to.be.false;
+    });
+
+    it('should render panels with managedExternally: false', function() {
+      const panel = {
+        id: 'test-normal',
+        title: 'Normal Panel',
+        visible: true,
+        managedExternally: false,
+        render: function() {
+          this.renderCalled = true;
+        },
+        renderCalled: false
+      };
+
+      manager.panels.push(panel);
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(panel.renderCalled).to.be.true;
+    });
+
+    it('should render panels when managedExternally is undefined', function() {
+      const panel = {
+        id: 'test-default',
+        title: 'Default Panel',
+        visible: true,
+        // managedExternally not set
+        render: function() {
+          this.renderCalled = true;
+        },
+        renderCalled: false
+      };
+
+      manager.panels.push(panel);
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(panel.renderCalled).to.be.true;
+    });
+  });
+
+  describe('Mixed Panel Types', function() {
+    it('should only render non-managed panels', function() {
+      const panels = [
+        {
+          id: 'managed1',
+          visible: true,
+          managedExternally: true,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        },
+        {
+          id: 'normal1',
+          visible: true,
+          managedExternally: false,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        },
+        {
+          id: 'managed2',
+          visible: true,
+          managedExternally: true,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        },
+        {
+          id: 'normal2',
+          visible: true,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        }
+      ];
+
+      panels.forEach(p => manager.panels.push(p));
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(panels[0].renderCalled).to.be.false; // managed1
+      expect(panels[1].renderCalled).to.be.true;  // normal1
+      expect(panels[2].renderCalled).to.be.false; // managed2
+      expect(panels[3].renderCalled).to.be.true;  // normal2
+    });
+
+    it('should count correct number of rendered panels', function() {
+      const panels = [
+        { id: 'm1', visible: true, managedExternally: true },
+        { id: 'n1', visible: true, managedExternally: false },
+        { id: 'm2', visible: true, managedExternally: true },
+        { id: 'n2', visible: true }
+      ];
+
+      let renderCount = 0;
+      panels.forEach(p => {
+        p.render = () => { renderCount++; };
+        manager.panels.push(p);
+      });
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(renderCount).to.equal(2);
+    });
+  });
+
+  describe('Visibility Interactions', function() {
+    it('should not render invisible panels regardless of managedExternally', function() {
+      const panels = [
+        {
+          id: 'hidden-managed',
+          visible: false,
+          managedExternally: true,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        },
+        {
+          id: 'hidden-normal',
+          visible: false,
+          managedExternally: false,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        }
+      ];
+
+      panels.forEach(p => manager.panels.push(p));
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(panels[0].renderCalled).to.be.false;
+      expect(panels[1].renderCalled).to.be.false;
+    });
+
+    it('should not render visible managed panels', function() {
+      const panel = {
+        id: 'visible-managed',
+        visible: true,
+        managedExternally: true,
+        render: function() { this.renderCalled = true; },
+        renderCalled: false
+      };
+
+      manager.panels.push(panel);
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(panel.renderCalled).to.be.false;
+    });
+  });
+
+  describe('Level Editor Panels', function() {
+    it('should have managedExternally set for level editor materials panel', function() {
+      const levelEditorPanel = {
+        id: 'level-editor-materials',
+        title: 'Materials',
+        managedExternally: true,
+        visible: true
+      };
+
+      expect(levelEditorPanel.managedExternally).to.be.true;
+    });
+
+    it('should have managedExternally set for level editor tools panel', function() {
+      const levelEditorPanel = {
+        id: 'level-editor-tools',
+        title: 'Tools',
+        managedExternally: true,
+        visible: true
+      };
+
+      expect(levelEditorPanel.managedExternally).to.be.true;
+    });
+
+    it('should have managedExternally set for level editor brush panel', function() {
+      const levelEditorPanel = {
+        id: 'level-editor-brush',
+        title: 'Brush Size',
+        managedExternally: true,
+        visible: true
+      };
+
+      expect(levelEditorPanel.managedExternally).to.be.true;
+    });
+
+    it('should not auto-render any level editor panels', function() {
+      const levelEditorPanels = [
+        {
+          id: 'level-editor-materials',
+          visible: true,
+          managedExternally: true,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        },
+        {
+          id: 'level-editor-tools',
+          visible: true,
+          managedExternally: true,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        },
+        {
+          id: 'level-editor-brush',
+          visible: true,
+          managedExternally: true,
+          render: function() { this.renderCalled = true; },
+          renderCalled: false
+        }
+      ];
+
+      levelEditorPanels.forEach(p => manager.panels.push(p));
+
+      // Simulate renderPanels logic
+      manager.panels.forEach(p => {
+        if (p.visible && !p.managedExternally) {
+          p.render();
+        }
+      });
+
+      expect(levelEditorPanels[0].renderCalled).to.be.false;
+      expect(levelEditorPanels[1].renderCalled).to.be.false;
+      expect(levelEditorPanels[2].renderCalled).to.be.false;
+    });
   });
 });

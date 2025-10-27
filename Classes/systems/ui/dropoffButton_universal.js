@@ -26,7 +26,7 @@
 //   if (typeof globalThis.logNormal === 'function') {
 //     globalThis.logNormal('🔄 Initializing Dropoff UI (Universal Button System)');
 //   } else {
-//     console.log('🔄 Initializing Dropoff UI (Universal Button System)');
+//     logNormal('🔄 Initializing Dropoff UI (Universal Button System)');
 //   }
   
 //   // Check if Universal Button System is available
@@ -36,14 +36,14 @@
 //     if (typeof globalThis.logVerbose === 'function') {
 //       globalThis.logVerbose('✅ Dropoff UI integrated with Universal Button System');
 //     } else {
-//       console.log('✅ Dropoff UI integrated with Universal Button System');
+//       logNormal('✅ Dropoff UI integrated with Universal Button System');
 //     }
 //     dropoffUI.usingUniversalSystem = true;
 //   } else {
 //     if (typeof globalThis.logQuiet === 'function') {
 //       globalThis.logQuiet('⚠️ Universal Button System not available, using legacy fallback');
 //     } else {
-//       console.log('⚠️ Universal Button System not available, using legacy fallback');
+//       logNormal('⚠️ Universal Button System not available, using legacy fallback');
 //     }
 //     initLegacyDropoffUI();
 //     dropoffUI.usingUniversalSystem = false;
@@ -64,7 +64,7 @@
 //   dropoffUI.button = createMenuButton(0, 0, 140, 34, "Place Dropoff", 'default', () => {
 //     // toggle placing mode when clicked
 //     dropoffUI.placing = true;
-//     console.log("Place Dropoff: click a tile to place, press ESC to cancel.");
+//     logNormal("Place Dropoff: click a tile to place, press ESC to cancel.");
 //   });
   
 //   // Register with UI Debug System if available
@@ -92,10 +92,10 @@
 // function toggleDropoffPlacementMode() {
 //   dropoffUI.placing = !dropoffUI.placing;
 //   const status = dropoffUI.placing ? 'activated' : 'deactivated';
-//   console.log(`🏗️ Dropoff placement mode ${status}`);
+//   logNormal(`🏗️ Dropoff placement mode ${status}`);
   
 //   if (dropoffUI.placing) {
-//     console.log("Click a tile to place dropoff, press ESC to cancel.");
+//     logNormal("Click a tile to place dropoff, press ESC to cancel.");
 //   }
 // }
 
@@ -138,7 +138,7 @@
 //     // cancel with ESC
 //     if (keyIsDown && keyIsDown(27)) { 
 //       dropoffUI.placing = false; 
-//       console.log("Place Dropoff cancelled."); 
+//       logNormal("Place Dropoff cancelled."); 
 //     }
     
 //     // detect fresh click (mouse press edge)
@@ -161,7 +161,7 @@
 //           // ensure inventory controller available (DropoffLocation uses InventoryController if present)
 //           dropoffUI.dropoffs.push(d);
 //           if (typeof window.dropoffs === 'undefined') window.dropoffs = dropoffUI.dropoffs;
-//           console.log(`✅ Dropoff placed at tile (${gx}, ${gy})`);
+//           logNormal(`✅ Dropoff placed at tile (${gx}, ${gy})`);
 //         } catch (e) {
 //           console.error("Failed to create DropoffLocation:", e);
 //         } finally {
@@ -241,7 +241,7 @@
 //  */
 // function cancelDropoffPlacement() {
 //   dropoffUI.placing = false;
-//   console.log("🚫 Dropoff placement cancelled");
+//   logNormal("🚫 Dropoff placement cancelled");
 // }
 
 // /**
@@ -262,7 +262,7 @@
 //       grid: options.grid || (typeof g_grid !== 'undefined' ? g_grid : null) 
 //     });
 //     dropoffUI.dropoffs.push(d);
-//     console.log(`✅ Dropoff added programmatically at (${x}, ${y})`);
+//     logNormal(`✅ Dropoff added programmatically at (${x}, ${y})`);
 //     return d;
 //   } catch (error) {
 //     console.error("Failed to add dropoff:", error);

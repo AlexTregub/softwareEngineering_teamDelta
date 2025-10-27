@@ -27,7 +27,8 @@ const TEST_CATEGORIES = {
     'selection-box.test.js'
   ],
   ui: [
-    'pw_panel_dragging.js'
+    'pw_panel_dragging.js',
+    'pw_draggable_panel_growth.js'
   ]
 };
 
@@ -57,8 +58,31 @@ function runTest(category, testFile) {
       cwd: process.cwd()
     });
 
+    let killed = false;
+    
+    // Set a 2-minute timeout per test to prevent hanging
+    const timeout = setTimeout(() => {
+      if (!killed) {
+        log(`${colors.yellow}⚠️  Test timeout (2 min), terminating: ${category}/${testFile}${colors.reset}`);
+        killed = true;
+        child.kill('SIGTERM');
+        // Force kill after 5 seconds
+        setTimeout(() => {
+          try {
+            child.kill('SIGKILL');
+          } catch (e) {
+            // Already dead
+          }
+        }, 5000);
+      }
+    }, 120000); // 2 minutes
+
     child.on('close', (code) => {
-      if (code === 0) {
+      clearTimeout(timeout);
+      if (killed) {
+        log(`${colors.red}✗ TIMEOUT: ${category}/${testFile}${colors.reset}`);
+        resolve({ category, testFile, passed: false, code: -2, timeout: true });
+      } else if (code === 0) {
         log(`${colors.green}✓ PASS: ${category}/${testFile}${colors.reset}`);
         resolve({ category, testFile, passed: true, code });
       } else {
@@ -68,6 +92,7 @@ function runTest(category, testFile) {
     });
 
     child.on('error', (err) => {
+      clearTimeout(timeout);
       log(`${colors.red}✗ ERROR: ${category}/${testFile} - ${err.message}${colors.reset}`);
       resolve({ category, testFile, passed: false, error: err.message });
     });

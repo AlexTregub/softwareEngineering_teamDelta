@@ -70,7 +70,7 @@ global.g_gameStateManager = {
 };
 
 // Verbose logging helper used by manager
-global.verboseLog = function() { /* no-op for tests */ };
+global.logVerbose = function() { /* no-op for tests */ };
 
 // Also provide a global logVerbose for RenderManager registration path
 global.logVerbose = function(msg) { /* no-op */ };
