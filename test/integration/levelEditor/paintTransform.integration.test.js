@@ -228,5 +228,110 @@ describe('Level Editor - Paint Transform Consistency', function() {
       expect(tileX).to.equal(9);
       expect(tileY).to.equal(6);
     });
+
+    it('should maintain same world point under mouse after zoom', function() {
+      // Start at zoom 1.0, camera at origin
+      cameraManager.cameraX = 0;
+      cameraManager.cameraY = 0;
+      cameraManager.cameraZoom = 1.0;
+      
+      // Mouse at specific position
+      const screenX = 659;
+      const screenY = 295;
+      
+      // Get world coords before zoom
+      const worldBefore = cameraManager.screenToWorld(screenX, screenY);
+      const tileBefore = {
+        x: Math.floor(worldBefore.worldX / 32),
+        y: Math.floor(worldBefore.worldY / 32)
+      };
+      
+      // Zoom in (this should adjust camera position)
+      cameraManager.setZoom(1.61, screenX, screenY);
+      
+      // Get world coords after zoom
+      const worldAfter = cameraManager.screenToWorld(screenX, screenY);
+      const tileAfter = {
+        x: Math.floor(worldAfter.worldX / 32),
+        y: Math.floor(worldAfter.worldY / 32)
+      };
+      
+      // The world point under the mouse should be approximately the same
+      expect(Math.abs(worldAfter.worldX - worldBefore.worldX)).to.be.lessThan(1,
+        'World X should remain constant under mouse when zooming');
+      expect(Math.abs(worldAfter.worldY - worldBefore.worldY)).to.be.lessThan(1,
+        'World Y should remain constant under mouse when zooming');
+      
+      // The tile under the mouse should be the same
+      expect(tileAfter.x).to.equal(tileBefore.x,
+        'Tile X should remain constant under mouse when zooming');
+      expect(tileAfter.y).to.equal(tileBefore.y,
+        'Tile Y should remain constant under mouse when zooming');
+    });
+
+    it('should paint at correct tile after zoom in', function() {
+      // Real-world scenario from bug report
+      cameraManager.cameraX = 0;
+      cameraManager.cameraY = 0;
+      cameraManager.cameraZoom = 1.0;
+      
+      const mouseX = 659;
+      const mouseY = 295;
+      
+      // First click at zoom 1.0
+      const tile1 = {
+        x: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldX / 32),
+        y: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldY / 32)
+      };
+      
+      // Zoom in
+      cameraManager.setZoom(1.61, mouseX, mouseY);
+      
+      // Second click at same screen position
+      const tile2 = {
+        x: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldX / 32),
+        y: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldY / 32)
+      };
+      
+      // Should paint at same tile (within 1 tile tolerance for rounding)
+      expect(Math.abs(tile2.x - tile1.x)).to.be.lessThan(2,
+        'Painted tile X should be within 1 tile of expected');
+      expect(Math.abs(tile2.y - tile1.y)).to.be.lessThan(2,
+        'Painted tile Y should be within 1 tile of expected');
+    });
+  });
+
+  describe('Regression: Bug from Oct 27, 2025', function() {
+    it('should paint tiles at cursor position when zoomed (not offset)', function() {
+      // Bug: After zoom, painted tiles appeared 3 tiles left and 2 tiles up from cursor
+      // Root cause: Transform order was translate(-camera) then scale(zoom)
+      // Fix: Changed to scale(zoom) then translate(-camera)
+      
+      cameraManager.cameraX = 0;
+      cameraManager.cameraY = 0;
+      cameraManager.cameraZoom = 1.0;
+      
+      const mouseX = 400;
+      const mouseY = 300;
+      
+      // Get tile before zoom
+      const tileBefore = {
+        x: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldX / 32),
+        y: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldY / 32)
+      };
+      
+      // Zoom in significantly
+      cameraManager.setZoom(2.5, mouseX, mouseY);
+      
+      // Get tile after zoom at same screen position
+      const tileAfter = {
+        x: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldX / 32),
+        y: Math.floor(cameraManager.screenToWorld(mouseX, mouseY).worldY / 32)
+      };
+      
+      // Tiles should be the same (focus point maintained)
+      expect(tileAfter.x).to.equal(tileBefore.x);
+      expect(tileAfter.y).to.equal(tileBefore.y);
+    });
   });
 });

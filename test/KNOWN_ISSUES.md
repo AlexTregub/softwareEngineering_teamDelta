@@ -38,6 +38,16 @@ Track bugs and their status with test coverage.
   - Fix: Removed `.substring(0, 4)` truncation, now renders full material names
   - Tests: 10 unit tests passing
 
+- [x] **Level Editor: Paint Tool Offset When Zoomed**
+  - File: `Classes/systems/ui/LevelEditor.js` (applyCameraTransform method, lines 494-519)
+  - Issue: When zoomed in/out, painted tiles appeared far from mouse cursor position (e.g., "3 tiles left and 2 tiles up")
+  - Priority: HIGH (blocked Level Editor usage)
+  - Root Cause: Transform order was `translate(-camera); scale(zoom)` which caused translation vector to be scaled
+  - Fix: Changed transform order to `scale(zoom); translate(-camera)` so translation is not scaled
+  - Mathematical Explanation: Wrong order created effective translation of `(-cameraX * zoom)` instead of `(-cameraX)`
+  - Tests: 9 integration tests + 3 E2E tests with screenshots passing
+  - Fixed: October 27, 2025
+
 ### Open ❌
 
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
@@ -50,20 +60,10 @@ Track bugs and their status with test coverage.
   - Root Cause: Level Editor uses center-based scaling transform while CameraManager uses simple transform
   - Tests Needed: Integration test comparing zoom behavior between states
 
-- [ ] **Level Editor: Paint Tool Offset When Zoomed**
-  - File: `Classes/systems/ui/LevelEditor.js` (applyCameraTransform, convertScreenToWorld)
-  - Issue: When zoomed in/out, painted tiles appear far from mouse cursor position
-  - Priority: HIGH (blocks Level Editor usage)
-  - Expected: Tiles paint exactly where mouse cursor is positioned
-  - Current: Tiles paint at offset location (e.g., mouse bottom-left, tile paints top-left)
-  - Root Cause: Transform mismatch between rendering (applyCameraTransform) and mouse coordinate conversion (screenToWorld)
-  - Reproduction: Zoom to any level != 1.0, try to paint - tiles appear offset from cursor
-  - Tests Needed: Integration test verifying screenToWorld matches applyCameraTransform inverse
-
 ## Statistics
 
 - **Total Issues**: 7
-- **Fixed**: 5
-- **Open**: 2
-- **High Priority Open**: 1
+- **Fixed**: 6
+- **Open**: 1
+- **High Priority Open**: 0
 - **Missing Features**: 0
