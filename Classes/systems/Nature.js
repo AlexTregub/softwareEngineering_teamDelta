@@ -57,7 +57,7 @@ class GlobalTime{
             this.weatherSeconds = 0;
             console.log(`Weather ended`);
         }
-        //console.log(`Day: ${this.inGameDays} Seconds: ${this.inGameSeconds} Time: ${this.timeOfDay}`); //Testing
+        console.log(`Day: ${this.inGameDays} Seconds: ${this.inGameSeconds} Time: ${this.timeOfDay}`); //Testing
     }
     transition(currentTime){
         switch(currentTime){
