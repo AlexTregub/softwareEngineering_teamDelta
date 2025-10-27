@@ -327,7 +327,7 @@ class MovementController {
 
     if (!ant?.brain || !ant.brain.travelledTiles) return;
 
-    const node = grid.get([20,50]);
+    const node = grid.get([20,50]); //doing this can actually skip ants over terrain (of course). Useful for expedited travel, like moving all ants to boss fight area
 
     // Wander or track depending on ant state
     const nextNode = wander(grid, node, ant.brain.travelledTiles, ant, ant.brain.movementState || "idle");
