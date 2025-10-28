@@ -49,6 +49,11 @@ class LevelEditor {
     
     this.terrain = terrain;
     
+    // BUGFIX: Set g_activeMap for Level Editor terrain
+    if (typeof window !== 'undefined') {
+      window.g_activeMap = terrain;
+    }
+    
     // Create terrain editor
     this.editor = new TerrainEditor(terrain);
     

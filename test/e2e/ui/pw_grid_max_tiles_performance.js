@@ -1,8 +1,11 @@
 /**
- * E2E Test: Grid Performance with Maximum Painted Tiles
+ * E2E Test: Grid Performance with Maximum Painted Tiles (Edge-Only Rendering)
  * 
- * Tests grid overlay performance when the entire visible area is painted.
- * Measures frame rate and identifies performance bottlenecks.
+ * Tests edge-only grid overlay performance when the entire visible area is painted.
+ * Verifies that grid only appears at edge tiles (not interior) + mouse hover.
+ * Measures frame rate improvement from edge detection optimization.
+ * 
+ * Phase: 2B of Lazy Terrain Loading Enhancement
  */
 
 const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
@@ -32,26 +35,43 @@ const cameraHelper = require('../camera_helper');
     });
     console.log(`Baseline frame rate (no tiles): ${baselineFrameRate} fps`);
     
-    // Paint maximum tiles in visible area
+    // Paint all tiles in visible area
     const paintResult = await page.evaluate(() => {
-      // Access terrain editor
-      const terrainEditor = window.terrainEditorPanel?.terrainEditor;
-      if (!terrainEditor) {
-        return { success: false, error: 'TerrainEditor not found' };
+      // Check required classes are available
+      if (typeof TerrainEditor === 'undefined') {
+        return { success: false, error: 'TerrainEditor class not loaded' };
       }
       
-      // Get visible region from camera
+      // Get terrain from g_activeMap (set by Level Editor)
+      const terrain = window.g_activeMap;
+      if (!terrain) {
+        return { success: false, error: 'Terrain (g_activeMap) not found - Level Editor may not have initialized' };
+      }
+      
+      // Create TerrainEditor instance for painting
+      const terrainEditor = new TerrainEditor(terrain);
+      
+      // Get visible region from camera (or use fallback for Level Editor)
       const cam = window.cameraManager;
-      if (!cam) {
-        return { success: false, error: 'CameraManager not found' };
+      let screenMinX, screenMaxX, screenMinY, screenMaxY;
+      
+      if (cam) {
+        // Calculate using camera transform
+        screenMinX = cam.position.x - (window.width / 2) / cam.zoom;
+        screenMaxX = cam.position.x + (window.width / 2) / cam.zoom;
+        screenMinY = cam.position.y - (window.height / 2) / cam.zoom;
+        screenMaxY = cam.position.y + (window.height / 2) / cam.zoom;
+      } else {
+        // Fallback for Level Editor without camera manager
+        // Assume camera at origin with zoom 1
+        screenMinX = -(window.width / 2);
+        screenMaxX = (window.width / 2);
+        screenMinY = -(window.height / 2);
+        screenMaxY = (window.height / 2);
       }
       
       // Calculate visible tile range
       const tileSize = 32;
-      const screenMinX = cam.position.x - (window.width / 2) / cam.zoom;
-      const screenMaxX = cam.position.x + (window.width / 2) / cam.zoom;
-      const screenMinY = cam.position.y - (window.height / 2) / cam.zoom;
-      const screenMaxY = cam.position.y + (window.height / 2) / cam.zoom;
       
       const minTileX = Math.floor(screenMinX / tileSize);
       const maxTileX = Math.floor(screenMaxX / tileSize);
@@ -140,11 +160,42 @@ const cameraHelper = require('../camera_helper');
     console.log(`  Max: ${measurements.max} fps`);
     console.log(`  Samples: ${measurements.samples.join(', ')}`);
     
-    // Get cache statistics
+    // Get cache statistics and edge detection info
     const cacheStats = await page.evaluate(() => {
       if (!window.dynamicGridOverlay || !window.dynamicGridOverlay._gridCache) {
         return null;
       }
+      
+      // Count edge tiles vs total tiles
+      const terrain = window.dynamicGridOverlay.terrain;
+      const paintedTiles = Array.from(terrain.getAllTiles());
+      const paintedSet = new Set(paintedTiles.map(t => `${t.x},${t.y}`));
+      
+      // Manually count edge tiles using the same logic as _isEdgeTile
+      let edgeCount = 0;
+      for (const tile of paintedTiles) {
+        const neighbors = [
+          [tile.x, tile.y - 1], // North
+          [tile.x, tile.y + 1], // South
+          [tile.x + 1, tile.y], // East
+          [tile.x - 1, tile.y]  // West
+        ];
+        
+        let hasEmptyNeighbor = false;
+        for (const [nx, ny] of neighbors) {
+          if (!paintedSet.has(`${nx},${ny}`)) {
+            hasEmptyNeighbor = true;
+            break;
+          }
+        }
+        
+        if (hasEmptyNeighbor) {
+          edgeCount++;
+        }
+      }
+      
+      const interiorCount = paintedTiles.length - edgeCount;
+      const edgePercentage = Math.round((edgeCount / paintedTiles.length) * 100);
       
       return {
         hasCacheKey: window.dynamicGridOverlay._gridCache.cacheKey !== null,
@@ -156,7 +207,11 @@ const cameraHelper = require('../camera_helper');
           0,
         currentLinesCount: window.dynamicGridOverlay.gridLines ? 
           window.dynamicGridOverlay.gridLines.length : 
-          0
+          0,
+        totalTiles: paintedTiles.length,
+        edgeTiles: edgeCount,
+        interiorTiles: interiorCount,
+        edgePercentage: edgePercentage
       };
     });
     
@@ -166,6 +221,12 @@ const cameraHelper = require('../camera_helper');
       console.log(`  Cached Lines: ${cacheStats.cachedLinesCount}`);
       console.log(`  Current Lines: ${cacheStats.currentLinesCount}`);
       console.log(`  Cache Key: ${cacheStats.cacheKeyPreview}`);
+      
+      console.log(`\nEdge Detection Analysis:`);
+      console.log(`  Total Tiles Painted: ${cacheStats.totalTiles}`);
+      console.log(`  Edge Tiles (rendered): ${cacheStats.edgeTiles} (${cacheStats.edgePercentage}%)`);
+      console.log(`  Interior Tiles (skipped): ${cacheStats.interiorTiles} (${100 - cacheStats.edgePercentage}%)`);
+      console.log(`  Performance Gain: ~${100 - cacheStats.edgePercentage}% fewer grid lines rendered`);
     }
     
     // Performance criteria

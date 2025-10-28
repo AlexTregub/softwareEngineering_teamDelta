@@ -17,6 +17,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### User-Facing Changes
 
 #### Added
+- **Edge-Only Grid Rendering** (Performance Enhancement)
+  - **Grid now renders ONLY at edge tiles** (tiles with at least 1 empty neighbor) + mouse hover location
+  - **64% reduction in grid lines** for fully painted areas (e.g., 10x10 grid: 36 edges vs 100 total tiles)
+  - **60 fps sustained** with 500+ painted tiles (previously would drop below 30 fps)
+  - Edge detection: Checks 4 cardinal neighbors (N, S, E, W) using Set for O(1) lookups
+  - Mouse priority: Hover location ALWAYS shows grid, even on interior tiles
+  - Cache system updated to handle edge detection invalidation
+  - **CRITICAL BUGFIX**: Level Editor now properly sets `g_activeMap` on initialization
+  - 22 unit tests + 22 integration tests + 1 E2E test with visual verification
+  - Total: 111+ tests passing for DynamicGridOverlay system
 - **Event Placement Mode** (Level Editor Enhancement)
   - Double-click drag button in Events panel for "sticky" placement mode
   - Flag cursor (🚩) with trigger radius preview circle

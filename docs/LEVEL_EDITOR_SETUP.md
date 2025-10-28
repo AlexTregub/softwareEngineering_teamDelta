@@ -44,7 +44,8 @@ The `LevelEditor` class manages:
    - `BrushSizeControl.js` - Brush size slider
    - `MiniMap.js` - Mini-map overview
    - `PropertiesPanel.js` - Terrain properties display
-   - `GridOverlay.js` - Grid visualization
+   - `GridOverlay.js` - Grid visualization (legacy)
+   - `DynamicGridOverlay.js` - **Edge-only grid rendering** (performance optimized)
    - `NotificationManager.js` - User notifications
 
 3. **File I/O**:
