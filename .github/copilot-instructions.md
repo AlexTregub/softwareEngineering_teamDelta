@@ -794,6 +794,80 @@ Migration instructions with code examples
 
 **CHANGELOG.md and KNOWN_ISSUES.md are independent** - no cross-references needed.
 
+### API Reference Documentation
+
+**Standard format** for all API reference docs (based on Godot Engine documentation):
+
+**Required sections**:
+1. **Header**: Class name, Inherits line, File path, brief description
+2. **Description**: Comprehensive overview, key concepts, integration notes
+3. **Tutorials**: Links to related guides/roadmaps
+4. **Properties Table**: Expanded format with backticks
+5. **Methods Table**: Expanded format with backticks
+6. **Enumerations**: Constants and their values (if applicable)
+7. **Property Descriptions**: Detailed explanations
+8. **Method Descriptions**: Anchor links, type hints, code examples
+9. **Best Practices**: Usage guidelines (if applicable)
+10. **Common Workflows**: Practical multi-step examples
+11. **Notes**: Important facts
+12. **Related Docs**: Links at bottom
+
+**Properties Table Format** (Option C - Expanded with backticks):
+```markdown
+## Properties
+
+| Type     | Property       | Default         | Description                              |
+|----------|----------------|-----------------|------------------------------------------|
+| `Map`    | `events`       | `new Map()`     | Registered events by ID                  |
+| `Array`  | `activeEvents` | `[]`            | Currently active events                  |
+| `bool`   | `_enabled`     | `true`          | Whether processing is enabled            |
+```
+
+**Methods Table Format** (Expanded with backticks):
+```markdown
+## Methods
+
+| Returns        | Method                                                                                    |
+|----------------|-------------------------------------------------------------------------------------------|
+| `void`         | registerEvent ( eventConfig: `Object` )                                                  |
+| `bool`         | triggerEvent ( eventId: `String`, customData: `Object` = null )                         |
+| `Object`       | getEvent ( eventId: `String` ) const                                                     |
+| `EventManager` | getInstance ( ) static                                                                   |
+```
+
+**Method Description Format**:
+```markdown
+### <span id="methodname"></span>ReturnType **methodName** ( param1: Type, param2: Type = default )
+
+Brief description of what the method does.
+
+[Code example showing usage]
+
+**Parameters:**
+- `param1` (Type, **required**): Description
+- `param2` (Type, optional): Description (default: value)
+
+Returns ReturnType. Additional return details.
+
+**Note:** Important usage notes or warnings.
+
+---
+```
+
+**Key formatting rules**:
+- ✅ Use backticks around all types (`String`, `Object`, `Array`, `bool`, `int`, `Variant`)
+- ✅ Expanded table columns for readability
+- ✅ Anchor links for all methods (`<span id="methodname"></span>`)
+- ✅ Type hints in method signatures (param: `Type`)
+- ✅ Include `const` and `static` keywords where applicable
+- ✅ Code examples for every method
+- ✅ Common Workflows section with practical multi-step examples
+- ❌ NO scene tree references (we don't use scene trees)
+- ❌ NO table of contents (redundant with Methods table)
+- ❌ NO "Quick Reference" or "Complete Method Reference" sections (redundant)
+
+**Example API reference**: `docs/api/EventManager_API_Reference_NEW.md`
+
 ### Emoji Usage Policy
 
 **Use emojis ONLY for visual clarity** in documentation, NOT in code comments.
@@ -831,24 +905,25 @@ Migration instructions with code examples
 2. **USE CHECKLISTS** - Follow templates in `docs/checklists/templates/` for all features/bugs
 3. **CREATE ROADMAPS** - Document phases for features >8 hours work
 4. **UPDATE DOCS** - Modify existing docs, don't create new summaries
-5. **Script load order matters** - Rendering before Entity, Entity before controllers
-6. **System APIs only** - Never manual property injection in tests
-7. **Headless only** - `--headless=new` for all browser tests
-8. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
-9. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
-10. **E2E screenshots** - Visual proof required, not just internal state
-11. **Force redraw** - Call `window.redraw()` multiple times after state changes
-12. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
-13. **Controllers optional** - Check availability before delegation
-14. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
-15. **KNOWN_ISSUES timing** - Only add bugs AFTER feature fully implemented (post-integration/E2E)
-16. **Archive old fixes** - Move to KNOWN_ISSUES_ARCHIVE.md 2 weeks after fix
+5. **API REFERENCES** - Use expanded table format with backticks (see API Reference Documentation section)
+6. **Script load order matters** - Rendering before Entity, Entity before controllers
+7. **System APIs only** - Never manual property injection in tests
+8. **Headless only** - `--headless=new` for all browser tests
+9. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
+10. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
+11. **E2E screenshots** - Visual proof required, not just internal state
+12. **Force redraw** - Call `window.redraw()` multiple times after state changes
+13. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
+14. **Controllers optional** - Check availability before delegation
+15. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
+16. **KNOWN_ISSUES timing** - Only add bugs AFTER feature fully implemented (post-integration/E2E)
+17. **Archive old fixes** - Move to KNOWN_ISSUES_ARCHIVE.md 2 weeks after fix
 
 ## Quick Reference
 
 **Core APIs**:
 - **Entity API**: `Classes/containers/Entity.js`
-- **EventManager API**: `docs/api/EventManager_API_Reference.md`
+- **EventManager API**: `docs/api/EventManager_API_Reference_NEW.md`
 - **Rendering**: `docs/pipelines/RENDERING_PIPELINE.md`
 - **Spatial Grid**: `docs/quick-reference-spatial-grid.md`
 - **MapManager**: `docs/quick-reference-mapmanager.md`

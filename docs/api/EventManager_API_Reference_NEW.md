@@ -11,8 +11,6 @@ Singleton event coordination system for managing random events, dialogue, tutori
 
 The EventManager processes events based on priority (1 = highest priority, 10 = lowest). Higher priority events automatically pause lower priority events. Once a high-priority event completes, paused events resume automatically.
 
-**Scene tree:** The EventManager is initialized in `sketch.js` during setup and runs in the main game loop. Events are evaluated each frame via the update() method.
-
 **Flags:** Events can set flags (e.g., `event_tutorial_completed`) that persist and control trigger conditions. Flags are set automatically when events complete or manually via setFlag().
 
 **Triggers:** The EventManager supports five trigger types:
@@ -33,41 +31,41 @@ The EventManager processes events based on priority (1 = highest priority, 10 = 
 
 ## Properties
 
-| Type | Property | Default | Description |
-|------|----------|---------|-------------|
-| Map | events | `new Map()` | Registered events by ID |
-| Map | triggers | `new Map()` | Registered triggers by ID |
-| Array | activeEvents | `[]` | Currently active events |
-| Object | flags | `{}` | Event flags for conditions |
-| bool | _enabled | `true` | Whether event processing is enabled |
+| Type     | Property       | Default         | Description                              |
+|----------|----------------|-----------------|------------------------------------------|
+| `Map`    | `events`       | `new Map()`     | Registered events by ID                  |
+| `Map`    | `triggers`     | `new Map()`     | Registered triggers by ID                |
+| `Array`  | `activeEvents` | `[]`            | Currently active events                  |
+| `Object` | `flags`        | `{}`            | Event flags for conditions               |
+| `bool`   | `_enabled`     | `true`          | Whether event processing is enabled      |
 
 ## Methods
 
-| Returns | Method |
-|---------|--------|
-| void | [registerEvent](#registerevent) ( eventConfig: Object ) |
-| bool | [triggerEvent](#triggerevent) ( eventId: String, customData: Object = null ) |
-| bool | [completeEvent](#completeevent) ( eventId: String ) |
-| Object | [getEvent](#getevent) ( eventId: String ) const |
-| Array | [getAllEvents](#getallevents) ( ) const |
-| Array | [getEventsByType](#geteventsbytype) ( type: String ) const |
-| bool | [isEventActive](#iseventactive) ( eventId: String ) const |
-| Array | [getActiveEvents](#getactiveevents) ( sortByPriority: bool = false ) const |
-| Array | [getActiveEventsSorted](#getactiveeventssorted) ( ) const |
-| bool | [registerTrigger](#registertrigger) ( triggerConfig: Object ) |
-| void | [setFlag](#setflag) ( flagName: String, value: Variant ) |
-| Variant | [getFlag](#getflag) ( flagName: String, defaultValue: Variant = false ) const |
-| bool | [hasFlag](#hasflag) ( flagName: String ) const |
-| Object | [getAllFlags](#getallflags) ( ) const |
-| void | [clearFlags](#clearflags) ( ) |
-| Object | [loadFromJSON](#loadfromjson) ( json: String \| Object ) |
-| String | [exportToJSON](#exporttojson) ( includeActiveState: bool = false ) const |
-| void | [update](#update) ( ) |
-| void | [enable](#enable) ( ) |
-| void | [disable](#disable) ( ) |
-| void | [clearAllEvents](#clearallevents) ( ) |
-| void | [setEventDebugManager](#seteventdebugmanager) ( debugManager: EventDebugManager ) |
-| EventManager | [getInstance](#getinstance) ( ) static |
+| Returns        | Method                                                                                    |
+|----------------|-------------------------------------------------------------------------------------------|
+| `void`         | [registerEvent](#registerevent) ( eventConfig: `Object` )                                |
+| `bool`         | [triggerEvent](#triggerevent) ( eventId: `String`, customData: `Object` = null )         |
+| `bool`         | [completeEvent](#completeevent) ( eventId: `String` )                                    |
+| `Object`       | [getEvent](#getevent) ( eventId: `String` ) const                                        |
+| `Array`        | [getAllEvents](#getallevents) ( ) const                                                  |
+| `Array`        | [getEventsByType](#geteventsbytype) ( type: `String` ) const                             |
+| `bool`         | [isEventActive](#iseventactive) ( eventId: `String` ) const                              |
+| `Array`        | [getActiveEvents](#getactiveevents) ( sortByPriority: `bool` = false ) const             |
+| `Array`        | [getActiveEventsSorted](#getactiveeventssorted) ( ) const                                |
+| `bool`         | [registerTrigger](#registertrigger) ( triggerConfig: `Object` )                          |
+| `void`         | [setFlag](#setflag) ( flagName: `String`, value: `Variant` )                             |
+| `Variant`      | [getFlag](#getflag) ( flagName: `String`, defaultValue: `Variant` = false ) const        |
+| `bool`         | [hasFlag](#hasflag) ( flagName: `String` ) const                                         |
+| `Object`       | [getAllFlags](#getallflags) ( ) const                                                    |
+| `void`         | [clearFlags](#clearflags) ( )                                                            |
+| `Object`       | [loadFromJSON](#loadfromjson) ( json: `String` \| `Object` )                             |
+| `String`       | [exportToJSON](#exporttojson) ( includeActiveState: `bool` = false ) const               |
+| `void`         | [update](#update) ( )                                                                    |
+| `void`         | [enable](#enable) ( )                                                                    |
+| `void`         | [disable](#disable) ( )                                                                  |
+| `void`         | [clearAllEvents](#clearallevents) ( )                                                    |
+| `void`         | [setEventDebugManager](#seteventdebugmanager) ( debugManager: `EventDebugManager` )      |
+| `EventManager` | [getInstance](#getinstance) ( ) static                                                   |
 
 ## Enumerations
 
