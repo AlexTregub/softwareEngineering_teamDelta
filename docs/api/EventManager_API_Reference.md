@@ -1,6 +1,6 @@
 # EventManager API Reference
 
-**Version**: 1.0.0  
+**Version**: 0.0.1
 **File**: `Classes/managers/EventManager.js`  
 **Pattern**: Singleton  
 **Global Access**: `window.eventManager`
