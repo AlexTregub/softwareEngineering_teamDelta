@@ -95,7 +95,58 @@ Track bugs and their status with test coverage.
   - Tests: 9 unit tests passing
   - Fixed: October 27, 2025
 
+- [x] **Level Editor: Events Panel Toggle Bug**
+  - Files: 
+    - `Classes/systems/ui/LevelEditorPanels.js` (toggleEventsPanel, line 383-407)
+    - `Classes/systems/ui/DraggablePanelManager.js` (renderPanels, line 1043-1060)
+    - `Classes/systems/ui/DraggablePanel.js` (constructor, line 67)
+  - Issue: Events panel toggles on then immediately off when clicking Events button (🚩)
+  - Priority: HIGH (blocked Event Editor usage)
+  - Root Causes (TDD process revealed TWO bugs):
+    1. **DraggablePanel defaults to visible**: `visible: config.visible !== false` → all panels start visible
+    2. **renderPanels() enforces stateVisibility**: Runs 60fps, hides panels not in `stateVisibility.LEVEL_EDITOR`
+       - `toggleEventsPanel()` toggled `panel.visible` but didn't update stateVisibility array
+       - Result: Panel toggles ON → next frame renderPanels() hides it
+  - Fix:
+    1. Added `visible: false` to Events/Properties panel configs
+    2. Updated `toggleEventsPanel()` to sync with stateVisibility:
+       - Toggle ON: `panel.show()` + add to array
+       - Toggle OFF: `panel.hide()` + remove from array
+  - Tests: 6/6 passing
+    - `pw_events_panel_toggle_comprehensive.js` (3 tests)
+    - `pw_events_panel_toggle_multiple.js` (3 tests)
+  - Fixed: January 2025
+
+- [x] **Level Editor: EventEditorPanel Render Parameters Missing**
+  - Files:
+    - `Classes/systems/ui/LevelEditorPanels.js` (render method, line 352-360)
+    - `Classes/systems/ui/EventEditorPanel.js` (render signature, line 89)
+  - Issue: Events panel shows only text, drag-to-place functionality broken
+  - Priority: HIGH (blocked Event Editor drag functionality)
+  - Root Cause: 
+    - `EventEditorPanel.render()` expects 4 parameters: `(x, y, width, height)`
+    - `LevelEditorPanels.render()` only passed 2: `(contentArea.x, contentArea.y)`
+    - Missing width/height broke layout calculations and drag button positioning
+  - Fix:
+    - Updated render callback to pass all 4 parameters from contentArea object
+    - Changed: `render(contentArea.x, contentArea.y)` 
+    - To: `render(contentArea.x, contentArea.y, contentArea.width, contentArea.height)`
+  - Tests Created:
+    - `test/integration/ui/eventEditorPanel.integration.test.js` (10 tests)
+      - Tests render signature, parameter usage, drag button calculations
+      - Tests both correct (with params) and buggy (without params) behavior
+    - `test/e2e/levelEditor/pw_events_panel_render_params.js` (7 tests)
+      - Verifies width/height parameters passed in browser
+      - Tests drag button positioning and click detection
+    - `test/e2e/levelEditor/pw_events_panel_drag_to_place.js` (5 tests)
+      - Complete drag-to-place workflow test
+      - Verifies events can be dragged from panel to map
+  - Tests Passing: 22/22 (10 integration + 7 E2E render + 5 E2E drag)
+  - Fixed: October 28, 2025
+
 ### Open ❌
+
+(None)
 
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
   - File: `Classes/systems/ui/LevelEditor.js` (handleZoom method)
@@ -109,8 +160,8 @@ Track bugs and their status with test coverage.
 
 ## Statistics
 
-- **Total Issues**: 10
-- **Fixed**: 9
+- **Total Issues**: 12
+- **Fixed**: 11
 - **Open**: 1
 - **High Priority Open**: 0
 - **Missing Features**: 0

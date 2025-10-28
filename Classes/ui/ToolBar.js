@@ -145,6 +145,32 @@ class ToolBar {
     }
     
     /**
+     * Add a custom button to the toolbar
+     * @param {Object} config - Button configuration {name, icon, tooltip, onClick, group}
+     */
+    addButton(config) {
+        const name = config.name;
+        const group = config.group || 'custom';
+        
+        this.tools[name] = {
+            name: config.name,
+            icon: config.icon || '🔧',
+            tooltip: config.tooltip || config.name,
+            shortcut: config.shortcut || '',
+            group: group,
+            enabled: true,
+            onClick: config.onClick || null,
+            highlighted: config.highlighted || false
+        };
+        
+        // Add to group
+        if (!this.groups[group]) {
+            this.groups[group] = [];
+        }
+        this.groups[group].push(name);
+    }
+    
+    /**
      * Get tool info
      * @param {string} tool - Tool name
      * @returns {Object|null} Tool metadata
@@ -203,8 +229,15 @@ class ToolBar {
             // Check if click is within this button
             if (mouseX >= buttonX && mouseX <= buttonX + buttonSize &&
                 mouseY >= buttonY && mouseY <= buttonY + buttonSize) {
-                // Only select if tool is enabled or if it's a drawing tool
                 const tool = this.tools[toolName];
+                
+                // Call onClick callback if it exists (for custom buttons)
+                if (tool.onClick) {
+                    tool.onClick();
+                    return toolName;
+                }
+                
+                // Only select if tool is enabled or if it's a drawing tool
                 if (tool.enabled || tool.group === 'drawing' || tool.group === 'selection') {
                     this.selectTool(toolName);
                     return toolName;

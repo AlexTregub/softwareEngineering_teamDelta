@@ -204,15 +204,23 @@ function setup() {
   if (typeof GameState !== 'undefined' && typeof levelEditor !== 'undefined') {
     GameState.onStateChange((newState, oldState) => {
       if (newState === 'LEVEL_EDITOR') {
-        // Initialize level editor with current or new terrain
+        // Initialize level editor with sparse terrain for lazy loading
         if (!levelEditor.isActive()) {
-          // Always create a fresh blank terrain for the editor (ignore existing game map)
-          // CustomTerrain: simple 2D grid, much faster than gridTerrain
-          // Parameters: width (tiles), height (tiles), tileSize (pixels), defaultMaterial
-          const terrain = new CustomTerrain(50, 50, 32, 'dirt');
+          // Use SparseTerrain for lazy loading (black canvas, paint anywhere)
+          // Falls back to CustomTerrain if SparseTerrain unavailable
+          let terrain;
+          if (typeof SparseTerrain !== 'undefined') {
+            terrain = new SparseTerrain(32, 'dirt');
+            logVerbose('🎨 Level Editor activated with SparseTerrain (lazy loading)');
+          } else if (typeof CustomTerrain !== 'undefined') {
+            terrain = new CustomTerrain(50, 50, 32, 'dirt');
+            logVerbose('🎨 Level Editor activated with CustomTerrain (fallback)');
+          } else {
+            console.error('No terrain class available for Level Editor');
+            return;
+          }
           levelEditor.initialize(terrain);
         }
-        logVerbose('🎨 Level Editor activated with blank CustomTerrain');
       } else if (oldState === 'LEVEL_EDITOR') {
         // Deactivate level editor when leaving
         levelEditor.deactivate();
@@ -698,6 +706,11 @@ function mouseMoved() {
   // Handle level editor hover for preview highlighting
   if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
     levelEditor.handleHover(mouseX, mouseY);
+    
+    // Handle drag cursor updates
+    if (typeof levelEditor.handleMouseMoved === 'function') {
+      levelEditor.handleMouseMoved(mouseX, mouseY);
+    }
   }
 }
 
@@ -801,6 +814,24 @@ function handleKeyEvent(type, ...args) {
   if (GameState.isInGame() && typeof g_keyboardController[type] === 'function') {
     g_keyboardController[type](...args);
   }
+}
+
+/**
+ * doubleClicked
+ * -------------
+ * Handles double-click events by delegating to the appropriate system.
+ */
+function doubleClicked() {
+  // Level Editor - handle double-clicks if active
+  if (GameState.getState() === 'LEVEL_EDITOR') {
+    if (window.levelEditor && levelEditor.isActive()) {
+      levelEditor.handleDoubleClick(mouseX, mouseY);
+      return false; // Prevent default behavior
+    }
+  }
+  
+  // Allow default behavior for other states
+  return true;
 }
 
 /**

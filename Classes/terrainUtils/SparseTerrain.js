@@ -16,12 +16,32 @@ class SparseTerrain {
      * Create a sparse terrain storage system
      * @param {number} tileSize - Size of each tile in pixels (default: 32)
      * @param {*} defaultMaterial - Default material for new tiles (default: 0)
+     * @param {Object} options - Optional configuration
+     * @param {number} options.maxMapSize - Maximum canvas size (default: 100, min: 10, max: 1000)
      */
-    constructor(tileSize = 32, defaultMaterial = 0) {
+    constructor(tileSize = 32, defaultMaterial = 0, options = {}) {
         this.tiles = new Map(); // Map<"x,y", Tile> - PUBLIC for test access
         this.tileSize = tileSize;
         this.defaultMaterial = defaultMaterial;
         this.bounds = null; // { minX, maxX, minY, maxY } or null if empty - PUBLIC
+        
+        // Parse and validate maxMapSize from options
+        let maxMapSize = 100; // Default: 100x100
+        if (options && typeof options.maxMapSize !== 'undefined') {
+            // Validate: must be number, min 10, max 1000
+            const parsed = Number(options.maxMapSize);
+            if (!isNaN(parsed)) {
+                maxMapSize = Math.max(10, Math.min(1000, Math.floor(parsed)));
+            }
+        }
+        
+        this.MAX_MAP_SIZE = maxMapSize; // Configurable limit (default 100x100)
+        
+        // Compatibility properties for TerrainEditor
+        this._tileSize = tileSize;
+        this._gridSizeX = this.MAX_MAP_SIZE; // Grid size = MAX_MAP_SIZE
+        this._gridSizeY = this.MAX_MAP_SIZE;
+        this._chunkSize = 1; // No chunking in SparseTerrain
     }
 
     /**
@@ -53,8 +73,22 @@ class SparseTerrain {
      * @param {number} x - Grid X coordinate
      * @param {number} y - Grid Y coordinate
      * @param {*} material - Material type (string, number, or object)
+     * @returns {boolean} True if tile was set, false if rejected due to size limit
      */
     setTile(x, y, material) {
+        // Calculate what the new bounds would be
+        const newBounds = this._calculateNewBounds(x, y);
+        
+        // Check if new bounds exceed MAX_MAP_SIZE limit (1000x1000)
+        if (newBounds) {
+            const width = newBounds.maxX - newBounds.minX + 1;
+            const height = newBounds.maxY - newBounds.minY + 1;
+            
+            if (width > this.MAX_MAP_SIZE || height > this.MAX_MAP_SIZE) {
+                return false; // Reject tile - would exceed size limit
+            }
+        }
+        
         const key = this._coordsToKey(x, y);
         
         // Create simple tile object with material property
@@ -62,6 +96,30 @@ class SparseTerrain {
         
         this.tiles.set(key, tile);
         this._updateBoundsForTile(x, y);
+        
+        return true; // Success
+    }
+    
+    /**
+     * Calculate what the bounds would be if a tile was added
+     * @private
+     * @param {number} x - Grid X coordinate
+     * @param {number} y - Grid Y coordinate
+     * @returns {Object|null} New bounds { minX, maxX, minY, maxY } or null if first tile
+     */
+    _calculateNewBounds(x, y) {
+        if (this.bounds === null) {
+            // First tile - bounds would be just this tile
+            return { minX: x, maxX: x, minY: y, maxY: y };
+        }
+        
+        // Calculate expanded bounds
+        return {
+            minX: Math.min(this.bounds.minX, x),
+            maxX: Math.max(this.bounds.maxX, x),
+            minY: Math.min(this.bounds.minY, y),
+            maxY: Math.max(this.bounds.maxY, y)
+        };
     }
 
     /**
@@ -190,9 +248,12 @@ class SparseTerrain {
 
         return {
             version: '1.0',
-            tileSize: this.tileSize,
-            defaultMaterial: this.defaultMaterial,
-            bounds: this.bounds,
+            metadata: {
+                tileSize: this.tileSize,
+                defaultMaterial: this.defaultMaterial,
+                maxMapSize: this.MAX_MAP_SIZE,
+                bounds: this.bounds
+            },
             tileCount: this.tiles.size,
             tiles
         };
@@ -200,19 +261,34 @@ class SparseTerrain {
 
     /**
      * Import terrain from JSON
-     * @param {Object} json - JSON object from exportToJSON()
+     * @param {Object|string} json - JSON object from exportToJSON() or JSON string
      */
     importFromJSON(json) {
         // Clear existing data
         this.clear();
 
+        // Parse JSON string if provided
+        const data = typeof json === 'string' ? JSON.parse(json) : json;
+
+        // Support both old format and new format with metadata
+        const metadata = data.metadata || data;
+        
         // Restore metadata
-        this.tileSize = json.tileSize || 32;
-        this.defaultMaterial = json.defaultMaterial || 0;
+        this.tileSize = metadata.tileSize || 32;
+        this.defaultMaterial = metadata.defaultMaterial || 0;
+        
+        // Restore maxMapSize (default to 100 if not specified)
+        const maxMapSize = metadata.maxMapSize || 100;
+        this.MAX_MAP_SIZE = Math.max(10, Math.min(1000, maxMapSize));
+        
+        // Update compatibility properties
+        this._tileSize = this.tileSize;
+        this._gridSizeX = this.MAX_MAP_SIZE;
+        this._gridSizeY = this.MAX_MAP_SIZE;
 
         // Restore tiles
-        if (json.tiles && Array.isArray(json.tiles)) {
-            for (const tileData of json.tiles) {
+        if (data.tiles && Array.isArray(data.tiles)) {
+            for (const tileData of data.tiles) {
                 this.setTile(tileData.x, tileData.y, tileData.material);
             }
         }
@@ -256,6 +332,115 @@ class SparseTerrain {
             const [x, y] = this._keyToCoords(key);
             callback(tile, x, y);
         }
+    }
+
+    // ============================================================================
+    // COMPATIBILITY LAYER FOR TERRAINEDITOR
+    // ============================================================================
+
+    /**
+     * Get tile object at array position (TerrainEditor compatibility)
+     * 
+     * TerrainEditor expects:
+     * - getArrPos([x, y]) returns tile object
+     * - Tile object has getMaterial(), setMaterial(material), assignWeight()
+     * 
+     * @param {Array<number>} pos - Position array [x, y]
+     * @returns {Object} Tile wrapper object with TerrainEditor interface
+     */
+    getArrPos(pos) {
+        if (!Array.isArray(pos) || pos.length !== 2) {
+            throw new Error('getArrPos requires array [x, y] with exactly 2 elements');
+        }
+
+        const [x, y] = pos;
+        const terrain = this; // Closure reference
+
+        // Return tile wrapper object with TerrainEditor interface
+        return {
+            getMaterial() {
+                const tile = terrain.getTile(x, y);
+                return tile ? tile.material : terrain.defaultMaterial;
+            },
+
+            setMaterial(material) {
+                terrain.setTile(x, y, material);
+            },
+
+            assignWeight() {
+                // No-op for compatibility (SparseTerrain doesn't use weights)
+                // TerrainEditor calls this after painting, but we don't need it
+            }
+        };
+    }
+
+    /**
+     * Invalidate cache (TerrainEditor compatibility)
+     * 
+     * TerrainEditor calls this after making changes.
+     * SparseTerrain doesn't have a cache, so this is a no-op.
+     */
+    invalidateCache() {
+        // No-op for compatibility
+        // SparseTerrain doesn't cache, so nothing to invalidate
+    }
+
+    /**
+     * Render terrain tiles (Level Editor compatibility)
+     * 
+     * Only renders painted tiles (sparse rendering).
+     * Uses TERRAIN_MATERIALS_RANGED for textures if available.
+     */
+    render() {
+        if (typeof push === 'undefined') return;
+        
+        push();
+        
+        // CRITICAL: Set imageMode(CORNER) for correct tile positioning
+        if (typeof imageMode !== 'undefined' && typeof CORNER !== 'undefined') {
+            imageMode(CORNER);
+        }
+        
+        // Only render painted tiles (sparse rendering)
+        for (const [key, tile] of this.tiles.entries()) {
+            const [x, y] = this._keyToCoords(key);
+            const screenX = x * this.tileSize;
+            const screenY = y * this.tileSize;
+            
+            // Use texture render functions from TERRAIN_MATERIALS_RANGED
+            if (typeof TERRAIN_MATERIALS_RANGED !== 'undefined' && 
+                TERRAIN_MATERIALS_RANGED[tile.material] &&
+                typeof TERRAIN_MATERIALS_RANGED[tile.material][1] === 'function') {
+                // Call the render function with screen position and tile size
+                TERRAIN_MATERIALS_RANGED[tile.material][1](screenX, screenY, this.tileSize);
+            } else {
+                // Fallback to solid color if texture not available
+                const color = this._getMaterialColor(tile.material);
+                if (typeof fill !== 'undefined' && typeof rect !== 'undefined') {
+                    fill(color[0], color[1], color[2]);
+                    noStroke();
+                    rect(screenX, screenY, this.tileSize, this.tileSize);
+                }
+            }
+        }
+        
+        pop();
+    }
+
+    /**
+     * Get color for material (for rendering fallback)
+     * @private
+     */
+    _getMaterialColor(material) {
+        const colors = {
+            'grass': [50, 150, 50],
+            'dirt': [120, 80, 40],
+            'stone': [100, 100, 100],
+            'moss': [40, 120, 60],
+            'moss_1': [40, 120, 60],
+            'sand': [210, 180, 140]
+        };
+        return colors[material] || [128, 128, 128];
     }
 }
 

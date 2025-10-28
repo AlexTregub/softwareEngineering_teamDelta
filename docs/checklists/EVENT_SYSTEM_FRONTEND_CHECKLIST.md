@@ -1,4 +1,4 @@
-# Event System Frontend - Implementation Checklist
+# Event System Frontend - Feature Development Checklist
 
 **Date**: October 27, 2025  
 **Status**: Planning Phase  
@@ -8,61 +8,874 @@
 
 ---
 
-## Overview
+## Pre-Development
 
-Complete the Event System frontend by adding visual event flags to the Level Editor and wiring up the existing EventEditorPanel. This will allow designers to:
-- Drag events from EventEditorPanel onto the Level Editor canvas
-- Place visual event flags (🚩) with customizable trigger zones
-- Configure trigger conditions (spatial, flag-based, custom logic)
-- Preview trigger zones (invisible in game, visible in editor)
-- Export/import event flags with terrain data
+### Current State Review
+
+#### Already Complete (Phase 1-3)
+- [x] EventManager - Full API with event registration, triggering, flags, triggers
+- [x] EventEditorPanel - UI for event creation, editing, JSON import/export
+- [x] Drag-to-Place System - EventEditorPanel has drag state management (startDragPlacement, updateDragPosition, completeDrag)
+- [x] Level Editor Integration - EventEditorPanel registered in Tools panel
+- [x] Documentation - API reference, event types guide, trigger types guide, integration guide
+
+#### Missing Components (This Checklist)
+- [ ] Wire EventEditorPanel to Tools Panel - Toggle button not functional
+- [ ] Drag-and-Drop Visual Feedback - Show flag icon while dragging
+- [ ] EventFlag Class - Visual flag entity with bounding box
+- [ ] EventFlagLayer - Manage collection of flags on Level Editor canvas
+- [ ] Spatial Trigger Creation - Convert drag-drop to SpatialTrigger registration
+- [ ] Flag Customization UI - Edit trigger radius, shape, color, linked event
+- [ ] Flag Rendering - Visible in editor, invisible in game
+- [ ] Export/Import Integration - Save/load flags with terrain JSON
+
+### Requirements Analysis
+
+#### Affected Systems/Components
+- EventEditorPanel (existing, needs wiring)
+- LevelEditorPanels (needs Events button)
+- EventFlag class (new, visual entity)
+- EventFlagLayer class (new, collection manager)
+- FlagPropertiesPanel (new, customization UI)
+- EventFunctionRegistry (new, callable functions)
+- TerrainExporter/Importer (extend for flags)
+- EventManager (extend trigger evaluation)
+
+#### Technical Decisions
+- Use existing DraggablePanelManager for UI state
+- EventFlag class will handle both rendering and trigger zone logic
+- Flags invisible in game mode (editorMode parameter)
+- Spatial triggers auto-registered on flag placement
+- Function registry for extensible event actions
+- Export flags with terrain JSON (single file)
 
 ---
 
-## Current State Review
+### Phase 1: Tools Panel Integration (Wire-Up) - ✅ COMPLETE
 
-### ✅ Already Complete (Phase 1-3)
-- **EventManager** - Full API with event registration, triggering, flags, triggers
-- **EventEditorPanel** - UI for event creation, editing, JSON import/export
-- **Drag-to-Place System** - EventEditorPanel has drag state management (startDragPlacement, updateDragPosition, completeDrag)
-- **Level Editor Integration** - EventEditorPanel registered in Tools panel
-- **Documentation** - API reference, event types guide, trigger types guide, integration guide
+**Goal**: Add Events button to Tools panel that toggles EventEditorPanel
 
-### ❌ Missing (This Checklist)
-1. **Wire EventEditorPanel to Tools Panel** - Toggle button not functional
-2. **Drag-and-Drop Visual Feedback** - Show flag icon while dragging
-3. **EventFlag Class** - Visual flag entity with bounding box
-4. **EventFlagLayer** - Manage collection of flags on Level Editor canvas
-5. **Spatial Trigger Creation** - Convert drag-drop to SpatialTrigger registration
-6. **Flag Customization UI** - Edit trigger radius, shape, color, linked event
-7. **Flag Rendering** - Visible in editor (🚩 + zone outline), invisible in game
-8. **Export/Import Integration** - Save/load flags with terrain JSON
+**Status**: ✅ COMPLETE (All sub-phases A/B/C/D complete)
+
+**Summary**: Successfully implemented Events button in Tools panel with toggle functionality. All tests passing (10 unit + 15 integration + 5 E2E).
+
+**Changes Made**:
+- Added `addButton()` method to ToolBar class for extensibility
+- Modified `handleClick()` in ToolBar to support onClick callbacks
+- Added `toggleEventsPanel()` method to LevelEditorPanels
+- Added Events button (🚩) to toolbar in LevelEditor initialization
+- Consolidated panel initialization (removed duplicate `draggablePanels`)
+- E2E tests verify button visibility, panel toggle, and visual feedback
 
 ---
 
-## Requirements Analysis
+## Implementation Phase
 
-### A. Wire Up EventEditorPanel to Tools Panel
+### Phase 1: Tools Panel Integration (Wire-Up) - ✅ COMPLETE
 
-**Current State**:
-- EventEditorPanel exists and is initialized
-- Tools panel has button slots available
-- No visible toggle button for Events panel
+**Goal**: Add Events button to Tools panel that toggles EventEditorPanel
 
-**Requirements**:
-1. Add "Events" button to Tools panel (similar to Properties panel pattern)
-2. Button should toggle EventEditorPanel visibility
-3. Button should highlight when panel is visible
-4. Panel should hide by default, show on button click
-5. Integration with draggablePanelManager state visibility system
+#### Source Code Changes
+
+**File to Modify**: `Classes/systems/ui/LevelEditorPanels.js`
+
+- [x] Add "Events" button to Tools panel config
+- [x] Implement `toggleEventsPanel()` method  
+- [x] Connect to `draggablePanelManager.togglePanel('level-editor-events')`
+- [x] Set default visibility: hidden
+- [x] Update button highlight based on visibility state
+
+**Files Modified**:
+- `Classes/ui/ToolBar.js` - Added `addButton()` method for extensibility
+- `Classes/systems/ui/LevelEditor.js` - Added Events button to toolbar, consolidated panel initialization
+
+**Status**: ✅ COMPLETE
+
+#### Code Quality
+- [x] Add inline comments for panel toggle logic
+- [x] Use descriptive variable names
+- [x] Follow existing LevelEditorPanels pattern
+- [x] Handle edge cases (panel not found)
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/levelEditor/eventsToolsPanelIntegration.test.js`
+
+- [x] Tools panel should have "Events" button
+- [x] Clicking Events button should toggle EventEditorPanel visibility
+- [x] Events button should highlight when panel visible
+- [x] Panel should be hidden by default
+- [x] Panel should persist visibility state in draggablePanelManager
+- [x] Multiple clicks should toggle on/off correctly
+- [x] Target 100% code coverage for new code
+
+**Status**: ✅ COMPLETE - All 10 tests passing
+
+#### Integration Tests
+
+**Test File**: `test/integration/levelEditor/eventsPanel.integration.test.js`
+
+- [x] Events panel toggles correctly in full Level Editor
+- [x] Panel state persists across Level Editor deactivate/activate
+- [x] Panel integrates with other Level Editor panels (no conflicts)
+- [x] Panel closes when switching to PLAYING state
+- [x] Mock external dependencies appropriately
+- [x] Test error propagation
+
+**Status**: ✅ COMPLETE - All 15 tests passing
+
+#### E2E Tests
+
+**Test File**: `test/e2e/levelEditor/pw_events_panel_toggle.js`
+
+- [x] Test in browser automation (Puppeteer)
+- [x] Verify Events button visible in Tools panel
+- [x] Test clicking button shows EventEditorPanel
+- [x] Verify panel contains event list and add button
+- [x] Test clicking again hides panel
+- [x] Capture screenshots for each state
+- [x] Add timeouts to prevent hanging
+
+**Test Results**: 5/5 passing (events button visible, panel hidden by default, panel shows on click, panel contains event editor, panel hides on second click)
+
+**Screenshots Generated**:
+- `test/e2e/screenshots/levelEditor/success/events_button_visible.png`
+- `test/e2e/screenshots/levelEditor/success/panel_hidden_by_default.png`
+- `test/e2e/screenshots/levelEditor/success/panel_shown_after_click.png`
+- `test/e2e/screenshots/levelEditor/success/panel_with_content.png`
+- `test/e2e/screenshots/levelEditor/success/panel_hidden_after_second_click.png`
+
+**Status**: ✅ COMPLETE - All E2E tests passing with visual confirmation
+
+---
+
+### Phase 2: EventFlag Class (Visual Flag Entity)
+
+**Goal**: Create EventFlag class for visual representation in Level Editor
+
+**Status**: ✅ COMPLETE (Phase 2A + 2B)
+
+**Summary**: Successfully implemented EventFlag class with full API. All 28 unit tests passing.
+
+**Changes Made**:
+- Created `EventFlag` class with circle and rectangle shapes
+- Implemented trigger zone detection (`containsPoint`)
+- Added editor-only rendering (invisible in game)
+- JSON import/export support
+- Unique ID generation
+- Validation for required fields
+- Edge case handling (negative radius, zero radius, large coordinates)
+
+#### Source Code Changes
+
+**File to Create**: `Classes/events/EventFlag.js`
+
+- [x] Create `EventFlag` class
+- [x] Constructor: Accept config `{id, x, y, radius, width, height, shape, eventId, color, oneTime, triggerType, condition}`
+- [x] Property: `this.id` - Unique flag ID (auto-generate if not provided)
+- [x] Property: `this.x, this.y` - World coordinates
+- [x] Property: `this.shape` - 'circle' or 'rectangle'
+- [x] Property: `this.radius` - Circle radius (default: 64)
+- [x] Property: `this.width, this.height` - Rectangle dimensions
+- [x] Property: `this.eventId` - Linked event ID
+- [x] Property: `this.color` - Outline color (default: yellow)
+- [x] Property: `this.oneTime` - Trigger once (default: false for repeatable)
+- [x] Property: `this.triggerType` - 'spatial', 'flag', 'custom', 'combined'
+- [x] Property: `this.condition` - Condition data for flag/custom triggers
+- [x] Method: `containsPoint(x, y)` - Check if point in zone
+- [x] Method: `render(editorMode)` - Render flag (visible only if editorMode true)
+- [x] Method: `exportToJSON()` - Serialize
+- [x] Method: `importFromJSON(data)` - Deserialize
+- [x] Add to `index.html`
+
+**Status**: ✅ COMPLETE
+
+#### Code Quality
+- [x] Add JSDoc comments to public functions
+- [x] Document shape types (circle/rectangle)
+- [x] Explain editorMode parameter
+- [x] Add examples for API usage
+- [x] Add null checks for required fields
+- [x] Handle edge cases (negative radius, invalid shape)
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/events/EventFlag.test.js`
+
+- [x] Should initialize with position and radius
+- [x] Should support circle and rectangle shapes
+- [x] Should store linked event ID
+- [x] Should have customizable color
+- [x] Should have one-time vs repeatable flag
+- [x] Should export to JSON
+- [x] Should import from JSON
+- [x] Should check if point is within trigger zone (circle)
+- [x] Should check if point is within trigger zone (rectangle)
+- [x] Should have unique ID generation
+- [x] Should validate required fields (x, y, eventId)
+- [x] Test edge cases and boundary conditions
+- [x] Test error handling
+
+**Test Results**: 28/28 passing
+- Constructor: 8 tests
+- Validation: 5 tests
+- containsPoint(): 4 tests
+- render(): 4 tests
+- exportToJSON(): 3 tests
+- importFromJSON(): 2 tests
+- Edge Cases: 2 tests
+
+**Status**: ✅ COMPLETE - All unit tests passing
+
+---
+
+### Phase 3: EventFlagLayer Class (Flag Collection Manager)
+
+**Goal**: Manage collection of EventFlags in Level Editor
+
+**Status**: ✅ COMPLETE (Phase 3A + 3B)
+
+**Summary**: Successfully implemented EventFlagLayer class for managing flag collections. All 36 unit tests passing.
+
+**Changes Made**:
+- Created `EventFlagLayer` class with Map-based storage
+- Implemented add/remove/get operations
+- Added selection state management
+- Spatial queries via `findFlagsAtPosition()`
+- Batch rendering of all flags
+- JSON import/export with clear-before-import behavior
+- Edge case handling (null flags, large collections)
+
+#### Source Code Changes
+
+**File to Create**: `Classes/events/EventFlagLayer.js`
+
+- [x] Create `EventFlagLayer` class
+- [x] Constructor: Accept optional terrain reference
+- [x] Property: `this.flags = new Map()` - Map of flagId => EventFlag
+- [x] Property: `this.selectedFlagId = null` - Currently selected flag
+- [x] Method: `addFlag(eventFlag)` - Add flag to collection
+- [x] Method: `removeFlag(flagId)` - Remove flag
+- [x] Method: `getFlag(flagId)` - Retrieve flag
+- [x] Method: `getAllFlags()` - Return all flags as array
+- [x] Method: `findFlagsAtPosition(x, y)` - Spatial query
+- [x] Method: `selectFlag(flagId)` - Set selected flag
+- [x] Method: `getSelectedFlag()` - Get selected flag instance
+- [x] Method: `render(editorMode)` - Render all flags
+- [x] Method: `exportToJSON()` - Serialize all flags
+- [x] Method: `importFromJSON(data)` - Deserialize flags
+- [x] Method: `clear()` - Remove all flags
+- [x] Add to `index.html`
+
+**Status**: ✅ COMPLETE
+
+#### Code Quality
+- [x] Add inline comments for complex logic
+- [x] Use descriptive method names
+- [x] Keep functions focused and single-purpose
+- [x] Handle edge cases (duplicate IDs, null flags)
+- [x] Adhere to DRY principle
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/events/EventFlagLayer.test.js`
+
+- [x] Should initialize with empty flag collection
+- [x] Should add flag to collection
+- [x] Should remove flag by ID
+- [x] Should get flag by ID
+- [x] Should get all flags
+- [x] Should find flags at position (spatial query)
+- [x] Should export all flags to JSON
+- [x] Should import flags from JSON
+- [x] Should clear all flags
+- [x] Should handle duplicate IDs (replace with same ID)
+- [x] Should render all flags in editor mode
+- [x] Should not render flags in game mode
+- [x] Should handle selection state
+- [x] Should clear selection when removing selected flag
+- [x] Ensure test isolation (no shared state)
+
+**Test Results**: 36/36 passing
+- Constructor: 3 tests
+- addFlag(): 4 tests
+- removeFlag(): 4 tests
+- getFlag(): 2 tests
+- getAllFlags(): 2 tests
+- findFlagsAtPosition(): 3 tests
+- selectFlag(): 4 tests
+- getSelectedFlag(): 2 tests
+- render(): 3 tests
+- exportToJSON(): 2 tests
+- importFromJSON(): 3 tests
+- clear(): 2 tests
+- Edge Cases: 2 tests
+
+**Status**: ✅ COMPLETE - All unit tests passing
+
+---
+
+### Phase 4: Drag-and-Drop System
+
+**Goal**: Enable dragging events from EventEditorPanel to Level Editor canvas
+
+**Status**: PENDING (Next phase)
+
+#### Source Code Changes
+
+**Files to Modify**: 
+- `Classes/systems/ui/LevelEditor.js`
+- `Classes/systems/ui/EventEditorPanel.js`
+
+**Implementation Tasks (LevelEditor.js)**:
+- [ ] Add property: `this.eventFlagLayer = null`
+- [ ] Initialize EventFlagLayer in `initialize()`
+- [ ] Check `eventEditor.isDragging()` in `update()`
+- [ ] Call `eventEditor.updateDragPosition(mouseX, mouseY)` during drag
+- [ ] Render drag preview (flag icon at cursor)
+- [ ] Handle mouseReleased when dragging
+- [ ] Convert screen coords to world coords
+- [ ] Call `eventEditor.completeDrag(worldX, worldY)`
+- [ ] Create EventFlag from returned config
+- [ ] Add flag to EventFlagLayer
+- [ ] Handle Escape key: Call `eventEditor.cancelDrag()`
+- [ ] Render EventFlagLayer in `render()`
+
+**Implementation Tasks (EventEditorPanel.js)**:
+- [ ] Verify `startDragPlacement(eventId)` is called on flag button click
+- [ ] Verify `updateDragPosition(mouseX, mouseY)` updates cursor state
+- [ ] Verify `completeDrag(worldX, worldY)` creates trigger config
+- [ ] Return EventFlag config from `completeDrag()` for Level Editor to use
+
+#### Code Quality
+- [ ] Add comments for drag lifecycle
+- [ ] Use descriptive variable names for coordinates
+- [ ] Handle null checks (eventEditor might not exist)
+- [ ] Follow existing LevelEditor patterns
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/levelEditor/eventFlagDragDrop.test.js`
+
+- [ ] Should start drag when clicking flag button on event
+- [ ] Should track cursor position during drag
+- [ ] Should convert screen coords to world coords
+- [ ] Should create EventFlag at drop location
+- [ ] Should register SpatialTrigger with EventManager
+- [ ] Should cancel drag on Escape key
+- [ ] Should prevent multiple simultaneous drags
+- [ ] Should handle drag outside Level Editor bounds (cancel)
+- [ ] Should update drag cursor position on mouseDrag
+- [ ] Should complete drag on mouseReleased
+
+#### Integration Tests
+
+**Test File**: `test/integration/levelEditor/eventFlagDragDrop.integration.test.js`
+
+- [ ] Full drag-drop workflow from EventEditorPanel to Level Editor
+- [ ] EventFlag created at correct world coordinates
+- [ ] SpatialTrigger registered with EventManager
+- [ ] Flag appears in EventFlagLayer
+- [ ] Flag visible in editor, invisible in game mode
+- [ ] Multiple flags can be placed
+
+#### E2E Tests
+
+**Test File**: `test/e2e/levelEditor/pw_event_flag_drag_drop.js`
+
+- [ ] Open EventEditorPanel, create test event
+- [ ] Click flag button, verify drag starts
+- [ ] Move cursor over canvas, verify preview renders
+- [ ] Drop flag, verify placement
+- [ ] Verify flag renders with outline
+- [ ] Export terrain JSON, verify flag included
+- [ ] Capture screenshots for verification
+
+---
+
+### Phase 5: Flag Properties Panel (Customization UI)
+
+**Goal**: Allow editing of placed flags (radius, color, shape, event, conditions)
+
+#### Source Code Changes
+
+**File to Create**: `Classes/ui/FlagPropertiesPanel.js`
+
+- [ ] Create `FlagPropertiesPanel` class
+- [ ] Constructor: Accept eventFlagLayer and eventManager references
+- [ ] Property: `this.selectedFlag = null`
+- [ ] Method: `setSelectedFlag(flagId)` - Load flag for editing
+- [ ] Method: `render(x, y, width, height)` - Render UI
+- [ ] UI Elements: Flag ID input, Event dropdown, Radius slider, Shape selector, Color picker
+- [ ] UI Elements: One-time toggle, Trigger type dropdown, Condition editor
+- [ ] UI Elements: Save button, Cancel button
+- [ ] Method: `handleClick(mouseX, mouseY, contentX, contentY)` - Handle UI interactions
+- [ ] Method: `saveChanges()` - Apply changes to flag
+- [ ] Method: `cancelEdits()` - Discard changes
+- [ ] Add to `index.html`
+
+**Files to Modify**: `Classes/systems/ui/LevelEditorPanels.js`
+
+- [ ] Create FlagPropertiesPanel draggable panel
+- [ ] Position: `{ x: 270, y: 470 }`
+- [ ] Register in LEVEL_EDITOR state
+- [ ] Hide by default, show when flag selected
+- [ ] Update panel when different flag selected
+- [ ] Close panel when flag deselected
+
+#### Code Quality
+- [ ] Add JSDoc comments for UI methods
+- [ ] Document UI element positions
+- [ ] Use descriptive names for form inputs
+- [ ] Handle edge cases (no flag selected)
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/ui/FlagPropertiesPanel.test.js`
+
+- [ ] Should show properties of selected flag
+- [ ] Should update flag ID on text input change
+- [ ] Should update linked event ID from dropdown
+- [ ] Should update trigger radius with slider
+- [ ] Should update trigger shape (circle/rectangle)
+- [ ] Should update color with color picker
+- [ ] Should toggle one-time vs repeatable
+- [ ] Should update trigger type (spatial/flag/custom/combined)
+- [ ] Should show condition editor for flag/custom triggers
+- [ ] Should save changes to flag
+- [ ] Should cancel edits without saving
+- [ ] Should handle no flag selected (show placeholder)
+
+#### Integration Tests
+
+**Test File**: `test/integration/levelEditor/flagPropertiesPanel.integration.test.js`
+
+- [ ] Selecting flag shows FlagPropertiesPanel
+- [ ] Editing radius updates flag and re-renders
+- [ ] Changing event ID updates linked event
+- [ ] Saving changes persists to flag
+- [ ] Canceling edits reverts changes
+- [ ] Deselecting flag hides panel
+
+#### E2E Tests
+
+**Test File**: `test/e2e/levelEditor/pw_flag_properties_panel.js`
+
+- [ ] Place flag, click to select
+- [ ] Properties panel appears
+- [ ] Edit radius, verify visual update
+- [ ] Change color, verify outline color changes
+- [ ] Save changes, verify persistence
+- [ ] Capture screenshots for verification
+
+---
+
+### Phase 6: Trigger Registration & Execution
+
+**Goal**: Connect placed flags to EventManager trigger system
+
+#### Source Code Changes
+
+**Spatial Trigger Registration** (Already in EventEditorPanel.completeDrag):
+- [ ] Verify `completeDrag()` registers SpatialTrigger with EventManager
+- [ ] Verify trigger includes flag position, radius, eventId
+- [ ] Verify oneTime property passed to trigger
+- [ ] Test trigger fires when player enters zone
+
+**Flag-Based Trigger Support**:
+- [ ] Add flag condition editor to FlagPropertiesPanel
+- [ ] Support flag name, operator, value in UI
+- [ ] Create FlagTrigger when flag has flag-based condition
+- [ ] Test flag trigger fires when condition met
+
+**Custom Trigger Support**:
+- [ ] Add JavaScript code editor to FlagPropertiesPanel
+- [ ] Validate JavaScript syntax before saving
+- [ ] Create ConditionalTrigger with user function
+- [ ] Test custom trigger executes correctly
+
+**Combined Trigger Support**:
+- [ ] Support BOTH spatial AND flag/custom triggers
+- [ ] Register both triggers with same eventId
+- [ ] Test both conditions must be met (AND logic)
+
+#### Integration Tests
+
+**Test File**: `test/integration/events/flagTriggerExecution.integration.test.js`
+
+- [ ] Spatial trigger fires when player enters zone
+- [ ] Flag trigger fires when flag condition met
+- [ ] Custom trigger fires when function returns true
+- [ ] Combined trigger fires when both conditions met
+- [ ] One-time trigger removes after firing
+- [ ] Repeatable trigger fires multiple times
+
+---
+
+### Phase 7: Event Function Registry
+
+**Goal**: Allow events to call registered game functions
+
+#### Source Code Changes
+
+**File to Create**: `Classes/managers/EventFunctionRegistry.js`
+
+- [ ] Create `EventFunctionRegistry` singleton class
+- [ ] Property: `this.functions = new Map()` - Map of functionId => function
+- [ ] Method: `registerFunction(id, fn, metadata)` - Add function to registry
+- [ ] Method: `unregisterFunction(id)` - Remove function
+- [ ] Method: `getFunction(id)` - Retrieve function
+- [ ] Method: `executeFunction(id, ...args)` - Call function with args
+- [ ] Method: `getAllFunctions()` - Return all function metadata
+- [ ] Method: `hasFunction(id)` - Check if function exists
+- [ ] Global access: `window.eventFunctionRegistry`
+- [ ] Add to `index.html`
+
+**File to Create**: `Classes/events/registerEventFunctions.js`
+
+Common Functions to Register:
+- [ ] `spawn_enemies(count, type, faction)` - Spawn enemy ants
+- [ ] `award_resources(type, amount)` - Add resources
+- [ ] `show_dialogue(speaker, message)` - Display dialogue
+- [ ] `unlock_feature(featureId)` - Enable game feature
+- [ ] `start_tutorial(tutorialId)` - Begin tutorial sequence
+- [ ] `set_day_time(hour)` - Change time of day
+- [ ] `trigger_boss_fight(bossId)` - Start boss encounter
+
+**Files to Modify**: 
+- `Classes/managers/EventManager.js` - Execute registered functions in onTrigger
+- `Classes/systems/ui/EventEditorPanel.js` - Function dropdown in event form
+
+#### Code Quality
+- [ ] Add JSDoc for all registry methods
+- [ ] Document function metadata structure
+- [ ] Add error handling for missing functions
+- [ ] Validate function parameters
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/managers/EventFunctionRegistry.test.js`
+
+- [ ] Should register function with ID
+- [ ] Should retrieve function by ID
+- [ ] Should execute function with arguments
+- [ ] Should handle missing function gracefully
+- [ ] Should list all registered functions
+- [ ] Should unregister function
+- [ ] Should prevent duplicate IDs
+- [ ] Should validate function is callable
+
+#### Integration Tests
+
+**Test File**: `test/integration/events/functionRegistry.integration.test.js`
+
+- [ ] Event with function call executes function
+- [ ] Function receives correct arguments
+- [ ] Missing function logs warning but doesn't crash
+- [ ] Function return value accessible (if needed)
+
+---
+
+### Phase 8: Export/Import Integration
+
+**Goal**: Save/load event flags with terrain data
+
+#### Source Code Changes
 
 **Files to Modify**:
-- `Classes/systems/ui/LevelEditorPanels.js` - Add Events button to Tools panel
-- `Classes/ui/ToolBar.js` - May need button type extension (if not already generic)
+- `Classes/ui/TerrainExporter.js`
+- `Classes/ui/TerrainImporter.js`
+
+**Implementation Tasks (TerrainExporter.js)**:
+- [ ] Add `eventFlags` property to exported JSON
+- [ ] Call `eventFlagLayer.exportToJSON()` if layer exists
+- [ ] Include flags array in terrain export
+
+**Implementation Tasks (TerrainImporter.js)**:
+- [ ] Check for `eventFlags` property in imported JSON
+- [ ] Create EventFlagLayer if it doesn't exist
+- [ ] Call `eventFlagLayer.importFromJSON(data.eventFlags)`
+- [ ] Register SpatialTriggers for each imported flag
+
+#### Code Quality
+- [ ] Add comments for export/import process
+- [ ] Handle missing eventFlags gracefully
+- [ ] Validate JSON structure
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/terrainUtils/eventFlagExportImport.test.js`
+
+- [ ] Should export event flags to JSON
+- [ ] Should include all flag properties (position, radius, eventId, etc.)
+- [ ] Should import flags from JSON
+- [ ] Should reconstruct EventFlag instances
+- [ ] Should register SpatialTriggers on import
+- [ ] Should handle empty flags array
+- [ ] Should validate flag data structure
+
+#### Integration Tests
+
+**Test File**: `test/integration/levelEditor/eventFlagPersistence.integration.test.js`
+
+- [ ] Export terrain with flags, verify flags in JSON
+- [ ] Import terrain with flags, verify flags created
+- [ ] Round-trip test: export → import → export, verify identical
+- [ ] Flags re-register spatial triggers on import
+- [ ] Flags visible in Level Editor after import
+
+#### E2E Tests
+
+**Test File**: `test/e2e/levelEditor/pw_event_flag_persistence.js`
+
+- [ ] Place multiple flags
+- [ ] Export terrain JSON
+- [ ] Clear Level Editor
+- [ ] Import terrain JSON
+- [ ] Verify flags appear at correct positions
+- [ ] Verify triggers fire correctly
+- [ ] Capture screenshots for verification
 
 ---
 
-### B. Drag-and-Drop Event Flags
+### Phase 9: Runtime Integration (Game Mode)
+
+**Goal**: Ensure flags work in PLAYING state (invisible but functional)
+
+#### Source Code Changes
+
+**Files to Modify**: 
+- `Classes/events/EventFlag.js` - Render only in editor mode
+- `Classes/managers/EventManager.js` - Spatial trigger evaluation
+- Create `Classes/events/PlayerEntityTracker.js` (if needed)
+
+**Implementation Tasks (EventFlag.js)**:
+- [ ] In `render()`, check `editorMode` parameter
+- [ ] If `editorMode === false`, skip rendering (return early)
+- [ ] If `editorMode === true`, render flag icon and outline
+- [ ] Ensure `containsPoint()` still works regardless of render state
+
+**Implementation Tasks (EventManager.js)**:
+- [ ] Get player entity position (may need PlayerManager)
+- [ ] In `_evaluateTriggerByType()` case 'spatial', check player position
+- [ ] Call `trigger.containsPoint(player.x, player.y)` or similar
+- [ ] Fire event if player in zone
+
+#### Code Quality
+- [ ] Add comments for game mode behavior
+- [ ] Handle missing player entity gracefully
+- [ ] Use defensive programming
+
+#### Unit Tests (Write FIRST)
+
+**Test File**: `test/unit/events/flagGameModeRendering.test.js`
+
+- [ ] Flags should not render in game mode (editorMode=false)
+- [ ] Triggers should still evaluate in game mode
+- [ ] Spatial triggers should fire when player enters zone
+- [ ] Flag outlines should not be visible to player
+- [ ] Flag selection should be disabled in game mode
+
+#### Integration Tests
+
+**Test File**: `test/integration/events/spatialTriggerGameMode.integration.test.js`
+
+- [ ] Player walking over flag triggers event
+- [ ] Event fires only once if oneTime=true
+- [ ] Event fires multiple times if oneTime=false
+- [ ] Flag not visible to player in game mode
+- [ ] Multiple flags work independently
+
+#### E2E Tests
+
+**Test File**: `test/e2e/events/pw_spatial_trigger_game_mode.js`
+
+- [ ] Place flag in Level Editor
+- [ ] Switch to PLAYING state
+- [ ] Move player entity over flag
+- [ ] Verify event triggers
+- [ ] Verify flag NOT visible
+- [ ] Capture screenshots (flag invisible, event active)
+
+---
+
+## Verification Phase
+
+### Run Test Suites
+- [ ] Run unit tests: `npm run test:unit`
+- [ ] Run integration tests: `npm run test:integration`
+- [ ] Run BDD tests: `npm run test:bdd`
+- [ ] Run E2E tests: `npm run test:e2e`
+- [ ] Run full test suite: `npm test`
+
+### Verify Test Results
+- [ ] All unit tests passing
+- [ ] Integration tests passing
+- [ ] BDD tests passing (if applicable)
+- [ ] E2E tests passing
+
+### Manual Testing
+- [ ] Test in actual browser (Chrome/Firefox/Safari)
+- [ ] Verify Events panel toggles correctly
+- [ ] Test drag-drop workflow
+- [ ] Verify flag rendering (visible in editor, invisible in game)
+- [ ] Test flag customization UI
+- [ ] Test export/import workflow
+- [ ] Test spatial triggers fire correctly
+- [ ] Check browser console for errors
+- [ ] Verify performance (no lag during drag or rendering)
+
+---
+
+## Bug Fixes
+
+### Identify Issues
+- [ ] Review test failure messages
+- [ ] Check browser console errors
+- [ ] Analyze stack traces
+- [ ] Reproduce issues
+- [ ] Document error patterns
+
+### Fix Common Problems
+- [ ] Missing null checks → Add defensive programming
+- [ ] Undefined variables → Check initialization order
+- [ ] Function not found → Verify imports and global scope
+- [ ] Test pollution → Add cleanup in beforeEach/afterEach
+- [ ] Timing issues → Add proper async/await or timeouts
+- [ ] Mock missing → Add required mock objects
+- [ ] Coordinate conversion errors → Verify camera transform order
+
+---
+
+## Documentation
+
+### Code Documentation
+- [ ] Add JSDoc comments to EventFlag class
+- [ ] Add JSDoc comments to EventFlagLayer class
+- [ ] Add JSDoc comments to FlagPropertiesPanel class
+- [ ] Add JSDoc comments to EventFunctionRegistry class
+- [ ] Document drag-drop lifecycle in LevelEditor
+- [ ] Explain editorMode vs game mode rendering
+- [ ] Add examples for registering event functions
+
+### Feature Documentation
+- [ ] Update `LEVEL_EDITOR_SETUP.md` with event flag system
+- [ ] Create API reference for EventFlag class
+- [ ] Create API reference for EventFlagLayer class
+- [ ] Create API reference for EventFunctionRegistry class
+- [ ] Document event flag workflow (create → place → configure → export)
+- [ ] Add troubleshooting guide for common issues
+- [ ] Document trigger types and conditions
+
+### Update CHANGELOG
+- [ ] Add EventFlag system to CHANGELOG (when complete)
+- [ ] Document new Level Editor features
+- [ ] List new classes and files
+- [ ] Note breaking changes (if any)
+
+---
+
+## Pre-Commit Checklist
+
+### Code Quality
+- [ ] No console.log statements (or marked for removal)
+- [ ] No commented-out code (unless with explanation)
+- [ ] No TODO comments without ticket reference
+- [ ] Proper error handling throughout
+- [ ] No hard-coded values (use constants)
+- [ ] Follow naming conventions (camelCase, g_ for globals)
+
+### Testing
+- [ ] All tests passing locally
+- [ ] Test coverage meets minimum threshold
+- [ ] No skipped tests without justification
+- [ ] Test names are descriptive
+- [ ] No flaky tests
+
+### Version Control
+- [ ] Meaningful commit messages
+- [ ] Commits are atomic (one logical change each)
+- [ ] No merge conflicts
+- [ ] Branch up to date with main/develop
+- [ ] No accidentally committed files (node_modules, etc.)
+
+---
+
+## Post-Implementation Review
+
+### Code Review
+- [ ] Self-review all changes
+- [ ] Check for potential performance issues
+- [ ] Verify security implications (user-input JavaScript code)
+- [ ] Ensure accessibility standards
+- [ ] Review error messages for clarity
+
+### Testing Summary
+- [ ] Document test pass rates
+- [ ] List any known issues
+- [ ] Explain any skipped tests
+- [ ] Document test environment issues
+- [ ] Create summary report
+
+### Cleanup
+- [ ] Remove debug code
+- [ ] Clean up temporary files
+- [ ] Archive old documentation
+- [ ] Update dependency versions if needed
+- [ ] Remove unused imports
+
+---
+
+## Estimated Effort
+
+### Time Estimates (per phase)
+- **Phase 1**: Tools Panel Integration - 2-3 hours
+- **Phase 2**: EventFlag Class - 3-4 hours
+- **Phase 3**: EventFlagLayer Class - 3-4 hours
+- **Phase 4**: Drag-and-Drop System - 4-5 hours
+- **Phase 5**: Flag Properties Panel - 5-6 hours
+- **Phase 6**: Trigger Registration - 3-4 hours
+- **Phase 7**: Event Function Registry - 4-5 hours
+- **Phase 8**: Export/Import Integration - 2-3 hours
+- **Phase 9**: Runtime Integration - 3-4 hours
+- **Phase 10**: Documentation - 2-3 hours
+
+**Total Estimated Effort**: 31-41 hours
+
+---
+
+## Resources
+
+### Testing Commands
+```bash
+# Run all tests
+npm test
+
+# Run specific test suites
+npm run test:unit
+npm run test:integration
+npm run test:bdd
+npm run test:e2e
+
+# Run specific test file
+npx mocha "test/unit/path/to/test.js" --reporter spec
+
+# Run with debugging
+npx mocha "test/unit/path/to/test.js" --inspect-brk
+```
+
+### Common Test Patterns
+- **Unit**: Mock all dependencies, test in isolation
+- **Integration**: Mock external systems only, test interactions
+- **BDD**: Test user-facing behavior (if applicable)
+- **E2E**: Full browser automation, test real workflows
+
+### Key Documentation
+- `docs/api/EventManager_API_Reference.md`
+- `docs/guides/Event_Types_Guide.md`
+- `docs/guides/Trigger_Types_Guide.md`
+- `docs/guides/EventManager_Integration_Guide.md`
+- `docs/LEVEL_EDITOR_SETUP.md`
 
 **Current State**:
 - EventEditorPanel has drag state (`isDragging`, `eventId`, `cursorX`, `cursorY`)
@@ -192,7 +1005,7 @@ Support **ConditionalTrigger** with custom logic (already implemented in EventMa
 
 **Goal**: Add Events button to Tools panel that toggles EventEditorPanel
 
-#### Phase 1A: Unit Tests (Write FIRST)
+#### Source Code Changes
 **Test File**: `test/unit/levelEditor/eventsToolsPanelIntegration.test.js`
 
 **Tests to Write**:

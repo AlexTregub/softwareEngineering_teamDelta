@@ -50,6 +50,14 @@ class EventEditorPanel {
       cursorY: 0,
       triggerRadius: 64 // Default trigger radius in pixels
     };
+    
+    // Placement mode state (double-click to enable)
+    this.placementMode = {
+      isActive: false,
+      eventId: null,
+      cursorX: 0,
+      cursorY: 0
+    };
   }
   
   /**
@@ -715,6 +723,21 @@ class EventEditorPanel {
   }
   
   /**
+   * Get current drag position
+   * @returns {Object|null} - {x, y} position or null if not dragging
+   */
+  getDragPosition() {
+    if (!this.dragState.isDragging) {
+      return null;
+    }
+    
+    return {
+      x: this.dragState.cursorX,
+      y: this.dragState.cursorY
+    };
+  }
+  
+  /**
    * Complete drag operation and create spatial trigger
    * @param {number} worldX - World X coordinate for trigger placement
    * @param {number} worldY - World Y coordinate for trigger placement
@@ -731,7 +754,18 @@ class EventEditorPanel {
     // Create unique trigger ID
     const triggerId = `${eventId}_spatial_${Date.now()}`;
     
-    // Create spatial trigger configuration
+    // Create EventFlag configuration for Level Editor
+    const flagConfig = {
+      id: triggerId,
+      x: worldX,
+      y: worldY,
+      radius: radius,
+      shape: 'circle',
+      eventId: eventId,
+      oneTime: true
+    };
+    
+    // Create spatial trigger configuration for EventManager
     const triggerConfig = {
       id: triggerId,
       eventId: eventId,
@@ -758,7 +792,8 @@ class EventEditorPanel {
         eventId: eventId,
         worldX: worldX,
         worldY: worldY,
-        triggerId: triggerId
+        triggerId: triggerId,
+        flagConfig: flagConfig // Return EventFlag config for Level Editor
       };
     } else {
       // Registration failed, but still reset drag state
@@ -832,6 +867,210 @@ class EventEditorPanel {
     this.dragState.cursorX = 0;
     this.dragState.cursorY = 0;
     this.dragState.triggerRadius = 64; // Reset to default
+  }
+  
+  // ========================================
+  // PLACEMENT MODE (DOUBLE-CLICK)
+  // ========================================
+  
+  /**
+   * Check if in placement mode
+   * @returns {boolean}
+   */
+  isInPlacementMode() {
+    return this.placementMode.isActive === true;
+  }
+  
+  /**
+   * Get event ID in placement mode
+   * @returns {string|null}
+   */
+  getPlacementEventId() {
+    return this.placementMode.isActive ? this.placementMode.eventId : null;
+  }
+  
+  /**
+   * Get cursor position in placement mode
+   * @returns {{x: number, y: number}|null}
+   */
+  getPlacementCursor() {
+    if (!this.placementMode.isActive) {
+      return null;
+    }
+    return {
+      x: this.placementMode.cursorX,
+      y: this.placementMode.cursorY
+    };
+  }
+  
+  /**
+   * Enter placement mode (double-click on drag button)
+   * @param {string} eventId - Event ID to place
+   * @returns {boolean} Success
+   */
+  enterPlacementMode(eventId) {
+    if (!eventId) {
+      return false;
+    }
+    
+    // Cancel any active drag first
+    if (this.dragState.isDragging) {
+      this.cancelDrag();
+    }
+    
+    this.placementMode.isActive = true;
+    this.placementMode.eventId = eventId;
+    this.placementMode.cursorX = 0;
+    this.placementMode.cursorY = 0;
+    
+    logNormal(`✅ Entered placement mode for event: ${eventId}`);
+    return true;
+  }
+  
+  /**
+   * Exit placement mode
+   */
+  exitPlacementMode() {
+    this.placementMode.isActive = false;
+    this.placementMode.eventId = null;
+    this.placementMode.cursorX = 0;
+    this.placementMode.cursorY = 0;
+  }
+  
+  /**
+   * Update cursor position in placement mode
+   * @param {number} x - Screen X
+   * @param {number} y - Screen Y
+   */
+  updatePlacementCursor(x, y) {
+    if (!this.placementMode.isActive) {
+      return;
+    }
+    
+    this.placementMode.cursorX = x;
+    this.placementMode.cursorY = y;
+  }
+  
+  /**
+   * Complete placement (single click in placement mode)
+   * @param {number} worldX - World X coordinate
+   * @param {number} worldY - World Y coordinate
+   * @returns {{success: boolean, eventId: string, worldX: number, worldY: number}}
+   */
+  completePlacement(worldX, worldY) {
+    if (!this.placementMode.isActive) {
+      return { success: false };
+    }
+    
+    const eventId = this.placementMode.eventId;
+    
+    // Exit placement mode
+    this.exitPlacementMode();
+    
+    // Return success
+    return {
+      success: true,
+      eventId: eventId,
+      worldX: worldX,
+      worldY: worldY
+    };
+  }
+  
+  /**
+   * Cancel placement mode (ESC key)
+   */
+  cancelPlacement() {
+    if (this.placementMode.isActive) {
+      logNormal('Cancelled placement mode');
+    }
+    this.exitPlacementMode();
+  }
+  
+  /**
+   * Handle double-click on panel content
+   * @param {number} mouseX - Mouse X (absolute)
+   * @param {number} mouseY - Mouse Y (absolute)
+   * @param {number} contentX - Content area X
+   * @param {number} contentY - Content area Y
+   * @returns {boolean} True if handled
+   */
+  handleDoubleClick(mouseX, mouseY, contentX, contentY) {
+    const relX = mouseX - contentX;
+    const relY = mouseY - contentY;
+    
+    // Only handle in list mode
+    if (this.editMode) {
+      return false;
+    }
+    
+    const width = this.getContentSize().width;
+    const height = this.getContentSize().height;
+    const listY = 30;
+    const listHeight = height - 60;
+    
+    if (relY >= listY && relY <= listY + listHeight) {
+      const events = this.eventManager.getAllEvents();
+      let itemY = listY - this.scrollOffset;
+      
+      for (let i = 0; i < events.length; i++) {
+        const event = events[i];
+        
+        if (relY >= itemY && relY <= itemY + this.listItemHeight) {
+          // Check if double-clicking drag button
+          const dragBtnX = width - 55;
+          const dragBtnY = itemY + 5;
+          const dragBtnSize = 20;
+          
+          if (relX >= dragBtnX && relX <= dragBtnX + dragBtnSize &&
+              relY >= dragBtnY && relY <= dragBtnY + dragBtnSize) {
+            // Enter placement mode
+            this.enterPlacementMode(event.id);
+            return true;
+          }
+        }
+        
+        itemY += this.listItemHeight + this.listPadding;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Render flag cursor and trigger radius preview during placement mode
+   * Should be called from Level Editor's render loop
+   */
+  renderPlacementCursor() {
+    // Only render when placement mode is active
+    if (!this.placementMode.isActive) {
+      return;
+    }
+    
+    const cursorX = this.placementMode.cursorX;
+    const cursorY = this.placementMode.cursorY;
+    
+    // If no cursor position set, don't render
+    if (cursorX === 0 && cursorY === 0) {
+      return;
+    }
+    
+    push();
+    
+    // Draw trigger radius preview circle
+    stroke(100, 200, 255, 150); // Semi-transparent blue
+    strokeWeight(2);
+    noFill();
+    const radiusPixels = 64; // Default trigger radius
+    circle(cursorX, cursorY, radiusPixels * 2); // diameter = radius * 2
+    
+    // Draw flag emoji at offset position (not covering cursor)
+    fill(255);
+    noStroke();
+    textSize(24);
+    textAlign(LEFT, TOP);
+    text('🚩', cursorX + 15, cursorY - 25); // Offset: +15x, -25y
+    
+    pop();
   }
 }
 

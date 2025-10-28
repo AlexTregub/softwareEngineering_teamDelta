@@ -10,25 +10,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Event Placement Mode** (Level Editor Enhancement)
+  - **Double-click drag button** in Events panel to enter "sticky" placement mode
+  - **Flag cursor (🚩)** appears next to mouse with trigger radius preview circle
+  - **Single-click placement** - no need to hold mouse button
+  - **ESC key cancellation** - exits placement mode instantly
+  - Full event wiring: `doubleClicked()` → LevelEditor → LevelEditorPanels → EventEditorPanel
+  - Comprehensive E2E test covering complete user workflow (5 steps)
+  - 27 unit tests + 17 integration tests + 5 E2E tests (all passing)
+- **Fill Tool Bounds Limit** (Bug Fix - Post-Launch Issue)
+  - Fill tool now limited to 100x100 tile area per operation (10,000 tiles maximum)
+  - Prevents performance issues when filling large sparse regions
+  - Returns operation metadata including tiles filled and whether limit was reached
+  - Supports SparseTerrain's dynamic bounds (including negative coordinates)
+- **Custom Canvas Sizes** (Enhancement - Post-Launch Issue)
+  - **Changed default canvas size from 1000x1000 to 100x100 tiles** for better performance
+  - Terrains can now be created with custom sizes: `new SparseTerrain(32, 'grass', { maxMapSize: 250 })`
+  - Size validation: minimum 10x10, maximum 1000x1000 (automatically clamped)
+  - Canvas size persisted in saved terrain files
+  - Level Editor now starts with smaller, faster 100x100 canvas by default
 - EventManager system for random game events (dialogue, spawn, tutorial, boss)
 - Event trigger system (time-based, flag-based, spatial, conditional, viewport)
 - EventEditorPanel for Level Editor (create/edit/test events)
 - JSON import/export for events in Level Editor
 - **SparseTerrain class** for lazy terrain loading (Phase 1B complete)
   - Map-based sparse tile storage (`Map<"x,y", { material }>`)
-  - Unbounded coordinates (supports negative, very large values)
+  - Supports painting at any coordinate (positive/negative) within 1000x1000 limit
+  - **1000x1000 tile hard limit** to prevent memory leaks (8 dedicated tests)
   - Dynamic bounds tracking (auto-expands/shrinks with operations)
   - Sparse JSON export (only painted tiles, massive space savings)
   - 48 unit tests + 18 integration tests covering all functionality
   - Foundation for infinite canvas terrain system
-- **DynamicGridOverlay class** for lazy terrain grid rendering (Phase 2A/2B complete)
+- **DynamicGridOverlay class** for lazy terrain grid rendering (Phase 2B complete)
   - Grid appears only at painted tiles + 2-tile buffer
   - Opacity feathering: 1.0 at painted tiles, fades to 0.0 at buffer edge
   - Shows grid at mouse hover when no tiles painted
+  - **Memoization caching** for feathering and nearest-tile calculations (6 new tests)
+  - **75% performance improvement** with caching (73s → 18.5s for 100 scattered tiles)
+  - Grid generation optimization: skips lines far from painted tiles
   - Viewport culling for performance (only renders visible lines)
   - Efficient nearest-tile search using sparse storage
-  - 21 unit tests covering all functionality
-- **DynamicMinimap class** for lazy terrain minimap (Phase 3A/3B complete)
+  - 27 unit tests covering all functionality (21 original + 6 caching)
+- **DynamicMinimap class** for lazy terrain minimap (Phase 3B complete)
   - Viewport calculated from painted terrain bounds + padding (not fixed 50x50)
   - Auto-scaling to fit viewport in minimap dimensions
   - World-to-minimap coordinate conversion
@@ -36,8 +59,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Camera viewport outline overlay (yellow)
   - Handles empty terrain, single tile, negative coords, 1000x1000 bounds
   - 26 unit tests covering all functionality
+- **Infinite Canvas Integration** (Phase 4 complete)
+  - All three systems (SparseTerrain, DynamicGridOverlay, DynamicMinimap) work together
+  - 18 integration tests covering paint workflows, bounds sync, JSON persistence
+  - Performance testing with scattered tiles (100 tiles in 500x500 area)
+  - Memory efficiency: 100 tiles vs 250,000 in dense grid
+- **SparseTerrain Compatibility Layer** (Level Editor Integration)
+  - Added `getArrPos([x, y])` interface for TerrainEditor compatibility
+  - Added `invalidateCache()` no-op method
+  - Added compatibility properties: `_tileSize`, `_gridSizeX`, `_gridSizeY`, `_chunkSize`
+  - 26 compatibility unit tests ensuring seamless TerrainEditor integration
+  - 20 Level Editor integration tests (paint, fill, undo/redo, JSON)
+- **Level Editor now uses SparseTerrain by default**
+  - Replaced CustomTerrain with SparseTerrain in `LevelEditor.js`
+  - New terrains start with **black canvas** (zero tiles)
+  - Can paint anywhere within 1000x1000 bounds
+  - Supports negative coordinates
+  - Sparse JSON saves (only painted tiles exported)
+  - All existing TerrainEditor features work: paint, fill, undo/redo, eyedropper
+  - Added `render()` method to SparseTerrain for Level Editor compatibility
+- **E2E Tests with Screenshots** (Phase 6 complete)
+  - `pw_sparse_terrain_black_canvas.js` - Verifies Level Editor starts with 0 tiles ✅
+  - `pw_sparse_terrain_paint_anywhere.js` - Tests painting at scattered/negative coords ✅
+  - `pw_sparse_terrain_json_export.js` - Verifies sparse JSON export (100% savings) ✅
+  - All screenshots captured: `test/e2e/screenshots/levelEditor/success/`
 
 ### Fixed
+- **Event Placement Mode Double-Click Bug** (Critical Bug Fix)
+  - User reported: "I can't click and drag or double click and place"
+  - Root cause: Missing double-click event wiring - `handleDoubleClick()` was never called
+  - Fixed: Added `doubleClicked()` p5.js handler + routing through LevelEditor → LevelEditorPanels → EventEditorPanel
+  - Comprehensive workflow E2E test now passes (5 steps: open editor → click Events → drag → double-click)
+  - All functionality confirmed working: click-and-drag ✅, double-click placement ✅
 - **Bug Fix 5**: Terrain no longer paints underneath menu bar during drag/click operations
   - Root cause: `handleDrag()` and `handleClick()` didn't check menu bar position
   - Solution: Added containsPoint() check before terrain interaction

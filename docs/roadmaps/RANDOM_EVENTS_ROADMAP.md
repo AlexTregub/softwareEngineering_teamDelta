@@ -276,26 +276,115 @@ When multiple triggers fire simultaneously:
 
 ---
 
-### 🔮 Phase 4: Event Flags & Spatial Triggers (FUTURE)
-**Goal**: Click-to-place event flags in Level Editor
+### ✅ Phase 4: Event Flags & Drag-and-Drop (COMPLETE)
+**Goal**: Drag events from EventEditorPanel to canvas to create EventFlags
+
+#### ✅ Phase 4A: getDragPosition() Method (COMPLETE)
+**Completed**:
+- ✅ Added `getDragPosition()` method to EventEditorPanel
+- ✅ Returns `{x, y}` cursor position during drag
+- ✅ Returns `null` when not dragging
+- ✅ Integration point for Level Editor
+
+**File Modified**:
+- `Classes/systems/ui/EventEditorPanel.js` (added getDragPosition method)
+
+#### ✅ Phase 4B: Integration Tests (COMPLETE)
+**Completed**:
+- ✅ Created `integrationTestHelpers.js` for real class loading
+- ✅ Mocks only p5.js and external systems
+- ✅ 15/15 integration tests passing
+- ✅ Fixed EventManager mock to return true for registerTrigger()
+
+**Files Created/Modified**:
+- `test/helpers/integrationTestHelpers.js` (355 lines)
+- `test/integration/levelEditor/dragAndDrop.integration.test.js` (286 lines, 15 tests)
+
+**Test Coverage**:
+- EventFlagLayer initialization (2 tests)
+- Drag state detection (2 tests)
+- Flag placement on drag complete (3 tests)
+- Drag cancellation (1 test)
+- Flag configuration (3 tests)
+- Rendering (2 tests)
+- Error handling (2 tests)
+
+#### ✅ Phase 4C: E2E Tests with Screenshots (COMPLETE)
+**Completed**:
+- ✅ 5/5 E2E tests passing with visual verification
+- ✅ EventEditorPanel visibility test
+- ✅ Drag operation start test
+- ✅ EventFlag creation test
+- ✅ Visual rendering test
+- ✅ Multiple flags placement test
+
+**Files Created/Modified**:
+- `test/e2e/levelEditor/pw_event_drag_drop.js` (350 lines)
+- `Classes/systems/ui/LevelEditor.js` (exported LevelEditor class to window)
+
+**Screenshots Created** (5 total):
+- `test/e2e/screenshots/levelEditor/success/event_panel_visible.png`
+- `test/e2e/screenshots/levelEditor/success/event_drag_active.png`
+- `test/e2e/screenshots/levelEditor/success/event_flag_placed.png`
+- `test/e2e/screenshots/levelEditor/success/event_flag_rendered.png`
+- `test/e2e/screenshots/levelEditor/success/multiple_event_flags.png`
+
+#### ✅ Phase 4D: Complete Drag Workflow (COMPLETE)
+**Completed**:
+- ✅ Added `handleMouseMoved()` to update drag cursor position
+- ✅ Added `handleMouseReleased()` to complete drag and create EventFlag
+- ✅ Added `handleKeyPressed()` for Escape key cancellation
+- ✅ Screen-to-world coordinate conversion
+- ✅ Automatic EventFlag creation on drag complete
+- ✅ 7/7 workflow integration tests passing
+- ✅ All E2E tests still passing
+
+**Files Modified**:
+- `Classes/systems/ui/LevelEditor.js` (added 3 handler methods)
+- `test/integration/levelEditor/eventDragWorkflow.integration.test.js` (249 lines, 7 tests)
+
+**Test Coverage**:
+- Drag detection (2 tests)
+- Mouse move updates (1 test)
+- Mouse release and flag creation (2 tests)
+- Drag cancellation (1 test)
+- Multiple drag sessions (1 test)
+
+#### ✅ Phase 4E: Game Loop Integration (COMPLETE)
+**Completed**:
+- ✅ Integrated drag logic into existing `handleMouseRelease()` method
+- ✅ Wired `handleMouseMoved()` into `mouseMoved()` function
+- ✅ Wired Escape key cancellation into existing `handleKeyPress()` method
+- ✅ Priority system ensures drag completes before other tool operations
+- ✅ All integration tests still passing (22/22)
+- ✅ All E2E tests still passing (5/5)
+
+**Files Modified**:
+- `Classes/systems/ui/LevelEditor.js` (integrated drag into existing handlers)
+- `sketch.js` (added handleMouseMoved call to mouseMoved function)
+- `test/integration/levelEditor/eventDragWorkflow.integration.test.js` (updated to use correct method names)
+
+**Status**: Complete drag-and-drop system fully wired into game loop
+
+---
+
+### 🔮 Phase 5: Event Flag Tool in ToolBar (FUTURE)
+**Goal**: Add "Event Flag" button to ToolBar for direct placement
 
 #### Planned Tasks
-- [ ] Implement `EventFlag` class
-- [ ] Implement `EventFlagLayer` class
-- [ ] Unit tests for both
-- [ ] Add "Event Flag" tool to ToolBar
+- [ ] Add "Event Flag" tool button to ToolBar
 - [ ] Implement click-to-place system
 - [ ] Visual rendering (flag icon + radius circle)
 - [ ] Extend TerrainExporter/Importer with eventFlags
 - [ ] E2E tests with screenshots
 
-**Dependencies**: Phase 3 documentation complete
+**Dependencies**: Phase 4 complete ✅
 
-**Estimated Effort**: 2-3 sessions
+**Estimated Effort**: 1-2 sessions
 
 ---
 
-### 🔮 Phase 5: Dialogue Panel System (FUTURE)
+### 🔮 Phase 6: Dialogue Panel System (FUTURE)
 **Goal**: Static dialogue panel with animations
 
 See: `docs/plans/TODO_DIALOGUE_PANEL_SYSTEM.md`

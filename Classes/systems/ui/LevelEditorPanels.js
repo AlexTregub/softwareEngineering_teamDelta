@@ -117,6 +117,7 @@ class LevelEditorPanels {
       title: 'Events',
       position: { x: window.width - 270, y: 80 }, // Right side of screen
       size: { width: 260, height: 310 },
+      visible: false, // Hidden by default - toggled via Events button
       buttons: {
         layout: 'vertical',
         spacing: 0,
@@ -142,6 +143,7 @@ class LevelEditorPanels {
       title: 'Properties',
       position: { x: window.width - 270, y: 405 }, // Right side, below events
       size: { width: 200, height: 380 },
+      visible: false, // Hidden by default - toggled via View menu
       buttons: {
         layout: 'vertical',
         spacing: 0,
@@ -230,15 +232,18 @@ class LevelEditorPanels {
       }
     }
 
-    // Tools Panel
-    if (this.panels.tools && this.panels.tools.state.visible) {
+    // Tools Panel - CRITICAL: Check toolbar FIRST before checking panel visibility
+    // The main Level Editor toolbar (with Events button) is rendered in the Tools panel
+    // We need to check toolbar clicks even if the Tools panel is hidden, because
+    // the toolbar buttons (like Events) might toggle panels on/off
+    if (this.panels.tools) {
       const toolPanel = this.panels.tools;
       const toolPos = toolPanel.getPosition();
       const titleBarHeight = toolPanel.calculateTitleBarHeight();
       const contentX = toolPos.x + toolPanel.config.style.padding;
       const contentY = toolPos.y + titleBarHeight + toolPanel.config.style.padding;
       
-      // Check if click is in the content area of tools panel
+      // Check if click is in the toolbar area (regardless of panel visibility)
       if (this.levelEditor.toolbar && this.levelEditor.toolbar.containsPoint(mouseX, mouseY, contentX, contentY)) {
         const tool = this.levelEditor.toolbar.handleClick(mouseX, mouseY, contentX, contentY);
         if (tool) {
@@ -248,7 +253,7 @@ class LevelEditorPanels {
           this.levelEditor.toolbar.setEnabled('undo', this.levelEditor.editor.canUndo());
           this.levelEditor.toolbar.setEnabled('redo', this.levelEditor.editor.canRedo());
           
-          return true;
+          return true; // Consume the click so draggablePanelManager doesn't see it
         }
       }
     }
@@ -302,6 +307,31 @@ class LevelEditorPanels {
   }
 
   /**
+   * Handle double-click events on the panels
+   * Delegates to panel content (e.g., EventEditorPanel for placement mode)
+   */
+  handleDoubleClick(mouseX, mouseY) {
+    // Events Panel - Check if double-clicking panel content
+    if (this.panels.events && this.panels.events.state.visible && !this.panels.events.state.minimized) {
+      const eventPanel = this.panels.events;
+      const eventPos = eventPanel.getPosition();
+      const titleBarHeight = eventPanel.calculateTitleBarHeight();
+      const contentX = eventPos.x + eventPanel.config.style.padding;
+      const contentY = eventPos.y + titleBarHeight + eventPanel.config.style.padding;
+      
+      // Check if double-click is in the content area of events panel
+      if (this.levelEditor.eventEditor && this.levelEditor.eventEditor.handleDoubleClick) {
+        const handled = this.levelEditor.eventEditor.handleDoubleClick(mouseX, mouseY, contentX, contentY);
+        if (handled) {
+          return true; // EventEditor consumed the double-click
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
    * Render the panels with their content
    * This should be called from LevelEditor.render()
    */
@@ -348,8 +378,8 @@ class LevelEditorPanels {
     if (this.panels.events && this.panels.events.state.visible && !this.panels.events.state.minimized) {
       this.panels.events.render((contentArea, style) => {
         if (this.levelEditor.eventEditor) {
-          // Pass absolute coordinates directly (no translate)
-          this.levelEditor.eventEditor.render(contentArea.x, contentArea.y);
+          // Pass absolute coordinates AND dimensions for proper layout
+          this.levelEditor.eventEditor.render(contentArea.x, contentArea.y, contentArea.width, contentArea.height);
         }
       });
     } else if (this.panels.events && this.panels.events.state.visible) {
@@ -372,11 +402,64 @@ class LevelEditorPanels {
   }
 
   /**
+   * Toggle Events panel visibility
+   * Called by Events button in Tools panel
+   * CRITICAL: Must update stateVisibility to prevent renderPanels() from hiding it
+   */
+  toggleEventsPanel() {
+    const manager = (typeof window !== 'undefined') ? window.draggablePanelManager : global.draggablePanelManager;
+    if (manager) {
+      const panelId = 'level-editor-events';
+      const panel = manager.panels.get(panelId);
+      
+      if (!panel) {
+        console.warn('[LevelEditorPanels] Events panel not found');
+        return;
+      }
+      
+      // Check if panel is currently visible
+      const isVisible = panel.isVisible();
+      
+      if (isVisible) {
+        // Hide panel and remove from stateVisibility
+        panel.hide();
+        const index = manager.stateVisibility.LEVEL_EDITOR.indexOf(panelId);
+        if (index > -1) {
+          manager.stateVisibility.LEVEL_EDITOR.splice(index, 1);
+        }
+      } else {
+        // Show panel and add to stateVisibility
+        panel.show();
+        if (!manager.stateVisibility.LEVEL_EDITOR.includes(panelId)) {
+          manager.stateVisibility.LEVEL_EDITOR.push(panelId);
+        }
+      }
+    }
+  }
+
+  /**
    * Show all level editor panels
+   * Only shows panels that are in LEVEL_EDITOR state visibility
+   * (Events panel should remain hidden until user clicks Events button)
    */
   show() {
-    Object.values(this.panels).forEach(panel => {
-      if (panel) panel.show();
+    const manager = (typeof window !== 'undefined') ? window.draggablePanelManager : global.draggablePanelManager;
+    
+    if (!manager) {
+      // Fallback to showing all panels if manager not available
+      Object.values(this.panels).forEach(panel => {
+        if (panel) panel.show();
+      });
+      return;
+    }
+    
+    // Only show panels that are in LEVEL_EDITOR state visibility
+    const visiblePanelIds = manager.stateVisibility.LEVEL_EDITOR || [];
+    
+    Object.entries(this.panels).forEach(([key, panel]) => {
+      if (panel && visiblePanelIds.includes(panel.config.id)) {
+        panel.show();
+      }
     });
   }
 

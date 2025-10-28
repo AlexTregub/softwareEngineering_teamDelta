@@ -12,6 +12,9 @@ class TerrainEditor {
     this._redoStack = [];
     this._maxUndoSize = 50;
     this._gridVisible = true;
+    
+    // Maximum fill area (100x100 tiles = 10,000)
+    this.MAX_FILL_AREA = 10000;
   }
 
   /**
@@ -78,16 +81,53 @@ class TerrainEditor {
   }
 
   /**
-   * Check if tile position is within terrain bounds
+   * Check if tile coordinates are within terrain bounds
    * @param {number} x - Tile X position
    * @param {number} y - Tile Y position
    * @returns {boolean} True if in bounds
    * @private
    */
   _isInBounds(x, y) {
+    // SparseTerrain (or sparse mock) may not have fixed grid size
+    // Allow all coordinates if gridSize not defined
+    if (!this._terrain._gridSizeX || !this._terrain._gridSizeY) {
+      return true; // Sparse terrain - validates dynamically
+    }
+    
+    // Traditional grid-based terrain (CustomTerrain, gridTerrain)
     const maxX = this._terrain._gridSizeX * this._terrain._chunkSize;
     const maxY = this._terrain._gridSizeY * this._terrain._chunkSize;
     return x >= 0 && x < maxX && y >= 0 && y < maxY;
+  }
+  
+  /**
+   * Check if queue has any valid tiles that could be filled
+   * Used to determine if fill operation hit the limit artificially
+   * @param {Array} queue - BFS queue of coordinates
+   * @param {Set} visited - Set of visited tile keys
+   * @param {string} targetMaterial - Material being replaced
+   * @returns {boolean} True if queue contains fillable tiles
+   * @private
+   */
+  _hasValidTilesInQueue(queue, visited, targetMaterial) {
+    // Check a sample of queue items to see if any are valid
+    // (Don't check ALL as that could be expensive)
+    const samplesToCheck = Math.min(queue.length, 20);
+    
+    for (let i = 0; i < samplesToCheck; i++) {
+      const [x, y] = queue[i];
+      const key = `${x},${y}`;
+      
+      if (visited.has(key)) continue;
+      if (!this._isInBounds(x, y)) continue;
+      
+      const tile = this._terrain.getArrPos([x, y]);
+      if (tile.getMaterial() === targetMaterial) {
+        return true; // Found at least one valid tile
+      }
+    }
+    
+    return false; // No valid tiles found in sample
   }
 
   /**
@@ -103,10 +143,16 @@ class TerrainEditor {
    * @param {number} startX - Starting tile X
    * @param {number} startY - Starting tile Y
    * @param {string} replacementMaterial - Material to fill with
+   * @returns {Object} Fill operation metadata: {tilesFilled, limitReached, startMaterial, newMaterial}
    */
   fillRegion(startX, startY, replacementMaterial = null) {
     if (!this._isInBounds(startX, startY)) {
-      return;
+      return {
+        tilesFilled: 0,
+        limitReached: false,
+        startMaterial: null,
+        newMaterial: replacementMaterial || this._selectedMaterial
+      };
     }
 
     const fillMaterial = replacementMaterial || this._selectedMaterial;
@@ -115,12 +161,19 @@ class TerrainEditor {
 
     // Don't fill if target equals replacement
     if (targetMaterial === fillMaterial) {
-      return;
+      return {
+        tilesFilled: 0,
+        limitReached: false,
+        startMaterial: targetMaterial,
+        newMaterial: fillMaterial
+      };
     }
 
     const affectedTiles = [];
     const visited = new Set();
     const queue = [[startX, startY]];
+    let tilesFilled = 0;
+    let limitReached = false;
 
     while (queue.length > 0) {
       const [x, y] = queue.shift();
@@ -139,6 +192,16 @@ class TerrainEditor {
 
       tile.setMaterial(fillMaterial);
       tile.assignWeight();
+      
+      tilesFilled++;
+      
+      // Stop if we've reached the fill limit
+      if (tilesFilled >= this.MAX_FILL_AREA) {
+        // Check if there are more tiles that could be filled
+        // (queue may have invalid/visited tiles, so we need to check properly)
+        limitReached = this._hasValidTilesInQueue(queue, visited, targetMaterial);
+        break;
+      }
 
       // Add neighbors (including diagonals)
       queue.push([x + 1, y]);
@@ -155,6 +218,13 @@ class TerrainEditor {
       this._recordAction({ type: 'fill', tiles: affectedTiles });
       this._terrain.invalidateCache();
     }
+    
+    return {
+      tilesFilled,
+      limitReached,
+      startMaterial: targetMaterial,
+      newMaterial: fillMaterial
+    };
   }
 
   /**

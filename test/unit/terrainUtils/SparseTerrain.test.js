@@ -215,25 +215,30 @@ describe('SparseTerrain', function() {
     
     it('should return bounds for multiple tiles', function() {
       terrain.setTile(0, 0, 'grass');
-      terrain.setTile(100, 50, 'stone');
+      terrain.setTile(50, 30, 'stone');
       terrain.setTile(-20, -10, 'water');
       
       const bounds = terrain.getBounds();
       expect(bounds.minX).to.equal(-20);
-      expect(bounds.maxX).to.equal(100);
+      expect(bounds.maxX).to.equal(50);
       expect(bounds.minY).to.equal(-10);
-      expect(bounds.maxY).to.equal(50);
+      expect(bounds.maxY).to.equal(30);
     });
     
-    it('should handle widely separated tiles', function() {
+    it('should reject widely separated tiles that exceed limit', function() {
       terrain.setTile(0, 0, 'grass');
-      terrain.setTile(1000000, 1000000, 'stone');
+      
+      // Try to paint at 1,000,000 - should be rejected
+      const result = terrain.setTile(1000000, 1000000, 'stone');
+      
+      expect(result).to.be.false; // Rejected
+      expect(terrain.getTileCount()).to.equal(1); // Only first tile
       
       const bounds = terrain.getBounds();
       expect(bounds.minX).to.equal(0);
-      expect(bounds.maxX).to.equal(1000000);
+      expect(bounds.maxX).to.equal(0);
       expect(bounds.minY).to.equal(0);
-      expect(bounds.maxY).to.equal(1000000);
+      expect(bounds.maxY).to.equal(0);
     });
   });
   
@@ -280,20 +285,20 @@ describe('SparseTerrain', function() {
     
     it('should include metadata', function() {
       const json = terrain.exportToJSON();
-      expect(json).to.have.property('tileSize', 32);
-      expect(json).to.have.property('defaultMaterial', 'grass');
+      expect(json.metadata).to.have.property('tileSize', 32);
+      expect(json.metadata).to.have.property('defaultMaterial', 'grass');
+      expect(json.metadata).to.have.property('maxMapSize', 100); // New default
     });
     
     it('should be sparse (no default tiles)', function() {
-      // Paint only 3 tiles in a large area
+      // Paint only 2 tiles (100x100 limit now, so can't paint at 100,100)
       terrain.setTile(0, 0, 'grass');
       terrain.setTile(50, 50, 'stone');
-      terrain.setTile(100, 100, 'water');
       
       const json = terrain.exportToJSON();
       
-      // Should only have 3 tiles, not 101*101 = 10,201 tiles
-      expect(json.tiles).to.have.lengthOf(3);
+      // Should only have 2 tiles, not 51*51 = 2,601 tiles
+      expect(json.tiles).to.have.lengthOf(2);
     });
   });
   
@@ -355,24 +360,123 @@ describe('SparseTerrain', function() {
       terrain.setTile(0, 0, 'grass');
       expect(terrain.getTile(0, 0).material).to.equal('grass');
     });
+  });
+  
+  describe('Map Size Limits (1000x1000)', function() {
+    let largeTerrain;
     
-    it('should handle maximum safe integer coordinates', function() {
-      const maxSafe = Number.MAX_SAFE_INTEGER;
-      terrain.setTile(maxSafe, maxSafe, 'stone');
-      
-      expect(terrain.getTile(maxSafe, maxSafe).material).to.equal('stone');
+    beforeEach(function() {
+      const SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
+      largeTerrain = new SparseTerrain(32, 'grass', { maxMapSize: 1000 });
     });
     
-    it('should handle sparse painting (far apart tiles)', function() {
+    it('should allow painting within 1000x1000 bounds', function() {
+      largeTerrain.setTile(0, 0, 'grass');
+      largeTerrain.setTile(999, 999, 'stone');
+      
+      expect(largeTerrain.getTileCount()).to.equal(2);
+      expect(largeTerrain.getTile(999, 999).material).to.equal('stone');
+    });
+    
+    it('should reject tiles that would exceed 1000 width', function() {
+      largeTerrain.setTile(0, 0, 'grass');
+      
+      const result = largeTerrain.setTile(1000, 0, 'stone');
+      
+      expect(result).to.be.false;
+      expect(largeTerrain.getTileCount()).to.equal(1);
+      expect(largeTerrain.getTile(1000, 0)).to.be.null;
+    });
+    
+    it('should reject tiles that would exceed 1000 height', function() {
+      largeTerrain.setTile(0, 0, 'grass');
+      
+      const result = largeTerrain.setTile(0, 1000, 'stone');
+      
+      expect(result).to.be.false;
+      expect(largeTerrain.getTileCount()).to.equal(1);
+      expect(largeTerrain.getTile(0, 1000)).to.be.null;
+    });
+    
+    it('should allow negative coordinates within limit', function() {
+      largeTerrain.setTile(-500, -500, 'grass');
+      largeTerrain.setTile(499, 499, 'stone');
+      
+      const bounds = largeTerrain.getBounds();
+      expect(bounds.maxX - bounds.minX).to.equal(999); // 1000 width
+      expect(bounds.maxY - bounds.minY).to.equal(999); // 1000 height
+      expect(largeTerrain.getTileCount()).to.equal(2);
+    });
+    
+    it('should reject tiles that would exceed diagonal bounds', function() {
+      largeTerrain.setTile(-500, -500, 'grass');
+      
+      const result = largeTerrain.setTile(500, 500, 'stone');
+      
+      expect(result).to.be.false; // Would create 1001x1001 bounds
+      expect(largeTerrain.getTileCount()).to.equal(1);
+    });
+    
+    it('should allow painting up to exact limit', function() {
+      largeTerrain.setTile(-500, -500, 'grass');
+      largeTerrain.setTile(499, 499, 'stone'); // Exactly 1000x1000
+      
+      expect(largeTerrain.getTileCount()).to.equal(2);
+      expect(largeTerrain.getTile(499, 499).material).to.equal('stone');
+    });
+    
+    it('should check bounds before modifying state', function() {
+      largeTerrain.setTile(0, 0, 'grass');
+      largeTerrain.setTile(100, 100, 'stone');
+      
+      const initialCount = largeTerrain.getTileCount();
+      const initialBounds = largeTerrain.getBounds();
+      
+      const result = largeTerrain.setTile(5000, 5000, 'water');
+      
+      expect(result).to.be.false;
+      expect(largeTerrain.getTileCount()).to.equal(initialCount);
+      expect(largeTerrain.getBounds()).to.deep.equal(initialBounds);
+    });
+    
+    it('should handle sparse painting with limit enforcement', function() {
+      largeTerrain.setTile(0, 0, 'grass');
+      
+      // Try to paint at 1500, 1500 (would exceed limit)
+      const result = largeTerrain.setTile(1500, 1500, 'stone');
+      
+      expect(result).to.be.false;
+      expect(largeTerrain.getTileCount()).to.equal(1);
+    });
+  });
+  
+  describe('Edge Cases with Limits', function() {
+    it('should allow single tile at any coordinate within reason', function() {
+      const maxSafe = Number.MAX_SAFE_INTEGER;
+      
+      // Single tile at extreme coordinates is OK (bounds would be 1x1)
+      const result = terrain.setTile(maxSafe, maxSafe, 'stone');
+      
+      expect(result).to.be.true; // Allowed
+      expect(terrain.getTile(maxSafe, maxSafe)).to.not.be.null;
+      
+      // But adding another tile far away should be rejected
+      const result2 = terrain.setTile(0, 0, 'grass');
+      
+      expect(result2).to.be.false; // Rejected - would exceed 1000x1000
+      expect(terrain.getTileCount()).to.equal(1); // Still just one tile
+    });
+    
+    it('should handle sparse painting (within limits)', function() {
       terrain.setTile(0, 0, 'grass');
-      terrain.setTile(1000, 1000, 'stone');
-      terrain.setTile(-500, -500, 'water');
+      terrain.setTile(50, 50, 'stone');
+      terrain.setTile(-40, -40, 'water');
       
       expect(terrain.getTileCount()).to.equal(3);
       
       const bounds = terrain.getBounds();
-      expect(bounds.minX).to.equal(-500);
-      expect(bounds.maxX).to.equal(1000);
+      expect(bounds.minX).to.equal(-40);
+      expect(bounds.maxX).to.equal(50);
     });
     
     it('should handle rapid add/delete cycles', function() {

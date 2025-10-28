@@ -84,8 +84,63 @@ class MiniMap {
         // Clear buffer
         buffer.background(20, 20, 20);
         
-        // Draw terrain tiles
-        if (this.terrain.getArrPos) {
+        // SPARSE TERRAIN OPTIMIZATION: Only render painted tiles
+        // Check if terrain has getAllTiles() method (SparseTerrain)
+        if (this.terrain.getAllTiles && typeof this.terrain.getAllTiles === 'function') {
+            const paintedTiles = Array.from(this.terrain.getAllTiles());
+            
+            if (paintedTiles.length === 0) {
+                // No tiles painted - show empty minimap
+                this._terrainGenerated = true;
+                return;
+            }
+            
+            // Get terrain bounds to calculate scale
+            const bounds = this.terrain.getBounds();
+            if (!bounds) {
+                this._terrainGenerated = true;
+                return;
+            }
+            
+            // Calculate scale based on bounds (not fixed size)
+            const boundsWidth = (bounds.maxX - bounds.minX + 1) * this.terrain.tileSize;
+            const boundsHeight = (bounds.maxY - bounds.minY + 1) * this.terrain.tileSize;
+            const scaleX = this.width / boundsWidth;
+            const scaleY = this.height / boundsHeight;
+            const scale = Math.min(scaleX, scaleY);
+            
+            // Render only painted tiles
+            buffer.noStroke();
+            for (const tileData of paintedTiles) {
+                // Convert tile coords to minimap coords
+                const minimapX = (tileData.x - bounds.minX) * this.terrain.tileSize * scale;
+                const minimapY = (tileData.y - bounds.minY) * this.terrain.tileSize * scale;
+                const tileDisplaySize = this.terrain.tileSize * scale;
+                
+                // Simple material to color mapping
+                switch(tileData.material) {
+                    case 'grass':
+                        buffer.fill(50, 150, 50);
+                        break;
+                    case 'dirt':
+                        buffer.fill(120, 80, 40);
+                        break;
+                    case 'stone':
+                        buffer.fill(100, 100, 100);
+                        break;
+                    case 'moss':
+                    case 'moss_1':
+                        buffer.fill(40, 120, 60);
+                        break;
+                    default:
+                        buffer.fill(80, 80, 80);
+                }
+                
+                buffer.rect(minimapX, minimapY, tileDisplaySize, tileDisplaySize);
+            }
+        } 
+        // LEGACY: Old terrain rendering (full grid iteration)
+        else if (this.terrain.getArrPos) {
             const tilesX = Math.ceil(this.width / this.scale);
             const tilesY = Math.ceil(this.height / this.scale);
             

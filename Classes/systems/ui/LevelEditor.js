@@ -12,13 +12,14 @@ class LevelEditor {
     this.toolbar = null;
     // this.brushControl = null; // REMOVED: Brush size now controlled via menu bar (Enhancement 9)
     this.eventEditor = null; // NEW: Event editor panel
+    this.eventFlagLayer = null; // NEW: EventFlag collection manager
     this.minimap = null;
     this.propertiesPanel = null;
     this.gridOverlay = null;
     this.saveDialog = null;
     this.loadDialog = null;
     this.notifications = null;
-    this.draggablePanels = null; // NEW: Draggable panel integration
+    this.levelEditorPanels = null; // NEW: Draggable panel integration
     this.fileMenuBar = null; // NEW: File menu bar for save/load/export
     this.selectionManager = null; // NEW: Rectangle selection for select tool
     this.hoverPreviewManager = null; // NEW: Hover preview for all tools
@@ -78,6 +79,26 @@ class LevelEditor {
     this.eventEditor = new EventEditorPanel();
     this.eventEditor.initialize(); // Connect to EventManager
     
+    // Create event flag layer for managing placed flags
+    this.eventFlagLayer = new EventFlagLayer(terrain);
+    
+    // Initialize panels BEFORE adding custom buttons (panels needs to exist first)
+    this.levelEditorPanels = new LevelEditorPanels(this);
+    this.levelEditorPanels.initialize();
+    
+    // Add Events button to toolbar (toggles EventEditorPanel)
+    this.toolbar.addButton({
+      name: 'events',
+      icon: '🚩',
+      tooltip: 'Events (Toggle Events Panel)',
+      group: 'panels',
+      onClick: () => {
+        if (this.levelEditorPanels) {
+          this.levelEditorPanels.toggleEventsPanel();
+        }
+      }
+    });
+    
     // Create minimap
     this.minimap = new MiniMap(terrain, 200, 200);
     
@@ -86,9 +107,15 @@ class LevelEditor {
     this.propertiesPanel.setTerrain(terrain);
     this.propertiesPanel.setEditor(this.editor);
     
-    // Create grid overlay (tileSize, width, height)
+    // Create grid overlay - use DynamicGridOverlay for SparseTerrain, regular GridOverlay otherwise
     const TILE_SIZE = 32; // Standard tile size
-    this.gridOverlay = new GridOverlay(TILE_SIZE, terrain.width, terrain.height);
+    if (terrain.getAllTiles && typeof terrain.getAllTiles === 'function') {
+      // SparseTerrain - use DynamicGridOverlay
+      this.gridOverlay = new DynamicGridOverlay(terrain, 2); // 2-tile buffer
+    } else {
+      // Legacy terrain - use GridOverlay
+      this.gridOverlay = new GridOverlay(TILE_SIZE, terrain.width, terrain.height);
+    }
     
     // Create save/load dialogs
     this.saveDialog = new SaveDialog();
@@ -146,9 +173,7 @@ class LevelEditor {
     // Setup camera for editor
     this.editorCamera = cameraManager;
     
-    // NEW: Initialize draggable panels
-    this.draggablePanels = new LevelEditorPanels(this);
-    this.draggablePanels.initialize();
+    // levelEditorPanels already initialized earlier (before adding Events button)
     
     this.active = true;
     
@@ -161,10 +186,14 @@ class LevelEditor {
    */
   activate() {
     if (!this.terrain) {
-      // Create a new terrain for editing
-      const chunksX = 10;
-      const chunksY = 10;
-      this.terrain = new gridTerrain(chunksX, chunksY);
+      // Create a new terrain for editing (sparse terrain for lazy loading)
+      if (typeof SparseTerrain !== 'undefined') {
+        this.terrain = new SparseTerrain(32, 'dirt');
+      } else {
+        const chunksX = 10;
+        const chunksY = 10;
+        this.terrain = new gridTerrain(chunksX, chunksY);
+      }
       this.initialize(this.terrain);
     }
     
@@ -172,8 +201,8 @@ class LevelEditor {
     GameState.setState('LEVEL_EDITOR');
     
     // Show draggable panels
-    if (this.draggablePanels) {
-      this.draggablePanels.show();
+    if (this.levelEditorPanels) {
+      this.levelEditorPanels.show();
     }
   }
   
@@ -182,7 +211,7 @@ class LevelEditor {
    */
   deactivate() {
     this.active = false;
-    this.draggablePanels.hide();
+    this.levelEditorPanels.hide();
   }
   
   /**
@@ -324,10 +353,10 @@ class LevelEditor {
     }
     
     // PRIORITY 4: Let draggable panels handle content clicks (buttons, swatches, etc.)
-    if (this.draggablePanels) {
-      const handled = this.draggablePanels.handleClick(mouseX, mouseY);
+    if (this.levelEditorPanels) {
+      const handled = this.levelEditorPanels.handleClick(mouseX, mouseY);
       if (handled) {
-        return; // Panel content consumed the click
+        return; // Panel content consumed the click - STOP processing
       }
     }
     
@@ -447,6 +476,35 @@ class LevelEditor {
   }
   
   /**
+   * Handle double-click events in the editor
+   * Delegates to panels for special actions (e.g., placement mode)
+   */
+  handleDoubleClick(mouseX, mouseY) {
+    if (!this.active) return;
+    
+    // PRIORITY 1: Check if dialogs are open and block interaction
+    if ((this.saveDialog && this.saveDialog.isVisible()) || 
+        (this.loadDialog && this.loadDialog.isVisible())) {
+      return; // Dialog is visible - block interaction
+    }
+    
+    // PRIORITY 2: Check if file menu bar is open
+    if (this.isMenuOpen) {
+      return; // Menu is open, block interaction
+    }
+    
+    // PRIORITY 3: Let draggable panels handle double-click events
+    if (this.levelEditorPanels) {
+      const handled = this.levelEditorPanels.handleDoubleClick(mouseX, mouseY);
+      if (handled) {
+        return; // Panel consumed the double-click
+      }
+    }
+    
+    // No UI consumed the double-click, default behavior
+  }
+  
+  /**
    * Handle mouse dragging in the editor (for continuous painting)
    */
   handleDrag(mouseX, mouseY) {
@@ -525,6 +583,43 @@ class LevelEditor {
    */
   handleMouseRelease(mouseX, mouseY) {
     if (!this.active) return;
+    
+    // Priority 1: Complete placement if in placement mode
+    if (this.eventEditor && this.eventEditor.isInPlacementMode && this.eventEditor.isInPlacementMode()) {
+      // Convert screen to world coordinates
+      const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
+      const worldX = worldCoords.x !== undefined ? worldCoords.x : worldCoords.worldX;
+      const worldY = worldCoords.y !== undefined ? worldCoords.y : worldCoords.worldY;
+      
+      // Complete placement operation
+      const result = this.eventEditor.completePlacement(worldX, worldY);
+      
+      if (result.success) {
+        logNormal(`Event placed at (${worldX}, ${worldY}) for event: ${result.eventId}`);
+      }
+      return; // Don't process other tools
+    }
+    
+    // Priority 2: Complete drag if EventEditorPanel is dragging
+    if (this.eventEditor && this.eventEditor.isDragging()) {
+      // Convert screen to world coordinates
+      const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
+      
+      // Handle both {x, y} and {worldX, worldY} formats
+      const worldX = worldCoords.x !== undefined ? worldCoords.x : worldCoords.worldX;
+      const worldY = worldCoords.y !== undefined ? worldCoords.y : worldCoords.worldY;
+      
+      // Complete drag operation
+      const result = this.eventEditor.completeDrag(worldX, worldY);
+      
+      // Create and add EventFlag if successful
+      if (result.success && result.flagConfig && this.eventFlagLayer) {
+        const flag = new EventFlag(result.flagConfig);
+        this.eventFlagLayer.addFlag(flag);
+        logNormal(`EventFlag placed at (${worldX}, ${worldY}) for event: ${result.eventId}`);
+      }
+      return; // Don't process other tools
+    }
     
     const tool = this.toolbar.getSelectedTool();
     
@@ -619,6 +714,25 @@ class LevelEditor {
   clearHover() {
     if (this.hoverPreviewManager) {
       this.hoverPreviewManager.clearHover();
+    }
+  }
+  
+  /**
+   * Handle mouse moved (for drag operations and hover preview)
+   * @param {number} mouseX - Screen X coordinate
+   * @param {number} mouseY - Screen Y coordinate
+   */
+  handleMouseMoved(mouseX, mouseY) {
+    if (!this.active) return;
+    
+    // Update drag position if EventEditorPanel is dragging
+    if (this.eventEditor && this.eventEditor.isDragging()) {
+      this.eventEditor.updateDragPosition(mouseX, mouseY);
+    }
+    
+    // Update placement cursor if in placement mode
+    if (this.eventEditor && this.eventEditor.isInPlacementMode && this.eventEditor.isInPlacementMode()) {
+      this.eventEditor.updatePlacementCursor(mouseX, mouseY);
     }
   }
   
@@ -805,6 +919,18 @@ class LevelEditor {
     
     // Grid overlay (respects both showGrid flag and gridOverlay.visible)
     if (this.showGrid) {
+      // DynamicGridOverlay needs mouse position to show grid at hover
+      if (this.gridOverlay.update && typeof this.gridOverlay.update === 'function') {
+        // Convert screen mouse to world coordinates
+        const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
+        const tileSize = this.terrain.tileSize || 32;
+        const gridMouseX = Math.floor(worldCoords.worldX / tileSize);
+        const gridMouseY = Math.floor(worldCoords.worldY / tileSize);
+        
+        // Update grid with mouse position
+        this.gridOverlay.update({ x: gridMouseX, y: gridMouseY });
+      }
+      
       this.gridOverlay.render();
     }
     
@@ -824,7 +950,7 @@ class LevelEditor {
     this.fileMenuBar.render();
     
     // Draggable panels (has its own visible check)
-    this.draggablePanels.render();
+    this.levelEditorPanels.render();
     
     // Minimap (bottom right)
     if (this.showMinimap && this.minimap) {
@@ -843,6 +969,11 @@ class LevelEditor {
     // Render dialogs if active
     if (this.saveDialog.isVisible()) { this.saveDialog.render(); }
     if (this.loadDialog.isVisible()) { this.loadDialog.render(); }
+    
+    // Render flag cursor if in placement mode
+    if (this.eventEditor && this.eventEditor.renderPlacementCursor && typeof this.eventEditor.renderPlacementCursor === 'function') {
+      this.eventEditor.renderPlacementCursor();
+    }
     
     // Render back button
     //this.renderBackButton();
@@ -956,8 +1087,10 @@ class LevelEditor {
     }
     
     // Create new blank terrain
-    // Use CustomTerrain if available, otherwise gridTerrain
-    if (typeof CustomTerrain !== 'undefined') {
+    // Use SparseTerrain for lazy loading (black canvas, paint anywhere)
+    if (typeof SparseTerrain !== 'undefined') {
+      this.terrain = new SparseTerrain(32, 'dirt');
+    } else if (typeof CustomTerrain !== 'undefined') {
       this.terrain = new CustomTerrain(50, 50);
     } else {
       this.terrain = new gridTerrain(10, 10);
@@ -967,6 +1100,13 @@ class LevelEditor {
     this.editor = new TerrainEditor(this.terrain);
     this.minimap = new MiniMap(this.terrain, 200, 200);
     this.propertiesPanel.setTerrain(this.terrain);
+    
+    // Reset grid overlay to match new terrain type
+    if (this.terrain.getAllTiles && typeof this.terrain.getAllTiles === 'function') {
+      this.gridOverlay = new DynamicGridOverlay(this.terrain, 2);
+    } else {
+      this.gridOverlay = new GridOverlay(TILE_SIZE, this.terrain.width, this.terrain.height);
+    }
     
     // Reset filename to "Untitled"
     this.currentFilename = 'Untitled';
@@ -1152,6 +1292,23 @@ class LevelEditor {
   handleKeyPress(key) {
     if (!this.active) return;
     
+    // PRIORITY: Cancel event drag on Escape key
+    if (key === 'Escape' || keyCode === 27) {
+      // Cancel placement mode first (higher priority)
+      if (this.eventEditor && this.eventEditor.isInPlacementMode && this.eventEditor.isInPlacementMode()) {
+        this.eventEditor.cancelPlacement();
+        logNormal('Event placement mode cancelled');
+        return; // Don't process other Escape handlers
+      }
+      
+      // Then cancel drag mode
+      if (this.eventEditor && this.eventEditor.isDragging()) {
+        this.eventEditor.cancelDrag();
+        logNormal('Event drag cancelled');
+        return; // Don't process other Escape handlers
+      }
+    }
+    
     // FIRST: Check if save dialog is open and handle keyboard input
     if (this.saveDialog && this.saveDialog.isVisible()) {
       const consumed = this.saveDialog.handleKeyPress(key);
@@ -1263,7 +1420,8 @@ const levelEditor = new LevelEditor();
 
 // Make globally available
 if (typeof window !== 'undefined') {
-  window.levelEditor = levelEditor;
+  window.LevelEditor = LevelEditor; // Export class
+  window.levelEditor = levelEditor; // Export instance
 }
 
 // Export for Node.js testing
