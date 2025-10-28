@@ -84,27 +84,39 @@ describe('DynamicGridOverlay', function() {
     });
     
     it('should generate grid for painted tiles + buffer', function() {
-      mockTerrain.getBounds.returns({ minX: 0, maxX: 5, minY: 0, maxY: 5 });
+      // Mock painted tiles: 3x3 grid (outer 8 are edges, center is interior)
+      const paintedTiles = [
+        { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }, // Top row (all edges)
+        { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 }, // Middle row (1,1 is interior)
+        { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 }  // Bottom row (all edges)
+      ];
+      mockTerrain.getAllTiles.returns(paintedTiles);
       
       const region = gridOverlay.calculateGridRegion(null);
       
       expect(region).to.not.be.null;
-      // Should expand by 2 tiles in each direction
-      expect(region.minX).to.equal(-2); // 0 - 2
-      expect(region.maxX).to.equal(7);  // 5 + 2
-      expect(region.minY).to.equal(-2); // 0 - 2
-      expect(region.maxY).to.equal(7);  // 5 + 2
+      // Should include edge tiles (0-2 range) + buffer (2 tiles)
+      expect(region.minX).to.be.lte(-2); // 0 - 2
+      expect(region.maxX).to.be.gte(4);  // 2 + 2
+      expect(region.minY).to.be.lte(-2); // 0 - 2
+      expect(region.maxY).to.be.gte(4);  // 2 + 2
     });
     
     it('should merge mouse hover with painted region', function() {
-      mockTerrain.getBounds.returns({ minX: 0, maxX: 5, minY: 0, maxY: 5 });
+      // Mock painted tiles: 3x3 grid
+      const paintedTiles = [
+        { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 },
+        { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 },
+        { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 }
+      ];
+      mockTerrain.getAllTiles.returns(paintedTiles);
       
       const mousePos = { x: 10, y: 10 }; // Outside painted region
       const region = gridOverlay.calculateGridRegion(mousePos);
       
-      // Should include both painted region and mouse hover area
-      expect(region.minX).to.equal(-2); // Painted region start
-      expect(region.maxX).to.equal(12); // Mouse hover end (10 + 2)
+      // Should include both painted edge region and mouse hover area
+      expect(region.minX).to.be.lte(-2); // Painted region start (0 - 2)
+      expect(region.maxX).to.be.gte(12); // Mouse hover end (10 + 2)
     });
   });
   

@@ -502,6 +502,18 @@ Unit → Integration → E2E breakdown
 
 **Example**: See `docs/roadmaps/RANDOM_EVENTS_ROADMAP.md` (EventManager implementation)
 
+**CRITICAL: Checklist Requirements**:
+When creating feature checklists (enhancement or development), **ALWAYS include**:
+1. **Key Design Decisions** section - Document core algorithmic choices, trade-offs, architectural patterns
+2. **Implementation Notes** section - Include code snippets showing algorithms, data structures, performance considerations
+3. **Examples**: See `GRID_EDGE_ONLY_RENDERING_CHECKLIST.md` for reference implementation
+
+These sections provide:
+- Clear understanding of WHY decisions were made
+- Reference algorithms for implementation
+- Context for future maintenance
+- Learning material for team members
+
 ### Refactoring Process
 
 1. **Ensure coverage** (>80% for code being refactored)
