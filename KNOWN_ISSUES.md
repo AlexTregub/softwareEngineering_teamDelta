@@ -8,6 +8,23 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
 
 ### Open ❌
 
+- [ ] **DynamicGridOverlay: Severe Performance Issues (REWRITE IN PROGRESS)**
+  - File: `Classes/ui/DynamicGridOverlay.js`
+  - Issue: Grid overlay causes frame drops and stuttering when painting tiles
+  - Priority: CRITICAL (blocks Level Editor usage)
+  - Expected: 60 fps with 100+ painted tiles
+  - Current: Severe frame drops (10-30 fps) even with small painted areas
+  - Root Cause: 
+    - Complex edge detection with O(n²) nested loops
+    - Aggressive feathering calculations with poor cache performance
+    - Multiple Set creations per frame for neighbor checking
+    - Opacity sampling at 5+ points per grid line
+    - Cache invalidation logic triggers too frequently
+  - Solution: Complete rewrite using TDD approach (see `docs/roadmaps/GRID_OVERLAY_REWRITE_ROADMAP.md`)
+  - Status: OLD IMPLEMENTATION REMOVED, starting from scratch with tests-first
+  - Timeline: 5-7 hours estimated for TDD rewrite
+  - Note: Previous "edge-only rendering" approach archived - too complex
+
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
   - File: `Classes/systems/ui/LevelEditor.js` (handleZoom method)
   - Issue: When zooming with mouse wheel in Level Editor, zoom doesn't focus on mouse pointer correctly

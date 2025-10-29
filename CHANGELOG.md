@@ -16,17 +16,74 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### User-Facing Changes
 
+#### Changed
+- **DynamicGridOverlay Rewrite** (Performance Fix - TDD)
+  - **REMOVED**: Complex edge detection and feathering system causing severe frame drops
+  - **STATUS**: Skeleton implementation only - full rewrite in progress using TDD approach
+  - **REASON**: Previous implementation had O(n²) complexity with aggressive caching that failed under load
+  - **NEXT**: Simple grid rendering (all tiles + buffer) will be implemented with unit tests FIRST
+  - See `docs/roadmaps/GRID_OVERLAY_REWRITE_ROADMAP.md` for TDD plan
+
 #### Added
-- **Edge-Only Grid Rendering** (Performance Enhancement)
-  - **Grid now renders ONLY at edge tiles** (tiles with at least 1 empty neighbor) + mouse hover location
-  - **64% reduction in grid lines** for fully painted areas (e.g., 10x10 grid: 36 edges vs 100 total tiles)
-  - **60 fps sustained** with 500+ painted tiles (previously would drop below 30 fps)
-  - Edge detection: Checks 4 cardinal neighbors (N, S, E, W) using Set for O(1) lookups
-  - Mouse priority: Hover location ALWAYS shows grid, even on interior tiles
-  - Cache system updated to handle edge detection invalidation
-  - **CRITICAL BUGFIX**: Level Editor now properly sets `g_activeMap` on initialization
-  - 22 unit tests + 22 integration tests + 1 E2E test with visual verification
-  - Total: 111+ tests passing for DynamicGridOverlay system
+- **LevelEditorSidebar Component** (UI Enhancement)
+  - Scrollable sidebar menu with fixed top menu bar and minimize functionality
+  - **Composition Pattern**: Uses ScrollableContentArea for content management (not inheritance)
+  - **Menu Bar Features**:
+    - Fixed 50px header with title text (left side)
+    - Minimize button (right side) with hover state tracking
+    - Returns `{ type: 'minimize' }` on click for toggle logic
+  - **Content Management**: Full delegation to ScrollableContentArea
+    - `addText(id, textContent, options)` - Add static text labels
+    - `addButton(id, label, callback, options)` - Add clickable buttons
+    - `addCustom(id, renderFn, clickFn, height)` - Add custom widgets
+    - `removeItem(id)`, `clearAll()`, `getContentItems()`
+  - **Scroll Handling**: Menu bar filtering (only scrolls when mouse over content area)
+    - `handleMouseWheel(delta, mouseX, mouseY)` - Scroll only if Y > menuBarHeight
+    - `getScrollOffset()`, `getMaxScrollOffset()` - Scroll state queries
+  - **Click Routing**: Smart delegation between menu bar and content area
+    - Menu bar clicks: Check minimize button, else return null
+    - Content clicks: Transform coordinates and delegate to contentArea
+  - **Hover Tracking**: `updateHover(mouseX, mouseY, sidebarX, sidebarY)` for minimize button + content items
+  - **Visibility Toggle**: `isVisible()`, `setVisible(visible)` - Hide/show without losing state
+  - **Dynamic Resizing**: `setDimensions(width, height)` - Automatically updates contentArea dimensions
+  - **Overflow Detection**: `hasOverflow()` - Checks if content exceeds viewport
+  - **Configuration**: Width (default: 300px), height (default: 600px), menuBarHeight (default: 50px), title, colors
+  - **Use Cases**: Level editor tool palettes, settings panels, inspector panels, any sidebar with menu bar + scrollable content
+  - **Tests**: 74 total (44 unit + 30 integration with real ScrollableContentArea)
+  - **Documentation**: `docs/api/LevelEditorSidebar_API_Reference.md`
+
+- **ScrollableContentArea Component** (UI Enhancement)
+  - High-performance scrollable content container with viewport culling
+  - **Viewport Culling**: Renders only visible items for O(visible) performance instead of O(total)
+    - Example: With 100 items, only ~12 rendered (8x faster)
+  - **ScrollIndicator Integration**: Automatic scroll arrows via composition
+    - Top/bottom indicators appear based on scroll state
+    - Integrated via real ScrollIndicator instance (not inheritance)
+  - **Three Content Types**: Text (labels), Buttons (interactive), Custom (full control)
+  - **Mouse Interactions**: Scroll wheel support, click delegation with coordinate transformation
+  - **Dynamic Content Management**: Add/remove items at runtime with automatic scroll bound updates
+  - **Public API**:
+    - `addText(id, text, options)` - Add static text label
+    - `addButton(id, label, callback, options)` - Add clickable button with hover states
+    - `addCustom(id, renderFn, clickFn, height)` - Add custom widget with full control
+    - `removeItem(id)` - Remove item by ID
+    - `clearAll()` - Remove all content
+    - `handleMouseWheel(delta)` - Scroll with mouse wheel
+    - `handleClick(mouseX, mouseY, areaX, areaY)` - Click delegation
+    - `getVisibleItems()` - Get only visible items (viewport culling)
+  - **Configuration Options**:
+    - Dimensions, scroll speed, colors (background, text)
+    - ScrollIndicator customization (height, colors)
+    - Callbacks: `onItemClick(item)`, `onScroll(offset, maxOffset)`
+  - **Use Cases**: Level editor sidebars, settings panels, event lists, chat windows
+  - **Tests**: 109 total (85 unit + 24 integration with heavy ScrollIndicator focus)
+  - **Documentation**: `docs/api/ScrollableContentArea_API_Reference.md`
+
+- **[ARCHIVED] Edge-Only Grid Rendering** (Performance Enhancement - REMOVED)
+  - Note: This implementation has been removed due to performance issues
+  - Previous approach: Grid rendered ONLY at edge tiles (64% reduction in lines)
+  - Problem: Complex edge detection + feathering caused frame drops instead of improvements
+  - Tests archived: 111+ tests moved to documentation for reference
 - **Event Placement Mode** (Level Editor Enhancement)
   - Double-click drag button in Events panel for "sticky" placement mode
   - Flag cursor (🚩) with trigger radius preview circle
@@ -94,6 +151,37 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Developer-Facing Changes
 
 #### Added
+- **LevelEditorSidebar Class** (`Classes/ui/LevelEditorSidebar.js` - 390 lines)
+  - **Composition Pattern**: Uses ScrollableContentArea instance (not inheritance)
+    - Constructor creates ScrollableContentArea with `height - menuBarHeight`
+    - All content methods delegate to `this.contentArea`
+  - **Public API** (20 methods):
+    - Content: `addText()`, `addButton()`, `addCustom()`, `removeItem()`, `clearAll()`, `getContentItems()`
+    - Scroll: `handleMouseWheel()`, `getScrollOffset()`, `getMaxScrollOffset()`
+    - Input: `handleClick()`, `updateHover()`
+    - Rendering: `render()`
+    - Dimensions: `getWidth()`, `getHeight()`, `getMenuBarHeight()`, `getContentAreaHeight()`, `setDimensions()`
+    - Visibility: `isVisible()`, `setVisible()`
+    - Utility: `hasOverflow()`
+  - **Click Routing Logic**:
+    - Menu bar clicks (Y < menuBarHeight): Check minimize button bounds, else return null
+    - Content clicks: Transform coordinates (`contentAreaY = sidebarY + menuBarHeight`) and delegate
+  - **Minimize Button Detection**:
+    - Position: `x + width - 40 - 5` (right side, 40px wide)
+    - Bounds: Inclusive edge checking with `<=` operator
+    - Returns: `{ type: 'minimize' }` on click
+  - **Scroll Filtering**: Only calls `contentArea.handleMouseWheel()` if `mouseY >= menuBarHeight`
+  - **Tests**: 74 total (44 unit + 30 integration)
+  - **Added to**: `index.html` after ScrollableContentArea
+
+- **ScrollableContentArea Bug Fix**: Parameter shadowing in `addText()` method
+  - **Problem**: Parameter named `text` shadowed global p5.js function `text()`
+  - **Symptom**: `TypeError: text is not a function` when rendering text items in JSDOM tests
+  - **Root Cause**: Inside render closure, `text(item.text, x, y)` called STRING parameter instead of global function
+  - **Fix**: Renamed parameter `text` → `textContent` in method signature
+  - **Impact**: Only affects ScrollableContentArea internal implementation
+  - **Breaking**: NO - Parameter name change doesn't affect callers
+
 - SparseTerrain compatibility layer: `getArrPos([x, y])` interface for TerrainEditor
 - `invalidateCache()` no-op method for compatibility
 - Compatibility properties: `_tileSize`, `_gridSizeX`, `_gridSizeY`, `_chunkSize`
