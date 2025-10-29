@@ -20,6 +20,7 @@ class AbstractBuildingFactory {
 }
 
 
+
 class AntCone extends AbstractBuildingFactory {
   constructor() {
     super();
@@ -86,6 +87,7 @@ class HiveSource extends AbstractBuildingFactory {
     return new Building(x, y, 160, 160, Hive, faction, this.info);
   }
 }
+
 
 
 class Building extends Entity {

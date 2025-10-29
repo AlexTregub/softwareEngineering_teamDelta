@@ -28,10 +28,12 @@ let g_recordingPath;
 // -- Queen ---
 let queenAnt;
 
-// Buildings
+// GameObjects list (NPC, Buildings, etc.)
 let Buildings = [];
+
 // Camera system - now managed by CameraManager
 let cameraManager;
+
 
 function preload(){
   terrainPreloader();
@@ -39,6 +41,7 @@ function preload(){
   resourcePreLoad();
   preloadPauseImages();
   BuildingPreloader();
+  NPCPreloader();
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
@@ -177,7 +180,7 @@ function setup() {
   initializeContextMenuPrevention();
   //
 
-  Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
+  Buildings.push(createBuilding('anthill', 400, 400, 'player'));
 }
 
 /**
@@ -284,6 +287,9 @@ function initializeWorld() {
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
   queenAnt = spawnQueen();
+
+  // npc test
+  Buildings.push(createNPC(100,100));
 }
 
 /**
@@ -777,7 +783,7 @@ function keyPressed() {
     }
   }
 
-    // --- Queen Movement (Using WASD) ---
+    // --- Queen Commands ---
   let playerQueen = getQueen();
   if (typeof playerQueen !== "undefined" && playerQueen instanceof QueenAnt) {
     if (key.toLowerCase() === 'r') {
@@ -789,6 +795,7 @@ function keyPressed() {
       return;
     }
   }
+
 
   if (keyCode === ESCAPE) {
     if (deactivateActiveBrushes()) {
@@ -805,6 +812,16 @@ function keyPressed() {
   if ((key === 'f' || key === 'F') && GameState.isInGame()) {
     cameraManager.toggleFollow();
   }
+
+  if(key === 'U' || key === 'u'){
+    let selectedEntity = getPrimarySelectedEntity();
+    if(selectedEntity){
+      for(let i = 0; i < 10; i++){
+        selectedEntity.upgradeBuilding();
+      }
+    }
+  }
+
   
   // Camera navigation shortcuts
   if (GameState.isInGame() && cameraManager) {
