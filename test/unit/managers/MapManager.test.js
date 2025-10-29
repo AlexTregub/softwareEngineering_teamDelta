@@ -1,4 +1,12 @@
 ﻿const { expect } = require('chai');
+const sinon = require('sinon');
+
+// Mock logging functions BEFORE requiring MapManager
+global.logNormal = sinon.stub();
+global.logDebug = sinon.stub();
+global.logWarning = sinon.stub();
+global.logError = sinon.stub();
+
 const MapManager = require('../../../Classes/managers/MapManager.js');
 
 describe('MapManager', function() {

@@ -63,6 +63,11 @@ class Chunk {
                 this.applyFlatTerrain('grass');
                 break;
                 
+            case 'blank':
+                // Blank terrain for editing (all dirt)
+                this.applyFlatTerrain('dirt');
+                break;
+                
             default:
                 console.warn(`Unknown generation mode '${mode}', defaulting to perlin`);
                 this.randomize(tileSpanRange || [0, 0]);

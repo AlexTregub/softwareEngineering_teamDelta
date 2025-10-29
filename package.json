@@ -67,6 +67,8 @@
     "test:e2e:performance": "node test/e2e/performance/run-all-performance.js",
     "test:e2e:all": "npm run test:e2e:entity && npm run test:e2e:controllers && npm run test:e2e:ants && npm run test:e2e:queen && npm run test:e2e:state && npm run test:e2e:brain && npm run test:e2e:resources && npm run test:e2e:spatial && npm run test:e2e:integration && npm run test:e2e:performance",
     "test:smoke": "node test/smoke/run-smoke-tests.js",
+    "test:dialogue": "node test/unit/dialogue/run-dialogue-tests.js",
+    "test:dialogue:watch": "npx mocha test/unit/dialogue/*.test.js --watch --reporter spec",
     "dev": "python -m http.server 8000",
     "start": "python -m http.server 8000"
   },
@@ -86,7 +88,8 @@
     "jsdom": "^22.1.0",
     "mocha": "^10.2.0",
     "puppeteer": "^24.23.0",
-    "selenium-webdriver": "^4.36.0"
+    "selenium-webdriver": "^4.36.0",
+    "sinon": "^21.0.0"
   },
   "engines": {
     "node": ">=14.0.0"

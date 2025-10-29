@@ -20,10 +20,10 @@ function toggleTileInspector() {
   window.tileInspectorEnabled = !window.tileInspectorEnabled;
   
   if (window.tileInspectorEnabled) {
-    console.log("🔍 Tile Inspector ENABLED - Click on tiles to inspect them");
-    console.log("Press 'T' again to disable");
+    logNormal("🔍 Tile Inspector ENABLED - Click on tiles to inspect them");
+    logNormal("Press 'T' again to disable");
   } else {
-    console.log("🔍 Tile Inspector DISABLED");
+    logNormal("🔍 Tile Inspector DISABLED");
   }
 }
 
@@ -33,9 +33,9 @@ function toggleTileInspector() {
 function inspectTileAtMouse(mouseX, mouseY) {
   if (!window.tileInspectorEnabled) return;
   
-  console.log("\n╔═══════════════════════════════════════╗");
-  console.log("║       TILE INSPECTOR                  ║");
-  console.log("╚═══════════════════════════════════════╝");
+  logNormal("\n╔═══════════════════════════════════════╗");
+  logNormal("║       TILE INSPECTOR                  ║");
+  logNormal("╚═══════════════════════════════════════╝");
   
   // Get world position (accounting for camera)
   let worldX = mouseX;
@@ -47,32 +47,32 @@ function inspectTileAtMouse(mouseX, mouseY) {
       if (worldPos && typeof worldPos.x !== 'undefined' && typeof worldPos.y !== 'undefined') {
         worldX = worldPos.x;
         worldY = worldPos.y;
-        console.log("Screen position:", mouseX, mouseY);
-        console.log("World position:", worldX.toFixed(2), worldY.toFixed(2));
+        logNormal("Screen position:", mouseX, mouseY);
+        logNormal("World position:", worldX.toFixed(2), worldY.toFixed(2));
       } else {
-        console.log("Mouse position (camera transform failed):", mouseX, mouseY);
+        logNormal("Mouse position (camera transform failed):", mouseX, mouseY);
       }
     } catch (e) {
-      console.log("Mouse position (camera error):", mouseX, mouseY);
-      console.log("Camera error:", e.message);
+      logNormal("Mouse position (camera error):", mouseX, mouseY);
+      logNormal("Camera error:", e.message);
     }
   } else {
-    console.log("Mouse position (no camera):", mouseX, mouseY);
+    logNormal("Mouse position (no camera):", mouseX, mouseY);
   }
   
   // Convert to grid coordinates
   if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion) {
     const gridPos = g_activeMap.renderConversion.convCanvasToPos([worldX, worldY]);
-    console.log("Grid position:", gridPos[0].toFixed(2), gridPos[1].toFixed(2));
+    logNormal("Grid position:", gridPos[0].toFixed(2), gridPos[1].toFixed(2));
     
     const tileGridX = Math.floor(gridPos[0]);
     const tileGridY = Math.floor(gridPos[1]);
-    console.log("Tile grid coords:", tileGridX, tileGridY);
+    logNormal("Tile grid coords:", tileGridX, tileGridY);
     
     // Calculate chunk
     const chunkX = Math.floor(tileGridX / g_activeMap._chunkSize);
     const chunkY = Math.floor(tileGridY / g_activeMap._chunkSize);
-    console.log("Chunk coords:", chunkX, chunkY);
+    logNormal("Chunk coords:", chunkX, chunkY);
     
     // Try to get the tile
     let tile = null;
@@ -81,11 +81,11 @@ function inspectTileAtMouse(mouseX, mouseY) {
     }
     
     if (tile) {
-      console.log("\n✅ TILE FOUND:");
-      console.log("  Material:", tile.material);
-      console.log("  Weight:", tile.weight);
-      console.log("  Tile position:", tile._x, tile._y);
-      console.log("  Entities on tile:", tile.entities?.length || 0);
+      logNormal("\n✅ TILE FOUND:");
+      logNormal("  Material:", tile.material);
+      logNormal("  Weight:", tile.weight);
+      logNormal("  Tile position:", tile._x, tile._y);
+      logNormal("  Entities on tile:", tile.entities?.length || 0);
       
       window.lastInspectedTile = {
         gridX: tileGridX,
@@ -96,14 +96,14 @@ function inspectTileAtMouse(mouseX, mouseY) {
         tile: tile
       };
     } else {
-      console.log("\n❌ NO TILE FOUND");
-      console.log("This position may be out of bounds");
+      logNormal("\n❌ NO TILE FOUND");
+      logNormal("This position may be out of bounds");
       
       // Show valid tile range
       if (g_activeMap && g_activeMap._gridTileSpan) {
-        console.log("\nValid tile range:");
-        console.log("  X:", g_activeMap._gridTileSpan[0][0], "to", g_activeMap._gridTileSpan[1][0]);
-        console.log("  Y:", g_activeMap._gridTileSpan[0][1], "to", g_activeMap._gridTileSpan[1][1]);
+        logNormal("\nValid tile range:");
+        logNormal("  X:", g_activeMap._gridTileSpan[0][0], "to", g_activeMap._gridTileSpan[1][0]);
+        logNormal("  Y:", g_activeMap._gridTileSpan[0][1], "to", g_activeMap._gridTileSpan[1][1]);
       }
     }
     
@@ -117,18 +117,18 @@ function inspectTileAtMouse(mouseX, mouseY) {
         tileSize
       );
       
-      console.log("\n📍 Entities at this location:", entities.length);
+      logNormal("\n📍 Entities at this location:", entities.length);
       entities.forEach(entity => {
         const pos = entity.getPosition();
-        console.log(`  - ${entity._type} (${entity._id}):`, 
+        logNormal(`  - ${entity._type} (${entity._id}):`, 
           `pos (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)})`);
       });
     }
   } else {
-    console.log("❌ Terrain system not available");
+    logNormal("❌ Terrain system not available");
   }
   
-  console.log("═══════════════════════════════════════\n");
+  logNormal("═══════════════════════════════════════\n");
 }
 
 /**
@@ -337,22 +337,22 @@ function updateHoveredTile(mouseX, mouseY) {
       const tileSize = window.TILE_SIZE || 32;
       
       // 🔍 DEBUG: Log tile's actual stored coordinates
-      console.log('🔍 Grid coords from mouse:', gridPos[0].toFixed(2), gridPos[1].toFixed(2));
-      console.log('🔍 Rounded to tile index:', tileGridX, tileGridY);
-      console.log('🔍 Querying with:', (tileGridX - 0.5), (tileGridY - 0.5));
+      logNormal('🔍 Grid coords from mouse:', gridPos[0].toFixed(2), gridPos[1].toFixed(2));
+      logNormal('🔍 Rounded to tile index:', tileGridX, tileGridY);
+      logNormal('🔍 Querying with:', (tileGridX - 0.5), (tileGridY - 0.5));
       if (tile) {
-        console.log('🔍 Tile actual coords:', tile._x, tile._y);
-        console.log('🔍 Match?', tile._x === (tileGridX - 0.5) && tile._y === (tileGridY - 0.5));
+        logNormal('🔍 Tile actual coords:', tile._x, tile._y);
+        logNormal('🔍 Match?', tile._x === (tileGridX - 0.5) && tile._y === (tileGridY - 0.5));
       } else {
-        console.log('❌ No tile found');
+        logNormal('❌ No tile found');
         // Log chunk spans for debugging
         if (typeof mapManager !== 'undefined' && mapManager._activeMap && mapManager._activeMap.chunkArray) {
           const chunks = mapManager._activeMap.chunkArray.rawArray;
-          console.log('📦 Available chunks:');
+          logNormal('📦 Available chunks:');
           chunks.slice(0, 3).forEach((chunk, i) => {
             if (chunk && chunk.tileData) {
               const span = chunk.tileData.getSpanRange();
-              console.log(`  Chunk ${i}: span [${span[0]}] to [${span[1]}]`);
+              logNormal(`  Chunk ${i}: span [${span[0]}] to [${span[1]}]`);
             }
           });
         }
@@ -375,8 +375,8 @@ function updateHoveredTile(mouseX, mouseY) {
       
       // DEBUG: Log the actual tile object to see what properties it has
       if (material === 'unknown') {
-        console.log('🔍 Tile object properties:', Object.keys(tile));
-        console.log('🔍 Full tile object:', tile);
+        logNormal('🔍 Tile object properties:', Object.keys(tile));
+        logNormal('🔍 Full tile object:', tile);
       }
       
       // Get entities at this tile position
@@ -422,5 +422,5 @@ if (typeof window !== 'undefined') {
   window.updateHoveredTile = updateHoveredTile;
   window.drawInspectorStatus = drawInspectorStatus;
   
-  console.log("Tile Inspector loaded. Press 'T' to toggle, or call toggleTileInspector()");
+  logNormal("Tile Inspector loaded. Press 'T' to toggle, or call toggleTileInspector()");
 }

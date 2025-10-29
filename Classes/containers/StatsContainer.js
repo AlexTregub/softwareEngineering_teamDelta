@@ -55,7 +55,7 @@ class StatsContainer {
     setExpTotal(){ this.expTotal = 0; for (const value of this.exp) for (const keys of Object.keys(value)){ this.expTotal += value[keys] }}
     printExpTotal(){ 
       if (devConsoleEnabled) {
-        console.log(`Total EXP: ${this.expTotal}`);
+        logNormal(`Total EXP: ${this.expTotal}`);
       }
     }
 
@@ -73,15 +73,15 @@ class StatsContainer {
 
     test_Map(g_map) { 
       if (devConsoleEnabled) {
-        for (const [key, value] of g_map) { console.log(`${key}: ${value}`); }
+        for (const [key, value] of g_map) { logNormal(`${key}: ${value}`); }
       }
     }
     test_Exp() { 
       if (devConsoleEnabled) {
         for (const [key, value] of this.exp) {
-          console.log(`KEY: ${key}`); 
+          logNormal(`KEY: ${key}`); 
           for (const keys of Object.keys(value)){ 
-            console.log(`${keys}: ${value[keys]}`) 
+            logNormal(`${keys}: ${value[keys]}`) 
           }
         }
       }
@@ -138,7 +138,7 @@ class stat {
                 if (value && typeof value === "object" && "x" in value && "y" in value) {
                     value = `(${value.x}, ${value.y})`;
                 }
-                console.log(`${key}: ${value}`);
+                logNormal(`${key}: ${value}`);
             }
         }
     }
@@ -166,7 +166,7 @@ class stat {
         } else {
             // Fallback: log to console if rendering context is unavailable
             if (devConsoleEnabled) {
-                console.log(`Print at (${pos.x}, ${pos.y + spriteSize.y + 5}): ${this.statName}: ${valueToPrint}`);
+                logNormal(`Print at (${pos.x}, ${pos.y + spriteSize.y + 5}): ${this.statName}: ${valueToPrint}`);
             }
         }
     }

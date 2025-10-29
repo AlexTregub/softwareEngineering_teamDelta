@@ -301,7 +301,7 @@ class Entity {
         window._lastDebugMouseX !== mouseX || window._lastDebugMouseY !== mouseY)) {
       const pos = this.getPosition();
       const size = this.getSize();
-      console.log(`[Entity.js:isMouseOver:225] Screen:(${mouseX},${mouseY}) World:(${worldMouse.x},${worldMouse.y}) EntityPos:(${pos.x},${pos.y}) Size:(${size.x},${size.y}) isOver:${isOver}`);
+      logNormal(`[Entity.js:isMouseOver:225] Screen:(${mouseX},${mouseY}) World:(${worldMouse.x},${worldMouse.y}) EntityPos:(${pos.x},${pos.y}) Size:(${size.x},${size.y}) isOver:${isOver}`);
       window._lastDebugMouseX = mouseX;
       window._lastDebugMouseY = mouseY;
     }

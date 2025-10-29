@@ -46,19 +46,20 @@ const MENU_CONFIGS = {
   MENU: [
     { x: -10, y: -200, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
     { x: -10, y: -100, w: 220, h: 80, text: "Moss & Stone Level", style: 'info', action: () => switchToLevel('mossStone') },
-    { x: -10, y: -10,  w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
-    { x: -10, y: 70,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => console.log("Exit!") },
-    { x: -60, y: 100, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
-    { x: 0,   y: 100,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => console.log("Debug:", GameState.getDebugInfo()) }
+    { x: -10, y: -10,  w: 220, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
+    { x: -10, y: 70,   w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
+    { x: -10, y: 150,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => logNormal("Exit!") },
+    { x: -60, y: 180, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
+    { x: 0,   y: 180,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => logNormal("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
     { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => showAudioSettings() },
-    { x: -10, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => console.log("Video Settings") },
-    { x: -10, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => console.log("Controls") },
+    { x: -10, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => logNormal("Video Settings") },
+    { x: -10, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => logNormal("Controls") },
     { x: 60,   y: 148,  w: 145, h: 70, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ],
   DEBUG: [
-    { x: -100, y: -100, w: 200, h: 50, text: "Check Mouse Over", style: 'warning', action: () => console.log("Audio Settings") },
+    { x: -100, y: -100, w: 200, h: 50, text: "Check Mouse Over", style: 'warning', action: () => logNormal("Audio Settings") },
     { x: -100, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ]
 };
@@ -74,6 +75,7 @@ function menuPreload(){
   audioButton = loadImage("Images/Assets/Menu/as_button.png");
   controlButton = loadImage("Images/Assets/Menu/controls_button.png");
   backButton = loadImage("Images/Assets/Menu/back_button.png");
+  backButtonImg = backButton; // Make available globally for LevelEditor
 }
 
 // Initialize menu system
