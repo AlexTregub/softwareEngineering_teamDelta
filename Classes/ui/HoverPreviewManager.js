@@ -31,6 +31,8 @@ class HoverPreviewManager {
         
         switch(tool) {
             case 'paint':
+            case 'eraser':
+                // Paint and Eraser use identical brush size logic
                 const radius = Math.floor(brushSize / 2);
                 const isOddSize = brushSize % 2 !== 0;
                 

@@ -317,12 +317,182 @@
 - ✅ **Added to**: `index.html`
 
 **Remaining work** (not part of component development):
-- [ ] Phase 4: LevelEditorPanels integration (DraggablePanel wrapper)
-- [ ] Phase 5: LevelEditor integration (mouse wheel, click delegation)
-- [ ] Phase 6: FileMenuBar integration (View menu toggle)
+- [x] **Phase 4: LevelEditorPanels Integration** ✅ (20 integration tests passing)
+- [x] **Phase 5: LevelEditor Integration** ✅ (20 integration tests passing)
+- [x] **Phase 6: FileMenuBar Integration** ✅ (13 unit tests passing)
 - [ ] Phase 7: E2E tests (Puppeteer with screenshots)
 
 **Note**: Component is complete and tested. Remaining phases are **Level Editor system integration**, not component functionality.
+
+---
+
+## Phase 4: LevelEditorPanels Integration ✅
+
+### Implementation Complete
+- ✅ **File**: `Classes/systems/ui/LevelEditorPanels.js` (60+ lines added)
+- ✅ Added `sidebar: null` to panels object
+- ✅ Added `this.sidebar = null` instance property
+- ✅ Created sidebar panel in `initialize()`:
+  - DraggablePanel with ID `'level-editor-sidebar'`
+  - Position: Right side (width - 320, y: 80)
+  - Size: 300×600
+  - Visible: false (hidden by default)
+  - Draggable, persistent state
+- ✅ Created LevelEditorSidebar instance (300×600, title: 'Sidebar')
+- ✅ Registered panel with DraggablePanelManager
+- ✅ Added render delegation in `render()` method
+- ✅ Added click delegation in `handleClick()` method
+- ✅ Added mouse wheel delegation in `handleMouseWheel()` method (NEW)
+
+### Integration Tests Complete
+- ✅ **Test File**: `test/integration/ui/levelEditorPanels_sidebar.integration.test.js` (20 tests)
+- ✅ **Sidebar Panel Registration** (7 tests):
+  - Panel creation in panels object
+  - Manager registration
+  - Configuration (ID, position, draggable, persistent)
+  - Hidden by default
+- ✅ **Sidebar Instance Creation** (3 tests):
+  - LevelEditorSidebar instance
+  - Dimensions (300×600)
+  - Title configuration
+- ✅ **Sidebar Rendering Integration** (3 tests):
+  - Render when visible
+  - Skip when hidden
+  - Coordinate passing
+- ✅ **Sidebar Click Delegation** (2 tests):
+  - Click inside sidebar bounds
+  - Click outside bounds
+- ✅ **Sidebar Mouse Wheel Delegation** (2 tests):
+  - Wheel delegation when mouse over sidebar
+  - Return true when handled
+- ✅ **Content Management Integration** (3 tests):
+  - Add content items
+  - Remove items
+  - Clear all content
+
+### Test Results
+```bash
+npx mocha "test/integration/ui/levelEditorPanels_sidebar.integration.test.js" --reporter spec --timeout 5000
+
+  20 passing (600ms)
+```
+
+**Total Test Count**: **94 tests** (44 unit + 30 integration + 20 LevelEditorPanels integration) ✅
+
+---
+
+## Phase 5: LevelEditor Integration ✅
+
+### Implementation Complete
+- ✅ **File**: `Classes/systems/ui/LevelEditor.js` (60+ lines added/modified)
+- ✅ Added `sidebar: null` property to constructor
+- ✅ Wire sidebar from levelEditorPanels in `initialize()`:
+  ```javascript
+  this.sidebar = this.levelEditorPanels && this.levelEditorPanels.sidebar ? 
+    this.levelEditorPanels.sidebar : null;
+  ```
+- ✅ Updated `handleMouseWheel(event, shiftKey, mouseX, mouseY)` signature:
+  - Added optional `mouseX` and `mouseY` parameters (defaults to window globals)
+  - Added sidebar delegation BEFORE shift key check (PRIORITY 1)
+  - Sidebar can handle scrolling without shift key
+  - Checks: levelEditorPanels, panels.sidebar, visible, not minimized
+  - Bounds check, then delegates to `sidebar.handleMouseWheel(delta, mouseX, mouseY)`
+  - Returns true if consumed
+- ✅ Updated `handleClick(mouseX, mouseY)` method:
+  - Added sidebar delegation at PRIORITY 1.5 (after dialogs, before menu bar)
+  - Same visibility/bounds checks as wheel
+  - Delegates to `sidebar.handleClick(mouseX, mouseY, pos.x, pos.y)`
+  - Returns true if consumed, false otherwise
+  - Added `return false;` at end of method for explicit return value
+
+### Integration Tests Complete
+- ✅ **Test File**: `test/integration/ui/levelEditor_sidebar.integration.test.js` (20 tests)
+- ✅ **Sidebar Instance Wiring** (3 tests):
+  - Initialize sidebar reference from levelEditorPanels
+  - Handle missing levelEditorPanels gracefully
+  - Handle missing panels.sidebar gracefully
+- ✅ **Mouse Wheel Delegation** (6 tests):
+  - Delegate when mouse over sidebar
+  - Don't delegate when outside sidebar
+  - Don't delegate when hidden/minimized
+  - Return true/false based on handler result
+- ✅ **Click Delegation** (8 tests):
+  - Delegate clicks inside bounds
+  - Pass correct coordinates (mouseX, mouseY, pos.x, pos.y)
+  - Don't delegate outside bounds
+  - Don't delegate when hidden
+  - Don't delegate when sidebar null
+  - Return true when handled
+  - Return false when not handled
+- ✅ **Integration with LevelEditorPanels** (3 tests):
+  - Check levelEditorPanels before delegating
+  - Check panels.sidebar before delegating
+  - Use panel position from getPosition()
+  - Use panel size from getSize()
+
+### Bug Fixes
+- ✅ Fixed convertScreenToWorld mock: Handle undefined window.mouseX/mouseY (return `{worldX: x||0, worldY: y||0}`)
+- ✅ Added missing TerrainEditor methods: selectMaterial, paint, canUndo, canRedo
+- ✅ Added NotificationManager.show() method to mock
+- ✅ Added ToolBar.setEnabled() method to mock
+- ✅ Added explicit `return false;` to end of LevelEditor.handleClick()
+
+### Test Results
+```bash
+npx mocha "test/integration/ui/levelEditor_sidebar.integration.test.js" --reporter spec --timeout 5000
+
+  20 passing (530ms)
+```
+
+**Total Test Count**: **114 tests** (44 unit + 30 integration + 20 LevelEditorPanels + 20 LevelEditor) ✅
+
+---
+
+## Phase 6: FileMenuBar Integration ✅
+
+### Implementation Complete
+- ✅ **File**: `Classes/ui/FileMenuBar.js` (10+ lines added)
+- ✅ Added "Sidebar" menu item to View menu (after Properties Panel):
+  - Label: 'Sidebar'
+  - Shortcut: 'Ctrl+6'
+  - Enabled: true
+  - Checkable: true
+  - Checked: false (hidden by default)
+  - Action: `() => this._handleTogglePanel('sidebar')`
+- ✅ Updated `_handleTogglePanel()` panelIdMap:
+  - Added `'sidebar': 'level-editor-sidebar'`
+- ✅ Updated `_handleTogglePanel()` labelMap:
+  - Added `'sidebar': 'Sidebar'`
+- ✅ Keyboard shortcut (Ctrl+6) handled automatically by existing `handleKeyPress()` method
+
+### Unit Tests Complete
+- ✅ **Test File**: `test/unit/ui/fileMenuBar_sidebarToggle.test.js` (13 tests)
+- ✅ **View Menu - Sidebar Item** (6 tests):
+  - "Sidebar" item exists in View menu
+  - Correct keyboard shortcut (Ctrl+6)
+  - Checkable
+  - Unchecked by default (hidden)
+  - Enabled
+  - Positioned after Properties Panel
+- ✅ **Toggle Action** (3 tests):
+  - Calls `_handleTogglePanel('sidebar')`
+  - Calls `draggablePanelManager.togglePanel('level-editor-sidebar')`
+  - Updates checked state after toggle
+- ✅ **Keyboard Shortcut (Ctrl+6)** (3 tests):
+  - Triggers sidebar toggle
+  - Calls draggablePanelManager.togglePanel
+  - Does not trigger without Ctrl key
+- ✅ **Panel ID Mapping** (1 test):
+  - Maps 'sidebar' to 'level-editor-sidebar'
+
+### Test Results
+```bash
+npx mocha "test/unit/ui/fileMenuBar_sidebarToggle.test.js" --reporter spec --timeout 5000
+
+  13 passing (248ms)
+```
+
+**Total Test Count**: **127 tests** (57 unit + 30 integration + 20 LevelEditorPanels + 20 LevelEditor) ✅
 
 ---
 

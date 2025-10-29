@@ -14,8 +14,12 @@ class LevelEditorPanels {
       tools: null,
       brush: null,
       events: null,      // Event editor panel
-      properties: null   // NEW: Properties panel
+      properties: null,  // Properties panel
+      sidebar: null      // Scrollable sidebar menu
     };
+    
+    // Sidebar instance (composition pattern)
+    this.sidebar = null;
   }
 
   /**
@@ -163,17 +167,83 @@ class LevelEditorPanels {
       }
     });
 
+    // Scrollable Sidebar Menu (Phase 4 integration)
+    // Create LevelEditorSidebar instance
+    this.sidebar = new LevelEditorSidebar({
+      width: 300,
+      height: 600,
+      title: 'Level Editor Tools'
+    });
+    
+    // Add sample content to demonstrate scrolling
+    this.sidebar.addText('header-terrain', 'Terrain', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-grass', 'Grass', () => console.log('Grass selected'));
+    this.sidebar.addButton('btn-stone', 'Stone', () => console.log('Stone selected'));
+    this.sidebar.addButton('btn-dirt', 'Dirt', () => console.log('Dirt selected'));
+    this.sidebar.addButton('btn-sand', 'Sand', () => console.log('Sand selected'));
+    this.sidebar.addButton('btn-water', 'Water', () => console.log('Water selected'));
+    
+    this.sidebar.addText('header-tools', 'Tools', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-paint', 'Paint Brush', () => console.log('Paint selected'));
+    this.sidebar.addButton('btn-fill', 'Fill Tool', () => console.log('Fill selected'));
+    this.sidebar.addButton('btn-eyedropper', 'Eyedropper', () => console.log('Eyedropper selected'));
+    this.sidebar.addButton('btn-eraser', 'Eraser', () => console.log('Eraser selected'));
+    this.sidebar.addButton('btn-select', 'Select', () => console.log('Select selected'));
+    
+    this.sidebar.addText('header-entities', 'Entities', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-ant', 'Place Ant', () => console.log('Ant placed'));
+    this.sidebar.addButton('btn-food', 'Place Food', () => console.log('Food placed'));
+    this.sidebar.addButton('btn-nest', 'Place Nest', () => console.log('Nest placed'));
+    this.sidebar.addButton('btn-enemy', 'Place Enemy', () => console.log('Enemy placed'));
+    
+    this.sidebar.addText('header-view', 'View Options', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-grid', 'Toggle Grid', () => console.log('Grid toggled'));
+    this.sidebar.addButton('btn-minimap', 'Toggle Minimap', () => console.log('Minimap toggled'));
+    this.sidebar.addButton('btn-debug', 'Toggle Debug', () => console.log('Debug toggled'));
+    
+    this.sidebar.addText('header-actions', 'Actions', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-undo', 'Undo', () => console.log('Undo'));
+    this.sidebar.addButton('btn-redo', 'Redo', () => console.log('Redo'));
+    this.sidebar.addButton('btn-clear', 'Clear All', () => console.log('Clear all'));
+    this.sidebar.addButton('btn-save', 'Save Map', () => console.log('Save map'));
+    this.sidebar.addButton('btn-load', 'Load Map', () => console.log('Load map'));
+    
+    // Create DraggablePanel wrapper for sidebar (NO title - sidebar has its own menu bar)
+    this.panels.sidebar = new DraggablePanel({
+      id: 'level-editor-sidebar',
+      title: '', // Empty title - LevelEditorSidebar has its own menu bar
+      position: { x: window.width - 320, y: 80 }, // Right side of screen
+      size: { width: 300, height: 600 },
+      visible: false, // Hidden by default - toggled via View menu
+      buttons: {
+        layout: 'vertical',
+        spacing: 0,
+        items: [],
+        autoSizeToContent: false, // Fixed size
+        verticalPadding: 0, // No padding (sidebar handles its own)
+        horizontalPadding: 0
+      },
+      behavior: {
+        draggable: true,
+        persistent: true,
+        constrainToScreen: true,
+        managedExternally: true
+      }
+    });
+
     // Add panels to the manager
     manager.panels.set('level-editor-materials', this.panels.materials);
     manager.panels.set('level-editor-tools', this.panels.tools);
     manager.panels.set('level-editor-brush', this.panels.brush);
     manager.panels.set('level-editor-events', this.panels.events);
     manager.panels.set('level-editor-properties', this.panels.properties);
+    manager.panels.set('level-editor-sidebar', this.panels.sidebar);
 
     // Add to LEVEL_EDITOR state visibility
-    // NOTE: Properties, Events, and Brush panels are NOT added here - they're hidden by default
+    // NOTE: Properties, Events, Sidebar, and Brush panels are NOT added here - they're hidden by default
     // Properties: Toggle via View menu (Feature 7)
     // Events: Toggle via Tools panel button (Feature 8)
+    // Sidebar: Toggle via View menu (Phase 4)
     // Brush: Redundant - brush size controlled via menu bar inline controls (Enhancement 9)
     if (!manager.stateVisibility.LEVEL_EDITOR) {
       manager.stateVisibility.LEVEL_EDITOR = [];
@@ -184,6 +254,7 @@ class LevelEditorPanels {
       // 'level-editor-brush' - Hidden by default, menu bar controls used instead (Enhancement 9)
       // 'level-editor-events' - Hidden by default (Feature 8)
       // 'level-editor-properties' - Hidden by default (Feature 7)
+      // 'level-editor-sidebar' - Hidden by default (Phase 4)
     );
 
     logNormal('✅ Level Editor panels initialized and added to DraggablePanelManager');
@@ -303,6 +374,31 @@ class LevelEditorPanels {
       }
     }
 
+    // Sidebar Panel (Phase 4 integration)
+    if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar) {
+      const sidebarPanel = this.panels.sidebar;
+      const sidebarPos = sidebarPanel.getPosition();
+      const titleBarHeight = sidebarPanel.calculateTitleBarHeight();
+      const contentX = sidebarPos.x;
+      const contentY = sidebarPos.y + titleBarHeight;
+      
+      // Check if click is in sidebar area
+      const sidebarWidth = this.sidebar.getWidth();
+      const sidebarHeight = this.sidebar.getHeight();
+      
+      if (mouseX >= contentX && mouseX <= contentX + sidebarWidth &&
+          mouseY >= contentY && mouseY <= contentY + sidebarHeight) {
+        const clicked = this.sidebar.handleClick(mouseX, mouseY, contentX, contentY);
+        if (clicked) {
+          // Handle sidebar actions
+          if (clicked.type === 'minimize') {
+            this.panels.sidebar.toggleMinimize();
+          }
+          return true;
+        }
+      }
+    }
+
     return false;
   }
 
@@ -324,6 +420,40 @@ class LevelEditorPanels {
         const handled = this.levelEditor.eventEditor.handleDoubleClick(mouseX, mouseY, contentX, contentY);
         if (handled) {
           return true; // EventEditor consumed the double-click
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Handle mouse wheel events on the panels
+   * Delegates to scrollable panels (e.g., sidebar)
+   * @param {number} delta - Mouse wheel delta
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @returns {boolean} True if event was handled
+   */
+  handleMouseWheel(delta, mouseX, mouseY) {
+    // Sidebar Panel (Phase 4 integration)
+    if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar) {
+      const sidebarPanel = this.panels.sidebar;
+      const sidebarPos = sidebarPanel.getPosition();
+      const titleBarHeight = sidebarPanel.calculateTitleBarHeight();
+      const contentX = sidebarPos.x;
+      const contentY = sidebarPos.y + titleBarHeight;
+      
+      // Check if mouse is over sidebar
+      const sidebarWidth = this.sidebar.getWidth();
+      const sidebarHeight = this.sidebar.getHeight();
+      
+      if (mouseX >= contentX && mouseX <= contentX + sidebarWidth &&
+          mouseY >= contentY && mouseY <= contentY + sidebarHeight) {
+        // Delegate to sidebar
+        const handled = this.sidebar.handleMouseWheel(delta, mouseX, mouseY);
+        if (handled) {
+          return true; // Consumed
         }
       }
     }
@@ -398,6 +528,18 @@ class LevelEditorPanels {
       });
     } else if (this.panels.properties && this.panels.properties.state.visible) {
       this.panels.properties.render();
+    }
+
+    // Sidebar Panel (Phase 4 integration)
+    if (this.panels.sidebar && this.panels.sidebar.state.visible && !this.panels.sidebar.state.minimized) {
+      this.panels.sidebar.render((contentArea, style) => {
+        if (this.sidebar) {
+          // Delegate rendering to LevelEditorSidebar instance
+          this.sidebar.render(contentArea.x, contentArea.y);
+        }
+      });
+    } else if (this.panels.sidebar && this.panels.sidebar.state.visible) {
+      this.panels.sidebar.render();
     }
   }
 

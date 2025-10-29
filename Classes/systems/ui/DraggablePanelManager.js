@@ -815,11 +815,42 @@ class DraggablePanelManager {
    * @param {string} panelId - Panel identifier
    * @returns {boolean} New visibility state, or null if panel not found
    */
+  /**
+   * Toggle panel visibility and synchronize with stateVisibility array
+   * CRITICAL FIX: Updates stateVisibility to prevent flash effect from renderPanels()
+   * 
+   * @param {string} panelId - Panel identifier
+   * @returns {boolean|null} New visibility state, or null if panel not found
+   */
   togglePanel(panelId) {
     const panel = this.panels.get(panelId);
     if (panel) {
+      // Toggle visibility flag
       panel.toggleVisibility();
-      return panel.isVisible();
+      const newVisibility = panel.isVisible();
+      
+      // CRITICAL FIX: Update stateVisibility array to match
+      // Use manager's gameState (which is kept in sync by renderPanels)
+      const currentState = this.gameState || 'MENU';
+      
+      // Ensure state visibility array exists
+      if (!this.stateVisibility[currentState]) {
+        this.stateVisibility[currentState] = [];
+      }
+      
+      const visibilityArray = this.stateVisibility[currentState];
+      const index = visibilityArray.indexOf(panelId);
+      
+      // Add to array if shown and not already present
+      if (newVisibility && index === -1) {
+        visibilityArray.push(panelId);
+      }
+      // Remove from array if hidden and currently present
+      else if (!newVisibility && index > -1) {
+        visibilityArray.splice(index, 1);
+      }
+      
+      return newVisibility;
     }
     return null;
   }

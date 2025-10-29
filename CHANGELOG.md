@@ -16,6 +16,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### User-Facing Changes
 
+#### Fixed
+- **Level Editor - Sparse Terrain Export/Import** (Bug Fix - TDD)
+  - **Fixed**: Empty tiles no longer export as "dirt" (default material)
+  - **Fixed**: Import validation now accepts SparseTerrain format (no longer requires `gridSizeX`/`gridSizeY`)
+  - **Impact**: Level Editor can now save/load maps with blank spaces correctly
+  - **Performance**: 99% file size reduction for sparse terrains (10 tiles vs 10,000)
+  - **Root Cause**: LevelEditor was calling `TerrainExporter` (designed for gridTerrain) instead of using SparseTerrain's native export
+  - **Solution**: LevelEditor now calls `terrain.exportToJSON()` directly, TerrainImporter detects and handles both formats
+  - See `docs/checklists/SPARSE_TERRAIN_IMPORT_EXPORT_FIX.md` for full implementation
+
 #### Changed
 - **DynamicGridOverlay Rewrite** (Performance Fix - TDD)
   - **REMOVED**: Complex edge detection and feathering system causing severe frame drops
@@ -25,6 +35,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - See `docs/roadmaps/GRID_OVERLAY_REWRITE_ROADMAP.md` for TDD plan
 
 #### Added
+- **Eraser Tool** (Level Editor Enhancement - TDD)
+  - Remove painted tiles with eraser tool in Level Editor
+  - **Click-to-erase functionality** - Fully wired up in LevelEditor.handleClick()
+  - **Brush size support**: Erase single tile (1x1) or larger areas (3x3, 5x5, etc.)
+  - **Brush size control visible** when eraser selected (same as paint tool)
+  - **Shift+Scroll shortcut** - Scroll up/down with Shift held to resize brush (same as paint tool)
+  - **Immediate cursor preview update** - Brush size changes update cursor preview instantly (no mouse move required)
+  - Full undo/redo support for erase operations
+  - Works with both SparseTerrain (removes tiles → null) and gridTerrain (resets to default material)
+  - Toolbar integration: Icon 🧹, positioned 5th in toolbar
+  - Keyboard shortcut: 'E' to toggle eraser
+  - **RED cursor preview** showing erase area (distinct from paint tool's yellow)
+  - Notifications show erase count ("Erased X tiles" or "Nothing to erase")
+  - Minimap integration (cache invalidation on erase)
+  - Core functionality fully tested with 33 passing tests (19 unit + 14 integration)
+  - Cursor preview tested with 2 E2E visual tests
+  - UX polish complete with Shift+Scroll shortcut (1 E2E test)
+  - Click functionality tested with 2 E2E tests (click-to-erase, brush sizes)
+  - **Production ready** - Full feature parity with paint tool
+  - See `docs/checklists/active/ERASER_TOOL_CHECKLIST.md` for implementation details
+
 - **LevelEditorSidebar Component** (UI Enhancement)
   - Scrollable sidebar menu with fixed top menu bar and minimize functionality
   - **Composition Pattern**: Uses ScrollableContentArea for content management (not inheritance)
@@ -49,8 +80,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - **Overflow Detection**: `hasOverflow()` - Checks if content exceeds viewport
   - **Configuration**: Width (default: 300px), height (default: 600px), menuBarHeight (default: 50px), title, colors
   - **Use Cases**: Level editor tool palettes, settings panels, inspector panels, any sidebar with menu bar + scrollable content
-  - **Tests**: 74 total (44 unit + 30 integration with real ScrollableContentArea)
+  - **Tests**: 94 total (44 unit + 30 integration with real ScrollableContentArea + 20 LevelEditorPanels integration)
   - **Documentation**: `docs/api/LevelEditorSidebar_API_Reference.md`
+  - **Integration**: LevelEditorPanels now includes sidebar panel (hidden by default)
 
 - **ScrollableContentArea Component** (UI Enhancement)
   - High-performance scrollable content container with viewport culling
@@ -150,7 +182,125 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Developer-Facing Changes
 
+#### Fixed
+- **TerrainImporter.importFromJSON()**: Added format detection for SparseTerrain vs gridTerrain
+  - **Methods Added**:
+    - `_detectSparseFormat(data)` - Returns true if version at top level and no gridSizeX
+    - `_validateSparseFormat(data)` - Validates sparse format (NO gridSizeX required)
+    - `_validateGridFormat(data)` - Original validation for grid format
+  - **Import Logic**: Detects format, delegates to `terrain.importFromJSON()` for sparse, uses internal logic for grid
+  - **Format Detection**:
+    - SparseTerrain: `{ version: '1.0', metadata: {...}, tiles: [{x,y,material}] }`
+    - gridTerrain: `{ metadata: { version, gridSizeX, gridSizeY }, tiles: [...] }`
+  - **Breaking**: NO - Existing gridTerrain imports still work
+  - **Module Export**: Added `module.exports = TerrainImporter` for Node.js test compatibility
+  - **Constants**: Added safe defaults for undefined `CHUNK_SIZE`/`TILE_SIZE` in test environments
+
+- **LevelEditor._performExport()**: Changed from TerrainExporter to native SparseTerrain export
+  - **Before**: `new TerrainExporter(this.terrain).exportToJSON()` (forced grid format)
+  - **After**: `this.terrain.exportToJSON()` (uses SparseTerrain's native sparse format)
+  - **Impact**: Fixes empty tiles exporting as default material, enables sparse format preservation
+  - **Methods Changed**: `_performExport()`, `save()` (legacy method)
+  - **Breaking**: NO - Only affects internal export mechanism
+
 #### Added
+- **TerrainEditor.erase()** (`Classes/terrainUtils/TerrainEditor.js`)
+  - Erase tiles with brush size support
+  - **Parameters**: `erase(x, y, brushSize)` - Grid coordinates and brush size (1, 3, 5, etc.)
+  - **Returns**: Number of tiles erased
+  - **Behavior**:
+    - SparseTerrain: Calls `deleteTile(x, y)` to remove from storage (tile becomes null)
+    - gridTerrain: Calls `setTile(x, y, terrain.defaultMaterial)` to reset to default
+  - **Undo/Redo**: Adds erase actions to history with old materials
+    - History format: `{ type: 'erase', tiles: [{ x, y, oldMaterial }] }`
+    - Undo: Restores old materials using `setTile()`
+    - Redo: Re-erases using `deleteTile()` or resets to default
+  - **Brush Size**: Iterates area from center using `Math.floor(brushSize / 2)` offset
+  - **Bounds Checking**: Skips tiles outside terrain bounds
+  - **Tests**: 19 unit tests + 14 integration tests (100% coverage)
+
+- **HoverPreviewManager Eraser Support** (`Classes/ui/HoverPreviewManager.js`)
+  - Added `case 'eraser':` to `calculateAffectedTiles()` method
+  - Eraser reuses paint tool brush logic (case fallthrough)
+  - Supports all brush sizes (1x1, 3x3, 5x5, circular for even sizes)
+  - Enables cursor preview highlighting for eraser tool
+
+- **LevelEditor Eraser Click Handler** (`Classes/systems/ui/LevelEditor.js`)
+  - Added `case 'eraser':` to `handleClick()` method (line ~529)
+  - Wires up `editor.erase()` with brush size from menu bar
+  - Shows notifications with erase count
+  - Updates undo/redo button states after erase
+  - Notifies minimap of terrain changes (cache invalidation)
+  - Enables full click-to-erase functionality
+
+- **LevelEditor Tool-Specific Cursor Colors** (`Classes/systems/ui/LevelEditor.js`)
+  - Enhanced `renderHoverPreview()` with tool-specific colors
+  - Paint: Yellow (255, 255, 0, 80)
+  - **Eraser: Red (255, 0, 0, 80)** - Indicates destructive action
+  - Fill: Blue (100, 150, 255, 80)
+  - Eyedropper: White (255, 255, 255, 80)
+  - Select: Blue (100, 150, 255, 80)
+  - Improves UX by visually distinguishing tool behaviors
+
+- **FileMenuBar Brush Size for Eraser** (`Classes/ui/FileMenuBar.js`)
+  - Updated `updateBrushSizeVisibility()` to include eraser tool
+  - Brush size control now visible for both paint and eraser
+  - Uses `['paint', 'eraser'].includes(currentTool)` check
+  - Enables resizable brush for eraser (1-9 sizes)
+
+- **LevelEditor.handleMouseWheel() Refactored to Use ShortcutManager** (`Classes/systems/ui/LevelEditor.js`)
+  - **Refactoring**: Replaced 40+ lines of hardcoded brush size logic with 5-line delegation to ShortcutManager
+  - **Before**: Hardcoded tool check, brush size get/set, bounds checking in event handler
+  - **After**: `ShortcutManager.handleMouseWheel(event, modifiers, this._shortcutContext)`
+  - **Benefits**: Cleaner code, easier to add new shortcuts, reusable across application
+  - **Shortcuts Registered**: `leveleditor-brush-size-increase`, `leveleditor-brush-size-decrease`
+  - **Behavior**: Shift+Scroll up/down increases/decreases brush size for paint and eraser tools
+  - **UX Impact**: Fast brush resizing without UI interaction (feature parity maintained)
+  - **Tests**: 1 E2E test with 3 test cases (paint baseline, eraser increase, eraser decrease)
+
+- **ShortcutManager System** (`Classes/managers/ShortcutManager.js` - 235 lines)
+  - **New System**: Reusable shortcut registration and handling across application
+  - **Design Pattern**: Singleton with static API
+  - **Features**:
+    - Declarative API: Register shortcuts without custom event handlers
+    - Tool-agnostic: Same shortcut applies to multiple tools or all tools
+    - Context-based: Actions receive context object with tool-specific methods
+    - Modifier key support: `'shift'`, `'ctrl'`, `'alt'`, `'shift+ctrl'`, etc.
+    - Direction support: For mousewheel events (`'up'`, `'down'`, or any)
+    - Strict matching: Extra modifiers prevent false triggers
+  - **Public API** (6 methods):
+    - `register(config)`: Register shortcut with id, trigger, tools, action
+    - `unregister(id)`: Remove shortcut by id
+    - `handleMouseWheel(event, modifiers, context)`: Process mouse wheel events
+    - `getRegisteredShortcuts()`: Get all shortcuts (copy)
+    - `clearAll()`: Remove all shortcuts (for testing)
+    - `getInstance()`: Get singleton instance
+  - **Usage Example**:
+    ```javascript
+    ShortcutManager.register({
+      id: 'brush-size-increase',
+      trigger: { modifier: 'shift', event: 'mousewheel', direction: 'up' },
+      tools: ['paint', 'eraser'],
+      action: (context) => {
+        const size = context.getBrushSize();
+        context.setBrushSize(Math.min(size + 1, 99));
+      }
+    });
+    ```
+  - **Tests**: 23 unit tests (100% passing)
+  - **Documentation**: `docs/api/ShortcutManager_API_Reference.md`
+
+- **ToolBar Eraser Tool** (`Classes/ui/ToolBar.js`)
+  - Added eraser to default tools object
+  - **Tool Definition**: `{ name: 'Eraser', icon: '🧹', shortcut: 'E', group: 'drawing', enabled: true }`
+  - **Position**: 5th tool (after paint, fill, eyedropper, select)
+  - **Toggle Behavior**: Click to select/deselect (consistent with other tools)
+
+- **LevelEditor Eraser Integration** (`Classes/systems/ui/LevelEditor.js`)
+  - Added eraser to toolbar config array
+  - **Config Entry**: `{ name: 'eraser', icon: '🧹', tooltip: 'Eraser Tool', shortcut: 'E' }`
+  - **Note**: Full UI event wiring (click to erase, cursor preview) pending - core functionality complete
+
 - **LevelEditorSidebar Class** (`Classes/ui/LevelEditorSidebar.js` - 390 lines)
   - **Composition Pattern**: Uses ScrollableContentArea instance (not inheritance)
     - Constructor creates ScrollableContentArea with `height - menuBarHeight`
@@ -171,8 +321,47 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
     - Bounds: Inclusive edge checking with `<=` operator
     - Returns: `{ type: 'minimize' }` on click
   - **Scroll Filtering**: Only calls `contentArea.handleMouseWheel()` if `mouseY >= menuBarHeight`
-  - **Tests**: 74 total (44 unit + 30 integration)
+  - **Tests**: 94 total (44 unit + 30 integration + 20 LevelEditorPanels integration)
   - **Added to**: `index.html` after ScrollableContentArea
+
+- **LevelEditorPanels Integration** (`Classes/systems/ui/LevelEditorPanels.js` - 60+ lines added)
+  - **Sidebar Panel Registration**:
+    - Added `sidebar: null` to `this.panels` object
+    - Added `this.sidebar = null` instance property
+    - Creates DraggablePanel with ID `'level-editor-sidebar'`
+    - Position: Right side (`window.width - 320, y: 80`)
+    - Size: 300×600 pixels
+    - State: Hidden by default (`visible: false`)
+    - Behavior: Draggable, persistent
+  - **Sidebar Instance Creation**:
+    - Creates `LevelEditorSidebar` with 300×600 dimensions
+    - Title: 'Sidebar'
+    - Stores in `this.sidebar` for delegation
+  - **Panel Manager Registration**:
+    - Registers panel with `DraggablePanelManager`
+    - Panel ID: `'level-editor-sidebar'`
+    - Enables dragging, persistence, state management
+  - **Render Delegation** (in `render()` method):
+    - Checks: `panels.sidebar` exists, visible, not minimized
+    - Delegates to `sidebar.render(contentArea.x, contentArea.y)`
+    - Integrates with DraggablePanel's render callback system
+  - **Click Delegation** (in `handleClick()` method):
+    - Checks: `panels.sidebar` exists, visible, `sidebar` instance exists
+    - Calls `sidebar.handleClick(mouseX, mouseY, contentX, contentY)`
+    - Handles minimize button clicks: `clicked.type === 'minimize'` → `toggleMinimize()`
+    - Returns true to consume click event
+  - **Mouse Wheel Delegation** (NEW `handleMouseWheel()` method):
+    - Checks: `panels.sidebar` exists, visible, `sidebar` instance exists
+    - Bounds check: Mouse over sidebar content area
+    - Calls `sidebar.handleMouseWheel(delta, mouseX, mouseY)`
+    - Returns true if handled (consumes event)
+  - **Tests**: 20 integration tests
+    - Sidebar Panel Registration (7 tests)
+    - Sidebar Instance Creation (3 tests)
+    - Sidebar Rendering Integration (3 tests)
+    - Sidebar Click Delegation (2 tests)
+    - Sidebar Mouse Wheel Delegation (2 tests)
+    - Content Management Integration (3 tests)
 
 - **ScrollableContentArea Bug Fix**: Parameter shadowing in `addText()` method
   - **Problem**: Parameter named `text` shadowed global p5.js function `text()`

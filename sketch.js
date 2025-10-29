@@ -236,6 +236,12 @@ function setup() {
   
   // Initialize context menu prevention for better brush control
   initializeContextMenuPrevention();
+  
+  // Initialize middle-click pan shortcuts
+  if (typeof MiddleClickPan !== 'undefined') {
+    MiddleClickPan.initialize();
+    logVerbose('🖱️ Middle-click pan initialized');
+  }
   //
 
   Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
@@ -490,7 +496,12 @@ function handleMouseEvent(type, ...args) {
  * ------------
  * Handles mouse press events by delegating to the mouse controller.
  */
-function mousePressed() { 
+function mousePressed() {
+  // Middle-click pan - handle before all other mouse events
+  if (mouseButton === CENTER && typeof MiddleClickPan !== 'undefined') {
+    if (MiddleClickPan.handlePress()) return;
+  }
+  
   // Level Editor - handle clicks first if active
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -613,6 +624,11 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+  // Middle-click pan - handle before all other drag events
+  if (mouseButton === CENTER && typeof MiddleClickPan !== 'undefined') {
+    if (MiddleClickPan.handleDrag()) return;
+  }
+  
   // Handle level editor drag events FIRST (before UI debug or RenderManager)
   if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
     levelEditor.handleDrag(mouseX, mouseY);
@@ -637,6 +653,11 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+  // Middle-click pan - handle before all other release events
+  if (mouseButton === CENTER && typeof MiddleClickPan !== 'undefined') {
+    if (MiddleClickPan.handleRelease()) return;
+  }
+  
   // Handle level editor release events FIRST
   if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
     levelEditor.handleMouseRelease(mouseX, mouseY);

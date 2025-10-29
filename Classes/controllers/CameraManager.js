@@ -40,6 +40,13 @@ class CameraManager {
     // Camera toggles
     this.cameraOutlineToggle = false;
     
+    // Middle-click pan state
+    this._isPanning = false;
+    this._panStartX = 0;
+    this._panStartY = 0;
+    this._cameraStartX = 0;
+    this._cameraStartY = 0;
+    
     // Level-specific bounds (null = use current map, or set custom bounds for level)
     this.customBounds = null; // { width: number, height: number }
     this.currentLevel = null; // Reference to current level map (defaults to g_activeMap)
@@ -175,6 +182,73 @@ class CameraManager {
     g_activeMap.setCameraPosition(centerTilePos);
   }
 }
+
+  /**
+   * Start panning camera with middle-click drag
+   * @param {number} mouseX - Initial mouse X position
+   * @param {number} mouseY - Initial mouse Y position
+   */
+  startPan(mouseX, mouseY) {
+    this._isPanning = true;
+    this._panStartX = mouseX;
+    this._panStartY = mouseY;
+    this._cameraStartX = this.cameraX;
+    this._cameraStartY = this.cameraY;
+    
+    // Change cursor to indicate pan mode
+    if (typeof cursor === 'function') {
+      cursor('grab');
+    }
+  }
+
+  /**
+   * Update camera position during middle-click drag
+   * @param {number} mouseX - Current mouse X position
+   * @param {number} mouseY - Current mouse Y position
+   */
+  updatePan(mouseX, mouseY) {
+    if (!this._isPanning) return;
+    
+    // Calculate delta from pan start position
+    const deltaX = mouseX - this._panStartX;
+    const deltaY = mouseY - this._panStartY;
+    
+    // Move camera opposite to drag direction (intuitive "grab and drag" behavior)
+    this.cameraX = this._cameraStartX - deltaX;
+    this.cameraY = this._cameraStartY - deltaY;
+    
+    // Apply camera bounds if needed
+    this.clampToBounds();
+    
+    // Sync with CameraController if available
+    if (typeof CameraController !== 'undefined' && typeof CameraController.setCameraPosition === 'function') {
+      CameraController.setCameraPosition(this.cameraX, this.cameraY);
+    }
+  }
+
+  /**
+   * End panning and restore cursor
+   */
+  endPan() {
+    this._isPanning = false;
+    this._panStartX = 0;
+    this._panStartY = 0;
+    this._cameraStartX = 0;
+    this._cameraStartY = 0;
+    
+    // Restore default cursor
+    if (typeof cursor === 'function' && typeof ARROW !== 'undefined') {
+      cursor(ARROW);
+    }
+  }
+
+  /**
+   * Check if currently panning
+   * @returns {boolean} True if panning active
+   */
+  isPanning() {
+    return this._isPanning || false;
+  }
 
   /**
    * Draws a rect around the border of what the camera is able to see, should be just outside the range
@@ -833,6 +907,11 @@ if (typeof window !== 'undefined') {
   window.stopMouseDebug = stopMouseDebug;
   window.toggleMouseDebug = toggleMouseDebug;
   window.g_mouseDebugEnabled = false; // Initialize as disabled
+}
+
+// Export for Node.js testing
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = CameraManager;
 }
 
 

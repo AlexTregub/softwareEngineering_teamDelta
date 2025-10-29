@@ -165,6 +165,14 @@ class FileMenuBar {
             action: () => this._handleTogglePanel('properties')
           },
           { 
+            label: 'Sidebar', 
+            shortcut: 'Ctrl+6',
+            enabled: true,
+            checkable: true,
+            checked: false, // Hidden by default
+            action: () => this._handleTogglePanel('sidebar')
+          },
+          { 
             label: 'Notifications', 
             shortcut: 'Ctrl+I',
             enabled: true,
@@ -214,8 +222,9 @@ class FileMenuBar {
    */
   updateBrushSizeVisibility(currentTool) {
     if (this.brushSizeModule) {
-      // Show only when paint tool is active
-      this.brushSizeModule.setVisible(currentTool === 'paint');
+      // Show when paint or eraser tool is active (both use brush size)
+      const brushBasedTools = ['paint', 'eraser'];
+      this.brushSizeModule.setVisible(brushBasedTools.includes(currentTool));
     }
   }
   
@@ -747,7 +756,8 @@ class FileMenuBar {
         'tools': 'level-editor-tools',
         'brush': 'level-editor-brush',
         'events': 'level-editor-events',
-        'properties': 'level-editor-properties'
+        'properties': 'level-editor-properties',
+        'sidebar': 'level-editor-sidebar'
       };
       
       const panelId = panelIdMap[panelName];
@@ -763,7 +773,8 @@ class FileMenuBar {
             'tools': 'Tools Panel',
             'brush': 'Brush Panel',
             'events': 'Events Panel',
-            'properties': 'Properties Panel'
+            'properties': 'Properties Panel',
+            'sidebar': 'Sidebar'
           };
           const menuItem = viewMenu.items.find(i => i.label === labelMap[panelName]);
           if (menuItem) {

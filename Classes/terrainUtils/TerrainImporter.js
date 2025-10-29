@@ -12,7 +12,33 @@ class TerrainImporter {
   }
 
   /**
+   * Detect if data is in SparseTerrain format
+   * SparseTerrain: version at top level, no gridSizeX
+   * gridTerrain: version in metadata, has gridSizeX
+   * @param {Object} data - Import data
+   * @returns {boolean} True if SparseTerrain format, false for gridTerrain
+   * @private
+   */
+  _detectSparseFormat(data) {
+    if (!data) return false;
+    
+    // SparseTerrain format: version at top level, no gridSizeX in metadata
+    if (data.version && !data.metadata?.gridSizeX) {
+      return true;
+    }
+    
+    // gridTerrain format: version in metadata, has gridSizeX
+    if (data.metadata?.version && data.metadata?.gridSizeX) {
+      return false;
+    }
+    
+    // Default to false (gridTerrain validation will catch errors)
+    return false;
+  }
+
+  /**
    * Import terrain from JSON data
+   * Supports both SparseTerrain and gridTerrain formats
    * @param {Object} data - Imported JSON data
    * @param {Object} options - Import options
    * @returns {boolean} Success status
@@ -29,6 +55,21 @@ class TerrainImporter {
       }
     }
 
+    // Detect format
+    const isSparseFormat = this._detectSparseFormat(data);
+    
+    if (isSparseFormat) {
+      // SparseTerrain format - delegate to terrain's native import
+      if (typeof this._terrain.importFromJSON === 'function') {
+        this._terrain.importFromJSON(data);
+        return true;
+      } else {
+        console.error('Terrain does not support importFromJSON for sparse format');
+        return false;
+      }
+    }
+
+    // gridTerrain format - use existing logic
     // Migrate if needed
     const migratedData = this._migrateData(data);
 
@@ -266,8 +307,8 @@ class TerrainImporter {
   _applyDefaults(data) {
     const defaults = {
       metadata: {
-        chunkSize: CHUNK_SIZE || 8,
-        tileSize: TILE_SIZE || 32,
+        chunkSize: (typeof CHUNK_SIZE !== 'undefined' ? CHUNK_SIZE : 8),
+        tileSize: (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32),
         seed: Math.floor(Math.random() * 1000000)
       }
     };
@@ -283,17 +324,63 @@ class TerrainImporter {
 
   /**
    * Validate import data structure
+   * Supports both SparseTerrain and gridTerrain formats
    * @param {Object} data - Data to validate
    * @returns {Object} Validation result
    */
   validateImport(data) {
-    const errors = [];
-
     // Check for required fields
     if (!data) {
-      errors.push('No data provided');
-      return { valid: false, errors };
+      return { valid: false, errors: ['No data provided'] };
     }
+
+    // Detect format
+    const isSparseFormat = this._detectSparseFormat(data);
+    
+    if (isSparseFormat) {
+      return this._validateSparseFormat(data);
+    } else {
+      return this._validateGridFormat(data);
+    }
+  }
+
+  /**
+   * Validate SparseTerrain format
+   * @param {Object} data - Data to validate
+   * @returns {Object} Validation result
+   * @private
+   */
+  _validateSparseFormat(data) {
+    const errors = [];
+
+    if (!data.version) {
+      errors.push('Missing version');
+    }
+
+    if (!data.metadata) {
+      errors.push('Missing metadata');
+    }
+
+    if (!data.tiles) {
+      errors.push('Missing tiles array');
+    } else if (!Array.isArray(data.tiles)) {
+      errors.push('Tiles must be array');
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+
+  /**
+   * Validate gridTerrain format (existing validation)
+   * @param {Object} data - Data to validate
+   * @returns {Object} Validation result
+   * @private
+   */
+  _validateGridFormat(data) {
+    const errors = [];
 
     if (!data.metadata) {
       errors.push('Missing metadata');
@@ -361,4 +448,12 @@ class TerrainImporter {
     // Recommend streaming for terrains larger than 10,000 tiles
     return totalTiles > 10000;
   }
+}
+
+// Global export for browser and Node.js
+if (typeof window !== 'undefined') {
+  window.TerrainImporter = TerrainImporter;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = TerrainImporter;
 }

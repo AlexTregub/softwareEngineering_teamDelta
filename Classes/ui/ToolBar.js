@@ -42,6 +42,7 @@ class ToolBar {
                 'fill': { name: 'Fill', icon: '🪣', shortcut: 'F', group: 'drawing', enabled: true },
                 'rectangle': { name: 'Rectangle', icon: '▭', shortcut: 'R', group: 'drawing', enabled: true },
                 'line': { name: 'Line', icon: '/', shortcut: 'L', group: 'drawing', enabled: true },
+                'eraser': { name: 'Eraser', icon: '🧹', shortcut: 'E', group: 'drawing', enabled: true },
                 'eyedropper': { name: 'Eyedropper', icon: '💧', shortcut: 'I', group: 'selection', enabled: true },
                 'undo': { name: 'Undo', icon: '↶', shortcut: 'Ctrl+Z', group: 'edit', enabled: false },
                 'redo': { name: 'Redo', icon: '↷', shortcut: 'Ctrl+Y', group: 'edit', enabled: false }
@@ -49,7 +50,7 @@ class ToolBar {
             
             // Tool groups
             this.groups = {
-                'drawing': ['brush', 'fill', 'rectangle', 'line'],
+                'drawing': ['brush', 'fill', 'rectangle', 'line', 'eraser'],
                 'selection': ['eyedropper'],
                 'edit': ['undo', 'redo']
             };

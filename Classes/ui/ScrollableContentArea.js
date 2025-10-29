@@ -292,16 +292,17 @@ class ScrollableContentArea {
   
   /**
    * Handle mouse wheel scrolling
-   * @param {number} delta - Wheel delta (negative = scroll down)
+   * @param {number} delta - Wheel delta (positive = scroll down, negative = scroll up)
    * @returns {boolean} True if scroll was handled
    */
   handleMouseWheel(delta) {
     if (this.maxScrollOffset <= 0) return false; // No scrolling needed
     
-    // delta negative = scroll down (increase offset)
-    // delta positive = scroll up (decrease offset)
+    // Standard wheel convention:
+    // Positive delta = scroll down = increase offset (show content below)
+    // Negative delta = scroll up = decrease offset (show content above)
     const oldOffset = this.scrollOffset;
-    this.scrollOffset -= delta * (this.scrollSpeed / 10); // Note: subtract to invert
+    this.scrollOffset += delta * this.scrollSpeed;
     this.clampScrollOffset();
     
     // Trigger callback if scrolled

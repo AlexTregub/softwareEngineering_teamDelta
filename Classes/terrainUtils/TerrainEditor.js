@@ -318,6 +318,95 @@ class TerrainEditor {
   }
 
   /**
+   * Erase tiles at specified position with brush size
+   * Removes tiles from SparseTerrain or resets to default material for gridTerrain
+   * @param {number} x - Tile X position (grid coordinates)
+   * @param {number} y - Tile Y position (grid coordinates)
+   * @param {number} brushSize - Brush size (1=single, 3=3x3, 5=5x5, etc.)
+   * @returns {number} Count of tiles erased
+   */
+  erase(x, y, brushSize = 1) {
+    const affectedTiles = [];
+    const halfBrush = Math.floor(brushSize / 2);
+    
+    // Detect terrain type
+    const isSparseTerrain = this._terrain.constructor.name === 'SparseTerrain' ||
+                           (typeof this._terrain.deleteTile === 'function' && 
+                            typeof this._terrain.tiles !== 'undefined');
+    
+    // Iterate over brush area
+    for (let dy = -halfBrush; dy <= halfBrush; dy++) {
+      for (let dx = -halfBrush; dx <= halfBrush; dx++) {
+        const tileX = x + dx;
+        const tileY = y + dy;
+        
+        // Skip out-of-bounds tiles
+        if (!this._isInBounds(tileX, tileY)) {
+          continue;
+        }
+        
+        if (isSparseTerrain) {
+          // SparseTerrain: Remove tile from storage (use getTile since tests mock it)
+          const tile = this._terrain.getTile ? this._terrain.getTile(tileX, tileY) : null;
+          
+          if (tile) {
+            const oldMaterial = tile.material;
+            affectedTiles.push({ x: tileX, y: tileY, oldMaterial, newMaterial: null });
+            
+            // Use deleteTile if available (SparseTerrain), otherwise removeTile (mock)
+            if (typeof this._terrain.deleteTile === 'function') {
+              this._terrain.deleteTile(tileX, tileY);
+            } else if (typeof this._terrain.removeTile === 'function') {
+              this._terrain.removeTile(tileX, tileY);
+            }
+          }
+        } else {
+          // gridTerrain: Reset to default material
+          const defaultMaterial = this._terrain.defaultMaterial || 'grass';
+          
+          // Check if terrain has getTile (mock) or getArrPos (real)
+          let tile = null;
+          let oldMaterial = null;
+          
+          if (typeof this._terrain.getTile === 'function') {
+            // Mock terrain with getTile
+            tile = this._terrain.getTile(tileX, tileY);
+            oldMaterial = tile ? tile.material : null;
+          } else if (typeof this._terrain.getArrPos === 'function') {
+            // Real gridTerrain with getArrPos
+            tile = this._terrain.getArrPos([tileX, tileY]);
+            oldMaterial = tile ? tile.getMaterial() : null;
+          }
+          
+          if (tile && oldMaterial && oldMaterial !== defaultMaterial) {
+            affectedTiles.push({ x: tileX, y: tileY, oldMaterial, newMaterial: defaultMaterial });
+            
+            // Update tile material
+            if (typeof this._terrain.setTile === 'function') {
+              // Mock with setTile
+              this._terrain.setTile(tileX, tileY, defaultMaterial);
+            } else if (tile.setMaterial) {
+              // Real tile with setMaterial
+              tile.setMaterial(defaultMaterial);
+              if (tile.assignWeight) tile.assignWeight();
+            }
+          }
+        }
+      }
+    }
+    
+    // Record undo action if tiles were erased
+    if (affectedTiles.length > 0) {
+      this._recordAction({ type: 'erase', tiles: affectedTiles });
+      if (typeof this._terrain.invalidateCache === 'function') {
+        this._terrain.invalidateCache();
+      }
+    }
+    
+    return affectedTiles.length;
+  }
+
+  /**
    * Record action for undo/redo
    * @param {Object} action - Action to record
    * @private
@@ -345,16 +434,31 @@ class TerrainEditor {
     const action = this._undoStack.pop();
     this._redoStack.push(action);
 
+    // Detect terrain type
+    const isSparseTerrain = this._terrain.constructor.name === 'SparseTerrain' ||
+                           (typeof this._terrain.setTile === 'function' && 
+                            typeof this._terrain.tiles !== 'undefined');
+
     // Restore old materials
     for (const { x, y, oldMaterial } of action.tiles) {
       if (this._isInBounds(x, y)) {
-        const tile = this._terrain.getArrPos([x, y]);
-        tile.setMaterial(oldMaterial);
-        tile.assignWeight();
+        if (isSparseTerrain) {
+          // SparseTerrain: Use setTile to restore
+          if (typeof this._terrain.setTile === 'function') {
+            this._terrain.setTile(x, y, oldMaterial);
+          }
+        } else {
+          // gridTerrain: Use getArrPos and setMaterial
+          const tile = this._terrain.getArrPos([x, y]);
+          tile.setMaterial(oldMaterial);
+          tile.assignWeight();
+        }
       }
     }
 
-    this._terrain.invalidateCache();
+    if (typeof this._terrain.invalidateCache === 'function') {
+      this._terrain.invalidateCache();
+    }
   }
 
   /**
@@ -376,16 +480,39 @@ class TerrainEditor {
     const action = this._redoStack.pop();
     this._undoStack.push(action);
 
+    // Detect terrain type
+    const isSparseTerrain = this._terrain.constructor.name === 'SparseTerrain' ||
+                           (typeof this._terrain.setTile === 'function' && 
+                            typeof this._terrain.tiles !== 'undefined');
+
     // Restore new materials
     for (const { x, y, newMaterial } of action.tiles) {
       if (this._isInBounds(x, y)) {
-        const tile = this._terrain.getArrPos([x, y]);
-        tile.setMaterial(newMaterial);
-        tile.assignWeight();
+        if (isSparseTerrain) {
+          // SparseTerrain: Re-erase (delete) or restore
+          if (newMaterial === null) {
+            // Re-erase: delete the tile (use deleteTile or removeTile)
+            if (typeof this._terrain.deleteTile === 'function') {
+              this._terrain.deleteTile(x, y);
+            } else if (typeof this._terrain.removeTile === 'function') {
+              this._terrain.removeTile(x, y);
+            }
+          } else if (typeof this._terrain.setTile === 'function') {
+            // Restore: set material
+            this._terrain.setTile(x, y, newMaterial);
+          }
+        } else {
+          // gridTerrain: Use getArrPos and setMaterial
+          const tile = this._terrain.getArrPos([x, y]);
+          tile.setMaterial(newMaterial);
+          tile.assignWeight();
+        }
       }
     }
 
-    this._terrain.invalidateCache();
+    if (typeof this._terrain.invalidateCache === 'function') {
+      this._terrain.invalidateCache();
+    }
   }
 
   /**

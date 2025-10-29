@@ -23,6 +23,7 @@ class LevelEditor {
     this.fileMenuBar = null; // NEW: File menu bar for save/load/export
     this.selectionManager = null; // NEW: Rectangle selection for select tool
     this.hoverPreviewManager = null; // NEW: Hover preview for all tools
+    this.sidebar = null; // NEW: Sidebar menu (wired from levelEditorPanels)
     
     // File management
     this.currentFilename = 'Untitled'; // Current filename (no extension)
@@ -66,7 +67,8 @@ class LevelEditor {
       { name: 'paint', icon: '🖌️', tooltip: 'Paint Tool' },
       { name: 'fill', icon: '🪣', tooltip: 'Fill Tool' },
       { name: 'eyedropper', icon: '💧', tooltip: 'Pick Material' },
-      { name: 'select', icon: '⬚', tooltip: 'Select Region' }
+      { name: 'select', icon: '⬚', tooltip: 'Select Region' },
+      { name: 'eraser', icon: '🧹', tooltip: 'Eraser Tool', shortcut: 'E' }
     ]);
     this.toolbar.selectTool('paint');
     
@@ -90,6 +92,9 @@ class LevelEditor {
     // Initialize panels BEFORE adding custom buttons (panels needs to exist first)
     this.levelEditorPanels = new LevelEditorPanels(this);
     this.levelEditorPanels.initialize();
+    
+    // Wire up sidebar instance from levelEditorPanels
+    this.sidebar = this.levelEditorPanels && this.levelEditorPanels.sidebar ? this.levelEditorPanels.sidebar : null;
     
     // Add Events button to toolbar (toggles EventEditorPanel)
     this.toolbar.addButton({
@@ -176,6 +181,10 @@ class LevelEditor {
     // NEW: Initialize hover preview manager for all tools
     this.hoverPreviewManager = new HoverPreviewManager();
     
+    // NEW: Setup shortcut context for ShortcutManager
+    this._setupShortcutContext();
+    this._registerShortcuts();
+    
     // Setup camera for editor
     this.editorCamera = cameraManager;
     
@@ -218,6 +227,79 @@ class LevelEditor {
   deactivate() {
     this.active = false;
     this.levelEditorPanels.hide();
+  }
+  
+  /**
+   * Setup shortcut context for ShortcutManager
+   * @private
+   */
+  _setupShortcutContext() {
+    this._shortcutContext = {
+      getCurrentTool: () => this.toolbar ? this.toolbar.getSelectedTool() : null,
+      getBrushSize: () => {
+        if (this.fileMenuBar && this.fileMenuBar.brushSizeModule) {
+          return this.fileMenuBar.brushSizeModule.getSize();
+        }
+        if (this.editor && typeof this.editor.getBrushSize === 'function') {
+          return this.editor.getBrushSize();
+        }
+        return 1;
+      },
+      setBrushSize: (size) => {
+        // Update menu bar brush size module
+        if (this.fileMenuBar && this.fileMenuBar.brushSizeModule) {
+          this.fileMenuBar.brushSizeModule.setSize(size);
+        }
+        // Update terrain editor
+        if (this.editor && typeof this.editor.setBrushSize === 'function') {
+          this.editor.setBrushSize(size);
+        }
+      },
+      refreshHoverPreview: () => {
+        // Re-trigger hover preview with last known mouse position
+        if (this._lastHoverX !== undefined && this._lastHoverY !== undefined) {
+          this.handleHover(this._lastHoverX, this._lastHoverY);
+          this._hoverRecalledAfterSizeChange = true; // Flag for testing
+        }
+      }
+    };
+  }
+  
+  /**
+   * Register shortcuts with ShortcutManager
+   * @private
+   */
+  _registerShortcuts() {
+    if (typeof ShortcutManager === 'undefined') {
+      console.warn('ShortcutManager not available - shortcuts disabled');
+      return;
+    }
+    
+    // Shift+Scroll Up: Increase brush size (paint and eraser)
+    ShortcutManager.register({
+      id: 'leveleditor-brush-size-increase',
+      trigger: { modifier: 'shift', event: 'mousewheel', direction: 'up' },
+      tools: ['paint', 'eraser'],
+      action: (context) => {
+        const currentSize = context.getBrushSize();
+        const newSize = Math.min(currentSize + 1, 99);
+        context.setBrushSize(newSize);
+        context.refreshHoverPreview(); // Immediately update cursor preview
+      }
+    });
+    
+    // Shift+Scroll Down: Decrease brush size (paint and eraser)
+    ShortcutManager.register({
+      id: 'leveleditor-brush-size-decrease',
+      trigger: { modifier: 'shift', event: 'mousewheel', direction: 'down' },
+      tools: ['paint', 'eraser'],
+      action: (context) => {
+        const currentSize = context.getBrushSize();
+        const newSize = Math.max(currentSize - 1, 1);
+        context.setBrushSize(newSize);
+        context.refreshHoverPreview(); // Immediately update cursor preview
+      }
+    });
   }
   
   /**
@@ -267,55 +349,44 @@ class LevelEditor {
    * Handle mouse wheel for brush size adjustment
    * @param {Object} event - Mouse wheel event with delta property
    * @param {boolean} shiftKey - Whether shift key is pressed
+   * @param {number} mouseX - Mouse X position (optional, uses global if not provided)
+   * @param {number} mouseY - Mouse Y position (optional, uses global if not provided)
    * @returns {boolean} True if event was handled, false otherwise
    */
-  handleMouseWheel(event, shiftKey) {
+  handleMouseWheel(event, shiftKey, mouseX, mouseY) {
     if (!this.active) return false;
     if (!event) return false; // Null check
-    if (!shiftKey) return false;
     
-    // Get current tool from toolbar
-    const currentTool = this.toolbar ? this.toolbar.getSelectedTool() : null;
-    if (!currentTool || currentTool !== 'paint') return false;
+    // Use global mouse position if not provided
+    if (mouseX === undefined && typeof window !== 'undefined') mouseX = window.mouseX;
+    if (mouseY === undefined && typeof window !== 'undefined') mouseY = window.mouseY;
     
-    // Get current brush size from menu bar brush size module
-    let currentSize = 1;
-    if (this.fileMenuBar && this.fileMenuBar.brushSizeModule && typeof this.fileMenuBar.brushSizeModule.getSize === 'function') {
-      currentSize = this.fileMenuBar.brushSizeModule.getSize();
-    } else if (this.editor && typeof this.editor.getBrushSize === 'function') {
-      currentSize = this.editor.getBrushSize();
+    // Check sidebar delegation FIRST (before shift key check)
+    // Sidebar handles scrolling even without shift key
+    if (this.levelEditorPanels && this.levelEditorPanels.panels && this.levelEditorPanels.panels.sidebar) {
+      const sidebarPanel = this.levelEditorPanels.panels.sidebar;
+      
+      // Only delegate if sidebar is visible and not minimized
+      if (sidebarPanel.state && sidebarPanel.state.visible && !sidebarPanel.state.minimized && this.sidebar) {
+        const pos = sidebarPanel.getPosition();
+        const size = sidebarPanel.getSize();
+        
+        // Check if mouse is over sidebar
+        if (mouseX >= pos.x && mouseX <= pos.x + size.width &&
+            mouseY >= pos.y && mouseY <= pos.y + size.height) {
+          // Delegate to sidebar
+          const delta = event.deltaY || event.delta || 0;
+          const handled = this.sidebar.handleMouseWheel(delta, mouseX, mouseY);
+          if (handled) return true; // Sidebar consumed the event
+        }
+      }
     }
     
-    // Calculate new size (delta negative = scroll up = increase)
-    // Mouse wheel: negative deltaY = scroll up, positive deltaY = scroll down
-    const delta = event.deltaY || event.delta || 0;
-    let newSize = currentSize;
-    if (delta < 0) {
-      // Scroll up = increase size
-      newSize = Math.min(currentSize + 1, 99);
-    } else if (delta > 0) {
-      // Scroll down = decrease size
-      newSize = Math.max(currentSize - 1, 1);
-    }
-    
-    // Only update if size changed
-    if (newSize !== currentSize) {
-      // Update menu bar brush size module if available
-      if (this.fileMenuBar && this.fileMenuBar.brushSizeModule && typeof this.fileMenuBar.brushSizeModule.setSize === 'function') {
-        this.fileMenuBar.brushSizeModule.setSize(newSize);
-      }
-      
-      // Update terrain editor brush size
-      if (this.editor && typeof this.editor.setBrushSize === 'function') {
-        this.editor.setBrushSize(newSize);
-      }
-      
-      // Update menu bar brush size module if available
-      if (this.fileMenuBar && this.fileMenuBar.brushSizeModule && typeof this.fileMenuBar.brushSizeModule.setSize === 'function') {
-        this.fileMenuBar.brushSizeModule.setSize(newSize);
-      }
-      
-      return true; // Event handled
+    // Delegate to ShortcutManager for registered shortcuts
+    if (shiftKey && typeof ShortcutManager !== 'undefined') {
+      const modifiers = { shift: shiftKey, ctrl: false, alt: false };
+      const handled = ShortcutManager.handleMouseWheel(event, modifiers, this._shortcutContext);
+      if (handled) return true;
     }
     
     return false;
@@ -336,6 +407,25 @@ class LevelEditor {
     if (this.loadDialog && this.loadDialog.isVisible()) {
       const consumed = this.loadDialog.handleClick(mouseX, mouseY);
       return; // Dialog is visible - block terrain interaction regardless of consumption
+    }
+    
+    // PRIORITY 1.5: Check sidebar click delegation (before menu bar)
+    if (this.levelEditorPanels && this.levelEditorPanels.panels && this.levelEditorPanels.panels.sidebar) {
+      const sidebarPanel = this.levelEditorPanels.panels.sidebar;
+      
+      // Only delegate if sidebar is visible and not minimized
+      if (sidebarPanel.state && sidebarPanel.state.visible && this.sidebar) {
+        const pos = sidebarPanel.getPosition();
+        const size = sidebarPanel.getSize();
+        
+        // Check if mouse is over sidebar
+        if (mouseX >= pos.x && mouseX <= pos.x + size.width &&
+            mouseY >= pos.y && mouseY <= pos.y + size.height) {
+          // Delegate to sidebar
+          const handled = this.sidebar.handleClick(mouseX, mouseY, pos.x, pos.y);
+          if (handled) return true; // Sidebar consumed the event
+        }
+      }
     }
     
     // PRIORITY 2: Check if file menu bar handled the click (ALWAYS check, even if menu open)
@@ -451,6 +541,27 @@ class LevelEditor {
         this.notifications.show('Selection started - drag to define area');
         break;
         
+      case 'eraser':
+        const eraserBrushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
+          this.fileMenuBar.brushSizeModule.getSize() : 1;
+        const erasedCount = this.editor.erase(gridX, gridY, eraserBrushSize);
+        
+        if (erasedCount > 0) {
+          this.notifications.show(`Erased ${erasedCount} tile(s)`);
+        } else {
+          this.notifications.show('Nothing to erase');
+        }
+        
+        // Notify minimap of terrain edit (debounced cache invalidation)
+        if (this.minimap && this.minimap.notifyTerrainEditStart) {
+          this.minimap.notifyTerrainEditStart();
+        }
+        
+        // Update undo/redo states
+        this.toolbar.setEnabled('undo', this.editor.canUndo());
+        this.toolbar.setEnabled('redo', this.editor.canRedo());
+        break;
+        
       case 'undo':
         if (this.editor.canUndo()) {
           this.editor.undo();
@@ -479,6 +590,8 @@ class LevelEditor {
         }
         break;
     }
+    
+    return false; // No UI consumed the click
   }
   
   /**
@@ -687,6 +800,10 @@ class LevelEditor {
    */
   handleHover(mouseX, mouseY) {
     if (!this.active) return;
+    
+    // Store last hover position for refreshHoverPreview()
+    this._lastHoverX = mouseX;
+    this._lastHoverY = mouseY;
     
     // Don't show hover preview if hovering over menu bar
     if (this.fileMenuBar && this.fileMenuBar.containsPoint(mouseX, mouseY)) {
@@ -995,10 +1112,31 @@ class LevelEditor {
     if (tiles.length === 0) return;
     
     const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+    const tool = this.toolbar.getSelectedTool();
+    
+    // Tool-specific colors for better UX
+    let r = 255, g = 255, b = 0; // Default: Yellow
+    switch(tool) {
+      case 'paint':
+        r = 255; g = 255; b = 0; // Yellow
+        break;
+      case 'eraser':
+        r = 255; g = 0; b = 0; // Red (destructive action)
+        break;
+      case 'fill':
+        r = 100; g = 150; b = 255; // Blue
+        break;
+      case 'eyedropper':
+        r = 255; g = 255; b = 255; // White
+        break;
+      case 'select':
+        r = 100; g = 150; b = 255; // Blue (matches selection rectangle)
+        break;
+    }
     
     push();
     noStroke();
-    fill(255, 255, 0, 80); // Yellow semi-transparent overlay
+    fill(r, g, b, 80); // Semi-transparent overlay
     
     tiles.forEach(tile => {
       const pixelX = tile.x * tileSize;
@@ -1195,8 +1333,9 @@ class LevelEditor {
   _performExport() {
     if (!this.terrain) return;
     
-    const exporter = new TerrainExporter(this.terrain);
-    const data = exporter.exportToJSON();
+    // Use SparseTerrain's native export (sparse format - only painted tiles)
+    // This avoids exporting empty tiles as default material
+    const data = this.terrain.exportToJSON();
     
     // Append .json extension for download
     const downloadFilename = `${this.currentFilename}.json`;
@@ -1212,8 +1351,8 @@ class LevelEditor {
   save() {
     if (!this.terrain) return;
     
-    const exporter = new TerrainExporter(this.terrain);
-    const data = exporter.exportToJSON();
+    // Use SparseTerrain's native export (sparse format - only painted tiles)
+    const data = this.terrain.exportToJSON();
     
     // Check if using native dialogs
     if (this.saveDialog.useNativeDialogs) {

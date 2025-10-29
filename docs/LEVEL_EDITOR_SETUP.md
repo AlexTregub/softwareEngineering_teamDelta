@@ -40,7 +40,7 @@ The `LevelEditor` class manages:
 
 2. **UI Components**:
    - `MaterialPalette.js` - Material selection interface
-   - `ToolBar.js` - Tool selection (paint, fill, eyedropper, select)
+   - `ToolBar.js` - Tool selection (paint, fill, eyedropper, select, eraser)
    - `BrushSizeControl.js` - Brush size slider
    - `MiniMap.js` - Mini-map overview
    - `PropertiesPanel.js` - Terrain properties display
@@ -85,6 +85,7 @@ The `LevelEditor` class manages:
 2. **Fill** (🪣) - Flood fill connected regions
 3. **Eyedropper** (💧) - Pick material from terrain
 4. **Select** (⬚) - Select regions (future feature)
+5. **Eraser** (🧹) - Remove painted tiles (revert to empty/default) ✅ NEW
 
 ### Available Materials
 From `TERRAIN_MATERIALS_RANGED`:
@@ -234,7 +235,7 @@ Location: `test/unit/ui/terrainUI.test.js` and `test/unit/ui/fileIO.test.js`
 
 ### Creating a Level
 1. **Select a material** from the palette (left side)
-2. **Select a tool** from the toolbar (paint/fill/eyedropper)
+2. **Select a tool** from the toolbar (paint/fill/eyedropper/eraser)
 3. **Adjust brush size** if using paint tool
 4. **Click on terrain** to apply changes
 5. **Press Ctrl+S** to save your level
