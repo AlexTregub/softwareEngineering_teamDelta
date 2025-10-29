@@ -149,7 +149,35 @@ class CacheManager {
     }
 
     // Calculate memory requirement
-    const memoryRequired = this._calculateMemory(config.width, config.height);
+    let memoryRequired;
+    if (strategy === 'tiled') {
+      // For tiled strategy, use worst-case (all tiles allocated)
+      // Actual usage will be lower due to lazy allocation
+      const tileSize = config.tileSize || 128;
+      const tilesX = Math.ceil(config.width / tileSize);
+      const tilesY = Math.ceil(config.height / tileSize);
+      memoryRequired = tilesX * tilesY * tileSize * tileSize * 4;
+      
+      console.log('[CacheManager] TILED memory calculation:', {
+        width: config.width,
+        height: config.height,
+        tileSize,
+        tilesX,
+        tilesY,
+        memoryRequired,
+        memoryRequiredMB: (memoryRequired / 1024 / 1024).toFixed(2) + 'MB'
+      });
+    } else {
+      // Full buffer for other strategies
+      memoryRequired = this._calculateMemory(config.width, config.height);
+      
+      console.log('[CacheManager] Full buffer memory:', {
+        width: config.width,
+        height: config.height,
+        memoryRequired,
+        memoryRequiredMB: (memoryRequired / 1024 / 1024).toFixed(2) + 'MB'
+      });
+    }
 
     // Check memory budget
     if (this._currentMemoryUsage + memoryRequired > this._memoryBudget) {
@@ -182,8 +210,8 @@ class CacheManager {
       _strategyInstance: null
     };
 
-    // Create graphics buffer if applicable
-    if (strategy === 'fullBuffer' || strategy === 'dirtyRect' || strategy === 'tiled') {
+    // Create graphics buffer if applicable (skip for tiled - uses own buffers)
+    if (strategy === 'fullBuffer' || strategy === 'dirtyRect') {
       if (typeof createGraphics !== 'undefined') {
         cacheEntry._buffer = createGraphics(config.width, config.height);
         if (cacheEntry._buffer) {
@@ -191,12 +219,17 @@ class CacheManager {
         }
       }
     }
-
-    // Create strategy instance (placeholder - will use actual strategies when implemented)
+    
+    // Create strategy instance
     try {
       const strategyFactory = this._strategies.get(strategy);
       if (strategyFactory && typeof strategyFactory.create === 'function') {
         cacheEntry._strategyInstance = strategyFactory.create(config);
+        
+        // For tiled strategy, set buffer reference to strategy (not single buffer)
+        if (strategy === 'tiled') {
+          cacheEntry._buffer = cacheEntry._strategyInstance; // Strategy manages tiles
+        }
       }
     } catch (e) {
       // Strategy classes may not exist yet - that's OK for base tests
@@ -437,10 +470,169 @@ class ThrottledCacheStrategy {
   }
 }
 
+/**
+ * TiledCacheStrategy - Memory-efficient tiling for large canvases
+ * 
+ * Splits large canvas into small tiles (default 128x128px) and allocates
+ * them lazily. Reduces memory from 44MB (full buffer) to ~1MB (tiled).
+ * 
+ * Example: 448x448px canvas @ 128px tiles = 4x4 grid = 16 tiles
+ * - Full buffer: 448 * 448 * 4 = 802,816 bytes (~800KB)
+ * - Tiled (all allocated): 16 * 128 * 128 * 4 = 1,048,576 bytes (~1MB)
+ * - Tiled (lazy, 4 tiles): 4 * 128 * 128 * 4 = 262,144 bytes (~256KB)
+ */
 class TiledCacheStrategy {
   constructor(config) {
     this.config = config;
     this.type = 'tiled';
+    
+    // Set default tile size
+    if (!this.config.tileSize) {
+      this.config.tileSize = 128;
+    }
+    
+    // Calculate tile grid dimensions
+    this.tilesX = Math.ceil(config.width / this.config.tileSize);
+    this.tilesY = Math.ceil(config.height / this.config.tileSize);
+    this.totalTiles = this.tilesX * this.tilesY;
+    
+    // Lazy tile allocation (Map stores created tiles)
+    this.tiles = new Map();
+  }
+  
+  /**
+   * Get or create tile at grid position
+   * @param {number} x - Tile X coordinate (0-indexed)
+   * @param {number} y - Tile Y coordinate (0-indexed)
+   * @returns {Object|null} Tile object or null if out of bounds
+   */
+  getTile(x, y) {
+    // Bounds check
+    if (x < 0 || x >= this.tilesX || y < 0 || y >= this.tilesY) {
+      return null;
+    }
+    
+    const key = `${x},${y}`;
+    
+    // Return cached tile
+    if (this.tiles.has(key)) {
+      return this.tiles.get(key);
+    }
+    
+    // Create new tile (lazy allocation)
+    const tileWidth = Math.min(this.config.tileSize, this.config.width - x * this.config.tileSize);
+    const tileHeight = Math.min(this.config.tileSize, this.config.height - y * this.config.tileSize);
+    
+    const tile = {
+      x,
+      y,
+      buffer: typeof createGraphics !== 'undefined' 
+        ? createGraphics(tileWidth, tileHeight) 
+        : null,
+      dirty: true // New tiles start dirty
+    };
+    
+    if (tile.buffer) {
+      tile.buffer._estimatedMemory = tileWidth * tileHeight * 4;
+    }
+    
+    this.tiles.set(key, tile);
+    return tile;
+  }
+  
+  /**
+   * Calculate memory per tile
+   * @returns {number} Memory in bytes
+   */
+  getMemoryPerTile() {
+    return this.config.tileSize * this.config.tileSize * 4; // RGBA
+  }
+  
+  /**
+   * Get current memory usage (allocated tiles only)
+   * @returns {number} Memory in bytes
+   */
+  getCurrentMemoryUsage() {
+    let total = 0;
+    for (const tile of this.tiles.values()) {
+      if (tile.buffer && tile.buffer._estimatedMemory) {
+        total += tile.buffer._estimatedMemory;
+      }
+    }
+    return total;
+  }
+  
+  /**
+   * Get maximum memory usage if all tiles allocated
+   * @returns {number} Memory in bytes
+   */
+  getMaxMemoryUsage() {
+    return this.totalTiles * this.getMemoryPerTile();
+  }
+  
+  /**
+   * Check if tile is dirty
+   * @param {number} x - Tile X coordinate
+   * @param {number} y - Tile Y coordinate
+   * @returns {boolean} True if dirty
+   */
+  isDirty(x, y) {
+    const tile = this.tiles.get(`${x},${y}`);
+    return tile ? tile.dirty : false;
+  }
+  
+  /**
+   * Mark specific tile as dirty
+   * @param {number} x - Tile X coordinate
+   * @param {number} y - Tile Y coordinate
+   */
+  markDirty(x, y) {
+    const tile = this.getTile(x, y);
+    if (tile) {
+      tile.dirty = true;
+    }
+  }
+  
+  /**
+   * Mark tiles overlapping pixel region as dirty
+   * @param {Object} region - Region {x, y, width, height} in pixels
+   */
+  markDirtyRegion(region) {
+    const startTileX = Math.floor(region.x / this.config.tileSize);
+    const startTileY = Math.floor(region.y / this.config.tileSize);
+    const endTileX = Math.ceil((region.x + region.width) / this.config.tileSize);
+    const endTileY = Math.ceil((region.y + region.height) / this.config.tileSize);
+    
+    for (let x = startTileX; x < endTileX; x++) {
+      for (let y = startTileY; y < endTileY; y++) {
+        this.markDirty(x, y);
+      }
+    }
+  }
+  
+  /**
+   * Render dirty tiles using callback
+   * @param {Function} renderCallback - (buffer, {x, y}) => void
+   */
+  renderDirtyTiles(renderCallback) {
+    for (const tile of this.tiles.values()) {
+      if (tile.dirty && tile.buffer) {
+        renderCallback(tile.buffer, { x: tile.x, y: tile.y });
+        tile.dirty = false;
+      }
+    }
+  }
+  
+  /**
+   * Clean up all tile buffers
+   */
+  destroy() {
+    for (const tile of this.tiles.values()) {
+      if (tile.buffer && typeof tile.buffer.remove === 'function') {
+        tile.buffer.remove();
+      }
+    }
+    this.tiles.clear();
   }
 }
 

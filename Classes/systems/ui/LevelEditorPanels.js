@@ -417,8 +417,8 @@ class LevelEditorPanels {
         return;
       }
       
-      // Check if panel is currently visible
-      const isVisible = panel.isVisible();
+      // Check if panel is currently visible (handle both method and property)
+      const isVisible = typeof panel.isVisible === 'function' ? panel.isVisible() : panel.visible;
       
       if (isVisible) {
         // Hide panel and remove from stateVisibility

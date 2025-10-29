@@ -116,7 +116,8 @@ class LevelEditor {
     const TILE_SIZE = 32; // Standard tile size
     if (terrain.getAllTiles && typeof terrain.getAllTiles === 'function') {
       // SparseTerrain - use DynamicGridOverlay
-      this.gridOverlay = new DynamicGridOverlay(terrain, 2); // 2-tile buffer
+      // Constructor: (terrain, tileSize, bufferSize)
+      this.gridOverlay = new DynamicGridOverlay(terrain, TILE_SIZE, 2); // 32px tiles, 2-tile buffer
     } else {
       // Legacy terrain - use GridOverlay
       this.gridOverlay = new GridOverlay(TILE_SIZE, terrain.width, terrain.height);
@@ -1107,8 +1108,10 @@ class LevelEditor {
     this.propertiesPanel.setTerrain(this.terrain);
     
     // Reset grid overlay to match new terrain type
+    const TILE_SIZE = 32; // Standard tile size
     if (this.terrain.getAllTiles && typeof this.terrain.getAllTiles === 'function') {
-      this.gridOverlay = new DynamicGridOverlay(this.terrain, 2);
+      // Constructor: (terrain, tileSize, bufferSize)
+      this.gridOverlay = new DynamicGridOverlay(this.terrain, TILE_SIZE, 2); // 32px tiles, 2-tile buffer
     } else {
       this.gridOverlay = new GridOverlay(TILE_SIZE, this.terrain.width, this.terrain.height);
     }

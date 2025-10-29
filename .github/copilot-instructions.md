@@ -2,7 +2,7 @@
 
 ## ⚠️ CRITICAL: Development Principles
 
-**BE CONCISE**: Short, focused responses. No unnecessary explanations.
+**BE CONCISE**: Short, focused responses. No unnecessary explanations unless prompted.
 
 **REUSE FIRST**: Before creating anything new:
 1. **Scan codebase** - Search for existing classes/functions that do what you need
@@ -18,31 +18,39 @@
 
 ### TDD Workflow
 1. **Write failing tests FIRST** before any implementation
-2. **Run tests** - confirm they fail for the right reason  
-3. **Write minimal code** to make tests pass
-4. **Run tests again** - confirm they pass
+2. **STOP - Wait for user review/approval of tests**
+3. After approval: **Write minimal code** to make tests pass
+4. **Run tests** - confirm they pass
 5. **Refactor** - improve code while keeping tests green
 6. **Repeat** for each feature/bugfix
 
 ### Test Type Expectations
 
-**Unit Tests** (862+ tests, write FIRST):
+**All Tests**:
+- ✅ Use available helper in the test folder (example: "test/helpers/uiTestHelpers.js")
+- ❌ NEVER use "real", "actual", "fake" (see BDD_LANGUAGE_STYLE_GUIDE.md)
+- ❌ NEVER hardcode test results
+
+**Unit Tests** (write FIRST):
 - ✅ Test individual functions in isolation
 - ✅ Mock all external dependencies (p5.js, managers)
 - ✅ Fast (<10ms per test)
 - ✅ Target 100% coverage for new code
+- ✅ If a new global mock is needed, add it to a helper and reuse it later
 - ❌ NEVER test loop counters or internal mechanics
-- ❌ NEVER test mocks (test real behavior)
 
 **Integration Tests**:
 - ✅ Test component interactions with real dependencies
 - ✅ Verify data flows between systems
 - ✅ Use JSDOM, sync `global` and `window` objects
+- ✅ Add class definitions to a test helper for reuse later
 - ❌ Don't mock core systems (MapManager, SpatialGrid)
 
 **E2E Tests** (Puppeteer, PRIMARY with screenshots):
 - ✅ Test complete workflows in real browser
+- ✅ Follow front end flow that is available to the user (click buttons on screen)
 - ✅ Provide screenshot proof (visual evidence)
+- ✅ Screenshots should be provided for both pass and fail conditions
 - ✅ Use system APIs, not manual property injection
 - ✅ Run headless for CI/CD
 - ❌ NEVER skip `ensureGameStarted()` (must bypass menu)
@@ -52,8 +60,6 @@
 **BDD Tests** (Python Behave, headless):
 - ✅ Test user-facing behavior
 - ✅ Use plain language (no technical jargon)
-- ❌ NEVER use "real", "actual", "fake" (see BDD_LANGUAGE_STYLE_GUIDE.md)
-- ❌ NEVER hardcode test results
 
 ## Core Architecture
 
@@ -430,23 +436,27 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 - Consistent process (reproducible outcomes)
 
 **Available Checklists**:
-- `docs/checklists/FEATURE_ENHANCEMENT_CHECKLIST.md` - New features (TDD phases)
-- `docs/checklists/FEATURE_DEVELOPMENT_CHECKLIST.md` - Full development lifecycle
-- Inline checklists in this document (Bug Fix, New Feature, Refactoring)
+- `docs/checklists/templates/BUG_FIX_CHECKLIST.md` - Bug fixes (TDD with regression tests)
+- `docs/checklists/templates/FEATURE_ENHANCEMENT_CHECKLIST.md` - New features <8 hours (TDD phases)
+- `docs/checklists/templates/FEATURE_DEVELOPMENT_CHECKLIST.md` - Full development lifecycle >8 hours
 
 ### Bug Fix Process (TDD)
 
-1. **Document** in `test/KNOWN_ISSUES.md` (file, behavior, root cause, priority)
+**Use checklist**: `docs/checklists/templates/BUG_FIX_CHECKLIST.md`
+
+**CRITICAL**: Only add bugs to KNOWN_ISSUES.md AFTER feature is fully implemented (passed integration/E2E testing). Bugs found during development stay in active feature checklist.
+
+1. **Document** in `KNOWN_ISSUES.md` (file, behavior, root cause, priority)
 2. **Write failing test** reproducing the bug
-3. **Run test** (confirm failure)
-4. **Fix the bug** with minimal code change
+3. **STOP - Wait for user review/approval of tests**
+4. After approval: **Fix the bug** with minimal code change
 5. **Run test** (confirm pass)
 6. **Run full suite** (`npm test` - no regressions)
-7. **Update docs** (move to "Fixed Issues", add comments in code)
+7. **Update docs** (move to "Fixed" section in KNOWN_ISSUES.md, add comments in code, update CHANGELOG.md)
 
 ### New Feature Process (TDD + Roadmap)
 
-**MANDATORY**: Create a roadmap document for features requiring >2 hours work
+**MANDATORY**: Create a roadmap document for features requiring >8 hours work
 
 1. **Create Roadmap** in `docs/roadmaps/[FEATURE_NAME]_ROADMAP.md`
    - Break feature into phases
@@ -461,8 +471,13 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 6. **Integration tests** (real system interactions)
 7. **E2E tests** (browser with screenshots)
 8. **Update roadmap** (mark phases complete, update existing doc)
-9. **Update docs** (usage examples, CHANGELOG, architecture docs)
-10. **Full test suite** (`npm test` - all pass before commit)
+9. **Update docs** (usage examples, architecture docs)
+10. **Update CHANGELOG.md**:
+    - Add to [Unreleased] section
+    - User-facing changes in "User-Facing Changes" section
+    - Developer-facing changes (refactorings, API changes, breaking changes) in "Developer-Facing Changes" section
+    - Include function names, new workflows, breaking changes, migration guides
+11. **Full test suite** (`npm test` - all pass before commit)
 
 **Roadmap Template Structure**:
 ```markdown
@@ -655,8 +670,9 @@ window.SomeClass = global.SomeClass; // Required
 - Update existing `docs/roadmaps/[FEATURE]_ROADMAP.md` with progress
 - Update `docs/api/[System]_API_Reference.md` with new methods
 - Update `docs/LEVEL_EDITOR_SETUP.md` with new features
-- Update `test/KNOWN_ISSUES.md` when fixing bugs
-- Update `CHANGELOG.md` with user-facing changes
+- Update `KNOWN_ISSUES.md` when fixing bugs (move to "Fixed" section, then archive after 2 weeks)
+- Update `CHANGELOG.md` with user-facing and developer-facing changes (separate sections)
+- Update `FEATURE_REQUESTS.md` with feature requests and optimization opportunities
 
 **WRONG approach** (DO NOT DO THIS):
 - Creating `FEATURE_COMPLETE_SUMMARY.md` (update roadmap instead)
@@ -668,6 +684,189 @@ window.SomeClass = global.SomeClass; // Required
 - New major features (architecture docs, API references)
 - New subsystems (quick reference guides)
 - Entirely new processes (testing guides, checklists)
+
+### KNOWN_ISSUES.md Workflow
+
+**Purpose**: Track bugs and technical debt discovered AFTER feature fully implemented (passed integration/E2E testing).
+
+**What to track**:
+- ✅ Bugs found by users
+- ✅ Bugs found during internal testing (AFTER feature complete)
+- ✅ Technical debt items
+- ❌ Feature requests (use `FEATURE_REQUESTS.md` instead)
+- ❌ Performance optimizations (use `FEATURE_REQUESTS.md` instead)
+- ❌ Bugs found during feature development (keep in active feature checklist)
+
+**Workflow**:
+1. **Add new bug** to "Open" section (AFTER integration/E2E testing passes)
+2. **Move to "Fixed"** section when bug resolved (include fix date)
+3. **Archive after 2 weeks**: Move from "Fixed" to `KNOWN_ISSUES_ARCHIVE.md` (2 weeks after fix date)
+
+**Format**:
+```markdown
+### Open ❌
+
+- [ ] **Bug Title**
+  - File: `path/to/file.js` (method/line if known)
+  - Issue: Brief description of observed behavior
+  - Priority: CRITICAL/HIGH/MEDIUM/LOW
+  - Expected: What should happen
+  - Current: What actually happens
+  - Root Cause: Technical explanation (if known)
+
+### Fixed ✅
+
+- [x] **Bug Title**
+  - File: `path/to/file.js`
+  - Issue: Brief description
+  - Priority: CRITICAL/HIGH/MEDIUM/LOW
+  - Root Cause: Technical explanation
+  - Fix: What changed and why
+  - Fixed: October 28, 2025
+```
+
+**Open section goes FIRST** (above Fixed section) for visibility.
+
+### CHANGELOG.md Workflow
+
+**Purpose**: Track unreleased changes for user-facing and developer-facing audiences.
+
+**What to track**:
+- ✅ User-facing features (new functionality, UI changes)
+- ✅ User-facing bug fixes (what was broken, how it's fixed)
+- ✅ Developer-facing changes (refactorings, API changes, breaking changes)
+- ✅ Migration guides for breaking changes
+- ❌ Test counts or test-related information
+- ❌ Semantic versioning (manual release process)
+- ❌ Internal refactorings not affecting APIs
+
+**Workflow**:
+1. **Add to [Unreleased]** section immediately when feature/fix merged
+2. **Separate sections**:
+   - "BREAKING CHANGES" (top of section, if any)
+   - "User-Facing Changes" (Added/Fixed/Changed)
+   - "Developer-Facing Changes" (Added/Refactored)
+   - "Migration Guides" (if breaking changes exist)
+3. **Version sections created manually** during release process (not automatic)
+
+**Format**:
+```markdown
+## [Unreleased]
+
+### BREAKING CHANGES
+
+- Brief description of breaking change
+- Migration path
+
+---
+
+### User-Facing Changes
+
+#### Added
+- Feature name: Brief description, key capabilities
+
+#### Fixed
+- Bug name: Root cause, fix description
+
+#### Changed
+- Change description
+
+---
+
+### Developer-Facing Changes
+
+#### Added
+- New API/method: Purpose, usage
+
+#### Refactored
+- **FunctionName()**: Description of refactoring
+  - Functions changed: `method1()`, `method2()`
+  - New workflow: How it works now
+  - Breaking: If API changed, migration notes
+
+---
+
+## Migration Guides
+
+### Feature Name
+Migration instructions with code examples
+```
+
+**CHANGELOG.md and KNOWN_ISSUES.md are independent** - no cross-references needed.
+
+### API Reference Documentation
+
+**Standard format** for all API reference docs (based on Godot Engine documentation):
+
+**Required sections**:
+1. **Header**: Class name, Inherits line, File path, brief description
+2. **Description**: Comprehensive overview, key concepts, integration notes
+3. **Tutorials**: Links to related guides/roadmaps
+4. **Properties Table**: Expanded format with backticks
+5. **Methods Table**: Expanded format with backticks
+6. **Enumerations**: Constants and their values (if applicable)
+7. **Property Descriptions**: Detailed explanations
+8. **Method Descriptions**: Anchor links, type hints, code examples
+9. **Best Practices**: Usage guidelines (if applicable)
+10. **Common Workflows**: Practical multi-step examples
+11. **Notes**: Important facts
+12. **Related Docs**: Links at bottom
+
+**Properties Table Format** (Option C - Expanded with backticks):
+```markdown
+## Properties
+
+| Type     | Property       | Default         | Description                              |
+|----------|----------------|-----------------|------------------------------------------|
+| `Map`    | `events`       | `new Map()`     | Registered events by ID                  |
+| `Array`  | `activeEvents` | `[]`            | Currently active events                  |
+| `bool`   | `_enabled`     | `true`          | Whether processing is enabled            |
+```
+
+**Methods Table Format** (Expanded with backticks):
+```markdown
+## Methods
+
+| Returns        | Method                                                                                    |
+|----------------|-------------------------------------------------------------------------------------------|
+| `void`         | registerEvent ( eventConfig: `Object` )                                                  |
+| `bool`         | triggerEvent ( eventId: `String`, customData: `Object` = null )                         |
+| `Object`       | getEvent ( eventId: `String` ) const                                                     |
+| `EventManager` | getInstance ( ) static                                                                   |
+```
+
+**Method Description Format**:
+```markdown
+### <span id="methodname"></span>ReturnType **methodName** ( param1: Type, param2: Type = default )
+
+Brief description of what the method does.
+
+[Code example showing usage]
+
+**Parameters:**
+- `param1` (Type, **required**): Description
+- `param2` (Type, optional): Description (default: value)
+
+Returns ReturnType. Additional return details.
+
+**Note:** Important usage notes or warnings.
+
+---
+```
+
+**Key formatting rules**:
+- ✅ Use backticks around all types (`String`, `Object`, `Array`, `bool`, `int`, `Variant`)
+- ✅ Expanded table columns for readability
+- ✅ Anchor links for all methods (`<span id="methodname"></span>`)
+- ✅ Type hints in method signatures (param: `Type`)
+- ✅ Include `const` and `static` keywords where applicable
+- ✅ Code examples for every method
+- ✅ Common Workflows section with practical multi-step examples
+- ❌ NO scene tree references (we don't use scene trees)
+- ❌ NO table of contents (redundant with Methods table)
+- ❌ NO "Quick Reference" or "Complete Method Reference" sections (redundant)
+
+**Example API reference**: `docs/api/EventManager_API_Reference_NEW.md`
 
 ### Emoji Usage Policy
 
@@ -703,25 +902,28 @@ window.SomeClass = global.SomeClass; // Required
 ## Critical Reminders
 
 1. **TDD ALWAYS** - Write tests before implementation (unit → integration → E2E)
-2. **USE CHECKLISTS** - Follow `FEATURE_ENHANCEMENT_CHECKLIST.md` for all features
-3. **CREATE ROADMAPS** - Document phases for features >2 hours work
+2. **USE CHECKLISTS** - Follow templates in `docs/checklists/templates/` for all features/bugs
+3. **CREATE ROADMAPS** - Document phases for features >8 hours work
 4. **UPDATE DOCS** - Modify existing docs, don't create new summaries
-5. **Script load order matters** - Rendering before Entity, Entity before controllers
-6. **System APIs only** - Never manual property injection in tests
-7. **Headless only** - `--headless=new` for all browser tests
-8. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
-9. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
-10. **E2E screenshots** - Visual proof required, not just internal state
-11. **Force redraw** - Call `window.redraw()` multiple times after state changes
-12. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
-13. **Controllers optional** - Check availability before delegation
-14. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
+5. **API REFERENCES** - Use expanded table format with backticks (see API Reference Documentation section)
+6. **Script load order matters** - Rendering before Entity, Entity before controllers
+7. **System APIs only** - Never manual property injection in tests
+8. **Headless only** - `--headless=new` for all browser tests
+9. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
+10. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
+11. **E2E screenshots** - Visual proof required, not just internal state
+12. **Force redraw** - Call `window.redraw()` multiple times after state changes
+13. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
+14. **Controllers optional** - Check availability before delegation
+15. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
+16. **KNOWN_ISSUES timing** - Only add bugs AFTER feature fully implemented (post-integration/E2E)
+17. **Archive old fixes** - Move to KNOWN_ISSUES_ARCHIVE.md 2 weeks after fix
 
 ## Quick Reference
 
 **Core APIs**:
 - **Entity API**: `Classes/containers/Entity.js`
-- **EventManager API**: `docs/api/EventManager_API_Reference.md`
+- **EventManager API**: `docs/api/EventManager_API_Reference_NEW.md`
 - **Rendering**: `docs/pipelines/RENDERING_PIPELINE.md`
 - **Spatial Grid**: `docs/quick-reference-spatial-grid.md`
 - **MapManager**: `docs/quick-reference-mapmanager.md`
@@ -729,9 +931,12 @@ window.SomeClass = global.SomeClass; // Required
 **Testing & Development**:
 - **Testing Guide**: `docs/guides/TESTING_TYPES_GUIDE.md`
 - **E2E Quickstart**: `docs/guides/E2E_TESTING_QUICKSTART.md`
-- **Feature Enhancement Checklist**: `docs/checklists/FEATURE_ENHANCEMENT_CHECKLIST.md`
-- **Feature Development Checklist**: `docs/checklists/FEATURE_DEVELOPMENT_CHECKLIST.md`
-- **Known Issues**: `test/KNOWN_ISSUES.md`
+- **Feature Enhancement Checklist**: `docs/checklists/templates/FEATURE_ENHANCEMENT_CHECKLIST.md`
+- **Feature Development Checklist**: `docs/checklists/templates/FEATURE_DEVELOPMENT_CHECKLIST.md`
+- **Bug Fix Checklist**: `docs/checklists/templates/BUG_FIX_CHECKLIST.md`
+- **Known Issues**: `KNOWN_ISSUES.md`
+- **Feature Requests**: `FEATURE_REQUESTS.md`
+- **Changelog**: `CHANGELOG.md`
 
 **Current Work**:
 - **Level Editor Setup**: `docs/LEVEL_EDITOR_SETUP.md`

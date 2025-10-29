@@ -81,10 +81,10 @@ class EventManager {
   /**
    * Get event by ID
    * @param {string} eventId - Event ID to retrieve
-   * @returns {Object|undefined} - Event config or undefined if not found
+   * @returns {Object|null} - Event config or null if not found
    */
   getEvent(eventId) {
-    return this.events.get(eventId);
+    return this.events.get(eventId) || null;
   }
   
   /**

@@ -1,12 +1,14 @@
 /**
- * ScrollIndicator - Reusable scroll indicator component
+ * ScrollIndicator Component
  * 
- * Displays up/down arrows to indicate scrollable content overflow.
- * This is a pure rendering component (stateless) - it doesn't manage
- * scroll state, only displays indicators based on provided scroll data.
+ * Reusable scroll indicator for showing scroll state (top/bottom arrows).
+ * Visual feedback for scrollable content overflow.
+ * 
+ * @class ScrollIndicator
+ * @file Classes/ui/ScrollIndicator.js
  * 
  * Usage Example:
- * ```javascript
+ * 
  * const indicator = new ScrollIndicator({
  *   height: 20,
  *   backgroundColor: [60, 60, 60],
@@ -17,52 +19,47 @@
  * const scrollOffset = 50;
  * const maxScrollOffset = 200;
  * 
- * // Render top indicator (if can scroll up)
+ * // Render top indicator
  * indicator.renderTop(x, y, width, scrollOffset, isHoveredTop);
  * 
- * // Render bottom indicator (if can scroll down)
- * const bottomY = y + contentHeight;
- * indicator.renderBottom(x, bottomY, width, scrollOffset, maxScrollOffset, isHoveredBottom);
+ * // Render bottom indicator
+ * indicator.renderBottom(x, y + contentHeight, width, scrollOffset, maxScrollOffset, isHoveredBottom);
  * 
  * // Calculate content area height (accounting for indicators)
- * const indicatorHeight = indicator.getTotalHeight(scrollOffset, maxScrollOffset);
- * const contentHeight = panelHeight - indicatorHeight;
- * ```
- * 
- * @author Software Engineering Team Delta
+ * const contentHeight = panelHeight - indicator.getTotalHeight(scrollOffset, maxScrollOffset);
  */
 
 class ScrollIndicator {
   /**
    * Create a scroll indicator
    * @param {Object} options - Configuration options
-   * @param {number} options.height - Indicator height in pixels (default: 20)
-   * @param {Array} options.backgroundColor - Background RGB color (default: [60, 60, 60])
-   * @param {Array} options.arrowColor - Arrow RGB color (default: [200, 200, 200])
-   * @param {Array} options.hoverColor - Arrow RGB color when hovered (default: [255, 255, 255])
-   * @param {number} options.fontSize - Arrow text size (default: 14)
-   * @param {boolean} options.fadeEnabled - Enable fade animations (default: true)
+   * @param {number} [options.height=20] - Indicator height in pixels
+   * @param {Array<number>} [options.backgroundColor=[60, 60, 60]] - Background RGB
+   * @param {Array<number>} [options.arrowColor=[200, 200, 200]] - Arrow RGB (normal)
+   * @param {Array<number>} [options.hoverColor=[255, 255, 255]] - Arrow RGB (hovered)
+   * @param {number} [options.fontSize=14] - Arrow text size
+   * @param {boolean} [options.fadeEnabled=true] - Enable fade animations
    */
   constructor(options = {}) {
-    this.height = options.height !== undefined ? options.height : 20;
+    this.height = options.height || 20;
     this.backgroundColor = options.backgroundColor || [60, 60, 60];
     this.arrowColor = options.arrowColor || [200, 200, 200];
     this.hoverColor = options.hoverColor || [255, 255, 255];
-    this.fontSize = options.fontSize !== undefined ? options.fontSize : 14;
+    this.fontSize = options.fontSize || 14;
     this.fadeEnabled = options.fadeEnabled !== undefined ? options.fadeEnabled : true;
   }
   
   /**
-   * Check if can scroll up
+   * Calculate if can scroll up
    * @param {number} scrollOffset - Current scroll position
-   * @returns {boolean} True if can scroll up (scrollOffset > 0)
+   * @returns {boolean} True if can scroll up
    */
   canScrollUp(scrollOffset) {
     return scrollOffset > 0;
   }
   
   /**
-   * Check if can scroll down
+   * Calculate if can scroll down
    * @param {number} scrollOffset - Current scroll position
    * @param {number} maxScrollOffset - Maximum scroll value
    * @returns {boolean} True if can scroll down
@@ -72,54 +69,26 @@ class ScrollIndicator {
   }
   
   /**
-   * Get total height consumed by indicators
-   * Calculates how much vertical space the indicators take up
-   * based on current scroll state.
-   * 
-   * @param {number} scrollOffset - Current scroll position
-   * @param {number} maxScrollOffset - Maximum scroll value
-   * @returns {number} Total height (0, height, or height*2)
-   */
-  getTotalHeight(scrollOffset, maxScrollOffset) {
-    let totalHeight = 0;
-    
-    if (this.canScrollUp(scrollOffset)) {
-      totalHeight += this.height;
-    }
-    
-    if (this.canScrollDown(scrollOffset, maxScrollOffset)) {
-      totalHeight += this.height;
-    }
-    
-    return totalHeight;
-  }
-  
-  /**
-   * Render top scroll indicator (up arrow)
-   * Only renders if scrollOffset > 0 (can scroll up)
-   * 
+   * Render top scroll indicator
    * @param {number} x - X position
    * @param {number} y - Y position
    * @param {number} width - Width
    * @param {number} scrollOffset - Current scroll position
-   * @param {boolean} isHovered - Whether mouse is over indicator
+   * @param {boolean} [isHovered=false] - Whether mouse is over indicator
    */
   renderTop(x, y, width, scrollOffset, isHovered = false) {
-    // Don't render if can't scroll up
-    if (!this.canScrollUp(scrollOffset)) {
-      return;
-    }
+    if (!this.canScrollUp(scrollOffset)) return;
     
     push();
     
     // Background
-    fill(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2]);
+    fill(this.backgroundColor);
     noStroke();
     rect(x, y, width, this.height);
     
-    // Arrow (use hover color if hovered)
+    // Arrow
     const arrowColor = isHovered ? this.hoverColor : this.arrowColor;
-    fill(arrowColor[0], arrowColor[1], arrowColor[2]);
+    fill(arrowColor);
     textAlign(CENTER, CENTER);
     textSize(this.fontSize);
     text('↑', x + width / 2, y + this.height / 2);
@@ -128,32 +97,27 @@ class ScrollIndicator {
   }
   
   /**
-   * Render bottom scroll indicator (down arrow)
-   * Only renders if scrollOffset < maxScrollOffset (can scroll down)
-   * 
+   * Render bottom scroll indicator
    * @param {number} x - X position
    * @param {number} y - Y position
    * @param {number} width - Width
    * @param {number} scrollOffset - Current scroll position
    * @param {number} maxScrollOffset - Maximum scroll value
-   * @param {boolean} isHovered - Whether mouse is over indicator
+   * @param {boolean} [isHovered=false] - Whether mouse is over indicator
    */
   renderBottom(x, y, width, scrollOffset, maxScrollOffset, isHovered = false) {
-    // Don't render if can't scroll down
-    if (!this.canScrollDown(scrollOffset, maxScrollOffset)) {
-      return;
-    }
+    if (!this.canScrollDown(scrollOffset, maxScrollOffset)) return;
     
     push();
     
     // Background
-    fill(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2]);
+    fill(this.backgroundColor);
     noStroke();
     rect(x, y, width, this.height);
     
-    // Arrow (use hover color if hovered)
+    // Arrow
     const arrowColor = isHovered ? this.hoverColor : this.arrowColor;
-    fill(arrowColor[0], arrowColor[1], arrowColor[2]);
+    fill(arrowColor);
     textAlign(CENTER, CENTER);
     textSize(this.fontSize);
     text('↓', x + width / 2, y + this.height / 2);
@@ -163,12 +127,10 @@ class ScrollIndicator {
   
   /**
    * Check if point is inside top indicator
-   * Used for hit testing (click/hover detection)
-   * 
-   * @param {number} mouseX - Mouse X coordinate
-   * @param {number} mouseY - Mouse Y coordinate
-   * @param {number} x - Indicator X position
-   * @param {number} y - Indicator Y position
+   * @param {number} mouseX - Mouse X
+   * @param {number} mouseY - Mouse Y
+   * @param {number} x - Indicator X
+   * @param {number} y - Indicator Y
    * @param {number} width - Indicator width
    * @returns {boolean} True if point is inside
    */
@@ -179,18 +141,29 @@ class ScrollIndicator {
   
   /**
    * Check if point is inside bottom indicator
-   * Used for hit testing (click/hover detection)
-   * 
-   * @param {number} mouseX - Mouse X coordinate
-   * @param {number} mouseY - Mouse Y coordinate
-   * @param {number} x - Indicator X position
-   * @param {number} y - Indicator Y position
+   * @param {number} mouseX - Mouse X
+   * @param {number} mouseY - Mouse Y
+   * @param {number} x - Indicator X
+   * @param {number} y - Indicator Y
    * @param {number} width - Indicator width
    * @returns {boolean} True if point is inside
    */
   containsPointBottom(mouseX, mouseY, x, y, width) {
     return mouseX >= x && mouseX <= x + width &&
            mouseY >= y && mouseY <= y + this.height;
+  }
+  
+  /**
+   * Get total height consumed by indicators
+   * @param {number} scrollOffset - Current scroll position
+   * @param {number} maxScrollOffset - Maximum scroll value
+   * @returns {number} Total height (0, 20, or 40px)
+   */
+  getTotalHeight(scrollOffset, maxScrollOffset) {
+    let height = 0;
+    if (this.canScrollUp(scrollOffset)) height += this.height;
+    if (this.canScrollDown(scrollOffset, maxScrollOffset)) height += this.height;
+    return height;
   }
 }
 
@@ -199,7 +172,7 @@ if (typeof window !== 'undefined') {
   window.ScrollIndicator = ScrollIndicator;
 }
 
-// Export for Node.js (testing)
+// Export for Node.js
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ScrollIndicator;
 }
