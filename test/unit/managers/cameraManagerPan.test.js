@@ -308,4 +308,137 @@ describe('CameraManager - Pan Methods (Middle-Click Drag)', function() {
       expect(cameraManager.isPanning()).to.be.false;
     });
   });
+  
+  describe('Pan Speed Multiplier (Settings Integration)', function() {
+    let mockSettingsManager;
+    let clampStub;
+    
+    beforeEach(function() {
+      // Mock SettingsManager
+      mockSettingsManager = {
+        getInstance: sinon.stub().returnsThis(),
+        get: sinon.stub().returns(1.0) // Default speed
+      };
+      
+      global.SettingsManager = mockSettingsManager;
+      window.SettingsManager = mockSettingsManager;
+      
+      // Stub clampToBounds
+      clampStub = sinon.stub(cameraManager, 'clampToBounds');
+      
+      // Reset camera state
+      cameraManager.cameraX = 100;
+      cameraManager.cameraY = 100;
+      cameraManager.startPan(200, 200);
+    });
+    
+    afterEach(function() {
+      clampStub.restore();
+      delete global.SettingsManager;
+      delete window.SettingsManager;
+    });
+    
+    it('should apply 1.0x speed multiplier (default)', function() {
+      mockSettingsManager.get.returns(1.0);
+      
+      cameraManager.updatePan(250, 250); // Drag 50px right, 50px down
+      
+      // Camera should move opposite direction: 50px left, 50px up
+      expect(cameraManager.cameraX).to.equal(50); // 100 - (50 * 1.0)
+      expect(cameraManager.cameraY).to.equal(50); // 100 - (50 * 1.0)
+    });
+    
+    it('should apply 0.5x speed multiplier (slower)', function() {
+      mockSettingsManager.get.returns(0.5);
+      
+      cameraManager.updatePan(250, 250); // Drag 50px
+      
+      // Camera should move only 25px (50 * 0.5)
+      expect(cameraManager.cameraX).to.equal(75); // 100 - (50 * 0.5)
+      expect(cameraManager.cameraY).to.equal(75); // 100 - (50 * 0.5)
+    });
+    
+    it('should apply 2.0x speed multiplier (faster)', function() {
+      mockSettingsManager.get.returns(2.0);
+      
+      cameraManager.updatePan(250, 250); // Drag 50px
+      
+      // Camera should move 100px (50 * 2.0)
+      expect(cameraManager.cameraX).to.equal(0); // 100 - (50 * 2.0)
+      expect(cameraManager.cameraY).to.equal(0); // 100 - (50 * 2.0)
+    });
+    
+    it('should apply 3.0x speed multiplier (maximum)', function() {
+      mockSettingsManager.get.returns(3.0);
+      
+      cameraManager.updatePan(250, 250); // Drag 50px
+      
+      // Camera should move 150px (50 * 3.0)
+      expect(cameraManager.cameraX).to.equal(-50); // 100 - (50 * 3.0)
+      expect(cameraManager.cameraY).to.equal(-50); // 100 - (50 * 3.0)
+    });
+    
+    it('should query SettingsManager for panSpeed setting', function() {
+      mockSettingsManager.get.resetHistory();
+      
+      cameraManager.updatePan(250, 250);
+      
+      expect(mockSettingsManager.get.called).to.be.true;
+      expect(mockSettingsManager.get.firstCall.args[0]).to.equal('camera.panSpeed');
+    });
+    
+    it('should use default 1.0x if SettingsManager unavailable', function() {
+      delete global.SettingsManager;
+      delete window.SettingsManager;
+      
+      cameraManager.updatePan(250, 250);
+      
+      // Should default to 1.0x speed
+      expect(cameraManager.cameraX).to.equal(50); // 100 - (50 * 1.0)
+      expect(cameraManager.cameraY).to.equal(50);
+    });
+    
+    it('should use default 1.0x if setting not found', function() {
+      mockSettingsManager.get.returns(undefined);
+      
+      cameraManager.updatePan(250, 250);
+      
+      // Should default to 1.0x speed (from second argument)
+      expect(cameraManager.cameraX).to.equal(50);
+      expect(cameraManager.cameraY).to.equal(50);
+    });
+    
+    it('should maintain pan accuracy with different speeds', function() {
+      // Test that relative distances are proportional to speed
+      const speeds = [0.5, 1.0, 2.0, 3.0];
+      const expectedDistances = [25, 50, 100, 150]; // 50px drag * speed
+      
+      speeds.forEach((speed, index) => {
+        // Reset for each test
+        cameraManager.cameraX = 100;
+        cameraManager.cameraY = 100;
+        cameraManager.startPan(200, 200);
+        
+        mockSettingsManager.get.returns(speed);
+        cameraManager.updatePan(250, 250);
+        
+        const actualDistance = 100 - cameraManager.cameraX; // Distance moved
+        expect(actualDistance).to.equal(expectedDistances[index]);
+      });
+    });
+    
+    it('should apply speed consistently in both X and Y axes', function() {
+      mockSettingsManager.get.returns(1.5);
+      
+      // Asymmetric drag (30px X, 40px Y)
+      cameraManager.updatePan(230, 240);
+      
+      // Both axes should use same multiplier
+      const deltaX = 100 - cameraManager.cameraX; // Should be 30 * 1.5 = 45
+      const deltaY = 100 - cameraManager.cameraY; // Should be 40 * 1.5 = 60
+      
+      expect(deltaX).to.equal(45);
+      expect(deltaY).to.equal(60);
+    });
+  });
 });
