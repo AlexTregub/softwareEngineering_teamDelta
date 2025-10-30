@@ -50,9 +50,12 @@ function preload(){
 
 
 function setup() {
-  TEST_GRID(); 
+  if (!TEST_GRID()) {
+    console.log("GRID MALFORMED.")
+    return
+  } 
 
-  return; // REMOVE BEFORE DEV
+  return; // !!! REMOVE BEFORE DEV
 
   // Initialize TaskLibrary before other systems that depend on it
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
