@@ -39,10 +39,6 @@ class AntCone extends AbstractBuildingFactory {
   }
 
   createBuilding(x, y, faction) {
-<<<<<<< HEAD
-=======
-    logNormal(this.info, this.upgradeCost, globalResource.length)
->>>>>>> Dev
     return new Building(x, y, 91, 97, Cone, faction, this.info);
   }
 }
@@ -137,7 +133,7 @@ class Building extends Entity {
   }
 
   getAnts(faction){
-    return ants.filter(ant => ant.faction === faction);
+    return ants.filter(ant => (ant.faction === faction || ant.faction === 'neutral'));
   }
 
   statsBuff(){
@@ -172,18 +168,18 @@ class Building extends Entity {
   upgradeBuilding() {
     if (!this.info || !this.info.progressions) return false;
     const next = this.info.progressions[1];
-    if(this.info.upgradeCost > globalResource.length){ logNormal('Not enough resources to upgrade'); return false; }
-    if (!next) { logNormal('No further upgrades'); return false; }
+    if(this.info.upgradeCost > globalResource.length){ console.log('Not enough resources to upgrade'); return false; }
+    if (!next) { console.log('No further upgrades'); return false; }
 
     const nextImage = typeof next.image === "function" ? next.image() : next.image;
-    if (!nextImage) { logNormal('Image not loaded yet'); return false; }
+    if (!nextImage) { console.log('Image not loaded yet'); return false; }
 
     try {
       this.setImage(nextImage);
       this._spawnInterval = Math.max(1, this._spawnInterval - 1);
       this._spawnCount += 1;
       this.info = next;
-      logNormal("Building upgraded!");
+      console.log("Building upgraded!");
     } catch (e) {
       console.warn("Upgrade failed:", e);
       return false;
@@ -254,7 +250,7 @@ class Building extends Entity {
     }
 
     if (this._health <= 0) {
-      logNormal("Building has died.");
+      console.log("Building has died.");
     }
 
     return this._health;
