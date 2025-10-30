@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "camera": {
+    "panSpeed": 1.0,
+    "panSpeedMin": 0.5,
+    "panSpeedMax": 3.0,
+    "zoomSpeed": 1.1,
+    "zoomSpeedMin": 1.05,
+    "zoomSpeedMax": 1.5
+  },
+  "editor": {
+    "autoSave": false,
+    "autoSaveInterval": 60,
+    "snapToGrid": false,
+    "gridSize": 32,
+    "theme": "dark"
+  },
+  "keybindings": {
+    "save": "Ctrl+S",
+    "load": "Ctrl+O",
+    "export": "Ctrl+E",
+    "new": "Ctrl+N",
+    "undo": "Ctrl+Z",
+    "redo": "Ctrl+Y",
+    "settings": "Ctrl+,",
+    "playTest": "F5"
+  }
+}

@@ -18,6 +18,7 @@ class LevelEditor {
     this.gridOverlay = null;
     this.saveDialog = null;
     this.loadDialog = null;
+    this.newMapDialog = null; // NEW: New map dimensions dialog
     this.notifications = null;
     this.levelEditorPanels = null; // NEW: Draggable panel integration
     this.fileMenuBar = null; // NEW: File menu bar for save/load/export
@@ -161,6 +162,16 @@ class LevelEditor {
     };
     this.loadDialog.onCancel = () => {
       this.loadDialog.hide();
+    };
+    
+    // Create new map dialog
+    this.newMapDialog = new NewMapDialog();
+    this.newMapDialog.onConfirm = (width, height) => {
+      this._createNewTerrain(width, height);
+      this.newMapDialog.hide();
+    };
+    this.newMapDialog.onCancel = () => {
+      this.newMapDialog.hide();
     };
     
     // Create notification manager
@@ -409,6 +420,11 @@ class LevelEditor {
       return; // Dialog is visible - block terrain interaction regardless of consumption
     }
     
+    if (this.newMapDialog && this.newMapDialog.isVisible()) {
+      const consumed = this.newMapDialog.handleClick(mouseX, mouseY);
+      return; // Dialog is visible - block terrain interaction regardless of consumption
+    }
+    
     // PRIORITY 1.5: Check sidebar click delegation (before menu bar)
     if (this.levelEditorPanels && this.levelEditorPanels.panels && this.levelEditorPanels.panels.sidebar) {
       const sidebarPanel = this.levelEditorPanels.panels.sidebar;
@@ -603,7 +619,8 @@ class LevelEditor {
     
     // PRIORITY 1: Check if dialogs are open and block interaction
     if ((this.saveDialog && this.saveDialog.isVisible()) || 
-        (this.loadDialog && this.loadDialog.isVisible())) {
+        (this.loadDialog && this.loadDialog.isVisible()) ||
+        (this.newMapDialog && this.newMapDialog.isVisible())) {
       return; // Dialog is visible - block interaction
     }
     
@@ -631,7 +648,8 @@ class LevelEditor {
     
     // PRIORITY 0: Check if dialogs are open - block ALL terrain interaction
     if ((this.saveDialog && this.saveDialog.isVisible()) || 
-        (this.loadDialog && this.loadDialog.isVisible())) {
+        (this.loadDialog && this.loadDialog.isVisible()) ||
+        (this.newMapDialog && this.newMapDialog.isVisible())) {
       return; // Dialog is visible, block terrain interaction
     }
     
@@ -1092,6 +1110,7 @@ class LevelEditor {
     // Render dialogs if active
     if (this.saveDialog.isVisible()) { this.saveDialog.render(); }
     if (this.loadDialog.isVisible()) { this.loadDialog.render(); }
+    if (this.newMapDialog && this.newMapDialog.isVisible()) { this.newMapDialog.render(); }
     
     // Render flag cursor if in placement mode
     if (this.eventEditor && this.eventEditor.renderPlacementCursor && typeof this.eventEditor.renderPlacementCursor === 'function') {
@@ -1230,14 +1249,35 @@ class LevelEditor {
       }
     }
     
-    // Create new blank terrain
-    // Use SparseTerrain for lazy loading (black canvas, paint anywhere)
+    // Show new map dialog to get dimensions
+    this.newMapDialog.show();
+    return true;
+  }
+  
+  /**
+   * Create new terrain with specified dimensions
+   * @param {number} width - Width in tiles
+   * @param {number} height - Height in tiles
+   * @private
+   */
+  _createNewTerrain(width, height) {
+    const tileSize = 32; // Standard tile size
+    
+    // Create new terrain with specified dimensions
+    // Note: SparseTerrain doesn't enforce bounds (lazy loading)
+    // CustomTerrain and gridTerrain have fixed bounds
     if (typeof SparseTerrain !== 'undefined') {
-      this.terrain = new SparseTerrain(32, 'dirt');
+      this.terrain = new SparseTerrain(tileSize, 'dirt');
+      // TODO: If SparseTerrain gains setDimensions() API, set bounds here
     } else if (typeof CustomTerrain !== 'undefined') {
-      this.terrain = new CustomTerrain(50, 50);
+      this.terrain = new CustomTerrain(width, height);
     } else {
-      this.terrain = new gridTerrain(10, 10);
+      this.terrain = new gridTerrain(width / 10, height / 10); // gridTerrain uses chunk counts
+    }
+    
+    // BUGFIX: Set g_activeMap for Level Editor terrain
+    if (typeof window !== 'undefined') {
+      window.g_activeMap = this.terrain;
     }
     
     // Reinitialize editor components with new terrain
@@ -1246,12 +1286,11 @@ class LevelEditor {
     this.propertiesPanel.setTerrain(this.terrain);
     
     // Reset grid overlay to match new terrain type
-    const TILE_SIZE = 32; // Standard tile size
     if (this.terrain.getAllTiles && typeof this.terrain.getAllTiles === 'function') {
       // Constructor: (terrain, tileSize, bufferSize)
-      this.gridOverlay = new DynamicGridOverlay(this.terrain, TILE_SIZE, 2); // 32px tiles, 2-tile buffer
+      this.gridOverlay = new DynamicGridOverlay(this.terrain, tileSize, 2); // 2-tile buffer
     } else {
-      this.gridOverlay = new GridOverlay(TILE_SIZE, this.terrain.width, this.terrain.height);
+      this.gridOverlay = new GridOverlay(tileSize, this.terrain.width, this.terrain.height);
     }
     
     // Reset filename to "Untitled"
@@ -1265,8 +1304,7 @@ class LevelEditor {
     // Reset modified flag
     this.isModified = false;
     
-    this.notifications.show('New blank terrain created', 'info');
-    return true;
+    this.notifications.show(`New ${width}×${height} map created`, 'success');
   }
   
   /**
@@ -1456,9 +1494,16 @@ class LevelEditor {
       }
     }
     
-    // FIRST: Check if save dialog is open and handle keyboard input
+    // FIRST: Check if dialogs are open and handle keyboard input
     if (this.saveDialog && this.saveDialog.isVisible()) {
       const consumed = this.saveDialog.handleKeyPress(key);
+      if (consumed) {
+        return; // Dialog consumed the key press
+      }
+    }
+    
+    if (this.newMapDialog && this.newMapDialog.isVisible()) {
+      const consumed = this.newMapDialog.handleKeyPress(key, keyCode);
       if (consumed) {
         return; // Dialog consumed the key press
       }
