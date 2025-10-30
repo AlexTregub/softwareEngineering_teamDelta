@@ -383,6 +383,26 @@ class LevelEditor {
       }
     }
     
+    // Check materials panel delegation (MaterialPalette scrolling)
+    if (this.levelEditorPanels && this.levelEditorPanels.panels && this.levelEditorPanels.panels.materials) {
+      const materialsPanel = this.levelEditorPanels.panels.materials;
+      
+      // Only delegate if materials panel is visible and not minimized
+      if (materialsPanel.state && materialsPanel.state.visible && !materialsPanel.state.minimized && this.palette) {
+        const pos = materialsPanel.getPosition();
+        const size = materialsPanel.getSize();
+        
+        // Check if mouse is over materials panel
+        if (mouseX >= pos.x && mouseX <= pos.x + size.width &&
+            mouseY >= pos.y && mouseY <= pos.y + size.height) {
+          // Delegate to MaterialPalette
+          const delta = event.deltaY || event.delta || 0;
+          this.palette.handleMouseWheel(delta);
+          return true; // MaterialPalette consumed the event
+        }
+      }
+    }
+    
     // Delegate to ShortcutManager for registered shortcuts
     if (shiftKey && typeof ShortcutManager !== 'undefined') {
       const modifiers = { shift: shiftKey, ctrl: false, alt: false };
@@ -1529,6 +1549,14 @@ class LevelEditor {
       const handled = this.fileMenuBar.handleKeyPress(key, modifiers);
       if (handled) {
         return; // Menu bar consumed the key press
+      }
+    }
+    
+    // THIRD: Check if MaterialPalette handles the key press (search bar input)
+    if (this.palette && this.palette.handleKeyPress) {
+      const consumed = this.palette.handleKeyPress(key, keyCode);
+      if (consumed) {
+        return; // MaterialPalette consumed the key press
       }
     }
     

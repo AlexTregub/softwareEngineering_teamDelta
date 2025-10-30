@@ -163,8 +163,14 @@ class EntityPropertyEditor {
     Object.keys(this._pendingChanges).forEach(propertyName => {
       const value = this._pendingChanges[propertyName];
       
-      // Apply to direct property if it exists
-      if (this.currentEntity.hasOwnProperty(propertyName)) {
+      // For read-only properties (health, faction), use private properties
+      if (propertyName === 'health' && this.currentEntity.hasOwnProperty('_health')) {
+        this.currentEntity._health = value;
+      } else if (propertyName === 'faction' && this.currentEntity.hasOwnProperty('_faction')) {
+        this.currentEntity._faction = value;
+      }
+      // Apply to direct property if it exists and is writable
+      else if (this.currentEntity.hasOwnProperty(propertyName)) {
         this.currentEntity[propertyName] = value;
       }
       // Otherwise apply to properties object

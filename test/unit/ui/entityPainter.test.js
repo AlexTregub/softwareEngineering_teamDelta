@@ -139,15 +139,16 @@ describe('EntityPainter', function() {
       expect(entity.type).to.equal('greenLeaf');
     });
     
-    it('should delegate resource creation to ResourceSystemManager', function() {
+    it('should create resource with fallback object', function() {
       const painter = new EntityPainter();
       painter.palette.setCategory('resources');
       painter.palette.selectTemplate('resource_stick');
       
-      global.g_resourceManager.createResource.resetHistory();
-      painter.placeEntity(5, 10);
+      const resource = painter.placeEntity(5, 10);
       
-      expect(global.g_resourceManager.createResource.calledOnce).to.be.true;
+      expect(resource).to.not.be.null;
+      expect(resource.type).to.equal('stick');
+      expect(resource.canBePickedUp).to.be.true;
     });
     
     it('should add placed resource to tracking array', function() {

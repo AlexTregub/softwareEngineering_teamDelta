@@ -10,11 +10,41 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### BREAKING CHANGES
 
-(None)
+- **MaterialPalette.render() Signature Change** (`Classes/ui/MaterialPalette.js`)
+  - **Before**: `render(x, y)` - Auto-calculated dimensions
+  - **After**: `render(x, y, width, height)` - Explicit dimensions required
+  - **Impact**: Any code calling MaterialPalette.render() must be updated
+  - **Migration**: Pass panel dimensions: `palette.render(x, y, panel.contentWidth, panel.contentHeight)`
+  - **Reason**: Responsive layout needs width for component positioning and column calculation
 
 ---
 
 ### User-Facing Changes
+
+#### Added
+- **Entity Painter Tool (Core System - TDD)** - Roadmap 1.11
+  - **3-category system**: Entities (Ants), Buildings, Resources
+  - **Radio button category switcher** with icons (🐜 Ant, 🏠 House, 🌳 Tree)
+  - **Entity templates**: 7 ant types, 3 buildings, 4 resources
+  - **Property editor**: Edit entity properties (JobName, faction, health, etc.)
+  - **JSON export/import**: Save/load entities with grid coordinate conversion
+  - **Grid coordinate system**: Positions stored as grid coords, converted to world coords on load
+  - **Fully tested**: **136 passing tests** (105 unit + 21 integration + 10 E2E with screenshots)
+  - **UI integration pending**: Core classes ready for Level Editor toolbar integration
+  - See `docs/checklists/active/ENTITY_PAINTER_CHECKLIST.md` for implementation details
+- **Categorized Material System (Level Editor Enhancement - TDD)**
+  - Materials organized into 6 categories: Ground, Stone, Vegetation, Water, Cave, Special
+  - **Expandable/collapsible categories** - Click header to toggle (▶ collapsed, ▼ expanded)
+  - **Search bar** - Filter materials by name (case-insensitive, real-time)
+  - **Recently Used section** - Shows last 8 materials selected (FIFO queue, most recent at top)
+  - **Favorites system** - Star/unstar materials for quick access
+  - **Material preview tooltip** - Hover over material for larger preview with category name
+  - **Persistence** - Category states, recently used, and favorites persist via LocalStorage
+  - Ground and Vegetation categories expanded by default for quick access
+  - Fully tested: **125 passing tests** (98 unit + 20 integration + 7 E2E with screenshots)
+  - **Production ready** - Improves Level Editor workflow efficiency
+  - See `docs/checklists/active/CATEGORIZED_MATERIAL_SYSTEM_CHECKLIST.md` for complete implementation details
+  - See `docs/roadmaps/LEVEL_EDITOR_ROADMAP.md` Phase 1.13 for requirements
 
 #### Fixed
 - **Level Editor - Sparse Terrain Export/Import** (Bug Fix - TDD)
@@ -194,6 +224,161 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ---
 
 ### Developer-Facing Changes
+
+#### Added
+- **EntityPalette Class** (`Classes/ui/EntityPalette.js` - 280 lines)
+  - Template management for 3 entity categories (Entities, Buildings, Resources)
+  - **Constructor**: `new EntityPalette()` (initializes with 'entities' category)
+  - **Methods**:
+    - `setCategory(category)` - Switch between 'entities', 'buildings', 'resources'
+    - `selectTemplate(templateId)` - Select entity template for placement
+    - `getSelectedTemplate()` - Get currently selected template
+    - `getCurrentTemplates()` - Get templates for current category
+    - `getTemplates(category)` - Get templates for specific category
+  - **Templates**: 7 ants (Worker/Soldier/Scout/Queen/Builder/Gatherer/Carrier), 3 buildings (Hill/Hive/Cone), 4 resources (Leaf/Maple/Stick/Stone)
+  - **Properties**: Each template includes `id`, `name`, `image`, and type-specific properties (`job` for ants, `size` for buildings, `category` for resources)
+  - **Tests**: 20/20 unit tests passing
+  - **Module Export**: Node.js (`module.exports`) + Browser (`window.EntityPalette`)
+
+- **CategoryRadioButtons Class** (`Classes/ui/CategoryRadioButtons.js` - 129 lines)
+  - Radio button UI component for category switching with icons
+  - **Constructor**: `new CategoryRadioButtons(onChange)` (callback for selection changes)
+  - **Methods**:
+    - `getSelectedCategory()` - Returns 'entities', 'buildings', or 'resources'
+    - `selectCategory(category)` - Programmatically change selection
+    - `render(x, y)` - Draw 3 radio buttons with icons (🐜🏠🌳)
+    - `handleClick(mouseX, mouseY, offsetX, offsetY)` - Detect button clicks
+  - **Icons**: Ant (🐜), House (🏠), Tree (🌳)
+  - **Layout**: 3 buttons, 40px height each, 5px spacing
+  - **Tests**: 28/28 unit tests passing
+  - **Module Export**: Node.js + Browser
+
+- **EntityPropertyEditor Class** (`Classes/ui/EntityPropertyEditor.js` - 211 lines)
+  - Modal dialog for editing entity properties with validation
+  - **Constructor**: `new EntityPropertyEditor()`
+  - **Methods**:
+    - `open(entity)` - Open dialog for entity
+    - `close()` - Close dialog
+    - `setProperty(name, value)` - Stage property change
+    - `save()` - Apply pending changes to entity (handles read-only properties like `_health`, `_faction`)
+    - `cancel()` - Discard pending changes
+    - `hasPendingChanges()` - Check for unsaved changes
+  - **Validation**: JobName (7 valid types), faction (player/enemy/neutral), health (no negatives)
+  - **Read-Only Property Handling**: Uses private properties (`_health`, `_faction`) for ants to bypass getters
+  - **Tests**: 30/30 unit tests passing
+  - **Module Export**: Node.js + Browser
+
+- **EntityPainter Class** (`Classes/ui/EntityPainter.js` - 344 lines)
+  - Entity placement, removal, and JSON export/import with grid coordinate conversion
+  - **Constructor**: `new EntityPainter(options)` (palette, spatialGrid)
+  - **Methods**:
+    - `placeEntity(gridX, gridY)` - Place selected template at grid coordinates (converts to world coordinates)
+    - `removeEntity(entity)` - Remove entity from tracking and spatial grid
+    - `getEntityAtPosition(worldX, worldY, radius)` - Find entity near world coordinates
+    - `exportToJSON()` - Export entities to JSON with grid coordinates
+    - `importFromJSON(data)` - Import entities from JSON and recreate at grid positions
+  - **Grid Coordinate System**: Stores positions as grid coords in JSON, converts to world coords on import (`worldX = gridX * 32`)
+  - **Entity Centering**: Accounts for Entity base class +16px centering offset (buildings/resources add +16, ants handle via constructor)
+  - **Resource Creation**: Uses fallback object creation (no g_resourceManager dependency)
+  - **Tests**: 30/30 unit tests, 21/21 integration tests, 10/10 E2E tests passing
+  - **Module Export**: Node.js + Browser
+
+- **MaterialCategory Class** (`Classes/ui/MaterialCategory.js`)
+  - Expandable/collapsible category component for material organization
+  - **Constructor**: `new MaterialCategory(id, name, materials, options)`
+  - **Methods**:
+    - `expand()`, `collapse()`, `toggle()` - State management
+    - `isExpanded()` - Query current state
+    - `getMaterials()` - Get array of materials in category
+    - `getHeight()` - Calculate height for layout (40px header + grid height if expanded)
+    - `render(x, y, width)` - Draw header + materials grid (2-column layout)
+    - `handleClick(mouseX, mouseY, categoryX, categoryY)` - Returns clicked material or null
+  - **Layout**: headerHeight=40px, swatchSize=40px, columns=2, spacing=5px
+  - **Tests**: 17/17 unit tests passing
+  - **Module Export**: Node.js (`module.exports`) + Browser (`window.MaterialCategory`)
+
+- **MaterialSearchBar Class** (`Classes/ui/MaterialSearchBar.js`)
+  - Search input component with focus states and keyboard handling
+  - **Constructor**: `new MaterialSearchBar(options)` (placeholder, width)
+  - **Methods**:
+    - `getValue()`, `setValue(text)`, `clear()` - Value management
+    - `focus()`, `blur()`, `isFocused()` - Focus state
+    - `render(x, y, width, height)` - Draw input box with cursor and clear button
+    - `handleClick(mouseX, mouseY, barX, barY)` - Focus input or clear value
+    - `handleKeyPress(key, keyCode)` - Alphanumeric, backspace, Enter, Escape
+  - **Keyboard Support**: A-Z, 0-9, space, hyphen, underscore, backspace, Enter (submit), Escape (clear and blur)
+  - **Tests**: 19/19 unit tests passing
+  - **Module Export**: Node.js + Browser
+
+- **MaterialFavorites Class** (`Classes/ui/MaterialFavorites.js`)
+  - Favorites management with LocalStorage persistence
+  - **Constructor**: `new MaterialFavorites()` (auto-loads from LocalStorage)
+  - **Methods**:
+    - `add(material)`, `remove(material)`, `toggle(material)` - Mutation
+    - `has(material)`, `getAll()` - Queries
+    - `save()`, `load()` - LocalStorage sync
+  - **Storage**: Uses Set internally, persists as JSON array
+  - **LocalStorage Key**: `'materialPalette.favorites'`
+  - **Error Handling**: Gracefully handles corrupted JSON, quota exceeded
+  - **Tests**: 17/17 unit tests passing
+  - **Module Export**: Node.js + Browser
+
+- **MaterialPreviewTooltip Class** (`Classes/ui/MaterialPreviewTooltip.js`)
+  - Hover tooltip with larger material preview and auto-repositioning
+  - **Constructor**: `new MaterialPreviewTooltip()` (hidden by default)
+  - **Methods**:
+    - `show(material, x, y)` - Display tooltip at position
+    - `hide()` - Hide tooltip
+    - `isVisible()` - Query visibility state
+    - `render()` - Draw tooltip box with material preview (60px swatch)
+  - **Auto-Repositioning**: Checks canvas bounds, repositions left/up if tooltip extends beyond edges
+  - **Rendering**: Semi-transparent background, material name, larger texture preview
+  - **Tests**: 14/14 unit tests passing
+  - **Module Export**: Node.js + Browser
+
+- **MaterialPalette Refactored** (`Classes/ui/MaterialPalette.js`)
+  - **New Methods**:
+    - `loadCategories(categoryConfig)` - Load categories from JSON config
+    - `searchMaterials(query)` - Case-insensitive filter, returns matching materials
+    - `toggleCategory(categoryId)`, `expandAll()`, `collapseAll()` - Category state management
+    - `addToRecentlyUsed(material)` - Add to FIFO queue (max 8, most recent at front)
+    - `getRecentlyUsed()` - Get array of recently used materials
+    - `toggleFavorite(material)`, `isFavorite(material)`, `getFavorites()` - Favorites management
+    - `savePreferences()`, `loadPreferences()` - LocalStorage persistence (recently used + favorites)
+    - `handleHover(mouseX, mouseY, panelX, panelY)` - Tooltip integration
+  - **Modified Methods**:
+    - `render(x, y, width, height)` - **NEW SIGNATURE** (breaking change)
+    - `selectMaterial(material)` - Now automatically adds to recently used
+  - **Internal Methods**:
+    - `_renderMaterialSwatches(materials, x, y, width)` - Helper for rendering material grids
+  - **Constructor Changes**:
+    - Initializes `searchBar`, `favorites`, `tooltip` components if available
+    - Calls `loadPreferences()` automatically on init
+  - **LocalStorage Keys**:
+    - `'materialPalette.recentlyUsed'` - Recently used array (max 8)
+    - `'materialPalette.favorites'` - Favorites managed by MaterialFavorites class
+  - **Tests**: 31/31 unit tests passing (categorized enhancement)
+  - **Module Export**: Node.js + Browser
+
+- **Category Configuration** (`config/material-categories.json`)
+  - Static JSON defining 6 categories with material mappings
+  - **Categories**:
+    - Ground: `['dirt', 'sand']` (defaultExpanded: true, icon: 🟫)
+    - Vegetation: `['grass', 'moss', 'moss_1']` (defaultExpanded: true, icon: 🌱)
+    - Stone: `['stone']` (defaultExpanded: false, icon: 🪨)
+    - Water: `['water', 'water_cave']` (defaultExpanded: false, icon: 💧)
+    - Cave: `['cave_1', 'cave_2', 'cave_3', 'cave_dark', 'cave_dirt']` (defaultExpanded: false, icon: 🕳️)
+    - Special: `['farmland', 'NONE']` (defaultExpanded: false, icon: ✨)
+  - **Uncategorized**: Fallback category for materials not in any category
+  - **Schema**:
+    ```json
+    {
+      "categories": [
+        { "id": "ground", "name": "Ground", "materials": [...], "defaultExpanded": true, "icon": "🟫" }
+      ],
+      "uncategorized": { "name": "Other", "icon": "❓", "materials": [] }
+    }
+    ```
 
 #### Fixed
 - **TerrainImporter.importFromJSON()**: Added format detection for SparseTerrain vs gridTerrain

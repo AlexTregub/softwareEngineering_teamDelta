@@ -48,6 +48,11 @@ class MaterialPalette {
         // Search results
         this.searchResults = null;
         
+        // Scroll support
+        this.scrollOffset = 0;
+        this.maxScrollOffset = 0;
+        this.viewportHeight = 0;
+        
         // Initialize components
         if (typeof MaterialSearchBar !== 'undefined') {
             this.searchBar = new MaterialSearchBar({ placeholder: 'Search materials...' });
@@ -371,6 +376,72 @@ class MaterialPalette {
     }
     
     /**
+     * Calculate total content height (all sections)
+     * @returns {number} Total height in pixels
+     */
+    getTotalContentHeight() {
+        let height = 0;
+        
+        // Search bar
+        if (this.searchBar) {
+            height += 45;
+        }
+        
+        // Recently used section
+        if (this.recentlyUsed.length > 0) {
+            height += 20; // Label
+            const rows = Math.ceil(this.recentlyUsed.length / 2);
+            height += rows * 45; // 40px swatch + 5px spacing
+            height += 10; // Bottom padding
+        }
+        
+        // Categories (sum of getHeight())
+        this.categories.forEach(category => {
+            height += category.getHeight();
+        });
+        
+        return height;
+    }
+    
+    /**
+     * Update scroll bounds based on content and viewport height
+     */
+    updateScrollBounds() {
+        const contentHeight = this.getTotalContentHeight();
+        this.maxScrollOffset = Math.max(0, contentHeight - this.viewportHeight);
+    }
+    
+    /**
+     * Handle mouse wheel scrolling
+     * @param {number} delta - Scroll delta (positive = scroll down)
+     */
+    handleMouseWheel(delta) {
+        this.scrollOffset += delta;
+        this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.maxScrollOffset));
+    }
+    
+    /**
+     * Handle keyboard input (routes to search bar if focused)
+     * @param {string} key - Key pressed
+     * @param {number} keyCode - Key code
+     * @returns {boolean} True if key press consumed
+     */
+    handleKeyPress(key, keyCode) {
+        // If search bar has focus, route to it
+        if (this.searchBar && this.searchBar.isFocused()) {
+            this.searchBar.handleKeyPress(key, keyCode);
+            
+            // Update search results
+            const query = this.searchBar.getValue();
+            this.searchMaterials(query);
+            
+            return true; // Consumed
+        }
+        
+        return false; // Not consumed
+    }
+    
+    /**
      * Handle hover for tooltip
      * @param {number} mouseX - Mouse X coordinate
      * @param {number} mouseY - Mouse Y coordinate
@@ -427,6 +498,17 @@ class MaterialPalette {
      * @returns {boolean} True if click was handled
      */
     handleClick(mouseX, mouseY, panelX, panelY) {
+        // Check if click is on search bar (focus)
+        if (this.searchBar && mouseY >= panelY && mouseY <= panelY + 45) {
+            this.searchBar.focus();
+            return true;
+        }
+        
+        // Click elsewhere - blur search bar
+        if (this.searchBar) {
+            this.searchBar.blur();
+        }
+        
         const swatchSize = 40;
         const spacing = 5;
         const columns = 2;
@@ -489,9 +571,14 @@ class MaterialPalette {
             return;
         }
         
+        // Update viewport and scroll bounds
+        this.viewportHeight = height;
+        this.updateScrollBounds();
+        
         push();
         
-        let currentY = y;
+        // Apply scroll offset
+        let currentY = y - this.scrollOffset;
         
         // Render search bar
         if (this.searchBar) {
@@ -624,4 +711,9 @@ class MaterialPalette {
 // Export for use in Node.js tests and browser
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = MaterialPalette;
+}
+
+// Also export to window for browser
+if (typeof window !== 'undefined') {
+    window.MaterialPalette = MaterialPalette;
 }

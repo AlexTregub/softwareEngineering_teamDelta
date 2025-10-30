@@ -111,16 +111,8 @@ class EntityPainter {
    * @private
    */
   _createResource(worldX, worldY, template) {
-    // Use global ResourceSystemManager if available
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
-      return g_resourceManager.createResource(
-        template.resourceType,
-        worldX,
-        worldY
-      );
-    }
-    
-    // Fallback for testing
+    // Create simple resource entity
+    // Note: Real ResourceSystemManager integration would go here if needed
     const props = template.properties;
     return {
       type: template.resourceType,
@@ -282,6 +274,9 @@ class EntityPainter {
               props.JobName,
               props.faction || 'player'
             );
+            // Override properties from JSON (use private properties for read-only getters)
+            if (props.health !== undefined) entity._health = props.health;
+            if (props.movementSpeed !== undefined) entity.movementSpeed = props.movementSpeed;
           } else {
             entity = {
               type: 'Ant',
@@ -297,11 +292,12 @@ class EntityPainter {
           break;
           
         case 'Building':
+          // Add centering offset (Entity class adds +0.5 tile = 16px)
           entity = {
             type: 'Building',
             buildingType: props.buildingType,
-            posX: worldX,
-            posY: worldY,
+            posX: worldX + 16,
+            posY: worldY + 16,
             size: props.size,
             capacity: props.capacity,
             getPosition: function() { return { x: this.posX, y: this.posY }; }
@@ -309,19 +305,15 @@ class EntityPainter {
           break;
           
         default:
-          // Resource
-          if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
-            entity = g_resourceManager.createResource(entityData.type, worldX, worldY);
-          } else {
-            entity = {
-              type: entityData.type,
-              posX: worldX,
-              posY: worldY,
-              canBePickedUp: props.canBePickedUp,
-              weight: props.weight,
-              getPosition: function() { return { x: this.posX, y: this.posY }; }
-            };
-          }
+          // Resource - create simple resource entity with centering offset
+          entity = {
+            type: entityData.type,
+            posX: worldX + 16,
+            posY: worldY + 16,
+            canBePickedUp: props.canBePickedUp !== undefined ? props.canBePickedUp : true,
+            weight: props.weight !== undefined ? props.weight : 0.5,
+            getPosition: function() { return { x: this.posX, y: this.posY }; }
+          };
           break;
       }
       

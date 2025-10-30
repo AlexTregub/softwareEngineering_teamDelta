@@ -173,6 +173,14 @@ class FileMenuBar {
             action: () => this._handleTogglePanel('sidebar')
           },
           { 
+            label: 'Entity Painter', 
+            shortcut: 'Ctrl+7',
+            enabled: true,
+            checkable: true,
+            checked: false, // Hidden by default
+            action: () => this._handleTogglePanel('entity-painter')
+          },
+          { 
             label: 'Notifications', 
             shortcut: 'Ctrl+I',
             enabled: true,
