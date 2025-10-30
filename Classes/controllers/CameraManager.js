@@ -203,19 +203,29 @@ class CameraManager {
 
   /**
    * Update camera position during middle-click drag
+   * Applies pan speed multiplier from SettingsManager for configurable sensitivity
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position
    */
   updatePan(mouseX, mouseY) {
     if (!this._isPanning) return;
     
+    // Get pan speed multiplier from SettingsManager (default: 1.0x)
+    // Multiplier allows user to control pan sensitivity (0.5x = slower, 2.0x = faster)
+    let panSpeedMultiplier = 1.0;
+    if (typeof SettingsManager !== 'undefined' && SettingsManager.getInstance) {
+      const settingsValue = SettingsManager.getInstance().get('camera.panSpeed', 1.0);
+      panSpeedMultiplier = settingsValue !== undefined && settingsValue !== null ? settingsValue : 1.0;
+    }
+    
     // Calculate delta from pan start position
     const deltaX = mouseX - this._panStartX;
     const deltaY = mouseY - this._panStartY;
     
-    // Move camera opposite to drag direction (intuitive "grab and drag" behavior)
-    this.cameraX = this._cameraStartX - deltaX;
-    this.cameraY = this._cameraStartY - deltaY;
+    // Move camera opposite to drag direction with speed multiplier (intuitive "grab and drag" behavior)
+    // Multiplier preserves zoom-based scaling while allowing user to adjust overall sensitivity
+    this.cameraX = this._cameraStartX - (deltaX * panSpeedMultiplier);
+    this.cameraY = this._cameraStartY - (deltaY * panSpeedMultiplier);
     
     // Apply camera bounds if needed
     this.clampToBounds();

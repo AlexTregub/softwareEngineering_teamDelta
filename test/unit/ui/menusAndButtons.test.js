@@ -23,7 +23,7 @@ let sinon = require('sinon');
 let { setupVerticalEnvironment } = require('./testHelpers');
 
 // Set up stubs before loading the module
-let env = setupVerticalEnvironment({ imgWidth: 64, imgHeight: 32 });
+//let env = setupVerticalEnvironment({ imgWidth: 64, imgHeight: 32 });
 let VerticalButtonList = require('../../Classes/systems/ui/verticalButtonList.js');
 
 describe('VerticalButtonList', function() {

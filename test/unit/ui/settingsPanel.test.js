@@ -27,8 +27,7 @@ describe('SettingsPanel', function() {
         const settings = {
           'camera.panSpeed': 1.0,
           'camera.zoomSpeed': 1.1,
-          'editor.autoSave': false,
-          'editor.theme': 'dark'
+          'editor.autoSave': false
         };
         return settings[key] !== undefined ? settings[key] : defaultValue;
       }),
@@ -50,6 +49,7 @@ describe('SettingsPanel', function() {
       fill: sinon.spy(),
       stroke: sinon.spy(),
       noStroke: sinon.spy(),
+      strokeWeight: sinon.spy(),
       rect: sinon.spy(),
       text: sinon.spy(),
       textAlign: sinon.spy(),
@@ -59,8 +59,11 @@ describe('SettingsPanel', function() {
       push: sinon.spy(),
       pop: sinon.spy(),
       constrain: sinon.stub().callsFake((val, min, max) => Math.max(min, Math.min(max, val))),
+      redraw: sinon.spy(),
       mouseX: 400,
       mouseY: 300,
+      width: 1920,
+      height: 1080,
       CENTER: 'center',
       LEFT: 'left'
     };
@@ -68,6 +71,8 @@ describe('SettingsPanel', function() {
     Object.assign(global, mockP5);
     if (typeof window !== 'undefined') {
       Object.assign(window, mockP5);
+    } else {
+      global.window = global;
     }
     
     // Load SettingsPanel (will fail until implemented)
@@ -340,14 +345,6 @@ describe('SettingsPanel', function() {
         // Should call SettingsManager.set() with toggled value
         expect(mockSettingsManager.set.called).to.be.true;
         expect(mockSettingsManager.set.lastCall.args[0]).to.equal('editor.autoSave');
-      }
-    });
-    
-    it('should toggle theme setting', function() {
-      if (typeof settingsPanel.handleToggle === 'function') {
-        settingsPanel.handleToggle('editor.theme');
-        
-        expect(mockSettingsManager.set.called).to.be.true;
       }
     });
   });

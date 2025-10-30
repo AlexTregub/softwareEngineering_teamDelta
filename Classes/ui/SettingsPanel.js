@@ -33,9 +33,6 @@ class SettingsPanel {
     this.sliderWidth = 300;
     this.sliderHeight = 20;
     
-    // Slider states
-    this._draggingSlider = null;
-    
     // Button dimensions
     this.buttonWidth = 120;
     this.buttonHeight = 35;
@@ -45,10 +42,48 @@ class SettingsPanel {
       this._settingsManager = SettingsManager.getInstance();
       this._loadSettings();
     }
+    
+    // Initialize UI components (will be positioned dynamically)
+    this._initializeComponents();
   }
   
   /**
-   * Load current settings from SettingsManager
+   * Initialize UI component instances (Toggle, Slider)
+   * @private
+   */
+  _initializeComponents() {
+    this._components = {};
+    
+    // Auto-save toggle (General tab)
+    if (typeof Toggle !== 'undefined') {
+      const autoSaveValue = this._settingsManager ? 
+        this._settingsManager.get('editor.autoSave', false) : false;
+      this._components.autoSaveToggle = new Toggle(0, 0, autoSaveValue);
+    }
+    
+    // Pan speed slider (Camera tab)
+    if (typeof Slider !== 'undefined') {
+      const panSpeed = this._settingsManager ? 
+        this._settingsManager.get('camera.panSpeed', 1.0) : 1.0;
+      this._components.panSpeedSlider = new Slider(
+        0, 0, this.sliderWidth, 0.5, 3.0, panSpeed,
+        (value) => this._handleSliderChange('camera.panSpeed', value)
+      );
+    }
+    
+    // Zoom speed slider (Camera tab)
+    if (typeof Slider !== 'undefined') {
+      const zoomSpeed = this._settingsManager ? 
+        this._settingsManager.get('camera.zoomSpeed', 1.1) : 1.1;
+      this._components.zoomSpeedSlider = new Slider(
+        0, 0, this.sliderWidth, 1.05, 1.5, zoomSpeed,
+        (value) => this._handleSliderChange('camera.zoomSpeed', value)
+      );
+    }
+  }
+  
+  /**
+   * Load current settings from SettingsManager and update components
    * @private
    */
   _loadSettings() {
@@ -58,9 +93,21 @@ class SettingsPanel {
     this._cachedSettings = {
       panSpeed: this._settingsManager.get('camera.panSpeed', 1.0),
       zoomSpeed: this._settingsManager.get('camera.zoomSpeed', 1.1),
-      autoSave: this._settingsManager.get('editor.autoSave', false),
-      theme: this._settingsManager.get('editor.theme', 'dark')
+      autoSave: this._settingsManager.get('editor.autoSave', false)
     };
+    
+    // Update component values if they exist
+    if (this._components) {
+      if (this._components.autoSaveToggle) {
+        this._components.autoSaveToggle.setValue(this._cachedSettings.autoSave);
+      }
+      if (this._components.panSpeedSlider) {
+        this._components.panSpeedSlider.setValue(this._cachedSettings.panSpeed);
+      }
+      if (this._components.zoomSpeedSlider) {
+        this._components.zoomSpeedSlider.setValue(this._cachedSettings.zoomSpeed);
+      }
+    }
   }
   
   /**
@@ -191,17 +238,12 @@ class SettingsPanel {
     textSize(14);
     text('Auto-Save:', this.x + this.padding, currentY);
     
-    this._renderToggle('editor.autoSave', 
-      this.x + this.width - this.padding - 60, 
-      currentY - 10);
-    
-    currentY += 50;
-    
-    // Theme toggle
-    text('Theme (Dark/Light):', this.x + this.padding, currentY);
-    this._renderToggle('editor.theme', 
-      this.x + this.width - this.padding - 60, 
-      currentY - 10);
+    // Render toggle component
+    if (this._components.autoSaveToggle) {
+      this._components.autoSaveToggle.x = this.x + this.width - this.padding - 60;
+      this._components.autoSaveToggle.y = currentY - 10;
+      this._components.autoSaveToggle.render();
+    }
   }
   
   /**
@@ -222,12 +264,12 @@ class SettingsPanel {
     text(`Pan Speed: ${panSpeed.toFixed(2)}x`, this.x + this.padding, currentY);
     
     currentY += 30;
-    this._renderSlider('panSpeed', 
-      this.x + this.padding, 
-      currentY, 
-      panSpeed, 
-      0.5, 
-      3.0);
+    // Render pan speed slider component
+    if (this._components.panSpeedSlider) {
+      this._components.panSpeedSlider.x = this.x + this.padding;
+      this._components.panSpeedSlider.y = currentY;
+      this._components.panSpeedSlider.render();
+    }
     
     currentY += 60;
     
@@ -238,12 +280,12 @@ class SettingsPanel {
     text(`Zoom Speed: ${zoomSpeed.toFixed(2)}x`, this.x + this.padding, currentY);
     
     currentY += 30;
-    this._renderSlider('zoomSpeed', 
-      this.x + this.padding, 
-      currentY, 
-      zoomSpeed, 
-      1.05, 
-      1.5);
+    // Render zoom speed slider component
+    if (this._components.zoomSpeedSlider) {
+      this._components.zoomSpeedSlider.x = this.x + this.padding;
+      this._components.zoomSpeedSlider.y = currentY;
+      this._components.zoomSpeedSlider.render();
+    }
   }
   
   /**
@@ -278,50 +320,26 @@ class SettingsPanel {
   }
   
   /**
-   * Render a slider control
+   * Handle slider value change
+   * @param {string} settingKey - Setting key to update
+   * @param {number} value - New value
    * @private
    */
-  _renderSlider(id, x, y, value, min, max) {
-    // Slider background
-    stroke(80, 80, 90);
-    strokeWeight(2);
-    line(x, y, x + this.sliderWidth, y);
-    
-    // Slider handle
-    const handleX = x + ((value - min) / (max - min)) * this.sliderWidth;
-    fill(100, 150, 255);
-    noStroke();
-    circle(handleX, y, 16);
-    
-    // Store slider data for hit testing
-    if (!this._sliders) this._sliders = {};
-    this._sliders[id] = { x, y, width: this.sliderWidth, min, max, value };
-  }
-  
-  /**
-   * Render a toggle control
-   * @private
-   */
-  _renderToggle(settingKey, x, y) {
-    const value = this._settingsManager ? 
-      this._settingsManager.get(settingKey, false) : false;
-    
-    // Convert theme to boolean if needed
-    const isOn = settingKey === 'editor.theme' ? value === 'light' : value;
-    
-    // Toggle background
-    fill(isOn ? 100 : 60, isOn ? 150 : 60, isOn ? 255 : 60);
-    noStroke();
-    rect(x, y, 50, 25, 12);
-    
-    // Toggle handle
-    fill(255);
-    const handleX = isOn ? x + 30 : x + 5;
-    circle(handleX, y + 12, 18);
-    
-    // Store toggle data for hit testing
-    if (!this._toggles) this._toggles = {};
-    this._toggles[settingKey] = { x, y, width: 50, height: 25 };
+  _handleSliderChange(settingKey, value) {
+    if (this._settingsManager) {
+      this._settingsManager.set(settingKey, value);
+      
+      // Update cached settings
+      const key = settingKey.split('.').pop(); // Get last part (e.g., 'panSpeed' from 'camera.panSpeed')
+      if (this._cachedSettings) {
+        this._cachedSettings[key] = value;
+      }
+      
+      // Trigger redraw
+      if (typeof redraw === 'function') {
+        redraw();
+      }
+    }
   }
   
   /**
@@ -388,24 +406,28 @@ class SettingsPanel {
       }
     }
     
-    // Check toggle clicks
-    if (this._toggles) {
-      for (const [settingKey, toggle] of Object.entries(this._toggles)) {
-        if (this._hitTestRect(x, y, toggle)) {
-          this.handleToggle(settingKey);
-          return;
-        }
-      }
+    // Check toggle component clicks
+    if (this._components.autoSaveToggle && 
+        this.activeTab === 'General' && 
+        this._components.autoSaveToggle.containsPoint(x, y)) {
+      this._components.autoSaveToggle.toggle();
+      this._handleToggleChange('editor.autoSave', this._components.autoSaveToggle.getValue());
+      return;
     }
     
-    // Check slider clicks (start dragging)
-    if (this._sliders) {
-      for (const [id, slider] of Object.entries(this._sliders)) {
-        if (this._hitTestSlider(x, y, slider)) {
-          this._draggingSlider = id;
-          this.handleSliderDrag(id, { x, y });
-          return;
-        }
+    // Check slider component clicks (start dragging)
+    if (this.activeTab === 'Camera') {
+      if (this._components.panSpeedSlider && 
+          this._components.panSpeedSlider.containsPoint(x, y)) {
+        this._components.panSpeedSlider.startDrag();
+        this._components.panSpeedSlider.handleDrag(x, y);
+        return;
+      }
+      if (this._components.zoomSpeedSlider && 
+          this._components.zoomSpeedSlider.containsPoint(x, y)) {
+        this._components.zoomSpeedSlider.startDrag();
+        this._components.zoomSpeedSlider.handleDrag(x, y);
+        return;
       }
     }
   }
@@ -414,8 +436,13 @@ class SettingsPanel {
    * Handle mouse drag for sliders
    */
   handleMouseDrag(x, y) {
-    if (this._draggingSlider && this._sliders) {
-      this.handleSliderDrag(this._draggingSlider, { x, y });
+    if (this.activeTab === 'Camera') {
+      if (this._components.panSpeedSlider && this._components.panSpeedSlider.dragging) {
+        this._components.panSpeedSlider.handleDrag(x, y);
+      }
+      if (this._components.zoomSpeedSlider && this._components.zoomSpeedSlider.dragging) {
+        this._components.zoomSpeedSlider.handleDrag(x, y);
+      }
     }
   }
   
@@ -423,30 +450,28 @@ class SettingsPanel {
    * Handle mouse release (stop dragging)
    */
   handleMouseRelease() {
-    this._draggingSlider = null;
+    if (this._components.panSpeedSlider) {
+      this._components.panSpeedSlider.endDrag();
+    }
+    if (this._components.zoomSpeedSlider) {
+      this._components.zoomSpeedSlider.endDrag();
+    }
   }
   
   /**
-   * Handle slider drag
-   * @param {string} id - Slider ID
-   * @param {Object} event - Event object with x, y coordinates
+   * Handle toggle value change
+   * @param {string} settingKey - Setting key to update
+   * @param {boolean} value - New value
+   * @private
    */
-  handleSliderDrag(id, event) {
-    if (!this._sliders || !this._sliders[id]) return;
-    
-    const slider = this._sliders[id];
-    const localX = event.x - slider.x;
-    const percent = constrain(localX / slider.width, 0, 1);
-    const newValue = slider.min + percent * (slider.max - slider.min);
-    
-    // Update setting
+  _handleToggleChange(settingKey, value) {
     if (this._settingsManager) {
-      const settingKey = id === 'panSpeed' ? 'camera.panSpeed' : 'camera.zoomSpeed';
-      this._settingsManager.set(settingKey, newValue);
+      this._settingsManager.set(settingKey, value);
       
       // Update cached value
       if (this._cachedSettings) {
-        this._cachedSettings[id] = newValue;
+        const key = settingKey.split('.').pop();
+        this._cachedSettings[key] = value;
       }
       
       if (typeof redraw === 'function') {
@@ -456,22 +481,17 @@ class SettingsPanel {
   }
   
   /**
-   * Handle toggle click
+   * Handle toggle click (legacy method for backward compatibility)
    * @param {string} settingKey - Setting key to toggle
+   * @deprecated Use component-based approach instead
    */
   handleToggle(settingKey) {
     if (!this._settingsManager) return;
     
     const currentValue = this._settingsManager.get(settingKey, false);
-    let newValue;
     
-    if (settingKey === 'editor.theme') {
-      // Toggle between 'dark' and 'light'
-      newValue = currentValue === 'dark' ? 'light' : 'dark';
-    } else {
-      // Boolean toggle
-      newValue = !currentValue;
-    }
+    // Boolean toggle
+    const newValue = !currentValue;
     
     this._settingsManager.set(settingKey, newValue);
     
@@ -525,16 +545,6 @@ class SettingsPanel {
            y <= rect.y + rect.height;
   }
   
-  /**
-   * Hit test for slider
-   * @private
-   */
-  _hitTestSlider(x, y, slider) {
-    return x >= slider.x && 
-           x <= slider.x + slider.width &&
-           y >= slider.y - 10 && 
-           y <= slider.y + 10;
-  }
 }
 
 // Export for Node.js (tests)

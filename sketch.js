@@ -131,6 +131,14 @@ function setup() {
   cameraManager = new CameraManager();
   cameraManager.initialize();
 
+  // Initialize settings system (for configurable editor preferences)
+  if (typeof SettingsManager !== 'undefined') {
+    SettingsManager.getInstance().loadSettings();
+    if (typeof SettingsPanel !== 'undefined') {
+      window.settingsPanel = new SettingsPanel();
+    }
+  }
+
   // Disable right-click context menu to prevent interference with brush controls
   if (typeof document !== 'undefined') {
     // Global context menu prevention
@@ -474,6 +482,10 @@ function draw() {
     }
   }
   
+  // Render SettingsPanel (if visible)
+  if (window.settingsPanel && settingsPanel.visible) {
+    settingsPanel.render();
+  }
 }
 
  /* handleMouseEvent
@@ -497,6 +509,12 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() {
+  // Settings Panel - check first (modal overlay)
+  if (window.settingsPanel && settingsPanel.visible) {
+    settingsPanel.handleClick(mouseX, mouseY);
+    return;
+  }
+  
   // Middle-click pan - handle before all other mouse events
   if (mouseButton === CENTER && typeof MiddleClickPan !== 'undefined') {
     if (MiddleClickPan.handlePress()) return;
@@ -624,6 +642,12 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+  // Settings Panel - handle slider dragging
+  if (window.settingsPanel && settingsPanel.visible) {
+    settingsPanel.handleMouseDrag(mouseX, mouseY);
+    return;
+  }
+  
   // Middle-click pan - handle before all other drag events
   if (mouseButton === CENTER && typeof MiddleClickPan !== 'undefined') {
     if (MiddleClickPan.handleDrag()) return;
@@ -653,6 +677,12 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+  // Settings Panel - stop slider dragging
+  if (window.settingsPanel && settingsPanel.visible) {
+    settingsPanel.handleMouseRelease();
+    return;
+  }
+  
   // Middle-click pan - handle before all other release events
   if (mouseButton === CENTER && typeof MiddleClickPan !== 'undefined') {
     if (MiddleClickPan.handleRelease()) return;
@@ -861,6 +891,12 @@ function doubleClicked() {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  // Settings Panel - Escape to close (check first, highest priority)
+  if (keyCode === ESCAPE && window.settingsPanel && settingsPanel.visible) {
+    settingsPanel.close();
+    return;
+  }
+  
   // Level Editor keyboard shortcuts (if active)
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {

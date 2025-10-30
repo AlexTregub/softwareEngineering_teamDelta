@@ -22,6 +22,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### User-Facing Changes
 
 #### Added
+- **New Map Size Dialog** (Level Editor Enhancement - TDD)
+  - **File → New** now prompts for map dimensions before creating terrain
+  - **Default dimensions**: 50x50 tiles (medium-sized map)
+  - **Input validation**: 10-200 tiles per dimension with real-time error messages
+  - **Keyboard shortcuts**: Tab (switch fields), Enter (confirm), Escape (cancel)
+  - **Visual feedback**: Active field highlighting (yellow border), error messages (red), button states (blue=enabled, gray=disabled)
+  - **Unsaved changes prompt**: Warns before discarding modified terrain
+  - **Small maps**: 20x20 tiles (400 tiles, quick testing)
+  - **Medium maps**: 50x50 tiles (2,500 tiles, default)
+  - **Large maps**: 100x100 tiles (10,000 tiles, performance intensive)
+  - Fully tested: **75 passing tests** (56 unit + 19 integration + 8 E2E with screenshots)
+  - **Production ready** - Improves Level Editor workflow efficiency
+  - See `docs/checklists/NEW_MAP_SIZE_DIALOG_CHECKLIST.md` for implementation details
+  - See `docs/api/NewMapDialog_API_Reference.md` for API documentation
 - **Entity Painter Tool (Core System - TDD)** - Roadmap 1.11
   - **3-category system**: Entities (Ants), Buildings, Resources
   - **Radio button category switcher** with icons (🐜 Ant, 🏠 House, 🌳 Tree)

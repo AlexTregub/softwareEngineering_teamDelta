@@ -75,6 +75,8 @@ class FileMenuBar {
             enabled: true,
             action: () => this._handleNew()
           },
+          // Separator after New
+          { type: 'separator' },
           { 
             label: 'Save', 
             shortcut: 'Ctrl+S',
@@ -92,6 +94,20 @@ class FileMenuBar {
             shortcut: 'Ctrl+E',
             enabled: true,
             action: () => this._handleExport()
+          },
+          // Separator after Export
+          { type: 'separator' },
+          {
+            label: 'Return to Main Menu',
+            shortcut: '',
+            enabled: true,
+            action: () => this._handleReturnToMainMenu()
+          },
+          {
+            label: 'PlayTest',
+            shortcut: '',
+            enabled: true,
+            action: () => this._handlePlayTest()
           }
         ]
       },
@@ -109,6 +125,14 @@ class FileMenuBar {
             shortcut: 'Ctrl+Y',
             enabled: true,
             action: () => this._handleRedo()
+          },
+          // Separator before Settings
+          { type: 'separator' },
+          {
+            label: 'Settings...',
+            shortcut: '',
+            enabled: true,
+            action: () => this._handleSettings()
           }
         ]
       },
@@ -412,15 +436,24 @@ class FileMenuBar {
       const dropdownY = this.position.y + this.height;
       const dropdownWidth = 200;
       
-      // Check each dropdown item
+      // Check each dropdown item (accounting for variable heights)
+      let currentY = dropdownY;
       for (let i = 0; i < menu.items.length; i++) {
         const item = menu.items[i];
-        const itemY = dropdownY + (i * this.style.itemHeight);
+        
+        // Skip separators (non-interactive)
+        if (item.type === 'separator') {
+          currentY += 10; // Separator height
+          continue;
+        }
+        
+        const itemY = currentY;
+        const itemHeight = this.style.itemHeight;
         
         if (mouseX >= menuPos.x && 
             mouseX <= menuPos.x + dropdownWidth &&
             mouseY >= itemY &&
-            mouseY <= itemY + this.style.itemHeight) {
+            mouseY <= itemY + itemHeight) {
           
           // Execute action if enabled
           if (item.enabled && item.action) {
@@ -432,6 +465,8 @@ class FileMenuBar {
           // Still consumed the click even if disabled
           return true;
         }
+        
+        currentY += itemHeight;
       }
     }
     
@@ -605,7 +640,11 @@ class FileMenuBar {
     if (!menuPos) return;
     
     const dropdownWidth = 200;
-    const dropdownHeight = menu.items.length * this.style.itemHeight;
+    // Calculate total height accounting for separators (smaller height)
+    let dropdownHeight = 0;
+    menu.items.forEach(item => {
+      dropdownHeight += item.type === 'separator' ? 10 : this.style.itemHeight;
+    });
     const dropdownY = this.position.y + this.height;
     
     // Dropdown background
@@ -618,9 +657,20 @@ class FileMenuBar {
     textAlign(LEFT, CENTER);
     textSize(this.style.fontSize);
     
+    let currentY = dropdownY;
     for (let i = 0; i < menu.items.length; i++) {
       const item = menu.items[i];
-      const itemY = dropdownY + (i * this.style.itemHeight);
+      
+      // Handle separator rendering
+      if (item.type === 'separator') {
+        stroke(100, 100, 100);
+        strokeWeight(1);
+        line(menuPos.x + 10, currentY + 5, menuPos.x + dropdownWidth - 10, currentY + 5);
+        currentY += 10; // Separator height
+        continue;
+      }
+      
+      const itemY = currentY;
       
       // Check if hovered
       const isHovered = this._isDropdownItemHovered(menuPos.x, itemY, dropdownWidth);
@@ -654,6 +704,8 @@ class FileMenuBar {
           textAlign(LEFT, CENTER_CONST);
         }
       }
+      
+      currentY += this.style.itemHeight;
     }
   }
   
@@ -803,6 +855,101 @@ class FileMenuBar {
       if (notificationsItem) {
         notificationsItem.checked = this.levelEditor.notifications.visible;
       }
+    }
+  }
+  
+  /**
+   * Handle "Return to Main Menu" action
+   * @private
+   */
+  _handleReturnToMainMenu() {
+    // Confirm with user (unsaved changes warning)
+    const confirmed = typeof confirm === 'function' ? 
+      confirm('Return to Main Menu? Unsaved changes will be lost.') : 
+      true;
+    
+    if (confirmed) {
+      // Use GameState manager to transition to menu
+      if (typeof GameState !== 'undefined' && typeof GameState.goToMenu === 'function') {
+        GameState.goToMenu();
+      } else {
+        // Fallback: Change game state directly
+        if (typeof window !== 'undefined') {
+          window.gameState = 'MENU';
+        } else if (typeof global !== 'undefined') {
+          global.gameState = 'MENU';
+        }
+        
+        // Call initializeMenu if available
+        if (typeof initializeMenu === 'function') {
+          initializeMenu();
+        }
+        
+        // Trigger redraw
+        if (typeof redraw === 'function') {
+          redraw();
+        }
+      }
+    }
+  }
+  
+  /**
+   * Handle "PlayTest" action
+   * @private
+   */
+  _handlePlayTest() {
+    // Notify user feature is work in progress
+    if (this.levelEditor && this.levelEditor.notifications) {
+      this.levelEditor.notifications.show(
+        'PlayTest feature is currently under development. Stay tuned!',
+        'info'
+      );
+    }
+    
+    // TODO: Implement PlayTest functionality
+    // - Export terrain to sessionStorage
+    // - Transition to PLAYING state with test terrain loaded
+    // - Allow return to Level Editor after testing
+    
+    /* ORIGINAL INCOMPLETE IMPLEMENTATION:
+    if (this.levelEditor && this.levelEditor.terrainEditor && 
+        typeof this.levelEditor.terrainEditor.exportTerrain === 'function') {
+      
+      const terrainData = this.levelEditor.terrainEditor.exportTerrain();
+      
+      // Save to sessionStorage for playtest
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('playtest_terrain', JSON.stringify(terrainData));
+      }
+      
+      // Change game state to PLAYING
+      if (typeof window !== 'undefined') {
+        window.gameState = 'PLAYING';
+      } else if (typeof global !== 'undefined') {
+        global.gameState = 'PLAYING';
+      }
+      
+      // Trigger redraw
+      if (typeof redraw === 'function') {
+        redraw();
+      }
+    }
+    */
+  }
+  
+  /**
+   * Handle "Settings..." action
+   * @private
+   */
+  _handleSettings() {
+    // Open SettingsPanel if available
+    const settingsPanel = (typeof window !== 'undefined' && window.settingsPanel) || 
+                         (typeof global !== 'undefined' && global.settingsPanel);
+    
+    if (settingsPanel && typeof settingsPanel.open === 'function') {
+      settingsPanel.open();
+    } else {
+      logNormal('SettingsPanel not available');
     }
   }
 }

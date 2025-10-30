@@ -12,8 +12,7 @@
     "autoSave": false,
     "autoSaveInterval": 60,
     "snapToGrid": false,
-    "gridSize": 32,
-    "theme": "dark"
+    "gridSize": 32
   },
   "keybindings": {
     "save": "Ctrl+S",
