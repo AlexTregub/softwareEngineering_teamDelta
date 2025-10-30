@@ -6,6 +6,7 @@
  * - Keyboard navigation
  * - Category organization
  * - Material preview with colors
+ * - Search, favorites, recently used
  */
 class MaterialPalette {
     /**
@@ -38,12 +39,30 @@ class MaterialPalette {
             'rock': '#696969'
         };
         
-        // Material categories
-        this.categories = {
-            'natural': ['moss', 'moss_0', 'moss_1', 'grass'],
-            'solid': ['stone', 'stone_0', 'stone_1', 'rock'],
-            'soil': ['dirt', 'sand']
-        };
+        // Material categories (will be replaced by loadCategories())
+        this.categories = [];
+        
+        // Recently used materials (FIFO queue, max 8)
+        this.recentlyUsed = [];
+        
+        // Search results
+        this.searchResults = null;
+        
+        // Initialize components
+        if (typeof MaterialSearchBar !== 'undefined') {
+            this.searchBar = new MaterialSearchBar({ placeholder: 'Search materials...' });
+        }
+        
+        if (typeof MaterialFavorites !== 'undefined') {
+            this.favorites = new MaterialFavorites();
+        }
+        
+        if (typeof MaterialPreviewTooltip !== 'undefined') {
+            this.tooltip = new MaterialPreviewTooltip();
+        }
+        
+        // Load preferences from LocalStorage
+        this.loadPreferences();
     }
     
     /**
@@ -56,6 +75,10 @@ class MaterialPalette {
         if (index !== -1) {
             this.selectedMaterial = material;
             this.selectedIndex = index;
+            
+            // Add to recently used
+            this.addToRecentlyUsed(material);
+            
             return true;
         }
         return false;
@@ -180,6 +203,222 @@ class MaterialPalette {
     }
     
     /**
+     * Load categories from config
+     * @param {Object} categoryConfig - Category configuration object
+     */
+    loadCategories(categoryConfig) {
+        if (!categoryConfig || !categoryConfig.categories) {
+            return;
+        }
+        
+        this.categories = [];
+        
+        // Create MaterialCategory instances if available
+        if (typeof MaterialCategory !== 'undefined') {
+            categoryConfig.categories.forEach(catConfig => {
+                const category = new MaterialCategory(
+                    catConfig.id,
+                    catConfig.name,
+                    catConfig.materials,
+                    { defaultExpanded: catConfig.defaultExpanded }
+                );
+                this.categories.push(category);
+            });
+        }
+    }
+    
+    /**
+     * Search materials by name
+     * @param {string} query - Search query (case-insensitive)
+     * @returns {Array<string>} Filtered materials
+     */
+    searchMaterials(query) {
+        if (!query || query.trim() === '') {
+            this.searchResults = null;
+            return [...this.materials];
+        }
+        
+        const lowerQuery = query.toLowerCase();
+        this.searchResults = this.materials.filter(material => 
+            material.toLowerCase().includes(lowerQuery)
+        );
+        
+        return [...this.searchResults];
+    }
+    
+    /**
+     * Toggle category expanded state
+     * @param {string} categoryId - Category ID
+     */
+    toggleCategory(categoryId) {
+        const category = this.categories.find(cat => cat.id === categoryId);
+        if (category) {
+            category.toggle();
+        }
+    }
+    
+    /**
+     * Expand all categories
+     */
+    expandAll() {
+        this.categories.forEach(cat => cat.expand());
+    }
+    
+    /**
+     * Collapse all categories
+     */
+    collapseAll() {
+        this.categories.forEach(cat => cat.collapse());
+    }
+    
+    /**
+     * Add material to recently used (FIFO, max 8)
+     * @param {string} material - Material name
+     */
+    addToRecentlyUsed(material) {
+        // Remove if already exists (move to front)
+        const existingIndex = this.recentlyUsed.indexOf(material);
+        if (existingIndex !== -1) {
+            this.recentlyUsed.splice(existingIndex, 1);
+        }
+        
+        // Add to front
+        this.recentlyUsed.unshift(material);
+        
+        // Limit to 8
+        if (this.recentlyUsed.length > 8) {
+            this.recentlyUsed = this.recentlyUsed.slice(0, 8);
+        }
+    }
+    
+    /**
+     * Get recently used materials
+     * @returns {Array<string>} Recently used materials
+     */
+    getRecentlyUsed() {
+        return [...this.recentlyUsed];
+    }
+    
+    /**
+     * Toggle favorite
+     * @param {string} material - Material name
+     */
+    toggleFavorite(material) {
+        if (this.favorites) {
+            this.favorites.toggle(material);
+        }
+    }
+    
+    /**
+     * Check if material is favorite
+     * @param {string} material - Material name
+     * @returns {boolean} True if favorite
+     */
+    isFavorite(material) {
+        if (this.favorites) {
+            return this.favorites.has(material);
+        }
+        return false;
+    }
+    
+    /**
+     * Get all favorites
+     * @returns {Array<string>} Favorite materials
+     */
+    getFavorites() {
+        if (this.favorites) {
+            return this.favorites.getAll();
+        }
+        return [];
+    }
+    
+    /**
+     * Save preferences to LocalStorage
+     */
+    savePreferences() {
+        // Save recently used
+        try {
+            localStorage.setItem('materialPalette.recentlyUsed', JSON.stringify(this.recentlyUsed));
+        } catch (e) {
+            console.warn('Failed to save recently used:', e);
+        }
+        
+        // Save favorites
+        if (this.favorites) {
+            this.favorites.save();
+        }
+    }
+    
+    /**
+     * Load preferences from LocalStorage
+     */
+    loadPreferences() {
+        // Load recently used
+        try {
+            const stored = localStorage.getItem('materialPalette.recentlyUsed');
+            if (stored) {
+                this.recentlyUsed = JSON.parse(stored);
+            }
+        } catch (e) {
+            console.warn('Failed to load recently used:', e);
+            this.recentlyUsed = [];
+        }
+        
+        // Load favorites
+        if (this.favorites) {
+            this.favorites.load();
+        }
+    }
+    
+    /**
+     * Handle hover for tooltip
+     * @param {number} mouseX - Mouse X coordinate
+     * @param {number} mouseY - Mouse Y coordinate
+     * @param {number} panelX - Panel X position
+     * @param {number} panelY - Panel Y position
+     */
+    handleHover(mouseX, mouseY, panelX, panelY) {
+        if (!this.tooltip) {
+            return;
+        }
+        
+        // Check if hovering over a material swatch
+        // This is simplified - full implementation would check categories, etc.
+        const swatchSize = 40;
+        const spacing = 5;
+        const columns = 2;
+        
+        let swatchX = panelX + spacing;
+        let swatchY = panelY + spacing + 50; // Offset for search bar
+        let col = 0;
+        
+        let hoveredMaterial = null;
+        
+        for (let i = 0; i < this.materials.length; i++) {
+            if (mouseX >= swatchX && mouseX <= swatchX + swatchSize &&
+                mouseY >= swatchY && mouseY <= swatchY + swatchSize) {
+                hoveredMaterial = this.materials[i];
+                break;
+            }
+            
+            col++;
+            if (col >= columns) {
+                col = 0;
+                swatchX = panelX + spacing;
+                swatchY += swatchSize + spacing;
+            } else {
+                swatchX += swatchSize + spacing;
+            }
+        }
+        
+        if (hoveredMaterial) {
+            this.tooltip.show(hoveredMaterial, mouseX, mouseY);
+        } else {
+            this.tooltip.hide();
+        }
+    }
+    
+    /**
      * Handle mouse click
      * @param {number} mouseX - Mouse X coordinate
      * @param {number} mouseY - Mouse Y coordinate
@@ -241,8 +480,10 @@ class MaterialPalette {
      * Render the material palette
      * @param {number} x - X position
      * @param {number} y - Y position
+     * @param {number} width - Panel width
+     * @param {number} height - Panel height
      */
-    render(x, y) {
+    render(x, y, width, height) {
         if (typeof push === 'undefined') {
             // p5.js not available
             return;
@@ -250,20 +491,66 @@ class MaterialPalette {
         
         push();
         
+        let currentY = y;
+        
+        // Render search bar
+        if (this.searchBar) {
+            this.searchBar.render(x, currentY, width, 40);
+            currentY += 45;
+        }
+        
+        // Render recently used section (if non-empty)
+        if (this.recentlyUsed.length > 0) {
+            fill(200);
+            noStroke();
+            textAlign(LEFT, TOP);
+            textSize(12);
+            text('Recently Used', x + 5, currentY);
+            currentY += 20;
+            
+            // Render recently used swatches
+            this._renderMaterialSwatches(this.recentlyUsed, x, currentY, width);
+            const rows = Math.ceil(this.recentlyUsed.length / 2);
+            currentY += rows * 45 + 10;
+        }
+        
+        // Render categories (if loaded)
+        if (this.categories.length > 0) {
+            this.categories.forEach(category => {
+                category.render(x, currentY, width);
+                currentY += category.getHeight();
+            });
+        } else {
+            // Fallback: render all materials (legacy mode)
+            this._renderMaterialSwatches(this.materials, x, currentY, width);
+        }
+        
+        // Render tooltip
+        if (this.tooltip) {
+            this.tooltip.render();
+        }
+        
+        pop();
+    }
+    
+    /**
+     * Render material swatches
+     * @param {Array<string>} materials - Materials to render
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {number} width - Panel width
+     * @private
+     */
+    _renderMaterialSwatches(materials, x, y, width) {
         const swatchSize = 40;
         const spacing = 5;
         const columns = 2;
-        const panelWidth = columns * swatchSize + (columns + 1) * spacing;
-        const panelHeight = Math.ceil(this.materials.length / columns) * (swatchSize + spacing) + spacing + 30;
         
-        // NO background panel or title - draggable panel provides this
-        
-        // Material swatches
         let swatchX = x + spacing;
-        let swatchY = y + spacing;
+        let swatchY = y;
         let col = 0;
         
-        this.materials.forEach((material, index) => {
+        materials.forEach((material, index) => {
             // Highlight if selected
             if (this.isHighlighted(material)) {
                 fill(255, 255, 0);
@@ -275,13 +562,10 @@ class MaterialPalette {
             // Try to render with terrain texture first
             let textureRendered = false;
             if (typeof TERRAIN_MATERIALS_RANGED !== 'undefined' && TERRAIN_MATERIALS_RANGED[material]) {
-                // Use the terrain's render function to draw the texture
                 const renderFunction = TERRAIN_MATERIALS_RANGED[material][1];
                 if (typeof renderFunction === 'function') {
                     push();
                     noStroke();
-                    // Ensure imageMode is CORNER for correct texture positioning
-                    // (Menu and other UI elements may have set it to CENTER)
                     if (typeof imageMode !== 'undefined') {
                         const cornerMode = typeof CORNER !== 'undefined' ? CORNER : 'corner';
                         imageMode(cornerMode);
@@ -292,7 +576,7 @@ class MaterialPalette {
                 }
             }
             
-            // Fallback to color swatch if texture not available
+            // Fallback to color swatch
             if (!textureRendered) {
                 const color = this.getMaterialColor(material);
                 const rgb = this._hexToRgb(color);
@@ -302,12 +586,11 @@ class MaterialPalette {
                 rect(swatchX, swatchY, swatchSize, swatchSize, 2);
             }
             
-            // Material name (abbreviated) - always draw on top
+            // Material name
             fill(255);
             noStroke();
             textAlign(CENTER, CENTER);
             textSize(8);
-            // Don't truncate - render full material name
             text(material, swatchX + swatchSize / 2, swatchY + swatchSize / 2);
             
             // Move to next position
@@ -320,8 +603,6 @@ class MaterialPalette {
                 swatchX += swatchSize + spacing;
             }
         });
-        
-        pop();
     }
     
     /**

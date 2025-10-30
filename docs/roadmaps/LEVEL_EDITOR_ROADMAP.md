@@ -209,8 +209,6 @@ This roadmap tracks all features for the Level Editor system, from basic terrain
 - **Ants**: Worker, soldier, queen (different types)
 - **Resources**: Food, wood, stone (resource nodes)
 - **Buildings**: Colony, storage, defense structures
-- **Spawners**: Enemy spawners, resource spawners
-- **NPCs**: Quest givers, merchants (future)
 
 **Requirements**:
 - Entity Painter tool in toolbar

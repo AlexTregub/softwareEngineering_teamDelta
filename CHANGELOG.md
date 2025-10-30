@@ -35,6 +35,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - See `docs/roadmaps/GRID_OVERLAY_REWRITE_ROADMAP.md` for TDD plan
 
 #### Added
+- **No Tool Mode** (Level Editor Enhancement - TDD)
+  - Level Editor now starts with no tool selected (prevents accidental edits)
+  - **ESC key deselects current tool** - Returns to No Tool mode instantly
+  - **Terrain clicks ignored** when no tool active (no accidental painting/erasing)
+  - **Visual feedback**: Toolbar shows no highlighted tool in No Tool mode
+  - **UX improvement**: Must explicitly select a tool before editing terrain
+  - Keyboard shortcut: ESC to deselect any active tool
+  - Notifications: "Tool deselected (No Tool mode)" when ESC pressed
+  - Fully tested with 45 passing tests (23 unit + 16 integration + 6 E2E with screenshots)
+  - **Production ready** - Prevents most common user error (unintended terrain edits)
+  - See `docs/checklists/active/TOOL_DEACTIVATION_NO_TOOL_MODE_CHECKLIST.md` for implementation details
+  - See `docs/roadmaps/LEVEL_EDITOR_ROADMAP.md` Phase 1.10 for requirements
+
 - **Eraser Tool** (Level Editor Enhancement - TDD)
   - Remove painted tiles with eraser tool in Level Editor
   - **Click-to-erase functionality** - Fully wired up in LevelEditor.handleClick()
@@ -204,6 +217,47 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - **Breaking**: NO - Only affects internal export mechanism
 
 #### Added
+- **ToolBar.deselectTool()** (`Classes/ui/ToolBar.js`)
+  - Deselect current tool and return to No Tool mode
+  - **Parameters**: None
+  - **Returns**: void
+  - **Behavior**:
+    - Sets `selectedTool` to `null`
+    - Fires `onToolChange` callback with `(null, oldTool)` if callback registered
+    - Safe to call when no tool active (idempotent)
+  - **Use Case**: ESC key handler, programmatic tool deselection
+  - **Tests**: 5 unit tests (deselection, callbacks, edge cases)
+
+- **ToolBar.hasActiveTool()** (`Classes/ui/ToolBar.js`)
+  - Check if a tool is currently selected
+  - **Parameters**: None
+  - **Returns**: `boolean` - `true` if tool active, `false` if null or undefined
+  - **Behavior**: Returns `selectedTool !== null && selectedTool !== undefined`
+  - **Use Case**: ESC key handler, conditional rendering, state checks
+  - **Tests**: 4 unit tests (null, undefined, active tool, string tool)
+
+- **ToolBar Default State** (`Classes/ui/ToolBar.js`)
+  - Changed constructor: `this.selectedTool = null` (was `'brush'`)
+  - Level Editor now opens with no tool selected
+  - **Breaking**: NO - Toolbar still functional, just safer default
+  - **Migration**: If code assumes tool always active, add null checks
+  - **Tests**: 3 unit tests (initialization, getSelectedTool null, rendering with null)
+
+- **LevelEditor ESC Key Handler** (`Classes/systems/ui/LevelEditor.js`)
+  - ESC key calls `toolbar.deselectTool()` when tool active
+  - Shows notification: "Tool deselected (No Tool mode)"
+  - Position: Line ~1495 in `handleKeyPress()` method
+  - **Use Case**: Quick tool deselection without clicking toolbar
+  - **Tests**: 6 E2E tests with screenshots (ESC deselection, multiple ESC presses, workflows)
+
+- **LevelEditor Terrain Click Prevention** (`Classes/systems/ui/LevelEditor.js`)
+  - Early return when `toolbar.getSelectedTool() === null`
+  - Prevents terrain edits (paint, erase, fill) when no tool active
+  - Console log: "🚫 [NO TOOL] No tool active - click ignored"
+  - Position: Line ~468 in `handleClick()` method
+  - **Use Case**: Prevents accidental terrain edits
+  - **Tests**: 4 E2E tests (terrain clicks ignored, multiple tool transitions)
+
 - **TerrainEditor.erase()** (`Classes/terrainUtils/TerrainEditor.js`)
   - Erase tiles with brush size support
   - **Parameters**: `erase(x, y, brushSize)` - Grid coordinates and brush size (1, 3, 5, etc.)

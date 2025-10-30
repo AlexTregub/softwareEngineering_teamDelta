@@ -12,6 +12,8 @@
 
 **AVOID DUPLICATION**: If you write the same code twice, extract it to a helper/utility.
 
+**NO CODE IN CHECKLISTS**: Checklists should only contain task descriptions, key design decisions, and algorithms used. Tests serve as implementation documentation.
+
 ### ⚠️ CRITICAL:  Test-Driven Development (TDD)
 
 **WE FOLLOW STRICT TDD**. Write tests FIRST, then implement.
@@ -659,6 +661,41 @@ window.SomeClass = global.SomeClass; // Required
 **Transforms**:
 - `screenToWorld(mouseX, mouseY)` - screen to world coords
 - `worldToScreen(entityX, entityY)` - world to screen coords
+
+## Level JSON File System
+
+**⚠️ CRITICAL**: Level data must be stored in **ONE JSON file** containing both terrain and entities.
+
+**Grid Coordinate System**:
+- Entity positions stored as **grid coordinates** (tile-based), NOT world pixel coordinates
+- Convert grid → world when loading: `worldX = gridX * TILE_SIZE`, `worldY = gridY * TILE_SIZE`
+- Convert world → grid when saving: `gridX = Math.floor(worldX / TILE_SIZE)`, `gridY = Math.floor(worldY / TILE_SIZE)`
+
+**Level JSON Structure**:
+```json
+{
+  "id": "level_001",
+  "terrain": { ... },
+  "entities": [
+    {
+      "id": "entity_001",
+      "type": "Ant",
+      "gridPosition": { "x": 10, "y": 15 },
+      "properties": { "JobName": "Worker", "faction": "player" }
+    }
+  ]
+}
+```
+
+**Parsing & Loading Algorithm**:
+1. Read single JSON file
+2. Parse terrain data → recreate terrain
+3. Parse entities array → for each entity:
+   - Extract grid coordinates
+   - Convert to world coordinates
+   - Determine entity type (Ant, Resource, Building)
+   - Call appropriate constructor
+   - Add to game world
 
 ## Documentation Standards
 

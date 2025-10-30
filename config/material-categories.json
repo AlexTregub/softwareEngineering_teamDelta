@@ -1,0 +1,51 @@
+{
+  "categories": [
+    {
+      "id": "ground",
+      "name": "Ground",
+      "icon": "🟫",
+      "defaultExpanded": true,
+      "materials": ["dirt", "sand"]
+    },
+    {
+      "id": "stone",
+      "name": "Stone",
+      "icon": "🪨",
+      "defaultExpanded": false,
+      "materials": ["stone"]
+    },
+    {
+      "id": "vegetation",
+      "name": "Vegetation",
+      "icon": "🌱",
+      "defaultExpanded": true,
+      "materials": ["grass", "moss", "moss_1"]
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "icon": "💧",
+      "defaultExpanded": false,
+      "materials": ["water", "water_cave"]
+    },
+    {
+      "id": "cave",
+      "name": "Cave",
+      "icon": "🕳️",
+      "defaultExpanded": false,
+      "materials": ["cave_1", "cave_2", "cave_3", "cave_dark", "cave_dirt"]
+    },
+    {
+      "id": "special",
+      "name": "Special",
+      "icon": "✨",
+      "defaultExpanded": false,
+      "materials": ["farmland", "NONE"]
+    }
+  ],
+  "uncategorized": {
+    "name": "Other",
+    "icon": "❓",
+    "materials": []
+  }
+}
