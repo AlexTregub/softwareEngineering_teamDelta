@@ -14,7 +14,8 @@ class ToolBar {
      * @param {Array<Object>} toolConfigs - Optional tool configurations [{name, icon, tooltip}]
      */
     constructor(toolConfigs = null) {
-        this.selectedTool = toolConfigs ? toolConfigs[0].name : 'brush';
+        // Default to No Tool mode (null) - user must explicitly select a tool
+        this.selectedTool = null;
         
         // Callback for tool changes
         this.onToolChange = null;
@@ -39,10 +40,10 @@ class ToolBar {
             // Default tools
             this.tools = {
                 'brush': { name: 'Brush', icon: '🖌️', shortcut: 'B', group: 'drawing', enabled: true },
+                'eraser': { name: 'Eraser', icon: '🧱', shortcut: 'E', group: 'drawing', enabled: true },
                 'fill': { name: 'Fill', icon: '🪣', shortcut: 'F', group: 'drawing', enabled: true },
                 'rectangle': { name: 'Rectangle', icon: '▭', shortcut: 'R', group: 'drawing', enabled: true },
                 'line': { name: 'Line', icon: '/', shortcut: 'L', group: 'drawing', enabled: true },
-                'eraser': { name: 'Eraser', icon: '🧹', shortcut: 'E', group: 'drawing', enabled: true },
                 'eyedropper': { name: 'Eyedropper', icon: '💧', shortcut: 'I', group: 'selection', enabled: true },
                 'undo': { name: 'Undo', icon: '↶', shortcut: 'Ctrl+Z', group: 'edit', enabled: false },
                 'redo': { name: 'Redo', icon: '↷', shortcut: 'Ctrl+Y', group: 'edit', enabled: false }
@@ -50,7 +51,7 @@ class ToolBar {
             
             // Tool groups
             this.groups = {
-                'drawing': ['brush', 'fill', 'rectangle', 'line', 'eraser'],
+                'drawing': ['brush', 'eraser', 'fill', 'rectangle', 'line'],
                 'selection': ['eyedropper'],
                 'edit': ['undo', 'redo']
             };
@@ -79,10 +80,32 @@ class ToolBar {
     
     /**
      * Get currently selected tool
-     * @returns {string} Tool name
+     * @returns {string|null} Tool name or null if no tool selected
      */
     getSelectedTool() {
         return this.selectedTool;
+    }
+    
+    /**
+     * Deselect the current tool (No Tool mode)
+     * In No Tool mode, clicking terrain does nothing
+     */
+    deselectTool() {
+        const oldTool = this.selectedTool;
+        this.selectedTool = null;
+        
+        // Call callback if tool changed (not already null)
+        if (oldTool !== null && this.onToolChange) {
+            this.onToolChange(null, oldTool);
+        }
+    }
+    
+    /**
+     * Check if any tool is currently active
+     * @returns {boolean} True if tool selected, false if No Tool mode
+     */
+    hasActiveTool() {
+        return this.selectedTool !== null && this.selectedTool !== undefined;
     }
     
     /**

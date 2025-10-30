@@ -61,6 +61,10 @@ class DraggablePanel {
     this.isDragging = false;
     this.dragOffset = { x: 0, y: 0 };
     
+    // Click origin tracking (prevents drag hijacking during painting)
+    this.clickStartedOnTitleBar = false;
+    this._wasMousePressed = false;
+    
     // Position state with persistence (MUST be initialized before buttons)
     this.state = {
       position: { ...this.config.position },
@@ -261,6 +265,17 @@ class DraggablePanel {
   update(mouseX, mouseY, mousePressed) {
     if (!this.state.visible) return false;
 
+    // Track click origin (prevents drag hijacking during painting)
+    if (mousePressed && !this._wasMousePressed) {
+      // Mouse just pressed - record if click started on title bar
+      const titleBarBounds = this.getTitleBarBounds();
+      this.clickStartedOnTitleBar = this.isPointInBounds(mouseX, mouseY, titleBarBounds);
+    } else if (!mousePressed && this._wasMousePressed) {
+      // Mouse just released - reset click origin
+      this.clickStartedOnTitleBar = false;
+    }
+    this._wasMousePressed = mousePressed;
+
     // Check if mouse is over this panel
     const mouseOverPanel = this.isMouseOver(mouseX, mouseY);
 
@@ -274,8 +289,9 @@ class DraggablePanel {
     this.updateButtonPositions();
 
     // Check for built-in minimize button click (on right side of title bar)
+    // Only allow minimize if click started on title bar (prevents activation during painting)
     let minimizeButtonClicked = false;
-    if (!this.isDragging && mousePressed && !this._lastMinimizeClick) {
+    if (!this.isDragging && mousePressed && !this._lastMinimizeClick && this.clickStartedOnTitleBar) {
       const titleBarHeight = this.calculateTitleBarHeight();
       const scale = 1; // TODO: Get from camera if needed
       const buttonSize = 18 * scale; // Match rendering size
@@ -333,8 +349,10 @@ class DraggablePanel {
   handleDragging(mouseX, mouseY, mousePressed) {
     const titleBarBounds = this.getTitleBarBounds();
     
-    // Start dragging if mouse is pressed and within title bar
-    if (mousePressed && !this.isDragging && this.isPointInBounds(mouseX, mouseY, titleBarBounds)) {
+    // Start dragging ONLY if click started on title bar (prevents drag hijacking during painting)
+    if (mousePressed && !this.isDragging && 
+        this.clickStartedOnTitleBar &&  // NEW: Check if click originated on title bar
+        this.isPointInBounds(mouseX, mouseY, titleBarBounds)) {
       this.isDragging = true;
       this.dragOffset = {
         x: mouseX - this.state.position.x,

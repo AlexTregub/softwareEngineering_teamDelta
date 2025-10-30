@@ -33,6 +33,7 @@ class LevelEditor {
     // UI state
     this.showGrid = true;
     this.showMinimap = true;
+    this.isDragging = false; // Track if user is actively dragging (paint/erase)
     
     // Camera for level editor
     this.editorCamera = null;
@@ -62,15 +63,15 @@ class LevelEditor {
     this.palette = new MaterialPalette();
     this.palette.selectMaterial('grass'); // Default selection
     
-    // Create toolbar with tools
+    // Create toolbar with tools (starts in No Tool mode)
     this.toolbar = new ToolBar([
       { name: 'paint', icon: '🖌️', tooltip: 'Paint Tool' },
+      { name: 'eraser', icon: '🧱', tooltip: 'Eraser Tool', shortcut: 'E' },
       { name: 'fill', icon: '🪣', tooltip: 'Fill Tool' },
       { name: 'eyedropper', icon: '💧', tooltip: 'Pick Material' },
-      { name: 'select', icon: '⬚', tooltip: 'Select Region' },
-      { name: 'eraser', icon: '🧹', tooltip: 'Eraser Tool', shortcut: 'E' }
+      { name: 'select', icon: '⬚', tooltip: 'Select Region' }
     ]);
-    this.toolbar.selectTool('paint');
+    // No tool selected by default - user must explicitly choose a tool
     
     // Listen for tool changes to update brush size visibility
     this.toolbar.onToolChange = (newTool, oldTool) => {
@@ -466,6 +467,13 @@ class LevelEditor {
     
     // If no UI was clicked, handle terrain editing
     const tool = this.toolbar.getSelectedTool();
+    
+    // CRITICAL: Early return if no tool active (No Tool mode)
+    if (tool === null) {
+      console.log('🚫 [NO TOOL] No tool active - click ignored');
+      return; // Do nothing, prevent terrain edits
+    }
+    
     const material = this.palette.getSelectedMaterial();
     
     // Debug: Check if parameter mouseX/Y differs from global
@@ -489,6 +497,9 @@ class LevelEditor {
     // Apply tool action
     switch(tool) {
       case 'paint':
+        // Mark as dragging for darker highlight
+        this.isDragging = true;
+        
         const brushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
           this.fileMenuBar.brushSizeModule.getSize() : 1;
         this.editor.setBrushSize(brushSize);
@@ -542,6 +553,9 @@ class LevelEditor {
         break;
         
       case 'eraser':
+        // Mark as dragging for darker highlight
+        this.isDragging = true;
+        
         const eraserBrushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
           this.fileMenuBar.brushSizeModule.getSize() : 1;
         const erasedCount = this.editor.erase(gridX, gridY, eraserBrushSize);
@@ -673,28 +687,53 @@ class LevelEditor {
       return;
     }
     
-    // Paint tool supports continuous dragging
-    if (tool !== 'paint') {
-      return; // Other tools don't support drag painting
+    // Paint and eraser tools support continuous dragging
+    if (tool === 'paint') {
+      // Mark as dragging for darker highlight
+      this.isDragging = true;
+      
+      // Update hover preview to follow mouse during drag
+      this.handleHover(mouseX, mouseY);
+      
+      // Paint at current mouse position
+      const material = this.palette.getSelectedMaterial();
+      
+      const brushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
+        this.fileMenuBar.brushSizeModule.getSize() : 1;
+      this.editor.setBrushSize(brushSize);
+      this.editor.selectMaterial(material);
+      this.editor.paint(gridX, gridY);
+      
+      // Notify minimap of terrain edit (debounced cache invalidation)
+      if (this.minimap && this.minimap.scheduleInvalidation) {
+        this.minimap.scheduleInvalidation();
+      }
+      
+      // Update undo/redo buttons
+      this.toolbar.setEnabled('undo', this.editor.canUndo());
+      this.toolbar.setEnabled('redo', this.editor.canRedo());
+    } else if (tool === 'eraser') {
+      // Mark as dragging for darker highlight
+      this.isDragging = true;
+      
+      // Update hover preview to follow mouse during drag
+      this.handleHover(mouseX, mouseY);
+      
+      // Erase at current mouse position
+      const brushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
+        this.fileMenuBar.brushSizeModule.getSize() : 1;
+      
+      const erasedCount = this.editor.erase(gridX, gridY, brushSize);
+      
+      // Notify minimap of terrain edit (debounced cache invalidation)
+      if (this.minimap && this.minimap.scheduleInvalidation) {
+        this.minimap.scheduleInvalidation();
+      }
+      
+      // Update undo/redo buttons
+      this.toolbar.setEnabled('undo', this.editor.canUndo());
+      this.toolbar.setEnabled('redo', this.editor.canRedo());
     }
-    
-    // Paint at current mouse position
-    const material = this.palette.getSelectedMaterial();
-    
-    const brushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
-      this.fileMenuBar.brushSizeModule.getSize() : 1;
-    this.editor.setBrushSize(brushSize);
-    this.editor.selectMaterial(material);
-    this.editor.paint(gridX, gridY);
-    
-    // Notify minimap of terrain edit (debounced cache invalidation)
-    if (this.minimap && this.minimap.scheduleInvalidation) {
-      this.minimap.scheduleInvalidation();
-    }
-    
-    // Update undo/redo buttons
-    this.toolbar.setEnabled('undo', this.editor.canUndo());
-    this.toolbar.setEnabled('redo', this.editor.canRedo());
   }
   
   /**
@@ -702,6 +741,9 @@ class LevelEditor {
    */
   handleMouseRelease(mouseX, mouseY) {
     if (!this.active) return;
+    
+    // Reset dragging flag to restore normal highlight opacity
+    this.isDragging = false;
     
     // Priority 1: Complete placement if in placement mode
     if (this.eventEditor && this.eventEditor.isInPlacementMode && this.eventEditor.isInPlacementMode()) {
@@ -1134,9 +1176,12 @@ class LevelEditor {
         break;
     }
     
+    // Darker highlight when actively dragging (painting/erasing)
+    const alpha = this.isDragging ? 150 : 80;
+    
     push();
     noStroke();
-    fill(r, g, b, 80); // Semi-transparent overlay
+    fill(r, g, b, alpha); // Semi-transparent overlay (darker when dragging)
     
     tiles.forEach(tile => {
       const pixelX = tile.x * tileSize;
@@ -1452,6 +1497,16 @@ class LevelEditor {
       if (this.eventEditor && this.eventEditor.isDragging()) {
         this.eventEditor.cancelDrag();
         logNormal('Event drag cancelled');
+        return; // Don't process other Escape handlers
+      }
+      
+      // Then deselect tool (No Tool mode)
+      if (this.toolbar && this.toolbar.hasActiveTool()) {
+        this.toolbar.deselectTool();
+        if (this.notifications) {
+          this.notifications.show('Tool deselected (No Tool mode)');
+        }
+        logNormal('Tool deselected via ESC key');
         return; // Don't process other Escape handlers
       }
     }

@@ -8,23 +8,6 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
 
 ### Open ❌
 
-- [ ] **DynamicGridOverlay: Severe Performance Issues (REWRITE IN PROGRESS)**
-  - File: `Classes/ui/DynamicGridOverlay.js`
-  - Issue: Grid overlay causes frame drops and stuttering when painting tiles
-  - Priority: CRITICAL (blocks Level Editor usage)
-  - Expected: 60 fps with 100+ painted tiles
-  - Current: Severe frame drops (10-30 fps) even with small painted areas
-  - Root Cause: 
-    - Complex edge detection with O(n²) nested loops
-    - Aggressive feathering calculations with poor cache performance
-    - Multiple Set creations per frame for neighbor checking
-    - Opacity sampling at 5+ points per grid line
-    - Cache invalidation logic triggers too frequently
-  - Solution: Complete rewrite using TDD approach (see `docs/roadmaps/GRID_OVERLAY_REWRITE_ROADMAP.md`)
-  - Status: OLD IMPLEMENTATION REMOVED, starting from scratch with tests-first
-  - Timeline: 5-7 hours estimated for TDD rewrite
-  - Note: Previous "edge-only rendering" approach archived - too complex
-
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
   - File: `Classes/systems/ui/LevelEditor.js` (handleZoom method)
   - Issue: When zooming with mouse wheel in Level Editor, zoom doesn't focus on mouse pointer correctly
@@ -34,7 +17,31 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
   - Note: PLAYING state zoom works correctly via cameraManager
   - Root Cause: Level Editor uses center-based scaling transform while CameraManager uses simple transform
 
+- [ ] **Level Editor: MenuBar needs to resize with window**
+  - Issue: When expanding the window, the menu bar size remains the same and is
+  visabliy cut off
+  - Priority: MEDIUM (UX)
+  - Expected: When a user resizes the window, the bar extends to the new window width
+  - Current: MenuBar size is static and decided when the user enters the LevelEditor
+
 ### Fixed ✅
+
+- [x] **DraggablePanel: Starts Dragging/Minimizing When Painting Over Title Bar**
+  - File: `Classes/systems/ui/DraggablePanel.js` (handleDragging method, update method, minimize button check)
+  - Issue: When user is painting/erasing with mouse held down and moves over a panel's title bar, the panel starts dragging or minimize button activates instead of continuing to paint
+  - Priority: HIGH (interrupts painting workflow)
+  - Root Cause: Neither `handleDragging()` nor minimize button check verified if user initiated the click on the panel - only checked `if (mousePressed && isPointInBounds(titleBar))`
+  - Fix: Added click origin tracking
+    1. Added `clickStartedOnTitleBar` flag to track where mouse click originated
+    2. Added `_wasMousePressed` flag to detect mouse press/release edges
+    3. Track click origin in `update()` method (sets flag true only if click starts on title bar)
+    4. Reset flag when mouse released
+    5. Updated `handleDragging()` to require `this.clickStartedOnTitleBar && isPointInBounds(titleBar)`
+    6. Updated minimize button check to require `this.clickStartedOnTitleBar`
+  - Implementation: Self-contained solution (no system coupling), tracks click origin on press edge
+  - Tests: 13/13 unit tests passing (click origin tracking + drag prevention + minimize protection)
+  - Result: Panel only drags/minimizes if click started on title bar, painting workflow no longer interrupted
+  - Fixed: October 29, 2025
 
 - [x] **DraggablePanel: Boundary Detection Bug**
   - File: `Classes/systems/ui/DraggablePanel.js`
@@ -166,9 +173,9 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
 
 ## Statistics
 
-- **Total Issues**: 12
-- **Fixed**: 11
-- **Open**: 1
+- **Total Issues**: 13
+- **Fixed**: 12
+- **Open**: 2
 - **High Priority Open**: 0
 
 ---

@@ -145,7 +145,7 @@ This roadmap tracks all features for the Level Editor system, from basic terrain
 - [ ] Visual eraser cursor indicator (deferred - requires UI event wiring)
 - [x] Undo/redo support for eraser operations
 - [x] Integration with SparseTerrain (remove tiles from sparse storage using `deleteTile()`)
-- [x] Toolbar button with eraser icon (🧹, shortcut 'E')
+- [x] Toolbar button with eraser icon 
 
 **Implementation**:
 - Core erase functionality: TerrainEditor.erase(x, y, brushSize)
@@ -166,27 +166,33 @@ This roadmap tracks all features for the Level Editor system, from basic terrain
 
 ---
 
-### 1.10 Tool Deactivation (No Tool Mode) ⏳
-**Status**: Planned (Default State)
-- [ ] "No Tool" mode as default state (no active tool)
-- [ ] Clicking terrain does nothing when no tool active
-- [ ] Visual indicator showing no tool selected
-- [ ] ESC key to deselect current tool
-- [ ] Only UI interactions allowed (panels, buttons, dialogs)
-- [ ] Prevent accidental terrain edits
+### 1.10 Tool Deactivation (No Tool Mode) ✅
+**Status**: Complete (October 29, 2025)
+- [x] "No Tool" mode as default state (no active tool)
+- [x] Clicking terrain does nothing when no tool active
+- [x] Visual indicator showing no tool selected
+- [x] ESC key to deselect current tool
+- [x] Only UI interactions allowed (panels, buttons, dialogs)
+- [x] Prevent accidental terrain edits
 
-**Requirements**:
-- Default state: No tool selected on Level Editor open
-- Toolbar shows no highlighted tool
-- Mouse cursor normal (not paint/erase cursor)
-- Click terrain → No action
-- ESC key → Deselect current tool, return to No Tool mode
+**Implementation**:
+- Default state: No tool selected on Level Editor open ✅
+- Toolbar shows no highlighted tool ✅
+- Mouse cursor normal (not paint/erase cursor) ✅
+- Click terrain → Early return, no action ✅
+- ESC key → Calls `toolbar.deselectTool()` ✅
 
-**Files**: 
-- `Classes/ui/ToolBar.js` (add No Tool state)
-- `Classes/systems/ui/LevelEditor.js` (handle No Tool state)
+**Files Modified**: 
+- `Classes/ui/ToolBar.js` - Added `deselectTool()`, `hasActiveTool()`, default null
+- `Classes/systems/ui/LevelEditor.js` - ESC handler, early return for null tool
 
-**Tests**: Unit + integration tests
+**Tests**: 
+- Unit: 23 passing ✅
+- Integration: 16 passing ✅
+- E2E: 6 passing with screenshots ✅
+- **Total**: 45 tests passing
+
+**Checklist**: `docs/checklists/active/TOOL_DEACTIVATION_NO_TOOL_MODE_CHECKLIST.md` (Phases 1-5 complete)
 
 ---
 

@@ -463,6 +463,78 @@ npx mocha "test/integration/terrainUtils/eraserTool.integration.test.js"
 
 ---
 
+### Issue #7: Eraser Tool Positioning and Drag Support ✅ FIXED
+**Status**: ✅ RESOLVED (October 29, 2025)
+**User Requests**:
+1. Move eraser to be right below paint brush on toolbar
+2. Add click-and-drag erasing (like paint brush)
+3. Change icon from broom (🧹) to eraser (🧽)
+
+**Fixes Implemented**:
+1. **ToolBar.js** - Reordered tools: brush → eraser → fill → rectangle → line
+2. **LevelEditor.js** - Updated toolbar config to match new order
+3. **ToolBar.js** - Changed icon from '🧹' to '🧽'
+4. **LevelEditor.handleDrag()** - Added eraser drag support
+   - Eraser now works continuously while mouse held down
+   - Respects brush size during drag
+   - Updates minimap and undo/redo buttons
+   - Same UX as paint tool
+
+**Files Modified**:
+- `Classes/ui/ToolBar.js` (lines 24-41: reorder tools, change icon)
+- `Classes/systems/ui/LevelEditor.js` (lines 70-74: toolbar config, lines 672-707: drag handler)
+
+---
+
+### Issue #8: Hover Preview Follow During Drag + Darker Highlight ✅ FIXED
+**Status**: ✅ RESOLVED (October 29, 2025)
+**User Requests**:
+1. "For both the paintBrush and the Eraser, when you click and drag, the highlight should get darker AND follow the mouse. Right now it just stays in place."
+2. "Oh I actually like that highlight color change, please also make it happen when the user clicks and has the mouse held down too"
+
+**Problem**:
+- Hover preview (yellow/red highlight) stayed in starting position during drag
+- No visual feedback that dragging was active
+- Highlight opacity same whether hovering or actively painting/erasing
+- Darker highlight only triggered during drag, not on initial click
+
+**Fixes Implemented**:
+1. **Added `isDragging` flag** to track active drag state
+   - Initialized to `false` in constructor
+   - Set to `true` on initial click for paint/eraser tools
+   - Set to `true` when paint/eraser drag continues
+   - Reset to `false` on mouse release
+
+2. **Update hover preview during drag**
+   - Call `this.handleHover(mouseX, mouseY)` inside `handleDrag()`
+   - Hover preview now follows mouse cursor in real-time
+   - Works for both paint and eraser tools
+
+3. **Darker highlight when mouse held down**
+   - Normal hover: alpha = 80 (semi-transparent)
+   - Mouse held (click or drag): alpha = 150 (darker, more visible)
+   - Applied in `renderHoverPreview()` method
+   - Triggers immediately on click, not just during drag
+
+**Files Modified**:
+- `Classes/systems/ui/LevelEditor.js`
+  - Line 36: Added `this.isDragging = false` flag
+  - Lines 494, 550: Set `this.isDragging = true` on paint/eraser CLICK
+  - Lines 686, 710: Set `this.isDragging = true` in paint/eraser DRAG
+  - Lines 689, 713: Call `this.handleHover(mouseX, mouseY)` to update preview
+  - Line 739: Reset `this.isDragging = false` on mouse release
+  - Line 1173: Dynamic alpha based on `this.isDragging` (150 vs 80)
+
+**UX Improvements**:
+- ✅ Highlight follows mouse cursor during drag
+- ✅ Darker highlight triggers immediately on mouse down
+- ✅ Darker highlight persists while mouse held (click + drag)
+- ✅ Clear visual distinction between hover and active paint/erase
+- ✅ Consistent behavior for paint and eraser tools
+- ✅ Immediate visual feedback for user actions
+
+---
+
 ### Issue #3: Brush Size Not Working for Eraser ✅ FIXED (Refactoring Recommended)
 **Status**: ✅ FUNCTIONAL - Refactoring optional for code quality  
 **Discovered**: October 29, 2025  
