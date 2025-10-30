@@ -112,6 +112,13 @@ class QueenControlPanel {
         activate: () => {
           console.log('🌊 Tidal Wave power - not yet implemented');
         }
+      },
+      {
+        name: 'Final Flash',
+        key: 'finalFlash',
+        activate: () => {
+          console.log('🔆 Final Flash power - not yet implemented');
+        }
       }
     ];
     
