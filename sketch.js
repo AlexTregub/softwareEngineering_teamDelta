@@ -36,6 +36,8 @@ let Buildings = [];
 let cameraManager;
 
 function preload(){
+  return; // !!! REMOVE BEFORE DEV
+
   terrainPreloader();
   soundManagerPreload();
   resourcePreLoad();
@@ -48,6 +50,10 @@ function preload(){
 
 
 function setup() {
+  TEST_GRID(); 
+
+  return; // REMOVE BEFORE DEV
+
   // Initialize TaskLibrary before other systems that depend on it
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
   logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
