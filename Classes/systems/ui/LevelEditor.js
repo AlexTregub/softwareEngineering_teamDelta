@@ -681,18 +681,39 @@ class LevelEditor {
         break;
         
       case 'entity_painter':
-        // Place entity at grid coordinates
+        // Place entity or group at grid coordinates
         if (this.entityPainter) {
-          const entity = this.entityPainter.placeEntity(gridX, gridY);
-          if (entity) {
-            const template = this.entityPainter.palette.getSelectedTemplate();
-            const templateName = template ? template.name : 'Entity';
-            this.notifications.show(`Placed ${templateName} at (${gridX}, ${gridY})`);
+          const template = this.entityPainter.palette.getSelectedTemplate();
+          
+          // Check if template is a group
+          if (template && template.isGroup && template.entities && typeof GroupPlacer !== 'undefined') {
+            // Use GroupPlacer for group placement
+            const placedEntities = GroupPlacer.placeGroup(gridX, gridY, template);
             
-            // Mark as modified
-            this.isModified = true;
+            if (placedEntities && placedEntities.length > 0) {
+              // Add all entities to entityPainter tracking
+              placedEntities.forEach(entity => {
+                this.entityPainter.placedEntities.push(entity);
+                // Register with spatial grid if available
+                if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+                  spatialGridManager.addEntity(entity);
+                }
+              });
+              
+              const groupName = template.customName || 'Group';
+              this.notifications.show(`Placed ${groupName} (${placedEntities.length} entities) at (${gridX}, ${gridY})`);
+              this.isModified = true;
+            }
           } else {
-            this.notifications.show('Select an entity from the palette first', 'warning');
+            // Single entity placement
+            const entity = this.entityPainter.placeEntity(gridX, gridY);
+            if (entity) {
+              const templateName = template ? (template.name || template.customName) : 'Entity';
+              this.notifications.show(`Placed ${templateName} at (${gridX}, ${gridY})`);
+              this.isModified = true;
+            } else {
+              this.notifications.show('Select an entity from the palette first', 'warning');
+            }
           }
         }
         break;

@@ -10,6 +10,20 @@ class EntityPalette {
     this._selectedTemplateId = null;
     this._templates = this._loadTemplates();
     
+    // Create ModalDialog instance for add/rename/delete operations
+    if (typeof ModalDialog !== 'undefined') {
+      this._modal = new ModalDialog();
+    } else {
+      this._modal = null;
+    }
+    
+    // Create ToastNotification instance for user feedback
+    if (typeof ToastNotification !== 'undefined') {
+      this._toast = new ToastNotification();
+    } else {
+      this._toast = null;
+    }
+    
     // Create CategoryRadioButtons instance with onChange callback
     if (typeof CategoryRadioButtons !== 'undefined') {
       this.categoryButtons = new CategoryRadioButtons((categoryId) => {
@@ -215,13 +229,345 @@ class EntityPalette {
             nutritionValue: 0
           }
         }
-      ]
+      ],
+      
+      custom: this._loadCustomEntities()
     };
   }
   
   /**
+   * Load custom entities from localStorage
+   * @returns {Array} Array of custom entity objects
+   * @private
+   */
+  _loadCustomEntities() {
+    try {
+      // Check if localStorage is available
+      if (typeof localStorage === 'undefined') {
+        return [];
+      }
+      
+      const stored = localStorage.getItem('antGame_customEntities');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error('Error loading custom entities:', error);
+    }
+    return [];
+  }
+  
+  /**
+   * Save custom entities to localStorage
+   * @private
+   */
+  _saveCustomEntities() {
+    try {
+      // Check if localStorage is available
+      if (typeof localStorage === 'undefined') {
+        return;
+      }
+      
+      const customEntities = this._templates.custom || [];
+      localStorage.setItem('antGame_customEntities', JSON.stringify(customEntities));
+    } catch (error) {
+      console.error('Error saving custom entities:', error);
+    }
+  }
+  
+  /**
+   * Get selected entities from Level Editor
+   * @returns {Array} Array of selected entity objects with grid positions
+   */
+  getSelectedEntitiesFromLevelEditor() {
+    // Check if Level Editor exists and has selection
+    if (typeof levelEditor !== 'undefined' && levelEditor && typeof levelEditor.getSelectedEntities === 'function') {
+      return levelEditor.getSelectedEntities();
+    }
+    return [];
+  }
+  
+  /**
+   * Calculate relative positions for a group of entities
+   * First entity (topmost-leftmost) becomes origin at (0, 0)
+   * @param {Array} selectedEntities - Array of selected entities with grid positions
+   * @returns {Array} Array of entities with relative positions
+   * @private
+   */
+  _calculateRelativePositions(selectedEntities) {
+    if (!selectedEntities || selectedEntities.length === 0) {
+      return [];
+    }
+    
+    // Single entity - position is (0, 0)
+    if (selectedEntities.length === 1) {
+      const entity = selectedEntities[0];
+      return [{
+        baseTemplateId: entity.entity.templateId,
+        position: { x: 0, y: 0 },
+        properties: entity.entity.getProperties ? entity.entity.getProperties() : {}
+      }];
+    }
+    
+    // Find origin (topmost-leftmost entity)
+    let minX = Infinity;
+    let minY = Infinity;
+    
+    selectedEntities.forEach(sel => {
+      if (sel.gridY < minY || (sel.gridY === minY && sel.gridX < minX)) {
+        minX = sel.gridX;
+        minY = sel.gridY;
+      }
+    });
+    
+    // Calculate offsets from origin
+    return selectedEntities.map(sel => ({
+      baseTemplateId: sel.entity.templateId,
+      position: {
+        x: sel.gridX - minX,
+        y: sel.gridY - minY
+      },
+      properties: sel.entity.getProperties ? sel.entity.getProperties() : {}
+    }));
+  }
+  
+  /**
+   * Create group data structure from selected entities
+   * @param {string} customName - Custom name for the entity/group
+   * @returns {Object} Entity or group data structure
+   */
+  createGroupDataStructure(customName) {
+    const selected = this.getSelectedEntitiesFromLevelEditor();
+    const relativePositions = this._calculateRelativePositions(selected);
+    
+    // Generate unique ID
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substr(2, 9);
+    const id = selected.length === 1 
+      ? `custom_${timestamp}_${randomStr}`
+      : `custom_group_${timestamp}_${randomStr}`;
+    
+    const createdAt = new Date().toISOString();
+    
+    // Single entity
+    if (selected.length === 1) {
+      return {
+        id: id,
+        customName: customName,
+        isGroup: false,
+        baseTemplateId: relativePositions[0].baseTemplateId,
+        properties: relativePositions[0].properties,
+        createdAt: createdAt,
+        lastModified: createdAt
+      };
+    }
+    
+    // Group
+    return {
+      id: id,
+      customName: customName,
+      isGroup: true,
+      entities: relativePositions,
+      createdAt: createdAt,
+      lastModified: createdAt
+    };
+  }
+  
+  /**
+   * Get dynamic button text based on Level Editor selection
+   * @returns {string} Button text
+   */
+  getAddButtonText() {
+    const selected = this.getSelectedEntitiesFromLevelEditor();
+    
+    if (selected.length === 0) {
+      return '➕ Add New Custom Entity';
+    } else if (selected.length === 1) {
+      return '💾 Store Selected Entity';
+    } else {
+      return `💾 Store Selected Entities (${selected.length})`;
+    }
+  }
+  
+  /**
+   * Add a single custom entity to the custom category
+   * @param {string} customName - User-defined name for the entity
+   * @param {string} baseTemplateId - ID of the base template (e.g., 'ant_worker')
+   * @param {Object} properties - Custom properties to override
+   * @returns {Object|null} Created entity object or null if duplicate name
+   */
+  addCustomEntity(customName, baseTemplateId, properties) {
+    // Validate name
+    if (!customName || customName.trim() === '') {
+      if (this._toast) {
+        this._toast.show('Entity name cannot be empty', 'error');
+      }
+      return null;
+    }
+    
+    // Check for duplicate names
+    if (this._templates.custom && this._templates.custom.some(e => e.customName === customName)) {
+      if (this._toast) {
+        this._toast.show(`An entity named "${customName}" already exists`, 'error');
+      }
+      return null;
+    }
+    
+    const entity = {
+      id: `custom_entity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      customName: customName,
+      baseTemplateId: baseTemplateId,
+      isGroup: false,
+      properties: properties || {},
+      createdAt: new Date().toISOString()
+    };
+    
+    // Add to custom templates
+    if (!this._templates.custom) {
+      this._templates.custom = [];
+    }
+    this._templates.custom.push(entity);
+    
+    // Save to LocalStorage
+    this._saveCustomEntities();
+    
+    // Show success toast
+    if (this._toast) {
+      this._toast.show(`Custom entity "${customName}" saved!`, 'success');
+    }
+    
+    return entity;
+  }
+  
+  /**
+   * Get a custom entity or group by ID
+   * @param {string} entityId - ID of the entity/group to retrieve
+   * @returns {Object|null} Entity/group object or null if not found
+   */
+  getCustomEntity(entityId) {
+    if (!this._templates.custom) {
+      return null;
+    }
+    
+    const entity = this._templates.custom.find(e => e.id === entityId);
+    return entity || null;
+  }
+  
+  /**
+   * Add a custom entity group to the custom category
+   * @param {string} customName - User-defined name for the group
+   * @param {Array} entities - Array of entity data with position offsets
+   * @returns {Object} Created group object
+   */
+  addCustomEntityGroup(customName, entities) {
+    const group = {
+      id: `custom_group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      customName: customName,
+      isGroup: true,
+      entities: entities,
+      createdAt: new Date().toISOString()
+    };
+    
+    // Add to custom templates
+    if (!this._templates.custom) {
+      this._templates.custom = [];
+    }
+    this._templates.custom.push(group);
+    
+    // Save to LocalStorage
+    this._saveCustomEntities();
+    
+    return group;
+  }
+  
+  /**
+   * Delete a custom entity or group
+   * @param {string} entityId - ID of the entity/group to delete
+   * @returns {boolean} True if deleted successfully, false otherwise
+   */
+  deleteCustomEntity(entityId) {
+    if (!this._templates.custom) {
+      if (this._toast) {
+        this._toast.show('Entity not found', 'error');
+      }
+      return false;
+    }
+    
+    const index = this._templates.custom.findIndex(e => e.id === entityId);
+    if (index !== -1) {
+      const entityName = this._templates.custom[index].customName;
+      this._templates.custom.splice(index, 1);
+      this._saveCustomEntities();
+      
+      // Show success toast
+      if (this._toast) {
+        this._toast.show(`Entity "${entityName}" deleted`, 'success');
+      }
+      
+      return true;
+    }
+    
+    if (this._toast) {
+      this._toast.show('Entity not found', 'error');
+    }
+    return false;
+  }
+  
+  /**
+   * Rename a custom entity or group
+   * @param {string} entityId - ID of the entity/group to rename
+   * @param {string} newName - New name for the entity/group
+   * @returns {boolean} True if renamed successfully, false otherwise
+   */
+  renameCustomEntity(entityId, newName) {
+    if (!this._templates.custom) {
+      if (this._toast) {
+        this._toast.show('Entity not found', 'error');
+      }
+      return false;
+    }
+    
+    // Validate name
+    if (!newName || newName.trim() === '') {
+      if (this._toast) {
+        this._toast.show('Entity name cannot be empty', 'error');
+      }
+      return false;
+    }
+    
+    // Check for duplicate names (excluding the entity being renamed)
+    const duplicate = this._templates.custom.find(e => e.id !== entityId && e.customName === newName);
+    if (duplicate) {
+      if (this._toast) {
+        this._toast.show(`An entity named "${newName}" already exists`, 'error');
+      }
+      return false;
+    }
+    
+    const entity = this._templates.custom.find(e => e.id === entityId);
+    if (entity) {
+      const oldName = entity.customName;
+      entity.customName = newName;
+      entity.lastModified = new Date().toISOString();
+      this._saveCustomEntities();
+      
+      // Show success toast
+      if (this._toast) {
+        this._toast.show(`Entity renamed from "${oldName}" to "${newName}"`, 'success');
+      }
+      
+      return true;
+    }
+    
+    if (this._toast) {
+      this._toast.show('Entity not found', 'error');
+    }
+    return false;
+  }
+  
+  /**
    * Set the current category
-   * @param {string} category - Category to switch to ('entities', 'buildings', 'resources')
+   * @param {string} category - Category to switch to ('entities', 'buildings', 'resources', 'custom')
    */
   setCategory(category) {
     this.currentCategory = category;
@@ -340,17 +686,15 @@ class EntityPalette {
    * @returns {Object} Size object with width and height
    */
   getContentSize(width = 200) {
-    // Calculate dynamic height based on template count and grid layout
+    // Calculate dynamic height based on template count and LIST layout
     const templates = this.getCurrentTemplates();
-    const swatchSize = 32;
-    const padding = 4;
-    const swatchWithPadding = swatchSize + padding;
-    const cols = Math.floor(width / swatchWithPadding);
-    const rows = Math.ceil(templates.length / cols);
+    const itemHeight = 80; // 64px sprite + 16px padding
+    const padding = 8;
+    const listHeight = templates.length * (itemHeight + padding);
     
     const radioButtonsHeight = this.categoryButtons ? this.categoryButtons.height : 30;
-    const gridHeight = rows * swatchWithPadding;
-    const totalHeight = radioButtonsHeight + gridHeight + 8; // 8px bottom padding
+    const addButtonHeight = this.currentCategory === 'custom' ? 50 : 0;
+    const totalHeight = radioButtonsHeight + listHeight + addButtonHeight + 16;
     
     return {
       width: width,
@@ -359,7 +703,7 @@ class EntityPalette {
   }
   
   /**
-   * Render EntityPalette UI with CategoryRadioButtons and template grid
+   * Render EntityPalette UI with CategoryRadioButtons and template LIST view
    * @param {number} x - X position
    * @param {number} y - Y position
    * @param {number} width - Width
@@ -375,46 +719,203 @@ class EntityPalette {
       this.categoryButtons.render(x, y, width);
     }
     
-    // Render template grid below radio buttons
+    // Render template LIST below radio buttons
     const templates = this.getCurrentTemplates();
-    const swatchSize = 32;
-    const padding = 4;
-    const swatchWithPadding = swatchSize + padding;
-    const cols = Math.floor(width / swatchWithPadding);
-    
-    let gridX = x + padding;
+    const itemHeight = 80; // 64px sprite + 16px padding
+    const padding = 8;
     const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
-    let gridY = y + buttonHeight + padding; // Start below category buttons
     
-    templates.forEach((template, i) => {
-      if (i > 0 && i % cols === 0) {
-        gridX = x + padding;
-        gridY += swatchWithPadding;
-      }
-      
-      // Draw swatch background
-      const isSelected = template.id === this._selectedTemplateId;
-      fill(isSelected ? '#FFD700' : '#555555');
-      stroke(isSelected ? '#FFA500' : '#333333');
-      strokeWeight(isSelected ? 2 : 1);
-      rect(gridX, gridY, swatchSize, swatchSize);
-      
-      // Draw template icon/label (placeholder - first 3 chars of name)
-      fill(220);
-      textSize(10);
+    let listY = y + buttonHeight + padding;
+    
+    // Custom category: Render empty state if no custom entities
+    if (this.currentCategory === 'custom' && templates.length === 0) {
+      fill('#888');
+      textSize(14);
       if (typeof textAlign === 'function') {
         textAlign(CENTER, CENTER);
       }
-      text(template.name.substring(0, 3), gridX + swatchSize / 2, gridY + swatchSize / 2);
+      text('No custom entities yet', x + width / 2, listY + 30);
+      listY += 60; // Space for empty message
+    } else {
+      // Render list items
+      templates.forEach((template, i) => {
+        const isSelected = template.id === this._selectedTemplateId;
+        
+        // Custom category: Render custom entity header
+        if (this.currentCategory === 'custom') {
+          // Custom name header background
+          fill('#2a2a2a');
+          noStroke();
+          rect(x + padding, listY, width - padding * 2, 20, 6, 6, 0, 0);
+          
+          // Custom name text
+          fill('#ffd700');
+          textSize(12);
+          if (typeof textAlign === 'function') {
+            textAlign(LEFT, CENTER);
+          }
+          text(template.customName || template.name, x + padding + 8, listY + 10);
+          
+          // Rename button (✏️)
+          fill('#888');
+          textSize(14);
+          if (typeof textAlign === 'function') {
+            textAlign(RIGHT, CENTER);
+          }
+          text('✏️', x + width - padding - 30, listY + 10);
+          
+          // Delete button (✕)
+          fill('#c44');
+          textSize(14);
+          text('✕', x + width - padding - 10, listY + 10);
+          
+          listY += 20; // Move down for entity body
+        }
+        
+        // Background
+        fill(isSelected ? '#4a4a00' : '#383838');
+        stroke(isSelected ? '#ffd700' : 'transparent');
+        strokeWeight(2);
+        rect(x + padding, listY, width - padding * 2, itemHeight, this.currentCategory === 'custom' ? 0 : 6, this.currentCategory === 'custom' ? 0 : 6, 6, 6);
+        
+        // Sprite rendering: Group 2x2 grid OR single 64x64
+        if (this.currentCategory === 'custom' && template.isGroup && template.entities) {
+          // Group: Render 2x2 mini sprite grid (first 4 entities)
+          this._renderGroupSprites(x + padding + 8, listY + 8, template.entities);
+        } else {
+          // Single entity: 64x64 sprite placeholder
+          fill(100);
+          noStroke();
+          rect(x + padding + 8, listY + 8, 64, 64);
+          // TODO: Render actual sprite image when available
+        }
+        
+        // Text info
+        const textX = x + padding + 8 + 64 + 12;
+        let textY = listY + 12;
+        
+        // Line 1: Full entity name (16px, bold, gold)
+        fill('#ffd700');
+        textSize(16);
+        if (typeof textAlign === 'function') {
+          textAlign(LEFT, LEFT);
+        }
+        text(template.name || template.customName, textX, textY);
+        textY += 20;
+        
+        // Line 2: Entity type OR group badge (13px, gray)
+        fill('#aaa');
+        textSize(13);
+        if (this.currentCategory === 'custom' && template.isGroup) {
+          const entityCount = template.entities ? template.entities.length : 0;
+          text(`GROUP (${entityCount})`, textX, textY);
+        } else {
+          text(`Entity: ${template.type}`, textX, textY);
+        }
+        textY += 16;
+        
+        // Line 3: Custom info from properties (12px, italic, gray)
+        if (template.properties) {
+          fill('#888');
+          textSize(12);
+          const faction = template.properties.faction || template.properties.JobName || 'N/A';
+          const health = template.properties.health !== undefined ? `, Health: ${template.properties.health}` : '';
+          text(`Faction: ${faction}${health}`, textX, textY);
+          textY += 14;
+        }
+        
+        // Line 4: Additional description (11px, light gray)
+        if (template.additionalInfo) {
+          fill('#666');
+          textSize(11);
+          text(template.additionalInfo, textX, textY);
+        }
+        
+        listY += itemHeight + padding;
+      });
+    }
+    
+    // Custom category: Render "Add New / Store Selected" button at bottom
+    if (this.currentCategory === 'custom') {
+      const addButtonHeight = 40;
+      const addButtonY = listY + 8;
+      const buttonText = this.getAddButtonText();
       
-      gridX += swatchWithPadding;
-    });
+      // Button background (green for "Add New", blue for "Store Selected")
+      const isStoreAction = buttonText.includes('Store');
+      fill(isStoreAction ? '#2a4a6a' : '#2a5a2a'); // Blue for store, green for add
+      noStroke();
+      rect(x + padding, addButtonY, width - padding * 2, addButtonHeight, 6);
+      
+      // Button text
+      fill(isStoreAction ? '#99ccff' : '#9f9');
+      textSize(14);
+      if (typeof textAlign === 'function') {
+        textAlign(CENTER, CENTER);
+      }
+      text(buttonText, x + width / 2, addButtonY + addButtonHeight / 2);
+    }
+    
+    pop();
+    
+    // Update and render toasts (independent of EntityPalette rendering)
+    if (this._toast) {
+      this._toast.update();
+      this._toast.render();
+    }
+  }
+  
+  /**
+   * Render 2x2 mini sprite grid for entity groups
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   * @param {Array} entities - Array of entities in the group
+   * @private
+   */
+  _renderGroupSprites(x, y, entities) {
+    const miniSize = 28; // Each mini sprite is 28x28
+    const gap = 4; // Gap between sprites
+    const maxSprites = 4; // Show first 4 entities in 2x2 grid
+    
+    push();
+    
+    for (let i = 0; i < Math.min(entities.length, maxSprites); i++) {
+      const entity = entities[i];
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const spriteX = x + col * (miniSize + gap);
+      const spriteY = y + row * (miniSize + gap);
+      
+      // Mini sprite placeholder (different shades for different entities)
+      const shade = 80 + (i * 30);
+      fill(shade);
+      noStroke();
+      rect(spriteX, spriteY, miniSize, miniSize, 2);
+      
+      // TODO: Render actual mini sprite based on entity.baseTemplateId
+    }
+    
+    // If more than 4 entities, show "+N" indicator
+    if (entities.length > maxSprites) {
+      const moreX = x + miniSize + gap;
+      const moreY = y + miniSize + gap;
+      fill(0, 0, 0, 180); // Semi-transparent overlay
+      noStroke();
+      rect(moreX, moreY, miniSize, miniSize, 2);
+      
+      fill('#fff');
+      textSize(12);
+      if (typeof textAlign === 'function') {
+        textAlign(CENTER, CENTER);
+      }
+      text(`+${entities.length - maxSprites}`, moreX + miniSize / 2, moreY + miniSize / 2);
+    }
     
     pop();
   }
   
   /**
-   * Handle click events - delegates to CategoryRadioButtons and template grid
+   * Handle click events - delegates to CategoryRadioButtons and template LIST view
    * @param {number} clickX - Mouse X position
    * @param {number} clickY - Mouse Y position
    * @param {number} panelX - Content area X position
@@ -423,6 +924,11 @@ class EntityPalette {
    * @returns {Object|null} Action object or null
    */
   handleClick(clickX, clickY, panelX, panelY, panelWidth) {
+    // Check toast clicks first (toasts are rendered at absolute positions)
+    if (this._toast && this._toast.handleClick(clickX, clickY)) {
+      return { type: 'toast', dismissed: true };
+    }
+    
     const relX = clickX - panelX;
     const relY = clickY - panelY;
     
@@ -437,24 +943,59 @@ class EntityPalette {
       }
     }
     
-    // Check template grid (below button height)
-    if (relY > buttonHeight) {
+    // Check template LIST (below button height)
+    if (relY > buttonHeight + 8) {
       const templates = this.getCurrentTemplates();
-      const swatchSize = 32;
-      const padding = 4;
-      const swatchWithPadding = swatchSize + padding;
-      const cols = Math.floor(panelWidth / swatchWithPadding);
+      const itemHeight = 80;
+      const headerHeight = 20; // Custom entity header height
+      const padding = 8;
       
-      const gridRelX = relX - padding;
-      const gridRelY = relY - buttonHeight - padding;
+      // Calculate Y position relative to list start
+      let cumulativeY = 0;
       
-      const col = Math.floor(gridRelX / swatchWithPadding);
-      const row = Math.floor(gridRelY / swatchWithPadding);
-      const index = row * cols + col;
+      for (let i = 0; i < templates.length; i++) {
+        const template = templates[i];
+        const itemStartY = buttonHeight + padding + cumulativeY;
+        const itemWithHeaderHeight = (this.currentCategory === 'custom' ? headerHeight : 0) + itemHeight;
+        
+        // Check if click is within this item's bounds
+        if (relY >= itemStartY && relY < itemStartY + itemWithHeaderHeight) {
+          // Custom category: Check for rename/delete button clicks in header
+          if (this.currentCategory === 'custom') {
+            const headerRelY = relY - itemStartY;
+            
+            // Click is in header area (top 20px)
+            if (headerRelY < headerHeight) {
+              // Delete button (far right, ~15px width)
+              if (relX > panelWidth - padding - 20) {
+                return { type: 'delete', entity: template };
+              }
+              
+              // Rename button (right side, before delete, ~40px width)
+              if (relX > panelWidth - padding - 60 && relX < panelWidth - padding - 20) {
+                return { type: 'rename', entity: template };
+              }
+              
+              // Header click (but not on buttons) - still selects template
+            }
+          }
+          
+          // Click is in body area - select template
+          this._selectedTemplateId = template.id;
+          return { type: 'template', template: template };
+        }
+        
+        cumulativeY += itemWithHeaderHeight + padding;
+      }
       
-      if (index >= 0 && index < templates.length) {
-        this._selectedTemplateId = templates[index].id;
-        return { type: 'template', template: templates[index] };
+      // Check for "Add New" button at bottom
+      if (this.currentCategory === 'custom') {
+        const addButtonHeight = 40;
+        const addButtonY = buttonHeight + cumulativeY + 16;
+        
+        if (relY >= addButtonY && relY < addButtonY + addButtonHeight) {
+          return { type: 'addCustomEntity' };
+        }
       }
     }
     
@@ -473,6 +1014,239 @@ class EntityPalette {
     const size = this.getContentSize();
     return mouseX >= contentX && mouseX <= contentX + size.width &&
            mouseY >= contentY && mouseY <= contentY + size.height;
+  }
+  
+  // ============================================================
+  // MODAL DIALOG METHODS
+  // ============================================================
+  
+  /**
+   * Show "Add New Custom Entity" modal
+   * @param {Function} onConfirm - Callback with (name, baseTemplateId, properties)
+   */
+  showAddCustomEntityModal(onConfirm) {
+    if (!this._modal) return;
+    
+    this._modal.show({
+      title: '➕ Add New Custom Entity',
+      message: 'Enter a name for this custom entity',
+      hasInput: true,
+      inputPlaceholder: 'Enter name here',
+      inputValue: '',
+      validateInput: (value) => {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) return false;
+        
+        // Check for duplicate names
+        const duplicate = this._templates.custom.find(e => e.customName === trimmed);
+        return !duplicate;
+      },
+      validationError: 'Name cannot be empty or duplicate',
+      buttons: [
+        {
+          label: 'Cancel',
+          callback: () => {},
+          type: 'secondary'
+        },
+        {
+          label: 'Save',
+          callback: (name) => {
+            if (onConfirm) {
+              onConfirm(name.trim());
+            }
+          },
+          type: 'primary'
+        }
+      ]
+    });
+  }
+  
+  /**
+   * Show "Rename Custom Entity" modal
+   * @param {Object} entity - Entity to rename
+   * @param {Function} onConfirm - Callback with (entityId, newName)
+   */
+  showRenameEntityModal(entity, onConfirm) {
+    if (!this._modal) return;
+    
+    this._modal.show({
+      title: '✏️ Rename Custom Entity',
+      message: `Rename "${entity.customName || entity.name}"`,
+      hasInput: true,
+      inputPlaceholder: 'Enter new name',
+      inputValue: entity.customName || entity.name || '',
+      validateInput: (value) => {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) return false;
+        
+        // Check for duplicate names (excluding this entity)
+        const duplicate = this._templates.custom.find(e => 
+          e.customName === trimmed && e.id !== entity.id
+        );
+        return !duplicate;
+      },
+      validationError: 'Name cannot be empty or duplicate',
+      buttons: [
+        {
+          label: 'Cancel',
+          callback: () => {},
+          type: 'secondary'
+        },
+        {
+          label: 'Save',
+          callback: (newName) => {
+            if (onConfirm) {
+              onConfirm(entity.id, newName.trim());
+            }
+          },
+          type: 'primary'
+        }
+      ]
+    });
+  }
+  
+  /**
+   * Show "Delete Custom Entity" confirmation modal
+   * @param {Object} entity - Entity to delete
+   * @param {Function} onConfirm - Callback with (entityId)
+   */
+  showDeleteEntityModal(entity, onConfirm) {
+    if (!this._modal) return;
+    
+    const entityName = entity.customName || entity.name || 'this entity';
+    const entityType = entity.isGroup ? 'group' : 'entity';
+    
+    this._modal.show({
+      title: '⚠️ Delete Custom ' + (entity.isGroup ? 'Group' : 'Entity') + '?',
+      message: `Are you sure you want to delete "${entityName}"? This action cannot be undone.`,
+      hasInput: false,
+      buttons: [
+        {
+          label: 'Cancel',
+          callback: () => {},
+          type: 'secondary'
+        },
+        {
+          label: 'Delete',
+          callback: () => {
+            if (onConfirm) {
+              onConfirm(entity.id);
+            }
+          },
+          type: 'primary'
+        }
+      ]
+    });
+  }
+  
+  /**
+   * Get modal instance (for rendering and input handling)
+   * @returns {ModalDialog|null}
+   */
+  getModal() {
+    return this._modal;
+  }
+  
+  /**
+   * Get toast notification instance
+   * @returns {ToastNotification|null}
+   */
+  getToast() {
+    return this._toast;
+  }
+  
+  /**
+   * Select an entity by ID
+   * @param {string} entityId - Entity ID to select
+   */
+  selectEntity(entityId) {
+    this._selectedTemplateId = entityId;
+  }
+  
+  /**
+   * Get currently selected entity
+   * @returns {Object|null} Selected entity or null
+   */
+  getSelectedEntity() {
+    if (!this._selectedTemplateId) {
+      return null;
+    }
+    
+    // Check custom category first
+    if (this.currentCategory === 'custom' && this._templates.custom) {
+      const entity = this._templates.custom.find(e => e.id === this._selectedTemplateId);
+      if (entity) return entity;
+    }
+    
+    // Check current category templates
+    const templates = this.getCurrentTemplates();
+    return templates.find(t => t.id === this._selectedTemplateId) || null;
+  }
+  
+  /**
+   * Clear entity selection
+   */
+  clearSelection() {
+    this._selectedTemplateId = null;
+  }
+  
+  /**
+   * Delete the currently selected custom entity
+   * @returns {boolean} True if deleted, false otherwise
+   */
+  deleteSelectedEntity() {
+    const selected = this.getSelectedEntity();
+    if (!selected) {
+      return false;
+    }
+    
+    // Only allow deletion in custom category
+    if (this.currentCategory !== 'custom') {
+      return false;
+    }
+    
+    const result = this.deleteCustomEntity(selected.id);
+    if (result) {
+      this.clearSelection();
+    }
+    return result;
+  }
+  
+  /**
+   * Register keyboard shortcuts with ShortcutManager
+   * This is a static method that should be called once during setup
+   */
+  static registerKeyboardShortcuts() {
+    if (typeof ShortcutManager === 'undefined') {
+      console.warn('ShortcutManager not available - keyboard shortcuts disabled');
+      return;
+    }
+    
+    // Delete key - delete selected custom entity
+    ShortcutManager.register({
+      id: 'entity-palette-delete',
+      trigger: { event: 'keypress', key: 'Delete' },
+      tools: ['entity-palette'],
+      action: (context) => {
+        const palette = context.getEntityPalette ? context.getEntityPalette() : null;
+        if (palette && palette.currentCategory === 'custom') {
+          palette.deleteSelectedEntity();
+        }
+      }
+    });
+    
+    // Escape key - clear selection
+    ShortcutManager.register({
+      id: 'entity-palette-escape',
+      trigger: { event: 'keypress', key: 'Escape' },
+      tools: ['entity-palette'],
+      action: (context) => {
+        const palette = context.getEntityPalette ? context.getEntityPalette() : null;
+        if (palette) {
+          palette.clearSelection();
+        }
+      }
+    });
   }
 }
 

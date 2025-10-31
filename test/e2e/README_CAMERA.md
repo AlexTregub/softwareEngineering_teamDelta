@@ -10,7 +10,7 @@ Summary of findings
   - `window.CameraController` (class & static methods) — always present and installs global helpers like `window.worldToScreen` that are NOT zoom-aware.
   - `window.cameraX`, `window.cameraY`, `window.cameraZoom` — legacy globals that may be present and can be assigned directly.
 - Map/terrain
-  - `g_map2` may be present as the gridTerrain instance providing `getCacheStats()`, `setCameraPosition()` and caching internals. In the probe runs `g_map2` was not present (probe returned false), so map-specific behavior may not be available in all runs.
+  - `g_activeMap` may be present as the gridTerrain instance providing `getCacheStats()`, `setCameraPosition()` and caching internals. In the probe runs `g_activeMap` was not present (probe returned false), so map-specific behavior may not be available in all runs.
 
 Key probe results (from `pw_camera_zoom_probe.js` run)
 - `CameraController` present, `g_cameraManager` was false (no global manager instance available) in the probe run.
@@ -37,7 +37,7 @@ Recommended testing patterns (what to call in tests)
   - canvas pixel sample at the focused screen coords changed (visual verification).
 
 Practical test implementation checklist
-- Before running a zoom action, collect diagnostics: `camera = (g_cameraManager ? g_cameraManager : { cameraX, cameraY, cameraZoom })`, `mapStats = (g_map2 ? g_map2.getCacheStats() : null)`.
+- Before running a zoom action, collect diagnostics: `camera = (g_cameraManager ? g_cameraManager : { cameraX, cameraY, cameraZoom })`, `mapStats = (g_activeMap ? g_activeMap.getCacheStats() : null)`.
 - Use `camera.centerOn(worldX, worldY)` (prefer `g_cameraManager.centerOn`) to set up the focus.
 - Measure `distBefore` between two distinct world points using the SAME transform implementation you will later use to interpret results (i.e., if you will assert on pixels, use canvas sampling; if you will assert on transforms, use `g_cameraManager.worldToScreen`).
 - Invoke the zoom API you intend to test (programmatic setZoom, mouse wheel, or global assignment). Wait a short time for the frame/render loop.
@@ -45,7 +45,7 @@ Practical test implementation checklist
 - Assert: `abs(distAfter / distBefore - zoomFactor) < tolerance` and canvas pixels changed meaningfully.
 
 Suggested immediate next actions
-- Update tests to explicitly use `window.g_cameraManager` when available. If tests must run in environments where `g_map2` or `g_cameraManager` may be missing, have the test probe and either skip/mark tests as 'inapplicable' or fail with a clear diagnostic explaining the missing authoritative camera instance.
+- Update tests to explicitly use `window.g_cameraManager` when available. If tests must run in environments where `g_activeMap` or `g_cameraManager` may be missing, have the test probe and either skip/mark tests as 'inapplicable' or fail with a clear diagnostic explaining the missing authoritative camera instance.
 - If the desired behavior is that CameraController global helpers should be zoom-aware, consider adding a small adapter in the page test setup that maps `window.worldToScreen`/`window.screenToWorld` to `g_cameraManager` methods when the manager exists. Example (page.evaluateOnNewDocument in Puppeteer):
 
 ```js

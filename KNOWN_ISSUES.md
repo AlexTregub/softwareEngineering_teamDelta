@@ -71,6 +71,12 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
   - Expected: When a user resizes the window, the bar extends to the new window width
   - Current: MenuBar size is static and decided when the user enters the LevelEditor
 
+  - [ ] **CameraManager: Account for zoom when middle click dragging**
+  - Issue: When the camera is at a very far zoom level, it will click and drag very slowly. The user will want to be able to
+  move the camera at a consistent feeling speed even very far. The level of zoom is not unreasonable, so we need
+  to think of ways to handle this at the far end of zoom levels.
+  - Priority: LOW (QOL)
+
 ### Fixed ✅
 
 - [x] **Entity Painter Panel: No panel shows up when toggled**
@@ -273,7 +279,7 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
     2. Updated `toggleEventsPanel()` to sync with stateVisibility:
        - Toggle ON: `panel.show()` + add to array
        - Toggle OFF: `panel.hide()` + remove from array
-  - Fixed: January 2025
+  - Fixed: 10/30/2025
 
 - [x] **Level Editor: EventEditorPanel Render Parameters Missing**
   - Files:

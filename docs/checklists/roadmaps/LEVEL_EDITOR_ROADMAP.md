@@ -38,7 +38,7 @@ This roadmap tracks all features for the Level Editor system, from basic terrain
 
 **Planned Enhancements**:
 - [ ] Categorized material selection system
-  - [ ] Organize materials by type (ground, stone, vegetation, water, etc.)
+  - [x] Organize materials by type (ground, stone, vegetation, water, etc.)
   - [ ] Expandable/collapsible category sections
   - [ ] Category tabs or accordion-style interface
   - [ ] Search/filter materials by name or category
@@ -142,7 +142,7 @@ This roadmap tracks all features for the Level Editor system, from basic terrain
 **Status**: Complete (October 29, 2025)
 - [x] Remove painted tiles (revert to empty/default)
 - [x] Brush size support (erase multiple tiles - 1x1, 3x3, 5x5, etc.)
-- [ ] Visual eraser cursor indicator (deferred - requires UI event wiring)
+- [x] Visual eraser cursor indicator
 - [x] Undo/redo support for eraser operations
 - [x] Integration with SparseTerrain (remove tiles from sparse storage using `deleteTile()`)
 - [x] Toolbar button with eraser icon 
@@ -249,9 +249,9 @@ This roadmap tracks all features for the Level Editor system, from basic terrain
   "entities": [
     {
       "id": "entity_001",
-      "type": "ant_worker",
-      "position": { "x": 100, "y": 100 },
-      "properties": { "health": 100, "inventory": [] }
+      "type": "Ant",
+      "gridPosition": { "x": 10, "y": 15 },
+      "properties": { "JobName": "Worker", "faction": "player", "health": 100, "movementSpeed": 30 }
     }
   ]
 }
@@ -310,13 +310,14 @@ This roadmap tracks all features for the Level Editor system, from basic terrain
 
 ### 1.13 Categorized Material System ⏳
 **Status**: Planned (Enhancement to 1.2)
-- [ ] Material categories (Ground, Stone, Vegetation, Water, Special)
+- [x] Material categories (Ground, Stone, Vegetation, Water, Special)
 - [ ] Expandable category sections in palette
 - [ ] Tab-based or accordion-style interface
 - [ ] Material search/filter functionality
 - [ ] Material preview on hover (zoom view)
-- [ ] Recently used materials section
+- [x] Recently used materials section
 - [ ] Favorite materials system (star to save)
+- [x] Scrollable
 
 **Material Categories**:
 ```

@@ -101,7 +101,7 @@ class MaterialCategory {
    */
   render(x, y, width) {
     push();
-    
+    imageMode(CORNER)
     // Draw header background
     fill(60);
     noStroke();

@@ -9,7 +9,8 @@ class CategoryRadioButtons {
     this.categories = [
       { id: 'entities', label: 'Entities', icon: '🐜' },
       { id: 'buildings', label: 'Buildings', icon: '🏠' },
-      { id: 'resources', label: 'Resources', icon: '🌳' }
+      { id: 'resources', label: 'Resources', icon: '🌳' },
+      { id: 'custom', label: 'Custom', icon: '💾' }
     ];
     
     this.selected = 'entities';

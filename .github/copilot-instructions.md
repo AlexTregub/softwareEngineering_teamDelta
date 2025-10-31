@@ -374,20 +374,30 @@ npm run dev  # Must be running on localhost:8000
 ```
 
 ### 2. Menu Bypass (CRITICAL!)
+
+**For Game Tests**:
 ```javascript
 const cameraHelper = require('../camera_helper');
 const gameStarted = await cameraHelper.ensureGameStarted(page);
 if (!gameStarted.started) throw new Error('Failed to start - still on menu');
 ```
-**Without this**: Screenshots show main menu, not game!
+
+**For Level Editor Tests**:
+```javascript
+const cameraHelper = require('../camera_helper');
+const editorStarted = await cameraHelper.ensureLevelEditorStarted(page);
+if (!editorStarted.started) throw new Error('Failed to start - still on main menu');
+```
+
+**Without this**: Screenshots show main menu, not game/editor!
 
 ### 3. Force Rendering After State Changes
 ```javascript
 await page.evaluate(() => {
-  window.gameState = 'PLAYING';
+  window.gameState = 'PLAYING'; // Or 'LEVEL_EDITOR' for editor tests
   
   if (window.draggablePanelManager) {
-    window.draggablePanelManager.renderPanels('PLAYING');
+    window.draggablePanelManager.renderPanels('PLAYING'); // Or 'LEVEL_EDITOR'
   }
   
   if (typeof window.redraw === 'function') {
@@ -402,10 +412,11 @@ await saveScreenshot(page, 'category/name', true);
 ### 4. Panel Visibility System
 ```javascript
 await page.evaluate(() => {
-  if (!window.draggablePanelManager.stateVisibility.PLAYING) {
-    window.draggablePanelManager.stateVisibility.PLAYING = [];
+  const state = 'PLAYING'; // Or 'LEVEL_EDITOR' for editor tests
+  if (!window.draggablePanelManager.stateVisibility[state]) {
+    window.draggablePanelManager.stateVisibility[state] = [];
   }
-  window.draggablePanelManager.stateVisibility.PLAYING.push('test-panel-id');
+  window.draggablePanelManager.stateVisibility[state].push('test-panel-id');
 });
 ```
 **Without this**: Panel won't render!
@@ -417,7 +428,7 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 ```
 
 **Verify screenshots show**:
-- ✅ Game terrain (NOT main menu)
+- ✅ Game terrain or Level Editor (NOT main menu)
 - ✅ Expected UI elements
 - ✅ Correct visual state
 - ❌ Main menu = test failed

@@ -322,7 +322,7 @@
   - Verify panel visibility changes
   - Verify menu checked state updates
 
-- [ ] **Test 2: Panel Rendering**
+- [x] **Test 2: Panel Rendering**
   - Create visible entity-palette panel
   - Call LevelEditorPanels.render()
   - Verify EntityPalette.render() called with correct bounds
@@ -333,7 +333,7 @@
   - Verify EntityPalette.handleClick() called
   - Verify notification shown
 
-- [ ] **Test 4: Tool Button Toggle**
+- [x] **Test 4: Tool Button Toggle**
   - Create LevelEditor with toolbar
   - Click Entity Painter tool button (🐜)
   - Verify panel toggles visibility

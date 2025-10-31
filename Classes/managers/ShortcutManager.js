@@ -150,6 +150,56 @@ class ShortcutManager {
   }
   
   /**
+   * Handle keyboard keypress event
+   * 
+   * @param {string} key - Key code or character (e.g., 'Delete', 'Escape', 'a', '1')
+   * @param {Object} modifiers - Modifier key states { shift, ctrl, alt }
+   * @param {Object} context - Context object with getCurrentTool() and other methods
+   * @returns {boolean} True if shortcut handled event, false otherwise
+   */
+  static handleKeyPress(key, modifiers, context) {
+    const instance = ShortcutManager.getInstance();
+    
+    if (!key || !context) {
+      return false;
+    }
+    
+    const currentTool = context.getCurrentTool ? context.getCurrentTool() : null;
+    
+    // Normalize key to lowercase for case-insensitive matching
+    const normalizedKey = key.toLowerCase();
+    
+    // Find matching shortcut
+    for (const [id, shortcut] of instance._shortcuts) {
+      // Check event type
+      if (shortcut.trigger.event !== 'keypress') {
+        continue;
+      }
+      
+      // Check key (case-insensitive)
+      if (!shortcut.trigger.key || shortcut.trigger.key.toLowerCase() !== normalizedKey) {
+        continue;
+      }
+      
+      // Check modifiers
+      if (!ShortcutManager._matchesModifiers(shortcut.trigger.modifier, modifiers)) {
+        continue;
+      }
+      
+      // Check tool
+      if (!ShortcutManager._matchesTool(shortcut.tools, currentTool)) {
+        continue;
+      }
+      
+      // Execute action
+      shortcut.action(context);
+      return true; // Only trigger first matching shortcut
+    }
+    
+    return false;
+  }
+  
+  /**
    * Handle middle-click event (press, drag, or release)
    * 
    * @param {string} actionType - Action type: 'press', 'drag', or 'release'

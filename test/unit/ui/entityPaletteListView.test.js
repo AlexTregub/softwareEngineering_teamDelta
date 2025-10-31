@@ -13,6 +13,20 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 
+// Load actual EntityPalette class
+const EntityPalette = require('../../../Classes/ui/EntityPalette.js');
+
+// Load CategoryRadioButtons if needed
+try {
+  const CategoryRadioButtons = require('../../../Classes/ui/CategoryRadioButtons.js');
+  global.CategoryRadioButtons = CategoryRadioButtons;
+  if (typeof window !== 'undefined') {
+    window.CategoryRadioButtons = CategoryRadioButtons;
+  }
+} catch (e) {
+  // CategoryRadioButtons not required for these tests
+}
+
 describe('EntityPalette - List View', function() {
   let sandbox;
   let mockP5;
@@ -44,42 +58,10 @@ describe('EntityPalette - List View', function() {
       Object.assign(window, mockP5);
     }
     
-    // Mock EntityPalette class if not available
-    if (typeof global.EntityPalette === 'undefined') {
-      global.EntityPalette = class {
-        constructor() {
-          this._templates = {
-            entities: [],
-            buildings: [],
-            resources: [],
-            custom: []
-          };
-          this.currentCategory = 'entities';
-          this._selectedTemplateId = null;
-        }
-        
-        getCurrentTemplates() {
-          return this._templates[this.currentCategory] || [];
-        }
-        
-        getContentSize(width = 200) {
-          // Implement in Phase 1.2
-          return { width: 200, height: 300 };
-        }
-        
-        render(x, y, width, height) {
-          // Implement in Phase 1.2
-        }
-        
-        handleClick(clickX, clickY, panelX, panelY, panelWidth) {
-          // Implement in Phase 1.2
-          return null;
-        }
-      };
-      
-      if (typeof window !== 'undefined') {
-        window.EntityPalette = global.EntityPalette;
-      }
+    // Assign EntityPalette to global for consistency
+    global.EntityPalette = EntityPalette;
+    if (typeof window !== 'undefined') {
+      window.EntityPalette = EntityPalette;
     }
   });
   
@@ -263,8 +245,9 @@ describe('EntityPalette - List View', function() {
         { id: 'ant_soldier', name: 'Soldier Ant', type: 'Ant' }
       ];
       
-      // Click in second item area (30px buttons + 80px first item + padding)
-      const result = palette.handleClick(100, 130, 10, 10, 200);
+      // Click in second item area (30px buttons + 8px padding + 80px first item + 8px padding + into second item)
+      // panelY=10, so absolute Y=146 means relY=136, which is 98px into list (hits second item)
+      const result = palette.handleClick(100, 146, 10, 10, 200);
       
       expect(result).to.exist;
       if (result && result.type === 'template') {
@@ -292,7 +275,7 @@ describe('EntityPalette - List View', function() {
         { id: 'ant_soldier', name: 'Soldier Ant', type: 'Ant' }
       ];
       
-      palette.handleClick(100, 130, 10, 10, 200);
+      palette.handleClick(100, 146, 10, 10, 200);
       
       expect(palette._selectedTemplateId).to.equal('ant_soldier');
     });

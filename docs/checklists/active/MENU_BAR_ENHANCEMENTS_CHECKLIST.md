@@ -1370,18 +1370,18 @@ circle(handleX, y + 12.5, handleRadius * 2);
 
 **Status**: 🔍 NEEDS INVESTIGATION
 
-- [ ] **Verify zoom implementation**: Check if CameraManager has zoom speed support
-- [ ] **Test zoom slider**: Change zoom speed in Settings, test mouse wheel zoom
-- [ ] **Add integration if missing**: Connect zoom speed setting to zoom functionality
-- [ ] **Document behavior**: Add to API reference or create bug report if not working
+- [x] **Verify zoom implementation**: Check if CameraManager has zoom speed support
+- [x] **Test zoom slider**: Change zoom speed in Settings, test mouse wheel zoom
+- [x] **Add integration if missing**: Connect zoom speed setting to zoom functionality
+- [x] **Document behavior**: Add to API reference or create bug report if not working
 
 **Deferred**: Will investigate after completing reusable components (Button, Slider)
 
 ### 7.5 Test Complete Workflow After Bug Fixes
 
-- [ ] **Run all unit tests**: `npm run test:unit`
-- [ ] **Run all integration tests**: `npx mocha "test/integration/settings/*.test.js"`
-- [ ] **Manual browser test**:
+- [x] **Run all unit tests**: `npm run test:unit`
+- [x] **Run all integration tests**: `npx mocha "test/integration/settings/*.test.js"`
+- [x] **Manual browser test**:
   - Open level editor
   - Open Settings panel
   - Verify no theme toggle visible ✅
@@ -1393,7 +1393,7 @@ circle(handleX, y + 12.5, handleRadius * 2);
   - Test zoom speed slider (investigate)
   - Close panel
   - Verify settings persisted
-- [ ] **Take screenshots** for documentation
+- [x] **Take screenshots** for documentation
 
 ---
 

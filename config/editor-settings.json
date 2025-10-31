@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
   "camera": {
-    "panSpeed": 1.0,
+    "panSpeed": 2.0,
     "panSpeedMin": 0.5,
-    "panSpeedMax": 3.0,
+    "panSpeedMax": 5.0,
     "zoomSpeed": 1.1,
     "zoomSpeedMin": 1.05,
     "zoomSpeedMax": 1.5

@@ -25,11 +25,11 @@ class CameraManager {
     this.canvasWidth = (typeof g_canvasX !== 'undefined') ? g_canvasX : 800;
     this.canvasHeight = (typeof g_canvasY !== 'undefined') ? g_canvasY : 600;
     this.cameraZoom = 1;
-    this.cameraPanSpeed = 10;
+    this.cameraPanSpeed = 20;
     
     // Camera constraints (state-aware: PLAYING uses 1.0, LEVEL_EDITOR uses 0.5)
     this.MIN_CAMERA_ZOOM_PLAYING = 1.0;  // PLAYING state minimum zoom
-    this.MIN_CAMERA_ZOOM_EDITOR = 0.5;   // LEVEL_EDITOR state minimum zoom
+    this.MIN_CAMERA_ZOOM_EDITOR = 0.05;   // LEVEL_EDITOR state minimum zoom
     this.MAX_CAMERA_ZOOM = 3;
     this.CAMERA_ZOOM_STEP = 1.1;
     
