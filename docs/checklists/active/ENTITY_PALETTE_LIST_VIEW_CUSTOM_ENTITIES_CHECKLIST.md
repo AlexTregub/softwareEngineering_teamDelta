@@ -1,10 +1,85 @@
 # Entity Palette List View & Custom Entities - Feature Enhancement Checklist
 
-**Feature**: EntityPalette List View + Custom Entity Save/Load System  
+**Feature**: EntityPalette List View + Custom Entity Save/Load System + Group Selection  
 **Priority**: HIGH (Major UX Improvement + New Feature)  
 **Date Created**: October 31, 2025  
-**Estimated Time**: 12-16 hours  
-**Depends On**: ENTITY_PAINTER_UI_INTEGRATION_CHECKLIST.md (✅ Complete)
+**Estimated Time**: 16-20 hours  
+**Depends On**: ENTITY_PAINTER_UI_INTEGRATION_CHECKLIST.md (✅ Complete)  
+**Current Status**: 🔴 **TDD RED PHASE - Phase 1.1 COMPLETE**  
+**Last Updated**: October 31, 2025
+
+---
+
+## 🚀 Current Progress & Handoff Status
+
+### ✅ Completed (Phase 1.1 - TDD Red)
+- [x] Created Phase 1 unit tests: `test/unit/ui/entityPaletteListView.test.js`
+- [x] Tests written FIRST (TDD Red phase)
+- [x] **Test Results**: 6 passing / 11 failing (EXPECTED - need implementation)
+- [x] All visual mockups created and approved by user
+- [x] Cursor following requirement added to checklist
+- [x] Group selection system fully designed
+
+### 🔴 Next Action Required (Phase 1.2 - Implementation)
+**CRITICAL**: The next agent should implement the list view to make failing tests pass.
+
+**File to modify**: `Classes/ui/EntityPalette.js` (if exists) or create it
+
+**Methods to implement**:
+1. `render(x, y, width, height)` - List view instead of grid
+2. `getContentSize(width)` - Dynamic height based on template count
+3. `handleClick(clickX, clickY, panelX, panelY, panelWidth)` - List item detection
+
+**Run tests after implementation**:
+```bash
+npx mocha "test/unit/ui/entityPaletteListView.test.js"
+```
+
+**Expected outcome**: All 17 tests should pass (6 already passing + 11 currently failing)
+
+### 📊 Test Failure Summary (What Needs Implementation)
+1. ❌ 64x64 sprite rendering
+2. ❌ Full entity name rendering  
+3. ❌ Entity type information display
+4. ❌ Custom properties display (faction, health, etc.)
+5. ❌ Additional description display
+6. ❌ Gold border selection highlighting
+7. ❌ Dynamic height calculation for many items
+8. ❌ Click detection on first list item
+9. ❌ Click detection on second list item
+10. ❌ Template ID selection update on click
+11. ❌ Dynamic panel height based on template count
+
+### 📁 Files Created This Session
+1. `test/unit/ui/entityPaletteListView.test.js` (329 lines) - Phase 1 unit tests
+2. `test/e2e/screenshots/entity_palette_group_selection_mockup.html` - Group selection mockup
+3. Updated this checklist with cursor following and group selection
+
+### 🎯 User Requirements Confirmed
+- ✅ List view design approved ("EXACTLY what I want")
+- ✅ Custom entities feature approved
+- ✅ Group selection feature approved
+- ✅ Cursor following requirement added (click entity → attach to cursor → paint on grid click)
+
+---
+
+## 📍 Quick Navigation for Next Agent
+
+**START HERE**: [Phase 1.2 Implementation](#12-implement-list-view-️-next-step)
+
+**Key Files**:
+- Tests: `test/unit/ui/entityPaletteListView.test.js` (written, 11 failing)
+- Implementation: `Classes/ui/EntityPalette.js` (needs modification)
+- Mockups: `test/e2e/screenshots/entity_palette_*.html` (3 files, all approved)
+
+**Test Command**:
+```bash
+npx mocha "test/unit/ui/entityPaletteListView.test.js"
+```
+
+**Expected Outcome**: 17/17 tests passing after implementation
+
+**Handoff Document**: See `HANDOFF_ENTITY_PALETTE_SESSION.md` for detailed session summary
 
 ---
 
@@ -17,10 +92,17 @@
 2. **Custom Entities Category**: New 4th category (💾) for saving custom-configured entities
 3. **Save/Load System**: LocalStorage persistence for custom entities
 4. **CRUD Operations**: Create, Rename, Delete custom entities with confirmation prompts
+5. **Group Selection**: Select multiple entities on grid, store as group with relative positions
+6. **Dynamic Button**: "Add New" / "Store Selected Entity" / "Store Selected Entities (N)"
+7. **Cursor Following**: When user clicks entity/group in palette, sprites attach to cursor and follow until:
+   - User clicks grid → entities painted at cursor position (maintaining formation for groups)
+   - User clicks any UI button → cancel placement, detach from cursor
+   - User presses Escape or right-clicks → cancel placement, detach from cursor
 
 **Visual Mockups**:
 - Basic list view: `test/e2e/screenshots/entity_palette_mockup.html`
 - Custom entities: `test/e2e/screenshots/entity_palette_custom_mockup.html`
+- Group selection: `test/e2e/screenshots/entity_palette_group_selection_mockup.html`
 
 ---
 
@@ -70,25 +152,70 @@
 - "Add New Custom Entity" button at bottom of panel
 
 ### 3. Custom Entity Data Model
+
+**Single Entity**:
 ```javascript
 {
-  customEntities: [
-    {
-      id: 'custom_uuid_1234',          // Unique ID
-      customName: 'My Elite Squad',    // User-defined name
-      baseTemplateId: 'ant_soldier',   // Base template
-      properties: {                     // Overridden properties
-        health: 200,
-        movementSpeed: 50,
-        damage: 30,
-        faction: 'player'
-      },
-      createdAt: '2025-10-31T12:00:00Z',
-      lastModified: '2025-10-31T14:30:00Z'
-    }
-  ]
+  id: 'custom_uuid_1234',          // Unique ID
+  customName: 'My Elite Soldier',  // User-defined name
+  isGroup: false,                  // Single entity
+  baseTemplateId: 'ant_soldier',   // Base template
+  properties: {                     // Overridden properties
+    health: 200,
+    movementSpeed: 50,
+    damage: 30,
+    faction: 'player'
+  },
+  createdAt: '2025-10-31T12:00:00Z',
+  lastModified: '2025-10-31T14:30:00Z'
 }
 ```
+
+**Entity Group** (Multiple entities with relative positions):
+```javascript
+{
+  id: 'custom_group_1730400000_abc123',    // Unique ID
+  customName: 'Defense Formation',         // User-defined name
+  isGroup: true,                           // Group of entities
+  entities: [                              // Array of entities
+    {
+      baseTemplateId: 'ant_soldier',
+      position: { x: 0, y: 0 },           // Origin (first selected)
+      properties: {
+        health: 200,
+        faction: 'player',
+        movementSpeed: 50
+      }
+    },
+    {
+      baseTemplateId: 'ant_soldier',
+      position: { x: 2, y: 0 },           // Offset +2 right
+      properties: {
+        health: 200,
+        faction: 'player'
+      }
+    },
+    {
+      baseTemplateId: 'ant_worker',
+      position: { x: 1, y: 1 },           // Offset +1 right, +1 down
+      properties: {
+        health: 100,
+        faction: 'player'
+      }
+    }
+  ],
+  createdAt: '2025-10-31T12:00:00Z',
+  lastModified: '2025-10-31T12:00:00Z'
+}
+```
+
+**Key Points**:
+- `isGroup: true` identifies entity groups
+- Single entities: `baseTemplateId` + `properties`
+- Groups: `entities[]` array with `position` offsets
+- First entity in group is origin (0, 0)
+- Other entities stored as relative grid offsets
+- When placing: user clicks origin, game places all entities maintaining formation
 
 ### 4. LocalStorage Persistence
 **Storage Key**: `'antGame_customEntities'`
@@ -98,6 +225,178 @@
 - `loadCustomEntities()` - Load from LocalStorage on init
 - `deleteCustomEntity(id)` - Remove from storage + memory
 - `renameCustomEntity(id, newName)` - Update name
+
+### 5. Group Selection Algorithm
+
+**Selection Detection**:
+```javascript
+// Level Editor provides selected entities
+const selectedEntities = levelEditor.getSelectedEntities();
+// Returns: [{ entity: antObj, gridX: 10, gridY: 15 }, ...]
+```
+
+**Relative Position Calculation**:
+```javascript
+function calculateRelativePositions(selectedEntities) {
+  if (selectedEntities.length === 0) return [];
+  if (selectedEntities.length === 1) {
+    // Single entity - no relative positions needed
+    return [{ ...selectedEntities[0], position: { x: 0, y: 0 } }];
+  }
+  
+  // Find origin (topmost-leftmost entity)
+  let minX = Infinity, minY = Infinity;
+  selectedEntities.forEach(sel => {
+    if (sel.gridY < minY || (sel.gridY === minY && sel.gridX < minX)) {
+      minX = sel.gridX;
+      minY = sel.gridY;
+    }
+  });
+  
+  // Calculate offsets
+  return selectedEntities.map(sel => ({
+    baseTemplateId: sel.entity.templateId,
+    position: {
+      x: sel.gridX - minX,  // Offset from origin
+      y: sel.gridY - minY
+    },
+    properties: sel.entity.getProperties() // Current properties
+  }));
+}
+```
+
+**Group Placement Algorithm**:
+```javascript
+function placeGroup(originGridX, originGridY, groupData) {
+  const placedEntities = [];
+  
+  groupData.entities.forEach(entityData => {
+    const finalX = originGridX + entityData.position.x;
+    const finalY = originGridY + entityData.position.y;
+    
+    // Instantiate entity at final position
+    const entity = createEntity(
+      entityData.baseTemplateId,
+      finalX * TILE_SIZE,  // Convert grid to world coords
+      finalY * TILE_SIZE,
+      entityData.properties
+    );
+    
+    placedEntities.push(entity);
+  });
+  
+  return placedEntities;
+}
+```
+
+**Button State Logic**:
+```javascript
+function getButtonText() {
+  const selected = levelEditor.getSelectedEntities();
+  
+  if (selected.length === 0) {
+    return { text: '➕ Add New Custom Entity', style: 'green' };
+  } else if (selected.length === 1) {
+    return { text: '💾 Store Selected Entity', style: 'blue' };
+  } else {
+    return { text: `💾 Store Selected Entities (${selected.length})`, style: 'blue' };
+  }
+}
+```
+
+### 6. Cursor Following System
+
+**User Workflow**:
+1. User clicks entity/group in EntityPalette
+2. Sprites attach to cursor (ghost preview)
+3. Sprites follow cursor maintaining relative positions
+4. User action determines outcome:
+   - **Click grid** → Paint entities at cursor position, save to JSON
+   - **Click UI button** → Cancel placement, clear cursor
+   - **Press Escape/Right-click** → Cancel placement, clear cursor
+
+**Visual Feedback**:
+- Semi-transparent sprites (50% opacity)
+- Maintain formation for groups
+- Grid-snapped positioning (align to tile grid)
+- Highlight valid/invalid placement zones
+
+**Implementation Pattern**:
+```javascript
+// EntityPalette - When user clicks template
+handleTemplateClick(template) {
+  if (template.isGroup) {
+    levelEditor.attachToMouseGroup(template.entities);
+  } else {
+    levelEditor.attachToMouseSingle(template.baseTemplateId, template.properties);
+  }
+}
+
+// LevelEditor - Cursor attachment
+attachToMouseGroup(entities) {
+  this._cursorAttachment = {
+    type: 'group',
+    entities: entities,
+    active: true
+  };
+}
+
+attachToMouseSingle(templateId, properties) {
+  this._cursorAttachment = {
+    type: 'single',
+    templateId: templateId,
+    properties: properties,
+    active: true
+  };
+}
+
+// LevelEditor - Render attached sprites
+renderCursorAttachment() {
+  if (!this._cursorAttachment || !this._cursorAttachment.active) return;
+  
+  const mouseGridX = Math.floor(mouseX / TILE_SIZE);
+  const mouseGridY = Math.floor(mouseY / TILE_SIZE);
+  
+  push();
+  tint(255, 128); // 50% opacity
+  
+  if (this._cursorAttachment.type === 'group') {
+    this._cursorAttachment.entities.forEach(entityData => {
+      const drawX = (mouseGridX + entityData.position.x) * TILE_SIZE;
+      const drawY = (mouseGridY + entityData.position.y) * TILE_SIZE;
+      renderSprite(entityData.baseTemplateId, drawX, drawY);
+    });
+  } else {
+    renderSprite(this._cursorAttachment.templateId, mouseGridX * TILE_SIZE, mouseGridY * TILE_SIZE);
+  }
+  
+  pop();
+}
+
+// LevelEditor - Handle placement
+handleGridClick(gridX, gridY) {
+  if (!this._cursorAttachment || !this._cursorAttachment.active) return false;
+  
+  if (this._cursorAttachment.type === 'group') {
+    placeGroup(gridX, gridY, this._cursorAttachment.entities);
+  } else {
+    placeSingleEntity(gridX, gridY, this._cursorAttachment.templateId, this._cursorAttachment.properties);
+  }
+  
+  clearCursorAttachment();
+  return true; // Handled
+}
+
+// Cancel on UI click, Escape, or right-click
+clearCursorAttachment() {
+  this._cursorAttachment = null;
+}
+```
+
+**Cancellation Detection**:
+- **UI Button Click**: Any button click clears cursor attachment
+- **Escape Key**: `keyPressed()` detects `keyCode === ESCAPE`
+- **Right Click**: `mousePressed()` detects `mouseButton === RIGHT`
 
 **Storage Format**: JSON string
 **Max Size Consideration**: ~5MB LocalStorage limit (thousands of entities)
@@ -494,6 +793,21 @@ const addModal = new ModalDialog({
   - Custom category rendering
   - "Add New" button rendering
 
+**Group Selection**:
+- `test/unit/ui/entityPaletteGroupSelection.test.js` (18 tests)
+  - Selection detection from Level Editor
+  - Relative position calculation
+  - Origin entity detection (topmost-leftmost)
+  - Group data structure creation
+  - Button text updates (dynamic)
+  - Group badge rendering
+  - Group sprite rendering (2x2 mini grid)
+- `test/unit/levelEditor/groupPlacer.test.js` (10 tests)
+  - Group placement at origin
+  - Entity offset calculation
+  - Mixed entity types in group
+  - Properties preservation
+
 **ModalDialog**:
 - `test/unit/ui/modalDialog.test.js` (12 tests)
   - Modal show/hide
@@ -531,15 +845,27 @@ const addModal = new ModalDialog({
   - LocalStorage persistence across page reloads
   - Screenshots showing all UI states
 
+**Group Selection**:
+- `test/e2e/ui/pw_entity_palette_group_selection.js` (10 tests)
+  - Place entities on grid
+  - Select multiple entities
+  - Button text changes to "Store Selected Entities (N)"
+  - Store group with custom name
+  - Verify group in LocalStorage
+  - Verify group badge and sprite in list
+  - Select and place group
+  - Verify formation maintained
+  - Screenshots: selection, storage, placement
+
 ---
 
 ## Phases
 
-### Phase 1: List View Refactor ⏳
+### Phase 1: List View Refactor ⏳ **CURRENT PHASE**
 
-#### 1.1 Write Unit Tests (TDD Red)
-- [ ] **Create**: `test/unit/ui/entityPaletteListView.test.js`
-- [ ] **Test**: List item rendering (15 tests)
+#### 1.1 Write Unit Tests (TDD Red) ✅ **COMPLETE**
+- [x] **Create**: `test/unit/ui/entityPaletteListView.test.js` ✅
+- [x] **Test**: List item rendering (17 tests total) ✅
   - Should render 64x64 sprite placeholder
   - Should render full entity name (no abbreviation)
   - Should render entity type
@@ -550,22 +876,51 @@ const addModal = new ModalDialog({
   - Should highlight selected item with gold border
   - Should handle scrolling with many items
   - Should calculate dynamic panel height
-- [ ] **Run**: `npx mocha "test/unit/ui/entityPaletteListView.test.js"` (expect failures)
+  - Should detect clicks on list items (first, second)
+  - Should update selected template ID on click
+  - Edge cases: null sprites, null properties, null descriptions
+- [x] **Run**: `npx mocha "test/unit/ui/entityPaletteListView.test.js"` ✅
+  - **Result**: 6 passing / 11 failing (EXPECTED - TDD Red phase complete)
 
-#### 1.2 Implement List View
+#### 1.2 Implement List View ⏭️ **NEXT STEP**
+**CRITICAL**: Next agent starts HERE. Implement methods to make tests pass.
+
+- [ ] **Locate/Create**: `Classes/ui/EntityPalette.js`
+  - Check if file exists, if not create new file
+  - May need to check existing implementation first
+  
 - [ ] **Modify**: `EntityPalette.js render()` method
   - Replace grid layout with list layout
-  - Render 64x64 sprites
-  - Render text info (name, type, custom, additional)
-  - Add selection highlighting
-  - Add hover effects
+  - Render 64x64 sprites (use `rect()` for placeholder, later add actual sprites)
+  - Render text info with `text()`:
+    - Line 1: Full entity name (16px, bold, gold `#ffd700`)
+    - Line 2: Entity type (13px, gray `#aaa`)
+    - Line 3: Custom info from properties (12px, italic, gray `#888`)
+    - Line 4: Additional description (11px, light gray `#666`)
+  - Add selection highlighting: gold border `#ffd700` if selected
+  - Add hover effects (optional for now)
+  - Item height: 80px per item (64px sprite + 16px padding)
+  - Padding: 8px between items
+  
 - [ ] **Modify**: `EntityPalette.js getContentSize()`
-  - Calculate height based on list items (80px each)
-  - Add padding between items
+  - Calculate height based on list items: `buttonHeight + (itemCount * (itemHeight + padding)) + margin`
+  - Item height: 80px, padding: 8px, button height: 30px, margin: 16px
+  - Return `{ width: width, height: calculatedHeight }`
+  
 - [ ] **Modify**: `EntityPalette.js handleClick()`
   - Detect clicks on list items
-  - Calculate correct item index from Y position
-- [ ] **Run**: Unit tests (should pass)
+  - Calculate Y offset from panel top: `relY = clickY - panelY`
+  - Skip category buttons: `if (relY < buttonHeight) { /* handle category */ }`
+  - Calculate list item index: `index = Math.floor((relY - buttonHeight - 8) / (itemHeight + padding))`
+  - Validate index: `if (index >= 0 && index < templates.length)`
+  - Update selection: `this._selectedTemplateId = templates[index].id`
+  - Return `{ type: 'template', template: templates[index] }`
+  
+- [ ] **Run**: Unit tests (should pass all 17 tests)
+  ```bash
+  npx mocha "test/unit/ui/entityPaletteListView.test.js"
+  ```
+  - Expected: 17/17 passing
 
 #### 1.3 Integration Tests
 - [ ] **Create**: `test/integration/ui/entityPaletteListViewIntegration.integration.test.js`
@@ -623,6 +978,114 @@ const addModal = new ModalDialog({
   - Load custom entities on page reload
   - Handle LocalStorage quota exceeded
   - Handle corrupted JSON data
+
+---
+
+### Phase 2A: Group Selection & Storage ⏳
+
+**Feature**: Select multiple entities on grid and store as group with relative positions
+
+#### 2A.1 Write Unit Tests (TDD Red)
+- [ ] **Create**: `test/unit/ui/entityPaletteGroupSelection.test.js`
+- [ ] **Test**: Group selection functionality (18 tests)
+  - Should detect when Level Editor has selected entities
+  - Should calculate relative positions from origin (first entity)
+  - Should store multiple entities as group
+  - Should create group data structure with `isGroup: true`
+  - Should store each entity's position offset
+  - Should preserve entity properties in group
+  - Should handle single entity (no group needed)
+  - Should handle 2+ entities (create group)
+  - Should find topmost-leftmost entity as origin (0, 0)
+  - Should calculate grid offsets for other entities
+  - Should change button text: "Store Selected Entity" (singular)
+  - Should change button text: "Store Selected Entities (N)" (plural)
+  - Should default to "Add New Custom Entity" when no selection
+  - Should render group badge in list (e.g., "GROUP (4)")
+  - Should render group sprite (2x2 grid of mini sprites)
+  - Should load group and place all entities maintaining formation
+  - Should handle mixed entity types in group (ants + buildings)
+- [ ] **Run**: Tests (expect failures)
+
+#### 2A.2 Implement Group Detection
+- [ ] **Modify**: `EntityPalette.js`
+  - Add `getSelectedEntitiesFromLevelEditor()` method
+    - Query Level Editor's selection system
+    - Return array of selected entity objects with grid positions
+  - Add `_calculateRelativePositions(entities)` utility
+    - Find origin entity (topmost-leftmost)
+    - Calculate offsets for all other entities
+    - Return array with relative positions
+  - Add `update()` method (called each frame)
+    - Check for Level Editor selection changes
+    - Update button text based on selection count
+- [ ] **Run**: Unit tests (should pass)
+
+#### 2A.3 Implement Group Storage
+- [ ] **Modify**: `EntityPalette.addCustomEntity()`
+  - Add `entities` parameter (array for groups)
+  - If single entity: store with `isGroup: false`, `baseTemplateId`, `properties`
+  - If multiple entities: store with `isGroup: true`, `entities[]` array
+  - Each entity in group has: `baseTemplateId`, `position: {x, y}`, `properties`
+  - First entity always at position (0, 0)
+- [ ] **Add**: `EntityPalette.addCustomEntityGroup(name, entities)`
+  - Wrapper method for creating groups
+  - Calculates relative positions automatically
+  - Saves to LocalStorage
+- [ ] **Run**: Unit tests (should pass)
+
+#### 2A.4 Implement Dynamic Button Text
+- [ ] **Modify**: `EntityPalette.render()` (button at bottom)
+  - Check selection count from Level Editor
+  - If 0 selected: "➕ Add New Custom Entity"
+  - If 1 selected: "💾 Store Selected Entity"
+  - If 2+ selected: "💾 Store Selected Entities (N)"
+  - Update button color (green for Add, blue for Store)
+- [ ] **Modify**: `EntityPalette.handleClick()` for button
+  - If "Add New": open blank entity creator modal
+  - If "Store Selected": prompt for name, then save selection
+- [ ] **Test**: Button text updates correctly
+
+#### 2A.5 Implement Group Rendering
+- [ ] **Modify**: `EntityPalette._renderCustomEntity()`
+  - Check if `entity.isGroup === true`
+  - If group: render group badge ("GROUP (N)")
+  - If group: render 2x2 grid of mini sprites (first 4 entities)
+  - If single: render normal 64x64 sprite
+- [ ] **Add**: Group sprite utility
+  - Takes array of entities, renders compact 2x2 grid
+  - Shows first 4 entities (or fewer if group < 4)
+- [ ] **Test**: Group rendering tests
+
+#### 2A.6 Implement Group Placement
+- [ ] **Create**: `Classes/levelEditor/GroupPlacer.js` (utility)
+  - `placeGroup(originGridX, originGridY, groupData)` method
+  - Iterate through group's entities array
+  - For each entity: calculate final position = origin + offset
+  - Instantiate entity at calculated position
+  - Apply entity properties
+  - Return array of created entity instances
+- [ ] **Modify**: Level Editor's entity placement system
+  - Check if selected template `isGroup: true`
+  - If group: use `GroupPlacer.placeGroup()`
+  - If single: use existing placement logic
+- [ ] **Test**: Group placement integration tests
+
+#### 2A.7 E2E Tests with Screenshots
+- [ ] **Create**: `test/e2e/ui/pw_entity_palette_group_selection.js`
+- [ ] **Test**: Full group workflow (10 tests)
+  - Place 3 entities on grid
+  - Select all 3 entities
+  - Open EntityPalette (custom category)
+  - Verify button text: "Store Selected Entities (3)"
+  - Click button, enter name "My Squad"
+  - Verify group saved to LocalStorage
+  - Verify group appears in list with badge "GROUP (3)"
+  - Verify group sprite shows 2x2 grid
+  - Select group from palette
+  - Click grid to place group
+  - Verify all 3 entities placed maintaining formation
+  - **Screenshots**: All UI states
 
 ---
 
