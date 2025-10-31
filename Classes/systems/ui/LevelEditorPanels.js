@@ -408,6 +408,40 @@ class LevelEditorPanels {
       }
     }
 
+    // Entity Palette Panel
+    if (this.panels.entityPalette && this.panels.entityPalette.state.visible) {
+      const palettePanel = this.panels.entityPalette;
+      const palettePos = palettePanel.getPosition();
+      const titleBarHeight = palettePanel.calculateTitleBarHeight();
+      const contentX = palettePos.x + palettePanel.config.style.padding;
+      const contentY = palettePos.y + titleBarHeight + palettePanel.config.style.padding;
+      
+      // Check if click is in the content area of entity palette panel
+      if (this.levelEditor.entityPalette && this.levelEditor.entityPalette.containsPoint) {
+        // EntityPalette needs panel width for proper bounds checking
+        const panelWidth = palettePanel.state.width - (palettePanel.config.style.padding * 2);
+        
+        if (this.levelEditor.entityPalette.containsPoint(mouseX, mouseY, contentX, contentY)) {
+          const action = this.levelEditor.entityPalette.handleClick(mouseX, mouseY, contentX, contentY, panelWidth);
+          if (action) {
+            // Handle different palette actions
+            if (action.type === 'category') {
+              this.levelEditor.notifications.show(`Category: ${action.category}`);
+            } else if (action.type === 'template') {
+              this.levelEditor.notifications.show(`Selected: ${action.template.name}`);
+            } else if (action.type === 'addCustomEntity') {
+              this.levelEditor.notifications.show('Add custom entity...');
+            } else if (action.type === 'rename') {
+              this.levelEditor.notifications.show(`Rename: ${action.entity.customName}`);
+            } else if (action.type === 'delete') {
+              this.levelEditor.notifications.show(`Deleted: ${action.entity.customName}`);
+            }
+            return true; // Consume click
+          }
+        }
+      }
+    }
+
     // Sidebar Panel (Phase 4 integration)
     if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar) {
       const sidebarPanel = this.panels.sidebar;
@@ -470,6 +504,23 @@ class LevelEditorPanels {
    * @returns {boolean} True if event was handled
    */
   handleMouseWheel(delta, mouseX, mouseY) {
+    // Entity Palette Panel
+    if (this.panels.entityPalette && this.panels.entityPalette.state.visible) {
+      const palettePanel = this.panels.entityPalette;
+      const palettePos = palettePanel.getPosition();
+      const titleBarHeight = palettePanel.calculateTitleBarHeight();
+      const contentX = palettePos.x + palettePanel.config.style.padding;
+      const contentY = palettePos.y + titleBarHeight + palettePanel.config.style.padding;
+      
+      if (this.levelEditor.entityPalette && this.levelEditor.entityPalette.handleMouseWheel) {
+        const panelWidth = palettePanel.state.width - (palettePanel.config.style.padding * 2);
+        const handled = this.levelEditor.entityPalette.handleMouseWheel(delta, mouseX, mouseY, contentX, contentY, panelWidth);
+        if (handled) {
+          return true; // Consumed
+        }
+      }
+    }
+    
     // Sidebar Panel (Phase 4 integration)
     if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar) {
       const sidebarPanel = this.panels.sidebar;

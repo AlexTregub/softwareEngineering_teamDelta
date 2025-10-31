@@ -29,6 +29,15 @@
 - [x] Fixed test coordinates for accurate click detection testing
 - [x] **Test Results**: 17/17 passing ✅
 
+### ✅ Completed (Phase 5.3 - Keyboard Shortcuts)
+- [x] ToastNotification system (36 unit tests + 19 integration tests)
+- [x] ShortcutManager.handleKeyPress() method (25 unit tests)
+- [x] EntityPalette keyboard shortcut methods (selectEntity, getSelectedEntity, clearSelection, deleteSelectedEntity, registerKeyboardShortcuts)
+- [x] **Test Results**: 19/19 integration tests passing ✅
+- [x] Delete key shortcut for custom entity deletion
+- [x] Escape key shortcut to clear selection
+- [x] ShortcutManager respects action return values (false = not handled, continue to next shortcut)
+
 ### ✅ Completed (Phase 1.2A - Cursor Following Tests & Requirements)
 - [x] **NEW REQUIREMENT**: Shift+click for multiple entity placements (keep attached to cursor)
 - [x] Created unit tests: `test/unit/ui/entityPaletteCursorFollowing.test.js` (15 tests)
@@ -1296,15 +1305,54 @@ const addModal = new ModalDialog({
 #### 5.3 Polish & UX
 - [x] **Add**: Toast notifications ("Custom entity saved!", "Entity deleted") ✅ **COMPLETE (36 unit tests passing)**
 - [x] **Add**: EntityPalette integration with ToastNotification ✅ **COMPLETE (19 integration tests passing)**
-- [ ] **Add**: Keyboard shortcuts via ShortcutManager integration
+- [x] **Add**: Keyboard shortcuts via ShortcutManager integration ✅ **COMPLETE (19 integration tests passing)**
   - [x] Extend ShortcutManager with `handleKeyPress()` method (TDD) ✅ **COMPLETE (25 unit tests passing)**
-  - [ ] Register Delete key shortcut for custom entity deletion
-  - [ ] Register Escape key shortcut to clear selection
-  - [ ] Integration tests for keyboard shortcuts with EntityPalette
-- [ ] **Add**: Tooltip on hover showing full entity details
-- [ ] **Add**: Loading spinner for LocalStorage operations (optional)
-- [ ] **Add**: Search/filter custom entities (if many) (optional)
-- [ ] **Add**: Drag-to-reorder custom entities (optional)
+  - [x] Register Delete key shortcut for custom entity deletion ✅ **COMPLETE**
+  - [x] Register Escape key shortcut to clear selection ✅ **COMPLETE**
+  - [x] Integration tests for keyboard shortcuts with EntityPalette ✅ **COMPLETE (19 integration tests passing)**
+- [x] **Add**: Tooltip on hover showing full entity details ✅ **COMPLETE (31 unit tests passing)**
+  - [x] Unit tests for tooltip state management (TDD) ✅
+  - [x] Tests for tooltip content generation ✅
+  - [x] Tests for hover detection over list items ✅
+  - [x] Tests for tooltip positioning (cursor offset, screen edge avoidance) ✅
+  - [x] Tests for tooltip rendering (multi-line, background) ✅
+  - [x] Implement `showTooltip(content, x, y)` method ✅
+  - [x] Implement `hideTooltip()` method ✅
+  - [x] Implement `getTooltipContent(template)` method ✅
+  - [x] Implement `handleMouseMove()` for hover detection ✅
+  - [x] Implement `_renderTooltip()` for rendering ✅
+- [x] **Add**: Loading spinner for LocalStorage operations ✅ **COMPLETE (28 unit tests passing)**
+  - [x] Unit tests for spinner state management (show/hide) ✅
+  - [x] Tests for spinner animation (rotation, wrapping) ✅
+  - [x] Tests for spinner rendering (overlay, arcs, text) ✅
+  - [x] Tests for LocalStorage integration (save, load, delete) ✅
+  - [x] Implement `showLoadingSpinner()` method ✅
+  - [x] Implement `hideLoadingSpinner()` method ✅
+  - [x] Implement `updateLoadingSpinner()` method ✅
+  - [x] Implement `renderLoadingSpinner()` method ✅
+  - [x] Integrate spinner with `_saveCustomEntities()` ✅
+  - [x] Integrate spinner with `_loadCustomEntities()` ✅
+- [x] **Add**: Search/filter custom entities ✅ **COMPLETE (35 unit tests passing)**
+  - [x] Unit tests for search state management (query, clear) ✅
+  - [x] Tests for filter logic (name, ID, case-insensitive, partial) ✅
+  - [x] Tests for search UI rendering (box, placeholder, clear button) ✅
+  - [x] Tests for integration with getCurrentTemplates() ✅
+  - [x] Implement `setSearchQuery(query)` method ✅
+  - [x] Implement `clearSearch()` method ✅
+  - [x] Implement `filterTemplates(templates, query)` method ✅
+  - [x] Implement `renderSearchBox(x, y, width)` method ✅
+  - [x] Implement `handleSearchInput(input)` method ✅
+  - [x] Implement `handleClearSearch()` method ✅
+  - [x] Integrate with handleClick() for clear button ✅
+  - [x] Update getCurrentTemplates() to apply search filter ✅
+  - [x] Update getContentSize() to account for search box ✅
+- [x] **Add**: Drag-to-reorder custom entities (optional) ✅ **COMPLETE (39 unit tests passing)**
+  - 11 methods: startDrag, endDrag, updateDragPosition, handleMousePressed, handleMouseDragged, handleMouseReleased, getDropIndex, reorderCustomEntity, renderDragGhost, renderDropIndicator, updateCursor
+  - Test coverage: Drag state (7), detection (7), drop zones (5), reordering logic (8), visual feedback (6), render integration (2), edge cases (4)
+  - Drag ghost: Semi-transparent preview with gold border
+  - Drop indicator: Gold line with arrow indicators
+  - Cursor feedback: MOVE cursor during drag
+  - LocalStorage persistence: Auto-save after reordering
 - [ ] **Add**: Export/Import custom entities (JSON file) (optional)
 
 ---

@@ -10,6 +10,32 @@ class EntityPalette {
     this._selectedTemplateId = null;
     this._templates = this._loadTemplates();
     
+    // Tooltip state
+    this._tooltipVisible = false;
+    this._tooltipContent = null;
+    this._tooltipX = 0;
+    this._tooltipY = 0;
+    this._tooltipWidth = 0;
+    this._tooltipHeight = 0;
+    
+    // Loading spinner state
+    this._loadingSpinnerVisible = false;
+    this._spinnerRotation = 0;
+    
+    // Search/filter state
+    this._searchQuery = '';
+    
+    // Drag-to-reorder state
+    this._isDragging = false;
+    this._draggedEntity = null;
+    this._dragStartY = 0;
+    this._dragCurrentY = 0;
+    
+    // Scroll support (limit viewport to 4 entries)
+    this.scrollOffset = 0;
+    this.maxScrollOffset = 0;
+    this.viewportHeight = 320; // 4 entries * 80px per entry
+    
     // Create ModalDialog instance for add/rename/delete operations
     if (typeof ModalDialog !== 'undefined') {
       this._modal = new ModalDialog();
@@ -241,6 +267,8 @@ class EntityPalette {
    * @private
    */
   _loadCustomEntities() {
+    this.showLoadingSpinner();
+    
     try {
       // Check if localStorage is available
       if (typeof localStorage === 'undefined') {
@@ -253,6 +281,8 @@ class EntityPalette {
       }
     } catch (error) {
       console.error('Error loading custom entities:', error);
+    } finally {
+      this.hideLoadingSpinner();
     }
     return [];
   }
@@ -262,6 +292,8 @@ class EntityPalette {
    * @private
    */
   _saveCustomEntities() {
+    this.showLoadingSpinner();
+    
     try {
       // Check if localStorage is available
       if (typeof localStorage === 'undefined') {
@@ -272,6 +304,8 @@ class EntityPalette {
       localStorage.setItem('antGame_customEntities', JSON.stringify(customEntities));
     } catch (error) {
       console.error('Error saving custom entities:', error);
+    } finally {
+      this.hideLoadingSpinner();
     }
   }
   
@@ -431,6 +465,9 @@ class EntityPalette {
     // Save to LocalStorage
     this._saveCustomEntities();
     
+    // Update scroll bounds (content height changed)
+    this.updateScrollBounds();
+    
     // Show success toast
     if (this._toast) {
       this._toast.show(`Custom entity "${customName}" saved!`, 'success');
@@ -572,6 +609,7 @@ class EntityPalette {
   setCategory(category) {
     this.currentCategory = category;
     this._selectedTemplateId = null; // Clear selection when switching categories
+    this.updateScrollBounds(); // Update scroll bounds when category changes
   }
   
   /**
@@ -579,7 +617,14 @@ class EntityPalette {
    * @returns {Array} Array of template objects
    */
   getCurrentTemplates() {
-    return this._templates[this.currentCategory] || [];
+    const templates = this._templates[this.currentCategory] || [];
+    
+    // Apply search filter only to custom category
+    if (this.currentCategory === 'custom' && this._searchQuery) {
+      return this.filterTemplates(templates, this._searchQuery);
+    }
+    
+    return templates;
   }
   
   /**
@@ -693,13 +738,29 @@ class EntityPalette {
     const listHeight = templates.length * (itemHeight + padding);
     
     const radioButtonsHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    const searchBoxHeight = this.currentCategory === 'custom' ? 30 + padding : 0;
     const addButtonHeight = this.currentCategory === 'custom' ? 50 : 0;
-    const totalHeight = radioButtonsHeight + listHeight + addButtonHeight + 16;
+    const totalHeight = radioButtonsHeight + searchBoxHeight + listHeight + addButtonHeight + 16;
     
     return {
       width: width,
       height: totalHeight
     };
+  }
+  
+  /**
+   * Update scroll bounds based on content height vs viewport height
+   * Called when content changes (category switch, add/remove entities, search)
+   */
+  updateScrollBounds() {
+    const contentSize = this.getContentSize(220); // Use standard width
+    const totalContentHeight = contentSize.height;
+    
+    // Calculate max scroll: max(0, totalHeight - viewportHeight)
+    this.maxScrollOffset = Math.max(0, totalContentHeight - this.viewportHeight);
+    
+    // Clamp current scroll to new bounds
+    this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.maxScrollOffset));
   }
   
   /**
@@ -714,18 +775,43 @@ class EntityPalette {
     
     push();
     
-    // Render CategoryRadioButtons at top
+    // Render CategoryRadioButtons at top (always visible, not scrolled)
     if (this.categoryButtons) {
       this.categoryButtons.render(x, y, width);
     }
     
-    // Render template LIST below radio buttons
+    const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    const padding = 8;
+    
+    // Render search box (only in custom category, always visible, not scrolled)
+    let searchBoxHeight = 0;
+    if (this.currentCategory === 'custom') {
+      const searchY = y + buttonHeight + padding;
+      this.renderSearchBox(x + padding, searchY, width - padding * 2);
+      searchBoxHeight = 30 + padding; // Search box height + padding
+    }
+    
+    // Update scroll bounds before rendering scrollable content
+    this.updateScrollBounds();
+    
+    // Setup scrollable content area with clipping
+    const scrollableY = y + buttonHeight + padding + searchBoxHeight;
+    const scrollableHeight = Math.min(this.viewportHeight, height - buttonHeight - padding - searchBoxHeight);
+    
+    // Use canvas clipping to constrain content to viewport
+    if (typeof drawingContext !== 'undefined' && drawingContext) {
+      drawingContext.save();
+      drawingContext.beginPath();
+      drawingContext.rect(x, scrollableY, width, scrollableHeight);
+      drawingContext.clip();
+    }
+    
+    // Render template LIST below radio buttons (and search box if present)
+    // Apply scroll offset to Y coordinate
     const templates = this.getCurrentTemplates();
     const itemHeight = 80; // 64px sprite + 16px padding
-    const padding = 8;
-    const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
     
-    let listY = y + buttonHeight + padding;
+    let listY = scrollableY - this.scrollOffset;
     
     // Custom category: Render empty state if no custom entities
     if (this.currentCategory === 'custom' && templates.length === 0) {
@@ -856,13 +942,32 @@ class EntityPalette {
       text(buttonText, x + width / 2, addButtonY + addButtonHeight / 2);
     }
     
-    pop();
+    // Restore canvas state (removes clipping)
+    if (typeof drawingContext !== 'undefined' && drawingContext) {
+      drawingContext.restore();
+    }
+    
+    pop(); // End main render
     
     // Update and render toasts (independent of EntityPalette rendering)
     if (this._toast) {
       this._toast.update();
       this._toast.render();
     }
+    
+    // Update and render loading spinner
+    this.updateLoadingSpinner();
+    this.renderLoadingSpinner(x, y, width, height);
+    
+    // Render drag-to-reorder visuals
+    if (this._isDragging) {
+      this.renderDropIndicator(x, y, width, height);
+      this.renderDragGhost(x, y, width);
+      this.updateCursor();
+    }
+    
+    // Render tooltip (always last, on top of everything)
+    this._renderTooltip();
   }
   
   /**
@@ -943,26 +1048,52 @@ class EntityPalette {
       }
     }
     
-    // Check template LIST (below button height)
-    if (relY > buttonHeight + 8) {
+    const padding = 8;
+    
+    // Check search box (only in custom category)
+    let searchBoxHeight = 0;
+    if (this.currentCategory === 'custom') {
+      const searchY = buttonHeight + padding;
+      const searchBoxH = 30;
+      
+      if (relY >= searchY && relY < searchY + searchBoxH) {
+        // Clear button (far right)
+        if (this._searchQuery && relX > panelWidth - padding - 40 && relX < panelWidth - padding) {
+          this.handleClearSearch();
+          return { type: 'clearSearch' };
+        }
+        
+        // Search box clicked (could trigger keyboard input in real implementation)
+        return { type: 'searchBoxClick' };
+      }
+      
+      searchBoxHeight = searchBoxH + padding;
+    }
+    
+    // Adjust Y coordinate for scroll offset in scrollable content area
+    const scrollableStartY = buttonHeight + padding + searchBoxHeight;
+    const adjustedRelY = relY >= scrollableStartY ? relY + this.scrollOffset : relY;
+    
+    // Check template LIST (below button height and search box)
+    // Use adjustedRelY for all comparisons in scrollable area
+    if (adjustedRelY > buttonHeight + padding + searchBoxHeight) {
       const templates = this.getCurrentTemplates();
       const itemHeight = 80;
       const headerHeight = 20; // Custom entity header height
-      const padding = 8;
       
       // Calculate Y position relative to list start
       let cumulativeY = 0;
       
       for (let i = 0; i < templates.length; i++) {
         const template = templates[i];
-        const itemStartY = buttonHeight + padding + cumulativeY;
+        const itemStartY = buttonHeight + padding + searchBoxHeight + cumulativeY;
         const itemWithHeaderHeight = (this.currentCategory === 'custom' ? headerHeight : 0) + itemHeight;
         
-        // Check if click is within this item's bounds
-        if (relY >= itemStartY && relY < itemStartY + itemWithHeaderHeight) {
+        // Check if click is within this item's bounds (using adjusted Y)
+        if (adjustedRelY >= itemStartY && adjustedRelY < itemStartY + itemWithHeaderHeight) {
           // Custom category: Check for rename/delete button clicks in header
           if (this.currentCategory === 'custom') {
-            const headerRelY = relY - itemStartY;
+            const headerRelY = adjustedRelY - itemStartY;
             
             // Click is in header area (top 20px)
             if (headerRelY < headerHeight) {
@@ -988,12 +1119,12 @@ class EntityPalette {
         cumulativeY += itemWithHeaderHeight + padding;
       }
       
-      // Check for "Add New" button at bottom
+      // Check for "Add New" button at bottom (using adjusted Y)
       if (this.currentCategory === 'custom') {
         const addButtonHeight = 40;
-        const addButtonY = buttonHeight + cumulativeY + 16;
+        const addButtonY = buttonHeight + padding + searchBoxHeight + cumulativeY + 8;
         
-        if (relY >= addButtonY && relY < addButtonY + addButtonHeight) {
+        if (adjustedRelY >= addButtonY && adjustedRelY < addButtonY + addButtonHeight) {
           return { type: 'addCustomEntity' };
         }
       }
@@ -1014,6 +1145,32 @@ class EntityPalette {
     const size = this.getContentSize();
     return mouseX >= contentX && mouseX <= contentX + size.width &&
            mouseY >= contentY && mouseY <= contentY + size.height;
+  }
+  
+  /**
+   * Handle mouse wheel events for scrolling
+   * @param {number} delta - Wheel delta (positive = scroll down, negative = scroll up)
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @param {number} contentX - Content area X position
+   * @param {number} contentY - Content area Y position
+   * @param {number} panelWidth - Panel width
+   * @returns {boolean} True if wheel event was handled
+   */
+  handleMouseWheel(delta, mouseX, mouseY, contentX, contentY, panelWidth) {
+    // Only scroll if mouse is over the panel
+    if (!this.containsPoint(mouseX, mouseY, contentX, contentY)) {
+      return false;
+    }
+    
+    // Update scroll offset
+    const scrollSpeed = 20;
+    this.scrollOffset += delta > 0 ? scrollSpeed : -scrollSpeed;
+    
+    // Clamp to valid range
+    this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.maxScrollOffset));
+    
+    return true; // Event consumed
   }
   
   // ============================================================
@@ -1212,6 +1369,691 @@ class EntityPalette {
     return result;
   }
   
+  // ============================================================
+  // TOOLTIP METHODS
+  // ============================================================
+  
+  /**
+   * Show tooltip with content at cursor position
+   * @param {string} content - Tooltip text content
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   */
+  showTooltip(content, mouseX, mouseY) {
+    this._tooltipContent = content;
+    this._tooltipVisible = true;
+    
+    // Calculate tooltip dimensions based on content
+    const lines = content.split('\n');
+    const maxLineLength = Math.max(...lines.map(line => line.length));
+    this._tooltipWidth = Math.min(300, Math.max(150, maxLineLength * 7));
+    this._tooltipHeight = lines.length * 16 + 12; // Line height + padding
+    
+    // Position tooltip offset from cursor
+    let tooltipX = mouseX + 15;
+    let tooltipY = mouseY + 15;
+    
+    // Avoid right screen edge
+    if (typeof window !== 'undefined' && window.width) {
+      if (tooltipX + this._tooltipWidth > window.width) {
+        tooltipX = mouseX - this._tooltipWidth - 15;
+      }
+    } else if (typeof global !== 'undefined' && global.width) {
+      if (tooltipX + this._tooltipWidth > global.width) {
+        tooltipX = mouseX - this._tooltipWidth - 15;
+      }
+    }
+    
+    // Avoid bottom screen edge
+    if (typeof window !== 'undefined' && window.height) {
+      if (tooltipY + this._tooltipHeight > window.height) {
+        tooltipY = mouseY - this._tooltipHeight - 15;
+      }
+    } else if (typeof global !== 'undefined' && global.height) {
+      if (tooltipY + this._tooltipHeight > global.height) {
+        tooltipY = mouseY - this._tooltipHeight - 15;
+      }
+    }
+    
+    this._tooltipX = tooltipX;
+    this._tooltipY = tooltipY;
+  }
+  
+  /**
+   * Hide tooltip and clear content
+   */
+  hideTooltip() {
+    this._tooltipVisible = false;
+    this._tooltipContent = null;
+  }
+  
+  /**
+   * Generate tooltip content for a template
+   * @param {Object} template - Entity template
+   * @returns {string} Formatted tooltip content
+   */
+  getTooltipContent(template) {
+    if (!template) {
+      return 'Unknown Entity';
+    }
+    
+    let content = '';
+    
+    // Name
+    if (template.customName) {
+      content += `${template.customName}\n`;
+      content += `(Custom)\n`;
+    } else if (template.name) {
+      content += `${template.name}\n`;
+    }
+    
+    // Type
+    if (template.type) {
+      content += `Type: ${template.type}\n`;
+    }
+    
+    // Group info
+    if (template.isGroup && template.entities) {
+      content += `Group: ${template.entities.length} entities\n`;
+    }
+    
+    // Properties
+    if (template.properties) {
+      content += '\n'; // Blank line before properties
+      
+      // Key properties to show
+      const keyProps = ['faction', 'health', 'movementSpeed', 'buildingType', 'capacity'];
+      
+      keyProps.forEach(prop => {
+        if (template.properties[prop] !== undefined) {
+          // Format property name (camelCase to Title Case)
+          const formattedName = prop.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          content += `${formattedName}: ${template.properties[prop]}\n`;
+        }
+      });
+    }
+    
+    return content.trim();
+  }
+  
+  /**
+   * Handle mouse move for tooltip hover detection
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @param {number} panelX - Panel X position
+   * @param {number} panelY - Panel Y position
+   * @param {number} panelWidth - Panel width
+   * @returns {Object|null} Hovered template or null
+   */
+  handleMouseMove(mouseX, mouseY, panelX, panelY, panelWidth) {
+    const templates = this.getCurrentTemplates();
+    const buttonHeight = 30;
+    const itemHeight = 80;
+    const itemPadding = 8;
+    
+    // Calculate content area start
+    const contentY = panelY + buttonHeight;
+    
+    // Check if mouse is within panel bounds
+    if (mouseX < panelX || mouseX > panelX + panelWidth || mouseY < contentY) {
+      this.hideTooltip();
+      return null;
+    }
+    
+    // Calculate which item is being hovered
+    const relativeY = mouseY - contentY;
+    const itemIndex = Math.floor(relativeY / (itemHeight + itemPadding));
+    
+    if (itemIndex >= 0 && itemIndex < templates.length) {
+      const template = templates[itemIndex];
+      const tooltipContent = this.getTooltipContent(template);
+      this.showTooltip(tooltipContent, mouseX, mouseY);
+      return template;
+    } else {
+      this.hideTooltip();
+      return null;
+    }
+  }
+  
+  /**
+   * Render tooltip if visible
+   * @private
+   */
+  _renderTooltip() {
+    if (!this._tooltipVisible || !this._tooltipContent) {
+      return;
+    }
+    
+    push();
+    
+    // Background
+    fill(40, 40, 45, 240);
+    stroke(200, 200, 200);
+    strokeWeight(1);
+    rect(this._tooltipX, this._tooltipY, this._tooltipWidth, this._tooltipHeight, 4);
+    
+    // Text
+    fill(255);
+    noStroke();
+    textSize(12);
+    textAlign(LEFT, TOP);
+    
+    const lines = this._tooltipContent.split('\n');
+    const lineHeight = 16;
+    const padding = 6;
+    
+    lines.forEach((line, index) => {
+      text(line, this._tooltipX + padding, this._tooltipY + padding + (index * lineHeight));
+    });
+    
+    pop();
+  }
+  
+  // ============================================================
+  // LOADING SPINNER METHODS
+  // ============================================================
+  
+  /**
+   * Show loading spinner overlay
+   */
+  showLoadingSpinner() {
+    this._loadingSpinnerVisible = true;
+  }
+  
+  /**
+   * Hide loading spinner overlay
+   */
+  hideLoadingSpinner() {
+    this._loadingSpinnerVisible = false;
+  }
+  
+  /**
+   * Update loading spinner animation
+   */
+  updateLoadingSpinner() {
+    if (!this._loadingSpinnerVisible) {
+      return;
+    }
+    
+    // Rotate spinner (about 180 degrees per second at 60fps)
+    this._spinnerRotation += 0.1;
+    
+    // Wrap at TWO_PI (use global constant if available, otherwise Math.PI * 2)
+    const twoPi = (typeof TWO_PI !== 'undefined') ? TWO_PI : Math.PI * 2;
+    if (this._spinnerRotation >= twoPi) {
+      this._spinnerRotation -= twoPi;
+    }
+  }
+  
+  /**
+   * Render loading spinner overlay
+   * @param {number} x - Panel X position
+   * @param {number} y - Panel Y position
+   * @param {number} width - Panel width
+   * @param {number} height - Panel height
+   */
+  renderLoadingSpinner(x, y, width, height) {
+    if (!this._loadingSpinnerVisible) {
+      return;
+    }
+    
+    push();
+    
+    // Semi-transparent overlay
+    fill(0, 0, 0, 180);
+    noStroke();
+    rect(x, y, width, height);
+    
+    // Center position
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    
+    translate(centerX, centerY);
+    rotate(this._spinnerRotation);
+    
+    // Draw spinner arcs (3 arcs at different angles)
+    noFill();
+    strokeWeight(4);
+    
+    // Constants (use global p5 constants if available, otherwise Math.PI)
+    const pi = (typeof PI !== 'undefined') ? PI : Math.PI;
+    const halfPi = (typeof HALF_PI !== 'undefined') ? HALF_PI : Math.PI / 2;
+    const twoPi = (typeof TWO_PI !== 'undefined') ? TWO_PI : Math.PI * 2;
+    const radius = (typeof RADIUS !== 'undefined') ? RADIUS : 'radius';
+    
+    // Arc 1 - Gold
+    stroke(255, 215, 0, 255);
+    arc(0, 0, 40, 40, 0, halfPi, radius);
+    
+    // Arc 2 - Yellow
+    stroke(255, 255, 100, 200);
+    arc(0, 0, 40, 40, pi, pi + halfPi, radius);
+    
+    // Arc 3 - Light Gold
+    stroke(255, 230, 100, 150);
+    arc(0, 0, 40, 40, pi + pi / 2, twoPi - pi / 4, radius);
+    
+    pop();
+    
+    // "Loading..." text
+    push();
+    fill(255);
+    noStroke();
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text('Loading...', centerX, centerY + 40);
+    pop();
+  }
+  
+  // ============================================================
+  // SEARCH/FILTER METHODS
+  // ============================================================
+  
+  /**
+   * Set search query for filtering custom entities
+   * @param {string} query - Search query
+   */
+  setSearchQuery(query) {
+    this._searchQuery = (query || '').trim().toLowerCase();
+    this.updateScrollBounds(); // Update scroll bounds when search filter changes
+  }
+  
+  /**
+   * Clear search query
+   */
+  clearSearch() {
+    this._searchQuery = '';
+  }
+  
+  /**
+   * Filter templates based on search query
+   * @param {Array} templates - Templates to filter
+   * @param {string} query - Search query
+   * @returns {Array} Filtered templates
+   */
+  filterTemplates(templates, query) {
+    if (!templates || !Array.isArray(templates)) {
+      return [];
+    }
+    
+    if (!query || query.trim() === '') {
+      return templates;
+    }
+    
+    const searchLower = query.toLowerCase();
+    
+    return templates.filter(template => {
+      // Search in custom name
+      if (template.customName && template.customName.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      // Search in base template ID
+      if (template.baseTemplateId && template.baseTemplateId.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      return false;
+    });
+  }
+  
+  /**
+   * Render search box (only in custom category)
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   * @param {number} width - Width
+   */
+  renderSearchBox(x, y, width) {
+    if (this.currentCategory !== 'custom') {
+      return;
+    }
+    
+    push();
+    
+    const height = 30;
+    
+    // Background
+    fill(45, 45, 50);
+    stroke(80, 80, 85);
+    strokeWeight(1);
+    rect(x, y, width, height, 4);
+    
+    // Search icon (🔍)
+    fill(150);
+    noStroke();
+    textSize(14);
+    textAlign(LEFT, CENTER);
+    text('🔍', x + 8, y + height / 2);
+    
+    // Search text or placeholder
+    textSize(13);
+    if (this._searchQuery) {
+      fill(255);
+      text(this._searchQuery, x + 28, y + height / 2);
+      
+      // Clear button (X)
+      const clearX = x + width - 25;
+      fill(180, 180, 180);
+      textSize(16);
+      textAlign(CENTER, CENTER);
+      text('×', clearX, y + height / 2);
+    } else {
+      fill(120);
+      text('Search...', x + 28, y + height / 2);
+    }
+    
+    pop();
+  }
+  
+  /**
+   * Handle search input
+   * @param {string} input - Input text
+   */
+  handleSearchInput(input) {
+    this.setSearchQuery(input);
+  }
+  
+  /**
+   * Handle clear search button click
+   */
+  handleClearSearch() {
+    this.clearSearch();
+  }
+  
+  // ============================================================
+  // DRAG-TO-REORDER METHODS
+  // ============================================================
+  
+  /**
+   * Start dragging an entity
+   * @param {Object} entity - Entity to drag
+   * @param {number} startY - Starting Y position
+   */
+  startDrag(entity, startY) {
+    this._isDragging = true;
+    this._draggedEntity = entity;
+    this._dragStartY = startY;
+    this._dragCurrentY = startY;
+  }
+  
+  /**
+   * End dragging and clear state
+   */
+  endDrag() {
+    this._isDragging = false;
+    this._draggedEntity = null;
+    this._dragStartY = 0;
+    this._dragCurrentY = 0;
+  }
+  
+  /**
+   * Update drag position
+   * @param {number} currentY - Current Y position
+   */
+  updateDragPosition(currentY) {
+    this._dragCurrentY = currentY;
+  }
+  
+  /**
+   * Handle mouse pressed for drag start
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @param {number} panelX - Panel X position
+   * @param {number} panelY - Panel Y position
+   * @param {number} panelWidth - Panel width
+   * @param {number} panelHeight - Panel height
+   * @returns {Object|null} Drag start result
+   */
+  handleMousePressed(mouseX, mouseY, panelX, panelY, panelWidth, panelHeight) {
+    if (this.currentCategory !== 'custom') {
+      return null;
+    }
+    
+    const relX = mouseX - panelX;
+    const relY = mouseY - panelY;
+    
+    // Use getCurrentTemplates to respect search filtering
+    const templates = this.getCurrentTemplates();
+    if (templates.length === 0) {
+      return null;
+    }
+    
+    const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    const padding = 8;
+    
+    // Include search box only in custom category
+    const hasSearchBox = this.currentCategory === 'custom';
+    const searchBoxHeight = hasSearchBox ? 30 + padding : 0;
+    
+    const itemHeight = 80;
+    const headerHeight = 20;
+    
+    let cumulativeY = 0;
+    
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i];
+      const itemStartY = buttonHeight + padding + searchBoxHeight + cumulativeY;
+      const itemTotalHeight = headerHeight + itemHeight;
+      
+      if (relY >= itemStartY && relY < itemStartY + itemTotalHeight) {
+        this.startDrag(template, relY);
+        return { type: 'dragStart', entity: template };
+      }
+      
+      cumulativeY += itemTotalHeight + padding;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Handle mouse dragged
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @param {number} panelX - Panel X position
+   * @param {number} panelY - Panel Y position
+   * @param {number} panelWidth - Panel width
+   * @param {number} panelHeight - Panel height
+   */
+  handleMouseDragged(mouseX, mouseY, panelX, panelY, panelWidth, panelHeight) {
+    if (!this._isDragging) {
+      return;
+    }
+    
+    const relY = mouseY - panelY;
+    this.updateDragPosition(relY);
+  }
+  
+  /**
+   * Handle mouse released for drag end
+   * @returns {Object|null} Drag end result with reorder info
+   */
+  handleMouseReleased() {
+    if (!this._isDragging) {
+      return null;
+    }
+    
+    const draggedEntity = this._draggedEntity;
+    const dropIndex = this.getDropIndex(this._dragCurrentY);
+    
+    this.endDrag();
+    
+    if (draggedEntity && dropIndex !== -1) {
+      this.reorderCustomEntity(draggedEntity.id, dropIndex);
+      return { type: 'dragEnd', entity: draggedEntity, newIndex: dropIndex };
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Get drop index based on Y position
+   * @param {number} y - Y position
+   * @returns {number} Drop index
+   */
+  getDropIndex(y) {
+    const templates = this.getCurrentTemplates();
+    
+    if (templates.length === 0) {
+      return 0;
+    }
+    
+    const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    const padding = 8;
+    const searchBoxHeight = 30 + padding;
+    const itemHeight = 80;
+    const headerHeight = 20;
+    const itemTotalHeight = headerHeight + itemHeight + padding;
+    
+    const listStartY = buttonHeight + padding + searchBoxHeight;
+    const relativeY = y - listStartY;
+    
+    if (relativeY <= 0) {
+      return 0;
+    }
+    
+    const index = Math.floor(relativeY / itemTotalHeight);
+    
+    // Clamp to valid range
+    return Math.min(Math.max(0, index), templates.length);
+  }
+  
+  /**
+   * Reorder custom entity to new position
+   * @param {string} entityId - Entity ID
+   * @param {number} newIndex - New index position (0-based, desired final position)
+   * @returns {boolean} Success
+   */
+  reorderCustomEntity(entityId, newIndex) {
+    if (!this._templates.custom) {
+      return false;
+    }
+    
+    const entities = this._templates.custom;
+    const currentIndex = entities.findIndex(e => e.id === entityId);
+    
+    if (currentIndex === -1) {
+      return false;
+    }
+    
+    // Validate bounds
+    if (newIndex < 0 || newIndex >= entities.length) {
+      return false;
+    }
+    
+    // No-op if same position
+    if (currentIndex === newIndex) {
+      return true;
+    }
+    
+    // Remove from current position
+    const [entity] = entities.splice(currentIndex, 1);
+    
+    // Insert at new position
+    // After removal, use newIndex directly
+    // Example: [A, B, C] move A (0) to position 2
+    //  Remove: [B, C]
+    //  Insert at 2: [B, C, A] (splice appends if index >= length)
+    entities.splice(newIndex, 0, entity);
+    
+    // Persist to LocalStorage
+    this._saveCustomEntities();
+    
+    return true;
+  }
+  
+  /**
+   * Render drag ghost (semi-transparent preview)
+   * @param {number} panelX - Panel X position
+   * @param {number} panelY - Panel Y position
+   * @param {number} panelWidth - Panel width
+   */
+  renderDragGhost(panelX, panelY, panelWidth) {
+    if (!this._isDragging || !this._draggedEntity) {
+      return;
+    }
+    
+    push();
+    
+    const itemHeight = 80;
+    const headerHeight = 20;
+    const padding = 8;
+    const ghostY = panelY + this._dragCurrentY;
+    
+    // Semi-transparent background
+    fill(60, 60, 70, 150);
+    stroke(255, 215, 0, 180);
+    strokeWeight(2);
+    rect(panelX + padding, ghostY, panelWidth - padding * 2, headerHeight + itemHeight, 6);
+    
+    // Entity name
+    fill(255, 215, 0, 200);
+    noStroke();
+    textSize(12);
+    textAlign(LEFT, CENTER);
+    text(this._draggedEntity.customName || this._draggedEntity.name, 
+         panelX + padding + 8, ghostY + 10);
+    
+    pop();
+  }
+  
+  /**
+   * Render drop indicator line
+   * @param {number} panelX - Panel X position
+   * @param {number} panelY - Panel Y position
+   * @param {number} panelWidth - Panel width
+   * @param {number} panelHeight - Panel height
+   */
+  renderDropIndicator(panelX, panelY, panelWidth, panelHeight) {
+    if (!this._isDragging) {
+      return;
+    }
+    
+    const dropIndex = this.getDropIndex(this._dragCurrentY);
+    const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    const padding = 8;
+    const searchBoxHeight = 30 + padding;
+    const itemHeight = 80;
+    const headerHeight = 20;
+    const itemTotalHeight = headerHeight + itemHeight + padding;
+    
+    const listStartY = buttonHeight + padding + searchBoxHeight;
+    const dropY = panelY + listStartY + (dropIndex * itemTotalHeight);
+    
+    push();
+    stroke(255, 215, 0);
+    strokeWeight(3);
+    line(panelX + padding, dropY, panelX + panelWidth - padding, dropY);
+    
+    // Arrow indicators
+    fill(255, 215, 0);
+    noStroke();
+    triangle(
+      panelX + padding, dropY,
+      panelX + padding + 8, dropY - 4,
+      panelX + padding + 8, dropY + 4
+    );
+    triangle(
+      panelX + panelWidth - padding, dropY,
+      panelX + panelWidth - padding - 8, dropY - 4,
+      panelX + panelWidth - padding - 8, dropY + 4
+    );
+    pop();
+  }
+  
+  /**
+   * Update cursor based on drag state
+   */
+  updateCursor() {
+    if (typeof cursor === 'undefined') {
+      return;
+    }
+    
+    if (this._isDragging) {
+      cursor(MOVE);
+    }
+  }
+  
   /**
    * Register keyboard shortcuts with ShortcutManager
    * This is a static method that should be called once during setup
@@ -1229,9 +2071,11 @@ class EntityPalette {
       tools: ['entity-palette'],
       action: (context) => {
         const palette = context.getEntityPalette ? context.getEntityPalette() : null;
-        if (palette && palette.currentCategory === 'custom') {
-          palette.deleteSelectedEntity();
+        if (!palette || palette.currentCategory !== 'custom') {
+          return false; // Not handled - invalid context
         }
+        palette.deleteSelectedEntity();
+        return true; // Handled successfully
       }
     });
     
@@ -1242,9 +2086,11 @@ class EntityPalette {
       tools: ['entity-palette'],
       action: (context) => {
         const palette = context.getEntityPalette ? context.getEntityPalette() : null;
-        if (palette) {
-          palette.clearSelection();
+        if (!palette) {
+          return false; // Not handled - invalid context
         }
+        palette.clearSelection();
+        return true; // Handled successfully
       }
     });
   }

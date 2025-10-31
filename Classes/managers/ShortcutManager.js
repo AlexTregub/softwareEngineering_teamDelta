@@ -191,9 +191,14 @@ class ShortcutManager {
         continue;
       }
       
-      // Execute action
-      shortcut.action(context);
-      return true; // Only trigger first matching shortcut
+      // Execute action and respect its return value
+      const result = shortcut.action(context);
+      // If action returns false, continue to next shortcut
+      // If action returns true or undefined, consider it handled
+      if (result === false) {
+        continue;
+      }
+      return true; // Only trigger first matching shortcut that handles it
     }
     
     return false;
