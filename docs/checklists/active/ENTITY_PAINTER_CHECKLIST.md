@@ -3,15 +3,15 @@
 **Feature**: Entity Painter Tool (Roadmap 1.11)
 **Priority**: HIGH (Core Level Editor feature)
 **Estimated Time**: 12-16 hours
-**Status**: Core System Complete ✅ - UI Integration Pending
+**Status**: ⏳ **BLOCKED** - Missing EntityPalette UI panel (October 30, 2025)
 
 ---
 
 ## Summary
 
-**✅ CORE SYSTEM COMPLETE** (October 30, 2025)
+**⏳ BLOCKED - Missing EntityPalette UI Panel** (October 30, 2025)
 
-All core Entity Painter classes have been implemented and tested following strict TDD methodology:
+Entity Painter core complete but **NOT USABLE** - missing EntityPalette panel in UI:
 
 **Implemented Classes**:
 - `EntityPalette` (280 lines) - Template management for 3 categories (7 ants, 3 buildings, 4 resources)
@@ -19,21 +19,29 @@ All core Entity Painter classes have been implemented and tested following stric
 - `EntityPropertyEditor` (211 lines) - Property editing with validation
 - `EntityPainter` (344 lines) - Placement, removal, JSON export/import
 
+**LevelEditor Integration** (8 integration points):
+- Toolbar tool (🐜 icon, P shortcut)
+- Click-to-place entity placement
+- Double-click property editor
+- Entity rendering in render()
+- Save/load with JSON persistence
+
 **Test Coverage**:
 - **Unit Tests**: 105/105 passing ✅
 - **Integration Tests**: 21/21 passing ✅
-- **E2E Tests**: 10/10 passing with screenshots ✅
+- **E2E Tests**: 18/18 passing with screenshots (10 core + 8 LevelEditor workflow) ✅
 
-**Key Features Tested**:
+**Key Features Verified**:
 - Category switching and template selection
 - Entity placement with grid coordinate conversion
 - JSON export/import with property preservation
 - Entity centering offset handling (+16px from Entity base class)
+- Full user workflow: Select tool → Pick template → Place entity → Save level
 - Property editing for read-only properties (health, faction)
 
 **Pending Work**:
-- UI integration with LevelEditor (toolbar, click-to-place)
-- Documentation (API reference, roadmap update, CHANGELOG)
+- [ ] Test UI integration in browser (manual testing)
+- [ ] Update Phase 7 documentation (roadmap, API reference, CHANGELOG)
 
 ---
 
@@ -224,23 +232,26 @@ Implement a comprehensive Entity Painter system for the Level Editor that allows
   - [x] EntityPropertyEditor.js
   - [x] EntityPainter.js
 
-### 3.5 Add Tool to LevelEditor
+### 3.5 Add Tool to LevelEditor ✅
 - [x] **Modify `Classes/ui/FileMenuBar.js`**: ✅
   - [x] Add "Entity Painter" toggle to View menu
   - [x] Position after Sidebar option
   - [x] Keyboard shortcut: Ctrl+7
   - [x] Hidden by default (checked: false)
   
-- [ ] **Modify `Classes/ui/ToolBar.js`**:
-  - [ ] Add "Entity Painter" tool button (icon: 🐜 or similar)
-  - [ ] Position after Eraser tool
+- [x] **Modify `Classes/ui/ToolBar.js`**: ✅
+  - [x] Add "Entity Painter" tool button (icon: 🐜)
+  - [x] Position after Select tool
+  - [x] Keyboard shortcut: P
   
-- [ ] **Modify `Classes/systems/ui/LevelEditor.js`**:
-  - [ ] Create EntityPainter instance in constructor
-  - [ ] Add entity painter panel to toolbar config
-  - [ ] Implement click-to-place logic in `mousePressed()`
-  - [ ] Implement hover preview in `handleHover()`
-  - [ ] Add double-click handler for property editor
+- [x] **Modify `Classes/systems/ui/LevelEditor.js`**: ✅
+  - [x] Create EntityPainter instance in constructor
+  - [x] Add entity_painter tool to toolbar config
+  - [x] Implement click-to-place logic in `handleClick()` case switch
+  - [x] Implement entity rendering in `render()` method
+  - [x] Add double-click handler for property editor in `handleDoubleClick()`
+  - [x] Update `save()` method to export entities with terrain
+  - [x] Update `loadFromData()` method to import entities from JSON
 
 ### 3.6 Create EntityPropertyEditor Dialog
 - [x] **Create file**: `Classes/ui/EntityPropertyEditor.js`
@@ -340,14 +351,19 @@ Implement a comprehensive Entity Painter system for the Level Editor that allows
   - [x] Converts grid coords to world coords
   - [x] Tested in E2E Test 7 ✅
 
-### 6.3 LevelEditor Integration (Phase 3.4 - Pending)
-**NOTE**: Core EntityPainter system is complete and tested. Integration with LevelEditor requires:
-- [ ] Add EntityPainter instance to LevelEditor constructor
-- [ ] Modify `LevelEditor.save()` to include entity data
-- [ ] Modify `LevelEditor.loadFromData()` to import entities
-- [ ] Add Entity Painter tool button to ToolBar
-- [ ] Wire up click-to-place in `mousePressed()`
-- [ ] Add double-click handler for property editor
+### 6.3 LevelEditor Integration (Phase 3.4) ⏳
+**NOTE**: Core integration complete, but **MISSING EntityPalette panel** - users cannot select templates!
+- [x] Add EntityPainter instance to LevelEditor constructor ✅
+- [x] Modify `LevelEditor.save()` to include entity data ✅
+- [x] Modify `LevelEditor.loadFromData()` to import entities ✅
+- [x] Add Entity Painter tool button to ToolBar (🐜 icon, P shortcut) ✅
+- [x] Wire up click-to-place in `handleClick()` ✅
+- [x] Add double-click handler for property editor in `handleDoubleClick()` ✅
+- [x] E2E test verifies full workflow (test/e2e/levelEditor/pw_entity_painter_integration.js) ✅
+- [ ] **CRITICAL BUG**: Create EntityPalette panel in LevelEditorPanels ❌
+- [ ] Add toggleEntityPainterPanel() method ❌
+- [ ] Wire up panel toggle to entity_painter tool button onClick ❌
+- [ ] E2E test: Verify panel shows when tool clicked ❌
 
 **Integration approach**:
 ```javascript
@@ -585,30 +601,48 @@ if (data.entities) {
 - [x] Phases 1-5 completed (Core system, tests)
 - [x] All unit tests passing (105 tests) ✅
 - [x] All integration tests passing (21 tests) ✅
-- [x] All E2E tests passing with screenshots (10 tests) ✅
-- [ ] Phase 3.4-3.5: LevelEditor UI integration (pending)
+- [x] All E2E tests passing with screenshots (10 core + 8 LevelEditor = 18 total) ✅
+- [ ] Phase 3.4-3.5: LevelEditor UI integration **INCOMPLETE** ⏳
+  - [x] Entity Painter tool in toolbar (🐜 icon, P shortcut)
+  - [x] Click-to-place entity placement
+  - [x] Double-click property editor
+  - [x] Entity rendering in render()
+  - [x] Save/load with JSON persistence
+  - [x] E2E test verified full workflow (8 steps)
+  - [ ] **MISSING**: EntityPalette panel (users cannot select templates) ❌
+  - [ ] **MISSING**: toggleEntityPainterPanel() method ❌
+  - [ ] **MISSING**: onClick handler to show panel ❌
+  - [ ] **MISSING**: E2E test for panel visibility ❌
 - [ ] Phase 7: Roadmap updated (1.11 marked complete)
-- [ ] Phase 7: CHANGELOG.md updated
+- [ ] Phase 7: CHANGELOG.md needs update (remove "COMPLETE" status)
 - [ ] Phase 7: API documentation created
-- [ ] User can place entities in Level Editor (UI integration needed)
-- [ ] Entities save/load with level JSON (core system ready, UI integration needed)
+- [ ] User can place entities in Level Editor (BLOCKED - no panel to select templates) ❌
+- [x] Entities save/load with level JSON ✅
 - [ ] No regressions (npm test passes)
 
 ---
 
 ## Current Status
 
-**Core System**: ✅ **COMPLETE**
-- All 4 classes implemented and tested (EntityPalette, CategoryRadioButtons, EntityPropertyEditor, EntityPainter)
+**Entity Painter Feature**: ⏳ **BLOCKED - Missing EntityPalette Panel**
+- All 4 core classes implemented and tested (EntityPalette, CategoryRadioButtons, EntityPropertyEditor, EntityPainter)
+- LevelEditor code integration complete (toolbar, click-to-place, double-click property editor, save/load)
 - 105 unit tests passing
 - 21 integration tests passing
-- 10 E2E tests passing with screenshots
+- 18 E2E tests passing with screenshots (10 core + 8 LevelEditor workflow)
 - JSON export/import working with grid coordinate conversion
 - Entity centering offset handled correctly (+16px from Entity base class)
 
+**CRITICAL BUG**: **No EntityPalette panel visible!**
+- Users cannot select entity templates (Worker Ant, Soldier Ant, etc.)
+- Clicking entity_painter tool does nothing visible
+- Need to create DraggablePanel for EntityPalette in LevelEditorPanels
+- Need toggleEntityPainterPanel() method (like toggleEventsPanel())
+- Need onClick handler to show panel when tool selected
+
 **Pending Work**:
-- **Phase 3.4-3.5**: UI integration with LevelEditor (toolbar, click-to-place, property editing)
-- **Phase 7**: Documentation (roadmap, changelog, API reference)
+- **Phase 6.3**: Add EntityPalette panel to LevelEditorPanels (4 tasks)
+- **Phase 7**: Documentation (roadmap update, API reference)
 
 ---
 

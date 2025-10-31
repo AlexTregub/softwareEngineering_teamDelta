@@ -470,9 +470,9 @@ class LevelEditorPanels {
     if (this.panels.materials && this.panels.materials.state.visible && !this.panels.materials.state.minimized) {
       this.panels.materials.render((contentArea, style) => {
         if (this.levelEditor.palette) {
-          // Pass absolute coordinates directly (no translate)
-          // This fixes coordinate offset bug with TERRAIN_MATERIALS_RANGED image() calls
-          this.levelEditor.palette.render(contentArea.x, contentArea.y);
+          // Pass absolute coordinates AND dimensions for proper categorization, scrolling, responsive layout
+          // MaterialPalette.render(x, y, width, height) requires all parameters
+          this.levelEditor.palette.render(contentArea.x, contentArea.y, contentArea.width, contentArea.height);
         }
       });
     } else if (this.panels.materials && this.panels.materials.state.visible) {

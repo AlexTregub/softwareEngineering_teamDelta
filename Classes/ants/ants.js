@@ -61,6 +61,11 @@ class ant extends Entity {
     this._idleTimer = 0;
     this._idleTimerTimeout = 1;
     this.lastFrameTime = performance.now();
+    
+    /**
+     * Name of the ant, used for UI
+     */
+    this.name = "Anty"
 
     
     // New job system (component-based)
@@ -215,6 +220,22 @@ class ant extends Entity {
   set isSelected(value) {
     // Debug: log when selection state is set
     this._delegate('selection', 'setSelected', value);
+  }
+
+  // --- Name stuff ---
+  /**
+   * @returns {string} Ant's name
+   */
+  getName(){
+    return this.name
+  }
+
+  /**
+   * sets the Ant's name
+   * @param {string} name 
+   */
+  setName(name){
+    this.name = name
   }
   
   // --- Command/Task Compatibility ---

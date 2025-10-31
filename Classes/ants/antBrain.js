@@ -169,7 +169,7 @@ class AntBrain{
             logNormal(`dead`);
             this.flag_ = "death";
             this.runFlagState();
-            //this.killAnt();//Need to make this
+            this.ant.die();
             if(this.antType != "Queen"){
                 this.ant.takeDamage(999999);
             }
@@ -191,7 +191,7 @@ class AntBrain{
             this.modifyPriorityTrails();
             break;
         case "death":
-            //killAnt
+            this.ant.die();
             break;
         case "reset":
             this.modifyPriorityTrails();

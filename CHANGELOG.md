@@ -43,9 +43,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - **Property editor**: Edit entity properties (JobName, faction, health, etc.)
   - **JSON export/import**: Save/load entities with grid coordinate conversion
   - **Grid coordinate system**: Positions stored as grid coords, converted to world coords on load
-  - **Fully tested**: **136 passing tests** (105 unit + 21 integration + 10 E2E with screenshots)
-  - **UI integration pending**: Core classes ready for Level Editor toolbar integration
-  - See `docs/checklists/active/ENTITY_PAINTER_CHECKLIST.md` for implementation details
+  - **Fully tested**: **144 passing tests** (105 unit + 21 integration + 18 E2E with screenshots)
+  - **⏳ UI integration BLOCKED**: Missing EntityPalette panel - users cannot select templates
+  - See `docs/checklists/active/ENTITY_PAINTER_CHECKLIST.md` for implementation details and blockers
 - **Categorized Material System (Level Editor Enhancement - TDD)**
   - Materials organized into 6 categories: Ground, Stone, Vegetation, Water, Cave, Special
   - **Expandable/collapsible categories** - Click header to toggle (▶ collapsed, ▼ expanded)

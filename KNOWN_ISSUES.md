@@ -8,6 +8,72 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
 
 ### Open ❌
 
+- [ ] **MaterialPalette: Material Image Offset Issue**
+  - File: `Classes/ui/MaterialPalette.js` (render method)
+  - Issue: Material swatches render with incorrect offset (0.5-tile displacement)
+  - Priority: HIGH (Visual Bug)
+  - Expected: Material images aligned correctly in swatches
+  - Current: Images offset by approximately half a tile
+  - Root Cause: Likely imageMode not set to CORNER before rendering TERRAIN_MATERIALS_RANGED images
+  - Reported: October 30, 2025
+
+- [ ] **MaterialPalette: Search Bar Not Filtering Materials**
+  - File: `Classes/ui/MaterialPalette.js` (handleKeyPress, searchMaterials, render methods)
+  - Issue: Typing in search bar doesn't filter displayed materials
+  - Priority: HIGH (Core Feature Broken)
+  - Expected: Typing filters materials by name in real-time
+  - Current: Materials remain unchanged when typing
+  - Root Cause: Unknown - search results may not be used in render(), or render not updating
+  - Related: handleKeyPress routes to searchBar, searchMaterials updates searchResults
+  - Reported: October 30, 2025
+
+- [ ] **MaterialPalette: Category Headers Not Clickable**
+  - File: `Classes/ui/MaterialPalette.js` (handleClick method)
+  - Issue: Clicking category headers doesn't expand/collapse categories
+  - Priority: HIGH (Core Feature Broken)
+  - Expected: Click category header toggles expanded/collapsed state
+  - Current: No response when clicking categories
+  - Root Cause: handleClick may not route clicks to MaterialCategory components
+  - Reported: October 30, 2025
+
+- [ ] **MaterialPalette: False Material Selection on Category Click**
+  - File: `Classes/ui/MaterialPalette.js` (handleClick method)
+  - Issue: Clicking category headers selects materials and adds to recently used
+  - Priority: HIGH (Incorrect Behavior)
+  - Expected: Category clicks should toggle expand/collapse only
+  - Current: Category clicks trigger material selection
+  - Root Cause: handleClick routing clicks to wrong handler (material swatch instead of category header)
+  - Related: Click coordinate transformation may be incorrect with scroll offset
+  - Reported: October 30, 2025
+
+- [ ] **MaterialPalette: Content Extends Beyond Panel Edges**
+  - File: `Classes/ui/MaterialPalette.js` (render method)
+  - Issue: Materials in middle of panel render outside panel boundaries
+  - Priority: MEDIUM (Visual Bug)
+  - Expected: All content clipped to panel contentArea boundaries
+  - Current: Materials overflow panel edges
+  - Root Cause: No clip() or boundary checks during rendering
+  - Reported: October 30, 2025
+
+- [ ] **MaterialPalette: No Scroll Indicators Visible**
+  - File: `Classes/ui/MaterialPalette.js` (render method)
+  - Issue: No visual scroll indicators (arrows/bars) showing scrollable content
+  - Priority: LOW (UX Enhancement)
+  - Expected: Scroll indicators show when content exceeds viewport
+  - Current: No indicators rendered
+  - Root Cause: ScrollIndicator not initialized or not rendered
+  - Reported: October 30, 2025
+
+- [ ] **MaterialPalette: Mouse Wheel Scrolling Not Working**
+  - File: `Classes/systems/ui/LevelEditor.js` (handleMouseWheel method)
+  - Issue: Mouse wheel doesn't scroll when hovering over Materials panel
+  - Priority: HIGH (Core Feature Broken)
+  - Expected: Mouse wheel scrolls content when over Materials panel
+  - Current: No scrolling occurs
+  - Root Cause: handleMouseWheel delegation may not be wired correctly, or hover detection failing
+  - Related: LevelEditor.handleMouseWheel checks if mouse over materials panel
+  - Reported: October 30, 2025
+
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
   - File: `Classes/systems/ui/LevelEditor.js` (handleZoom method)
   - Issue: When zooming with mouse wheel in Level Editor, zoom doesn't focus on mouse pointer correctly

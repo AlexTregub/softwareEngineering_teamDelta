@@ -25,6 +25,7 @@ class LevelEditor {
     this.selectionManager = null; // NEW: Rectangle selection for select tool
     this.hoverPreviewManager = null; // NEW: Hover preview for all tools
     this.sidebar = null; // NEW: Sidebar menu (wired from levelEditorPanels)
+    this.entityPainter = null; // NEW: Entity Painter tool for placing ants/buildings/resources
     
     // File management
     this.currentFilename = 'Untitled'; // Current filename (no extension)
@@ -62,6 +63,19 @@ class LevelEditor {
     
     // Create material palette (auto-populates from TERRAIN_MATERIALS_RANGED)
     this.palette = new MaterialPalette();
+    
+    // Load categories from config
+    if (typeof fetch !== 'undefined') {
+      fetch('config/material-categories.json')
+        .then(response => response.json())
+        .then(categoryConfig => {
+          this.palette.loadCategories(categoryConfig);
+        })
+        .catch(error => {
+          console.warn('Failed to load material categories:', error);
+        });
+    }
+    
     this.palette.selectMaterial('grass'); // Default selection
     
     // Create toolbar with tools (starts in No Tool mode)
@@ -70,7 +84,8 @@ class LevelEditor {
       { name: 'eraser', icon: '🧱', tooltip: 'Eraser Tool', shortcut: 'E' },
       { name: 'fill', icon: '🪣', tooltip: 'Fill Tool' },
       { name: 'eyedropper', icon: '💧', tooltip: 'Pick Material' },
-      { name: 'select', icon: '⬚', tooltip: 'Select Region' }
+      { name: 'select', icon: '⬚', tooltip: 'Select Region' },
+      { name: 'entity_painter', icon: '🐜', tooltip: 'Entity Painter (Place Ants/Buildings/Resources)', shortcut: 'P' }
     ]);
     // No tool selected by default - user must explicitly choose a tool
     
@@ -90,6 +105,12 @@ class LevelEditor {
     
     // Create event flag layer for managing placed flags
     this.eventFlagLayer = new EventFlagLayer(terrain);
+    
+    // Create Entity Painter (for placing ants, buildings, resources)
+    if (typeof EntityPainter !== 'undefined' && typeof EntityPalette !== 'undefined') {
+      const palette = new EntityPalette();
+      this.entityPainter = new EntityPainter(palette);
+    }
     
     // Initialize panels BEFORE adding custom buttons (panels needs to exist first)
     this.levelEditorPanels = new LevelEditorPanels(this);
@@ -644,6 +665,23 @@ class LevelEditor {
           }
         }
         break;
+        
+      case 'entity_painter':
+        // Place entity at grid coordinates
+        if (this.entityPainter) {
+          const entity = this.entityPainter.placeEntity(gridX, gridY);
+          if (entity) {
+            const template = this.entityPainter.palette.getSelectedTemplate();
+            const templateName = template ? template.name : 'Entity';
+            this.notifications.show(`Placed ${templateName} at (${gridX}, ${gridY})`);
+            
+            // Mark as modified
+            this.isModified = true;
+          } else {
+            this.notifications.show('Select an entity from the palette first', 'warning');
+          }
+        }
+        break;
     }
     
     return false; // No UI consumed the click
@@ -673,6 +711,26 @@ class LevelEditor {
       const handled = this.levelEditorPanels.handleDoubleClick(mouseX, mouseY);
       if (handled) {
         return; // Panel consumed the double-click
+      }
+    }
+    
+    // PRIORITY 4: Check for entity at mouse position (for property editing)
+    const tool = this.toolbar.getSelectedTool();
+    if (tool === 'entity_painter' && this.entityPainter) {
+      // Convert screen to world coordinates
+      const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
+      
+      // Find entity near click position (32px radius)
+      const entity = this.entityPainter.getEntityAtPosition(worldCoords.worldX, worldCoords.worldY, 32);
+      
+      if (entity && typeof EntityPropertyEditor !== 'undefined') {
+        // Open property editor for this entity
+        if (!this.entityPropertyEditor) {
+          this.entityPropertyEditor = new EntityPropertyEditor();
+        }
+        this.entityPropertyEditor.open(entity);
+        this.notifications.show('Double-click to edit entity properties');
+        return; // Consumed
       }
     }
     
@@ -1147,6 +1205,17 @@ class LevelEditor {
       this.mapBoundaryOverlay.render();
     }
     
+    // Render placed entities (world space)
+    if (this.entityPainter && this.entityPainter.placedEntities) {
+      push();
+      this.entityPainter.placedEntities.forEach(entity => {
+        if (entity && entity.render && typeof entity.render === 'function') {
+          entity.render();
+        }
+      });
+      pop();
+    }
+    
     // Render hover preview (tiles that will be affected) - MUST be inside camera transform
     this.renderHoverPreview();
     
@@ -1471,12 +1540,18 @@ class LevelEditor {
     if (!this.terrain) return;
     
     // Use SparseTerrain's native export (sparse format - only painted tiles)
-    const data = this.terrain.exportToJSON();
+    const terrainData = this.terrain.exportToJSON();
+    
+    // Add entity data to level JSON
+    if (this.entityPainter) {
+      const entityData = this.entityPainter.exportToJSON();
+      terrainData.entities = entityData.entities || [];
+    }
     
     // Check if using native dialogs
     if (this.saveDialog.useNativeDialogs) {
       // Use native browser save dialog
-      this.saveDialog.saveWithNativeDialog(data, 'my_level.json');
+      this.saveDialog.saveWithNativeDialog(terrainData, 'my_level.json');
       this.notifications.show('Level downloaded!', 'success');
     } else {
       // Use custom dialog UI
@@ -1506,6 +1581,11 @@ class LevelEditor {
       const success = importer.importFromJSON(data);
       
       if (success) {
+        // Import entities if present
+        if (data.entities && this.entityPainter) {
+          this.entityPainter.importFromJSON({ entities: data.entities });
+        }
+        
         this.notifications.show('Level loaded successfully!', 'success');
       } else {
         this.notifications.show('Failed to load level', 'error');
