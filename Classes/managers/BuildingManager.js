@@ -4,12 +4,14 @@
 let Cone;
 let Hill;
 let Hive;
+let Farm;
 
 function BuildingPreloader() {
   Cone = loadImage('Images/Buildings/Cone/Cone1.png');
   Hill = loadImage('Images/Buildings/Hill/Hill1.png');
   Hive = loadImage('Images/Buildings/Hive/Hive1.png');
   UI   = loadImage('Images/Buildings/UI/building_box.png');
+  Farm = loadImage('Images/16x16 Tiles/farmland.png'); // Probably should use a different image later on
 }
 
 
@@ -123,6 +125,24 @@ class HiveSource extends AbstractBuildingFactory {
 
   createBuilding(x, y, faction) {
     return new Building(x, y, 160, 160, Hive, faction, this.info);
+  }
+}
+
+class FarmFactory extends AbstractBuildingFactory {
+  constructor() {
+    super();
+    this.info = {
+      canUpgrade: false,
+      upgradeCost: 0,
+      isFarm: true,
+      progressions: {}
+    };
+  }
+
+  createBuilding(x, y, faction) {
+    const building = new Building(x, y, 64, 64, Farm, faction, this.info);
+    building.isFarm = true;
+    return building;
   }
 }
 
@@ -352,7 +372,8 @@ class Building extends Entity {
 const BuildingFactoryRegistry = {
   antcone: new AntCone(),
   anthill: new AntHill(),
-  hivesource: new HiveSource()
+  hivesource: new HiveSource(),
+  farm: new FarmFactory()
 };
 
 function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
@@ -395,6 +416,7 @@ if (typeof module !== 'undefined' && module.exports) {
     AntCone,
     AntHill,
     HiveSource,
+    FarmFactory,
     createBuilding
   };
 }

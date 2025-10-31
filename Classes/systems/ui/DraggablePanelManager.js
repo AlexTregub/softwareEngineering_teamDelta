@@ -539,6 +539,11 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.INFO, backgroundColor: '#DAA520', color: '#000000' }
           },
           {
+            caption: 'Farm (Paint)',
+            onClick: () => this.toggleBuildingBrush('farm'),
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22', color: '#FFFFFF' }
+          },
+          {
             caption: 'Clear Buildings',
             onClick: () => this.clearBuildings(),
             style: { ...ButtonStyles.DANGER, backgroundColor: '#8B0000' }
@@ -1364,7 +1369,8 @@ class DraggablePanelManager {
       panel.buttons.items.forEach(btn => {
         if (btn.caption.includes('🏔️') || btn.caption.includes('🏠')) {
           const btnType = btn.caption.includes('Cone') ? 'antcone' : 
-                         btn.caption.includes('Hill') ? 'anthill' : 'hivesource';
+                         btn.caption.includes('Hill') ? 'anthill' :  
+                         btn.caption.includes('Farm') ? 'farm' : 'hivesource';
           
           if (btnType === buildingType && isActive) {
             btn.caption = `${buildingNames[btnType]} (ON)`;

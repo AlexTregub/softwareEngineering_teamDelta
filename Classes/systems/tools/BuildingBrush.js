@@ -28,7 +28,8 @@ class BuildingBrush extends BrushBase {
     this.buildingColors = {
       'antcone': [139, 69, 19],    // Brown
       'anthill': [160, 82, 45],     // Sienna
-      'hivesource': [218, 165, 32]  // Goldenrod
+      'hivesource': [218, 165, 32],  // Goldenrod
+      'farm': [34, 139, 34]         // Forest Green
     };
   }
 

@@ -26,7 +26,7 @@ global.Entity = class Entity {
 };
 
 const BuildingModule = require('../../../Classes/managers/BuildingManager.js');
-const { Building, AntCone, AntHill, HiveSource, createBuilding } = BuildingModule;
+const { Building, AntCone, AntHill, HiveSource, FarmFactory, createBuilding } = BuildingModule;
 
 describe('BuildingManager', function() {
   let mockImage;
@@ -378,6 +378,22 @@ describe('BuildingManager', function() {
         expect(building).to.be.instanceOf(Building);
         expect(building.faction).to.equal('neutral');
       });
+
+      it('Farm should create building with isFarm flag', function() {
+        const factory = new FarmFactory();
+        const building = factory.createBuilding(100, 200, 'neutral');
+        expect(building).to.exist;
+        expect(building.isFarm).to.be.true;
+        expect(building.width).to.equal(64);
+        expect(building.height).to.equal(64);
+      });
+
+      it('Farm should have correct info properties', function() {
+        const factory = new FarmFactory();
+        expect(factory.info.canUpgrade).to.be.false;
+        expect(factory.info.isFarm).to.be.true;
+        expect(factory.info.progressions).to.be.an('object');
+      });
     });
   });
   
@@ -414,15 +430,27 @@ describe('BuildingManager', function() {
       expect(building).to.exist;
       expect(building.faction).to.equal('neutral');
     });
+
+    it('should create farm with correct properties', function() {
+      const building = createBuilding('farm', 100, 200, 'neutral');
+      expect(building).to.exist;
+      expect(building.isFarm).to.be.true;
+      expect(building.faction).to.equal('neutral');
+      expect(building.width).to.equal(64);
+      expect(building.height).to.equal(64);
+    });
     
     it('should be case insensitive', function() {
       const building1 = createBuilding('ANTCONE', 100, 200);
       const building2 = createBuilding('AntHill', 100, 200);
       const building3 = createBuilding('HiveSource', 100, 200);
+      const building4 = createBuilding('FARM', 100, 200);
       
       expect(building1).to.exist;
       expect(building2).to.exist;
       expect(building3).to.exist;
+      expect(building4).to.exist;
+      expect(building4.isFarm).to.be.true;
     });
     
     it('should default faction to neutral', function() {
