@@ -108,8 +108,8 @@ class LevelEditor {
     
     // Create Entity Painter (for placing ants, buildings, resources)
     if (typeof EntityPainter !== 'undefined' && typeof EntityPalette !== 'undefined') {
-      const palette = new EntityPalette();
-      this.entityPainter = new EntityPainter(palette);
+      this.entityPalette = new EntityPalette(); // Store for panel access
+      this.entityPainter = new EntityPainter(this.entityPalette);
     }
     
     // Initialize panels BEFORE adding custom buttons (panels needs to exist first)
@@ -131,6 +131,16 @@ class LevelEditor {
         }
       }
     });
+    
+    // Add onClick handler to entity_painter tool (toggles EntityPalette panel)
+    if (this.toolbar.tools && this.toolbar.tools['entity_painter']) {
+      this.toolbar.tools['entity_painter'].onClick = () => {
+        if (this.fileMenuBar) {
+          // Use FileMenuBar to toggle panel (ensures menu state syncs)
+          this.fileMenuBar._handleTogglePanel('entity-painter');
+        }
+      };
+    }
     
     // Create minimap
     this.minimap = new MiniMap(terrain, 200, 200);
@@ -406,12 +416,14 @@ class LevelEditor {
       
       // Only delegate if sidebar is visible and not minimized
       if (sidebarPanel.state && sidebarPanel.state.visible && !sidebarPanel.state.minimized && this.sidebar) {
-        const pos = sidebarPanel.getPosition();
-        const size = sidebarPanel.getSize();
+        const pos = sidebarPanel.state.position;
+        // Get size from Sidebar dimensions or use default
+        const width = this.sidebar.width || 250;
+        const height = this.sidebar.height || 600;
         
         // Check if mouse is over sidebar
-        if (mouseX >= pos.x && mouseX <= pos.x + size.width &&
-            mouseY >= pos.y && mouseY <= pos.y + size.height) {
+        if (mouseX >= pos.x && mouseX <= pos.x + width &&
+            mouseY >= pos.y && mouseY <= pos.y + height) {
           // Delegate to sidebar
           const delta = event.deltaY || event.delta || 0;
           const handled = this.sidebar.handleMouseWheel(delta, mouseX, mouseY);
@@ -426,12 +438,14 @@ class LevelEditor {
       
       // Only delegate if materials panel is visible and not minimized
       if (materialsPanel.state && materialsPanel.state.visible && !materialsPanel.state.minimized && this.palette) {
-        const pos = materialsPanel.getPosition();
-        const size = materialsPanel.getSize();
+        const pos = materialsPanel.state.position;
+        // Get size from MaterialPalette dimensions or use default
+        const width = this.palette.width || 400;
+        const height = this.palette.height || 500;
         
         // Check if mouse is over materials panel
-        if (mouseX >= pos.x && mouseX <= pos.x + size.width &&
-            mouseY >= pos.y && mouseY <= pos.y + size.height) {
+        if (mouseX >= pos.x && mouseX <= pos.x + width &&
+            mouseY >= pos.y && mouseY <= pos.y + height) {
           // Delegate to MaterialPalette
           const delta = event.deltaY || event.delta || 0;
           this.palette.handleMouseWheel(delta);

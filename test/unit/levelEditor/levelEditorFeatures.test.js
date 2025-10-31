@@ -440,6 +440,10 @@ describe('LevelEditor - Dialog Blocking', function() {
       minimap: mockMinimap,
       notifications: mockNotifications,
       eventEditor: null,
+      hoverPreviewManager: {
+        updateHover: sinon.stub(),
+        clearHover: sinon.stub()
+      },
       
       convertScreenToWorld: function(screenX, screenY) {
         return { worldX: screenX, worldY: screenY };
@@ -450,6 +454,7 @@ describe('LevelEditor - Dialog Blocking', function() {
     const LevelEditor = require('../../../Classes/systems/ui/LevelEditor');
     editor.handleClick = LevelEditor.prototype.handleClick;
     editor.handleDrag = LevelEditor.prototype.handleDrag;
+    editor.handleHover = LevelEditor.prototype.handleHover || function() {}; // Add handleHover stub
   });
   
   afterEach(function() {
@@ -879,6 +884,22 @@ describe('EventsToolsPanelIntegration', function() {
       render() {}
     };
     window.EventEditorPanel = global.EventEditorPanel;
+    
+    // Mock LevelEditorSidebar
+    global.LevelEditorSidebar = class {
+      constructor() {
+        this.width = 250;
+        this.height = 600;
+      }
+      getContentSize() { return { width: 250, height: 600 }; }
+      containsPoint() { return false; }
+      handleClick() { return false; }
+      handleMouseWheel() { return false; }
+      addText() {}
+      addButton() {}
+      render() {}
+    };
+    window.LevelEditorSidebar = global.LevelEditorSidebar;
     
     // Mock logging
     global.logNormal = sinon.stub();
@@ -1776,7 +1797,7 @@ describe('LevelEditor - Menu Interaction Blocking', function() {
       constructor(tools) {
         this.tools = tools || [];
         this.buttons = [];
-        this.selectedTool = null;
+        this.selectedTool = 'paint'; // Default to paint tool
         this.onToolChange = null;
       }
       
@@ -1805,6 +1826,21 @@ describe('LevelEditor - Menu Interaction Blocking', function() {
     };
     window.ToolBar = global.ToolBar;
     
+    // Mock NewMapDialog
+    global.NewMapDialog = class NewMapDialog {
+      constructor() {
+        this.visible = false;
+        this.onConfirm = null;
+        this.onCancel = null;
+      }
+      show() { this.visible = true; }
+      hide() { this.visible = false; }
+      isVisible() { return this.visible; }
+      handleClick() { return false; }
+      render() {}
+    };
+    window.NewMapDialog = global.NewMapDialog;
+    
     // Mock terrain
     mockTerrain = {
       width: 50,
@@ -1812,6 +1848,22 @@ describe('LevelEditor - Menu Interaction Blocking', function() {
       tileSize: 32,
       getTile: sinon.stub().returns({ getMaterial: () => 'grass' })
     };
+    
+    // Mock TerrainEditor
+    global.TerrainEditor = class TerrainEditor {
+      constructor(terrain) {
+        this.terrain = terrain;
+        this.paint = sinon.stub();
+        this.brushSize = 1;
+        this.currentMaterial = 'grass';
+      }
+      getCurrentMaterial() { return this.currentMaterial; }
+      setBrushSize(size) { this.brushSize = size; }
+      selectMaterial(material) { this.currentMaterial = material; }
+      canUndo() { return false; }
+      canRedo() { return false; }
+    };
+    window.TerrainEditor = global.TerrainEditor;
     
     // Mock draggablePanelManager
     global.draggablePanelManager = {

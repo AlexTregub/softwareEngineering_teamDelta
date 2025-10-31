@@ -725,10 +725,7 @@ global.window = dom.window;
 global.document = dom.window.document;
 
 // Load all required classes
-// DUPLICATE REQUIRE REMOVED: let fileMenuBarCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/FileMenuBar.js'),
-  'utf8'
-);
+// DUPLICATE REQUIRE REMOVED: let fileMenuBarCode = fs.readFileSync(path.join(__dirname, '../../../Classes/ui/FileMenuBar.js'), 'utf8');
 let saveDialogCode = fs.readFileSync(
   path.join(__dirname, '../../../Classes/ui/SaveDialog.js'),
   'utf8'
@@ -739,7 +736,7 @@ let loadDialogCode = fs.readFileSync(
 );
 
 // Execute in global context
-vm.runInThisContext(fileMenuBarCode);
+// DUPLICATE REMOVED: vm.runInThisContext(fileMenuBarCode);
 vm.runInThisContext(saveDialogCode);
 vm.runInThisContext(loadDialogCode);
 

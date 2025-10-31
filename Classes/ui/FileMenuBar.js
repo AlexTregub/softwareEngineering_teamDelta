@@ -817,7 +817,8 @@ class FileMenuBar {
         'brush': 'level-editor-brush',
         'events': 'level-editor-events',
         'properties': 'level-editor-properties',
-        'sidebar': 'level-editor-sidebar'
+        'sidebar': 'level-editor-sidebar',
+        'entity-painter': 'level-editor-entity-palette'
       };
       
       const panelId = panelIdMap[panelName];
@@ -834,7 +835,8 @@ class FileMenuBar {
             'brush': 'Brush Panel',
             'events': 'Events Panel',
             'properties': 'Properties Panel',
-            'sidebar': 'Sidebar'
+            'sidebar': 'Sidebar',
+            'entity-painter': 'Entity Painter'
           };
           const menuItem = viewMenu.items.find(i => i.label === labelMap[panelName]);
           if (menuItem) {

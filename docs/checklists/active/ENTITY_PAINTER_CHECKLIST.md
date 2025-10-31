@@ -3,15 +3,24 @@
 **Feature**: Entity Painter Tool (Roadmap 1.11)
 **Priority**: HIGH (Core Level Editor feature)
 **Estimated Time**: 12-16 hours
-**Status**: ⏳ **BLOCKED** - Missing EntityPalette UI panel (October 30, 2025)
+**Status**: ⚠️ **PARTIALLY UNBLOCKED** - Panel appears but UI not integrated (October 31, 2025)
 
 ---
 
 ## Summary
 
-**⏳ BLOCKED - Missing EntityPalette UI Panel** (October 30, 2025)
+**⚠️ PARTIALLY UNBLOCKED - Panel Appears, UI Rendering Missing** (October 31, 2025)
 
-Entity Painter core complete but **NOT USABLE** - missing EntityPalette panel in UI:
+Entity Painter core complete but **UI NOT RENDERED** - panel shows placeholder content:
+
+**Bug Fix Complete** (October 31, 2025):
+- ✅ EntityPalette panel now appears when toggled via View menu or toolbar 🐜 button
+- ✅ Panel creation in LevelEditorPanels (DraggablePanel wrapper)
+- ✅ Menu state syncing (FileMenuBar panelIdMap)
+- ✅ Toolbar button onClick handler
+- ⚠️ **Panel shows placeholder content** (gray box with text, NO CategoryRadioButtons or templates visible)
+
+**Next Phase Required**: UI Integration (see `ENTITY_PAINTER_UI_INTEGRATION_CHECKLIST.md`)
 
 **Implemented Classes**:
 - `EntityPalette` (280 lines) - Template management for 3 categories (7 ants, 3 buildings, 4 resources)

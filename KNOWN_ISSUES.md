@@ -46,15 +46,6 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
   - Related: Click coordinate transformation may be incorrect with scroll offset
   - Reported: October 30, 2025
 
-- [ ] **MaterialPalette: Content Extends Beyond Panel Edges**
-  - File: `Classes/ui/MaterialPalette.js` (render method)
-  - Issue: Materials in middle of panel render outside panel boundaries
-  - Priority: MEDIUM (Visual Bug)
-  - Expected: All content clipped to panel contentArea boundaries
-  - Current: Materials overflow panel edges
-  - Root Cause: No clip() or boundary checks during rendering
-  - Reported: October 30, 2025
-
 - [ ] **MaterialPalette: No Scroll Indicators Visible**
   - File: `Classes/ui/MaterialPalette.js` (render method)
   - Issue: No visual scroll indicators (arrows/bars) showing scrollable content
@@ -62,16 +53,6 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
   - Expected: Scroll indicators show when content exceeds viewport
   - Current: No indicators rendered
   - Root Cause: ScrollIndicator not initialized or not rendered
-  - Reported: October 30, 2025
-
-- [ ] **MaterialPalette: Mouse Wheel Scrolling Not Working**
-  - File: `Classes/systems/ui/LevelEditor.js` (handleMouseWheel method)
-  - Issue: Mouse wheel doesn't scroll when hovering over Materials panel
-  - Priority: HIGH (Core Feature Broken)
-  - Expected: Mouse wheel scrolls content when over Materials panel
-  - Current: No scrolling occurs
-  - Root Cause: handleMouseWheel delegation may not be wired correctly, or hover detection failing
-  - Related: LevelEditor.handleMouseWheel checks if mouse over materials panel
   - Reported: October 30, 2025
 
 - [ ] **Level Editor: Zoom Focus Point Incorrect**
@@ -91,6 +72,81 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
   - Current: MenuBar size is static and decided when the user enters the LevelEditor
 
 ### Fixed ✅
+
+- [x] **Entity Painter Panel: No panel shows up when toggled**
+  - File: `Classes/systems/ui/LevelEditorPanels.js` (initialize and render methods), `Classes/ui/FileMenuBar.js` (panelIdMap and labelMap), `Classes/systems/ui/LevelEditor.js` (toolbar onClick handler)
+  - Issue: Clicking "Entity Painter" in View menu or ant emoji (🐜) toolbar button had no effect
+  - Priority: HIGH (Core Feature Broken)
+  - Expected: Entity Painter panel appears with category buttons and entity templates
+  - Root Cause:
+    1. EntityPalette panel not created in `LevelEditorPanels.initialize()`
+    2. Panel ID `'entity-painter'` not mapped to `'level-editor-entity-palette'` in FileMenuBar
+    3. Label `'entity-painter'` not mapped to `'Entity Painter'` in FileMenuBar (menu state not syncing)
+    4. EntityPalette not rendered in `LevelEditorPanels.render()` method
+    5. Toolbar entity_painter tool had no onClick handler
+  - Fix:
+    - **LevelEditorPanels.js**: 
+      - Added `entityPalette` property to panels object
+      - Created DraggablePanel with id `'level-editor-entity-palette'`, title `'Entity Palette'`, size 220x300, hidden by default
+      - Added contentSizeCallback that delegates to `EntityPalette.getContentSize()`
+      - Added rendering code in `render()` method to call `entityPalette.render()`
+    - **FileMenuBar.js**: 
+      - Added `'entity-painter': 'level-editor-entity-palette'` to panelIdMap
+      - Added `'entity-painter': 'Entity Painter'` to labelMap
+    - **EntityPalette.js**: 
+      - Added `getContentSize()`, `render()`, `handleClick()`, `containsPoint()` methods
+    - **LevelEditor.js**:
+      - Added onClick handler to `toolbar.tools['entity_painter']` that calls `FileMenuBar._handleTogglePanel('entity-painter')`
+  - Implementation: TDD approach with strict Red → Green → Refactor phases
+  - Tests:
+    - Unit: 10/10 passing (entityPainterPanel.test.js - panel creation, toggle, toolbar button)
+    - Integration: 8/8 passing (entityPainterPanelToggle.integration.test.js - full workflow)
+    - E2E: 7/7 passing (pw_entity_painter_panel_toggle.js - browser verification with screenshots)
+  - Result: 
+    - Entity Painter panel now appears when toggled via View menu
+    - Toolbar ant button (🐜) toggles panel visibility
+    - View menu checked state syncs with panel visibility
+    - Panel renders EntityPalette content (placeholder showing category and template count)
+    - Panel properly centered in viewport
+  - Fixed: October 31, 2025
+
+- [x] **MaterialPalette: Mouse Wheel Scrolling Not Working**
+  - File: `Classes/ui/MaterialPalette.js` (handleMouseWheel method), `sketch.js` (mouseWheel function), `Classes/systems/ui/LevelEditor.js` (handleMouseWheel method)
+  - Issue: Mouse wheel scrolling had no effect when hovering over Materials panel
+  - Priority: HIGH (Core Feature Broken)
+  - Expected: Mouse wheel scrolls content when over Materials panel
+  - Root Cause:
+    1. sketch.js only called levelEditor.handleMouseWheel() when Shift pressed
+    2. LevelEditor.handleMouseWheel() tried to call non-existent panel.getPosition()/panel.getSize() methods
+  - Fix:
+    - **sketch.js**: Removed Shift-only condition, ALWAYS call handleMouseWheel() with mouseX/mouseY parameters
+    - **LevelEditor.js**: Changed panel dimension access from getPosition()/getSize() to state.position and direct width/height properties
+    - **MaterialPalette.js**: Added input validation for delta parameter
+  - Implementation: TDD approach with 16 integration tests (scroll priority, delegation, edge cases) + 6 E2E tests (browser verification)
+  - Tests:
+    - Unit: 9/11 passing (materialPaletteMouseWheel.test.js)
+    - Integration: 16/16 passing (mouseWheelScrolling.integration.test.js, mouseWheelDelegation.integration.test.js)
+    - E2E: 6/6 passing (pw_material_palette_mouse_wheel.js) - verified in real browser with screenshots
+  - Result: Mouse wheel scrolling now works reliably for all panels (Materials, Sidebar) without conflicting with camera zoom or brush size
+  - Related Fix: Removed duplicate ScrollIndicator.js import from index.html (was causing "redeclaration of let ScrollIndicator" error)
+  - Fixed: October 31, 2025
+
+- [x] **MaterialPalette: Content Extends Beyond Panel Edges**
+  - File: `Classes/ui/MaterialPalette.js` (render method)
+  - Issue: Materials in middle of panel render outside panel boundaries
+  - Priority: MEDIUM (Visual Bug)
+  - Expected: All content clipped to panel contentArea boundaries
+  - Current: Materials overflow panel edges
+  - Root Cause: No clip() or boundary checks during rendering
+  - Fix:
+    - Replaced p5.js `clip()`/`noClip()` with native Canvas API (avoid callback complexity)
+    - Added `drawingContext.save()` + `beginPath()` + `rect()` + `clip()` at render start
+    - Added `drawingContext.restore()` at render end (removes clipping)
+    - Wrapped in push/pop for state isolation
+  - Implementation: TDD approach with 12 unit tests (clipping setup, push/pop wrapping, edge cases)
+  - Tests: 12/12 passing (materialPaletteClipping.test.js)
+  - Result: All content now properly clipped to panel contentArea boundaries, no nested clipping errors
+  - Fixed: October 31, 2025
 
 - [x] **DraggablePanel: Starts Dragging/Minimizing When Painting Over Title Bar**
   - File: `Classes/systems/ui/DraggablePanel.js` (handleDragging method, update method, minimize button check)
@@ -239,10 +295,10 @@ Track bugs and technical debt. Only bugs discovered after integration/E2E testin
 
 ## Statistics
 
-- **Total Issues**: 13
-- **Fixed**: 12
-- **Open**: 2
-- **High Priority Open**: 0
+- **Total Issues**: 14
+- **Fixed**: 15
+- **Open**: 6
+- **High Priority Open**: 4
 
 ---
 

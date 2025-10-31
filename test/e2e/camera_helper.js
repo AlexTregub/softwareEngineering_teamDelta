@@ -136,6 +136,91 @@ async function centerOn(page, worldX, worldY) {
   }, worldX, worldY);
 }
 
+// Try to enter Level Editor from main menu and wait for panels to initialize.
+// Returns { started: bool, reason, diagnostics, panels: [] }
+async function ensureLevelEditorStarted(page) {
+  try {
+    const res = await page.evaluate(async () => {
+      const diag = { called: [], errors: [], panels: [] };
+      try {
+        // Check if already in Level Editor
+        const gs = window.GameState || window.g_gameState || null;
+        if (gs && typeof gs.getState === 'function' && gs.getState() === 'LEVEL_EDITOR') {
+          // Already in Level Editor, check if panels registered
+          if (window.draggablePanelManager && window.draggablePanelManager.panels) {
+            const panelsObj = window.draggablePanelManager.panels;
+            diag.panels = panelsObj instanceof Map ? Array.from(panelsObj.keys()) : Object.keys(panelsObj);
+            
+            if (diag.panels.includes('level-editor-materials')) {
+              return { started: true, diagnostics: diag };
+            }
+          }
+        }
+        
+        // Try to click Level Editor button from main menu
+        try {
+          const buttons = Array.from(document.querySelectorAll('button, a, div'));
+          const levelEditorBtn = buttons.find(n => n.innerText && /level\s*editor/i.test(n.innerText));
+          if (levelEditorBtn) { 
+            diag.called.push('clicked-level-editor-button'); 
+            levelEditorBtn.click(); 
+          }
+        } catch (e) { diag.errors.push('button click error: ' + e); }
+        
+        // Try mainMenu.buttons array
+        try {
+          if (window.mainMenu && window.mainMenu.buttons) {
+            const levelEditorButton = window.mainMenu.buttons.find(btn => 
+              btn.label && /level\s*editor/i.test(btn.label)
+            );
+            if (levelEditorButton && levelEditorButton.action) {
+              diag.called.push('mainMenu.buttons.action');
+              levelEditorButton.action();
+            }
+          }
+        } catch (e) { diag.errors.push('mainMenu.buttons error: ' + e); }
+        
+        // Try GameState.setState directly
+        try {
+          if (gs && typeof gs.setState === 'function') {
+            diag.called.push('GameState.setState(LEVEL_EDITOR)');
+            gs.setState('LEVEL_EDITOR');
+          }
+        } catch (e) { diag.errors.push('setState error: ' + e); }
+        
+        // Wait for panels to initialize (up to 3 seconds)
+        for (let i = 0; i < 6; i++) {
+          await new Promise(r => setTimeout(r, 500));
+          
+          if (window.draggablePanelManager && window.draggablePanelManager.panels) {
+            const panelsObj = window.draggablePanelManager.panels;
+            diag.panels = panelsObj instanceof Map ? Array.from(panelsObj.keys()) : Object.keys(panelsObj);
+            
+            if (diag.panels.includes('level-editor-materials')) {
+              diag.called.push(`panels-ready-after-${(i + 1) * 500}ms`);
+              return { started: true, diagnostics: diag };
+            }
+          }
+        }
+        
+        // Check final state
+        const gs2 = window.GameState || window.g_gameState || null;
+        if (gs2 && typeof gs2.getState === 'function' && gs2.getState() === 'LEVEL_EDITOR') {
+          // State is correct but panels not registered
+          return { started: false, reason: 'Level Editor state active but panels not registered', diagnostics: diag };
+        }
+        
+        return { started: false, reason: 'Could not enter Level Editor', diagnostics: diag };
+      } catch (e) { return { started: false, reason: 'Exception: ' + e, diagnostics: { error: '' + e } } }
+    });
+
+    if (process.env.TEST_VERBOSE) console.log('ensureLevelEditorStarted result:', res);
+    return res;
+  } catch (e) {
+    return { started: false, reason: 'Exception: ' + e, diagnostics: { error: '' + e } };
+  }
+}
+
 // Utility: read camera and map diagnostics
 async function getDiagnostics(page) {
   return await page.evaluate(() => {
@@ -147,4 +232,4 @@ async function getDiagnostics(page) {
   });
 }
 
-module.exports = { launch, newPageReady, ensureGameStarted, sendWheel, setZoom, centerOn, getDiagnostics, saveScreenshot };
+module.exports = { launch, newPageReady, ensureGameStarted, ensureLevelEditorStarted, sendWheel, setZoom, centerOn, getDiagnostics, saveScreenshot };

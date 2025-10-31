@@ -13,9 +13,10 @@ class LevelEditorPanels {
       materials: null,
       tools: null,
       brush: null,
-      events: null,      // Event editor panel
-      properties: null,  // Properties panel
-      sidebar: null      // Scrollable sidebar menu
+      events: null,        // Event editor panel
+      properties: null,    // Properties panel
+      sidebar: null,       // Scrollable sidebar menu
+      entityPalette: null  // Entity Painter palette
     };
     
     // Sidebar instance (composition pattern)
@@ -231,6 +232,36 @@ class LevelEditorPanels {
       }
     });
 
+    // Entity Palette Panel (Entity Painter tool)
+    // Size: Dynamic based on EntityPalette content (categories + templates)
+    this.panels.entityPalette = new DraggablePanel({
+      id: 'level-editor-entity-palette',
+      title: 'Entity Palette',
+      position: { x: 150, y: 80 },
+      size: { width: 220, height: 300 }, // Wider for entity templates
+      visible: false, // Hidden by default - toggled via View menu or tool button
+      buttons: {
+        layout: 'vertical',
+        spacing: 0,
+        items: [], // We'll render EntityPalette directly in content
+        autoSizeToContent: true,
+        verticalPadding: 10,
+        horizontalPadding: 10,
+        contentSizeCallback: () => {
+          // Get size from EntityPalette instance
+          return this.levelEditor?.entityPalette ? 
+            this.levelEditor.entityPalette.getContentSize() : 
+            { width: 200, height: 280 };
+        }
+      },
+      behavior: {
+        draggable: true,
+        persistent: true,
+        constrainToScreen: true,
+        managedExternally: true // Don't auto-render, LevelEditorPanels handles it
+      }
+    });
+
     // Add panels to the manager
     manager.panels.set('level-editor-materials', this.panels.materials);
     manager.panels.set('level-editor-tools', this.panels.tools);
@@ -238,12 +269,14 @@ class LevelEditorPanels {
     manager.panels.set('level-editor-events', this.panels.events);
     manager.panels.set('level-editor-properties', this.panels.properties);
     manager.panels.set('level-editor-sidebar', this.panels.sidebar);
+    manager.panels.set('level-editor-entity-palette', this.panels.entityPalette);
 
     // Add to LEVEL_EDITOR state visibility
-    // NOTE: Properties, Events, Sidebar, and Brush panels are NOT added here - they're hidden by default
+    // NOTE: Properties, Events, Sidebar, Entity Palette, and Brush panels are NOT added here - they're hidden by default
     // Properties: Toggle via View menu (Feature 7)
     // Events: Toggle via Tools panel button (Feature 8)
     // Sidebar: Toggle via View menu (Phase 4)
+    // Entity Palette: Toggle via View menu or Entity Painter tool (Feature: Entity Painter)
     // Brush: Redundant - brush size controlled via menu bar inline controls (Enhancement 9)
     if (!manager.stateVisibility.LEVEL_EDITOR) {
       manager.stateVisibility.LEVEL_EDITOR = [];
@@ -255,6 +288,7 @@ class LevelEditorPanels {
       // 'level-editor-events' - Hidden by default (Feature 8)
       // 'level-editor-properties' - Hidden by default (Feature 7)
       // 'level-editor-sidebar' - Hidden by default (Phase 4)
+      // 'level-editor-entity-palette' - Hidden by default (Entity Painter feature)
     );
 
     logNormal('✅ Level Editor panels initialized and added to DraggablePanelManager');
@@ -540,6 +574,19 @@ class LevelEditorPanels {
       });
     } else if (this.panels.sidebar && this.panels.sidebar.state.visible) {
       this.panels.sidebar.render();
+    }
+
+    // Entity Palette Panel
+    if (this.panels.entityPalette && this.panels.entityPalette.state.visible && !this.panels.entityPalette.state.minimized) {
+      this.panels.entityPalette.render((contentArea, style) => {
+        if (this.levelEditor.entityPalette) {
+          // Pass absolute coordinates AND dimensions for EntityPalette rendering
+          this.levelEditor.entityPalette.render(contentArea.x, contentArea.y, contentArea.width, contentArea.height);
+        }
+      });
+    } else if (this.panels.entityPalette && this.panels.entityPalette.state.visible) {
+      // Just render the minimized title bar
+      this.panels.entityPalette.render();
     }
   }
 

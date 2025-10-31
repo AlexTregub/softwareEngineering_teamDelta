@@ -416,6 +416,11 @@ class MaterialPalette {
      * @param {number} delta - Scroll delta (positive = scroll down)
      */
     handleMouseWheel(delta) {
+        // Validate delta (must be a valid number and non-zero)
+        if (typeof delta !== 'number' || isNaN(delta) || delta === 0) {
+            return; // Invalid delta - do nothing
+        }
+        
         this.scrollOffset += delta;
         this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.maxScrollOffset));
     }
@@ -577,6 +582,14 @@ class MaterialPalette {
         
         push();
         
+        // Use canvas clipping (p5.js clip() requires callback in newer versions)
+        if (typeof drawingContext !== 'undefined' && drawingContext) {
+            drawingContext.save();
+            drawingContext.beginPath();
+            drawingContext.rect(x, y, width, height);
+            drawingContext.clip();
+        }
+        
         // Apply scroll offset
         let currentY = y - this.scrollOffset;
         
@@ -615,6 +628,11 @@ class MaterialPalette {
         // Render tooltip
         if (this.tooltip) {
             this.tooltip.render();
+        }
+        
+        // Restore canvas state (removes clipping)
+        if (typeof drawingContext !== 'undefined' && drawingContext) {
+            drawingContext.restore();
         }
         
         pop();

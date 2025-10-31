@@ -1511,8 +1511,8 @@ describe('GameEvent System Integration Tests', function() {
  * Run: npm run test:integration
  */
 
-// Load required classes
-let { GameEvent, DialogueEvent } = require('../../../Classes/events/Event.js');
+// Load required classes (GameEvent and DialogueEvent already loaded at top of file)
+// DUPLICATE REMOVED: let { GameEvent, DialogueEvent } = require('../../../Classes/events/Event.js');
 let DraggablePanelManager = require('../../../Classes/systems/ui/DraggablePanelManager.js');
 let DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel.js');
 

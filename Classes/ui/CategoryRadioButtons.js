@@ -14,7 +14,7 @@ class CategoryRadioButtons {
     
     this.selected = 'entities';
     this.onChangeCallback = onChangeCallback;
-    this.height = 50; // Default height for button row
+    this.height = 30; // Smaller height for icon-only buttons
   }
   
   /**
@@ -69,13 +69,11 @@ class CategoryRadioButtons {
         rect(buttonX, y, buttonWidth, 3); // Top border
       }
       
-      // Draw icon and label
+      // Draw icon only (no text label)
       fill(0);
       textAlign(CENTER, CENTER);
-      textSize(20);
-      text(category.icon, buttonX + buttonWidth / 2, y + this.height / 3);
-      textSize(12);
-      text(category.label, buttonX + buttonWidth / 2, y + (this.height * 2) / 3);
+      textSize(18); // Slightly smaller icon size
+      text(category.icon, buttonX + buttonWidth / 2, y + this.height / 2);
     });
     
     pop();

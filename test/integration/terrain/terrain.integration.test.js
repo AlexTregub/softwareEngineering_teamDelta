@@ -1000,10 +1000,10 @@ let toolBarCode = fs.readFileSync(
   path.join(__dirname, '../../../Classes/ui/ToolBar.js'),
   'utf8'
 );
-let saveDialogCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/SaveDialog.js'),
-  'utf8'
-);
+// DUPLICATE REQUIRE REMOVED: let saveDialogCode = fs.readFileSync(
+//   path.join(__dirname, '../../../Classes/ui/SaveDialog.js'),
+//   'utf8'
+// );
 let loadDialogCode = fs.readFileSync(
   path.join(__dirname, '../../../Classes/ui/LoadDialog.js'),
   'utf8'
@@ -2403,23 +2403,14 @@ console.warn = () => {};
 console.error = () => {};
 
 // Load all required classes
-// DUPLICATE REQUIRE REMOVED: let gridCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/terrainUtils/grid.js'),
-  'utf8'
-);
-vm.runInThisContext(gridCode);
+// DUPLICATE REQUIRE REMOVED: let gridCode = fs.readFileSync(path.join(__dirname, '../../../Classes/terrainUtils/grid.js'), 'utf8');
+// DUPLICATE REMOVED: vm.runInThisContext(gridCode);
 
-// DUPLICATE REQUIRE REMOVED: let terrianGenCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/terrainUtils/terrianGen.js'),
-  'utf8'
-);
-vm.runInThisContext(terrianGenCode);
+// DUPLICATE REQUIRE REMOVED: let terrianGenCode = fs.readFileSync(path.join(__dirname, '../../../Classes/terrainUtils/terrianGen.js'), 'utf8');
+// DUPLICATE REMOVED: vm.runInThisContext(terrianGenCode);
 
-// DUPLICATE REQUIRE REMOVED: let chunkCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/terrainUtils/chunk.js'),
-  'utf8'
-);
-vm.runInThisContext(chunkCode);
+// DUPLICATE REQUIRE REMOVED: let chunkCode = fs.readFileSync(path.join(__dirname, '../../../Classes/terrainUtils/chunk.js'), 'utf8');
+// DUPLICATE REMOVED: vm.runInThisContext(chunkCode);
 
 let coordinateSystemCode = fs.readFileSync(
   path.join(__dirname, '../../../Classes/terrainUtils/coordinateSystem.js'),
@@ -2427,11 +2418,8 @@ let coordinateSystemCode = fs.readFileSync(
 );
 vm.runInThisContext(coordinateSystemCode);
 
-// DUPLICATE REQUIRE REMOVED: let gridTerrainCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/terrainUtils/gridTerrain.js'),
-  'utf8'
-);
-vm.runInThisContext(gridTerrainCode);
+// DUPLICATE REQUIRE REMOVED: let gridTerrainCode = fs.readFileSync(path.join(__dirname, '../../../Classes/terrainUtils/gridTerrain.js'), 'utf8');
+// DUPLICATE REMOVED: vm.runInThisContext(gridTerrainCode);
 
 let exporterCode = fs.readFileSync(
   path.join(__dirname, '../../../Classes/terrainUtils/TerrainExporter.js'),

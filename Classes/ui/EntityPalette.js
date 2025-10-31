@@ -9,8 +9,19 @@ class EntityPalette {
     this.currentCategory = 'entities';
     this._selectedTemplateId = null;
     this._templates = this._loadTemplates();
+    
+    // Create CategoryRadioButtons instance with onChange callback
+    if (typeof CategoryRadioButtons !== 'undefined') {
+      this.categoryButtons = new CategoryRadioButtons((categoryId) => {
+        this.setCategory(categoryId);
+        this._selectedTemplateId = null; // Clear selection on category change
+      });
+    }
   }
   
+  // TODO: Make this section load dynamicly, we want users to be able
+  // create entities in game, store them in JSON, and have the game 
+  // be able to load them later.
   /**
    * Load entity templates organized by category
    * @returns {Object} Templates organized by category
@@ -305,6 +316,163 @@ class EntityPalette {
    */
   getCurrentCategory() {
     return this.currentCategory;
+  }
+  
+  /**
+   * Get the current category (alias for getCurrentCategory)
+   * @returns {string} Current category name
+   */
+  getCategory() {
+    return this.currentCategory;
+  }
+  
+  /**
+   * Get the selected template ID
+   * @returns {string|null} Selected template ID or null
+   */
+  getSelectedTemplateId() {
+    return this._selectedTemplateId;
+  }
+  
+  /**
+   * Get content size for panel auto-sizing
+   * @param {number} width - Available width
+   * @returns {Object} Size object with width and height
+   */
+  getContentSize(width = 200) {
+    // Calculate dynamic height based on template count and grid layout
+    const templates = this.getCurrentTemplates();
+    const swatchSize = 32;
+    const padding = 4;
+    const swatchWithPadding = swatchSize + padding;
+    const cols = Math.floor(width / swatchWithPadding);
+    const rows = Math.ceil(templates.length / cols);
+    
+    const radioButtonsHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    const gridHeight = rows * swatchWithPadding;
+    const totalHeight = radioButtonsHeight + gridHeight + 8; // 8px bottom padding
+    
+    return {
+      width: width,
+      height: totalHeight
+    };
+  }
+  
+  /**
+   * Render EntityPalette UI with CategoryRadioButtons and template grid
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   * @param {number} width - Width
+   * @param {number} height - Height
+   */
+  render(x, y, width, height) {
+    if (typeof push === 'undefined') return;
+    
+    push();
+    
+    // Render CategoryRadioButtons at top
+    if (this.categoryButtons) {
+      this.categoryButtons.render(x, y, width);
+    }
+    
+    // Render template grid below radio buttons
+    const templates = this.getCurrentTemplates();
+    const swatchSize = 32;
+    const padding = 4;
+    const swatchWithPadding = swatchSize + padding;
+    const cols = Math.floor(width / swatchWithPadding);
+    
+    let gridX = x + padding;
+    const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    let gridY = y + buttonHeight + padding; // Start below category buttons
+    
+    templates.forEach((template, i) => {
+      if (i > 0 && i % cols === 0) {
+        gridX = x + padding;
+        gridY += swatchWithPadding;
+      }
+      
+      // Draw swatch background
+      const isSelected = template.id === this._selectedTemplateId;
+      fill(isSelected ? '#FFD700' : '#555555');
+      stroke(isSelected ? '#FFA500' : '#333333');
+      strokeWeight(isSelected ? 2 : 1);
+      rect(gridX, gridY, swatchSize, swatchSize);
+      
+      // Draw template icon/label (placeholder - first 3 chars of name)
+      fill(220);
+      textSize(10);
+      if (typeof textAlign === 'function') {
+        textAlign(CENTER, CENTER);
+      }
+      text(template.name.substring(0, 3), gridX + swatchSize / 2, gridY + swatchSize / 2);
+      
+      gridX += swatchWithPadding;
+    });
+    
+    pop();
+  }
+  
+  /**
+   * Handle click events - delegates to CategoryRadioButtons and template grid
+   * @param {number} clickX - Mouse X position
+   * @param {number} clickY - Mouse Y position
+   * @param {number} panelX - Content area X position
+   * @param {number} panelY - Content area Y position
+   * @param {number} panelWidth - Panel width
+   * @returns {Object|null} Action object or null
+   */
+  handleClick(clickX, clickY, panelX, panelY, panelWidth) {
+    const relX = clickX - panelX;
+    const relY = clickY - panelY;
+    
+    // Check CategoryRadioButtons first (top 30px - smaller buttons)
+    const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    if (relY < buttonHeight && this.categoryButtons) {
+      // CategoryRadioButtons.handleClick expects (mouseX, mouseY, x, y, width)
+      // We have relative coords, so x=0, y=0 for the button area
+      const categoryClicked = this.categoryButtons.handleClick(relX, relY, 0, 0, panelWidth);
+      if (categoryClicked) {
+        return { type: 'category', category: categoryClicked.id };
+      }
+    }
+    
+    // Check template grid (below button height)
+    if (relY > buttonHeight) {
+      const templates = this.getCurrentTemplates();
+      const swatchSize = 32;
+      const padding = 4;
+      const swatchWithPadding = swatchSize + padding;
+      const cols = Math.floor(panelWidth / swatchWithPadding);
+      
+      const gridRelX = relX - padding;
+      const gridRelY = relY - buttonHeight - padding;
+      
+      const col = Math.floor(gridRelX / swatchWithPadding);
+      const row = Math.floor(gridRelY / swatchWithPadding);
+      const index = row * cols + col;
+      
+      if (index >= 0 && index < templates.length) {
+        this._selectedTemplateId = templates[index].id;
+        return { type: 'template', template: templates[index] };
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Check if point is within EntityPalette bounds
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @param {number} contentX - Content area X position
+   * @param {number} contentY - Content area Y position
+   * @returns {boolean} True if point is within bounds
+   */
+  containsPoint(mouseX, mouseY, contentX, contentY) {
+    const size = this.getContentSize();
+    return mouseX >= contentX && mouseX <= contentX + size.width &&
+           mouseY >= contentY && mouseY <= contentY + size.height;
   }
 }
 

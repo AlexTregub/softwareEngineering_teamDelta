@@ -773,22 +773,23 @@ function mouseMoved() {
  */
 function mouseWheel(event) {
   try {
-    // Level Editor - Shift+scroll for brush size, normal scroll for zoom
+    // Level Editor - delegate to LevelEditor for all scroll events
     if (GameState.getState() === 'LEVEL_EDITOR') {
       if (window.levelEditor && levelEditor.isActive()) {
         const delta = event.deltaY || 0;
         const shiftPressed = event.shiftKey || keyIsDown(SHIFT);
         
-        // Try brush size adjustment first (if Shift is pressed)
-        if (shiftPressed && levelEditor.handleMouseWheel) {
-          const handled = levelEditor.handleMouseWheel(event, shiftPressed);
+        // ALWAYS try LevelEditor.handleMouseWheel first (checks panels, brush size, etc.)
+        // LevelEditor will decide what to do based on mouse position and Shift key
+        if (levelEditor.handleMouseWheel) {
+          const handled = levelEditor.handleMouseWheel(event, shiftPressed, mouseX, mouseY);
           if (handled) {
             event.preventDefault();
             return false;
           }
         }
         
-        // Otherwise, handle zoom
+        // If not handled by LevelEditor, fall back to zoom
         levelEditor.handleZoom(delta);
         event.preventDefault();
         return false;
