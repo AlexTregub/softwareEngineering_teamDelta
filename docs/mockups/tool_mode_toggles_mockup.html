@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Mode Toggles - Interactive Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #1e1e1e;
+            color: #ddd;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .demo-section {
+            background: #252525;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .demo-section h2 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-section p {
+            color: #aaa;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #64ff64;
+            color: #000;
+        }
+
+        .status-inactive {
+            background: #666;
+            color: #ddd;
+        }
+
+        /* Menu Bar Styles */
+        .menu-bar {
+            background: #2d2d2d;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            border: 1px solid #3a3a3a;
+            margin-bottom: 10px;
+            user-select: none;
+        }
+
+        .menu-item {
+            color: #dcdcdc;
+            font-size: 14px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 3px;
+        }
+
+        .menu-item:hover {
+            background: #464646;
+        }
+
+        .menu-separator {
+            width: 1px;
+            height: 24px;
+            background: #555;
+            margin: 0 15px;
+        }
+
+        .mode-label {
+            color: #dcdcdc;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .mode-toggles {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mode-button {
+            background: #3c3c3c;
+            color: #c8c8c8;
+            border: 1px solid #969696;
+            border-radius: 4px;
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-weight: 500;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .mode-button:hover:not(.active) {
+            background: #505050;
+            color: #fff;
+            border-color: #b4b4b4;
+        }
+
+        .mode-button.active {
+            background: #6496ff;
+            color: #ffffff;
+            border: 2px solid #96b4ff;
+            font-weight: 600;
+        }
+
+        .mode-button:active {
+            transform: scale(0.98);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: #2d2d2d;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #3a3a3a;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-button {
+            background: #3c3c3c;
+            color: #dcdcdc;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .control-button:hover {
+            background: #505050;
+            border-color: #777;
+        }
+
+        .control-button.selected {
+            background: #6496ff;
+            color: #fff;
+            border-color: #96b4ff;
+        }
+
+        .keyboard-hint {
+            display: inline-block;
+            background: #1e1e1e;
+            color: #888;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #1e1e1e;
+            border-left: 3px solid #6496ff;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .info-box strong {
+            color: #6496ff;
+        }
+
+        /* Specs Table */
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .specs-table th {
+            background: #1e1e1e;
+            color: #aaa;
+            text-align: left;
+            padding: 8px 12px;
+            font-weight: 600;
+            border-bottom: 2px solid #3a3a3a;
+        }
+
+        .specs-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #333;
+        }
+
+        .specs-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 60px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid #555;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        /* Animation Demo */
+        @keyframes modeSwitch {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.98); }
+            100% { transform: scale(1); }
+        }
+
+        .mode-button.animating {
+            animation: modeSwitch 0.2s ease-in-out;
+        }
+
+        /* Comparison Section */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .comparison-item {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+
+        .comparison-item h3 {
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .comparison-label {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .label-before {
+            background: #ff6464;
+            color: #fff;
+        }
+
+        .label-after {
+            background: #64ff64;
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Tool Mode Toggles - Interactive Mockup</h1>
+        <p class="subtitle">Entity Painting & Toolbar Enhancement | Level Editor UI Demo</p>
+
+        <!-- Interactive Demo -->
+        <div class="demo-section">
+            <h2>
+                <span style="font-size: 24px;">🎮</span>
+                Interactive Demo
+                <span class="status-badge status-active">LIVE</span>
+            </h2>
+            <p>Select a tool below and see how the mode toggles appear in the menu bar. Click modes to switch between them.</p>
+
+            <!-- Menu Bar -->
+            <div class="menu-bar" id="menuBar">
+                <div class="menu-item">File</div>
+                <div class="menu-item">Edit</div>
+                <div class="menu-item">View</div>
+                <div class="menu-separator" id="modeSeparator" style="display: none;"></div>
+                <div class="mode-toggles" id="modeToggles"></div>
+            </div>
+
+            <!-- Tool Selector -->
+            <div class="control-panel">
+                <strong style="color: #aaa;">Select Tool:</strong>
+                <div class="control-row">
+                    <button class="control-button" onclick="selectTool(null)">
+                        No Tool
+                    </button>
+                    <button class="control-button" onclick="selectTool('brush')">
+                        🖌️ Brush
+                    </button>
+                    <button class="control-button" onclick="selectTool('eraser')">
+                        🧱 Eraser <span class="keyboard-hint">E</span>
+                    </button>
+                    <button class="control-button" onclick="selectTool('selection')">
+                        ⬚ Selection <span class="keyboard-hint">S</span>
+                    </button>
+                    <button class="control-button" onclick="selectTool('fill')">
+                        🪣 Fill <span class="keyboard-hint">F</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="info-box" id="infoBox">
+                <strong>ℹ️ No tool selected</strong><br>
+                Select a tool above to see mode toggles appear in the menu bar.
+            </div>
+        </div>
+
+        <!-- All States Preview -->
+        <div class="demo-section">
+            <h2>
+                <span style="font-size: 24px;">📊</span>
+                All UI States
+            </h2>
+            <p>Preview of all possible menu bar configurations.</p>
+
+            <div style="margin-top: 15px;">
+                <strong style="color: #aaa; display: block; margin-bottom: 8px;">State 1: No Tool Selected</strong>
+                <div class="menu-bar">
+                    <div class="menu-item">File</div>
+                    <div class="menu-item">Edit</div>
+                    <div class="menu-item">View</div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">→ No mode toggles visible</p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <strong style="color: #aaa; display: block; margin-bottom: 8px;">State 2: Eraser Tool - ALL Mode</strong>
+                <div class="menu-bar">
+                    <div class="menu-item">File</div>
+                    <div class="menu-item">Edit</div>
+                    <div class="menu-item">View</div>
+                    <div class="menu-separator"></div>
+                    <div class="mode-toggles">
+                        <div class="mode-button active">ALL</div>
+                        <div class="mode-button">TERRAIN</div>
+                        <div class="mode-button">ENTITY</div>
+                        <div class="mode-button">EVENTS</div>
+                    </div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">→ Eraser removes everything (terrain + entities + events)</p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <strong style="color: #aaa; display: block; margin-bottom: 8px;">State 3: Eraser Tool - ENTITY Mode</strong>
+                <div class="menu-bar">
+                    <div class="menu-item">File</div>
+                    <div class="menu-item">Edit</div>
+                    <div class="menu-item">View</div>
+                    <div class="menu-separator"></div>
+                    <div class="mode-toggles">
+                        <div class="mode-button">ALL</div>
+                        <div class="mode-button">TERRAIN</div>
+                        <div class="mode-button active">ENTITY</div>
+                        <div class="mode-button">EVENTS</div>
+                    </div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">→ Eraser removes only entity spawn points (preserves terrain & events)</p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <strong style="color: #aaa; display: block; margin-bottom: 8px;">State 4: Selection Tool - PAINT Mode</strong>
+                <div class="menu-bar">
+                    <div class="menu-item">File</div>
+                    <div class="menu-item">Edit</div>
+                    <div class="menu-item">View</div>
+                    <div class="menu-separator"></div>
+                    <div class="mode-toggles">
+                        <div class="mode-button active">PAINT</div>
+                        <div class="mode-button">ENTITY</div>
+                        <div class="mode-button">EVENT</div>
+                    </div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">→ Current entity painting functionality</p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <strong style="color: #aaa; display: block; margin-bottom: 8px;">State 5: Selection Tool - ENTITY Mode</strong>
+                <div class="menu-bar">
+                    <div class="menu-item">File</div>
+                    <div class="menu-item">Edit</div>
+                    <div class="menu-item">View</div>
+                    <div class="menu-separator"></div>
+                    <div class="mode-toggles">
+                        <div class="mode-button">PAINT</div>
+                        <div class="mode-button active">ENTITY</div>
+                        <div class="mode-button">EVENT</div>
+                    </div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">→ Selection box selects entity spawn points</p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <strong style="color: #aaa; display: block; margin-bottom: 8px;">State 6: Selection Tool - EVENT Mode</strong>
+                <div class="menu-bar">
+                    <div class="menu-item">File</div>
+                    <div class="menu-item">Edit</div>
+                    <div class="menu-item">View</div>
+                    <div class="menu-separator"></div>
+                    <div class="mode-toggles">
+                        <div class="mode-button">PAINT</div>
+                        <div class="mode-button">ENTITY</div>
+                        <div class="mode-button active">EVENT</div>
+                    </div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">→ Selection box selects events</p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <strong style="color: #aaa; display: block; margin-bottom: 8px;">State 7: Brush Tool (No Modes)</strong>
+                <div class="menu-bar">
+                    <div class="menu-item">File</div>
+                    <div class="menu-item">Edit</div>
+                    <div class="menu-item">View</div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">→ Brush has no modes (terrain only)</p>
+            </div>
+        </div>
+
+        <!-- Button Specifications -->
+        <div class="demo-section">
+            <h2>
+                <span style="font-size: 24px;">📐</span>
+                Button Specifications
+            </h2>
+            <p>Detailed specifications for mode toggle buttons.</p>
+
+            <table class="specs-table">
+                <thead>
+                    <tr>
+                        <th>State</th>
+                        <th>Background</th>
+                        <th>Text Color</th>
+                        <th>Border</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Active</strong></td>
+                        <td>
+                            <span class="color-swatch" style="background: rgb(100, 150, 255);"></span>
+                            rgb(100, 150, 255)
+                        </td>
+                        <td>
+                            <span class="color-swatch" style="background: rgb(255, 255, 255);"></span>
+                            rgb(255, 255, 255)
+                        </td>
+                        <td>2px, rgb(150, 180, 255)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Inactive</strong></td>
+                        <td>
+                            <span class="color-swatch" style="background: rgb(60, 60, 60);"></span>
+                            rgb(60, 60, 60)
+                        </td>
+                        <td>
+                            <span class="color-swatch" style="background: rgb(200, 200, 200);"></span>
+                            rgb(200, 200, 200)
+                        </td>
+                        <td>1px, rgb(150, 150, 150)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hover</strong></td>
+                        <td>
+                            <span class="color-swatch" style="background: rgb(80, 80, 80);"></span>
+                            rgb(80, 80, 80)
+                        </td>
+                        <td>
+                            <span class="color-swatch" style="background: rgb(255, 255, 255);"></span>
+                            rgb(255, 255, 255)
+                        </td>
+                        <td>1px, rgb(180, 180, 180)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                    <strong style="color: #aaa; font-size: 13px;">Dimensions</strong>
+                    <p style="color: #ddd; font-size: 13px; margin-top: 5px;">
+                        • Width: 80px<br>
+                        • Height: 28px<br>
+                        • Border Radius: 4px<br>
+                        • Spacing: 8px
+                    </p>
+                </div>
+                <div>
+                    <strong style="color: #aaa; font-size: 13px;">Typography</strong>
+                    <p style="color: #ddd; font-size: 13px; margin-top: 5px;">
+                        • Font Size: 13px<br>
+                        • Font Weight: 500 (inactive)<br>
+                        • Font Weight: 600 (active)<br>
+                        • Alignment: Center
+                    </p>
+                </div>
+                <div>
+                    <strong style="color: #aaa; font-size: 13px;">Accessibility</strong>
+                    <p style="color: #ddd; font-size: 13px; margin-top: 5px;">
+                        • Active Contrast: 4.5:1 ✓<br>
+                        • Inactive Contrast: 5.2:1 ✓<br>
+                        • WCAG AA Compliant<br>
+                        • Keyboard Navigation
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcuts -->
+        <div class="demo-section">
+            <h2>
+                <span style="font-size: 24px;">⌨️</span>
+                Keyboard Shortcuts
+            </h2>
+            <p>Quick mode switching with number keys (when tool selected).</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 15px;">
+                <div style="background: #1e1e1e; padding: 12px; border-radius: 4px; border: 1px solid #333; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #6496ff;">1</div>
+                    <div style="color: #aaa; font-size: 12px; margin-top: 5px;">First Mode</div>
+                    <div style="color: #666; font-size: 11px;">(ALL / ENTITY)</div>
+                </div>
+                <div style="background: #1e1e1e; padding: 12px; border-radius: 4px; border: 1px solid #333; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #6496ff;">2</div>
+                    <div style="color: #aaa; font-size: 12px; margin-top: 5px;">Second Mode</div>
+                    <div style="color: #666; font-size: 11px;">(TERRAIN)</div>
+                </div>
+                <div style="background: #1e1e1e; padding: 12px; border-radius: 4px; border: 1px solid #333; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #6496ff;">3</div>
+                    <div style="color: #aaa; font-size: 12px; margin-top: 5px;">Third Mode</div>
+                    <div style="color: #666; font-size: 11px;">(ENTITY)</div>
+                </div>
+                <div style="background: #1e1e1e; padding: 12px; border-radius: 4px; border: 1px solid #333; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 600; color: #6496ff;">4</div>
+                    <div style="color: #aaa; font-size: 12px; margin-top: 5px;">Fourth Mode</div>
+                    <div style="color: #666; font-size: 11px;">(EVENTS)</div>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top: 15px;">
+                <strong>💡 Try it:</strong> When the eraser tool is selected in the demo above, press keys 1-4 to switch modes.
+            </div>
+        </div>
+
+        <!-- Before/After Comparison -->
+        <div class="demo-section">
+            <h2>
+                <span style="font-size: 24px;">🔄</span>
+                Before & After Comparison
+            </h2>
+
+            <div class="comparison">
+                <div class="comparison-item">
+                    <span class="comparison-label label-before">BEFORE</span>
+                    <h3>Current Implementation</h3>
+                    <div class="menu-bar" style="margin-top: 10px;">
+                        <div class="menu-item">File</div>
+                        <div class="menu-item">Edit</div>
+                        <div class="menu-item">View</div>
+                    </div>
+                    <p style="color: #666; font-size: 12px; margin-top: 10px;">
+                        ❌ Eraser removes EVERYTHING<br>
+                        ❌ No entity-only operations<br>
+                        ❌ No visual mode feedback
+                    </p>
+                </div>
+
+                <div class="comparison-item">
+                    <span class="comparison-label label-after">AFTER</span>
+                    <h3>Enhanced Implementation</h3>
+                    <div class="menu-bar" style="margin-top: 10px;">
+                        <div class="menu-item">File</div>
+                        <div class="menu-item">Edit</div>
+                        <div class="menu-item">View</div>
+                        <div class="menu-separator"></div>
+                        <div class="mode-toggles">
+                            <div class="mode-button">ALL</div>
+                            <div class="mode-button">TERRAIN</div>
+                            <div class="mode-button active">ENTITY</div>
+                            <div class="mode-button">EVENTS</div>
+                        </div>
+                    </div>
+                    <p style="color: #64ff64; font-size: 12px; margin-top: 10px;">
+                        ✓ Selective layer erasure<br>
+                        ✓ Entity selection tool<br>
+                        ✓ Clear visual feedback
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; color: #666; font-size: 12px; margin-top: 40px; padding-bottom: 20px;">
+            <p>Entity Painting & Toolbar Enhancement | Level Editor UI</p>
+            <p style="margin-top: 5px;">Software Engineering Team Delta | November 2025</p>
+        </div>
+    </div>
+
+    <script>
+        // Tool configurations
+        const toolConfigs = {
+            eraser: {
+                name: 'Eraser',
+                modes: ['ALL', 'TERRAIN', 'ENTITY', 'EVENTS'],
+                defaultMode: 'ALL',
+                description: 'Selective erasure by layer'
+            },
+            selection: {
+                name: 'Selection',
+                modes: ['ENTITY'],
+                defaultMode: 'ENTITY',
+                description: 'Multi-select entity spawn points'
+            },
+            brush: {
+                name: 'Brush',
+                modes: [],
+                description: 'Paint terrain (no modes)'
+            },
+            fill: {
+                name: 'Fill',
+                modes: [],
+                description: 'Fill tool (no modes)'
+            }
+        };
+
+        let currentTool = null;
+        let currentMode = null;
+
+        function selectTool(toolName) {
+            // Update tool buttons
+            document.querySelectorAll('.control-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            if (toolName) {
+                event.target.classList.add('selected');
+            }
+
+            currentTool = toolName;
+            const config = toolName ? toolConfigs[toolName] : null;
+
+            // Update mode toggles
+            const modeToggles = document.getElementById('modeToggles');
+            const modeLabel = document.getElementById('modeLabel');
+            const modeSeparator = document.getElementById('modeSeparator');
+            const infoBox = document.getElementById('infoBox');
+
+            if (config && config.modes.length > 0) {
+                // Show mode toggles
+                modeSeparator.style.display = 'block';
+                currentMode = config.defaultMode;
+
+                // Render mode buttons
+                modeToggles.innerHTML = '';
+                config.modes.forEach(mode => {
+                    const btn = document.createElement('div');
+                    btn.className = 'mode-button' + (mode === currentMode ? ' active' : '');
+                    btn.textContent = mode;
+                    btn.onclick = () => selectMode(mode);
+                    modeToggles.appendChild(btn);
+                });
+
+                // Update info box
+                infoBox.innerHTML = `
+                    <strong>🎯 ${config.name} Tool Selected</strong><br>
+                    ${config.description}<br>
+                    <span style="color: #6496ff;">Current Mode: ${currentMode}</span>
+                    <span style="color: #666;"> | Press 1-${config.modes.length} to switch modes</span>
+                `;
+            } else {
+                // Hide mode toggles
+                modeSeparator.style.display = 'none';
+                modeToggles.innerHTML = '';
+
+                if (config) {
+                    infoBox.innerHTML = `
+                        <strong>🎯 ${config.name} Tool Selected</strong><br>
+                        ${config.description}<br>
+                        <span style="color: #666;">This tool has no modes.</span>
+                    `;
+                } else {
+                    infoBox.innerHTML = `
+                        <strong>ℹ️ No tool selected</strong><br>
+                        Select a tool above to see mode toggles appear in the menu bar.
+                    `;
+                }
+            }
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+
+            // Update button states with animation
+            document.querySelectorAll('#modeToggles .mode-button').forEach(btn => {
+                const isActive = btn.textContent === mode;
+                
+                if (isActive) {
+                    btn.classList.add('animating');
+                    setTimeout(() => btn.classList.remove('animating'), 200);
+                }
+                
+                btn.classList.toggle('active', isActive);
+            });
+
+            // Update info box
+            const config = toolConfigs[currentTool];
+            const modeDescriptions = {
+                'ALL': 'Removes everything (terrain + entities + events)',
+                'TERRAIN': 'Removes only terrain tiles',
+                'ENTITY': 'Removes only entity spawn points',
+                'EVENTS': 'Removes only event triggers'
+            };
+
+            document.getElementById('infoBox').innerHTML = `
+                <strong>🎯 ${config.name} Tool Selected</strong><br>
+                ${config.description}<br>
+                <span style="color: #6496ff;">Current Mode: ${currentMode}</span> - ${modeDescriptions[currentMode] || 'No description'}
+            `;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (!currentTool || !toolConfigs[currentTool].modes.length) return;
+
+            const modes = toolConfigs[currentTool].modes;
+            const keyNum = parseInt(e.key);
+
+            if (keyNum >= 1 && keyNum <= modes.length) {
+                e.preventDefault();
+                selectMode(modes[keyNum - 1]);
+            }
+        });
+
+        // Initial state
+        selectTool(null);
+    </script>
+</body>
+</html>

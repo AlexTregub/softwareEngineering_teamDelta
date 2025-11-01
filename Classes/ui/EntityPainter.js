@@ -489,10 +489,14 @@ class EntityPainter {
    * @private
    */
   _eraseTerrain(gridX, gridY) {
-    if (!this.terrain || !this.terrain.grid) return;
+    if (!this.terrain) return;
+    
+    // Support both SparseTerrain (.tiles) and MapManager (.grid)
+    const gridMap = this.terrain.tiles || this.terrain.grid;
+    if (!gridMap) return;
     
     const gridKey = `${gridX},${gridY}`;
-    const tile = this.terrain.grid.get(gridKey);
+    const tile = gridMap.get(gridKey);
     
     if (tile) {
       // Reset to default terrain type (GRASS)
@@ -505,16 +509,51 @@ class EntityPainter {
    * @private
    */
   _eraseEvents(gridX, gridY) {
-    if (!this.events || this.events.length === 0) return;
+    if (!this.events) return;
     
-    // Filter out events at this grid position
-    const remaining = this.events.filter(event => {
-      return !(event.gridX === gridX && event.gridY === gridY);
-    });
+    // Handle EventFlagLayer (Map-based)
+    if (this.events.flags && this.events.flags instanceof Map) {
+      const flagsToRemove = [];
+      const TILE_SIZE = (typeof global !== 'undefined' && global.TILE_SIZE) ? global.TILE_SIZE : 32;
+      
+      // Find flags at this grid position
+      this.events.flags.forEach((flag, flagId) => {
+        // Calculate grid position from world coords if gridX/gridY not present
+        let flagGridX = flag.gridX;
+        let flagGridY = flag.gridY;
+        
+        if (flagGridX === undefined && flag.x !== undefined) {
+          flagGridX = Math.floor(flag.x / TILE_SIZE);
+        }
+        if (flagGridY === undefined && flag.y !== undefined) {
+          flagGridY = Math.floor(flag.y / TILE_SIZE);
+        }
+        
+        if (flagGridX === gridX && flagGridY === gridY) {
+          flagsToRemove.push(flagId);
+        }
+      });
+      
+      // Remove flags using EventFlagLayer's removeFlag method
+      flagsToRemove.forEach(flagId => {
+        if (typeof this.events.removeFlag === 'function') {
+          this.events.removeFlag(flagId);
+        }
+      });
+      return;
+    }
     
-    // Update array in place to maintain reference
-    this.events.length = 0;
-    this.events.push(...remaining);
+    // Handle plain array format (for tests and backward compatibility)
+    if (Array.isArray(this.events) && this.events.length > 0) {
+      // Filter out events at this grid position
+      const remaining = this.events.filter(event => {
+        return !(event.gridX === gridX && event.gridY === gridY);
+      });
+      
+      // Update array in place to maintain reference
+      this.events.length = 0;
+      this.events.push(...remaining);
+    }
   }
 }
 

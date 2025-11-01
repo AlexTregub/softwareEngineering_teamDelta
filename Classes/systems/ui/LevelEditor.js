@@ -136,6 +136,10 @@ class LevelEditor {
     if (typeof EntityPainter !== 'undefined' && typeof EntityPalette !== 'undefined') {
       this.entityPalette = new EntityPalette(); // Store for panel access
       this.entityPainter = new EntityPainter(this.entityPalette);
+      
+      // Wire terrain and events references for eraser functionality
+      this.entityPainter.terrain = this.terrain;
+      this.entityPainter.events = this.eventFlagLayer; // EventFlagLayer instance
     }
     
     // Initialize panels BEFORE adding custom buttons (panels needs to exist first)

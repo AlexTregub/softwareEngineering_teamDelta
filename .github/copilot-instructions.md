@@ -532,15 +532,25 @@ Unit → Integration → E2E breakdown
 
 **CRITICAL: Checklist Requirements**:
 When creating feature checklists (enhancement or development), **ALWAYS include**:
-1. **Key Design Decisions** section - Document core algorithmic choices, trade-offs, architectural patterns
-2. **Implementation Notes** section - Include code snippets showing algorithms, data structures, performance considerations
-3. **Examples**: See `GRID_EDGE_ONLY_RENDERING_CHECKLIST.md` for reference implementation
+1. **User Stories** section (in Overview) - Write clear user stories in "As a [user], I want to [action] so that [benefit]" format
+2. **Key Design Decisions** section - Document core algorithmic choices, trade-offs, architectural patterns
+3. **Implementation Notes** section - Include code snippets showing algorithms, data structures, performance considerations
+4. **Examples**: See `ENTITY_PAINTING_TOOLBAR_ENHANCEMENTS.md` for reference implementation
 
 These sections provide:
-- Clear understanding of WHY decisions were made
+- Clear understanding of WHO benefits and WHY (user stories)
+- Clear understanding of WHY decisions were made (design decisions)
 - Reference algorithms for implementation
 - Context for future maintenance
 - Learning material for team members
+
+**User Story Format**:
+```markdown
+**User Stories**:
+1. As a [role], I want to [action] so I can [benefit]
+2. As a [role], I want to [action] so I can [benefit]
+3. As a [role], I want to [action] so I can [benefit]
+```
 
 ### Refactoring Process
 
