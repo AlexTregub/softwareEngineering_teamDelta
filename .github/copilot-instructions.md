@@ -435,6 +435,77 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 
 **Location**: `test/e2e/screenshots/{category}/{success|failure}/{name}.png`
 
+### 6. Test Reuse & Real User Flows (CRITICAL!)
+
+**MANDATORY**: See `test/E2E_TEST_CATALOG.md` for complete list of reusable tests
+
+**BEFORE creating ANY new E2E test**:
+1. **Check `test/E2E_TEST_CATALOG.md`** - Catalog lists ALL available helpers and tests
+2. **Use existing helpers** from `test/e2e/levelEditor/userFlowHelpers.js` if applicable
+3. **Only create new test** if functionality not covered by existing helpers
+
+**Real User Flows vs API Calls**:
+
+**✅ CORRECT - Real User Flow** (ALWAYS do this unless dev says otherwise):
+```javascript
+// Use helper functions that simulate real user interactions
+const { placeEntityAtGrid, eraseEntityAtGrid } = require('../levelEditor/userFlowHelpers');
+
+// Place entity using REAL user flow (toolbar click → entity palette → place)
+await placeEntityAtGrid(page, 10, 10);
+
+// Erase entity using REAL user flow (eraser mode → click at grid position)
+await eraseEntityAtGrid(page, 10, 10);
+
+// Verify actual level data (not just visual state)
+const result = await page.evaluate(() => {
+  return {
+    entityCount: window.levelEditor._entitySpawnData.length,
+    placedCount: window.levelEditor.entityPainter.placedEntities.length
+  };
+});
+```
+
+**❌ WRONG - Direct API Manipulation** (NEVER do this unless explicitly requested by dev):
+```javascript
+// BAD: Bypassing UI, directly manipulating properties
+await page.evaluate(() => {
+  window.levelEditor._entitySpawnData.push({
+    type: 'Ant',
+    gridPosition: { x: 10, y: 10 }
+  }); // WRONG - bypasses toolbar, palette, placement flow
+});
+
+// BAD: Not verifying actual level data
+const result = await page.evaluate(() => {
+  return { hasEntity: window.levelEditor.entityPainter.placedEntities.length > 0 };
+}); // WRONG - only checks visual array, not actual level JSON data
+```
+
+**Available Helper Functions** (`test/e2e/levelEditor/userFlowHelpers.js`):
+- `startLevelEditor(page)` - Initialize Level Editor
+- `clickToolbarTool(page, toolName)` - Select toolbar tool
+- `openEntityPalette(page)` - Open entity palette panel
+- `clickEntityTemplate(page, index)` - Select entity template
+- `placeEntityAtGrid(page, gridX, gridY)` - Place entity with real workflow
+- `clickToolModeToggle(page, mode)` - Select tool mode (place/erase)
+- `eraseEntityAtGrid(page, gridX, gridY)` - Erase entity with real workflow
+- `verifyEntityAtGrid(page, gridX, gridY)` - Check entity exists in level data
+- `verifyEntityErasedAtGrid(page, gridX, gridY)` - Verify entity removed from level data
+
+**Key Rules**:
+1. **ALWAYS use real user flows** - mouse clicks, toolbar interactions, system APIs
+2. **NEVER bypass UI** - no direct property manipulation unless dev explicitly requests it
+3. **ALWAYS verify level data** - check `_entitySpawnData`, not just visual arrays
+4. **ALWAYS check catalog first** - reuse before creating new tests
+5. **ALWAYS use helper functions** - don't duplicate placement/erasure logic
+
+**Why Real User Flows Matter**:
+- Tests catch UI bugs (broken buttons, missing event handlers)
+- Tests verify complete workflows (toolbar → palette → placement → data storage)
+- Tests ensure level data integrity (entities actually saved to JSON, not just visual)
+- Tests mimic actual user behavior (more realistic, higher confidence)
+
 ## Development Process & Checklists
 
 **CRITICAL**: **ALWAYS use checklists** for feature development, bug fixes, and refactoring. Checklists ensure systematic, test-driven development and prevent missed steps.
@@ -964,18 +1035,22 @@ Returns ReturnType. Additional return details.
 3. **CREATE ROADMAPS** - Document phases for features >8 hours work
 4. **UPDATE DOCS** - Modify existing docs, don't create new summaries
 5. **API REFERENCES** - Use expanded table format with backticks (see API Reference Documentation section)
-6. **Script load order matters** - Rendering before Entity, Entity before controllers
-7. **System APIs only** - Never manual property injection in tests
-8. **Headless only** - `--headless=new` for all browser tests
-9. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
-10. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
-11. **E2E screenshots** - Visual proof required, not just internal state
-12. **Force redraw** - Call `window.redraw()` multiple times after state changes
-13. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
-14. **Controllers optional** - Check availability before delegation
-15. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
-16. **KNOWN_ISSUES timing** - Only add bugs AFTER feature fully implemented (post-integration/E2E)
-17. **Archive old fixes** - Move to KNOWN_ISSUES_ARCHIVE.md 2 weeks after fix
+6. **CHECK E2E CATALOG FIRST** - See `test/E2E_TEST_CATALOG.md` before creating new E2E tests
+7. **USE HELPER FUNCTIONS** - Reuse from `test/e2e/levelEditor/userFlowHelpers.js` when applicable
+8. **REAL USER FLOWS** - Use mouse clicks, toolbar interactions, system APIs (not direct property manipulation)
+9. **VERIFY LEVEL DATA** - Check `_entitySpawnData` (actual level JSON), not just visual arrays
+10. **Script load order matters** - Rendering before Entity, Entity before controllers
+11. **System APIs only** - Never manual property injection in tests
+12. **Headless only** - `--headless=new` for all browser tests
+13. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
+14. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
+15. **E2E screenshots** - Visual proof required, not just internal state
+16. **Force redraw** - Call `window.redraw()` multiple times after state changes
+17. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
+18. **Controllers optional** - Check availability before delegation
+19. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
+20. **KNOWN_ISSUES timing** - Only add bugs AFTER feature fully implemented (post-integration/E2E)
+21. **Archive old fixes** - Move to KNOWN_ISSUES_ARCHIVE.md 2 weeks after fix
 
 ## Quick Reference
 
@@ -989,6 +1064,8 @@ Returns ReturnType. Additional return details.
 **Testing & Development**:
 - **Testing Guide**: `docs/guides/TESTING_TYPES_GUIDE.md`
 - **E2E Quickstart**: `docs/guides/E2E_TESTING_QUICKSTART.md`
+- **E2E Test Catalog**: `test/E2E_TEST_CATALOG.md` - **Check FIRST before creating new E2E tests**
+- **E2E Helper Functions**: `test/e2e/levelEditor/userFlowHelpers.js` - Reusable test utilities
 - **Feature Enhancement Checklist**: `docs/checklists/templates/FEATURE_ENHANCEMENT_CHECKLIST.md`
 - **Feature Development Checklist**: `docs/checklists/templates/FEATURE_DEVELOPMENT_CHECKLIST.md`
 - **Bug Fix Checklist**: `docs/checklists/templates/BUG_FIX_CHECKLIST.md`

@@ -446,42 +446,62 @@ class EntityPainter {
    * @private
    */
   _eraseEntities(gridX, gridY, worldX, worldY) {
-    if (!this.placedEntities || this.placedEntities.length === 0) return;
-    
-    // Find entities at this grid position
+    // Find entities at this grid position in placedEntities
     const entitiesToRemove = [];
     
-    this.placedEntities.forEach(entity => {
-      let entityGridX, entityGridY;
+    if (this.placedEntities && this.placedEntities.length > 0) {
+      this.placedEntities.forEach(entity => {
+        let entityGridX, entityGridY;
+        
+        // Handle entities with grid coordinates directly
+        if (entity.gridX !== undefined && entity.gridY !== undefined) {
+          entityGridX = entity.gridX;
+          entityGridY = entity.gridY;
+        } else {
+          // Handle entities with world coordinates
+          const pos = entity.getPosition ? entity.getPosition() : { x: entity.posX, y: entity.posY };
+          entityGridX = Math.floor(pos.x / 32);
+          entityGridY = Math.floor(pos.y / 32);
+        }
+        
+        if (entityGridX === gridX && entityGridY === gridY) {
+          entitiesToRemove.push(entity);
+        }
+      });
       
-      // Handle entities with grid coordinates directly
-      if (entity.gridX !== undefined && entity.gridY !== undefined) {
-        entityGridX = entity.gridX;
-        entityGridY = entity.gridY;
-      } else {
-        // Handle entities with world coordinates
-        const pos = entity.getPosition ? entity.getPosition() : { x: entity.posX, y: entity.posY };
-        entityGridX = Math.floor(pos.x / 32);
-        entityGridY = Math.floor(pos.y / 32);
-      }
-      
-      if (entityGridX === gridX && entityGridY === gridY) {
-        entitiesToRemove.push(entity);
-      }
-    });
+      // Remove entities from placedEntities
+      entitiesToRemove.forEach(entity => {
+        const index = this.placedEntities.indexOf(entity);
+        if (index !== -1) {
+          this.placedEntities.splice(index, 1);
+          console.log(`✅ [EntityPainter] Removed entity from placedEntities at (${gridX}, ${gridY})`);
+        }
+        
+        // Remove from spatial grid if available
+        if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+          spatialGridManager.removeEntity(entity);
+        }
+      });
+    }
     
-    // Remove entities
-    entitiesToRemove.forEach(entity => {
-      const index = this.placedEntities.indexOf(entity);
-      if (index !== -1) {
-        this.placedEntities.splice(index, 1);
+    // CRITICAL: Also remove from LevelEditor's _entitySpawnData (the actual level data)
+    // This is the PRIMARY storage for entities placed in Level Editor
+    if (typeof window !== 'undefined' && window.levelEditor && window.levelEditor._entitySpawnData) {
+      const spawnData = window.levelEditor._entitySpawnData;
+      let removedCount = 0;
+      
+      for (let i = spawnData.length - 1; i >= 0; i--) {
+        const spawnEntity = spawnData[i];
+        if (spawnEntity.gridX === gridX && spawnEntity.gridY === gridY) {
+          spawnData.splice(i, 1);
+          removedCount++;
+        }
       }
       
-      // Remove from spatial grid if available
-      if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
-        spatialGridManager.removeEntity(entity);
+      if (removedCount > 0) {
+        console.log(`✅ [EntityPainter] Removed ${removedCount} entity(ies) from _entitySpawnData at (${gridX}, ${gridY})`);
       }
-    });
+    }
   }
   
   /**

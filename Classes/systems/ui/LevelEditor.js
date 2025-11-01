@@ -892,7 +892,16 @@ class LevelEditor {
         
         const eraserBrushSize = this.fileMenuBar && this.fileMenuBar.brushSizeModule ? 
           this.fileMenuBar.brushSizeModule.getSize() : 1;
+        
+        // Erase terrain tiles
         const erasedCount = this.editor.erase(gridX, gridY, eraserBrushSize);
+        
+        // Also erase entities at this position (using EntityPainter)
+        if (this.entityPainter && this.entityPainter.handleErase) {
+          const worldX = gridX * (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32);
+          const worldY = gridY * (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32);
+          this.entityPainter.handleErase(worldX, worldY);
+        }
         
         if (erasedCount > 0) {
           this.notifications.show(`Erased ${erasedCount} tile(s)`);

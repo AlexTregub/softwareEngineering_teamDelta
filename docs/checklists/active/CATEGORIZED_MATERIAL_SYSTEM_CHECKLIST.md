@@ -19,6 +19,17 @@
 6. ✅ Recently used section displays at top
 7. ✅ Favorites system working with LocalStorage persistence
 
+**Bug Fix (November 1, 2025)**:
+8. ✅ Fixed category expand/collapse click handling - categories NOW clickable in browser with actual mouse
+   - **Root Cause #1 (CRITICAL)**: `containsPoint()` calculated bounds for flat material list, not categories
+   - **Root Cause #2**: `handleClick()` was not delegating clicks to `MaterialCategory.handleClick()`
+   - **Solution #1**: Fixed `containsPoint()` to sum search bar + all category heights
+   - **Solution #2**: Added category iteration in `handleClick()` with scroll offset adjustment
+   - **Verification**: Created E2E test with actual Puppeteer mouse clicks (simulates real user)
+   - Test confirms: EXPANDED → click → COLLAPSED → click → EXPANDED ✅
+   - All 7 programmatic E2E tests passing (191ms)
+   - New browser-based E2E test passing (click simulation with screenshots)
+
 **Test Results**:
 - Unit Tests: 98/98 passing (159ms)
 - Integration Tests: 20/20 passing (168ms)

@@ -21,6 +21,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### User-Facing Changes
 
+#### Fixed
+- **Material Palette Categories**: Fixed category expand/collapse not working when clicking headers
+  - Categories are now clickable and toggle open/closed correctly in browser
+  - Root cause: `containsPoint()` calculated bounds for flat material list, ignoring category heights
+  - Fix: `containsPoint()` now accounts for search bar + all category heights
+  - E2E test with actual mouse clicks confirms bug is fixed (EXPANDED → COLLAPSED → EXPANDED)
+
+---
+
+### Developer-Facing Changes
+
+#### Fixed
+- **MaterialPalette.containsPoint()**: Fixed category click detection (BUG #1 - CRITICAL)
+  - **Root Cause**: Calculated bounds for flat material list, ignoring category heights
+  - **Impact**: Click coordinates for category headers fell outside bounds, never reached `handleClick()`
+  - **Fix**: Now calculates total height including search bar (45px) + all category heights
+  - **Test**: E2E test with actual Puppeteer mouse clicks confirms toggle works (EXPANDED ↔ COLLAPSED)
+  
+- **MaterialPalette.handleClick()**: Enhanced category click delegation (BUG #2)
+  - Now iterates through categories and delegates clicks to `MaterialCategory.handleClick()`
+  - Properly adjusts coordinates for scroll offset
+  - Falls back to legacy flat material list if no categories loaded
+
+---
+
+### User-Facing Changes
+
 #### Added
 - **Level Editor: Entity Selection Box Tool** (`Classes/ui/EntitySelectionTool.js`) - TDD
   - **Feature**: Drag-select multiple entity spawn points (ants, buildings, resources)

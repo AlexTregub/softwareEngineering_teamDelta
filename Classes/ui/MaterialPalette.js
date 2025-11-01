@@ -503,8 +503,16 @@ class MaterialPalette {
      * @returns {boolean} True if click was handled
      */
     handleClick(mouseX, mouseY, panelX, panelY) {
+        // NOTE: panelX/panelY are actually the content area coordinates (after header and padding)
+        // mouseX/mouseY are screen coordinates
+        
+        // Adjust for scroll offset
+        const adjustedY = mouseY + this.scrollOffset;
+        
         // Check if click is on search bar (focus)
-        if (this.searchBar && mouseY >= panelY && mouseY <= panelY + 45) {
+        // Search bar is at the top of the content area
+        const searchBarY = panelY;
+        if (this.searchBar && mouseY >= searchBarY && mouseY <= searchBarY + 45) {
             this.searchBar.focus();
             return true;
         }
@@ -514,12 +522,66 @@ class MaterialPalette {
             this.searchBar.blur();
         }
         
+        // Calculate starting Y position for categories
+        // This MUST match the render() method's calculation order EXACTLY
+        
+        // Apply scroll offset FIRST (same as render())
+        let currentY = panelY - this.scrollOffset;
+        
+        // Add search bar height
+        if (this.searchBar) {
+            currentY += 45;
+        }
+        
+        // Add recently used section height (CRITICAL - was missing!)
+        if (this.recentlyUsed.length > 0) {
+            currentY += 20; // Header
+            const rows = Math.ceil(this.recentlyUsed.length / 2);
+            currentY += rows * 45 + 10; // Swatches + spacing
+        }
+        
+        // Check if we have categories
+        if (this.categories.length > 0) {
+            console.log(`[MaterialPalette] Starting category check: currentY=${currentY}, mouseY=${mouseY}`);
+            console.log(`[MaterialPalette] Category states:`, this.categories.map((c, i) => `${i}:${c.name}=${c.expanded?'EXPANDED':'COLLAPSED'}`).join(', '));
+            // Iterate through categories and check for clicks
+            for (let i = 0; i < this.categories.length; i++) {
+                const category = this.categories[i];
+                const categoryHeight = category.getHeight();
+                const match = mouseY >= currentY && mouseY < currentY + categoryHeight;
+                
+                console.log(`[MaterialPalette] Cat ${i} "${category.name}": currentY=${currentY}, height=${categoryHeight}, range=[${currentY}-${currentY + categoryHeight}], match=${match}`);
+                
+                // Check if click is within this category's bounds (in screen coordinates)
+                if (match) {
+                    console.log(`[MaterialPalette] ✓ Matched category ${i} "${category.name}", calling handleClick`);
+                    // Pass the current screen Y position as categoryY
+                    const clickedMaterial = category.handleClick(mouseX, mouseY, panelX, currentY);
+                    
+                    if (clickedMaterial) {
+                        // Material was clicked
+                        this.selectMaterial(clickedMaterial);
+                        return true;
+                    } else {
+                        // Header was clicked (toggle handled inside category.handleClick)
+                        return true;
+                    }
+                }
+                
+                // Move to next category position (in screen coordinates)
+                currentY += categoryHeight;
+            }
+            
+            return false;
+        }
+        
+        // Fallback: legacy flat material list (no categories)
         const swatchSize = 40;
         const spacing = 5;
         const columns = 2;
         
         let swatchX = panelX + spacing;
-        let swatchY = panelY + spacing;
+        let swatchY = currentY;
         let col = 0;
         
         for (let i = 0; i < this.materials.length; i++) {
@@ -553,11 +615,38 @@ class MaterialPalette {
      * @returns {boolean} True if within bounds
      */
     containsPoint(mouseX, mouseY, panelX, panelY) {
+        // Use viewport height if available (respects scroll)
+        if (this.viewportHeight && this.viewportHeight > 0) {
+            const panelWidth = 250; // Default panel width
+            return mouseX >= panelX && mouseX <= panelX + panelWidth &&
+                   mouseY >= panelY && mouseY <= panelY + this.viewportHeight;
+        }
+        
+        // Fallback: Calculate based on categories or flat material list
         const swatchSize = 40;
         const spacing = 5;
         const columns = 2;
         const panelWidth = columns * swatchSize + (columns + 1) * spacing;
-        const panelHeight = Math.ceil(this.materials.length / columns) * (swatchSize + spacing) + spacing;
+        
+        let panelHeight;
+        
+        if (this.categories.length > 0) {
+            // Calculate total height of all categories
+            panelHeight = 0;
+            
+            // Add search bar height if present
+            if (this.searchBar) {
+                panelHeight += 45;
+            }
+            
+            // Add all category heights
+            this.categories.forEach(category => {
+                panelHeight += category.getHeight();
+            });
+        } else {
+            // Legacy flat material list
+            panelHeight = Math.ceil(this.materials.length / columns) * (swatchSize + spacing) + spacing;
+        }
         
         return mouseX >= panelX && mouseX <= panelX + panelWidth &&
                mouseY >= panelY && mouseY <= panelY + panelHeight;
