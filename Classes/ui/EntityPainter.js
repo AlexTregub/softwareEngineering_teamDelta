@@ -5,14 +5,58 @@
  */
 
 class EntityPainter {
-  constructor() {
-    // Load EntityPalette if available
-    const EntityPaletteClass = (typeof EntityPalette !== 'undefined') ? EntityPalette : 
-                                (typeof require !== 'undefined' ? require('./EntityPalette') : null);
+  /**
+   * Eraser mode enumeration
+   * @static
+   */
+  static ERASER_MODE = {
+    ALL: 'ALL',         // Erase everything (entities, terrain, events)
+    TERRAIN: 'TERRAIN', // Erase terrain only
+    ENTITY: 'ENTITY',   // Erase entities only
+    EVENTS: 'EVENTS'    // Erase events only
+  };
+  
+  constructor(paletteOrEntities = null, terrain = null, events = null) {
+    // Backward compatibility: detect if first parameter is EntityPalette or entities array
+    const isEntityPalette = paletteOrEntities && 
+                           typeof paletteOrEntities === 'object' && 
+                           !Array.isArray(paletteOrEntities) &&
+                           (paletteOrEntities.constructor.name === 'EntityPalette' || 
+                            typeof paletteOrEntities.getSelectedTemplate === 'function');
     
-    this.palette = EntityPaletteClass ? new EntityPaletteClass() : null;
-    this.placedEntities = [];
+    if (isEntityPalette) {
+      // OLD SIGNATURE: constructor(palette) - for LevelEditor compatibility
+      this.palette = paletteOrEntities;
+      this.placedEntities = [];
+      this.terrain = null;
+      this.events = null;
+    } else {
+      // NEW SIGNATURE: constructor(placedEntities, terrain, events)
+      // Load EntityPalette class (browser or Node.js)
+      let EntityPaletteClass = null;
+      if (typeof EntityPalette !== 'undefined') {
+        EntityPaletteClass = EntityPalette;
+      } else if (typeof global !== 'undefined' && global.EntityPalette) {
+        EntityPaletteClass = global.EntityPalette;
+      } else if (typeof require !== 'undefined') {
+        try {
+          const module = require('./EntityPalette');
+          EntityPaletteClass = module.EntityPalette || module;
+        } catch (e) {
+          // EntityPalette not available
+        }
+      }
+      
+      this.palette = EntityPaletteClass ? new EntityPaletteClass() : null;
+      this.placedEntities = Array.isArray(paletteOrEntities) ? paletteOrEntities : [];
+      this.terrain = terrain || null;
+      this.events = events || null;
+    }
+    
     this.hoverPreview = null;
+    
+    // Eraser mode (default to ALL)
+    this.eraserMode = EntityPainter.ERASER_MODE.ALL;
   }
   
   /**
@@ -326,6 +370,151 @@ class EntityPainter {
         }
       }
     });
+  }
+  
+  /**
+   * Set eraser mode
+   * @param {string} mode - Eraser mode (ALL, TERRAIN, ENTITY, EVENTS)
+   * @returns {EntityPainter} Returns this for method chaining
+   */
+  setEraserMode(mode) {
+    const validModes = Object.values(EntityPainter.ERASER_MODE);
+    if (!validModes.includes(mode)) {
+      throw new Error(`Invalid eraser mode: ${mode}. Valid modes are: ${validModes.join(', ')}`);
+    }
+    this.eraserMode = mode;
+    return this;
+  }
+  
+  /**
+   * Get current eraser mode
+   * @returns {string} Current eraser mode
+   */
+  getEraserMode() {
+    return this.eraserMode;
+  }
+  
+  /**
+   * Handle erase action at position (handles both grid and world coordinates)
+   * @param {number} x - X coordinate (grid or world)
+   * @param {number} y - Y coordinate (grid or world)
+   */
+  handleErase(x, y) {
+    const TILE_SIZE = (typeof global !== 'undefined' && global.TILE_SIZE) ? global.TILE_SIZE : 32;
+    
+    // Auto-detect if input is world or grid coordinates
+    // If value is >= TILE_SIZE, assume it's world coords and convert
+    // Otherwise, assume it's already grid coords
+    let gridX, gridY;
+    
+    if (x >= TILE_SIZE || y >= TILE_SIZE) {
+      // World coordinates - convert to grid
+      gridX = Math.floor(x / TILE_SIZE);
+      gridY = Math.floor(y / TILE_SIZE);
+    } else {
+      // Already grid coordinates
+      gridX = x;
+      gridY = y;
+    }
+    
+    const worldX = gridX * TILE_SIZE;
+    const worldY = gridY * TILE_SIZE;
+    
+    switch (this.eraserMode) {
+      case EntityPainter.ERASER_MODE.ALL:
+        this._eraseEntities(gridX, gridY, worldX, worldY);
+        this._eraseTerrain(gridX, gridY);
+        this._eraseEvents(gridX, gridY);
+        break;
+        
+      case EntityPainter.ERASER_MODE.ENTITY:
+        this._eraseEntities(gridX, gridY, worldX, worldY);
+        break;
+        
+      case EntityPainter.ERASER_MODE.TERRAIN:
+        this._eraseTerrain(gridX, gridY);
+        break;
+        
+      case EntityPainter.ERASER_MODE.EVENTS:
+        this._eraseEvents(gridX, gridY);
+        break;
+    }
+  }
+  
+  /**
+   * Erase entities at grid position
+   * @private
+   */
+  _eraseEntities(gridX, gridY, worldX, worldY) {
+    if (!this.placedEntities || this.placedEntities.length === 0) return;
+    
+    // Find entities at this grid position
+    const entitiesToRemove = [];
+    
+    this.placedEntities.forEach(entity => {
+      let entityGridX, entityGridY;
+      
+      // Handle entities with grid coordinates directly
+      if (entity.gridX !== undefined && entity.gridY !== undefined) {
+        entityGridX = entity.gridX;
+        entityGridY = entity.gridY;
+      } else {
+        // Handle entities with world coordinates
+        const pos = entity.getPosition ? entity.getPosition() : { x: entity.posX, y: entity.posY };
+        entityGridX = Math.floor(pos.x / 32);
+        entityGridY = Math.floor(pos.y / 32);
+      }
+      
+      if (entityGridX === gridX && entityGridY === gridY) {
+        entitiesToRemove.push(entity);
+      }
+    });
+    
+    // Remove entities
+    entitiesToRemove.forEach(entity => {
+      const index = this.placedEntities.indexOf(entity);
+      if (index !== -1) {
+        this.placedEntities.splice(index, 1);
+      }
+      
+      // Remove from spatial grid if available
+      if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+        spatialGridManager.removeEntity(entity);
+      }
+    });
+  }
+  
+  /**
+   * Erase terrain at grid position (reset to default)
+   * @private
+   */
+  _eraseTerrain(gridX, gridY) {
+    if (!this.terrain || !this.terrain.grid) return;
+    
+    const gridKey = `${gridX},${gridY}`;
+    const tile = this.terrain.grid.get(gridKey);
+    
+    if (tile) {
+      // Reset to default terrain type (GRASS)
+      tile.type = 'GRASS';
+    }
+  }
+  
+  /**
+   * Erase events at grid position
+   * @private
+   */
+  _eraseEvents(gridX, gridY) {
+    if (!this.events || this.events.length === 0) return;
+    
+    // Filter out events at this grid position
+    const remaining = this.events.filter(event => {
+      return !(event.gridX === gridX && event.gridY === gridY);
+    });
+    
+    // Update array in place to maintain reference
+    this.events.length = 0;
+    this.events.push(...remaining);
   }
 }
 

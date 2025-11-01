@@ -52,6 +52,9 @@ class FileMenuBar {
     // Brush size menu module
     this.brushSizeModule = null;
     
+    // Tool mode toggle (for tools with modes like eraser, select)
+    this.toolModeToggle = null;
+    
     // Menu items
     this.menuItems = this._createDefaultMenuItems();
     
@@ -261,6 +264,56 @@ class FileMenuBar {
   }
   
   /**
+   * Update tool mode toggle based on current tool
+   * Creates or destroys the toggle based on whether the tool has modes
+   * @param {string} currentTool - Currently selected tool name
+   */
+  updateToolModeToggle(currentTool) {
+    if (!this.levelEditor || !this.levelEditor.toolbar) {
+      this.toolModeToggle = null;
+      return;
+    }
+    
+    const toolbar = this.levelEditor.toolbar;
+    
+    // Check if tool has modes
+    const tool = Array.isArray(toolbar.tools) ?
+      toolbar.tools.find(t => (t.id || t.name) === currentTool) :
+      toolbar.tools[currentTool];
+    
+    if (tool && tool.hasModes && Array.isArray(tool.modes) && tool.modes.length > 0) {
+      // Create or update tool mode toggle
+      if (!this.toolModeToggle || this.toolModeToggle.modes !== tool.modes) {
+        // Create new toggle with callback to update toolbar mode
+        this.toolModeToggle = new ToolModeToggle(
+          0, 0, // Position set in render()
+          tool.modes,
+          (newMode) => {
+            // Update toolbar's current mode for this tool
+            if (toolbar.setToolMode) {
+              toolbar.setToolMode(currentTool, newMode);
+            }
+            
+            // Notify level editor about mode change
+            if (this.levelEditor && this.levelEditor.notifications) {
+              this.levelEditor.notifications.show(`${currentTool} mode: ${newMode}`);
+            }
+          }
+        );
+        
+        // Set initial mode from toolbar
+        const currentMode = toolbar.getToolMode ? toolbar.getToolMode(currentTool) : tool.modes[0];
+        if (currentMode) {
+          this.toolModeToggle.setMode(currentMode);
+        }
+      }
+    } else {
+      // No modes for this tool
+      this.toolModeToggle = null;
+    }
+  }
+  
+  /**
    * Update menu item enabled states based on editor state
    */
   updateMenuStates() {
@@ -404,6 +457,14 @@ class FileMenuBar {
     // Check if click is on brush size module (if visible)
     if (this.brushSizeModule && this.brushSizeModule.isVisible()) {
       const consumed = this.brushSizeModule.handleClick(mouseX, mouseY);
+      if (consumed) {
+        return true;
+      }
+    }
+    
+    // Check if click is on tool mode toggle (if visible)
+    if (this.toolModeToggle && this.toolModeToggle.hitTest(mouseX, mouseY)) {
+      const consumed = this.toolModeToggle.handleClick(mouseX, mouseY);
       if (consumed) {
         return true;
       }
@@ -602,6 +663,15 @@ class FileMenuBar {
       this.brushSizeModule.x = currentX + 20;
       this.brushSizeModule.y = this.position.y;
       this.brushSizeModule.render();
+      currentX = this.brushSizeModule.x + this.brushSizeModule.getWidth();
+    }
+    
+    // Render tool mode toggle (inline, after brush size or menu items)
+    if (this.toolModeToggle) {
+      // Position after brush size or menu items with padding
+      this.toolModeToggle.x = currentX + 20;
+      this.toolModeToggle.y = this.position.y + (this.height - ToolModeToggle.BUTTON_HEIGHT) / 2; // Center vertically
+      this.toolModeToggle.render();
     }
     
     // Render dropdown if open

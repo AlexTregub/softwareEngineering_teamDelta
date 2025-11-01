@@ -11,30 +11,32 @@
 class ToolBar {
     /**
      * Create a toolbar
-     * @param {Array<Object>} toolConfigs - Optional tool configurations [{name, icon, tooltip}]
+     * @param {Array<Object>} toolConfigs - Optional tool configurations [{name, icon, tooltip, hasModes, modes}]
      */
     constructor(toolConfigs = null) {
         // Default to No Tool mode (null) - user must explicitly select a tool
         this.selectedTool = null;
+        this.activeTool = null; // For consistency with test naming
+        this.activeMode = null; // Current mode for active tool
         
         // Callback for tool changes
         this.onToolChange = null;
         
+        // Store last mode per tool (for mode persistence)
+        this.toolLastMode = new Map();
+        
         // If tool configs provided, use them
         if (toolConfigs) {
-            this.tools = {};
+            this.tools = toolConfigs; // Store as array for modes support
             this.groups = { 'tools': [] };
             
             toolConfigs.forEach(config => {
-                this.tools[config.name] = {
-                    name: config.name,
-                    icon: config.icon || '🔧',
-                    tooltip: config.tooltip || config.name,
-                    shortcut: config.shortcut || '',
-                    group: 'tools',
-                    enabled: true
-                };
-                this.groups['tools'].push(config.name);
+                this.groups['tools'].push(config.id || config.name);
+                
+                // Initialize last mode for tools with modes
+                if (config.hasModes && config.modes && config.modes.length > 0) {
+                    this.toolLastMode.set(config.id || config.name, config.modes[0]);
+                }
             });
         } else {
             // Default tools
@@ -60,17 +62,36 @@ class ToolBar {
     
     /**
      * Select a tool
-     * @param {string} tool - Tool name
+     * @param {string} toolId - Tool ID
      * @returns {boolean} True if tool exists
      */
-    selectTool(tool) {
-        if (this.tools[tool]) {
+    selectTool(toolId) {
+        // Handle both object-based tools (array) and legacy string-based tools (object)
+        const toolExists = Array.isArray(this.tools) ? 
+            this.tools.some(t => (t.id || t.name) === toolId) :
+            this.tools[toolId];
+            
+        if (toolExists) {
             const oldTool = this.selectedTool;
-            this.selectedTool = tool;
+            this.selectedTool = toolId;
+            this.activeTool = toolId; // Sync with activeTool
+            
+            // Handle modes for tools with mode support
+            const tool = Array.isArray(this.tools) ? 
+                this.tools.find(t => (t.id || t.name) === toolId) :
+                this.tools[toolId];
+            
+            if (tool && tool.hasModes && tool.modes && tool.modes.length > 0) {
+                // Set mode to last used mode, or default to first mode
+                this.activeMode = this.toolLastMode.get(toolId) || tool.modes[0];
+            } else {
+                // Clear mode for tools without modes
+                this.activeMode = null;
+            }
             
             // Call callback if tool changed
-            if (oldTool !== tool && this.onToolChange) {
-                this.onToolChange(tool, oldTool);
+            if (oldTool !== toolId && this.onToolChange) {
+                this.onToolChange(toolId, oldTool);
             }
             
             return true;
@@ -109,6 +130,85 @@ class ToolBar {
     }
     
     /**
+     * Get modes array for a tool
+     * @param {string} toolId - Tool ID
+     * @returns {Array<string>|null} Modes array or null if tool has no modes
+     */
+    getToolModes(toolId) {
+        if (!Array.isArray(this.tools)) {
+            return null; // Legacy tools don't have modes
+        }
+        
+        const tool = this.tools.find(t => (t.id || t.name) === toolId);
+        if (tool && tool.hasModes && tool.modes) {
+            return tool.modes;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Set mode for active tool
+     * @param {string} mode - Mode to set
+     * @throws {Error} If no active tool, tool has no modes, or mode is invalid
+     */
+    setToolMode(mode) {
+        if (!this.activeTool) {
+            throw new Error('Cannot set mode: no active tool');
+        }
+        
+        const modes = this.getToolModes(this.activeTool);
+        if (!modes) {
+            throw new Error(`Cannot set mode: tool "${this.activeTool}" has no modes`);
+        }
+        
+        if (!modes.includes(mode)) {
+            throw new Error(`Invalid mode "${mode}" for tool "${this.activeTool}". Valid modes: ${modes.join(', ')}`);
+        }
+        
+        this.activeMode = mode;
+        this.toolLastMode.set(this.activeTool, mode); // Remember for next time
+    }
+    
+    /**
+     * Get current mode for active tool
+     * @returns {string|null} Current mode or null if no active tool or tool has no modes
+     */
+    getCurrentMode() {
+        if (!this.activeTool) {
+            return null;
+        }
+        
+        const modes = this.getToolModes(this.activeTool);
+        if (!modes) {
+            return null; // Tool has no modes
+        }
+        
+        return this.activeMode;
+    }
+    
+    /**
+     * Get mode render data for FileMenuBar integration
+     * @returns {Object|null} {hasModes, modes, currentMode} or null
+     */
+    getModeRenderData() {
+        if (!this.activeTool) {
+            return null;
+        }
+        
+        const modes = this.getToolModes(this.activeTool);
+        if (!modes) {
+            return null;
+        }
+        
+        return {
+            hasModes: true,
+            modes: modes,
+            currentMode: this.activeMode
+        };
+    }
+    
+    /**
      * Get keyboard shortcut for a tool
      * @param {string} tool - Tool name
      * @returns {string|null} Shortcut key(s)
@@ -123,7 +223,10 @@ class ToolBar {
      * @returns {boolean} True if enabled
      */
     isEnabled(tool) {
-        return this.tools[tool] ? this.tools[tool].enabled : false;
+        const toolObj = Array.isArray(this.tools) ?
+            this.tools.find(t => (t.id || t.name) === tool) :
+            this.tools[tool];
+        return toolObj ? toolObj.enabled : false;
     }
     
     /**
@@ -132,7 +235,12 @@ class ToolBar {
      * @param {boolean} enabled - Enabled state
      */
     setEnabled(tool, enabled) {
-        if (this.tools[tool]) {
+        if (Array.isArray(this.tools)) {
+            const toolObj = this.tools.find(t => (t.id || t.name) === tool);
+            if (toolObj) {
+                toolObj.enabled = enabled;
+            }
+        } else if (this.tools[tool]) {
             this.tools[tool].enabled = enabled;
         }
     }
@@ -165,6 +273,11 @@ class ToolBar {
      * @returns {Array<string>} Tool names
      */
     getAllTools() {
+        if (Array.isArray(this.tools)) {
+            // Array-based config: extract tool names/ids
+            return this.tools.map(t => t.id || t.name);
+        }
+        // Object-based config: return keys
         return Object.keys(this.tools);
     }
     
@@ -174,10 +287,12 @@ class ToolBar {
      */
     addButton(config) {
         const name = config.name;
+        const id = config.id || name;
         const group = config.group || 'custom';
         
-        this.tools[name] = {
+        const toolConfig = {
             name: config.name,
+            id: id,
             icon: config.icon || '🔧',
             tooltip: config.tooltip || config.name,
             shortcut: config.shortcut || '',
@@ -186,6 +301,15 @@ class ToolBar {
             onClick: config.onClick || null,
             highlighted: config.highlighted || false
         };
+        
+        // Handle both array and object storage
+        if (Array.isArray(this.tools)) {
+            // Array-based: push new tool
+            this.tools.push(toolConfig);
+        } else {
+            // Object-based: add as property
+            this.tools[name] = toolConfig;
+        }
         
         // Add to group
         if (!this.groups[group]) {
@@ -253,7 +377,15 @@ class ToolBar {
             // Check if click is within this button
             if (mouseX >= buttonX && mouseX <= buttonX + buttonSize &&
                 mouseY >= buttonY && mouseY <= buttonY + buttonSize) {
-                const tool = this.tools[toolName];
+                
+                // Get tool object (handle both array and object storage)
+                const tool = Array.isArray(this.tools) ?
+                    this.tools.find(t => (t.id || t.name) === toolName) :
+                    this.tools[toolName];
+                
+                if (!tool) {
+                    return null;
+                }
                 
                 // Call onClick callback if it exists (for custom buttons)
                 if (tool.onClick) {
@@ -261,8 +393,10 @@ class ToolBar {
                     return toolName;
                 }
                 
-                // Only select if tool is enabled or if it's a drawing tool
-                if (tool.enabled || tool.group === 'drawing' || tool.group === 'selection') {
+                // Only select if tool is enabled (default to enabled if not specified)
+                // OR if it's a drawing/selection tool
+                const isEnabled = tool.enabled !== false; // Default to true
+                if (isEnabled || tool.group === 'drawing' || tool.group === 'selection') {
                     this.selectTool(toolName);
                     return toolName;
                 }
@@ -319,7 +453,13 @@ class ToolBar {
         let buttonY = y + spacing;
         
         tools.forEach(toolName => {
-            const tool = this.tools[toolName];
+            // Get tool object (handle both array and object storage)
+            const tool = Array.isArray(this.tools) ?
+                this.tools.find(t => (t.id || t.name) === toolName) :
+                this.tools[toolName];
+            
+            if (!tool) return; // Skip if tool not found
+            
             const isSelected = this.selectedTool === toolName;
             const enabled = this.isEnabled(toolName);
             

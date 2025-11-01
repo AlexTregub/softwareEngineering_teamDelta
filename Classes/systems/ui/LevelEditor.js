@@ -87,10 +87,25 @@ class LevelEditor {
     // Create toolbar with tools (starts in No Tool mode)
     this.toolbar = new ToolBar([
       { name: 'paint', icon: '🖌️', tooltip: 'Paint Tool' },
-      { name: 'eraser', icon: '🧱', tooltip: 'Eraser Tool', shortcut: 'E' },
+      { 
+        name: 'eraser', 
+        id: 'eraser',
+        icon: '🧱', 
+        tooltip: 'Eraser Tool', 
+        shortcut: 'E',
+        hasModes: true,
+        modes: ['ALL', 'TERRAIN', 'ENTITY', 'EVENTS']
+      },
       { name: 'fill', icon: '🪣', tooltip: 'Fill Tool' },
       { name: 'eyedropper', icon: '💧', tooltip: 'Pick Material' },
-      { name: 'select', icon: '⬚', tooltip: 'Select Region' },
+      { 
+        name: 'select', 
+        id: 'select',
+        icon: '⬚', 
+        tooltip: 'Select Region',
+        hasModes: true,
+        modes: ['PAINT', 'ENTITY', 'EVENT']
+      },
       { name: 'entity_painter', icon: '🐜', tooltip: 'Entity Painter (Place Ants/Buildings/Resources)', shortcut: 'P' }
     ]);
     // No tool selected by default - user must explicitly choose a tool
@@ -99,6 +114,11 @@ class LevelEditor {
     this.toolbar.onToolChange = (newTool, oldTool) => {
       if (this.fileMenuBar && typeof this.fileMenuBar.updateBrushSizeVisibility === 'function') {
         this.fileMenuBar.updateBrushSizeVisibility(newTool);
+      }
+      
+      // Update tool mode toggle (show modes for tools that have them)
+      if (this.fileMenuBar && typeof this.fileMenuBar.updateToolModeToggle === 'function') {
+        this.fileMenuBar.updateToolModeToggle(newTool);
       }
     };
     

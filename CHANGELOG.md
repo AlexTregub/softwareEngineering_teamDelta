@@ -21,6 +21,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### User-Facing Changes
 
+#### Added
+- **Level Editor: Entity Selection Box Tool** (`Classes/ui/EntitySelectionTool.js`) - TDD
+  - **Feature**: Drag-select multiple entity spawn points (ants, buildings, resources)
+  - **Modes**: 3 selection modes accessible via mode toggle:
+    - `PAINT`: Default entity painting (no selection box)
+    - `ENTITY`: Select and manage entity spawn points (green/blue highlight)
+    - `EVENT`: Select and manage event triggers (yellow/orange highlight)
+  - **Usage**: Select "select" tool from toolbar, drag to create selection box, Delete key to remove
+  - **Keyboard Shortcuts**: Switch modes via toolbar mode toggles (see below)
+  - **Testing**: 45 unit tests, 16 integration tests, 1 E2E test with screenshots
+
+- **Level Editor: Entity Eraser Modes** (`Classes/ui/EntityPainter.js`) - TDD
+  - **Feature**: Selective erasure - remove only entities without affecting terrain/events
+  - **Modes**: 4 eraser modes accessible via mode toggle:
+    - `ALL`: Remove all layers (terrain + entities + events)
+    - `TERRAIN`: Remove only terrain tiles
+    - `ENTITY`: Remove only entity spawn points (preserve terrain/events)
+    - `EVENTS`: Remove only event triggers (preserve terrain/entities)
+  - **Usage**: Select "eraser" tool from toolbar, choose mode, click to erase
+  - **Benefits**: Faster level iteration (adjust entity placement without redrawing terrain)
+  - **Testing**: 27 unit tests, 16 integration tests
+
+- **Level Editor: Tool Mode Toggle UI** (`Classes/ui/ToolModeToggle.js`, `Classes/ui/FileMenuBar.js`) - TDD
+  - **Feature**: Dynamic mode selector appears in menu bar when tool with modes is selected
+  - **Design**: Radio button pattern (80px × 28px buttons, 8px spacing, one active at a time)
+  - **Behavior**: Auto-shows when selecting tool with modes (eraser, select), hides otherwise
+  - **Modes Shown**:
+    - Eraser tool: `ALL | TERRAIN | ENTITY | EVENTS`
+    - Select tool: `PAINT | ENTITY | EVENT`
+  - **Visual Feedback**: Active mode highlighted, inactive modes greyed out
+  - **Persistence**: Last-used mode remembered per tool (map-based storage)
+  - **Testing**: 28 unit tests, ToolModeToggle component fully tested
+
 #### Fixed
 - **Entity Palette Scrolling (stateVisibility Bug)** (`Classes/systems/ui/LevelEditorPanels.js`) - TDD
   - **Issue**: Entity Palette wouldn't scroll even though scrolling logic was correct
@@ -368,6 +401,75 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Developer-Facing Changes
 
 #### Added
+- **EntitySelectionTool Class** (`Classes/ui/EntitySelectionTool.js` - 216 lines) - TDD
+  - Multi-entity selection with box selection (drag-to-select)
+  - **Constructor**: `new EntitySelectionTool(placedEntities, placedEvents, mode = 'PAINT')`
+  - **Methods**:
+    - `setMode(mode)` - Switch between 'PAINT', 'ENTITY', 'EVENT' modes
+    - `getMode()` - Get current selection mode
+    - `handleMousePressed(x, y)` - Start selection box
+    - `handleMouseDragged(x, y)` - Update selection bounds, highlight entities
+    - `handleMouseReleased(x, y)` - Finalize selection
+    - `getSelectedEntities()` - Return array of selected entities
+    - `deleteSelectedEntities()` - Remove selected entities from world
+    - `clearSelection()` - Deselect all entities
+    - `render()` - Draw selection box and entity highlights
+  - **Modes**:
+    - `PAINT`: No selection (passes through to EntityPainter)
+    - `ENTITY`: Select entity spawn points (green hover, blue selected)
+    - `EVENT`: Select event triggers (yellow hover, orange selected)
+  - **Grid-Based**: Uses grid coordinates matching EntityPainter
+  - **Tests**: 45 unit tests passing
+  - **Module Export**: Node.js (`module.exports`) + Browser (`window.EntitySelectionTool`)
+
+- **ToolModeToggle Class** (`Classes/ui/ToolModeToggle.js` - 216 lines) - TDD
+  - Radio button mode selector for Level Editor tools
+  - **Constructor**: `new ToolModeToggle(x, y, modes, onModeChange)`
+  - **Methods**:
+    - `setMode(mode)` - Set active mode (throws if invalid)
+    - `getCurrentMode()` - Get current mode
+    - `handleClick(mouseX, mouseY)` - Detect button clicks, returns true if handled
+    - `hitTest(mouseX, mouseY)` - Check if point is within any button
+    - `render()` - Draw mode toggle buttons
+  - **Layout**: 80px × 28px buttons, 8px spacing, radio button pattern
+  - **Visual Feedback**: Active mode highlighted, inactive modes greyed
+  - **Callback**: Triggers `onModeChange(newMode)` when mode changes
+  - **Tests**: 28 unit tests passing
+  - **Module Export**: Node.js + Browser
+
+- **ToolBar Modes API** (`Classes/ui/ToolBar.js`) - TDD
+  - Added tool mode configuration and persistence
+  - **Tool Configuration**:
+    - `hasModes: true` - Flag indicating tool has modes
+    - `modes: []` - Array of mode names (e.g., `['ALL', 'TERRAIN', 'ENTITY', 'EVENTS']`)
+  - **New Methods**:
+    - `getToolModes(toolName)` - Get modes array for tool
+    - `setToolMode(toolName, mode)` - Set active mode for tool
+    - `getToolMode(toolName)` - Get current mode for tool
+  - **Mode Persistence**: Map-based storage (`toolLastMode`) remembers last-used mode per tool
+  - **Auto-Restore**: `selectTool()` automatically restores last mode when tool reselected
+  - **Tests**: 34 unit tests passing
+  - **Backward Compatible**: Tools without modes continue to work unchanged
+
+- **FileMenuBar Mode Toggle Integration** (`Classes/ui/FileMenuBar.js`) - TDD
+  - Dynamic mode toggle rendering when tool with modes is selected
+  - **New Property**: `toolModeToggle` - ToolModeToggle instance
+  - **New Method**: `updateToolModeToggle(currentTool)` - Create/destroy toggle based on tool
+  - **Rendering**: Mode toggle buttons appear inline after brush size module in menu bar
+  - **Click Handling**: Routes clicks to ToolModeToggle, updates toolbar mode on selection
+  - **Wiring**: Connected to `LevelEditor.toolbar.onToolChange` callback
+  - **Auto-Show/Hide**: Toggle appears only when tool with modes selected (eraser, select)
+  - **Notification**: Shows notification when mode changes (e.g., "eraser mode: ENTITY")
+
+- **EntityPainter Removal Methods** (`Classes/ui/EntityPainter.js`) - TDD
+  - Added grid-based entity removal for eraser modes
+  - **New Methods**:
+    - `removeEntityAtGridPosition(gridX, gridY)` - Remove entity at grid coordinates
+    - `getEntityAtGridPosition(gridX, gridY)` - Get entity at grid coordinates
+    - `removeEntity(entity)` - Remove entity from tracking arrays
+  - **Integration**: Works with eraser ENTITY mode for selective removal
+  - **Tests**: 27 unit tests for removal methods
+
 - **EntityPalette Class** (`Classes/ui/EntityPalette.js` - 280 lines)
   - Template management for 3 entity categories (Entities, Buildings, Resources)
   - **Constructor**: `new EntityPalette()` (initializes with 'entities' category)
