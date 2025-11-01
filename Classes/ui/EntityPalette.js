@@ -36,6 +36,10 @@ class EntityPalette {
     this.maxScrollOffset = 0;
     this.viewportHeight = 320; // 4 entries * 80px per entry
     
+    // Image cache for entity sprites
+    this._imageCache = new Map();
+    this._preloadTemplateImages();
+    
     // Create ModalDialog instance for add/rename/delete operations
     if (typeof ModalDialog !== 'undefined') {
       this._modal = new ModalDialog();
@@ -57,6 +61,9 @@ class EntityPalette {
         this._selectedTemplateId = null; // Clear selection on category change
       });
     }
+    
+    // Initialize scroll bounds after templates loaded
+    this.updateScrollBounds();
   }
   
   // TODO: Make this section load dynamicly, we want users to be able
@@ -70,6 +77,19 @@ class EntityPalette {
   _loadTemplates() {
     return {
       entities: [
+        {
+          id: 'ant_queen',
+          name: 'Queen Ant',
+          type: 'Ant',
+          job: 'Queen',
+          image: 'Images/Ants/gray_ant_queen.png',
+          properties: {
+            JobName: 'Queen',
+            faction: 'player',
+            health: 300,
+            movementSpeed: 20
+          }
+        },
         {
           id: 'ant_worker',
           name: 'Worker Ant',
@@ -85,12 +105,12 @@ class EntityPalette {
         },
         {
           id: 'ant_soldier',
-          name: 'Soldier Ant',
+          name: 'Warrior Ant',
           type: 'Ant',
-          job: 'Soldier',
-          image: 'Images/Ants/gray_ant_2.png',
+          job: 'Warrior',
+          image: 'Images/Ants/gray_ant_soldier.png',
           properties: {
-            JobName: 'Soldier',
+            JobName: 'Warrior',
             faction: 'player',
             health: 150,
             movementSpeed: 35
@@ -101,7 +121,7 @@ class EntityPalette {
           name: 'Scout Ant',
           type: 'Ant',
           job: 'Scout',
-          image: 'Images/Ants/gray_ant_3.png',
+          image: 'Images/Ants/gray_ant_scout.png',
           properties: {
             JobName: 'Scout',
             faction: 'player',
@@ -110,24 +130,11 @@ class EntityPalette {
           }
         },
         {
-          id: 'ant_queen',
-          name: 'Queen Ant',
-          type: 'Ant',
-          job: 'Queen',
-          image: 'Images/Ants/queen.png',
-          properties: {
-            JobName: 'Queen',
-            faction: 'player',
-            health: 300,
-            movementSpeed: 20
-          }
-        },
-        {
           id: 'ant_builder',
           name: 'Builder Ant',
           type: 'Ant',
           job: 'Builder',
-          image: 'Images/Ants/builder.png',
+          image: 'Images/Ants/gray_ant_builder.png',
           properties: {
             JobName: 'Builder',
             faction: 'player',
@@ -135,71 +142,81 @@ class EntityPalette {
             movementSpeed: 25
           }
         },
-        {
-          id: 'ant_gatherer',
-          name: 'Gatherer Ant',
-          type: 'Ant',
-          job: 'Gatherer',
-          image: 'Images/Ants/gray_ant_4.png',
-          properties: {
-            JobName: 'Gatherer',
-            faction: 'player',
-            health: 90,
-            movementSpeed: 32
-          }
-        },
-        {
-          id: 'ant_carrier',
-          name: 'Carrier Ant',
-          type: 'Ant',
-          job: 'Carrier',
-          image: 'Images/Ants/gray_ant_5.png',
-          properties: {
-            JobName: 'Carrier',
-            faction: 'player',
-            health: 100,
-            movementSpeed: 28
-          }
-        }
       ],
       
       buildings: [
         {
           id: 'building_hill',
-          name: 'Ant Hill',
+          name: 'Ant Hill Lvl1',
           type: 'Building',
           size: { w: 64, h: 64 },
-          image: 'Images/Buildings/Hill/hill.png',
+          image: 'Images/Buildings/Hill/Hill1.png',
           properties: {
             buildingType: 'colony',
             size: { w: 64, h: 64 },
-            capacity: 50
+            buildingLevel: 1,
+          }
+        },
+          {
+          id: 'building_hill_2',
+          name: 'Ant Hill Lvl2',
+          type: 'Building',
+          size: { w: 64, h: 64 },
+          image: 'Images/Buildings/Hill/Hill2.png',
+          properties: {
+            buildingType: 'colony',
+            size: { w: 64, h: 64 },
+            buildingLevel: 2,
           }
         },
         {
           id: 'building_hive',
-          name: 'Hive',
+          name: 'Hive Lvl1',
           type: 'Building',
           size: { w: 48, h: 48 },
-          image: 'Images/Buildings/Hive/hive.png',
+          image: 'Images/Buildings/Hive/Hive1.png',
           properties: {
-            buildingType: 'storage',
+            buildingType: 'colony',
             size: { w: 48, h: 48 },
-            capacity: 100
+            buildingLevel: 1,
+          }
+        },
+        {
+          id: 'building_hive_2',
+          name: 'Hive Lvl2',
+          type: 'Building',
+          size: { w: 48, h: 48 },
+          image: 'Images/Buildings/Hive/Hive2.png',
+          properties: {
+            buildingType: 'colony',
+            size: { w: 48, h: 48 },
+            buildingLevel: 2,
           }
         },
         {
           id: 'building_cone',
-          name: 'Cone Structure',
+          name: 'Cone Structure Lvl1',
           type: 'Building',
           size: { w: 32, h: 48 },
-          image: 'Images/Buildings/Cone/cone.png',
+          image: 'Images/Buildings/Cone/Cone1.png',
           properties: {
-            buildingType: 'defense',
+            buildingType: 'colony',
             size: { w: 32, h: 48 },
-            capacity: 10
+            buildingLevel: 1,
           }
-        }
+        },
+                {
+          id: 'building_cone_2',
+          name: 'Cone Structure Lvl2',
+          type: 'Building',
+          size: { w: 32, h: 48 },
+          image: 'Images/Buildings/Cone/Cone2.png',
+          properties: {
+            buildingType: 'colony',
+            size: { w: 32, h: 48 },
+            buildingLevel: 2,
+          }
+        },
       ],
       
       resources: [
@@ -222,7 +239,7 @@ class EntityPalette {
           type: 'Resource',
           category: 'food',
           resourceType: 'mapleLeaf',
-          image: 'Images/Resources/maple_leaf.png',
+          image: 'Images/Resources/mapleLeaf.png',
           properties: {
             canBePickedUp: true,
             weight: 0.4,
@@ -230,12 +247,25 @@ class EntityPalette {
           }
         },
         {
-          id: 'resource_stick',
-          name: 'Stick',
+          id: 'resource_stick_1',
+          name: 'Stick 1',
           type: 'Resource',
           category: 'materials',
           resourceType: 'stick',
-          image: 'Images/Resources/stick.png',
+          image: 'Images/Resources/twig_1.png',
+          properties: {
+            canBePickedUp: true,
+            weight: 0.6,
+            nutritionValue: 0
+          }
+        },
+         {
+          id: 'resource_stick_2',
+          name: 'Stick 2',
+          type: 'Resource',
+          category: 'materials',
+          resourceType: 'stick',
+          image: 'Images/Resources/twig_2.png',
           properties: {
             canBePickedUp: true,
             weight: 0.6,
@@ -259,6 +289,45 @@ class EntityPalette {
       
       custom: this._loadCustomEntities()
     };
+  }
+  
+  /**
+   * Preload all template images into cache
+   * @private
+   */
+  _preloadTemplateImages() {
+    if (typeof loadImage === 'undefined') return;
+    
+    // Collect all unique image paths from all categories
+    const imagePaths = new Set();
+    
+    ['entities', 'buildings', 'resources'].forEach(category => {
+      if (this._templates[category]) {
+        this._templates[category].forEach(template => {
+          if (template.image) {
+            imagePaths.add(template.image);
+          }
+        });
+      }
+    });
+    
+    // Load all images asynchronously
+    imagePaths.forEach(path => {
+      try {
+        const img = loadImage(path, 
+          () => {
+            // Success callback
+            this._imageCache.set(path, img);
+          },
+          () => {
+            // Error callback - use placeholder
+            console.warn(`Failed to load entity image: ${path}`);
+          }
+        );
+      } catch (error) {
+        console.warn(`Error preloading entity image ${path}:`, error);
+      }
+    });
   }
   
   /**
@@ -649,6 +718,24 @@ class EntityPalette {
   }
   
   /**
+   * Find a template by ID across all categories
+   * @param {string} templateId - Template ID to find
+   * @returns {Object|null} Template object or null if not found
+   * @private
+   */
+  _findTemplateById(templateId) {
+    // Search all categories
+    for (const category in this._templates) {
+      const templates = this._templates[category];
+      if (Array.isArray(templates)) {
+        const found = templates.find(t => t.id === templateId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  
+  /**
    * Select a template by ID
    * @param {string} templateId - Template ID to select
    * @returns {boolean} True if selection successful, false otherwise
@@ -730,6 +817,23 @@ class EntityPalette {
    * @param {number} width - Available width
    * @returns {Object} Size object with width and height
    */
+  /**
+   * Get the FULL content height (uncapped) for scroll calculations
+   * @returns {number} Full content height in pixels
+   */
+  getFullContentHeight() {
+    const templates = this.getCurrentTemplates();
+    const itemHeight = 80; // 64px sprite + 16px padding
+    const padding = 8;
+    const listHeight = templates.length * (itemHeight + padding);
+    
+    const radioButtonsHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    const searchBoxHeight = this.currentCategory === 'custom' ? 30 + padding : 0;
+    const addButtonHeight = this.currentCategory === 'custom' ? 50 : 0;
+    
+    return radioButtonsHeight + searchBoxHeight + listHeight + addButtonHeight + 16;
+  }
+  
   getContentSize(width = 200) {
     // Calculate dynamic height based on template count and LIST layout
     const templates = this.getCurrentTemplates();
@@ -740,11 +844,19 @@ class EntityPalette {
     const radioButtonsHeight = this.categoryButtons ? this.categoryButtons.height : 30;
     const searchBoxHeight = this.currentCategory === 'custom' ? 30 + padding : 0;
     const addButtonHeight = this.currentCategory === 'custom' ? 50 : 0;
-    const totalHeight = radioButtonsHeight + searchBoxHeight + listHeight + addButtonHeight + 16;
+    
+    // SCROLLING FIX: Cap height at viewport + fixed elements to enable scrolling
+    // Full content height (for internal calculations)
+    const fullContentHeight = radioButtonsHeight + searchBoxHeight + listHeight + addButtonHeight + 16;
+    
+    // Panel height: viewport + category buttons + padding (limited to enable scrolling)
+    // This prevents panel from auto-sizing to show all content
+    const maxPanelHeight = this.viewportHeight + radioButtonsHeight + searchBoxHeight + addButtonHeight + 30;
+    const cappedHeight = Math.min(fullContentHeight, maxPanelHeight);
     
     return {
       width: width,
-      height: totalHeight
+      height: cappedHeight
     };
   }
   
@@ -753,11 +865,12 @@ class EntityPalette {
    * Called when content changes (category switch, add/remove entities, search)
    */
   updateScrollBounds() {
-    const contentSize = this.getContentSize(220); // Use standard width
-    const totalContentHeight = contentSize.height;
+    // CRITICAL: Use FULL uncapped content height for scroll calculations
+    // Not the capped height from getContentSize()
+    const fullContentHeight = this.getFullContentHeight();
     
-    // Calculate max scroll: max(0, totalHeight - viewportHeight)
-    this.maxScrollOffset = Math.max(0, totalContentHeight - this.viewportHeight);
+    // Calculate max scroll: max(0, fullHeight - viewportHeight)
+    this.maxScrollOffset = Math.max(0, fullContentHeight - this.viewportHeight);
     
     // Clamp current scroll to new bounds
     this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.maxScrollOffset));
@@ -869,11 +982,8 @@ class EntityPalette {
           // Group: Render 2x2 mini sprite grid (first 4 entities)
           this._renderGroupSprites(x + padding + 8, listY + 8, template.entities);
         } else {
-          // Single entity: 64x64 sprite placeholder
-          fill(100);
-          noStroke();
-          rect(x + padding + 8, listY + 8, 64, 64);
-          // TODO: Render actual sprite image when available
+          // Single entity: 64x64 sprite with image
+          this._renderEntitySprite(x + padding + 8, listY + 8, 64, 64, template);
         }
         
         // Text info
@@ -884,8 +994,9 @@ class EntityPalette {
         fill('#ffd700');
         textSize(16);
         if (typeof textAlign === 'function') {
-          textAlign(LEFT, LEFT);
+          textAlign(LEFT, TOP);
         }
+        noStroke();
         text(template.name || template.customName, textX, textY);
         textY += 20;
         
@@ -921,10 +1032,17 @@ class EntityPalette {
       });
     }
     
-    // Custom category: Render "Add New / Store Selected" button at bottom
+    // Restore canvas state (removes clipping)
+    if (typeof drawingContext !== 'undefined' && drawingContext) {
+      drawingContext.restore();
+    }
+    
+    // CRITICAL: Render Add button AFTER clipping is removed
+    // This ensures it's always visible at the bottom, not clipped off
     if (this.currentCategory === 'custom') {
       const addButtonHeight = 40;
-      const addButtonY = listY + 8;
+      // Position button at bottom of panel (fixed position, inside panel bounds)
+      const addButtonY = y + height - addButtonHeight - padding;
       const buttonText = this.getAddButtonText();
       
       // Button background (green for "Add New", blue for "Store Selected")
@@ -940,11 +1058,6 @@ class EntityPalette {
         textAlign(CENTER, CENTER);
       }
       text(buttonText, x + width / 2, addButtonY + addButtonHeight / 2);
-    }
-    
-    // Restore canvas state (removes clipping)
-    if (typeof drawingContext !== 'undefined' && drawingContext) {
-      drawingContext.restore();
     }
     
     pop(); // End main render
@@ -971,6 +1084,45 @@ class EntityPalette {
   }
   
   /**
+   * Render a single entity sprite with image or placeholder
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   * @param {number} width - Sprite width
+   * @param {number} height - Sprite height
+   * @param {Object} template - Entity template with image path
+   * @private
+   */
+  _renderEntitySprite(x, y, width, height, template) {
+    push();
+    
+    // Try to get cached image
+    const img = template.image ? this._imageCache.get(template.image) : null;
+    
+    if (img && img.width > 0) {
+      // Render the actual sprite image
+      noSmooth();
+      imageMode(CORNER);
+      image(img, x, y, width, height);
+    } else {
+      // Fallback: Gray placeholder with entity initial
+      fill(100);
+      noStroke();
+      rect(x, y, width, height, 4);
+      
+      // Show first letter of entity name as placeholder
+      fill(200);
+      textSize(32);
+      if (typeof textAlign === 'function') {
+        textAlign(CENTER, CENTER);
+      }
+      const initial = template.name ? template.name.charAt(0).toUpperCase() : '?';
+      text(initial, x + width / 2, y + height / 2);
+    }
+    
+    pop();
+  }
+  
+  /**
    * Render 2x2 mini sprite grid for entity groups
    * @param {number} x - X position
    * @param {number} y - Y position
@@ -991,13 +1143,21 @@ class EntityPalette {
       const spriteX = x + col * (miniSize + gap);
       const spriteY = y + row * (miniSize + gap);
       
-      // Mini sprite placeholder (different shades for different entities)
-      const shade = 80 + (i * 30);
-      fill(shade);
-      noStroke();
-      rect(spriteX, spriteY, miniSize, miniSize, 2);
+      // Find the base template to get image path
+      const baseTemplate = this._findTemplateById(entity.baseTemplateId);
+      const img = baseTemplate && baseTemplate.image ? this._imageCache.get(baseTemplate.image) : null;
       
-      // TODO: Render actual mini sprite based on entity.baseTemplateId
+      if (img && img.width > 0) {
+        // Render actual mini sprite
+        imageMode(CORNER);
+        image(img, spriteX, spriteY, miniSize, miniSize);
+      } else {
+        // Fallback: placeholder (different shades for different entities)
+        const shade = 80 + (i * 30);
+        fill(shade);
+        noStroke();
+        rect(spriteX, spriteY, miniSize, miniSize, 2);
+      }
     }
     
     // If more than 4 entities, show "+N" indicator
@@ -1037,13 +1197,23 @@ class EntityPalette {
     const relX = clickX - panelX;
     const relY = clickY - panelY;
     
+    console.log('[EntityPalette.handleClick] Click:', { clickX, clickY, panelX, panelY, relX, relY });
+    
     // Check CategoryRadioButtons first (top 30px - smaller buttons)
     const buttonHeight = this.categoryButtons ? this.categoryButtons.height : 30;
+    console.log('[EntityPalette.handleClick] Category button check:', { relY, buttonHeight, inButtonArea: relY < buttonHeight });
+    
     if (relY < buttonHeight && this.categoryButtons) {
       // CategoryRadioButtons.handleClick expects (mouseX, mouseY, x, y, width)
       // We have relative coords, so x=0, y=0 for the button area
+      console.log('[EntityPalette.handleClick] Calling categoryButtons.handleClick with:', { relX, relY, panelWidth });
       const categoryClicked = this.categoryButtons.handleClick(relX, relY, 0, 0, panelWidth);
+      console.log('[EntityPalette.handleClick] categoryClicked result:', categoryClicked);
+      
       if (categoryClicked) {
+        // CRITICAL FIX: Actually change the category!
+        console.log('[EntityPalette.handleClick] Calling setCategory with:', categoryClicked.id);
+        this.setCategory(categoryClicked.id);
         return { type: 'category', category: categoryClicked.id };
       }
     }
@@ -1111,8 +1281,20 @@ class EntityPalette {
             }
           }
           
-          // Click is in body area - select template
+          // Click is in body area - select template AND attach to cursor
           this._selectedTemplateId = template.id;
+          
+          // CURSOR ATTACHMENT: Wire up to LevelEditor
+          if (typeof window !== 'undefined' && window.levelEditor) {
+            if (template.isGroup && template.entities) {
+              // Attach entity group to cursor
+              window.levelEditor.attachToMouseGroup(template.entities);
+            } else {
+              // Attach single entity to cursor
+              window.levelEditor.attachToMouseSingle(template.id, template.properties);
+            }
+          }
+          
           return { type: 'template', template: template };
         }
         

@@ -39,6 +39,12 @@ class LevelEditor {
     
     // Camera for level editor
     this.editorCamera = null;
+    
+    // Cursor attachment for entity placement (sprites follow mouse)
+    this._cursorAttachment = null;
+    
+    // Entity spawn data storage (for JSON export)
+    this._entitySpawnData = [];
   }
   
   /**
@@ -277,6 +283,201 @@ class LevelEditor {
     this.levelEditorPanels.hide();
   }
   
+  // ========================================
+  // Cursor Attachment System (Entity Placement)
+  // ========================================
+  
+  /**
+   * Attach a single entity template to the cursor
+   * @param {string} templateId - Entity template ID
+   * @param {Object} properties - Entity properties
+   */
+  attachToMouseSingle(templateId, properties) {
+    this._cursorAttachment = {
+      type: 'single',
+      templateId: templateId,
+      properties: properties || {},
+      active: true
+    };
+  }
+  
+  /**
+   * Attach an entity group to the cursor
+   * @param {Array} entities - Array of entity objects with baseTemplateId, position, properties
+   */
+  attachToMouseGroup(entities) {
+    this._cursorAttachment = {
+      type: 'group',
+      entities: entities || [],
+      active: true
+    };
+  }
+  
+  /**
+   * Get current cursor attachment
+   * @returns {Object|null} Attachment object or null
+   */
+  getCursorAttachment() {
+    return this._cursorAttachment;
+  }
+  
+  /**
+   * Clear cursor attachment (cancel placement)
+   */
+  clearCursorAttachment() {
+    this._cursorAttachment = null;
+  }
+  
+  /**
+   * Handle grid click for entity placement
+   * @param {number} gridX - Grid X coordinate
+   * @param {number} gridY - Grid Y coordinate
+   * @param {boolean} shiftPressed - Whether shift key is pressed
+   * @returns {boolean} True if click was handled, false otherwise
+   */
+  handleGridClick(gridX, gridY, shiftPressed = false) {
+    if (!this._cursorAttachment || !this._cursorAttachment.active) {
+      return false;
+    }
+    
+    if (this._cursorAttachment.type === 'group') {
+      this._placeGroup(gridX, gridY, this._cursorAttachment.entities);
+    } else {
+      this._placeSingleEntity(gridX, gridY, this._cursorAttachment.templateId, this._cursorAttachment.properties);
+    }
+    
+    // Only clear attachment if shift is NOT pressed (allows multiple placements)
+    if (!shiftPressed) {
+      this.clearCursorAttachment();
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Place a single entity on the grid
+   * @param {number} gridX - Grid X coordinate
+   * @param {number} gridY - Grid Y coordinate
+   * @param {string} templateId - Entity template ID
+   * @param {Object} properties - Entity properties
+   * @private
+   */
+  _placeSingleEntity(gridX, gridY, templateId, properties) {
+    // Get template to merge properties
+    const template = this.entityPalette?._findTemplateById(templateId);
+    if (!template) {
+      console.warn(`[LevelEditor] Template not found: ${templateId}`);
+      return;
+    }
+    
+    // Create spawn entry with merged properties
+    const spawnEntry = {
+      id: `entity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      templateId: templateId,
+      gridX: gridX,
+      gridY: gridY,
+      properties: { ...(template.properties || {}), ...(properties || {}) }
+    };
+    
+    this._entitySpawnData.push(spawnEntry);
+    console.log(`✅ [LevelEditor] Stored spawn data for ${templateId} at grid (${gridX}, ${gridY})`, spawnEntry);
+  }
+  
+  /**
+   * Place an entity group on the grid
+   * @param {number} gridX - Grid X coordinate (anchor point)
+   * @param {number} gridY - Grid Y coordinate (anchor point)
+   * @param {Array} entities - Array of entity objects with offsets
+   * @private
+   */
+  _placeGroup(gridX, gridY, entities) {
+    // TODO: Actual group placement logic
+    console.log(`Placing entity group at (${gridX}, ${gridY}) with ${entities.length} entities`);
+    
+    // Place each entity with offset from anchor point
+    entities.forEach(entityData => {
+      const finalX = gridX + (entityData.position ? entityData.position.x : 0);
+      const finalY = gridY + (entityData.position ? entityData.position.y : 0);
+      this._placeSingleEntity(finalX, finalY, entityData.baseTemplateId, entityData.properties);
+    });
+  }
+  
+  /**
+   * Render cursor attachment (sprites following mouse)
+   * Called during Level Editor render loop
+   */
+  renderCursorAttachment() {
+    if (!this._cursorAttachment || !this._cursorAttachment.active) {
+      return;
+    }
+    
+    // Get mouse position in grid coordinates
+    const TILE_SIZE = typeof window !== 'undefined' && window.TILE_SIZE ? window.TILE_SIZE : 32;
+    const mouseGridX = Math.floor((typeof mouseX !== 'undefined' ? mouseX : 0) / TILE_SIZE);
+    const mouseGridY = Math.floor((typeof mouseY !== 'undefined' ? mouseY : 0) / TILE_SIZE);
+    
+    if (typeof push === 'undefined') return;
+    
+    push();
+    
+    // Render with transparency to show it's a preview
+    if (typeof tint !== 'undefined') {
+      tint(255, 255, 255, 180); // 70% opacity
+    }
+    
+    if (this._cursorAttachment.type === 'group') {
+      // Render group with offsets
+      this._cursorAttachment.entities.forEach(entityData => {
+        const drawX = (mouseGridX + (entityData.position ? entityData.position.x : 0)) * TILE_SIZE;
+        const drawY = (mouseGridY + (entityData.position ? entityData.position.y : 0)) * TILE_SIZE;
+        this._renderEntitySprite(entityData.baseTemplateId, drawX, drawY);
+      });
+    } else {
+      // Render single entity
+      const drawX = mouseGridX * TILE_SIZE;
+      const drawY = mouseGridY * TILE_SIZE;
+      this._renderEntitySprite(this._cursorAttachment.templateId, drawX, drawY);
+    }
+    
+    pop();
+  }
+  
+  /**
+   * Render an entity sprite at the given position
+   * @param {string} templateId - Entity template ID
+   * @param {number} x - World X coordinate
+   * @param {number} y - World Y coordinate
+   * @private
+   */
+  _renderEntitySprite(templateId, x, y) {
+    // Get template from EntityPalette
+    const template = this.entityPalette ? this.entityPalette._findTemplateById(templateId) : null;
+    
+    if (!template) {
+      // Fallback: render placeholder rect
+      if (typeof fill !== 'undefined') {
+        fill(100, 100, 255, 180);
+        rect(x, y, 32, 32);
+      }
+      return;
+    }
+    
+    // Try to get cached image
+    const img = template.image && this.entityPalette ? this.entityPalette._imageCache.get(template.image) : null;
+    
+    if (img && img.width > 0 && typeof image !== 'undefined') {
+      // Render sprite image
+      imageMode(typeof CORNER !== 'undefined' ? CORNER : 'CORNER');
+      image(img, x, y, 32, 32);
+    } else {
+      // Fallback: render placeholder rect
+      if (typeof fill !== 'undefined') {
+        fill(100, 100, 255, 180);
+        rect(x, y, 32, 32);
+      }
+    }
+  }
+  
   /**
    * Setup shortcut context for ShortcutManager
    * @private
@@ -432,6 +633,13 @@ class LevelEditor {
       }
     }
     
+    // Check Entity Palette delegation (EntityPalette scrolling)
+    if (this.levelEditorPanels && this.levelEditorPanels.handleMouseWheel) {
+      const delta = event.deltaY || event.delta || 0;
+      const handled = this.levelEditorPanels.handleMouseWheel(delta, mouseX, mouseY);
+      if (handled) return true; // Panel consumed the event
+    }
+    
     // Check materials panel delegation (MaterialPalette scrolling)
     if (this.levelEditorPanels && this.levelEditorPanels.panels && this.levelEditorPanels.panels.materials) {
       const materialsPanel = this.levelEditorPanels.panels.materials;
@@ -468,7 +676,11 @@ class LevelEditor {
    * Handle mouse clicks in the editor
    */
   handleClick(mouseX, mouseY) {
-    if (!this.active) return;
+    console.log('[LevelEditor.handleClick] Called with:', { mouseX, mouseY, active: this.active });
+    if (!this.active) {
+      console.log('[LevelEditor.handleClick] Not active, returning');
+      return;
+    }
     
     // PRIORITY 1: Check if dialogs are open and block ALL terrain interaction
     if (this.saveDialog && this.saveDialog.isVisible()) {
@@ -526,8 +738,11 @@ class LevelEditor {
     }
     
     // PRIORITY 4: Let draggable panels handle content clicks (buttons, swatches, etc.)
+    console.log('[LevelEditor.handleClick] Checking levelEditorPanels...', { hasPanels: !!this.levelEditorPanels });
     if (this.levelEditorPanels) {
+      console.log('[LevelEditor.handleClick] Calling levelEditorPanels.handleClick...');
       const handled = this.levelEditorPanels.handleClick(mouseX, mouseY);
+      console.log('[LevelEditor.handleClick] Panel handled:', handled);
       if (handled) {
         return; // Panel content consumed the click - STOP processing
       }
@@ -538,6 +753,25 @@ class LevelEditor {
       const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
       if (panelConsumed) {
         return; // Panel consumed the click - don't paint terrain
+      }
+    }
+    
+    // PRIORITY 6: Check if cursor attachment is active (entity placement mode)
+    if (this._cursorAttachment && this._cursorAttachment.active) {
+      // Convert screen coordinates to world coordinates
+      const worldCoords = this.convertScreenToWorld(mouseX, mouseY);
+      const tileSize = this.terrain.tileSize || TILE_SIZE || 32;
+      const gridX = Math.floor(worldCoords.worldX / tileSize);
+      const gridY = Math.floor(worldCoords.worldY / tileSize);
+      
+      // Check if shift is pressed (keyIsDown is a p5.js function)
+      const shiftPressed = typeof keyIsDown !== 'undefined' && keyIsDown(SHIFT);
+      
+      // Handle entity placement
+      const placed = this.handleGridClick(gridX, gridY, shiftPressed);
+      if (placed) {
+        console.log(`✅ [ENTITY] Placed entity at grid (${gridX}, ${gridY}), shift=${shiftPressed}`);
+        return; // Entity placement handled, don't process terrain tools
       }
     }
     
@@ -1251,6 +1485,9 @@ class LevelEditor {
       pop();
     }
     
+    // Render entity spawn points (visual feedback for entity placement)
+    this.renderEntitySpawnPoints();
+    
     // Render hover preview (tiles that will be affected) - MUST be inside camera transform
     this.renderHoverPreview();
     
@@ -1292,6 +1529,9 @@ class LevelEditor {
     if (this.eventEditor && this.eventEditor.renderPlacementCursor && typeof this.eventEditor.renderPlacementCursor === 'function') {
       this.eventEditor.renderPlacementCursor();
     }
+    
+    // CURSOR ATTACHMENT: Render entity sprites following cursor
+    this.renderCursorAttachment();
     
     // Render back button
     //this.renderBackButton();
@@ -1550,15 +1790,32 @@ class LevelEditor {
   }
   
   /**
+   * Build complete export data (terrain + entities)
+   * @returns {Object} Complete level data for export
+   * @private
+   */
+  _getExportData() {
+    // Start with terrain data (or empty object if no terrain)
+    const terrainData = this.terrain ? this.terrain.exportToJSON() : {};
+    
+    // Create a new object to avoid modifying original terrain data
+    const data = { ...terrainData };
+    
+    // Add entity spawn data (always include, even if empty)
+    data.entities = this._entitySpawnData || [];
+    
+    return data;
+  }
+  
+  /**
    * Perform the actual export/download
    * @private
    */
   _performExport() {
     if (!this.terrain) return;
     
-    // Use SparseTerrain's native export (sparse format - only painted tiles)
-    // This avoids exporting empty tiles as default material
-    const data = this.terrain.exportToJSON();
+    // Get complete export data (terrain + entities)
+    const data = this._getExportData();
     
     // Append .json extension for download
     const downloadFilename = `${this.currentFilename}.json`;
@@ -1574,19 +1831,13 @@ class LevelEditor {
   save() {
     if (!this.terrain) return;
     
-    // Use SparseTerrain's native export (sparse format - only painted tiles)
-    const terrainData = this.terrain.exportToJSON();
-    
-    // Add entity data to level JSON
-    if (this.entityPainter) {
-      const entityData = this.entityPainter.exportToJSON();
-      terrainData.entities = entityData.entities || [];
-    }
+    // Get complete export data (terrain + entities)
+    const levelData = this._getExportData();
     
     // Check if using native dialogs
     if (this.saveDialog.useNativeDialogs) {
       // Use native browser save dialog
-      this.saveDialog.saveWithNativeDialog(terrainData, 'my_level.json');
+      this.saveDialog.saveWithNativeDialog(levelData, 'my_level.json');
       this.notifications.show('Level downloaded!', 'success');
     } else {
       // Use custom dialog UI
@@ -1596,7 +1847,7 @@ class LevelEditor {
       
       // For now, save to localStorage
       const storage = new LocalStorageManager('level_');
-      const saved = storage.save('current', data);
+      const saved = storage.save('current', levelData);
       
       if (saved) {
         this.notifications.show('Level saved successfully!', 'success');
@@ -1824,6 +2075,106 @@ class LevelEditor {
    */
   isActive() {
     return this.active;
+  }
+  
+  /**
+   * Get all entity spawn data
+   * @returns {Array} Array of spawn data entries
+   */
+  getEntitySpawnData() {
+    return this._entitySpawnData;
+  }
+  
+  /**
+   * Clear all entity spawn data
+   */
+  clearEntitySpawnData() {
+    this._entitySpawnData = [];
+  }
+  
+  /**
+   * Remove entity spawn data by ID
+   * @param {string} id - Entity spawn data ID to remove
+   */
+  removeEntitySpawnData(id) {
+    const index = this._entitySpawnData.findIndex(e => e.id === id);
+    if (index !== -1) {
+      this._entitySpawnData.splice(index, 1);
+    }
+  }
+  
+  /**
+   * Render entity spawn points (visual feedback)
+   * Shows semi-transparent sprites at spawn locations
+   */
+  renderEntitySpawnPoints() {
+    if (!this.active) return;
+    if (!this._entitySpawnData || this._entitySpawnData.length === 0) return;
+    
+    const TILE_SIZE = this.terrain?.tileSize || (typeof window !== 'undefined' && window.TILE_SIZE) || 32;
+    
+    if (typeof push === 'undefined') return;
+    
+    push();
+    
+    // Apply transparency for spawn point preview
+    if (typeof tint !== 'undefined') {
+      tint(255, 255, 255, 150); // 60% opacity
+    }
+    
+    // Render each spawn point
+    this._entitySpawnData.forEach(spawnData => {
+      const worldX = spawnData.gridX * TILE_SIZE;
+      const worldY = spawnData.gridY * TILE_SIZE;
+      
+      // Get template to render sprite
+      const template = this.entityPalette?._findTemplateById(spawnData.templateId);
+      
+      if (template && template.image && this.entityPalette) {
+        // Try to get cached image
+        const img = this.entityPalette._imageCache?.get(template.image);
+        
+        if (img && img.width > 0 && typeof image !== 'undefined') {
+          // Render sprite image
+          if (typeof imageMode !== 'undefined') {
+            imageMode(typeof CORNER !== 'undefined' ? CORNER : 'CORNER');
+          }
+          noSmooth();
+          image(img, worldX, worldY, TILE_SIZE, TILE_SIZE);
+        } else {
+          // Fallback: render placeholder rect
+          this._renderSpawnPointFallback(worldX, worldY, TILE_SIZE);
+        }
+      } else {
+        // Fallback: render placeholder rect
+        this._renderSpawnPointFallback(worldX, worldY, TILE_SIZE);
+      }
+    });
+    
+    if (typeof noTint !== 'undefined') {
+      noTint();
+    }
+    
+    pop();
+  }
+  
+  /**
+   * Render fallback placeholder for spawn point
+   * @param {number} x - World X coordinate
+   * @param {number} y - World Y coordinate
+   * @param {number} size - Tile size
+   * @private
+   */
+  _renderSpawnPointFallback(x, y, size) {
+    if (typeof fill !== 'undefined') {
+      fill(100, 200, 255, 150); // Light blue semi-transparent
+    }
+    if (typeof noStroke !== 'undefined') {
+      noStroke();
+    }
+    if (typeof rect !== 'undefined') {
+      rect(x, y, size, size);
+    }
   }
 }
 

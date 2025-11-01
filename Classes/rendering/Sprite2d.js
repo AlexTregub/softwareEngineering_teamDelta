@@ -1,8 +1,6 @@
 /**
  * @fileoverview Sprite2D - 2D sprite rendering with position, size, and rotation
  * @module Sprite2D
- * @see {@link docs/api/Sprite2D.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Sprite rendering reference
  */
 
 /**
@@ -57,6 +55,7 @@ class Sprite2D {
     }
     
     push();
+    noSmooth();
     // Use CENTER mode for proper flipping/rotation around sprite center
     imageMode(CENTER);
     // Translate to center of sprite (screenX/Y is top-left, add half size for center)

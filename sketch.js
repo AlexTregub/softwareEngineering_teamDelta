@@ -901,6 +901,13 @@ function keyPressed() {
   // Level Editor keyboard shortcuts (if active)
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
+      // Escape key: Clear cursor attachment (entity placement mode)
+      if (keyCode === ESCAPE && levelEditor.getCursorAttachment && levelEditor.getCursorAttachment()) {
+        levelEditor.clearCursorAttachment();
+        console.log('✅ [ENTITY] Cursor attachment cleared (Escape pressed)');
+        return; // Handled, don't propagate
+      }
+      
       levelEditor.handleKeyPress(key);
     }
   }

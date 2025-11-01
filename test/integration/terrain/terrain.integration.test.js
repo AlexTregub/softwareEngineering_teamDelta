@@ -1004,10 +1004,10 @@ let toolBarCode = fs.readFileSync(
 //   path.join(__dirname, '../../../Classes/ui/SaveDialog.js'),
 //   'utf8'
 // );
-let loadDialogCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/LoadDialog.js'),
-  'utf8'
-);
+// DUPLICATE REQUIRE REMOVED: let loadDialogCode = fs.readFileSync(
+//   path.join(__dirname, '../../../Classes/ui/LoadDialog.js'),
+//   'utf8'
+// );
 let localStorageManagerCode = fs.readFileSync(
   path.join(__dirname, '../../../Classes/ui/LocalStorageManager.js'),
   'utf8'
@@ -1081,8 +1081,8 @@ global.MOSS_IMAGE = {};
 // Execute in global context (order matters - dependencies first)
 vm.runInThisContext(materialPaletteCode);
 vm.runInThisContext(toolBarCode);
-vm.runInThisContext(saveDialogCode);
-vm.runInThisContext(loadDialogCode);
+// DUPLICATE REMOVED: vm.runInThisContext(saveDialogCode);
+// DUPLICATE REMOVED: vm.runInThisContext(loadDialogCode);
 vm.runInThisContext(localStorageManagerCode);
 vm.runInThisContext(formatConverterCode);
 

@@ -283,12 +283,12 @@ class LevelEditorPanels {
     }
     manager.stateVisibility.LEVEL_EDITOR.push(
       'level-editor-materials',
-      'level-editor-tools'
+      'level-editor-tools',
+      'level-editor-entity-palette' // FIXED: Must be visible for scrolling to work
       // 'level-editor-brush' - Hidden by default, menu bar controls used instead (Enhancement 9)
       // 'level-editor-events' - Hidden by default (Feature 8)
       // 'level-editor-properties' - Hidden by default (Feature 7)
       // 'level-editor-sidebar' - Hidden by default (Phase 4)
-      // 'level-editor-entity-palette' - Hidden by default (Entity Painter feature)
     );
 
     logNormal('✅ Level Editor panels initialized and added to DraggablePanelManager');
@@ -319,6 +319,8 @@ class LevelEditorPanels {
    * Delegates to the appropriate component (MaterialPalette, ToolBar, BrushSizeControl)
    */
   handleClick(mouseX, mouseY) {
+    console.log('[LevelEditorPanels.handleClick] Called with:', { mouseX, mouseY });
+    
     // Materials Panel
     if (this.panels.materials && this.panels.materials.state.visible) {
       const matPanel = this.panels.materials;
@@ -410,19 +412,36 @@ class LevelEditorPanels {
 
     // Entity Palette Panel
     if (this.panels.entityPalette && this.panels.entityPalette.state.visible) {
+      console.log('[LevelEditorPanels.handleClick] Checking Entity Palette panel');
       const palettePanel = this.panels.entityPalette;
       const palettePos = palettePanel.getPosition();
       const titleBarHeight = palettePanel.calculateTitleBarHeight();
       const contentX = palettePos.x + palettePanel.config.style.padding;
       const contentY = palettePos.y + titleBarHeight + palettePanel.config.style.padding;
       
+      console.log('[LevelEditorPanels.handleClick] Entity Palette bounds:', { mouseX, mouseY, contentX, contentY });
+      
       // Check if click is in the content area of entity palette panel
       if (this.levelEditor.entityPalette && this.levelEditor.entityPalette.containsPoint) {
         // EntityPalette needs panel width for proper bounds checking
-        const panelWidth = palettePanel.state.width - (palettePanel.config.style.padding * 2);
+        console.log('[LevelEditorPanels.handleClick] Panel dimensions:', {
+          stateWidth: palettePanel.state.width,
+          panelWidth: palettePanel.width,
+          padding: palettePanel.config.style.padding
+        });
         
-        if (this.levelEditor.entityPalette.containsPoint(mouseX, mouseY, contentX, contentY)) {
+        // CRITICAL FIX: Use panel.width instead of panel.state.width (state.width may not exist)
+        const panelWidth = (palettePanel.width || palettePanel.state.width || 220) - (palettePanel.config.style.padding * 2);
+        console.log('[LevelEditorPanels.handleClick] Calculated panelWidth:', panelWidth);
+        
+        const contains = this.levelEditor.entityPalette.containsPoint(mouseX, mouseY, contentX, contentY);
+        console.log('[LevelEditorPanels.handleClick] containsPoint result:', contains);
+        
+        if (contains) {
+          console.log('[LevelEditorPanels.handleClick] Calling entityPalette.handleClick...');
           const action = this.levelEditor.entityPalette.handleClick(mouseX, mouseY, contentX, contentY, panelWidth);
+          console.log('[LevelEditorPanels.handleClick] Action result:', action);
+          
           if (action) {
             // Handle different palette actions
             if (action.type === 'category') {

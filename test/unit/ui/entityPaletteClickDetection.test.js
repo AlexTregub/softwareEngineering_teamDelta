@@ -151,6 +151,30 @@ describe('EntityPalette Click Detection', function() {
       expect(result.type).to.equal('category');
       expect(result.category).to.equal('buildings');
     });
+    
+    it('should call setCategory when category button is clicked', function() {
+      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const palette = new EntityPalette();
+      
+      // Spy on setCategory method
+      const setCategorySpy = sandbox.spy(palette, 'setCategory');
+      
+      // Mock CategoryRadioButtons to return a click result
+      palette.categoryButtons.handleClick = sandbox.stub().returns({ id: 'buildings' });
+      
+      // Initial category should be 'entities'
+      expect(palette.currentCategory).to.equal('entities');
+      
+      // Click in category button area
+      palette.handleClick(50, 15, 0, 0, 220);
+      
+      // setCategory should have been called with 'buildings'
+      expect(setCategorySpy.calledOnce).to.be.true;
+      expect(setCategorySpy.calledWith('buildings')).to.be.true;
+      
+      // Category should have changed
+      expect(palette.currentCategory).to.equal('buildings');
+    });
 
     it('should return null when category buttons return null', function() {
       const EntityPalette = require('../../../Classes/ui/EntityPalette');

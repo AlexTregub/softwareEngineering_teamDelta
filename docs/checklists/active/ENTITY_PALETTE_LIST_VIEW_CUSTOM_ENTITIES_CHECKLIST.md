@@ -52,6 +52,39 @@
 - [x] Updated Key Design Decisions → Cursor Following System section
 - [x] Updated Implementation Pattern code with `shiftPressed` parameter
 
+### ✅ Completed (Phase 1.2B - Cursor Following Implementation - PARTIAL)
+- [x] **Wire EntityPalette → LevelEditor cursor attachment** (Classes/ui/EntityPalette.js)
+  - Modified `handleClick()` method (lines ~1283-1296)
+  - Added calls to `levelEditor.attachToMouseSingle()` and `attachToMouseGroup()`
+  - Detects group vs single entity and calls appropriate method
+- [x] **Wire LevelEditor render loop → cursor attachment rendering** (Classes/systems/ui/LevelEditor.js)
+  - Modified `render()` method (line ~1498)
+  - Added `this.renderCursorAttachment()` call after event cursor, before back button
+- [x] **Wire canvas click → entity placement** (Classes/systems/ui/LevelEditor.js)
+  - Modified `handleClick()` method (lines ~748-762)
+  - Added cursor attachment check before terrain tools (PRIORITY 6)
+  - Calls `handleGridClick()` with shift detection using `keyIsDown(SHIFT)`
+  - Returns early if entity placement handled (doesn't process terrain tools)
+- [x] **Wire Escape key → clear cursor attachment** (sketch.js)
+  - Modified `keyPressed()` function (lines ~902-908)
+  - Added Escape key detection for Level Editor mode
+  - Calls `levelEditor.clearCursorAttachment()` when cursor attachment active
+  - Returns early to prevent event propagation
+- [x] **Entity Spawn Data Storage** - TDD Complete ✅
+  - ✅ 19 unit tests written FIRST (test/unit/levelEditor/entitySpawnData.test.js)
+  - ✅ User reviewed and approved tests
+  - ✅ Implementation: stores spawn metadata (NOT game entities)
+  - ✅ Data format: `{ id, templateId, gridX, gridY, properties }`
+  - ✅ Methods: `_placeSingleEntity()`, `getEntitySpawnData()`, `clearEntitySpawnData()`, `removeEntitySpawnData()`
+  - ✅ All 19 tests passing (property merging, unique IDs, CRUD operations, edge cases)
+- [x] **Export Integration** - TDD Complete ✅
+  - ✅ 12 unit tests written FIRST (test/unit/levelEditor/exportWithEntities.test.js)
+  - ✅ Implementation: `_getExportData()` method combines terrain + entity spawn data
+  - ✅ Updated `_performExport()` and `save()` methods to use `_getExportData()`
+  - ✅ All 12 tests passing (JSON structure, terrain preservation, edge cases)
+  - ✅ Exported JSON format: `{ ...terrainData, entities: [...spawnData] }`
+  - ⏳ Next: Visual feedback for placed entities, entity loading during gameplay
+
 ### � Next Action Required (Phase 1.3 - Integration Tests)
 **CRITICAL**: The next agent should create integration tests for list view with real component interactions.
 
