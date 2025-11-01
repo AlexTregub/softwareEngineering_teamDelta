@@ -26,6 +26,7 @@ class LevelEditor {
     this.hoverPreviewManager = null; // NEW: Hover preview for all tools
     this.sidebar = null; // NEW: Sidebar menu (wired from levelEditorPanels)
     this.entityPainter = null; // NEW: Entity Painter tool for placing ants/buildings/resources
+    this.eventPropertyWindow = null; // NEW: Event property editor window
     
     // File management
     this.currentFilename = 'Untitled'; // Current filename (no extension)
@@ -697,6 +698,49 @@ class LevelEditor {
   }
   
   /**
+   * Open the event property window for editing a trigger
+   * @param {Object} trigger - The trigger to edit
+   */
+  openEventPropertyWindow(trigger) {
+    if (!trigger) {
+      console.warn('[LevelEditor] Cannot open property window without trigger');
+      return;
+    }
+    
+    // Close existing window if open
+    if (this.eventPropertyWindow && this.eventPropertyWindow.isVisible) {
+      this.closeEventPropertyWindow();
+    }
+    
+    // Create new window (positioned at a reasonable screen location)
+    if (typeof EventPropertyWindow !== 'undefined') {
+      this.eventPropertyWindow = new EventPropertyWindow(
+        50,  // x
+        50,  // y
+        300, // width
+        400, // height
+        trigger,
+        window.eventManager // Use global EventManager instance
+      );
+      
+      console.log('[LevelEditor] Opened property window for trigger:', trigger.id);
+    } else {
+      console.error('[LevelEditor] EventPropertyWindow class not available');
+    }
+  }
+  
+  /**
+   * Close the event property window
+   */
+  closeEventPropertyWindow() {
+    if (this.eventPropertyWindow) {
+      this.eventPropertyWindow.close();
+      this.eventPropertyWindow = null;
+      console.log('[LevelEditor] Closed property window');
+    }
+  }
+  
+  /**
    * Handle mouse clicks in the editor
    */
   handleClick(mouseX, mouseY) {
@@ -777,6 +821,36 @@ class LevelEditor {
       const panelConsumed = draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
       if (panelConsumed) {
         return; // Panel consumed the click - don't paint terrain
+      }
+    }
+    
+    // PRIORITY 5.5: Check if event property window is open and handle its clicks
+    if (this.eventPropertyWindow && this.eventPropertyWindow.isVisible) {
+      // Convert screen to relative coordinates
+      const relX = mouseX - this.eventPropertyWindow.x;
+      const relY = mouseY - this.eventPropertyWindow.y;
+      
+      // Check if click is inside window
+      if (this.eventPropertyWindow.containsPoint(mouseX, mouseY)) {
+        this.eventPropertyWindow.handleClick(relX, relY);
+        return; // Property window consumed the click
+      }
+    }
+    
+    // PRIORITY 5.6: Check if event flag was clicked (opens property window)
+    if (this.eventFlagLayer && typeof EventFlagRenderer !== 'undefined') {
+      // Create EventFlagRenderer instance if not exists
+      if (!this._eventFlagRenderer) {
+        this._eventFlagRenderer = new EventFlagRenderer();
+      }
+      
+      // Check if any flag was clicked (pass screen coords and camera)
+      const clickedTrigger = this._eventFlagRenderer.checkFlagClick(mouseX, mouseY, this.editorCamera);
+      
+      if (clickedTrigger) {
+        console.log('[LevelEditor] Flag clicked, opening property window:', clickedTrigger.id);
+        this.openEventPropertyWindow(clickedTrigger);
+        return; // Flag click consumed
       }
     }
     
@@ -1557,6 +1631,11 @@ class LevelEditor {
     if (this.saveDialog.isVisible()) { this.saveDialog.render(); }
     if (this.loadDialog.isVisible()) { this.loadDialog.render(); }
     if (this.newMapDialog && this.newMapDialog.isVisible()) { this.newMapDialog.render(); }
+    
+    // Render event property window if visible
+    if (this.eventPropertyWindow && this.eventPropertyWindow.isVisible) {
+      this.eventPropertyWindow.render();
+    }
     
     // Render flag cursor if in placement mode
     if (this.eventEditor && this.eventEditor.renderPlacementCursor && typeof this.eventEditor.renderPlacementCursor === 'function') {

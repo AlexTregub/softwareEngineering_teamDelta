@@ -21,6 +21,13 @@ class EventEditorPanel {
     this.selectedTriggerId = null;
     this.editMode = null; // 'add-event', 'edit-event', 'add-trigger', 'edit-trigger', null
     
+    // Template system
+    this.templates = typeof getEventTemplates !== 'undefined' ? getEventTemplates() : [];
+    this.templateScrollOffset = 0;
+    this.templateCardWidth = 60;
+    this.templateCardHeight = 80;
+    this.templateAreaHeight = 90; // Height of template browser area
+    
     // UI state
     this.scrollOffset = 0;
     this.maxScrollOffset = 0;
@@ -41,6 +48,10 @@ class EventEditorPanel {
       oneTime: true,
       condition: {}
     };
+    
+    // Dialogue Creation Panel (for dialogue template)
+    this.dialoguePanel = null;
+    this.dialoguePanelActive = false;
     
     // Drag-to-place state
     this.dragState = {
@@ -117,6 +128,20 @@ class EventEditorPanel {
     }
     
     pop();
+    
+    // Render DialogueCreationPanel on top if active
+    if (this.dialoguePanelActive && this.dialoguePanel) {
+      // Draw dark overlay to focus attention on modal (full canvas)
+      push();
+      fill(0, 0, 0, 180); // Semi-transparent black
+      noStroke();
+      const canvasWidth = (typeof window.width !== 'undefined' ? window.width : window.innerWidth);
+      const canvasHeight = (typeof window.height !== 'undefined' ? window.height : window.innerHeight);
+      rect(0, 0, canvasWidth, canvasHeight);
+      pop();
+      
+      this.dialoguePanel.render();
+    }
   }
   
   /**
@@ -126,15 +151,21 @@ class EventEditorPanel {
   _renderEventList(x, y, width, height) {
     const events = this.eventManager.getAllEvents();
     
+    // Render template browser at top
+    this._renderTemplates(x, y, width);
+    
+    // Adjust list area to be below templates
+    const listStartY = y + this.templateAreaHeight + 5;
+    
     // Header with Add button
     fill(80);
     textAlign(LEFT, TOP);
     textSize(12);
-    text(`Events (${events.length})`, x + 5, y + 5);
+    text(`Events (${events.length})`, x + 5, listStartY + 5);
     
     // Add button
     const addBtnX = x + width - 35;
-    const addBtnY = y + 2;
+    const addBtnY = listStartY + 2;
     fill(this.selectedEventId === null ? 100 : 60, 150, 100);
     rect(addBtnX, addBtnY, 30, 20, 3);
     fill(255);
@@ -144,7 +175,7 @@ class EventEditorPanel {
     
     // Export/Import buttons
     const exportBtnX = x + 5;
-    const exportBtnY = y + height - 25;
+    const exportBtnY = listStartY + (height - this.templateAreaHeight - 5) - 25;
     fill(70, 120, 180);
     rect(exportBtnX, exportBtnY, 60, 20, 3);
     fill(255);
@@ -159,8 +190,8 @@ class EventEditorPanel {
     text('Import', importBtnX + 30, exportBtnY + 10);
     
     // Event list (scrollable)
-    const listY = y + 30;
-    const listHeight = height - 60;
+    const listY = listStartY + 30;
+    const listHeight = (height - this.templateAreaHeight - 5) - 60;
     
     // Clip region for scrolling
     push();
@@ -246,6 +277,186 @@ class EventEditorPanel {
       
       fill(150, 150, 160, 200);
       rect(scrollbarX, thumbY, 6, thumbHeight, 3);
+    }
+  }
+  
+  /**
+   * Render template browser at top of panel
+   * @private
+   */
+  _renderTemplates(x, y, width) {
+    if (this.templates.length === 0) return;
+    
+    push();
+    
+    // Background for template area
+    fill(50, 50, 60, 200);
+    rect(x, y, width, this.templateAreaHeight, 3);
+    
+    // Header
+    fill(180);
+    textAlign(LEFT, TOP);
+    textSize(10);
+    text('Templates', x + 5, y + 5);
+    
+    // Template cards (horizontal scrollable row)
+    const templateY = y + 25;
+    const cardSpacing = 5;
+    let cardX = x + 5 - this.templateScrollOffset;
+    
+    for (let i = 0; i < this.templates.length; i++) {
+      const template = this.templates[i];
+      
+      // Skip if outside visible area
+      if (cardX + this.templateCardWidth < x || cardX > x + width) {
+        cardX += this.templateCardWidth + cardSpacing;
+        continue;
+      }
+      
+      // Card background
+      fill(70, 90, 120, 200);
+      stroke(100, 120, 150);
+      strokeWeight(1);
+      rect(cardX, templateY, this.templateCardWidth, this.templateCardHeight, 3);
+      noStroke();
+      
+      // Icon (emoji)
+      fill(255);
+      textAlign(CENTER, TOP);
+      textSize(24);
+      text(template.icon || '📝', cardX + this.templateCardWidth / 2, templateY + 10);
+      
+      // Name
+      textSize(9);
+      text(template.name, cardX + this.templateCardWidth / 2, templateY + 45);
+      
+      // Type badge
+      fill(80, 100, 130, 200);
+      rect(cardX + 5, templateY + this.templateCardHeight - 18, this.templateCardWidth - 10, 14, 2);
+      fill(200);
+      textSize(8);
+      text(template.type, cardX + this.templateCardWidth / 2, templateY + this.templateCardHeight - 11);
+      
+      cardX += this.templateCardWidth + cardSpacing;
+    }
+    
+    pop();
+  }
+  
+  /**
+   * Select a template and populate edit form
+   * @param {string} templateId - Template ID to select
+   * @private
+   */
+  _selectTemplate(templateId) {
+    const template = typeof getTemplateById !== 'undefined' ? 
+      getTemplateById(templateId) : 
+      this.templates.find(t => t.id === templateId + '_template');
+    
+    if (!template) {
+      console.error(`Template not found: ${templateId}`);
+      return;
+    }
+    
+    // Generate unique event ID
+    const timestamp = Date.now();
+    const uniqueId = `${template.type}_${timestamp}`;
+    
+    // SPECIAL CASE: Dialogue template opens DialogueCreationPanel
+    if (template.type === 'dialogue') {
+      this._openDialoguePanel(uniqueId, template);
+      return;
+    }
+    
+    // Populate edit form with template defaults
+    this.editForm = {
+      id: uniqueId,
+      type: template.type,
+      priority: template.priority,
+      content: { ...template.defaultContent }
+    };
+    
+    // Switch to add-event mode
+    this.editMode = 'add-event';
+    
+    logNormal(`📝 Template selected: ${template.name}`);
+  }
+  
+  /**
+   * Open DialogueCreationPanel for dialogue template
+   * @private
+   */
+  _openDialoguePanel(eventId, template) {
+    // Create event data for panel
+    const eventData = {
+      id: eventId,
+      type: 'dialogue',
+      priority: template.priority,
+      content: template.defaultContent || {}
+    };
+    
+    // Calculate responsive panel dimensions
+    const maxPanelWidth = 700;
+    const maxPanelHeight = 650;
+    const padding = 40; // Padding from screen edges
+    
+    // Get canvas dimensions (use window size as fallback)
+    const canvasWidth = (typeof width !== 'undefined' ? width : window.innerWidth);
+    const canvasHeight = (typeof height !== 'undefined' ? height : window.innerHeight);
+    
+    // Scale panel to fit within canvas with padding
+    let panelWidth = Math.min(maxPanelWidth, canvasWidth - padding * 2);
+    let panelHeight = Math.min(maxPanelHeight, canvasHeight - padding * 2);
+    
+    // Maintain aspect ratio if needed
+    if (panelHeight < maxPanelHeight) {
+      panelWidth = Math.min(panelWidth, panelHeight * (maxPanelWidth / maxPanelHeight));
+    }
+    
+    // Center panel on canvas
+    const panelX = (canvasWidth - panelWidth) / 2;
+    const panelY = (canvasHeight - panelHeight) / 2;
+    
+    // Create panel if it doesn't exist
+    if (!this.dialoguePanel) {
+      if (typeof DialogueCreationPanel === 'undefined') {
+        console.error('DialogueCreationPanel not loaded');
+        return;
+      }
+      
+      this.dialoguePanel = new DialogueCreationPanel(
+        panelX, 
+        panelY, 
+        panelWidth, 
+        panelHeight, 
+        eventData, 
+        this.eventManager
+      );
+    } else {
+      // Reuse existing panel with new event data and recalculate position
+      this.dialoguePanel.eventData = eventData;
+      this.dialoguePanel.dialogueLines = eventData.content.dialogueLines || [];
+      this.dialoguePanel.x = panelX;
+      this.dialoguePanel.y = panelY;
+      this.dialoguePanel.width = panelWidth;
+      this.dialoguePanel.height = panelHeight;
+    }
+    
+    this.dialoguePanelActive = true;
+    this.dialoguePanel.isVisible = true;
+    
+    logNormal(`💬 Dialogue panel opened for event: ${eventId} at (${panelX}, ${panelY}), size: ${panelWidth}x${panelHeight}`);
+  }
+  
+  /**
+   * Close DialogueCreationPanel
+   * @private
+   */
+  _closeDialoguePanel() {
+    if (this.dialoguePanel) {
+      this.dialoguePanel.isVisible = false;
+      this.dialoguePanelActive = false;
+      logNormal('💬 Dialogue panel closed');
     }
   }
   
@@ -355,13 +566,284 @@ class EventEditorPanel {
     fill(80);
     textAlign(LEFT, TOP);
     textSize(12);
-    text('Add Trigger', x + 5, y + 5);
+    text(this.editMode === 'add-trigger' ? 'Add Trigger' : 'Edit Trigger', x + 5, y + 5);
     
-    // TODO: Implement trigger form UI
+    let formY = y + 30;
+    const fieldHeight = 25;
+    const labelWidth = 80;
+    
+    // Trigger Type Selector
     fill(180);
     textSize(10);
-    text('Trigger configuration UI', x + 5, y + 30);
-    text('Coming soon...', x + 5, y + 50);
+    text('Type:', x + 5, formY + 5);
+    
+    // Type buttons
+    const types = ['spatial', 'time', 'flag', 'viewport'];
+    const typeLabels = ['Spatial', 'Time', 'Flag', 'Viewport'];
+    const typeWidth = (width - labelWidth - 15) / types.length;
+    
+    for (let i = 0; i < types.length; i++) {
+      const btnX = x + labelWidth + (i * typeWidth);
+      const isSelected = this.triggerForm.type === types[i];
+      
+      // Button background
+      fill(isSelected ? 100 : 60);
+      rect(btnX, formY, typeWidth - 5, fieldHeight, 3);
+      
+      // Button text
+      fill(isSelected ? 255 : 180);
+      textAlign(CENTER, CENTER);
+      textSize(10);
+      text(typeLabels[i], btnX + (typeWidth - 5) / 2, formY + fieldHeight / 2);
+    }
+    
+    formY += fieldHeight + 15;
+    
+    // Render fields based on trigger type
+    if (this.triggerForm.type === 'spatial') {
+      formY = this._renderSpatialTriggerFields(x, formY, width, fieldHeight, labelWidth);
+    } else if (this.triggerForm.type === 'time') {
+      formY = this._renderTimeTriggerFields(x, formY, width, fieldHeight, labelWidth);
+    } else if (this.triggerForm.type === 'flag') {
+      formY = this._renderFlagTriggerFields(x, formY, width, fieldHeight, labelWidth);
+    } else if (this.triggerForm.type === 'viewport') {
+      formY = this._renderViewportTriggerFields(x, formY, width, fieldHeight, labelWidth);
+    }
+    
+    formY += 10;
+    
+    // One-Time checkbox (common for all types)
+    fill(180);
+    textAlign(LEFT, CENTER);
+    textSize(10);
+    text('One-Time:', x + 5, formY + fieldHeight / 2);
+    
+    // Checkbox
+    fill(this.triggerForm.oneTime ? 100 : 60);
+    rect(x + labelWidth, formY, 20, 20, 3);
+    
+    if (this.triggerForm.oneTime) {
+      fill(0, 255, 0);
+      textAlign(CENTER, CENTER);
+      textSize(14);
+      text('✓', x + labelWidth + 10, formY + 10);
+    }
+    
+    formY += fieldHeight + 20;
+    
+    // Cancel and Create/Save buttons
+    const buttonWidth = 80;
+    const buttonSpacing = 10;
+    
+    // Cancel button
+    fill(80, 40, 40);
+    rect(x + width - (buttonWidth * 2 + buttonSpacing) - 5, formY, buttonWidth, fieldHeight, 3);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(11);
+    text('Cancel', x + width - (buttonWidth * 2 + buttonSpacing) - 5 + buttonWidth / 2, formY + fieldHeight / 2);
+    
+    // Create/Save button
+    fill(40, 80, 40);
+    rect(x + width - buttonWidth - 5, formY, buttonWidth, fieldHeight, 3);
+    fill(255);
+    text(this.editMode === 'add-trigger' ? 'Create' : 'Save', x + width - buttonWidth - 5 + buttonWidth / 2, formY + fieldHeight / 2);
+  }
+  
+  /**
+   * Render spatial trigger fields
+   * @private
+   */
+  _renderSpatialTriggerFields(x, formY, width, fieldHeight, labelWidth) {
+    // X coordinate
+    fill(180);
+    textAlign(LEFT, CENTER);
+    textSize(10);
+    text('X:', x + 5, formY + fieldHeight / 2);
+    
+    fill(60);
+    rect(x + labelWidth, formY, width - labelWidth - 5, fieldHeight, 3);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    textSize(11);
+    text(this.triggerForm.condition.x || 0, x + labelWidth + 5, formY + fieldHeight / 2);
+    
+    formY += fieldHeight + 10;
+    
+    // Y coordinate
+    fill(180);
+    textAlign(LEFT, CENTER);
+    textSize(10);
+    text('Y:', x + 5, formY + fieldHeight / 2);
+    
+    fill(60);
+    rect(x + labelWidth, formY, width - labelWidth - 5, fieldHeight, 3);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    textSize(11);
+    text(this.triggerForm.condition.y || 0, x + labelWidth + 5, formY + fieldHeight / 2);
+    
+    formY += fieldHeight + 10;
+    
+    // Radius
+    fill(180);
+    textAlign(LEFT, CENTER);
+    textSize(10);
+    text('Radius:', x + 5, formY + fieldHeight / 2);
+    
+    fill(60);
+    rect(x + labelWidth, formY, width - labelWidth - 5, fieldHeight, 3);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    textSize(11);
+    text(this.triggerForm.condition.radius || 64, x + labelWidth + 5, formY + fieldHeight / 2);
+    
+    formY += fieldHeight + 10;
+    
+    // Shape radio buttons
+    fill(180);
+    textAlign(LEFT, CENTER);
+    textSize(10);
+    text('Shape:', x + 5, formY + fieldHeight / 2);
+    
+    const shapes = ['circle', 'rectangle'];
+    const shapeWidth = (width - labelWidth - 5) / 2;
+    
+    for (let i = 0; i < shapes.length; i++) {
+      const btnX = x + labelWidth + (i * shapeWidth);
+      const isSelected = this.triggerForm.condition.shape === shapes[i];
+      
+      fill(isSelected ? 100 : 60);
+      rect(btnX, formY, shapeWidth - 5, fieldHeight, 3);
+      
+      fill(isSelected ? 255 : 180);
+      textAlign(CENTER, CENTER);
+      textSize(10);
+      text(shapes[i].charAt(0).toUpperCase() + shapes[i].slice(1), btnX + (shapeWidth - 5) / 2, formY + fieldHeight / 2);
+    }
+    
+    formY += fieldHeight + 10;
+    
+    return formY;
+  }
+  
+  /**
+   * Render time trigger fields
+   * @private
+   */
+  _renderTimeTriggerFields(x, formY, width, fieldHeight, labelWidth) {
+    // Delay
+    fill(180);
+    textAlign(LEFT, CENTER);
+    textSize(10);
+    text('Delay (ms):', x + 5, formY + fieldHeight / 2);
+    
+    fill(60);
+    rect(x + labelWidth, formY, width - labelWidth - 5, fieldHeight, 3);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    textSize(11);
+    text(this.triggerForm.condition.delay || 5000, x + labelWidth + 5, formY + fieldHeight / 2);
+    
+    formY += fieldHeight + 10;
+    
+    return formY;
+  }
+  
+  /**
+   * Render flag trigger fields
+   * @private
+   */
+  _renderFlagTriggerFields(x, formY, width, fieldHeight, labelWidth) {
+    // Required Flags label
+    fill(180);
+    textAlign(LEFT, TOP);
+    textSize(10);
+    text('Required Flags:', x + 5, formY + 5);
+    
+    formY += 20;
+    
+    // Get all available flags
+    const allFlags = this.eventManager ? this.eventManager.getAllFlags() : [];
+    const requiredFlags = this.triggerForm.condition.requiredFlags || [];
+    
+    // Render flag checkboxes
+    for (let i = 0; i < allFlags.length; i++) {
+      const flag = allFlags[i];
+      const isChecked = requiredFlags.includes(flag);
+      
+      // Checkbox
+      fill(isChecked ? 100 : 60);
+      rect(x + 10, formY, 15, 15, 3);
+      
+      if (isChecked) {
+        fill(0, 255, 0);
+        textAlign(CENTER, CENTER);
+        textSize(12);
+        text('✓', x + 10 + 7.5, formY + 7.5);
+      }
+      
+      // Flag name
+      fill(180);
+      textAlign(LEFT, CENTER);
+      textSize(10);
+      text(flag, x + 30, formY + 7.5);
+      
+      formY += 20;
+    }
+    
+    formY += 5;
+    
+    // All Required checkbox
+    fill(180);
+    textAlign(LEFT, CENTER);
+    textSize(10);
+    text('All Required:', x + 5, formY + 10);
+    
+    fill(this.triggerForm.condition.allRequired ? 100 : 60);
+    rect(x + labelWidth, formY, 20, 20, 3);
+    
+    if (this.triggerForm.condition.allRequired) {
+      fill(0, 255, 0);
+      textAlign(CENTER, CENTER);
+      textSize(14);
+      text('✓', x + labelWidth + 10, formY + 10);
+    }
+    
+    formY += 30;
+    
+    return formY;
+  }
+  
+  /**
+   * Render viewport trigger fields
+   * @private
+   */
+  _renderViewportTriggerFields(x, formY, width, fieldHeight, labelWidth) {
+    const fields = [
+      { label: 'X:', key: 'x', default: 0 },
+      { label: 'Y:', key: 'y', default: 0 },
+      { label: 'Width:', key: 'width', default: 300 },
+      { label: 'Height:', key: 'height', default: 200 }
+    ];
+    
+    for (const field of fields) {
+      fill(180);
+      textAlign(LEFT, CENTER);
+      textSize(10);
+      text(field.label, x + 5, formY + fieldHeight / 2);
+      
+      fill(60);
+      rect(x + labelWidth, formY, width - labelWidth - 5, fieldHeight, 3);
+      fill(255);
+      textAlign(LEFT, CENTER);
+      textSize(11);
+      text(this.triggerForm.condition[field.key] || field.default, x + labelWidth + 5, formY + fieldHeight / 2);
+      
+      formY += fieldHeight + 10;
+    }
+    
+    return formY;
   }
   
   /**
@@ -373,6 +855,16 @@ class EventEditorPanel {
    * @returns {boolean} - True if click was handled
    */
   handleClick(mouseX, mouseY, contentX, contentY) {
+    // Check DialogueCreationPanel first (on top)
+    if (this.dialoguePanelActive && this.dialoguePanel) {
+      const handled = this.dialoguePanel.handleClick(mouseX, mouseY);
+      if (handled) {
+        return handled;
+      }
+      // Click outside dialogue panel - check if clicking close area
+      // For now, let clicks fall through to panel below
+    }
+    
     const relX = mouseX - contentX;
     const relY = mouseY - contentY;
     
@@ -393,9 +885,37 @@ class EventEditorPanel {
     const width = this.getContentSize().width;
     const height = this.getContentSize().height;
     
+    // Check template browser area (top section)
+    if (relY < this.templateAreaHeight) {
+      const templateY = 25; // Start of template cards
+      const cardSpacing = 5;
+      let cardX = 5 - this.templateScrollOffset;
+      
+      for (let i = 0; i < this.templates.length; i++) {
+        const template = this.templates[i];
+        
+        // Check if click is within this template card
+        if (relX >= cardX && relX <= cardX + this.templateCardWidth &&
+            relY >= templateY && relY <= templateY + this.templateCardHeight) {
+          
+          // Template clicked - select it
+          this._selectTemplate(template.id.replace('_template', ''));
+          return { type: 'template', template: template };
+        }
+        
+        cardX += this.templateCardWidth + cardSpacing;
+      }
+      
+      // Click in template browser area but not on a template
+      return null;
+    }
+    
+    // Adjust list coordinates to account for template area
+    const listStartY = this.templateAreaHeight + 5;
+    
     // Add button
     const addBtnX = width - 35;
-    const addBtnY = 2;
+    const addBtnY = listStartY + 2;
     if (relX >= addBtnX && relX <= addBtnX + 30 && relY >= addBtnY && relY <= addBtnY + 20) {
       this.editMode = 'add-event';
       this.editForm = { id: '', type: 'dialogue', priority: 5, content: {} };
@@ -404,7 +924,7 @@ class EventEditorPanel {
     
     // Export button
     const exportBtnX = 5;
-    const exportBtnY = height - 25;
+    const exportBtnY = listStartY + (height - this.templateAreaHeight - 5) - 25;
     if (relX >= exportBtnX && relX <= exportBtnX + 60 && relY >= exportBtnY && relY <= exportBtnY + 20) {
       this._exportEvents();
       return true;
@@ -418,8 +938,8 @@ class EventEditorPanel {
     }
     
     // Event list items
-    const listY = 30;
-    const listHeight = height - 60;
+    const listY = listStartY + 30;
+    const listHeight = (height - this.templateAreaHeight - 5) - 60;
     
     if (relY >= listY && relY <= listY + listHeight) {
       const events = this.eventManager.getAllEvents();
@@ -526,8 +1046,611 @@ class EventEditorPanel {
    * @private
    */
   _handleTriggerFormClick(relX, relY) {
-    // TODO: Implement trigger form click handling
+    const width = this.getContentSize().width;
+    let formY = 30;
+    const fieldHeight = 25;
+    const labelWidth = 80;
+    
+    // Trigger Type buttons
+    const types = ['spatial', 'time', 'flag', 'viewport'];
+    const typeWidth = (width - labelWidth - 15) / types.length;
+    
+    if (relY >= formY && relY <= formY + fieldHeight) {
+      for (let i = 0; i < types.length; i++) {
+        const btnX = labelWidth + (i * typeWidth);
+        if (relX >= btnX && relX <= btnX + typeWidth - 5) {
+          this.triggerForm.type = types[i];
+          
+          // Reset condition based on type
+          if (types[i] === 'spatial') {
+            this.triggerForm.condition = { x: 100, y: 100, radius: 64, shape: 'circle' };
+          } else if (types[i] === 'time') {
+            this.triggerForm.condition = { delay: 5000 };
+          } else if (types[i] === 'flag') {
+            this.triggerForm.condition = { requiredFlags: [], allRequired: true };
+          } else if (types[i] === 'viewport') {
+            this.triggerForm.condition = { x: 100, y: 100, width: 300, height: 200 };
+          }
+          
+          return true;
+        }
+      }
+    }
+    
+    formY += fieldHeight + 15;
+    
+    // Handle clicks based on trigger type
+    if (this.triggerForm.type === 'spatial') {
+      // Skip X, Y, Radius fields (3 fields × spacing)
+      formY += (fieldHeight + 10) * 3;
+      
+      // Shape radio buttons
+      const shapes = ['circle', 'rectangle'];
+      const shapeWidth = (width - labelWidth - 5) / 2;
+      
+      if (relY >= formY && relY <= formY + fieldHeight) {
+        for (let i = 0; i < shapes.length; i++) {
+          const btnX = labelWidth + (i * shapeWidth);
+          if (relX >= btnX && relX <= btnX + shapeWidth - 5) {
+            this.triggerForm.condition.shape = shapes[i];
+            return true;
+          }
+        }
+      }
+      
+      formY += fieldHeight + 10;
+      
+    } else if (this.triggerForm.type === 'time') {
+      formY += fieldHeight + 10;
+      
+    } else if (this.triggerForm.type === 'flag') {
+      formY += 20; // "Required Flags:" label
+      
+      // Flag checkboxes
+      const allFlags = this.eventManager ? this.eventManager.getAllFlags() : [];
+      const requiredFlags = this.triggerForm.condition.requiredFlags || [];
+      
+      for (let i = 0; i < allFlags.length; i++) {
+        const flag = allFlags[i];
+        
+        if (relY >= formY && relY <= formY + 15) {
+          if (relX >= 10 && relX <= 25) {
+            // Toggle flag
+            const index = requiredFlags.indexOf(flag);
+            if (index === -1) {
+              requiredFlags.push(flag);
+            } else {
+              requiredFlags.splice(index, 1);
+            }
+            return true;
+          }
+        }
+        
+        formY += 20;
+      }
+      
+      formY += 5;
+      
+      // All Required checkbox
+      if (relY >= formY && relY <= formY + 20) {
+        if (relX >= labelWidth && relX <= labelWidth + 20) {
+          this.triggerForm.condition.allRequired = !this.triggerForm.condition.allRequired;
+          return true;
+        }
+      }
+      
+      formY += 30;
+      
+    } else if (this.triggerForm.type === 'viewport') {
+      formY += (fieldHeight + 10) * 4; // 4 fields
+    }
+    
+    formY += 10;
+    
+    // One-Time checkbox
+    if (relY >= formY && relY <= formY + 20) {
+      if (relX >= labelWidth && relX <= labelWidth + 20) {
+        this.triggerForm.oneTime = !this.triggerForm.oneTime;
+        return true;
+      }
+    }
+    
+    formY += fieldHeight + 20;
+    
+    // Cancel and Create/Save buttons
+    const buttonWidth = 80;
+    const buttonSpacing = 10;
+    
+    if (relY >= formY && relY <= formY + fieldHeight) {
+      // Cancel button
+      const cancelX = width - (buttonWidth * 2 + buttonSpacing) - 5;
+      if (relX >= cancelX && relX <= cancelX + buttonWidth) {
+        this.editMode = null;
+        this.triggerForm = { eventId: '', type: 'time', oneTime: true, condition: {} };
+        return true;
+      }
+      
+      // Create/Save button
+      const createX = width - buttonWidth - 5;
+      if (relX >= createX && relX <= createX + buttonWidth) {
+        this._saveTrigger();
+        return true;
+      }
+    }
+    
     return false;
+  }
+  
+  /**
+   * Save trigger (add or update)
+   * @private
+   */
+  _saveTrigger() {
+    if (!this.triggerForm.eventId) {
+      console.error('Event ID required for trigger');
+      return;
+    }
+    
+    // Generate unique trigger ID
+    const timestamp = Date.now();
+    const triggerId = `trigger_${timestamp}`;
+    
+    const triggerConfig = {
+      id: triggerId,
+      eventId: this.triggerForm.eventId,
+      type: this.triggerForm.type,
+      oneTime: this.triggerForm.oneTime,
+      condition: { ...this.triggerForm.condition }
+    };
+    
+    if (this.eventManager) {
+      // Register trigger with EventManager
+      const success = this.eventManager.registerTrigger(triggerConfig);
+      
+      if (success) {
+        logNormal('Trigger saved:', triggerConfig);
+        
+        // Reset form and mode
+        this.editMode = null;
+        this.triggerForm = { eventId: '', type: 'time', oneTime: true, condition: {} };
+        
+        return true;
+      } else {
+        console.error('Failed to register trigger');
+        return false;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Enter edit mode for existing trigger (property editor)
+   * @param {string} triggerId - Trigger ID to edit
+   * @returns {boolean} - True if trigger found and loaded
+   * @private
+   */
+  _enterEditMode(triggerId) {
+    if (!this.eventManager || !this.eventManager.triggers) {
+      return false;
+    }
+    
+    const trigger = this.eventManager.triggers.get(triggerId);
+    if (!trigger) {
+      return false;
+    }
+    
+    // Load trigger into editForm
+    this.editForm = {
+      triggerId: triggerId,
+      eventId: trigger.eventId,
+      triggerType: trigger.type,
+      condition: { ...trigger.condition },
+      oneTime: trigger.oneTime || false
+    };
+    
+    // Set edit mode
+    this.editMode = 'edit';
+    
+    return true;
+  }
+  
+  /**
+   * Render property editor for existing trigger
+   * @param {number} x - X coordinate
+   * @param {number} y - Y coordinate
+   * @param {number} width - Panel width
+   * @param {number} height - Panel height
+   * @private
+   */
+  _renderPropertyEditor(x, y, width, height) {
+    push();
+    
+    let currentY = y + 10;
+    
+    // Header
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(16);
+    text('Edit Trigger', x + 10, currentY);
+    currentY += 30;
+    
+    // Event ID (readonly)
+    textSize(12);
+    fill(150);
+    text('Event ID:', x + 10, currentY);
+    fill(255);
+    text(this.editForm.eventId, x + 90, currentY);
+    currentY += 25;
+    
+    // Trigger Type (readonly)
+    fill(150);
+    text('Type:', x + 10, currentY);
+    fill(255);
+    text(this.editForm.triggerType, x + 90, currentY);
+    currentY += 35;
+    
+    // Render trigger-specific fields (editable)
+    if (this.editForm.triggerType === 'spatial') {
+      currentY = this._renderSpatialFields(x, currentY, width);
+    } else if (this.editForm.triggerType === 'time') {
+      currentY = this._renderTimeFields(x, currentY, width);
+    } else if (this.editForm.triggerType === 'flag') {
+      currentY = this._renderFlagFields(x, currentY, width);
+    } else if (this.editForm.triggerType === 'viewport') {
+      currentY = this._renderViewportFields(x, currentY, width);
+    }
+    
+    currentY += 20;
+    
+    // One-Time checkbox
+    const checkboxSize = 18;
+    const checkboxX = x + 10;
+    const checkboxY = currentY;
+    
+    noFill();
+    stroke(200);
+    strokeWeight(2);
+    rect(checkboxX, checkboxY, checkboxSize, checkboxSize);
+    
+    // Fill checkbox if one-time
+    if (this.editForm.oneTime) {
+      fill(100, 200, 100);
+      noStroke();
+      rect(checkboxX + 3, checkboxY + 3, checkboxSize - 6, checkboxSize - 6);
+    }
+    
+    fill(255);
+    noStroke();
+    textAlign(LEFT, CENTER);
+    textSize(12);
+    text('One-Time (non-repeatable)', checkboxX + checkboxSize + 10, checkboxY + checkboxSize / 2);
+    currentY += 40;
+    
+    // Buttons at bottom
+    const buttonY = y + height - 50;
+    const buttonHeight = 30;
+    const buttonSpacing = 10;
+    const buttonWidth = (width - 40) / 3;
+    
+    // Cancel button
+    fill(100);
+    noStroke();
+    rect(x + 10, buttonY, buttonWidth, buttonHeight, 4);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    text('Cancel', x + 10 + buttonWidth / 2, buttonY + buttonHeight / 2);
+    
+    // Delete button
+    fill(200, 50, 50);
+    rect(x + 20 + buttonWidth, buttonY, buttonWidth, buttonHeight, 4);
+    fill(255);
+    text('Delete Trigger', x + 20 + buttonWidth + buttonWidth / 2, buttonY + buttonHeight / 2);
+    
+    // Save Changes button
+    fill(50, 150, 50);
+    rect(x + 30 + buttonWidth * 2, buttonY, buttonWidth, buttonHeight, 4);
+    fill(255);
+    text('Save Changes', x + 30 + buttonWidth * 2 + buttonWidth / 2, buttonY + buttonHeight / 2);
+    
+    pop();
+  }
+  
+  /**
+   * Render spatial trigger fields (for property editor)
+   * @private
+   */
+  _renderSpatialFields(x, currentY, width) {
+    push();
+    
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(12);
+    
+    // X coordinate
+    text('X:', x + 10, currentY);
+    fill(50);
+    rect(x + 90, currentY - 2, 100, 20);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    text(this.editForm.condition.x || 0, x + 95, currentY + 8);
+    currentY += 30;
+    
+    // Y coordinate
+    textAlign(LEFT, TOP);
+    text('Y:', x + 10, currentY);
+    fill(50);
+    rect(x + 90, currentY - 2, 100, 20);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    text(this.editForm.condition.y || 0, x + 95, currentY + 8);
+    currentY += 30;
+    
+    // Radius
+    textAlign(LEFT, TOP);
+    text('Radius:', x + 10, currentY);
+    fill(50);
+    rect(x + 90, currentY - 2, 100, 20);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    text(this.editForm.condition.radius || 64, x + 95, currentY + 8);
+    currentY += 35;
+    
+    // Shape radio buttons
+    textAlign(LEFT, TOP);
+    text('Shape:', x + 10, currentY);
+    currentY += 25;
+    
+    const radioSize = 14;
+    const radioSpacing = 80;
+    
+    // Circle radio
+    const circleX = x + 20;
+    const circleY = currentY;
+    noFill();
+    stroke(200);
+    strokeWeight(2);
+    ellipse(circleX + radioSize / 2, circleY + radioSize / 2, radioSize, radioSize);
+    
+    if (this.editForm.condition.shape === 'circle') {
+      fill(100, 200, 100);
+      noStroke();
+      ellipse(circleX + radioSize / 2, circleY + radioSize / 2, radioSize - 6, radioSize - 6);
+    }
+    
+    fill(255);
+    noStroke();
+    textAlign(LEFT, CENTER);
+    text('Circle', circleX + radioSize + 8, circleY + radioSize / 2);
+    
+    // Rectangle radio
+    const rectX = circleX + radioSpacing;
+    noFill();
+    stroke(200);
+    strokeWeight(2);
+    ellipse(rectX + radioSize / 2, circleY + radioSize / 2, radioSize, radioSize);
+    
+    if (this.editForm.condition.shape === 'rectangle') {
+      fill(100, 200, 100);
+      noStroke();
+      ellipse(rectX + radioSize / 2, circleY + radioSize / 2, radioSize - 6, radioSize - 6);
+    }
+    
+    fill(255);
+    noStroke();
+    textAlign(LEFT, CENTER);
+    text('Rectangle', rectX + radioSize + 8, circleY + radioSize / 2);
+    
+    currentY += 30;
+    
+    pop();
+    return currentY;
+  }
+  
+  /**
+   * Render time trigger fields (for property editor)
+   * @private
+   */
+  _renderTimeFields(x, currentY, width) {
+    push();
+    
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(12);
+    
+    // Delay
+    text('Delay (ms):', x + 10, currentY);
+    fill(50);
+    rect(x + 90, currentY - 2, 100, 20);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    text(this.editForm.condition.delay || 0, x + 95, currentY + 8);
+    currentY += 35;
+    
+    pop();
+    return currentY;
+  }
+  
+  /**
+   * Render flag trigger fields (for property editor)
+   * @private
+   */
+  _renderFlagFields(x, currentY, width) {
+    push();
+    
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(12);
+    text('Required Flags:', x + 10, currentY);
+    currentY += 25;
+    
+    // Flag checkboxes (mock for now)
+    const flags = this.editForm.condition.flags || [];
+    flags.forEach(flag => {
+      const checkboxSize = 16;
+      noFill();
+      stroke(200);
+      strokeWeight(2);
+      rect(x + 20, currentY, checkboxSize, checkboxSize);
+      
+      fill(100, 200, 100);
+      noStroke();
+      rect(x + 23, currentY + 3, checkboxSize - 6, checkboxSize - 6);
+      
+      fill(255);
+      noStroke();
+      textAlign(LEFT, CENTER);
+      text(flag, x + 20 + checkboxSize + 8, currentY + checkboxSize / 2);
+      currentY += 25;
+    });
+    
+    currentY += 10;
+    
+    pop();
+    return currentY;
+  }
+  
+  /**
+   * Render viewport trigger fields (for property editor)
+   * @private
+   */
+  _renderViewportFields(x, currentY, width) {
+    push();
+    
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(12);
+    
+    const fields = ['x', 'y', 'width', 'height'];
+    fields.forEach(field => {
+      text(field.toUpperCase() + ':', x + 10, currentY);
+      fill(50);
+      rect(x + 90, currentY - 2, 100, 20);
+      fill(255);
+      textAlign(LEFT, CENTER);
+      text(this.editForm.condition[field] || 0, x + 95, currentY + 8);
+      currentY += 30;
+      textAlign(LEFT, TOP);
+    });
+    
+    pop();
+    return currentY;
+  }
+  
+  /**
+   * Handle property editor click events
+   * @param {number} relX - Relative X coordinate
+   * @param {number} relY - Relative Y coordinate
+   * @returns {Object|null} - Click result or null
+   * @private
+   */
+  _handlePropertyEditorClick(relX, relY) {
+    // Button positions (relative to panel)
+    const buttonY = this.contentHeight - 50;
+    const buttonHeight = 30;
+    const buttonWidth = (this.contentWidth - 40) / 3;
+    
+    // Check Cancel button
+    if (relY >= buttonY && relY <= buttonY + buttonHeight &&
+        relX >= 10 && relX <= 10 + buttonWidth) {
+      this.editMode = 'list';
+      return { action: 'cancel' };
+    }
+    
+    // Check Delete button
+    if (relY >= buttonY && relY <= buttonY + buttonHeight &&
+        relX >= 20 + buttonWidth && relX <= 20 + buttonWidth + buttonWidth) {
+      return { action: 'delete' };
+    }
+    
+    // Check Save Changes button
+    if (relY >= buttonY && relY <= buttonY + buttonHeight &&
+        relX >= 30 + buttonWidth * 2 && relX <= 30 + buttonWidth * 3) {
+      return { action: 'save' };
+    }
+    
+    // Check One-Time checkbox (approximate position)
+    const checkboxY = buttonY - 90;
+    const checkboxSize = 18;
+    if (relY >= checkboxY && relY <= checkboxY + checkboxSize &&
+        relX >= 10 && relX <= 10 + checkboxSize) {
+      this.editForm.oneTime = !this.editForm.oneTime;
+      return { action: 'toggleOneTime' };
+    }
+    
+    // Check shape radio buttons (spatial triggers only)
+    if (this.editForm.triggerType === 'spatial') {
+      const shapeY = 150; // Approximate position
+      const radioSize = 14;
+      const radioSpacing = 80;
+      
+      // Circle radio
+      const circleX = 20;
+      if (relY >= shapeY && relY <= shapeY + radioSize &&
+          relX >= circleX && relX <= circleX + radioSize) {
+        this.editForm.condition.shape = 'circle';
+        return { action: 'setShape', shape: 'circle' };
+      }
+      
+      // Rectangle radio
+      const rectX = circleX + radioSpacing;
+      if (relY >= shapeY && relY <= shapeY + radioSize &&
+          relX >= rectX && relX <= rectX + radioSize) {
+        this.editForm.condition.shape = 'rectangle';
+        return { action: 'setShape', shape: 'rectangle' };
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Update trigger in EventManager
+   * @returns {boolean} - True if successful
+   * @private
+   */
+  _updateTrigger() {
+    if (!this.eventManager || !this.editForm.triggerId) {
+      return false;
+    }
+    
+    const trigger = this.eventManager.triggers.get(this.editForm.triggerId);
+    if (!trigger) {
+      return false;
+    }
+    
+    // Update trigger properties
+    trigger.condition = { ...this.editForm.condition };
+    trigger.oneTime = this.editForm.oneTime;
+    
+    logNormal('Trigger updated:', this.editForm.triggerId);
+    
+    // Reset edit mode
+    this.editMode = 'list';
+    
+    return true;
+  }
+  
+  /**
+   * Delete trigger from EventManager
+   * @returns {boolean} - True if successful
+   * @private
+   */
+  _deleteTrigger() {
+    if (!this.eventManager || !this.editForm.triggerId) {
+      return false;
+    }
+    
+    const deleted = this.eventManager.triggers.delete(this.editForm.triggerId);
+    
+    if (deleted) {
+      logNormal('Trigger deleted:', this.editForm.triggerId);
+      // Reset edit mode
+      this.editMode = 'list';
+    }
+    
+    return deleted;
   }
   
   /**
@@ -673,9 +1796,50 @@ class EventEditorPanel {
    * @param {number} delta - Scroll delta
    */
   handleScroll(delta) {
+    // Check if dialogue panel is active and should handle scroll
+    if (this.dialoguePanelActive && this.dialoguePanel) {
+      this.dialoguePanel.handleMouseWheel(delta);
+      return;
+    }
+    
     if (this.editMode) return; // No scrolling in edit mode
     
     this.scrollOffset = Math.max(0, Math.min(this.maxScrollOffset, this.scrollOffset + delta * 20));
+  }
+  
+  /**
+   * Handle mouse drag event
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   */
+  handleMouseDrag(mouseX, mouseY) {
+    if (this.dialoguePanelActive && this.dialoguePanel) {
+      this.dialoguePanel.handleMouseDrag(mouseX, mouseY);
+    }
+  }
+  
+  /**
+   * Handle mouse release event
+   */
+  handleMouseRelease() {
+    if (this.dialoguePanelActive && this.dialoguePanel) {
+      this.dialoguePanel.handleMouseRelease();
+    }
+  }
+  
+  /**
+   * Handle keyboard input
+   * @param {string} key - Key pressed
+   */
+  handleKeyPress(key) {
+    if (this.dialoguePanelActive && this.dialoguePanel) {
+      // Close dialogue panel on Escape
+      if (key === 'Escape') {
+        this._closeDialoguePanel();
+        return;
+      }
+      this.dialoguePanel.handleKeyPress(key);
+    }
   }
   
   // ========================================

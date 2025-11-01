@@ -21,6 +21,68 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### User-Facing Changes
 
+#### Added
+- **Level Editor: Event Template Browser** (`Classes/ui/EventTemplates.js`, `Classes/systems/ui/EventEditorPanel.js`)
+  - **Feature**: Browse predefined event templates for quick event creation
+  - **Templates**: 4 templates (dialogue 💬, spawn 🐜, tutorial 💡, boss 👑)
+  - **Usage**: Open EventEditorPanel (Ctrl+6), click template card, auto-fills event form with defaults
+  - **Layout**: Horizontal scrollable template browser at top of panel
+  - **Auto-generation**: Creates unique event ID (`{type}_{timestamp}`)
+  - **Testing**: 16 unit tests (TDD), all passing
+
+- **Level Editor: Trigger Configuration Form** (`Classes/systems/ui/EventEditorPanel.js`)
+  - **Feature**: Configure trigger conditions for events (when events activate)
+  - **Trigger Types**: 4 types with dedicated UIs:
+    - **Spatial**: X, Y, Radius, Shape (circle/rectangle) - triggers when player enters area
+    - **Time**: Delay (ms) - triggers after time elapsed
+    - **Flag**: Required flags, All Required (AND/OR logic) - triggers when conditions met
+    - **Viewport**: X, Y, Width, Height - triggers when area visible on screen
+  - **Common Options**: One-Time checkbox (trigger once vs repeatable)
+  - **Buttons**: Cancel (discard), Create/Save (persist trigger)
+  - **Usage**: Create event → switch to trigger mode → configure → save
+  - **Testing**: 24 unit tests (TDD), all passing
+
+- **Level Editor: Event Flag Visualization** (`Classes/rendering/EventFlagRenderer.js`)
+  - **Feature**: Visual representation of spatial triggers on game map
+  - **Display**: Flag icon (🚩) at trigger position, yellow radius circle, event ID label above flag
+  - **Camera Integration**: Flags transform correctly with camera zoom/pan (world coords → screen coords)
+  - **Layer**: Renders in EFFECTS layer (above terrain, below UI)
+  - **Click-to-Edit**: Click on flag icon to edit trigger properties (16px hit radius)
+  - **Filter**: Only spatial triggers rendered (time/flag/viewport triggers excluded)
+  - **Usage**: Place event with spatial trigger → flags automatically render on map → click to edit
+  - **Testing**: 14 integration tests (TDD), all passing
+
+- **Level Editor: Event Property Editor Workflow** (`Classes/systems/ui/EventEditorPanel.js`)
+  - **Feature**: Complete CRUD workflow for event trigger properties (Create, Read, Update, Delete)
+  - **Workflow**: Create event from template → Add trigger → Click flag on map → Edit properties → Save changes → Re-open to verify → Delete trigger
+  - **Property Editing**: Edit spatial trigger radius, change oneTime setting (repeatable vs one-time)
+  - **Visual Feedback**: Edited property displayed in property editor form, persists after save
+  - **Deletion**: Delete trigger button removes trigger from EventManager and flag from map
+  - **Camera Integration**: Property editor opens via direct `_enterEditMode(triggerId)` call
+  - **Testing**: 11 E2E test steps (Puppeteer), all passing with screenshot proof
+
+- **Level Editor: Event Property Window** (`Classes/ui/EventPropertyWindow.js`)
+  - **Feature**: Draggable property editor window for editing event trigger properties
+  - **Properties Editable**: Trigger ID (read-only), Type (read-only), Radius (spatial), Delay (time), One-Time checkbox (all types)
+  - **Actions**: Save Changes (validates + updates EventManager), Cancel (discard changes), Delete (removes trigger)
+  - **Validation**: Radius must be > 0, delay must be >= 0
+  - **UI Layout**: Panel background with border, read-only fields (gray), input fields (white), action buttons (green/red)
+  - **Click Handling**: Detects clicks on input fields, checkboxes, buttons; returns false for clicks outside bounds
+  - **Integration**: Opened via `LevelEditor.openEventPropertyWindow(trigger)`, stores reference to EventManager
+  - **Testing**: 36 unit tests (TDD), all passing
+
+- **Level Editor: Real-Time Radius Preview** (`Classes/rendering/EventFlagRenderer.js`)
+  - **Feature**: Visual preview of radius changes while editing trigger properties in real-time
+  - **Display Modes**:
+    - **Normal Mode** (window closed): Single yellow semi-transparent radius circle (saved value)
+    - **Editing Mode** (window open): Two circles shown simultaneously:
+      - **Saved Radius**: Yellow dashed stroke (50 alpha), no fill, shows original value
+      - **Preview Radius**: Orange solid fill (80 alpha) + stroke (150 alpha), shows current edit value
+  - **Preview Label**: "Preview: {radius}px" displayed below circles in white text with black outline
+  - **Edge Cases**: Handles null editForm, missing condition, zero radius gracefully
+  - **Usage**: Open property window → edit radius → see orange preview circle grow/shrink → save to persist
+  - **Testing**: 13 unit tests (TDD), all passing
+
 #### Fixed
 - **Material Palette Categories**: Fixed category expand/collapse not working when clicking headers
   - Categories are now clickable and toggle open/closed correctly in browser
@@ -31,6 +93,153 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ---
 
 ### Developer-Facing Changes
+
+#### Added
+- **EventTemplates System** (`Classes/ui/EventTemplates.js`)
+  - **Exports**: `EVENT_TEMPLATES` constant with 4 predefined templates
+  - **Helpers**: `getEventTemplates()`, `getTemplateById(id)`, `getTemplateByType(type)`
+  - **Structure**: Each template has `id`, `name`, `description`, `type`, `priority`, `icon` (emoji), `defaultContent`, `defaultTrigger`
+  - **Global/Node.js**: Exports to both `window.EVENT_TEMPLATES` and `module.exports`
+  
+- **EventEditorPanel Template Integration** (`Classes/systems/ui/EventEditorPanel.js`)
+  - **_renderTemplates(x, y, width)**: Renders horizontal scrollable template browser (60px × 80px cards)
+  - **_selectTemplate(templateId)**: Populates `editForm` with template defaults, generates unique event ID
+  - **_handleListClick()**: Added template browser area detection, returns `{type: 'template', template: {...}}` or `null`
+  - **Constructor**: Added `templates`, `templateScrollOffset`, `templateCardWidth`, `templateCardHeight`, `templateAreaHeight` properties
+  - **Template area**: 90px height at top of panel, adjusts all list coordinates accordingly
+
+- **Trigger Form System** (`Classes/systems/ui/EventEditorPanel.js`)
+  - **_renderTriggerForm(x, y, width, height)**: Replaces TODO with full implementation (~90 lines)
+  - **Type selector**: 4 horizontal buttons for trigger types (spatial, time, flag, viewport) with highlight
+  - **Helper methods**:
+    - `_renderSpatialTriggerFields()`: X, Y, Radius inputs + Circle/Rectangle shape radio buttons (~60 lines)
+    - `_renderTimeTriggerFields()`: Delay input (milliseconds) (~20 lines)
+    - `_renderFlagTriggerFields()`: Multi-select flag checkboxes + All Required toggle (~50 lines)
+    - `_renderViewportTriggerFields()`: X, Y, Width, Height inputs (~30 lines)
+  - **_handleTriggerFormClick(relX, relY)**: Replaces TODO with full click detection (~130 lines)
+    - Type button clicks (resets condition on type change)
+    - Spatial shape radio buttons
+    - Flag checkboxes (toggle individual flags)
+    - All Required checkbox (toggle AND/OR logic)
+    - One-Time checkbox (toggle repeatable)
+    - Cancel button (reset editMode)
+    - Create/Save button (call _saveTrigger)
+  - **_saveTrigger()**: Validates eventId, builds triggerConfig, resets form (~20 lines)
+  - **Total**: ~300 lines of implementation code added
+
+- **EventFlagRenderer System** (`Classes/rendering/EventFlagRenderer.js`) - TDD
+  - **Purpose**: Visual representation of spatial event triggers on game map
+  - **Methods**:
+    - `renderEventFlags(cameraManager)` - Render all spatial triggers (~70 lines)
+      - Iterates `eventManager.triggers` Map
+      - Filters for spatial triggers (trigger.type === 'spatial')
+      - Transforms world coords to screen coords via `cameraManager.worldToScreen(x, y)`
+      - Renders: Radius circle (yellow rgba(255, 255, 0, 60), stroke 2px), Flag icon (emoji 🚩, textSize 24), Event ID label (white text, textSize 12, 20px above flag)
+    - `checkFlagClick(mouseX, mouseY, cameraManager)` - Hit test for flag editing (~40 lines)
+      - Converts screen coords to world coords via `cameraManager.screenToWorld()`
+      - Distance check against all spatial triggers (Math.sqrt formula)
+      - Returns trigger object if distance <= 16px (flag icon radius), null otherwise
+  - **Integration**: Auto-registers with RenderManager EFFECTS layer (constructor)
+  - **Files**: EventFlagRenderer.js (created, ~150 lines), index.html (added script tag)
+  - **Testing**: 14 integration tests (TDD), all passing
+  - **Time**: ~1.5 hours (Phase 5 + Phase 6 combined)
+
+- **Event Property Editor Implementation** (`Classes/systems/ui/EventEditorPanel.js`) - TDD
+  - **Purpose**: Complete CRUD workflow for trigger property editing
+  - **_saveTrigger()**: Enhanced to register triggers with EventManager (~35 lines, was ~20)
+    - Generates unique trigger ID: `trigger_${Date.now()}`
+    - Calls `this.eventManager.registerTrigger(triggerConfig)`
+    - Returns boolean success/failure
+    - Resets `triggerForm` and `editMode` on success
+    - **TDD Fix**: Implementation was incomplete - only logged trigger, didn't register with EventManager
+  - **_enterEditMode(triggerId)**: Opens property editor for existing trigger (~30 lines)
+    - Loads trigger from EventManager via `getTrigger(triggerId)`
+    - Populates `editForm` with trigger properties (type, condition, oneTime)
+    - Sets `editMode = 'edit'`
+  - **_updateTrigger()**: Saves property changes (~25 lines)
+    - Updates trigger.condition and trigger.oneTime
+    - Returns boolean, resets editMode to 'list'
+  - **_deleteTrigger()**: Removes trigger from EventManager (~15 lines)
+    - Calls `eventManager.deleteTrigger(triggerId)`
+    - Resets editMode to 'list'
+  - **_handleEditFormClick(relX, relY)**: Property editor click handlers (~50 lines)
+    - Spatial radius input, oneTime checkbox
+    - Save Changes button → calls _updateTrigger()
+    - Delete button → calls _deleteTrigger()
+  - **_renderPropertyEditor(x, y, width, height)**: UI for editing trigger properties (~60 lines)
+    - Displays current trigger ID and type
+    - Spatial trigger: radius input (number field)
+    - Common: oneTime checkbox (toggle repeatable)
+    - Action buttons: Save Changes, Delete
+  - **Testing**: 21 unit tests (property editor), 11 E2E test steps (full workflow with screenshots)
+  - **Total**: ~215 lines of implementation code added
+  - **Time**: ~4 hours (Phase 7 + Phase 8 + Phase 9 combined)
+
+- **EventPropertyWindow Component** (`Classes/ui/EventPropertyWindow.js`) - TDD
+  - **Purpose**: Standalone draggable property editor window for trigger editing (alternative to in-panel editor)
+  - **Constructor**: `new EventPropertyWindow(x, y, trigger, eventManager)`
+    - Stores position (x, y), dimensions (width=300, height=400)
+    - Stores trigger reference and EventManager reference
+    - Creates `editForm` as deep copy of trigger for isolated editing
+    - Initializes state: `isVisible=true`, `isDragging=false`
+  - **render()**: UI rendering (~80 lines)
+    - Panel background (white) + border (black 2px)
+    - Read-only fields: Trigger ID (gray), Type (gray)
+    - Conditional fields: Radius input (spatial), Delay input (time)
+    - Common: One-Time checkbox (all types)
+    - Action buttons: Save Changes (green), Cancel (gray), Delete (red)
+  - **handleClick(x, y)**: Click detection (~60 lines)
+    - Detects clicks on radius input, delay input, oneTime checkbox
+    - Detects clicks on Save, Cancel, Delete buttons
+    - Returns false for clicks outside window bounds
+    - Uses `containsPoint(x, y)` helper for bounds checking
+  - **saveChanges()**: Validation + EventManager update (~15 lines)
+    - Validates: radius > 0, delay >= 0
+    - Calls `eventManager.updateTrigger(trigger.id, editForm)`
+    - Closes window on success, stays open if validation fails
+  - **deleteTrigger()**: Removes trigger from EventManager (~10 lines)
+    - Calls `eventManager.deleteTrigger(trigger.id)`
+    - Closes window after deletion
+  - **cancel()**: Discards changes (~5 lines)
+    - Resets `editForm` to original trigger values
+    - Closes window
+  - **close()**: Sets `isVisible = false`
+  - **Integration**: Opened via `LevelEditor.openEventPropertyWindow(trigger)`
+  - **Testing**: 36 unit tests (constructor, rendering, click handling, actions, utilities), 23 integration tests (LevelEditor integration), all passing
+  - **Time**: ~2.5 hours (Phase 1 + Phase 2)
+
+- **EventFlagRenderer Real-Time Preview** (`Classes/rendering/EventFlagRenderer.js`) - TDD Enhancement
+  - **Purpose**: Visual feedback for radius changes while editing in EventPropertyWindow
+  - **renderEventFlags(cameraManager)**: Enhanced with dual rendering logic (~70 lines added)
+    - **Normal Mode** (window closed): Single yellow semi-transparent circle (saved radius)
+    - **Editing Mode** (window open): Two circles simultaneously:
+      - **Saved Radius**: Yellow dashed stroke (`setLineDash([10, 5])`), 50 alpha, no fill - shows original value
+      - **Preview Radius**: Orange solid fill (80 alpha) + stroke (150 alpha) - shows current edit value
+    - **Detection**: Checks if `levelEditor.eventPropertyWindow` exists and `isVisible === true`
+    - **editForm Access**: Reads preview radius from `propertyWindow.editForm.condition.radius`
+    - **Preview Label**: "Preview: {radius}px" rendered below circles (white text, black outline, textSize 12)
+  - **Edge Cases**: Handles null editForm, missing condition, zero radius gracefully (skips preview rendering)
+  - **Usage**: Open property window → edit radius → see orange preview circle → save to commit → preview disappears
+  - **Testing**: 13 unit tests (preview rendering modes, visual differentiation, edge cases), all passing
+  - **Time**: ~45 minutes (Phase 3)
+
+- **LevelEditor EventFlagRenderer Integration** (`Classes/systems/ui/LevelEditor.js`) - Bug Fix
+  - **Fix**: Changed EventFlagRenderer from static to instance method call
+  - **Before**: `EventFlagRenderer.checkFlagClick(worldX, worldY)` (static call on class)
+  - **After**: `this._eventFlagRenderer.checkFlagClick(mouseX, mouseY, this.editorCamera)` (instance method)
+  - **Initialization**: Added `this._eventFlagRenderer = new EventFlagRenderer()` in constructor
+  - **Root Cause**: `checkFlagClick()` is an instance method, not static - calling on class caused "not a function" error
+  - **Testing**: E2E test with Puppeteer confirms flag clicks work (7-step workflow with screenshots)
+
+- **EventManager CRUD Methods** (`Classes/managers/EventManager.js`) - Enhancement
+  - **getTrigger(triggerId)**: Retrieve trigger by ID from triggers Map
+  - **updateTrigger(triggerId, updates)**: Merge updates into existing trigger (shallow merge)
+  - **deleteTrigger(triggerId)**: Remove trigger from triggers Map
+  - **registerTrigger(triggerConfig)**: Enhanced to preserve provided IDs
+    - **Before**: Always generated new ID `trigger_${Date.now()}`
+    - **After**: Uses provided `triggerConfig.id` if present, generates fallback if missing
+    - **Reason**: Allows tests to specify IDs for predictable assertions (e.g., `trigger_e2e_test_001`)
+  - **Testing**: 23 integration tests verify CRUD operations work correctly
 
 #### Fixed
 - **MaterialPalette.containsPoint()**: Fixed category click detection (BUG #1 - CRITICAL)

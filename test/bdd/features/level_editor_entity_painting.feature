@@ -60,3 +60,52 @@ Feature: Level Editor Entity Painting
     When the user presses the Escape key
     Then the entity template selection should be cleared
     And no preview should be shown
+
+  Scenario: Entity painter integration workflow
+    Given the Level Editor is active
+    When the user clicks the entity_painter tool
+    Then the entity_painter tool should be selected
+    
+    When the user selects an entity template from the palette
+    Then the entity template should be selected
+    
+    When the user clicks on the terrain at grid position (10, 10)
+    Then an entity should be placed at grid (10, 10)
+    And the entity should be found at that position
+    
+    When the user exports the level to JSON
+    Then the exported JSON should contain the placed entity
+    
+    When the user clears all entities
+    And the user imports the level from JSON
+    Then the entity should be restored at grid (10, 10)
+    
+    When the user removes the entity
+    Then no entities should remain
+
+  Scenario: Entity spawn data storage and export
+    Given the Level Editor has spawn data storage
+    When spawn data entries are added manually
+    Then the spawn data format should be correct
+    And the getEntitySpawnData method should return all entries
+    
+    When the level is exported to JSON
+    Then the entities array should contain all spawn data
+    And each entity should have required properties
+    
+    When an entity spawn data entry is removed by ID
+    Then the spawn data count should decrease by one
+    
+    When all spawn data is cleared
+    Then the spawn data count should be zero
+
+  Scenario: Entity selection box functionality
+    Given the EntitySelectionTool is created
+    And multiple entities are placed on the grid
+    When the user drags a selection box over the entities
+    Then all entities within the box should be selected
+    And the selected state should be visible
+    
+    When the user deletes selected entities
+    Then all selected entities should be removed
+    And no entities should remain in the array

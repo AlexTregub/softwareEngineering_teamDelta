@@ -67,6 +67,15 @@ Track feature requests, performance optimizations, and extensibility improvement
     - Priority: LOW (QoL)
     - Developer Benefit: Easy to mock up the look and feel of a menu before creating assets
 
+- [ ] **Level Editor: Mouse position, both absolute and grid pos**
+    - Request: Have the location of the mouse tracked at the top right of the MenuBar
+    Should look something like this
+    ----------------------------
+    | [{ScreenPosX, ScreenPosY}] | [{GridCoordX, GridCoordY}] |
+    - Priority: LOW (QoL)
+    - Developer Benefit: Easy to know where the mouse is on the level editor
+
+
 ### In Progress 🚧
 
 (No features currently in progress)

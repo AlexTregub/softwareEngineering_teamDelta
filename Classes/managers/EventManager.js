@@ -274,7 +274,8 @@ class EventManager {
       return false;
     }
     
-    const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use provided ID if available, otherwise generate new one
+    const triggerId = triggerConfig.id || `trigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Support both oneTime and repeatable properties
     // oneTime: true means not repeatable
@@ -291,7 +292,58 @@ class EventManager {
       triggered: false
     });
     
+    return triggerId; // Return ID for caller
+  }
+  
+  /**
+   * Get trigger by ID
+   * @param {string} triggerId - Trigger ID
+   * @returns {Object|null} - Trigger object or null if not found
+   */
+  getTrigger(triggerId) {
+    return this.triggers.get(triggerId) || null;
+  }
+  
+  /**
+   * Update trigger properties
+   * @param {string} triggerId - Trigger ID
+   * @param {Object} updates - Updated trigger properties
+   * @returns {boolean} - True if update successful
+   */
+  updateTrigger(triggerId, updates) {
+    const trigger = this.triggers.get(triggerId);
+    
+    if (!trigger) {
+      console.error(`Trigger not found: ${triggerId}`);
+      return false;
+    }
+    
+    // Update trigger properties
+    const updatedTrigger = {
+      ...trigger,
+      ...updates,
+      id: triggerId // Preserve original ID
+    };
+    
+    this.triggers.set(triggerId, updatedTrigger);
     return true;
+  }
+  
+  /**
+   * Delete trigger
+   * @param {string} triggerId - Trigger ID
+   * @returns {boolean} - True if deletion successful
+   */
+  deleteTrigger(triggerId) {
+    const existed = this.triggers.has(triggerId);
+    
+    if (existed) {
+      this.triggers.delete(triggerId);
+      return true;
+    }
+    
+    console.warn(`Trigger not found for deletion: ${triggerId}`);
+    return false;
   }
   
   /**

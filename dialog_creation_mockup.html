@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dialogue Creation Panel - Mockup Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    h1 {
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin-bottom: 20px;
+    }
+    
+    #canvasContainer {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .info {
+      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      max-width: 900px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    
+    .info h3 {
+      margin-top: 0;
+      color: #1e3c72;
+    }
+    
+    .info ul {
+      margin: 10px 0;
+    }
+    
+    .info li {
+      margin: 5px 0;
+    }
+    
+    .feature {
+      color: #2a5298;
+      font-weight: bold;
+    }
+    
+    .new-feature {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎭 Dialogue Creation Panel - Interactive Mockup</h1>
+  
+  <div id="canvasContainer"></div>
+  
+  <div class="info">
+    <h3>✨ Interactive Features</h3>
+    <ul>
+      <li><span class="feature">Click the blue [+] buttons</span> to add dialogue lines to Character 1 or Character 2 (appends to END)</li>
+      <li><span class="feature">Click the red [−] buttons</span> to remove the last dialogue line for that character</li>
+      <li><span class="new-feature">NEW: Sequential order</span> - lines appear in the order you add them (Char1 → Char1 → Char2 = two Char1 boxes back-to-back, then Char2)</li>
+      <li><span class="new-feature">NEW: Click on dialogue boxes</span> to expand them and edit text (type and press Enter)</li>
+      <li><span class="new-feature">NEW: Staggered layout</span> - dialogue boxes alternate left (Char 1) / right (Char 2) to show conversation flow</li>
+      <li><span class="new-feature">NEW: Per-line text effects</span> - Each line has its own effect selector (⌨ typewriter, ✨ fade, ⚡ instant) and speed slider</li>
+      <li><span class="new-feature">NEW: Default settings</span> - Set default speed/effect for new lines at top</li>
+      <li><span class="new-feature">NEW: Save button</span> - Click green "Save Dialogue" button at bottom to export</li>
+    </ul>
+    
+    <h3>🎮 Controls</h3>
+    <ul>
+      <li><strong>Default controls (top)</strong> = Set scroll speed and effect for NEW lines</li>
+      <li><strong>Conversation area (middle)</strong> = Scrollable viewport:
+        <ul>
+          <li><strong>Mouse wheel</strong> = Scroll up/down through conversation</li>
+          <li><strong>Scrollbar</strong> = Click track to jump, drag thumb to scroll</li>
+          <li><strong>Small boxes</strong> = collapsed view (click to expand)</li>
+          <li><strong>Large boxes</strong> = expanded view with per-line controls</li>
+        </ul>
+      </li>
+      <li><strong>Per-line controls (when expanded)</strong>:
+        <ul>
+          <li>⌨ ✨ ⚡ buttons = Select effect for THIS line only</li>
+          <li>Mini slider = Adjust speed for THIS line only</li>
+          <li>Type text, press Enter to save</li>
+        </ul>
+      </li>
+      <li><strong>Char 1/2 [+] buttons</strong> = Add line to END of sequence</li>
+      <li><strong>Char 1/2 [−] buttons</strong> = Remove LAST line for that character</li>
+    </ul>
+    
+    <h3>📊 Implementation Status</h3>
+    <ul>
+      <li>✅ Sequential order tracking (lines keep button-press order)</li>
+      <li>✅ Staggered dialogue layout (left/right based on character)</li>
+      <li>✅ Scrollable conversation viewport (mouse wheel, scrollbar drag)</li>
+      <li>✅ Fixed UI elements (controls, buttons, save stay in place)</li>
+      <li>✅ Expandable text boxes (small → large on click)</li>
+      <li>✅ Text editing mode (keyboard input)</li>
+      <li>✅ Per-line text effects (each line has own effect/speed)</li>
+      <li>✅ Default settings controls (for new lines)</li>
+      <li>✅ Save button (exports dialogue data with per-line settings)</li>
+      <li>✅ Spelling fixed (dialog → dialogue)</li>
+    </ul>
+  </div>
+
+  <!-- Load p5.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  
+  <!-- Load DialogCreationPanel component -->
+  <script>
+    // Mock logNormal for demo
+    function logNormal(msg) {
+      console.log('[LOG]', msg);
+    }
+    
+    /**
+     * DialogCreationPanel - Dialogue creation UI component
+     * 
+     * Specialized UI for creating character-based dialogue events
+     * Opens when user selects "Dialogue 💬" template in EventEditorPanel
+     * 
+     * @class DialogCreationPanel
+     */
+
+    class DialogCreationPanel {
+      /**
+       * Create dialog creation panel
+       * @param {number} x - Screen X position
+       * @param {number} y - Screen Y position
+       * @param {number} width - Panel width
+       * @param {number} height - Panel height
+       * @param {Object} eventData - Event object being edited
+       * @param {Object} eventManager - EventManager instance
+       */
+      constructor(x, y, width, height, eventData, eventManager) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.eventData = eventData;
+        this.eventManager = eventManager;
+        
+        // Sequential dialogue lines with order tracking
+        // Each line: { character: 1 or 2, text: "...", effect: "typewriter", scrollSpeed: 50 }
+        this.dialogueLines = [];
+        
+        // Selection state
+        this.selectedLineIndex = null;
+        this.expandedLineIndex = null;
+        
+        // Text editing state
+        this.isEditingText = false;
+        this.editBuffer = '';
+        this.cursorVisible = true;
+        this.cursorBlinkTimer = 0;
+        
+        // Default text effects configuration (for new lines)
+        this.defaultScrollSpeed = 50; // Characters per second (1-100)
+        this.defaultTextEffect = 'typewriter'; // 'typewriter', 'fade', 'instant'
+        
+        // UI state
+        this.isVisible = true;
+        this.title = 'Dialogue Creation';
+        
+        // Layout configuration
+        this.titleBarHeight = 40;
+        this.controlsHeight = 80; // New: Space for scroll speed and effects controls
+        this.padding = 20;
+        this.columnGap = 40; // Increased for staggered layout
+        this.collapsedLineHeight = 40; // Smaller collapsed size
+        this.expandedLineHeight = 100; // Larger expanded size
+        this.lineSpacing = 15; // Increased spacing for staggered effect
+        this.buttonHeight = 40;
+        this.buttonWidth = 60;
+        this.buttonSpacing = 10;
+        this.saveButtonHeight = 45;
+        this.saveButtonWidth = 150;
+        
+        // Per-line effect selector dimensions
+        this.effectButtonWidth = 35;
+        this.effectButtonHeight = 20;
+        this.effectButtonSpacing = 3;
+        
+        // Scrollable conversation viewport
+        this.scrollOffset = 0;
+        this.maxScrollOffset = 0;
+        this.scrollbarWidth = 12;
+        this.scrollbarDragging = false;
+        this.scrollbarDragOffset = 0;
+        
+        // Colors
+        this.bgColor = { r: 45, g: 45, b: 50, a: 240 };
+        this.borderColor = { r: 100, g: 100, b: 110, a: 255 };
+        this.titleBarColor = { r: 35, g: 35, b: 40, a: 255 };
+        this.columnHeaderColor = { r: 50, g: 50, b: 55, a: 255 };
+        this.lineBoxColor = { r: 30, g: 30, b: 35, a: 255 };
+        this.lineBoxBorder = { r: 100, g: 100, b: 110, a: 255 };
+        this.selectedBorder = { r: 60, g: 130, b: 200, a: 255 };
+        this.textColor = { r: 220, g: 220, b: 220, a: 255 };
+        this.addButtonColor = { r: 60, g: 130, b: 200, a: 255 };
+        this.removeButtonColor = { r: 200, g: 60, b: 60, a: 255 };
+        
+        // Button bounds (calculated during render)
+        this.addButton1Bounds = null;
+        this.removeButton1Bounds = null;
+        this.addButton2Bounds = null;
+        this.removeButton2Bounds = null;
+        this.saveButtonBounds = null;
+        
+        // Control bounds (for click detection)
+        this.scrollSpeedSliderBounds = null;
+        this.defaultEffectButtonBounds = [];
+        
+        // Line bounds (for click detection) - includes per-line effect buttons
+        this.lineBounds = [];
+        
+        // Scrollbar bounds
+        this.scrollbarBounds = null;
+        this.scrollbarThumbBounds = null;
+      }
+      
+      /**
+       * Render dialogue creation panel
+       */
+      render() {
+        if (!this.isVisible) {
+          return;
+        }
+        
+        push();
+        
+        // Panel background
+        fill(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
+        stroke(this.borderColor.r, this.borderColor.g, this.borderColor.b, this.borderColor.a);
+        strokeWeight(2);
+        rect(this.x, this.y, this.width, this.height, 5);
+        
+        // Title bar
+        this._renderTitleBar();
+        
+        // Render text effect controls
+        this._renderTextEffectControls();
+        
+        // Calculate layout dimensions
+        const contentY = this.y + this.titleBarHeight + this.controlsHeight + 10;
+        const contentHeight = this.height - this.titleBarHeight - this.controlsHeight - this.saveButtonHeight - this.buttonHeight - this.padding * 4;
+        
+        // Render scrollable dialogue area with clipping
+        this._renderScrollableDialogue(contentY, contentHeight);
+        
+        // Render add/remove buttons (fixed position)
+        const buttonY = this.y + this.height - this.saveButtonHeight - this.buttonHeight - 15;
+        this._renderAddRemoveButtons(buttonY);
+        
+        // Render save button (fixed position)
+        this._renderSaveButton();
+        
+        pop();
+        
+        // Update cursor blink
+        this.cursorBlinkTimer += deltaTime / 1000;
+        if (this.cursorBlinkTimer > 0.5) {
+          this.cursorVisible = !this.cursorVisible;
+          this.cursorBlinkTimer = 0;
+        }
+      }
+      
+      /**
+       * Render title bar
+       * @private
+       */
+      _renderTitleBar() {
+        // Title bar background
+        fill(this.titleBarColor.r, this.titleBarColor.g, this.titleBarColor.b, this.titleBarColor.a);
+        noStroke();
+        rect(this.x, this.y, this.width, this.titleBarHeight, 5, 5, 0, 0);
+        
+        // Title text
+        fill(this.textColor.r, this.textColor.g, this.textColor.b, this.textColor.a);
+        textAlign(CENTER, CENTER);
+        textSize(16);
+        text(this.title, this.x + this.width / 2, this.y + this.titleBarHeight / 2);
+      }
+      
+      /**
+       * Render default text effect controls (used for new lines)
+       * @private
+       */
+      _renderTextEffectControls() {
+        const controlsY = this.y + this.titleBarHeight + 10;
+        const controlsX = this.x + this.padding;
+        
+        // Scroll Speed Label
+        fill(this.textColor.r, this.textColor.g, this.textColor.b);
+        textAlign(LEFT, TOP);
+        textSize(12);
+        text('Default Scroll Speed:', controlsX, controlsY);
+        
+        // Scroll Speed Slider
+        const sliderX = controlsX + 150;
+        const sliderY = controlsY;
+        const sliderWidth = 150;
+        const sliderHeight = 20;
+        
+        // Slider background
+        fill(this.lineBoxColor.r, this.lineBoxColor.g, this.lineBoxColor.b);
+        stroke(this.lineBoxBorder.r, this.lineBoxBorder.g, this.lineBoxBorder.b);
+        strokeWeight(1);
+        rect(sliderX, sliderY, sliderWidth, sliderHeight, 3);
+        
+        // Slider fill (based on speed value)
+        const fillWidth = (this.defaultScrollSpeed / 100) * sliderWidth;
+        fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b);
+        noStroke();
+        rect(sliderX, sliderY, fillWidth, sliderHeight, 3);
+        
+        // Slider value text
+        fill(this.textColor.r, this.textColor.g, this.textColor.b);
+        textAlign(LEFT, TOP);
+        text(`${this.defaultScrollSpeed} ch/s`, sliderX + sliderWidth + 10, controlsY);
+        
+        // Store slider bounds
+        this.scrollSpeedSliderBounds = { x: sliderX, y: sliderY, width: sliderWidth, height: sliderHeight };
+        
+        // Text Effect Label
+        const effectLabelY = controlsY + 35;
+        text('Default Effect:', controlsX, effectLabelY);
+        
+        // Effect buttons
+        const effects = ['typewriter', 'fade', 'instant'];
+        const effectButtonY = effectLabelY;
+        const effectButtonX = controlsX + 150;
+        const effectButtonWidth = 90;
+        const effectButtonHeight = 25;
+        const effectButtonSpacing = 5;
+        
+        this.defaultEffectButtonBounds = [];
+        
+        effects.forEach((effect, index) => {
+          const btnX = effectButtonX + (effectButtonWidth + effectButtonSpacing) * index;
+          const isSelected = this.defaultTextEffect === effect;
+          
+          // Button background
+          if (isSelected) {
+            fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b);
+          } else {
+            fill(this.lineBoxColor.r, this.lineBoxColor.g, this.lineBoxColor.b);
+          }
+          stroke(this.lineBoxBorder.r, this.lineBoxBorder.g, this.lineBoxBorder.b);
+          strokeWeight(1);
+          rect(btnX, effectButtonY, effectButtonWidth, effectButtonHeight, 3);
+          
+          // Button text
+          fill(isSelected ? 255 : this.textColor.r, isSelected ? 255 : this.textColor.g, isSelected ? 255 : this.textColor.b);
+          textAlign(CENTER, CENTER);
+          textSize(11);
+          text(effect, btnX + effectButtonWidth / 2, effectButtonY + effectButtonHeight / 2);
+          
+          // Store bounds
+          this.defaultEffectButtonBounds.push({
+            x: btnX,
+            y: effectButtonY,
+            width: effectButtonWidth,
+            height: effectButtonHeight,
+            effect: effect
+          });
+        });
+      }
+      
+      /**
+       * Render scrollable dialogue area with clipping
+       * @private
+       */
+      _renderScrollableDialogue(startY, availableHeight) {
+        // Calculate total content height
+        let totalContentHeight = 0;
+        this.dialogueLines.forEach((line, index) => {
+          const isExpanded = this.expandedLineIndex === index;
+          const lineHeight = isExpanded ? this.expandedLineHeight : this.collapsedLineHeight;
+          totalContentHeight += lineHeight + this.lineSpacing;
+        });
+        
+        // Update max scroll offset
+        this.maxScrollOffset = Math.max(0, totalContentHeight - availableHeight);
+        this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.maxScrollOffset));
+        
+        // Define viewport bounds
+        const viewportX = this.x + this.padding;
+        const viewportY = startY;
+        const viewportWidth = this.width - this.padding * 2 - this.scrollbarWidth - 5;
+        const viewportHeight = availableHeight;
+        
+        // Render viewport background
+        fill(this.lineBoxColor.r - 5, this.lineBoxColor.g - 5, this.lineBoxColor.b - 5);
+        noStroke();
+        rect(viewportX, viewportY, viewportWidth, viewportHeight, 5);
+        
+        // Enable clipping for scrollable area
+        push();
+        // Use drawingContext for clipping (p5.js doesn't have built-in clip rect)
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(viewportX, viewportY, viewportWidth, viewportHeight);
+        drawingContext.clip();
+        
+        // Render dialogue lines with scroll offset
+        this._renderStaggeredDialogue(viewportY - this.scrollOffset, viewportWidth);
+        
+        drawingContext.restore();
+        pop();
+        
+        // Render scrollbar
+        this._renderScrollbar(viewportX + viewportWidth + 5, viewportY, viewportHeight, totalContentHeight);
+      }
+      
+      /**
+       * Render sequential dialogue lines with staggered layout
+       * @private
+       */
+      _renderStaggeredDialogue(startY, viewportWidth) {
+        this.lineBounds = [];
+        
+        // Calculate staggered positions
+        const boxWidth = (viewportWidth - this.columnGap) / 2;
+        const leftX = this.x + this.padding;
+        const rightX = this.x + this.padding + viewportWidth - boxWidth;
+        
+        let currentY = startY;
+        
+        // Render lines in sequential order
+        this.dialogueLines.forEach((line, index) => {
+          const isExpanded = this.expandedLineIndex === index;
+          const lineHeight = isExpanded ? this.expandedLineHeight : this.collapsedLineHeight;
+          
+          // Position based on character (1 = left, 2 = right)
+          const lineX = line.character === 1 ? leftX : rightX;
+          
+          this._renderDialogueLine(line, index, lineX, currentY, boxWidth, lineHeight, isExpanded);
+          
+          this.lineBounds.push({
+            x: lineX,
+            y: currentY,
+            width: boxWidth,
+            height: lineHeight,
+            index: index
+          });
+          
+          currentY += lineHeight + this.lineSpacing;
+        });
+      }
+      
+      /**
+       * Render scrollbar
+       * @private
+       */
+      _renderScrollbar(x, y, height, contentHeight) {
+        // Only show scrollbar if content overflows
+        if (this.maxScrollOffset <= 0) {
+          this.scrollbarBounds = null;
+          this.scrollbarThumbBounds = null;
+          return;
+        }
+        
+        // Scrollbar track
+        fill(this.lineBoxColor.r, this.lineBoxColor.g, this.lineBoxColor.b);
+        stroke(this.lineBoxBorder.r, this.lineBoxBorder.g, this.lineBoxBorder.b);
+        strokeWeight(1);
+        rect(x, y, this.scrollbarWidth, height, 3);
+        
+        // Calculate thumb size and position
+        const thumbHeight = Math.max(30, (height / contentHeight) * height);
+        const thumbY = y + (this.scrollOffset / this.maxScrollOffset) * (height - thumbHeight);
+        
+        // Scrollbar thumb
+        fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b);
+        noStroke();
+        rect(x + 2, thumbY, this.scrollbarWidth - 4, thumbHeight, 3);
+        
+        // Store bounds
+        this.scrollbarBounds = { x, y, width: this.scrollbarWidth, height };
+        this.scrollbarThumbBounds = { x: x + 2, y: thumbY, width: this.scrollbarWidth - 4, height: thumbHeight };
+      }
+      
+      /**
+       * Render individual dialogue line with per-line effect controls
+       * @private
+       * @param {Object} line - Line object {character, text, effect, scrollSpeed}
+       * @param {number} index - Line index in dialogueLines array
+       * @param {number} x - Line X position
+       * @param {number} y - Line Y position
+       * @param {number} width - Line width
+       * @param {number} height - Line height
+       * @param {boolean} isExpanded - Whether line is expanded for editing
+       */
+      _renderDialogueLine(line, index, x, y, width, height, isExpanded) {
+        // Line box background
+        fill(this.lineBoxColor.r, this.lineBoxColor.g, this.lineBoxColor.b, this.lineBoxColor.a);
+        
+        if (isExpanded) {
+          stroke(this.selectedBorder.r, this.selectedBorder.g, this.selectedBorder.b, this.selectedBorder.a);
+          strokeWeight(3);
+        } else {
+          stroke(this.lineBoxBorder.r, this.lineBoxBorder.g, this.lineBoxBorder.b, this.lineBoxBorder.a);
+          strokeWeight(1);
+        }
+        
+        rect(x, y, width, height, 5);
+        
+        // Character label (top left)
+        fill(this.textColor.r, this.textColor.g, this.textColor.b, 150);
+        textAlign(LEFT, TOP);
+        textSize(10);
+        text(`Character ${line.character}`, x + 8, y + 5);
+        
+        // Per-line effect controls (top right)
+        if (isExpanded) {
+          this._renderLineEffectControls(line, index, x, y, width);
+        } else {
+          // Show effect indicator when collapsed
+          fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b, 150);
+          textAlign(RIGHT, TOP);
+          textSize(9);
+          const effectIcon = line.effect === 'typewriter' ? '⌨' : (line.effect === 'fade' ? '✨' : '⚡');
+          text(`${effectIcon} ${line.scrollSpeed}ch/s`, x + width - 8, y + 5);
+        }
+        
+        // Line text
+        const displayText = isExpanded && this.isEditingText ? this.editBuffer : line.text;
+        
+        if (displayText && displayText.length > 0) {
+          fill(this.textColor.r, this.textColor.g, this.textColor.b, this.textColor.a);
+          textAlign(LEFT, TOP);
+          
+          if (isExpanded) {
+            // Expanded: larger text with wrapping (leave space for controls at top)
+            textSize(14);
+            const maxWidth = width - 20;
+            const lines = this._wrapText(displayText, maxWidth);
+            let textY = y + 45; // More space at top for controls
+            
+            lines.forEach(textLine => {
+              text(textLine, x + 10, textY);
+              textY += 18;
+            });
+            
+            // Cursor if editing
+            if (this.isEditingText && this.cursorVisible) {
+              const cursorX = x + 10 + textWidth(displayText.slice(displayText.lastIndexOf('\n') + 1));
+              stroke(this.textColor.r, this.textColor.g, this.textColor.b);
+              strokeWeight(2);
+              line(cursorX, textY - 16, cursorX, textY);
+            }
+          } else {
+            // Collapsed: single line with ellipsis
+            textSize(11);
+            const truncated = displayText.length > 35 ? displayText.substring(0, 35) + '...' : displayText;
+            text(truncated, x + 10, y + 22);
+          }
+        } else if (isExpanded) {
+          // Placeholder text
+          fill(this.textColor.r, this.textColor.g, this.textColor.b, 100);
+          textAlign(LEFT, TOP);
+          textSize(12);
+          text('Click to type dialogue...', x + 10, y + 45);
+        }
+      }
+      
+      /**
+       * Render per-line effect controls (expanded state only)
+       * @private
+       */
+      _renderLineEffectControls(line, index, x, y, width) {
+        const controlY = y + 18;
+        const controlStartX = x + 8;
+        
+        // Effect selector buttons
+        const effects = ['typewriter', 'fade', 'instant'];
+        const effectIcons = { typewriter: '⌨', fade: '✨', instant: '⚡' };
+        
+        effects.forEach((effect, idx) => {
+          const btnX = controlStartX + (this.effectButtonWidth + this.effectButtonSpacing) * idx;
+          const isSelected = line.effect === effect;
+          
+          // Button background
+          if (isSelected) {
+            fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b);
+          } else {
+            fill(this.lineBoxColor.r + 20, this.lineBoxColor.g + 20, this.lineBoxColor.b + 20);
+          }
+          stroke(this.lineBoxBorder.r, this.lineBoxBorder.g, this.lineBoxBorder.b);
+          strokeWeight(1);
+          rect(btnX, controlY, this.effectButtonWidth, this.effectButtonHeight, 2);
+          
+          // Button icon
+          fill(isSelected ? 255 : this.textColor.r, isSelected ? 255 : this.textColor.g, isSelected ? 255 : this.textColor.b);
+          textAlign(CENTER, CENTER);
+          textSize(10);
+          text(effectIcons[effect], btnX + this.effectButtonWidth / 2, controlY + this.effectButtonHeight / 2);
+          
+          // Store bounds for click detection
+          if (!this.lineBounds[index]) this.lineBounds[index] = {};
+          if (!this.lineBounds[index].effectButtons) this.lineBounds[index].effectButtons = [];
+          this.lineBounds[index].effectButtons.push({
+            x: btnX,
+            y: controlY,
+            width: this.effectButtonWidth,
+            height: this.effectButtonHeight,
+            effect: effect
+          });
+        });
+        
+        // Speed mini-slider (right side)
+        const sliderX = x + width - 70;
+        const sliderWidth = 60;
+        const sliderHeight = 10;
+        const sliderY = controlY + 5;
+        
+        // Slider background
+        fill(this.lineBoxColor.r + 20, this.lineBoxColor.g + 20, this.lineBoxColor.b + 20);
+        stroke(this.lineBoxBorder.r, this.lineBoxBorder.g, this.lineBoxBorder.b);
+        strokeWeight(1);
+        rect(sliderX, sliderY, sliderWidth, sliderHeight, 2);
+        
+        // Slider fill
+        const fillWidth = (line.scrollSpeed / 100) * sliderWidth;
+        fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b);
+        noStroke();
+        rect(sliderX, sliderY, fillWidth, sliderHeight, 2);
+        
+        // Speed label
+        fill(this.textColor.r, this.textColor.g, this.textColor.b);
+        textAlign(RIGHT, CENTER);
+        textSize(8);
+        text(`${line.scrollSpeed}`, sliderX - 3, sliderY + sliderHeight / 2);
+        
+        // Store slider bounds
+        if (!this.lineBounds[index]) this.lineBounds[index] = {};
+        this.lineBounds[index].speedSlider = {
+          x: sliderX,
+          y: sliderY,
+          width: sliderWidth,
+          height: sliderHeight
+        };
+      }
+      
+      /**
+       * Wrap text to fit within width
+       * @private
+       */
+      _wrapText(txt, maxWidth) {
+        const words = txt.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        words.forEach(word => {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          if (textWidth(testLine) > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        return lines;
+      }
+      
+      /**
+       * Render add/remove buttons (centered at bottom)
+       * @private
+       */
+      _renderAddRemoveButtons(buttonY) {
+        const centerX = this.x + this.width / 2;
+        
+        // Character 1 buttons (left side)
+        const char1AddX = centerX - this.buttonWidth * 2 - this.buttonSpacing * 2;
+        const char1RemoveX = centerX - this.buttonWidth - this.buttonSpacing;
+        
+        // Character 2 buttons (right side)
+        const char2AddX = centerX + this.buttonSpacing;
+        const char2RemoveX = centerX + this.buttonWidth + this.buttonSpacing * 2;
+        
+        // Labels
+        fill(this.textColor.r, this.textColor.g, this.textColor.b);
+        textAlign(CENTER, TOP);
+        textSize(11);
+        text('Char 1', char1AddX + this.buttonWidth, buttonY - 15);
+        text('Char 2', char2AddX + this.buttonWidth, buttonY - 15);
+        
+        // Character 1 Add button
+        fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b);
+        noStroke();
+        rect(char1AddX, buttonY, this.buttonWidth, this.buttonHeight, 5);
+        fill(255, 255, 255);
+        textAlign(CENTER, CENTER);
+        textSize(20);
+        text('+', char1AddX + this.buttonWidth / 2, buttonY + this.buttonHeight / 2);
+        
+        // Character 1 Remove button
+        fill(this.removeButtonColor.r, this.removeButtonColor.g, this.removeButtonColor.b);
+        rect(char1RemoveX, buttonY, this.buttonWidth, this.buttonHeight, 5);
+        fill(255, 255, 255);
+        text('−', char1RemoveX + this.buttonWidth / 2, buttonY + this.buttonHeight / 2);
+        
+        // Character 2 Add button
+        fill(this.addButtonColor.r, this.addButtonColor.g, this.addButtonColor.b);
+        rect(char2AddX, buttonY, this.buttonWidth, this.buttonHeight, 5);
+        fill(255, 255, 255);
+        text('+', char2AddX + this.buttonWidth / 2, buttonY + this.buttonHeight / 2);
+        
+        // Character 2 Remove button
+        fill(this.removeButtonColor.r, this.removeButtonColor.g, this.removeButtonColor.b);
+        rect(char2RemoveX, buttonY, this.buttonWidth, this.buttonHeight, 5);
+        fill(255, 255, 255);
+        text('−', char2RemoveX + this.buttonWidth / 2, buttonY + this.buttonHeight / 2);
+        
+        // Store bounds
+        this.addButton1Bounds = { x: char1AddX, y: buttonY, width: this.buttonWidth, height: this.buttonHeight };
+        this.removeButton1Bounds = { x: char1RemoveX, y: buttonY, width: this.buttonWidth, height: this.buttonHeight };
+        this.addButton2Bounds = { x: char2AddX, y: buttonY, width: this.buttonWidth, height: this.buttonHeight };
+        this.removeButton2Bounds = { x: char2RemoveX, y: buttonY, width: this.buttonWidth, height: this.buttonHeight };
+      }
+      
+      /**
+       * Render save button
+       * @private
+       */
+      _renderSaveButton() {
+        const buttonX = this.x + (this.width - this.saveButtonWidth) / 2;
+        const buttonY = this.y + this.height - this.saveButtonHeight - 10;
+        
+        // Save button background
+        fill(60, 180, 75); // Green
+        noStroke();
+        rect(buttonX, buttonY, this.saveButtonWidth, this.saveButtonHeight, 5);
+        
+        // Save button text
+        fill(255, 255, 255);
+        textAlign(CENTER, CENTER);
+        textSize(14);
+        text('💾 Save Dialogue', buttonX + this.saveButtonWidth / 2, buttonY + this.saveButtonHeight / 2);
+        
+        // Store bounds
+        this.saveButtonBounds = { x: buttonX, y: buttonY, width: this.saveButtonWidth, height: this.saveButtonHeight };
+      }
+      
+      /**
+       * Handle click events
+       * @param {number} x - Screen X coordinate
+       * @param {number} y - Screen Y coordinate
+       * @returns {boolean} True if click was consumed
+       */
+      handleClick(x, y) {
+        if (!this.isVisible) {
+          return false;
+        }
+        
+        // Check if click is within panel bounds
+        if (x < this.x || x > this.x + this.width || y < this.y || y > this.y + this.height) {
+          return false;
+        }
+        
+        // Check scrollbar thumb (start dragging)
+        if (this.scrollbarThumbBounds && this._pointInBounds(x, y, this.scrollbarThumbBounds)) {
+          this.scrollbarDragging = true;
+          this.scrollbarDragOffset = y - this.scrollbarThumbBounds.y;
+          return true;
+        }
+        
+        // Check scrollbar track (jump to position)
+        if (this.scrollbarBounds && this._pointInBounds(x, y, this.scrollbarBounds)) {
+          const relativeY = y - this.scrollbarBounds.y;
+          const scrollPercent = relativeY / this.scrollbarBounds.height;
+          this.scrollOffset = scrollPercent * this.maxScrollOffset;
+          this.scrollOffset = Math.max(0, Math.min(this.maxScrollOffset, this.scrollOffset));
+          return true;
+        }
+        
+        // Check save button
+        if (this._pointInBounds(x, y, this.saveButtonBounds)) {
+          this.saveDialogue();
+          return true;
+        }
+        
+        // Check add button 1 (adds character 1 line to END)
+        if (this._pointInBounds(x, y, this.addButton1Bounds)) {
+          this.addLine(1);
+          return true;
+        }
+        
+        // Check remove button 1 (removes LAST character 1 line)
+        if (this._pointInBounds(x, y, this.removeButton1Bounds)) {
+          this.removeLastLine(1);
+          return true;
+        }
+        
+        // Check add button 2 (adds character 2 line to END)
+        if (this._pointInBounds(x, y, this.addButton2Bounds)) {
+          this.addLine(2);
+          return true;
+        }
+        
+        // Check remove button 2 (removes LAST character 2 line)
+        if (this._pointInBounds(x, y, this.removeButton2Bounds)) {
+          this.removeLastLine(2);
+          return true;
+        }
+        
+        // Check default scroll speed slider
+        if (this._pointInBounds(x, y, this.scrollSpeedSliderBounds)) {
+          const relX = x - this.scrollSpeedSliderBounds.x;
+          this.defaultScrollSpeed = Math.floor((relX / this.scrollSpeedSliderBounds.width) * 100);
+          this.defaultScrollSpeed = Math.max(1, Math.min(100, this.defaultScrollSpeed));
+          logNormal(`Default scroll speed set to: ${this.defaultScrollSpeed} ch/s`);
+          return true;
+        }
+        
+        // Check default effect buttons
+        for (let btn of this.defaultEffectButtonBounds) {
+          if (this._pointInBounds(x, y, btn)) {
+            this.defaultTextEffect = btn.effect;
+            logNormal(`Default text effect set to: ${this.defaultTextEffect}`);
+            return true;
+          }
+        }
+        
+        // Check dialogue line clicks
+        for (let bounds of this.lineBounds) {
+          // Check per-line effect buttons (if expanded)
+          if (bounds.effectButtons) {
+            for (let effectBtn of bounds.effectButtons) {
+              if (this._pointInBounds(x, y, effectBtn)) {
+                this.dialogueLines[bounds.index].effect = effectBtn.effect;
+                logNormal(`Line ${bounds.index} effect set to: ${effectBtn.effect}`);
+                return true;
+              }
+            }
+          }
+          
+          // Check per-line speed slider (if expanded)
+          if (bounds.speedSlider && this._pointInBounds(x, y, bounds.speedSlider)) {
+            const relX = x - bounds.speedSlider.x;
+            const newSpeed = Math.floor((relX / bounds.speedSlider.width) * 100);
+            this.dialogueLines[bounds.index].scrollSpeed = Math.max(1, Math.min(100, newSpeed));
+            logNormal(`Line ${bounds.index} speed set to: ${this.dialogueLines[bounds.index].scrollSpeed} ch/s`);
+            return true;
+          }
+          
+          // Check line box itself (expand/edit)
+          if (this._pointInBounds(x, y, bounds)) {
+            this.expandLine(bounds.index);
+            return true;
+          }
+        }
+        
+        return true;
+      }
+      
+      /**
+       * Handle keyboard input for text editing
+       */
+      handleKeyPress(key) {
+        if (!this.isEditingText) return;
+        
+        if (key === 'Enter') {
+          // Save the edited text
+          this.saveEditedText();
+        } else if (key === 'Escape') {
+          // Cancel editing
+          this.isEditingText = false;
+          this.expandedCharacter = null;
+          this.expandedLineIndex = null;
+        } else if (key === 'Backspace') {
+          // Remove last character
+          if (this.editBuffer.length > 0) {
+            this.editBuffer = this.editBuffer.slice(0, -1);
+          }
+        } else if (key.length === 1) {
+          // Add character to buffer
+          this.editBuffer += key;
+        }
+      }
+      
+      /**
+       * Check if point is within bounds
+       * @private
+       */
+      _pointInBounds(x, y, bounds) {
+        if (!bounds) return false;
+        return x >= bounds.x && x <= bounds.x + bounds.width &&
+               y >= bounds.y && y <= bounds.y + bounds.height;
+      }
+      
+      /**
+       * Add dialogue line to character (appends to END of sequence)
+       */
+      addLine(characterNum) {
+        const sampleTexts = [
+          "Hello there!",
+          "How are you today?",
+          "I'm doing well, thanks!",
+          "That's great to hear!",
+          "What brings you here?",
+          "Just exploring around.",
+          "Need any help?",
+          "No, I'm fine for now.",
+          "Let me know if you do!",
+          "Will do, thanks!"
+        ];
+        
+        const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+        
+        // Add to end with default settings
+        this.dialogueLines.push({
+          character: characterNum,
+          text: randomText,
+          effect: this.defaultTextEffect,
+          scrollSpeed: this.defaultScrollSpeed
+        });
+        
+        logNormal(`Added character ${characterNum} line at position ${this.dialogueLines.length - 1}: "${randomText}"`);
+      }
+      
+      /**
+       * Remove last dialogue line for given character
+       */
+      removeLastLine(characterNum) {
+        // Find last line for this character
+        let lastIndex = -1;
+        for (let i = this.dialogueLines.length - 1; i >= 0; i--) {
+          if (this.dialogueLines[i].character === characterNum) {
+            lastIndex = i;
+            break;
+          }
+        }
+        
+        if (lastIndex >= 0) {
+          this.dialogueLines.splice(lastIndex, 1);
+          logNormal(`Removed last line for character ${characterNum}`);
+          
+          // Clear selection if removed
+          if (this.expandedLineIndex === lastIndex) {
+            this.expandedLineIndex = null;
+            this.isEditingText = false;
+          } else if (this.expandedLineIndex !== null && this.expandedLineIndex > lastIndex) {
+            // Adjust index if after removed line
+            this.expandedLineIndex--;
+          }
+        }
+      }
+      
+      /**
+       * Expand dialogue line for editing
+       */
+      expandLine(index) {
+        // If clicking the same line, toggle edit mode
+        if (this.expandedLineIndex === index) {
+          this.isEditingText = !this.isEditingText;
+          if (this.isEditingText) {
+            this.editBuffer = this.dialogueLines[index].text || '';
+            logNormal(`Editing line ${index}`);
+          }
+        } else {
+          // Expand different line
+          this.expandedLineIndex = index;
+          this.isEditingText = true;
+          this.editBuffer = this.dialogueLines[index].text || '';
+          logNormal(`Expanded line ${index}`);
+        }
+      }
+      
+      /**
+       * Save edited text
+       */
+      saveEditedText() {
+        if (this.expandedLineIndex !== null) {
+          this.dialogueLines[this.expandedLineIndex].text = this.editBuffer;
+          logNormal(`Saved edited text: "${this.editBuffer}"`);
+        }
+        
+        this.isEditingText = false;
+        this.expandedLineIndex = null;
+      }
+      
+      /**
+       * Save dialogue configuration
+       */
+      saveDialogue() {
+        const dialogueData = {
+          dialogueLines: this.dialogueLines,
+          metadata: {
+            totalLines: this.dialogueLines.length,
+            character1Count: this.dialogueLines.filter(l => l.character === 1).length,
+            character2Count: this.dialogueLines.filter(l => l.character === 2).length
+          }
+        };
+        
+        logNormal('Dialogue saved!');
+        console.log('Dialogue Data:', dialogueData);
+        alert(`Dialogue saved!\n\nTotal lines: ${dialogueData.metadata.totalLines}\nCharacter 1: ${dialogueData.metadata.character1Count} lines\nCharacter 2: ${dialogueData.metadata.character2Count} lines`);
+        
+        return dialogueData;
+      }
+      
+      /**
+       * Get interleaved dialogue lines for export
+       * @private
+       */
+      _getInterleavedLines() {
+        const lines = [];
+        const maxLength = Math.max(this.character1Lines.length, this.character2Lines.length);
+        
+        for (let i = 0; i < maxLength; i++) {
+          if (i < this.character1Lines.length) {
+            lines.push({
+              character: 1,
+              text: this.character1Lines[i],
+              scrollSpeed: this.scrollSpeed,
+              effect: this.textEffect
+            });
+          }
+          
+          if (i < this.character2Lines.length) {
+            lines.push({
+              character: 2,
+              text: this.character2Lines[i],
+              scrollSpeed: this.scrollSpeed,
+              effect: this.textEffect
+            });
+          }
+        }
+        
+        return lines;
+      }
+      
+      /**
+       * Handle mouse drag (for scrollbar)
+       */
+      handleMouseDrag(x, y) {
+        if (!this.scrollbarDragging || !this.scrollbarBounds) return;
+        
+        const relativeY = y - this.scrollbarBounds.y - this.scrollbarDragOffset;
+        const availableTrackHeight = this.scrollbarBounds.height - this.scrollbarThumbBounds.height;
+        const scrollPercent = relativeY / availableTrackHeight;
+        
+        this.scrollOffset = scrollPercent * this.maxScrollOffset;
+        this.scrollOffset = Math.max(0, Math.min(this.maxScrollOffset, this.scrollOffset));
+      }
+      
+      /**
+       * Handle mouse release (stop scrollbar dragging)
+       */
+      handleMouseRelease() {
+        this.scrollbarDragging = false;
+      }
+      
+      /**
+       * Handle mouse wheel (scroll content)
+       */
+      handleMouseWheel(delta) {
+        if (!this.isVisible) return;
+        
+        const scrollSpeed = 30;
+        this.scrollOffset += delta * scrollSpeed;
+        this.scrollOffset = Math.max(0, Math.min(this.maxScrollOffset, this.scrollOffset));
+      }
+    }
+  </script>
+  
+  <!-- p5.js sketch -->
+  <script>
+    let dialogPanel;
+    
+    function setup() {
+      let canvas = createCanvas(900, 700);
+      canvas.parent('canvasContainer');
+      
+      // Create mock event data and manager
+      const mockEventData = {
+        id: 'event_dialogue_demo',
+        type: 'dialogue',
+        content: {}
+      };
+      
+      const mockEventManager = {
+        updateEvent: () => true
+      };
+      
+      // Create dialog creation panel centered
+      const panelWidth = 700;
+      const panelHeight = 650;
+      const panelX = (width - panelWidth) / 2;
+      const panelY = (height - panelHeight) / 2;
+      
+      dialogPanel = new DialogCreationPanel(
+        panelX, 
+        panelY, 
+        panelWidth, 
+        panelHeight, 
+        mockEventData, 
+        mockEventManager
+      );
+      
+      // Add some initial dialogue lines for demo (sequential order) - enough to test scrolling
+      dialogPanel.dialogueLines = [
+        { character: 1, text: "Hello there!", effect: "typewriter", scrollSpeed: 50 },
+        { character: 2, text: "I'm doing great, thanks for asking!", effect: "fade", scrollSpeed: 60 },
+        { character: 1, text: "How are you doing today?", effect: "typewriter", scrollSpeed: 50 },
+        { character: 2, text: "Just exploring the world.", effect: "typewriter", scrollSpeed: 50 },
+        { character: 1, text: "That sounds wonderful!", effect: "fade", scrollSpeed: 55 },
+        { character: 2, text: "Would you like to join me?", effect: "typewriter", scrollSpeed: 50 },
+        { character: 1, text: "Sure! Where are we going?", effect: "instant", scrollSpeed: 80 },
+        { character: 2, text: "To the ancient ruins nearby.", effect: "typewriter", scrollSpeed: 50 },
+        { character: 1, text: "I've heard stories about that place.", effect: "fade", scrollSpeed: 45 },
+        { character: 2, text: "The legends say there's treasure hidden there.", effect: "typewriter", scrollSpeed: 50 }
+      ];
+    }
+    
+    function draw() {
+      // Gradient background
+      background(30, 40, 60);
+      
+      // Render dialog panel
+      dialogPanel.render();
+    }
+    
+    function mousePressed() {
+      dialogPanel.handleClick(mouseX, mouseY);
+    }
+    
+    function mouseDragged() {
+      dialogPanel.handleMouseDrag(mouseX, mouseY);
+    }
+    
+    function mouseReleased() {
+      dialogPanel.handleMouseRelease();
+    }
+    
+    function mouseWheel(event) {
+      dialogPanel.handleMouseWheel(event.delta);
+      return false; // Prevent page scroll
+    }
+    
+    function keyPressed() {
+      // Handle special keys
+      if (key === 'Enter') {
+        dialogPanel.handleKeyPress('Enter');
+        return false; // Prevent default
+      } else if (key === 'Escape') {
+        dialogPanel.handleKeyPress('Escape');
+        return false;
+      } else if (keyCode === BACKSPACE) {
+        dialogPanel.handleKeyPress('Backspace');
+        return false; // Prevent default navigation
+      }
+    }
+    
+    function keyTyped() {
+      // Handle printable characters
+      if (dialogPanel.isEditingText && key.length === 1) {
+        dialogPanel.handleKeyPress(key);
+        return false; // Prevent default
+      }
+    }
+  </script>
+</body>
+</html>
