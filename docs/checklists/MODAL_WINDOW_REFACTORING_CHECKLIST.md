@@ -267,26 +267,53 @@ if (this._validationError) {
 - [x] Document method signatures
 - [x] List affected test files
 
-### ⬜ Step 1.2: Design New API
-- [ ] Define new `Dialog` base class methods
-- [ ] Define configuration objects for new methods
-- [ ] Plan backward compatibility strategy
-- [ ] Document migration path for subclasses
+### ✅ Step 1.2: Design New API
+- [x] Define new `Dialog` base class methods ✓
+- [x] Define configuration objects for new methods ✓
+- [x] Plan backward compatibility strategy ✓
+- [x] Document migration path for subclasses ✓
 
 **Deliverables:**
-- API design document with method signatures
-- Configuration object schemas
-- Migration guide outline
+- ✅ **New Helper Methods** (to be added to Dialog):
+  - `renderOverlay(buffer, opacity=180)` - Modal overlay
+  - `renderButton(buffer, config)` - Button rendering
+  - `renderInputField(buffer, config)` - Input field rendering
+  - `isPointInBounds(x, y, bounds)` - Bounds checking
+  - `renderValidationError(buffer, error, x, y)` - Error display
+- ✅ **Backward Compatibility**: All existing methods preserved, new methods are additions only
+- ✅ **Migration Strategy**: Incremental - subclasses can adopt helpers one at a time
 
 ---
 
-## Phase 2: Write Tests FIRST (2 hours)
+## Phase 2: Write Tests FIRST (2 hours) - **STARTING NOW** ⚡
 
-### ⬜ Step 2.1: Unit Tests for Dialog Base Class
-**File:** `test/unit/ui/Dialog.test.js` (create if doesn't exist)
+---
+
+## Phase 2: Write Tests FIRST (2 hours) - ✅ **COMPLETE**
+
+### ✅ Step 2.1: Unit Tests for Dialog Base Class
+**File:** `test/unit/ui/Dialog.helpers.test.js` ✓ Created
 
 Write tests for NEW methods:
-- [ ] `getCenteredCoordinates()` - returns {x, y}
+- [x] `renderOverlay()` - 5 tests (opacity, dimensions, graceful failures)
+- [x] `renderButton()` - 6 tests (enabled/disabled, primary, bounds, null handling)
+- [x] `renderInputField()` - 7 tests (active/inactive, placeholder, suffix, bounds)
+- [x] `isPointInBounds()` - 4 tests (inside/outside, edges, negative coords)
+- [x] `renderValidationError()` - 6 tests (red text, alignment, empty, null handling)
+- [x] Integration test - 1 test (using all helpers together)
+- [x] Backward compatibility - 2 tests (existing methods/properties preserved)
+
+**Result:** ✅ **29 tests written** - All failing as expected (TDD)
+
+---
+
+## Phase 3: Implement Base Class Helper Methods (2 hours) - **STARTING NOW** ⚡
+
+### ⬜ Step 3.1: Implement Helper Methods in Dialog.js
+**File:** `Classes/ui/_baseObjects/modalWindow/Dialog.js`
+
+Add NEW methods (keep existing methods intact):
+- [ ] `renderOverlay(buffer, opacity=180)` - Modal overlay rendering
 - [ ] `center()` - updates this.x and this.y
 - [ ] `renderOverlay(buffer, opacity)` - renders to buffer
 - [ ] `isPointInBounds(x, y, bounds)` - returns boolean
