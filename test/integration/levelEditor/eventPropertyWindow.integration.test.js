@@ -28,7 +28,7 @@ global.document = dom.window.document;
 
 // Import systems
 const EventManager = require('../../../Classes/managers/EventManager');
-const EventPropertyWindow = require('../../../Classes/ui/EventPropertyWindow');
+const EventPropertyWindow = require('../../../Classes/ui/eventTemplates/EventPropertyWindow');
 
 describe('EventPropertyWindow + LevelEditor Integration Tests', function() {
   let sandbox;

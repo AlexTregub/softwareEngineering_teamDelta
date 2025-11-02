@@ -1204,8 +1204,8 @@ describe('Infinite Canvas Rendering Integration', function() {
     
     // Load classes
     const SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
-    const DynamicGridOverlay = require('../../../Classes/ui/DynamicGridOverlay');
-    const DynamicMinimap = require('../../../Classes/ui/DynamicMinimap');
+    const DynamicGridOverlay = require('../../../Classes/ui/_baseObjects/grids/DynamicGridOverlay');
+    const DynamicMinimap = require('../../../Classes/ui/_baseObjects/minimap/DynamicMinimap');
     
     // Create integrated system
     terrain = new SparseTerrain(32, 'grass');
@@ -1466,8 +1466,8 @@ describe('Infinite Canvas Rendering Integration', function() {
       
       // Clear and import
       const SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
-      const DynamicGridOverlay = require('../../../Classes/ui/DynamicGridOverlay');
-      const DynamicMinimap = require('../../../Classes/ui/DynamicMinimap');
+      const DynamicGridOverlay = require('../../../Classes/ui/_baseObjects/grids/DynamicGridOverlay');
+      const DynamicMinimap = require('../../../Classes/ui/_baseObjects/minimap/DynamicMinimap');
       
       const newTerrain = new SparseTerrain();
       newTerrain.importFromJSON(json);

@@ -44,13 +44,13 @@ describe('EntityPalette UI Integration', function() {
 
     // Load REAL CategoryRadioButtons (not mocked)
     delete require.cache[require.resolve('../../../Classes/ui/CategoryRadioButtons.js')];
-    CategoryRadioButtons = require('../../../Classes/ui/CategoryRadioButtons.js');
+    CategoryRadioButtons = require('../../../Classes/ui/UIComponents/radioButton/CategoryRadioButtons.js');
     global.CategoryRadioButtons = CategoryRadioButtons;
     window.CategoryRadioButtons = CategoryRadioButtons;
 
     // Load REAL EntityPalette
-    delete require.cache[require.resolve('../../../Classes/ui/EntityPalette.js')];
-    EntityPalette = require('../../../Classes/ui/EntityPalette.js');
+    delete require.cache[require.resolve('../../../Classes/ui/painter/entity/EntityPalette.js')];
+    EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette.js');
   });
 
   afterEach(function() {

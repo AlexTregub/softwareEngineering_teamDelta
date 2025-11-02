@@ -71,7 +71,7 @@ describe('MaterialPalette - Image Offset Bug (Integration)', function() {
     }
     
     // Load MaterialPalette
-    const MaterialPalette = require('../../../Classes/ui/MaterialPalette');
+    const MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
     
     // Create palette with materials
     palette = new MaterialPalette(['moss', 'moss_0', 'stone']);

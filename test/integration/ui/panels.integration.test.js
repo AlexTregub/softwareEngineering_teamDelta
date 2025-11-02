@@ -860,11 +860,11 @@ describe('ScrollableContentArea Integration Tests', function() {
     global.CENTER = mockP5.CENTER;
     
     // Load REAL ScrollIndicator
-    const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+    const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
     global.ScrollIndicator = ScrollIndicator;
     
     // Load ScrollableContentArea
-    const ScrollableContentArea = require('../../../Classes/ui/ScrollableContentArea');
+    const ScrollableContentArea = require('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea');
     contentArea = new ScrollableContentArea({
       width: 300,
       height: 600,
@@ -885,14 +885,14 @@ describe('ScrollableContentArea Integration Tests', function() {
     });
     
     it('should pass indicator height from options', function() {
-      const ScrollableContentArea = require('../../../Classes/ui/ScrollableContentArea');
+      const ScrollableContentArea = require('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea');
       const custom = new ScrollableContentArea({ indicatorHeight: 30 });
       
       expect(custom.scrollIndicator.height).to.equal(30);
     });
     
     it('should pass indicator colors from options', function() {
-      const ScrollableContentArea = require('../../../Classes/ui/ScrollableContentArea');
+      const ScrollableContentArea = require('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea');
       const custom = new ScrollableContentArea({
         indicatorBg: [100, 100, 100],
         indicatorArrow: [255, 0, 0]
@@ -1362,7 +1362,7 @@ describe('ScrollIndicator Integration Tests', function() {
     window.CENTER = global.CENTER;
     
     // Load ScrollIndicator
-    const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+    const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
     indicator = new ScrollIndicator();
   });
   
@@ -1565,7 +1565,7 @@ describe('ScrollIndicator Integration Tests', function() {
     });
     
     it('should account for custom height in total calculation', function() {
-      const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+      const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
       const customIndicator = new ScrollIndicator({ height: 30 });
       
       // No scroll
@@ -1581,7 +1581,7 @@ describe('ScrollIndicator Integration Tests', function() {
   
   describe('Custom Configuration', function() {
     it('should use custom colors when configured', function() {
-      const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+      const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
       const customIndicator = new ScrollIndicator({
         backgroundColor: [100, 100, 100],
         arrowColor: [255, 0, 0],
@@ -1613,7 +1613,7 @@ describe('ScrollIndicator Integration Tests', function() {
     });
     
     it('should use custom fontSize when configured', function() {
-      const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+      const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
       const customIndicator = new ScrollIndicator({ fontSize: 18 });
       
       mockP5.textSize.resetHistory();
@@ -1623,7 +1623,7 @@ describe('ScrollIndicator Integration Tests', function() {
     });
     
     it('should use custom height in rendering', function() {
-      const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+      const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
       const customIndicator = new ScrollIndicator({ height: 30 });
       
       mockP5.rect.resetHistory();
@@ -1684,7 +1684,7 @@ describe('ScrollIndicator Integration Tests', function() {
 
 // Import real classes
 let CacheManager = require('../../../Classes/rendering/CacheManager.js');
-let UIObject = require('../../../Classes/ui/UIObject.js');
+let UIObject = require('../../../Classes/ui/_baseObjects/UIObject.js');
 
 describe('UIObject Integration Tests', function() {
   let sandbox;
@@ -2156,7 +2156,7 @@ describe('PropertiesPanel Integration Tests', function() {
     }
 
     // Load classes
-    PropertiesPanel = require('../../../Classes/ui/PropertiesPanel');
+    PropertiesPanel = require('../../../Classes/ui/levelEditor/panels/PropertiesPanel');
     CustomTerrain = require('../../../Classes/terrainUtils/CustomTerrain');
     TerrainEditor = require('../../../Classes/terrainUtils/TerrainEditor');
 

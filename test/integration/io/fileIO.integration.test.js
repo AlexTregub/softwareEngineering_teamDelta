@@ -46,7 +46,7 @@ describe('Brush Size Menu - Integration Tests', function() {
     
     // Load modules
     const LevelEditor = require('../../../Classes/systems/ui/LevelEditor');
-    const BrushSizeMenuModule = require('../../../Classes/ui/menuBar/BrushSizeMenuModule');
+    const BrushSizeMenuModule = require('../../../Classes/ui/_baseObjects/bar/menuBar/BrushSizeMenuModule');
     
     // Create instances
     terrainEditor = new TerrainEditor();
@@ -227,7 +227,7 @@ describe('Brush Size Scroll - Integration Tests', function() {
     
     // Load modules
     const LevelEditor = require('../../../Classes/systems/ui/LevelEditor');
-    const BrushSizeMenuModule = require('../../../Classes/ui/menuBar/BrushSizeMenuModule');
+    const BrushSizeMenuModule = require('../../../Classes/ui/_baseObjects/bar/menuBar/BrushSizeMenuModule');
     
     // Create instances
     terrainEditor = new TerrainEditor();
@@ -725,13 +725,13 @@ global.window = dom.window;
 global.document = dom.window.document;
 
 // Load all required classes
-// DUPLICATE REQUIRE REMOVED: let fileMenuBarCode = fs.readFileSync(path.join(__dirname, '../../../Classes/ui/FileMenuBar.js'), 'utf8');
+// DUPLICATE REQUIRE REMOVED: let fileMenuBarCode = fs.readFileSync(path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js'), 'utf8');
 let saveDialogCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/SaveDialog.js'),
+  path.join(__dirname, '../../../Classes/ui/levelEditor/fileIO/SaveDialog.js'),
   'utf8'
 );
 let loadDialogCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/LoadDialog.js'),
+  path.join(__dirname, '../../../Classes/ui/levelEditor/fileIO/LoadDialog.js'),
   'utf8'
 );
 

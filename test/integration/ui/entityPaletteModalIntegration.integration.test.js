@@ -60,7 +60,7 @@ global.localStorage = localStorageMock;
 window.localStorage = localStorageMock;
 
 // Load classes
-const ModalDialog = require('../../../Classes/ui/ModalDialog.js');
+const ModalDialog = require('../../../Classes/ui/_baseObjects/modalWindow/ModalDialog.js');
 global.ModalDialog = ModalDialog;
 window.ModalDialog = ModalDialog;
 
@@ -98,7 +98,7 @@ global.CategoryRadioButtons = class CategoryRadioButtons {
 };
 window.CategoryRadioButtons = global.CategoryRadioButtons;
 
-const EntityPalette = require('../../../Classes/ui/EntityPalette.js');
+const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette.js');
 
 describe('EntityPalette - Modal Integration', function() {
   let palette;

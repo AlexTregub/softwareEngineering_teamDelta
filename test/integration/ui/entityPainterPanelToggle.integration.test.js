@@ -79,17 +79,17 @@ describe('Entity Painter Panel Toggle - Integration Tests', function() {
     
     // Load dependencies with cache clearing
     delete require.cache[require.resolve('../../../Classes/ui/ScrollIndicator')];
-    delete require.cache[require.resolve('../../../Classes/ui/ScrollableContentArea')];
-    delete require.cache[require.resolve('../../../Classes/ui/LevelEditorSidebar')];
+    delete require.cache[require.resolve('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea')];
+    delete require.cache[require.resolve('../../../Classes/ui/levelEditor/panels/LevelEditorSidebar')];
     delete require.cache[require.resolve('../../../Classes/systems/ui/DraggablePanel')];
     delete require.cache[require.resolve('../../../Classes/systems/ui/DraggablePanelManager')];
     delete require.cache[require.resolve('../../../Classes/systems/ui/LevelEditorPanels')];
-    delete require.cache[require.resolve('../../../Classes/ui/EntityPalette')];
-    delete require.cache[require.resolve('../../../Classes/ui/FileMenuBar')];
+    delete require.cache[require.resolve('../../../Classes/ui/painter/entity/EntityPalette')];
+    delete require.cache[require.resolve('../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar')];
     
-    const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
-    const ScrollableContentArea = require('../../../Classes/ui/ScrollableContentArea');
-    const LevelEditorSidebar = require('../../../Classes/ui/LevelEditorSidebar');
+    const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
+    const ScrollableContentArea = require('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea');
+    const LevelEditorSidebar = require('../../../Classes/ui/levelEditor/panels/LevelEditorSidebar');
     const DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel');
     
     global.ScrollIndicator = ScrollIndicator;
@@ -104,8 +104,8 @@ describe('Entity Painter Panel Toggle - Integration Tests', function() {
     
     DraggablePanelManager = require('../../../Classes/systems/ui/DraggablePanelManager');
     LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-    EntityPalette = require('../../../Classes/ui/EntityPalette');
-    FileMenuBar = require('../../../Classes/ui/FileMenuBar');
+    EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
+    FileMenuBar = require('../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar');
   });
   
   afterEach(function() {

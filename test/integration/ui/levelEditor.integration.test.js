@@ -716,9 +716,9 @@ describe('Fixed Panel Auto-Sizing Integration', function() {
 // ================================================================
 // Import dependencies
 let DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel');
-let MaterialPalette = require('../../../Classes/ui/MaterialPalette');
-let ToolBar = require('../../../Classes/ui/ToolBar');
-let BrushSizeControl = require('../../../Classes/ui/BrushSizeControl');
+let MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
+let ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar');
+let BrushSizeControl = require('../../../Classes/ui/_baseObjects/brushes/BrushSizeControl');
 
 describe('Level Editor Panel Auto-Sizing Integration', function() {
   let mockP5Functions;
@@ -1395,9 +1395,9 @@ describe('Level Editor Panel Content Rendering Integration', function() {
     // Load required classes
     DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel.js');
     LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels.js');
-    MaterialPalette = require('../../../Classes/ui/MaterialPalette.js');
-    ToolBar = require('../../../Classes/ui/ToolBar.js');
-    BrushSizeControl = require('../../../Classes/ui/BrushSizeControl.js');
+    MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
+    ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar.js');
+    BrushSizeControl = require('../../../Classes/ui/_baseObjects/brushes/BrushSizeControl.js');
     
     // Set globals
     global.DraggablePanel = DraggablePanel;
@@ -1827,9 +1827,9 @@ describe('Level Editor Draggable Panels Integration Tests', function() {
     };
 
     // Load actual classes
-    MaterialPalette = require('../../../Classes/ui/MaterialPalette.js');
-    ToolBar = require('../../../Classes/ui/ToolBar.js');
-    BrushSizeControl = require('../../../Classes/ui/BrushSizeControl.js');
+    MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
+    ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar.js');
+    BrushSizeControl = require('../../../Classes/ui/_baseObjects/brushes/BrushSizeControl.js');
     DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel.js');
     DraggablePanelManager = require('../../../Classes/systems/ui/DraggablePanelManager.js');
     LevelEditor = require('../../../Classes/systems/ui/LevelEditor.js');
@@ -2330,15 +2330,15 @@ describe('LevelEditorSidebar Integration', function() {
     window.BOTTOM = global.BOTTOM;
     
     // Load classes (with dependencies)
-    ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+    ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
     window.ScrollIndicator = ScrollIndicator;
     global.ScrollIndicator = ScrollIndicator;
     
-    ScrollableContentArea = require('../../../Classes/ui/ScrollableContentArea');
+    ScrollableContentArea = require('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea');
     window.ScrollableContentArea = ScrollableContentArea;
     global.ScrollableContentArea = ScrollableContentArea;
     
-    LevelEditorSidebar = require('../../../Classes/ui/LevelEditorSidebar');
+    LevelEditorSidebar = require('../../../Classes/ui/levelEditor/panels/LevelEditorSidebar');
     window.LevelEditorSidebar = LevelEditorSidebar;
     
     // Create sidebar
@@ -2712,8 +2712,8 @@ describe('LevelEditor + Dialog Integration', function() {
         global.TILE_SIZE = 32;
 
         // Load required classes (simplified mocks for testing)
-        SaveDialog = require('../../../Classes/ui/SaveDialog.js');
-        LoadDialog = require('../../../Classes/ui/LoadDialog.js');
+        SaveDialog = require('../../../Classes/ui/levelEditor/fileIO/SaveDialog.js');
+        LoadDialog = require('../../../Classes/ui/levelEditor/fileIO/LoadDialog.js');
 
         // Mock LevelEditor with dialog integration
         LevelEditor = class {
@@ -2934,7 +2934,7 @@ global.document = dom.window.document;
 
 // Load FileMenuBar and mock dependencies
 let fileMenuBarCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/FileMenuBar.js'),
+  path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js'),
   'utf8'
 );
 
@@ -3446,8 +3446,8 @@ describe('LevelEditor + View Toggles Integration', function() {
  */
 
 // Load dependencies
-let SelectionManager = require('../../../Classes/ui/SelectionManager');
-let HoverPreviewManager = require('../../../Classes/ui/HoverPreviewManager');
+let SelectionManager = require('../../../Classes/ui/painter/entity/SelectionManager');
+let HoverPreviewManager = require('../../../Classes/ui/_baseObjects/brushes/HoverPreviewManager');
 
 describe('Select Tool & Hover Preview Integration', function() {
     let sandbox;
@@ -3699,23 +3699,23 @@ let customTerrainCode = fs.readFileSync(
 
 // Load UI components
 let materialPaletteCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/MaterialPalette.js'),
+  path.join(__dirname, '../../../Classes/ui/painter/terrain/MaterialPalette.js'),
   'utf8'
 );
 let toolBarCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/ToolBar.js'),
+  path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar.js'),
   'utf8'
 );
 let brushSizeControlCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/BrushSizeControl.js'),
+  path.join(__dirname, '../../../Classes/ui/_baseObjects/brushes/BrushSizeControl.js'),
   'utf8'
 );
 let propertiesPanelCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/PropertiesPanel.js'),
+  path.join(__dirname, '../../../Classes/ui/levelEditor/panels/PropertiesPanel.js'),
   'utf8'
 );
 let notificationManagerCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/NotificationManager.js'),
+  path.join(__dirname, '../../../Classes/ui/UIComponents/NotificationManager.js'),
   'utf8'
 );
 
@@ -5096,7 +5096,7 @@ describe('Tile Rendering Investigation', function() {
     
     it('should check material name matching between palette and tile', function() {
       require('../../../Classes/terrainUtils/gridTerrain.js');
-      require('../../../Classes/ui/MaterialPalette.js');
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       const Tile = global.Tile || window.Tile;

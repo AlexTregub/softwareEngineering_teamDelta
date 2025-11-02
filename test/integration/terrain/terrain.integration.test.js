@@ -993,27 +993,27 @@ let vm = require('vm');
 
 // Load UI components
 let materialPaletteCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/MaterialPalette.js'),
+  path.join(__dirname, '../../../Classes/ui/painter/terrain/MaterialPalette.js'),
   'utf8'
 );
 let toolBarCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/ToolBar.js'),
+  path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar.js'),
   'utf8'
 );
 // DUPLICATE REQUIRE REMOVED: let saveDialogCode = fs.readFileSync(
-//   path.join(__dirname, '../../../Classes/ui/SaveDialog.js'),
+//   path.join(__dirname, '../../../Classes/ui/levelEditor/fileIO/SaveDialog.js'),
 //   'utf8'
 // );
 // DUPLICATE REQUIRE REMOVED: let loadDialogCode = fs.readFileSync(
-//   path.join(__dirname, '../../../Classes/ui/LoadDialog.js'),
+//   path.join(__dirname, '../../../Classes/ui/levelEditor/fileIO/LoadDialog.js'),
 //   'utf8'
 // );
 let localStorageManagerCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/LocalStorageManager.js'),
+  path.join(__dirname, '../../../Classes/ui/levelEditor/fileIO/LocalStorageManager.js'),
   'utf8'
 );
 let formatConverterCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/FormatConverter.js'),
+  path.join(__dirname, '../../../Classes/ui/levelEditor/fileIO/FormatConverter.js'),
   'utf8'
 );
 

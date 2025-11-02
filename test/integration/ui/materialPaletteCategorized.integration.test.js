@@ -21,11 +21,11 @@ const fs = require('fs');
 const path = require('path');
 
 // Load real component classes
-const MaterialCategory = require('../../../Classes/ui/MaterialCategory');
-const MaterialSearchBar = require('../../../Classes/ui/MaterialSearchBar');
-const MaterialFavorites = require('../../../Classes/ui/MaterialFavorites');
-const MaterialPreviewTooltip = require('../../../Classes/ui/MaterialPreviewTooltip');
-const MaterialPalette = require('../../../Classes/ui/MaterialPalette');
+const MaterialCategory = require('../../../Classes/ui/painter/terrain/MaterialCategory');
+const MaterialSearchBar = require('../../../Classes/ui/painter/terrain/MaterialSearchBar');
+const MaterialFavorites = require('../../../Classes/ui/painter/terrain/MaterialFavorites');
+const MaterialPreviewTooltip = require('../../../Classes/ui/painter/terrain/MaterialPreviewTooltip');
+const MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
 
 describe('MaterialPalette - Categorized System Integration', function() {
   let sandbox;

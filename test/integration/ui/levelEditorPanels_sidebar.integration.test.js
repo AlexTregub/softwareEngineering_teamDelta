@@ -65,21 +65,21 @@ describe('LevelEditorPanels - Sidebar Integration', function() {
     window.logNormal = global.logNormal;
     
     // Load dependencies
-    delete require.cache[require.resolve('../../../Classes/ui/ScrollIndicator')];
-    delete require.cache[require.resolve('../../../Classes/ui/ScrollableContentArea')];
-    delete require.cache[require.resolve('../../../Classes/ui/LevelEditorSidebar')];
+    delete require.cache[require.resolve('../../../Classes/ui/UIComponents/scroll/ScrollIndicator')];
+    delete require.cache[require.resolve('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea')];
+    delete require.cache[require.resolve('../../../Classes/ui/levelEditor/panels/LevelEditorSidebar')];
     delete require.cache[require.resolve('../../../Classes/systems/ui/DraggablePanel')];
     delete require.cache[require.resolve('../../../Classes/systems/ui/LevelEditorPanels')];
     
-    const ScrollIndicator = require('../../../Classes/ui/ScrollIndicator');
+    const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
     global.ScrollIndicator = ScrollIndicator;
     window.ScrollIndicator = ScrollIndicator;
     
-    const ScrollableContentArea = require('../../../Classes/ui/ScrollableContentArea');
+    const ScrollableContentArea = require('../../../Classes/ui/UIComponents/scroll/ScrollableContentArea');
     global.ScrollableContentArea = ScrollableContentArea;
     window.ScrollableContentArea = ScrollableContentArea;
     
-    LevelEditorSidebar = require('../../../Classes/ui/LevelEditorSidebar');
+    LevelEditorSidebar = require('../../../Classes/ui/levelEditor/panels/LevelEditorSidebar');
     global.LevelEditorSidebar = LevelEditorSidebar;
     window.LevelEditorSidebar = LevelEditorSidebar;
     

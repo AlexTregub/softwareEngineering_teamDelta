@@ -14,7 +14,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 
 // Load real components
-const EntityPalette = require('../../../Classes/ui/EntityPalette.js');
+const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette.js');
 
 describe('EntityPalette List View - Integration', function() {
   let sandbox;

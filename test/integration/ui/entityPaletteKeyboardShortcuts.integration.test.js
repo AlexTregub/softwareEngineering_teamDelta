@@ -72,7 +72,7 @@ describe('EntityPalette Keyboard Shortcuts Integration', function() {
     }
     
     // Load classes
-    ToastNotification = require('../../../Classes/ui/ToastNotification');
+    ToastNotification = require('../../../Classes/ui/levelEditor/toastNotifications/ToastNotification');
     global.ToastNotification = ToastNotification;
     if (typeof window !== 'undefined') {
       window.ToastNotification = ToastNotification;
@@ -84,7 +84,7 @@ describe('EntityPalette Keyboard Shortcuts Integration', function() {
       window.ShortcutManager = ShortcutManager;
     }
     
-    EntityPalette = require('../../../Classes/ui/EntityPalette');
+    EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
     
     // Mock ModalDialog
     global.ModalDialog = class {

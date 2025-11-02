@@ -72,14 +72,14 @@ describe('EntityPalette Toast Integration', function() {
     }
     
     // Load ToastNotification and make it global
-    ToastNotification = require('../../../Classes/ui/ToastNotification');
+    ToastNotification = require('../../../Classes/ui/levelEditor/toastNotifications/ToastNotification');
     global.ToastNotification = ToastNotification;
     if (typeof window !== 'undefined') {
       window.ToastNotification = ToastNotification;
     }
     
     // Load EntityPalette
-    EntityPalette = require('../../../Classes/ui/EntityPalette');
+    EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
     
     // Mock ModalDialog
     global.ModalDialog = class {

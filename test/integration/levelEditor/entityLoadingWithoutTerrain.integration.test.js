@@ -22,10 +22,10 @@ describe('LevelEditor.loadFromData() - Entity loading independence', function() 
     window.createVector = global.createVector;
     
     // Load classes
-    LevelEditor = require('../../Classes/systems/ui/LevelEditor');
-    EntityPainter = require('../../Classes/ui/painter/entity/EntityPainter');
-    EntityPalette = require('../../Classes/ui/painter/entity/EntityPalette');
-    TerrainImporter = require('../../Classes/terrainUtils/TerrainImporter');
+    LevelEditor = require('../../../Classes/systems/ui/LevelEditor');
+    EntityPainter = require('../../../Classes/ui/painter/entity/EntityPainter');
+    EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
+    TerrainImporter = require('../../../Classes/terrainUtils/TerrainImporter');
     
     // Mock terrain
     const mockTerrain = {

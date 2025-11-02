@@ -30,7 +30,7 @@ global.document = dom.window.document;
 
 // Load classes
 let SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
-let DynamicGridOverlay = require('../../../Classes/ui/DynamicGridOverlay');
+let DynamicGridOverlay = require('../../../Classes/ui/_baseObjects/grids/DynamicGridOverlay');
 
 describe('DynamicGridOverlay with SparseTerrain - Integration', function() {
   let terrain;
@@ -295,7 +295,7 @@ describe('DynamicGridOverlay Edge Detection - Integration', function() {
     global.scale = sinon.stub();
 
     // Load classes
-    DynamicGridOverlay = require('../../../Classes/ui/DynamicGridOverlay');
+    DynamicGridOverlay = require('../../../Classes/ui/_baseObjects/grids/DynamicGridOverlay');
     SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
   });
 
@@ -868,13 +868,13 @@ describe('DynamicGridOverlay Edge Detection - Integration', function() {
  */
 
 // Import real classes
-let UIObject = require('../../../Classes/ui/UIObject.js');
+let UIObject = require('../../../Classes/ui/_baseObjects/UIObject.js');
 let CacheManager = require('../../../Classes/rendering/CacheManager.js');
 
 // Make UIObject globally available (required for DynamicGridOverlay to extend it)
 global.UIObject = UIObject;
 
-// DUPLICATE REQUIRE REMOVED: let DynamicGridOverlay = require('../../../Classes/ui/DynamicGridOverlay.js');
+// DUPLICATE REQUIRE REMOVED: let DynamicGridOverlay = require('../../../Classes/ui/UIComponents/DynamicGridOverlay.js');
 
 describe('DynamicGridOverlay v2 Integration Tests', function() {
   let sandbox;
@@ -1196,7 +1196,7 @@ global.document = dom.window.document;
 
 // Load classes
 // DUPLICATE REQUIRE REMOVED: let SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
-let MiniMap = require('../../../Classes/ui/MiniMap');
+let MiniMap = require('../../../Classes/ui/_baseObjects/minimap/MiniMap');
 
 describe('MiniMap with SparseTerrain - Integration', function() {
   let terrain;

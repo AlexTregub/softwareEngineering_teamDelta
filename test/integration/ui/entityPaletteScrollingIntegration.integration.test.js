@@ -25,7 +25,7 @@ describe('EntityPalette Scrolling Integration', function() {
   describe('LevelEditorPanels Wheel Event Routing', function() {
     it('should route wheel events to EntityPalette when visible', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -43,7 +43,7 @@ describe('EntityPalette Scrolling Integration', function() {
 
     it('should pass correct parameters to EntityPalette.handleMouseWheel', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -73,7 +73,7 @@ describe('EntityPalette Scrolling Integration', function() {
 
     it('should skip EntityPalette if not visible', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -90,7 +90,7 @@ describe('EntityPalette Scrolling Integration', function() {
 
     it('should continue to other panels if EntityPalette returns false', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -116,7 +116,7 @@ describe('EntityPalette Scrolling Integration', function() {
 
   describe('Scroll Bounds Updates', function() {
     it('should update scroll bounds when category changes', function() {
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const palette = new EntityPalette();
       sandbox.spy(palette, 'updateScrollBounds');
@@ -127,7 +127,7 @@ describe('EntityPalette Scrolling Integration', function() {
     });
 
     it('should update scroll bounds when custom entities change', function() {
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const palette = new EntityPalette();
       palette.setCategory('custom');
@@ -140,7 +140,7 @@ describe('EntityPalette Scrolling Integration', function() {
     });
 
     it('should update scroll bounds when search filter changes', function() {
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const palette = new EntityPalette();
       palette.setCategory('custom');
@@ -156,7 +156,7 @@ describe('EntityPalette Scrolling Integration', function() {
 
   describe('Scroll and Content Interaction', function() {
     it('should maintain scroll position when content height does not change', function() {
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const palette = new EntityPalette();
       palette.setCategory('entities');
@@ -169,7 +169,7 @@ describe('EntityPalette Scrolling Integration', function() {
     });
 
     it('should clamp scroll when switching to shorter content', function() {
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const palette = new EntityPalette();
       palette.setCategory('entities'); // Long list
@@ -182,7 +182,7 @@ describe('EntityPalette Scrolling Integration', function() {
     });
 
     it('should preserve scroll position within valid range', function() {
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const palette = new EntityPalette();
       palette.setCategory('entities');

@@ -25,7 +25,7 @@ describe('EntityPalette Click Integration', function() {
   describe('LevelEditorPanels Click Routing', function() {
     it('should route clicks to EntityPalette when visible', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -46,7 +46,7 @@ describe('EntityPalette Click Integration', function() {
 
     it('should call EntityPalette.containsPoint before handleClick', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -64,7 +64,7 @@ describe('EntityPalette Click Integration', function() {
 
     it('should skip EntityPalette if not visible', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -82,7 +82,7 @@ describe('EntityPalette Click Integration', function() {
 
     it('should check EntityPalette before other panels', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -108,7 +108,7 @@ describe('EntityPalette Click Integration', function() {
 
     it('should consume click when EntityPalette handles it', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       
@@ -127,7 +127,7 @@ describe('EntityPalette Click Integration', function() {
 
     it('should handle null return from EntityPalette', function() {
       const LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
-      const EntityPalette = require('../../../Classes/ui/EntityPalette');
+      const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette');
       
       const panels = new LevelEditorPanels();
       

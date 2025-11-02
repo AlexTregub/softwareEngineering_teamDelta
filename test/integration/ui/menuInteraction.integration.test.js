@@ -313,7 +313,7 @@ describe('MenuBar-LevelEditor Integration - Click Handling', function() {
     };
     
     // Load real FileMenuBar and LevelEditor
-    const FileMenuBar = require('../../../Classes/ui/FileMenuBar.js');
+    const FileMenuBar = require('../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js');
     const LevelEditor = require('../../../Classes/systems/ui/LevelEditor.js');
     
     // Create instances
@@ -698,7 +698,7 @@ describe('Menu to Level Editor Integration', function() {
       
       // Load level editor components
       require('../../../Classes/terrainUtils/TerrainEditor.js');
-      require('../../../Classes/ui/MaterialPalette.js');
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       const TerrainEditor = global.TerrainEditor || window.TerrainEditor;
@@ -745,7 +745,7 @@ describe('Menu to Level Editor Integration', function() {
   describe('Image Loading Timing', function() {
     it('should verify images are loaded before MaterialPalette uses them', function() {
       require('../../../Classes/terrainUtils/terrianGen.js');
-      require('../../../Classes/ui/MaterialPalette.js');
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       const TERRAIN_MATERIALS_RANGED = global.TERRAIN_MATERIALS_RANGED || window.TERRAIN_MATERIALS_RANGED;
@@ -778,7 +778,7 @@ describe('Menu to Level Editor Integration', function() {
       global.GRASS_IMAGE.loaded = true;
       
       require('../../../Classes/terrainUtils/terrianGen.js');
-      require('../../../Classes/ui/MaterialPalette.js');
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       const palette1 = new MaterialPalette(100, 100, 200, 400);
@@ -831,7 +831,7 @@ describe('Menu to Level Editor Integration', function() {
       delete global.TERRAIN_MATERIALS_RANGED;
       delete window.TERRAIN_MATERIALS_RANGED;
       
-      require('../../../Classes/ui/MaterialPalette.js');
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       
       const palette = new MaterialPalette(100, 100, 200, 400);
@@ -921,7 +921,7 @@ describe('Level Editor Script Loading Order Issue', function() {
       expect(window.TERRAIN_MATERIALS_RANGED).to.be.undefined;
       
       // Load MaterialPalette (simulating LevelEditor opening)
-      require('../../../Classes/ui/MaterialPalette.js');
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       
       // Create palette - THIS IS WHERE THE BUG OCCURS
@@ -949,8 +949,8 @@ describe('Level Editor Script Loading Order Issue', function() {
       window.TERRAIN_MATERIALS_RANGED = global.TERRAIN_MATERIALS_RANGED;
       
       // Load and create palette
-      delete require.cache[require.resolve('../../../Classes/ui/MaterialPalette.js')];
-      require('../../../Classes/ui/MaterialPalette.js');
+      delete require.cache[require.resolve('../../../Classes/ui/painter/terrain/MaterialPalette.js')];
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       
       const palette = new MaterialPalette(100, 100, 200, 400);
@@ -1008,8 +1008,8 @@ describe('Level Editor Script Loading Order Issue', function() {
       window.TERRAIN_MATERIALS_RANGED = global.TERRAIN_MATERIALS_RANGED;
       
       // Load MaterialPalette
-      delete require.cache[require.resolve('../../../Classes/ui/MaterialPalette.js')];
-      require('../../../Classes/ui/MaterialPalette.js');
+      delete require.cache[require.resolve('../../../Classes/ui/painter/terrain/MaterialPalette.js')];
+      require('../../../Classes/ui/painter/terrain/MaterialPalette.js');
       const MaterialPalette = global.MaterialPalette || window.MaterialPalette;
       
       // Create palette

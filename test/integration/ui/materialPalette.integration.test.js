@@ -134,7 +134,7 @@ describe('MaterialPalette Coordinate Offset Bug Detection', function() {
     }
     
     // Load MaterialPalette
-    const MaterialPalette = require('../../../Classes/ui/MaterialPalette');
+    const MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
     materialPalette = new MaterialPalette(['moss', 'stone', 'dirt']);
   });
   
@@ -425,7 +425,7 @@ describe('Material Palette Painting Integration', function() {
     };
 
     // Load classes
-    MaterialPalette = require('../../../Classes/ui/MaterialPalette');
+    MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
     TerrainEditor = require('../../../Classes/terrainUtils/TerrainEditor');
 
     // Create instances
@@ -668,7 +668,7 @@ describe('Grid/Terrain Coordinate Alignment Integration', function() {
       window.fill = global.fill;
     }
     
-    GridOverlay = require('../../../Classes/ui/GridOverlay');
+    GridOverlay = require('../../../Classes/ui/_baseObjects/grids/GridOverlay');
     CustomTerrain = require('../../../Classes/terrainUtils/CustomTerrain');
   });
   

@@ -3517,8 +3517,8 @@ describe('Drag-and-Drop Integration', function() {
     // Load REAL classes for integration testing
     EventFlag = require('../../../Classes/events/EventFlag');
     EventFlagLayer = require('../../../Classes/events/EventFlagLayer');
-    ToolBar = require('../../../Classes/ui/ToolBar');
-    MaterialPalette = require('../../../Classes/ui/MaterialPalette');
+    ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar');
+    MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
     LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
     EventEditorPanel = require('../../../Classes/systems/ui/EventEditorPanel');
     LevelEditor = require('../../../Classes/systems/ui/LevelEditor');
@@ -3814,8 +3814,8 @@ describe('Event Drag Workflow Integration', function() {
     // Load REAL classes
     EventFlag = require('../../../Classes/events/EventFlag');
     EventFlagLayer = require('../../../Classes/events/EventFlagLayer');
-    ToolBar = require('../../../Classes/ui/ToolBar');
-    MaterialPalette = require('../../../Classes/ui/MaterialPalette');
+    ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar');
+    MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
     LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
     EventEditorPanel = require('../../../Classes/systems/ui/EventEditorPanel');
     LevelEditor = require('../../../Classes/systems/ui/LevelEditor');
@@ -4301,8 +4301,8 @@ describe('Events Panel Toggle Bug - Integration Tests', function() {
     // Load REAL classes
     EventFlag = require('../../../Classes/events/EventFlag');
     EventFlagLayer = require('../../../Classes/events/EventFlagLayer');
-    ToolBar = require('../../../Classes/ui/ToolBar');
-    MaterialPalette = require('../../../Classes/ui/MaterialPalette');
+    ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar');
+    MaterialPalette = require('../../../Classes/ui/painter/terrain/MaterialPalette');
     LevelEditorPanels = require('../../../Classes/systems/ui/LevelEditorPanels');
     EventEditorPanel = require('../../../Classes/systems/ui/EventEditorPanel');
     LevelEditor = require('../../../Classes/systems/ui/LevelEditor');

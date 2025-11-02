@@ -21,7 +21,7 @@ describe('ToolBar + TerrainEditor - No Tool Mode Integration', function() {
     
     // Load actual classes
     TerrainEditor = require('../../../Classes/terrainUtils/TerrainEditor');
-    ToolBar = require('../../../Classes/ui/ToolBar');
+    ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar');
   });
 
   beforeEach(function() {

@@ -65,13 +65,13 @@ describe('Settings System Integration', function() {
     }
     
     // Load component classes FIRST (SettingsPanel depends on them)
-    global.Toggle = require('../../../Classes/ui/components/Toggle.js');
-    global.Slider = require('../../../Classes/ui/components/Slider.js');
+    global.Toggle = require('../../../Classes/ui/UIComponents/Toggle.js');
+    global.Slider = require('../../../Classes/ui/UIComponents/Slider.js');
     
     // Load classes
     SettingsManager = require('../../../Classes/managers/SettingsManager.js');
-    SettingsPanel = require('../../../Classes/ui/SettingsPanel.js');
-    FileMenuBar = require('../../../Classes/ui/FileMenuBar.js');
+    SettingsPanel = require('../../../Classes/ui/_baseObjects/modalWindow/settings/SettingsPanel.js');
+    FileMenuBar = require('../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js');
     CameraManager = require('../../../Classes/controllers/CameraManager.js');
   });
   

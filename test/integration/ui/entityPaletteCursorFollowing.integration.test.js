@@ -80,7 +80,7 @@ describe('EntityPalette Cursor Following - Integration', function() {
     window.CategoryRadioButtons = CategoryRadioButtons;
     
     // Load EntityPalette first (LevelEditor depends on it)
-    EntityPalette = require('../../../Classes/ui/EntityPalette.js');
+    EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette.js');
     global.EntityPalette = EntityPalette;
     window.EntityPalette = EntityPalette;
     

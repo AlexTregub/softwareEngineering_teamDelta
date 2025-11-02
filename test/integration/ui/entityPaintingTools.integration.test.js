@@ -45,10 +45,10 @@ describe('Entity Painting Tools - Integration', function() {
     
     // Load classes
     try {
-      EntitySelectionTool = require('../../../Classes/ui/EntitySelectionTool');
-      EntityPainter = require('../../../Classes/ui/EntityPainter');
-      ToolBar = require('../../../Classes/ui/ToolBar');
-      ToolModeToggle = require('../../../Classes/ui/ToolModeToggle');
+      EntitySelectionTool = require('../../../Classes/ui/painter/entity/EntitySelectionTool');
+      EntityPainter = require('../../../Classes/ui/painter/entity/EntityPainter');
+      ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar');
+      ToolModeToggle = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolModeToggle');
     } catch (e) {
       console.error('Failed to load classes:', e);
     }
