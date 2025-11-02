@@ -50296,18 +50296,6 @@
         "weight": 5,
         "nutritionValue": 0
       }
-    },
-    {
-      "id": "entity_1762124935779_wtctadofj",
-      "templateId": "ant_worker",
-      "gridX": 20,
-      "gridY": 11,
-      "properties": {
-        "JobName": "Worker",
-        "faction": "player",
-        "health": 100,
-        "movementSpeed": 30
-      }
     }
   ]
 }

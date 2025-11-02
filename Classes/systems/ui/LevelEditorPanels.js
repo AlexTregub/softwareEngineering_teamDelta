@@ -351,7 +351,7 @@ class LevelEditorPanels {
       const contentY = toolPos.y + titleBarHeight + toolPanel.config.style.padding;
       
       // Check if click is in the toolbar area (regardless of panel visibility)
-      if (this.levelEditor.toolbar && this.levelEditor.toolbar.containsPoint(mouseX, mouseY, contentX, contentY) && !this.panels.toolbar.isMinimized()) {
+      if (this.levelEditor.toolbar && this.levelEditor.toolbar.containsPoint(mouseX, mouseY, contentX, contentY)) {
         const tool = this.levelEditor.toolbar.handleClick(mouseX, mouseY, contentX, contentY);
         if (tool) {
           this.levelEditor.notifications.show(`Selected tool: ${tool}`);

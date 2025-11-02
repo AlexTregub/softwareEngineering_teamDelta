@@ -16021,7 +16021,7 @@
     {
       "x": 36,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 48,
@@ -16031,7 +16031,7 @@
     {
       "x": 35,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 49,
@@ -16041,7 +16041,7 @@
     {
       "x": 34,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 50,
@@ -16051,7 +16051,7 @@
     {
       "x": 33,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 51,
@@ -16071,7 +16071,7 @@
     {
       "x": 31,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 53,
@@ -16081,7 +16081,7 @@
     {
       "x": 30,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 54,
@@ -16091,7 +16091,7 @@
     {
       "x": 29,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 55,
@@ -16101,7 +16101,7 @@
     {
       "x": 28,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 56,
@@ -16151,7 +16151,7 @@
     {
       "x": 23,
       "y": 14,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 61,
@@ -17201,7 +17201,7 @@
     {
       "x": 33,
       "y": 13,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 51,
@@ -17221,7 +17221,7 @@
     {
       "x": 31,
       "y": 13,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 53,
@@ -17251,7 +17251,7 @@
     {
       "x": 28,
       "y": 13,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 56,
@@ -17301,7 +17301,7 @@
     {
       "x": 23,
       "y": 13,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 61,
@@ -18391,7 +18391,7 @@
     {
       "x": 33,
       "y": 12,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 51,
@@ -18411,7 +18411,7 @@
     {
       "x": 31,
       "y": 12,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 53,
@@ -18441,7 +18441,7 @@
     {
       "x": 28,
       "y": 12,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 56,
@@ -18491,7 +18491,7 @@
     {
       "x": 23,
       "y": 12,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 61,
@@ -19621,7 +19621,7 @@
     {
       "x": 33,
       "y": 11,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 51,
@@ -19641,7 +19641,7 @@
     {
       "x": 31,
       "y": 11,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 53,
@@ -19671,7 +19671,7 @@
     {
       "x": 28,
       "y": 11,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 56,
@@ -19691,7 +19691,7 @@
     {
       "x": 26,
       "y": 11,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 58,
@@ -19701,7 +19701,7 @@
     {
       "x": 25,
       "y": 11,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 59,
@@ -19711,7 +19711,7 @@
     {
       "x": 24,
       "y": 11,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 60,
@@ -19721,7 +19721,7 @@
     {
       "x": 23,
       "y": 11,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 61,
@@ -20891,7 +20891,7 @@
     {
       "x": 33,
       "y": 10,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 51,
@@ -20911,7 +20911,7 @@
     {
       "x": 31,
       "y": 10,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 53,
@@ -20941,7 +20941,7 @@
     {
       "x": 28,
       "y": 10,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 56,
@@ -20991,7 +20991,7 @@
     {
       "x": 23,
       "y": 10,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 61,
@@ -22171,7 +22171,7 @@
     {
       "x": 36,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 48,
@@ -22181,7 +22181,7 @@
     {
       "x": 35,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 49,
@@ -22191,7 +22191,7 @@
     {
       "x": 34,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 50,
@@ -22201,7 +22201,7 @@
     {
       "x": 33,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 51,
@@ -22221,7 +22221,7 @@
     {
       "x": 31,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 53,
@@ -22251,7 +22251,7 @@
     {
       "x": 28,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 56,
@@ -22271,7 +22271,7 @@
     {
       "x": 26,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 58,
@@ -22281,7 +22281,7 @@
     {
       "x": 25,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 59,
@@ -22291,7 +22291,7 @@
     {
       "x": 24,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 60,
@@ -22301,7 +22301,7 @@
     {
       "x": 23,
       "y": 9,
-      "material": "grass"
+      "material": "cave_dark"
     },
     {
       "x": 61,
@@ -50295,18 +50295,6 @@
         "canBePickedUp": false,
         "weight": 5,
         "nutritionValue": 0
-      }
-    },
-    {
-      "id": "entity_1762124935779_wtctadofj",
-      "templateId": "ant_worker",
-      "gridX": 20,
-      "gridY": 11,
-      "properties": {
-        "JobName": "Worker",
-        "faction": "player",
-        "health": 100,
-        "movementSpeed": 30
       }
     }
   ]
