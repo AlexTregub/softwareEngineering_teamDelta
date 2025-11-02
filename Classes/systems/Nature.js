@@ -3,6 +3,7 @@ class GlobalTime{
         this.inGameSeconds = 0;
         this.inGameDays = 1;
         this.weatherSeconds = 0;
+        this.transitionAlpha = 0;
         this.timeOfDay = "day";
         this.transitioning = false;
         this.weather = false;
@@ -16,6 +17,17 @@ class GlobalTime{
         const deltaTime = (now - this.lastFrameTime) / 1000; // seconds
         this.lastFrameTime = now;
         this.internalTimer(deltaTime); //Runs internal timer
+
+        if(this.transitioning){
+            const fadeSpeed = 255 / 60; // alpha change per second
+            if(this.timeOfDay === "sunset" && this.transitionAlpha < 255){
+                this.transitionAlpha += fadeSpeed * deltaTime;
+            }
+            if(this.timeOfDay === "sunrise" && this.transitionAlpha > 0){
+                this.transitionAlpha -= fadeSpeed * deltaTime;
+            }
+            this.transitionAlpha = Math.min(255, Math.max(0, this.transitionAlpha));
+        }
     }
 
     internalTimer(deltaTime){
@@ -64,18 +76,22 @@ class GlobalTime{
         case "day":
             this.timeOfDay = "sunset";
             this.transitioning = true; //Changes time of day at thresholds
+            this.transitionAlpha = 0;
             break;
         case "sunset":
             this.timeOfDay = "night";
-            transitioning = false;
+            this.transitioning = false;
+            this.transitionAlpha = 255;
             break;
         case "night":
             this.timeOfDay = "sunrise";
             this.transitioning = true;
+            this.transitionAlpha = 255;
             break;
         case "sunrise":
             this.timeOfDay = "day";
             this.transitioning = false;
+            this.transitionAlpha = 0;
             this.runNewDay();
             break;
         }
