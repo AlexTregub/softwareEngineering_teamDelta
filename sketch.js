@@ -36,9 +36,11 @@ let Buildings = [];
 let cameraManager;
 
 function preload(){
-  return; // !!! REMOVE BEFORE DEV
+  // return; // !!! REMOVE BEFORE DEV
 
   terrainPreloader();
+
+  return
   soundManagerPreload();
   resourcePreLoad();
   preloadPauseImages();
@@ -50,11 +52,22 @@ function preload(){
 
 
 function setup() {
+  createCanvas(windowWidth,windowHeight) 
+
   if (!TEST_GRID()) {
     console.log("GRID MALFORMED.")
     return
   } 
 
+  // square(0,0,100)
+  // image(GRASS_IMAGE,0,0,32,32)
+  // square(10,10,100)
+
+  if (!TEST_CHUNK()) {
+    console.log("CHUNK MALFORMED.")
+    // TEST_CHUNK()
+  }
+ 
   return; // !!! REMOVE BEFORE DEV
 
   // Initialize TaskLibrary before other systems that depend on it
@@ -359,6 +372,8 @@ function initializeWorld() {
  */
 
 function draw() {
+  // TEST_CHUNK()
+  return
   // ============================================================
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
   // Updates must happen BEFORE rendering to show current frame data

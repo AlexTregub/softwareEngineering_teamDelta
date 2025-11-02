@@ -43,7 +43,7 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
   'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
   'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
-  'grass' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)],
+  'grass' : [[0,1] , (x,y,squareSize) => {console.log("grass drawn"); image(GRASS_IMAGE, x, y, squareSize,squareSize)}],
 
   // Un-spawned materials, Needed for fallback rendering.
   'farmland' : [[0,0] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], 
@@ -312,10 +312,14 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     // coordSys.setViewCornerBC([0,0]);
     if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
       this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
-      // logNormal("updating tile...");
+      // console.log("Updating...")
+      logNormal("updating tile...");
     }
     
     noSmooth();
+    // console.log(this._coordSysPos)
+    // console.log(this._squareSize)
+    // console.log(TERRAIN_MATERIALS_RANGED[this._materialSet][1])
     TERRAIN_MATERIALS_RANGED[this._materialSet][1](this._coordSysPos[0],this._coordSysPos[1],this._squareSize);
     smooth();
   }
