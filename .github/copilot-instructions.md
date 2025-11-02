@@ -10,7 +10,7 @@
 3. **Use test helpers** - Add to `test/helpers/uiTestHelpers.js` if code used >1 time
 4. **Check documentation** - Review `docs/` for existing patterns and APIs
 
-**AVOID DUPLICATION**: If you write the same code twice, extract it to a helper/utility.
+**AVOID DUPLICATION**: If you write the same code twice, extract it to a helper/utility. For UI dialogs, see `docs/guides/DIALOG_REFACTORING_STRATEGY.md` for systematic refactoring patterns.
 
 **NO CODE IN CHECKLISTS**: Checklists should only contain task descriptions, key design decisions, and algorithms used. Tests serve as implementation documentation.
 
@@ -625,10 +625,26 @@ These sections provide:
 
 ### Refactoring Process
 
+**Reference Guide**: See `docs/guides/DIALOG_REFACTORING_STRATEGY.md` for comprehensive refactoring methodology with examples.
+
+**Core Principle**: "Push Common Patterns Up" - If you see the same code in 2+ classes, move it to parent class.
+
+**TDD Workflow**:
 1. **Ensure coverage** (>80% for code being refactored)
-2. **Refactor** (structure only, behavior unchanged)
-3. **Run tests** (all must pass - behavior unchanged)
-4. **Update tests** (only if public API changed)
+2. **Write tests for parent method FIRST** (tests will fail)
+3. **Implement parent method** (tests now pass)
+4. **Refactor child classes** to use parent method
+5. **Run all tests** (behavior unchanged)
+6. **E2E verification** (visual/interactive behavior unchanged)
+7. **Clean JSDoc** - Remove refactoring commentary, keep brief professional docs
+
+**Key Patterns** (see strategy guide for details):
+- Hover state management (eliminate coordinate conversion duplication)
+- Continuous rendering for animations (cursor blink, etc.)
+- Text rendering helpers (instructions, hints, validation)
+- Component creation with spread operator (eliminate construction duplication)
+- Canvas dimension helpers (eliminate unnecessary guards)
+- Professional JSDoc cleanup (remove "REFACTORED" tags, implementation explanations)
 
 ## Testing Commands
 

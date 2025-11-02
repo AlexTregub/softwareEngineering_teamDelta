@@ -1,20 +1,8 @@
 ﻿/**
- * NewMapDialog - Modal dialog for entering map dimensions
- * 
- * Prompts user to enter width and height (in tiles) when creating a new map.
- * 
- * Features:
- * - Input validation (10-200 tiles)
- * - Keyboard shortcuts (Tab, Enter, Escape)
- * - Default dimensions (50x50)
- * - Error messages for invalid input
- * 
+ * NewMapDialog - Modal dialog for creating new maps with custom dimensions
  * @extends Dialog
  */
 class NewMapDialog extends Dialog {
-  /**
-   * Create a new map dialog
-   */
   constructor() {
     super({
       width: 400,
@@ -22,198 +10,117 @@ class NewMapDialog extends Dialog {
       title: 'New Map'
     });
     
-    // Map dimensions (in tiles)
-    this._width = 50;  // Default width
-    this._height = 50; // Default height
-    
-    // Input field state
-    this._activeField = 'width'; // 'width' or 'height'
-    
-    // Validation
     this.MIN_DIMENSION = 10;
     this.MAX_DIMENSION = 1000;
     this.PERFORMANCE_WARNING_THRESHOLD = 200;
-    this._validationError = '';
     
-    // Button bounds for click detection (set in renderContent)
-    this._createButtonBounds = { x: 0, y: 0, width: 0, height: 0 };
-    this._cancelButtonBounds = { x: 0, y: 0, width: 0, height: 0 };
-    this._widthInputBounds = { x: 0, y: 0, width: 0, height: 0 };
-    this._heightInputBounds = { x: 0, y: 0, width: 0, height: 0 };
+    this._createInputBoxes();
+    this._createButtonGroup();
+  }
+  
+  /**
+   * Initialize width and height input fields
+   * @private
+   */
+  _createInputBoxes() {
+    const inputWidth = 160;
+    const inputHeight = 35;
+    const centerX = this.width / 2;
+    const baseY = 90;
+    
+    const baseOptions = {
+      parent: this,
+      inputType: 'numeric',
+      minValue: this.MIN_DIMENSION,
+      maxValue: this.MAX_DIMENSION,
+      maxDigits: 4,
+      integerOnly: true,
+      value: '50'
+    };
+    
+    const configs = [
+      { input: 'widthInput', yOffset: 0, placeholder: 'Width (tiles)' },
+      { input: 'heightInput', yOffset: 50, placeholder: 'Height (tiles)' }
+    ];
+    
+    configs.forEach(({ input, yOffset, placeholder }) => {
+      this[input] = new InputBox(
+        centerX - (inputWidth / 2),
+        baseY + yOffset,
+        inputWidth,
+        inputHeight,
+        { ...baseOptions, placeholder }
+      );
+    });
+    
+    this.widthInput.setFocus(true);
+    this.heightInput.setFocus(false);
+  }
+  
+  /**
+   * Initialize Cancel and Create buttons
+   * @private
+   */
+  _createButtonGroup() {
+    this.buttonGroup = new ButtonGroup({
+      orientation: 'horizontal',
+      spacing: 20,
+      alignment: 'bottom-center',
+      parentWidth: this.width,
+      parentHeight: this.height,
+      buttonWidth: 100,
+      buttonHeight: 30
+    });
+    
+    this.buttonGroup.addButton('Cancel', 'cancel', () => this.cancel());
+    this.buttonGroup.addButton('Create', 'primary', () => {
+      if (this.widthInput.validate() && this.heightInput.validate()) {
+        this.confirm();
+      }
+    });
   }
   
   /**
    * Get current map dimensions
-   * @returns {{width: number, height: number}} Current dimensions
+   * @returns {{width: number, height: number}}
    */
   getDimensions() {
     return {
-      width: this._width,
-      height: this._height
+      width: this.widthInput.getValue(),
+      height: this.heightInput.getValue()
     };
   }
   
   /**
-   * Set active input field
-   * @param {string} field - 'width' or 'height'
-   */
-  setActiveField(field) {
-    if (field === 'width' || field === 'height') {
-      this._activeField = field;
-      this.markDirty();
-    }
-  }
-  
-  /**
-   * Validate current dimensions
-   * @returns {{valid: boolean, error?: string, warning?: string}} Validation result
-   */
-  validateDimensions() {
-    // Check if integers
-    if (!Number.isInteger(this._width) || !Number.isInteger(this._height)) {
-      return {
-        valid: false,
-        error: 'Dimensions must be integers'
-      };
-    }
-    
-    // Check bounds
-    if (this._width < this.MIN_DIMENSION || this._width > this.MAX_DIMENSION ||
-        this._height < this.MIN_DIMENSION || this._height > this.MAX_DIMENSION) {
-      return {
-        valid: false,
-        error: `Dimensions must be ${this.MIN_DIMENSION}-${this.MAX_DIMENSION} tiles`
-      };
-    }
-    
-    // Check for performance warning
-    if (this._width > this.PERFORMANCE_WARNING_THRESHOLD || 
-        this._height > this.PERFORMANCE_WARNING_THRESHOLD) {
-      return {
-        valid: true,
-        warning: 'Maps this large will run poorly'
-      };
-    }
-    
-    return { valid: true };
-  }
-  
-  /**
    * Handle keyboard input
-   * @param {string} key - Key pressed
+   * @param {string} key - Key name
    * @param {number} keyCode - Key code
-   * @returns {boolean} True if key was consumed
+   * @returns {boolean} True if handled
    */
   handleKeyPress(key, keyCode) {
-    // Tab: Switch between fields
-    if (key === 'Tab' || keyCode === 9) {
-      this._activeField = this._activeField === 'width' ? 'height' : 'width';
-      this.markDirty();
-      return true;
-    }
-    
-    // Escape: Cancel
     if (key === 'Escape' || keyCode === 27) {
       this.cancel();
       return true;
     }
     
-    // Enter: Confirm (if validation passes)
-    if (key === 'Enter' || keyCode === 13) {
-      const validation = this.validateDimensions();
-      if (validation.valid) {
-        this.confirm();
-      }
-      return true;
-    }
+    const focusedInput = this.widthInput.isFocused ? this.widthInput : 
+                        this.heightInput.isFocused ? this.heightInput : null;
     
-    // Backspace: Remove last digit
-    if (key === 'Backspace' || keyCode === 8) {
-      if (this._activeField === 'width') {
-        this._width = Math.floor(this._width / 10);
-        if (this._width === 0) this._width = 0; // Prevent empty
-      } else {
-        this._height = Math.floor(this._height / 10);
-        if (this._height === 0) this._height = 0; // Prevent empty
-      }
-      this.markDirty();
-      return true;
-    }
-    
-    // Numeric keys: Append digit
-    if (keyCode >= 48 && keyCode <= 57) { // 0-9
-      const digit = keyCode - 48;
+    if (focusedInput) {
+      const result = focusedInput.handleKeyPress(key, keyCode);
       
-      if (this._activeField === 'width') {
-        const newValue = this._width * 10 + digit;
-        if (newValue <= 9999) { // Allow up to 4 digits (max 1000 enforced by validation)
-          this._width = newValue;
-        }
-      } else {
-        const newValue = this._height * 10 + digit;
-        if (newValue <= 9999) { // Allow up to 4 digits (max 1000 enforced by validation)
-          this._height = newValue;
+      if (result && typeof result === 'object') {
+        if (result.type === 'focus-next') {
+          this._switchFocus();
+          return true;
+        } else if (result.type === 'confirm') {
+          if (result.valid && this.widthInput.validate() && this.heightInput.validate()) {
+            this.confirm();
+          }
+          return true;
         }
       }
-      this.markDirty();
-      return true;
-    }
-    
-    // Ignore other keys
-    return true;
-  }
-  
-  /**
-   * Handle mouse click
-   * @param {number} mouseX - Click X coordinate
-   * @param {number} mouseY - Click Y coordinate
-   * @returns {boolean} True if click was handled
-   */
-  handleClick(mouseX, mouseY) {
-    if (!this.visible) return false;
-    
-    // Convert to dialog-relative coordinates
-    const dialogX = this.x || 0;
-    const dialogY = this.y || 0;
-    const relX = mouseX - dialogX;
-    const relY = mouseY - dialogY;
-    
-    // Debug logging
-    console.log(`[NewMapDialog] Click received:`, {
-      mouseX, mouseY,
-      dialogX, dialogY,
-      relX, relY,
-      widthBounds: this._widthInputBounds,
-      heightBounds: this._heightInputBounds
-    });
-    
-    // Check width input field
-    if (this._isPointInBounds(relX, relY, this._widthInputBounds)) {
-      this.setActiveField('width');
-      return true;
-    }
-    
-    // Check height input field
-    if (this._isPointInBounds(relX, relY, this._heightInputBounds)) {
-      this.setActiveField('height');
-      return true;
-    }
-    
-    // Check Create button (only if validation passes)
-    const validation = this.validateDimensions();
-    if (validation.valid && this._isPointInBounds(relX, relY, this._createButtonBounds)) {
-      this.confirm();
-      return true;
-    }
-    
-    // Check Cancel button
-    if (this._isPointInBounds(relX, relY, this._cancelButtonBounds)) {
-      this.cancel();
-      return true;
-    }
-    
-    // Click within dialog bounds (consume event)
-    if (relX >= 0 && relX <= this.width && relY >= 0 && relY <= this.height) {
+      
       return true;
     }
     
@@ -221,100 +128,117 @@ class NewMapDialog extends Dialog {
   }
   
   /**
-   * Check if point is within bounds
+   * Switch focus between inputs
    * @private
    */
-  _isPointInBounds(x, y, bounds) {
-    return x >= bounds.x && x <= bounds.x + bounds.width &&
-           y >= bounds.y && y <= bounds.y + bounds.height;
+  _switchFocus() {
+    if (this.widthInput.isFocused) {
+      this.widthInput.setFocus(false);
+      this.heightInput.setFocus(true);
+    } else {
+      this.heightInput.setFocus(false);
+      this.widthInput.setFocus(true);
+    }
+    this.markDirty();
   }
   
   /**
-   * Confirm and create map
-   * Overrides Dialog.confirm() to pass dimensions to callback
+   * Handle click within dialog
+   * @param {number} relX - X relative to dialog
+   * @param {number} relY - Y relative to dialog
+   * @returns {boolean} True if handled
+   */
+  handleDialogClick(relX, relY) {
+    const widthBounds = this.widthInput.bounds.getBounds();
+    if (this.isPointInBounds(relX, relY, widthBounds)) {
+      this.widthInput.setFocus(true);
+      this.heightInput.setFocus(false);
+      this.markDirty();
+      return true;
+    }
+    
+    const heightBounds = this.heightInput.bounds.getBounds();
+    if (this.isPointInBounds(relX, relY, heightBounds)) {
+      this.heightInput.setFocus(true);
+      this.widthInput.setFocus(false);
+      this.markDirty();
+      return true;
+    }
+    
+    if (this.buttonGroup.handleClick(relX, relY)) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Handle click with screen coordinates
+   * @param {number} mouseX - Screen X
+   * @param {number} mouseY - Screen Y
+   * @returns {boolean} True if handled
+   */
+  handleClick(mouseX, mouseY) {
+    return this.handleClickWithConversion(mouseX, mouseY);
+  }
+  
+  /**
+   * Confirm dialog with dimensions
    */
   confirm() {
-    console.log(`[NewMapDialog] Confirm called with dimensions:`, {
-      width: this._width,
-      height: this._height,
-      hasCallback: !!this.onConfirm
-    });
+    const dimensions = this.getDimensions();
     
     if (this.onConfirm) {
-      this.onConfirm(this._width, this._height);
+      this.onConfirm(dimensions.width, dimensions.height);
     }
     this.hide();
   }
   
   /**
-   * Show dialog and reset to defaults
-   * Overrides Dialog.show()
+   * Show dialog centered on canvas
    */
   show() {
-    // Reset to defaults
-    this._width = 50;
-    this._height = 50;
-    this._activeField = 'width';
-    this._validationError = '';
-    
-    // Center dialog on screen using global canvas dimensions
-    const canvasWidth = (typeof g_canvasX !== 'undefined') ? g_canvasX : 1920;
-    const canvasHeight = (typeof g_canvasY !== 'undefined') ? g_canvasY : 1080;
-    const centered = this.getCenteredPosition(canvasWidth, canvasHeight);
-    this.x = centered.x;
-    this.y = centered.y;
-    
-    // Debug logging
-    console.log(`[NewMapDialog] Centering dialog:`, {
-      canvasWidth,
-      canvasHeight,
-      dialogWidth: this.width,
-      dialogHeight: this.height,
-      x: this.x,
-      y: this.y
-    });
-    
-    this.setVisible(true);
-    this.markDirty();
+    this.showWithCentering();
   }
   
   /**
-   * Hide dialog and clear state
-   * Overrides Dialog.hide()
+   * Reset inputs when dialog shown
+   */
+  onShow() {
+    this.widthInput.setValue('50');
+    this.heightInput.setValue('50');
+    this.widthInput.setFocus(true);
+    this.heightInput.setFocus(false);
+  }
+  
+  /**
+   * Hide dialog (preserves callbacks)
    */
   hide() {
     this.setVisible(false);
-    // NOTE: Do NOT clear callbacks here - they're set once in LevelEditor constructor
-    // and should persist across multiple dialog uses
     this.markDirty();
   }
   
   /**
-   * Override renderToScreen to add modal overlay before dialog
-   * Renders semi-transparent background, then dialog content
+   * Get inputs needing continuous rendering
+   * @returns {Array<InputBox>}
+   */
+  getAnimatableChildren() {
+    return [this.widthInput, this.heightInput];
+  }
+  
+  /**
+   * Render modal overlay and dialog
    */
   renderToScreen() {
     if (!this.visible) return;
     
-    // Render modal overlay (semi-transparent background) directly to canvas
-    if (typeof push !== 'undefined' && typeof pop !== 'undefined') {
-      push();
-      fill(0, 0, 0, 180); // Dark overlay with 70% opacity
-      noStroke();
-      const canvasWidth = (typeof g_canvasX !== 'undefined') ? g_canvasX : 1920;
-      const canvasHeight = (typeof g_canvasY !== 'undefined') ? g_canvasY : 1080;
-      rect(0, 0, canvasWidth, canvasHeight);
-      pop();
-    }
+    this.renderModalOverlay();
     
-    // Render dialog using parent's renderToScreen method (draws cached buffer)
-    // Ensure imageMode is CORNER for proper positioning
     const buffer = this.getCacheBuffer();
-    if (buffer && typeof image !== 'undefined') {
+    if (buffer) {
       push();
-      if (typeof imageMode !== 'undefined' && typeof CORNER !== 'undefined') {
-        imageMode(CORNER); // Ensure top-left corner positioning
-      }
+      imageMode(CORNER);
       image(buffer, this.x, this.y);
       pop();
     } else {
@@ -323,163 +247,37 @@ class NewMapDialog extends Dialog {
   }
   
   /**
-   * Render dialog content
-   * @param {p5.Graphics} buffer - Graphics buffer to render to
+   * Get inputs with hover states
+   * @returns {Array<InputBox>}
+   */
+  getHoverableChildren() {
+    return [this.widthInput, this.heightInput];
+  }
+  
+  /**
+   * Render dialog content to buffer
+   * @param {p5.Graphics} buffer
    */
   renderContent(buffer) {
     if (!buffer) return;
     
-    // Validate current dimensions
-    const validation = this.validateDimensions();
-    this._validationError = validation.valid ? '' : validation.error;
+    this.updateChildHovers();
     
     const centerX = this.width / 2;
     let currentY = 60;
     
-    // Title/Instructions
-    buffer.fill(200);
-    buffer.textAlign(buffer.CENTER, buffer.TOP);
-    buffer.textSize(14);
-    buffer.text('Enter map dimensions (tiles):', centerX, currentY);
+    this.renderInstructionText(buffer, 'Enter map dimensions (tiles):', centerX, currentY);
     currentY += 30;
     
-    // Width input field
-    this._renderInputField(buffer, 'Width', this._width, centerX - 80, currentY, 
-                          this._activeField === 'width', this._widthInputBounds);
-    currentY += 50;
+    this.widthInput.renderToBuffer(buffer);
+    this.heightInput.renderToBuffer(buffer);
     
-    // Height input field
-    this._renderInputField(buffer, 'Height', this._height, centerX - 80, currentY,
-                          this._activeField === 'height', this._heightInputBounds);
-    currentY += 50;
+    currentY = this.heightInput.bounds.y + this.heightInput.bounds.height + 10;
     
-    // Validation hint
-    buffer.fill(150);
-    buffer.textAlign(buffer.CENTER, buffer.TOP);
-    buffer.textSize(12);
-    buffer.text(`Min: ${this.MIN_DIMENSION} tiles, Max: ${this.MAX_DIMENSION} tiles`, 
-                centerX, currentY);
+    this.renderHintText(buffer, `Min: ${this.MIN_DIMENSION} tiles, Max: ${this.MAX_DIMENSION} tiles`, centerX, currentY);
     currentY += 25;
     
-    // Error message (if validation fails)
-    if (this._validationError) {
-      buffer.fill(255, 100, 100); // Red
-      buffer.textAlign(buffer.CENTER, buffer.TOP);
-      buffer.textSize(12);
-      buffer.text(this._validationError, centerX, currentY);
-      currentY += 20;
-    }
-    
-    // Warning message (if validation passes but has warning)
-    if (validation.valid && validation.warning) {
-      buffer.fill(255, 165, 0); // Orange
-      buffer.textAlign(buffer.CENTER, buffer.TOP);
-      buffer.textSize(12);
-      buffer.text(validation.warning, centerX, currentY);
-      currentY += 20;
-    }
-    
-    currentY += 5; // Extra spacing before buttons
-    
-    // Buttons
-    const buttonY = this.height - 60;
-    const buttonWidth = 100;
-    const buttonHeight = 35;
-    const buttonSpacing = 20;
-    
-    // Cancel button (left)
-    const cancelX = centerX - buttonWidth - buttonSpacing / 2;
-    this._renderButton(buffer, 'Cancel', cancelX, buttonY, buttonWidth, buttonHeight,
-                      false, this._cancelButtonBounds);
-    
-    // Create button (right) - disabled if validation fails
-    const createX = centerX + buttonSpacing / 2;
-    this._renderButton(buffer, 'Create', createX, buttonY, buttonWidth, buttonHeight,
-                      validation.valid, this._createButtonBounds);
-  }
-  
-  /**
-   * Render input field
-   * @private
-   */
-  _renderInputField(buffer, label, value, x, y, isActive, bounds) {
-    const inputWidth = 160;
-    const inputHeight = 35;
-    
-    // Store bounds for click detection
-    bounds.x = x;
-    bounds.y = y;
-    bounds.width = inputWidth;
-    bounds.height = inputHeight;
-    
-    // Label
-    buffer.fill(200);
-    buffer.textAlign(buffer.LEFT, buffer.TOP);
-    buffer.textSize(14);
-    buffer.text(`${label}:`, x, y - 20);
-    
-    // Input box background
-    buffer.fill(30);
-    buffer.noStroke();
-    buffer.rect(x, y, inputWidth, inputHeight, 3);
-    
-    // Border (highlight if active)
-    if (isActive) {
-      buffer.stroke(255, 200, 0); // Yellow
-      buffer.strokeWeight(2);
-    } else {
-      buffer.stroke(80);
-      buffer.strokeWeight(1);
-    }
-    buffer.noFill();
-    buffer.rect(x, y, inputWidth, inputHeight, 3);
-    
-    // Value text
-    buffer.fill(255);
-    buffer.noStroke();
-    buffer.textAlign(buffer.CENTER, buffer.CENTER);
-    buffer.textSize(16);
-    buffer.text(value.toString(), x + inputWidth / 2, y + inputHeight / 2);
-    
-    // "tiles" suffix
-    buffer.fill(150);
-    buffer.textAlign(buffer.LEFT, buffer.CENTER);
-    buffer.textSize(12);
-    buffer.text('tiles', x + inputWidth + 10, y + inputHeight / 2);
-  }
-  
-  /**
-   * Render button
-   * @private
-   */
-  _renderButton(buffer, label, x, y, width, height, enabled, bounds) {
-    // Store bounds for click detection
-    bounds.x = x;
-    bounds.y = y;
-    bounds.width = width;
-    bounds.height = height;
-    
-    // Button background
-    if (enabled) {
-      buffer.fill(100, 150, 255); // Blue
-    } else {
-      buffer.fill(60); // Gray (disabled)
-    }
-    buffer.noStroke();
-    buffer.rect(x, y, width, height, 5);
-    
-    // Button border
-    buffer.stroke(enabled ? 150 : 80);
-    buffer.strokeWeight(1);
-    buffer.noFill();
-    buffer.rect(x, y, width, height, 5);
-    
-    // Button text
-    buffer.fill(enabled ? 255 : 120);
-    buffer.noStroke();
-    buffer.textAlign(buffer.CENTER, buffer.CENTER);
-    buffer.textSize(14);
-    buffer.text(label, x + width / 2, y + height / 2);
+    this.buttonGroup.renderToBuffer(buffer);
   }
 }
 

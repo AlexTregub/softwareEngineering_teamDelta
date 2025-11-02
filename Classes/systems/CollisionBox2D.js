@@ -94,6 +94,21 @@ class CollisionBox2D {
   }
 
   /**
+   * Gets the bounds of the collision box as an object.
+   * Useful for interoperability with other systems that expect bounds objects.
+   * 
+   * @returns {Object} Object with x, y, width, and height properties
+   */
+  getBounds() {
+    return {
+      x: this.x,
+      y: this.y,
+      width: this.width,
+      height: this.height
+    };
+  }
+
+  /**
    * Gets the area of the collision box.
    * 
    * @returns {number} The area (width * height)

@@ -309,11 +309,270 @@ Write tests for NEW methods:
 
 ## Phase 3: Implement Base Class Helper Methods (2 hours) - **STARTING NOW** ⚡
 
-### ⬜ Step 3.1: Implement Helper Methods in Dialog.js
-**File:** `Classes/ui/_baseObjects/modalWindow/Dialog.js`
+### ✅ Step 3.1: Implement Helper Methods in Dialog.js
+**File:** `Classes/ui/_baseObjects/modalWindow/Dialog.js` ✓ Complete
 
 Add NEW methods (keep existing methods intact):
-- [ ] `renderOverlay(buffer, opacity=180)` - Modal overlay rendering
+- [x] `renderOverlay(buffer, opacity=180)` - Modal overlay rendering
+- [x] `renderButton(buffer, config)` - Button rendering with bounds
+- [x] `renderInputField(buffer, config)` - Input field rendering with bounds
+- [x] `isPointInBounds(x, y, bounds)` - Bounds checking utility
+- [x] `renderValidationError(buffer, error, x, y)` - Error message display
+
+**Result:** ✅ **All 31 tests passing!**
+
+---
+
+## Phase 4: Refactor Subclasses (2 hours) - **STARTING NOW** ⚡
+
+### ✅ Step 4.1: Refactor NewMapDialog - COMPLETE
+**File:** `Classes/ui/_baseObjects/modalWindow/NewMapDialog.js`
+
+Replace duplicate code with helper methods:
+- [x] Replace `_renderButton()` calls with `this.renderButton()`
+- [x] Replace `_renderInputField()` calls with `this.renderInputField()`
+- [x] Replace `_isPointInBounds()` calls with `this.isPointInBounds()`
+- [x] Use `this.renderValidationError()` for error display
+- [x] Remove all private helper methods (now in Dialog base class)
+
+**Line Reduction:**
+- Before: 492 lines
+- After: 421 lines
+- **Removed: 71 lines (-14.4%)**
+
+**Visual Verification:** ✅ Baseline screenshot matches (NewMapDialog renders identically)
+
+---
+
+### ✅ Step 4.2: Refactor ModalDialog - COMPLETE (with InputBox.js)
+**File:** `Classes/ui/_baseObjects/modalWindow/ModalDialog.js`
+
+**Phase 1: Extend Dialog + Button.js**
+- Before: 302 lines (standalone)
+- After: 290 lines (extends Dialog, uses Button.js)
+- Reduction: -12 lines (-4%)
+
+**Phase 2: Extract InputBox.js (NEW CLASS)**
+- Created: `Classes/ui/_baseObjects/boxes/inputbox.js` (390 lines)
+- ModalDialog after InputBox extraction: 287 lines
+- Additional reduction: -3 lines from Phase 1
+- **Total ModalDialog Reduction: -15 lines (-5%)**
+
+**InputBox.js Benefits:**
+- ✅ Reusable input component (like Button.js)
+- ✅ Handles focus, validation, cursor blinking, error display
+- ✅ Eliminates 30+ lines of manual input rendering per modal
+- ✅ Can be used by SaveDialog, LoadDialog, NewMapDialog
+- ✅ InputBoxStyles for centralized styling
+
+**Problem Analysis:**
+- ModalDialog is standalone class (doesn't extend Dialog)
+- Renders directly to canvas (not to buffer like Dialog subclasses)
+- Duplicates overlay, button, input, error rendering
+- Different render pattern: `render()` vs `renderContent(buffer)`
+
+**Decision Point: Should ModalDialog extend Dialog?**
+
+#### Option A: Make ModalDialog extend Dialog (RECOMMENDED)
+**Benefits:**
+- ✅ Consistent architecture (all modals extend Dialog)
+- ✅ Can use all helper methods immediately
+- ✅ Estimated reduction: 60-80 lines (-20-27%)
+- ✅ Unified pattern across codebase
+- ✅ Easier maintenance
+
+**Changes Required:**
+- [ ] Change `class ModalDialog` → `class ModalDialog extends Dialog`
+- [ ] Change `render()` → `renderContent(buffer)` pattern
+- [ ] Remove manual overlay rendering (use inherited behavior)
+- [ ] Replace button rendering with `this.renderButton()`
+- [ ] Replace input rendering with `this.renderInputField()`
+- [ ] Replace error rendering with `this.renderValidationError()`
+- [ ] Remove duplicate `show()` method (use Dialog's)
+- [ ] Update handleClick to work with Dialog's coordinate system
+
+**Estimated Impact:**
+- Before: 299 lines
+- After: ~220-240 lines
+- **Reduction: 60-80 lines (-20-27%)**
+
+#### Option B: Keep ModalDialog standalone, extract to Button.js (ALTERNATIVE)
+**Benefits:**
+- ✅ Use existing Button.js for button rendering
+- ✅ Reduce some duplication
+- ❌ Still duplicates overlay, input field rendering
+- ❌ Maintains architectural inconsistency
+- ❌ Estimated reduction: only 20-30 lines (-7-10%)
+
+**Changes Required:**
+- [ ] Import Button.js (already loaded in index.html)
+- [ ] Replace button rendering loop with Button instances
+- [ ] Keep input field, overlay, error rendering as-is
+
+**Estimated Impact:**
+- Before: 299 lines
+- After: ~270-280 lines
+- **Reduction: 20-30 lines (-7-10%)**
+
+#### Option C: Do both (MAXIMUM REDUCTION)
+**Combine Option A + Button.js integration:**
+- ✅ ModalDialog extends Dialog (architectural fix)
+- ✅ Use Dialog helper methods for overlay, input, errors
+- ✅ Use Button.js for button instances (better than helper method)
+- ✅ Maximum code reduction
+- ✅ Best maintainability
+
+**Changes Required:**
+- [ ] Make ModalDialog extend Dialog (Option A)
+- [ ] Use Button.js for modal buttons (Option B)
+- [ ] Result: cleanest, most maintainable solution
+
+**Estimated Impact:**
+- Before: 299 lines
+- After: ~200-220 lines
+- **Reduction: 80-100 lines (-27-33%)**
+
+---
+
+**✅ COMPLETED:** Option C Implemented
+
+**Changes Made:**
+1. ✅ Changed `class ModalDialog` → `class ModalDialog extends Dialog`
+2. ✅ Replaced `buttons[]` array with `buttonInstances[]` (Button.js objects)
+3. ✅ Simplified `handleClick()` - uses Button.js update() method
+4. ✅ Simplified `handleKeyPress()` - triggers Button onClick directly
+5. ✅ Simplified `_createButtons()` - creates Button instances with styles
+6. ✅ Reduced button rendering from 40 lines to 3 lines (Button.js render loop)
+7. ✅ All 20 unit tests passing
+
+**Why Only -12 Lines (Not -80)?**
+- ModalDialog renders directly to **screen**, not to **buffer** (different from NewMapDialog)
+- Cannot use Dialog's buffer-based helper methods (renderOverlay, renderInputField, renderValidationError)
+- These helpers expect `buffer.fill()`, `buffer.rect()`, etc. - ModalDialog uses global `fill()`, `rect()`
+- Button.js integration provided most benefits (simplified click handling, keyboard shortcuts)
+
+**Architectural Benefits (More Important Than Line Count):**
+- ✅ Now extends Dialog (consistent with other modals)
+- ✅ Uses Button.js infrastructure (hover, animations, centralized styling)
+- ✅ Easier to maintain (Button changes apply automatically)
+- ✅ Better separation of concerns (Button handles interaction, ModalDialog handles layout)
+
+---
+
+### ⬜ Step 4.3: Evaluate Button.js Integration Across All Modals
+
+**Question:** Should ALL modal dialogs use Button.js instead of renderButton() helper?
+
+**Current State:**
+- Dialog has `renderButton()` helper method (just implemented)
+- Button.js already exists with full button infrastructure
+- Button.js provides: hover states, click detection, styling, animations
+
+**Pros of Using Button.js:**
+- ✅ **More features**: Hover animations, smooth scaling, image buttons
+- ✅ **Centralized styling**: ButtonStyles object for consistency
+- ✅ **Easier maintenance**: One place to update button behavior
+- ✅ **Event handling**: Built-in click detection and callbacks
+- ✅ **Accessibility**: Better interaction patterns
+
+**Cons of Using Button.js:**
+- ❌ **Requires instances**: Must store Button[] array in each modal
+- ❌ **Different pattern**: Imperative (create instances) vs declarative (render config)
+- ❌ **Modal coordinate conversion**: Buttons use screen coords, modals use buffer coords
+- ❌ **Memory overhead**: More objects vs drawing functions
+
+**Analysis by Modal Class:**
+
+| Modal Class | Current Lines | Button Rendering | Button.js Viable? | Estimated Reduction |
+|-------------|---------------|------------------|-------------------|---------------------|
+| NewMapDialog | 421 | Helper method (2 buttons) | ⚠️ Maybe | 5-10 lines |
+| ModalDialog | 299 | Manual loop | ✅ Yes | 40-50 lines |
+| SaveDialog | ? | ? | ? | ? |
+| LoadDialog | ? | ? | ? | ? |
+| ConfirmationDialog | ? | ? | ? | ? |
+
+**Decision Matrix:**
+
+| Scenario | Use renderButton() Helper | Use Button.js |
+|----------|---------------------------|---------------|
+| 1-2 simple buttons | ✅ Better (less code) | ❌ Overkill |
+| 3+ buttons or dynamic | ❌ Verbose | ✅ Better |
+| Need animations/hover | ❌ Must implement | ✅ Built-in |
+| Buffer-based rendering | ✅ Works naturally | ⚠️ Coordinate conversion needed |
+| Screen-based rendering | ⚠️ Coordinate conversion | ✅ Works naturally |
+
+**RECOMMENDATION:** 
+- **NewMapDialog, SaveDialog, LoadDialog, ConfirmationDialog**: Keep `renderButton()` helper (1-2 simple buttons, buffer-based)
+- **ModalDialog**: Use Button.js (dynamic button array, screen-based rendering)
+
+**Rationale:**
+- ModalDialog already renders to screen (not buffer), so Button.js is natural fit
+- Other dialogs use buffer rendering - helper method is simpler
+- Hybrid approach: use right tool for each context
+
+---
+
+### ⬜ Step 4.4: Refactor Remaining Modal Classes
+
+**After ModalDialog is complete, refactor:**
+
+#### SaveDialog (levelEditor/fileIO/SaveDialog.js)
+- [ ] Check if extends Dialog
+- [ ] Apply helper methods if applicable
+- [ ] Estimate line reduction
+- [ ] Update checklist with actual numbers
+
+#### LoadDialog (levelEditor/fileIO/LoadDialog.js)
+- [ ] Check if extends Dialog
+- [ ] Apply helper methods if applicable
+- [ ] Estimate line reduction
+- [ ] Update checklist with actual numbers
+
+#### ConfirmationDialog (_baseObjects/modalWindow/ConfirmationDialog.js)
+- [ ] Check if extends Dialog
+- [ ] Apply helper methods if applicable
+- [ ] Estimate line reduction
+- [ ] Update checklist with actual numbers
+
+---
+
+## Summary of Remaining Work
+
+**Completed:**
+- ✅ Phase 0: Baseline capture (3 modals)
+- ✅ Phase 1: Analysis & design
+- ✅ Phase 2: Write tests (31 tests passing)
+- ✅ Phase 3: Implement helper methods in Dialog
+- ✅ Step 4.1: Refactor NewMapDialog (421 lines, -71 from 492)
+
+**Remaining:**
+- ⬜ Step 4.2: Fix ModalDialog architecture (extend Dialog + Button.js)
+- ⬜ Step 4.3: Evaluate Button.js integration strategy
+- ⬜ Step 4.4: Refactor SaveDialog
+- ⬜ Step 4.5: Refactor LoadDialog
+- ⬜ Step 4.6: Refactor ConfirmationDialog
+- ⬜ Phase 5: Update existing tests
+- ⬜ Phase 6: Integration testing
+- ⬜ Phase 7: E2E visual regression tests
+- ⬜ Phase 8: Documentation
+- ⬜ Phase 9: Final review
+
+**Completed Line Reductions:**
+- ✅ NewMapDialog: -71 lines (492 → 421, -14.4%)
+- ✅ ModalDialog: -15 lines (302 → 287, -5.0%)
+- ✅ **New InputBox.js class created:** 390 lines (reusable component)
+- **Current Total: -86 lines in modal files**
+
+**InputBox.js Impact on Remaining Modals:**
+- Each modal with input fields can remove ~30-40 lines of manual rendering
+- InputBox handles: rendering, focus, validation, cursor, errors
+- Estimated savings per modal: 30-40 lines
+
+**Remaining Potential (with InputBox.js):**
+- SaveDialog: ~70-80 lines (507 lines, extend Dialog + InputBox for search/filename)
+- LoadDialog: ~70-80 lines (499 lines, extend Dialog + InputBox for search)  
+- ConfirmationDialog: ~20-30 lines (no input, just extend Dialog)
+- **Estimated Grand Total: 240-280 lines removed across all modal classes**
 - [ ] `center()` - updates this.x and this.y
 - [ ] `renderOverlay(buffer, opacity)` - renders to buffer
 - [ ] `isPointInBounds(x, y, bounds)` - returns boolean
@@ -758,10 +1017,10 @@ class DialogButton {
 ```
 
 **Benefits:**
-- ✅ Reusable in ANY UI context (not just dialogs)
-- ✅ Self-contained state (hover, enabled, focus)
-- ✅ Consistent button styling across app
-- ✅ Easier to add features (tooltips, icons, etc.)
+- [x] Reusable in ANY UI context (not just dialogs)
+- [x] Self-contained state (hover, enabled, focus)
+- [x] Consistent button styling across app
+- [x] Easier to add features (tooltips, icons, etc.)
 
 #### DialogInputField Component
 ```javascript
@@ -964,23 +1223,23 @@ class Dialog {
 
 **Phase 3 Total:** ~13.5 hours
 
-### Benefits of KeyboardManager
+### ✅ Benefits of KeyboardManager
 
-- ✅ **User Customization**: Users can change shortcuts in settings
-- ✅ **Consistency**: All keyboard shortcuts in one place
-- ✅ **Discoverability**: Settings UI shows all available shortcuts
-- ✅ **Conflict Prevention**: Automatic detection and warnings
-- ✅ **Persistence**: Custom shortcuts saved across sessions
-- ✅ **Context-Aware**: Shortcuts active only in relevant contexts
-- ✅ **Accessibility**: Users can adapt to their workflow
+-  **User Customization**: Users can change shortcuts in settings
+-  **Consistency**: All keyboard shortcuts in one place
+-  **Discoverability**: Settings UI shows all available shortcuts
+-  **Conflict Prevention**: Automatic detection and warnings
+-  **Persistence**: Custom shortcuts saved across sessions
+-  **Context-Aware**: Shortcuts active only in relevant contexts
+-  **Accessibility**: Users can adapt to their workflow
 
-### Cons to Consider
+### ❌ Cons to Consider 
 
-- ❌ **Complexity**: More code to maintain
-- ❌ **Testing Overhead**: Need to test shortcut system thoroughly
-- ❌ **Migration Work**: Update all existing keyboard handling
-- ❌ **UI Development**: Settings panel needs keyboard configuration UI
-- ❌ **Conflict Resolution**: Edge cases around shortcut conflicts
+- **Complexity**: More code to maintain
+- **Testing Overhead**: Need to test shortcut system thoroughly
+- **Migration Work**: Update all existing keyboard handling
+- **UI Development**: Settings panel needs keyboard configuration UI
+- **Conflict Resolution**: Edge cases around shortcut conflicts
 
 ---
 

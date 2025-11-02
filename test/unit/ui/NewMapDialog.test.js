@@ -36,9 +36,22 @@ describe('NewMapDialog', function() {
         text: sinon.stub(),
         textAlign: sinon.stub(),
         textSize: sinon.stub(),
+        textFont: sinon.stub(),
+        textWrap: sinon.stub(),
         image: sinon.stub(),
+        imageMode: sinon.stub(),
+        rectMode: sinon.stub(),
         push: sinon.stub(),
-        pop: sinon.stub()
+        pop: sinon.stub(),
+        translate: sinon.stub(),
+        scale: sinon.stub(),
+        tint: sinon.stub(),
+        noTint: sinon.stub(),
+        CENTER: 'center',
+        LEFT: 'left',
+        RIGHT: 'right',
+        TOP: 'top',
+        BOTTOM: 'bottom'
       };
     });
     
@@ -50,34 +63,55 @@ describe('NewMapDialog', function() {
     global.RIGHT = 'right';
     global.TOP = 'top';
     global.BOTTOM = 'bottom';
+    global.WORD = 'word';
     
     window.CENTER = global.CENTER;
     window.LEFT = global.LEFT;
     window.RIGHT = global.RIGHT;
     window.TOP = global.TOP;
     window.BOTTOM = global.BOTTOM;
+    window.WORD = global.WORD;
+    
+    // Mock p5.js functions for Button
+    global.sin = Math.sin;
+    global.frameCount = 0;
+    global.color = sinon.stub().callsFake((r, g, b) => ({ r, g, b }));
+    
+    window.sin = global.sin;
+    window.frameCount = global.frameCount;
+    window.color = global.color;
+    
+    // Load CollisionBox2D (required by Button)
+    const CollisionBox2D = require('../../../Classes/systems/CollisionBox2D.js');
+    global.CollisionBox2D = CollisionBox2D;
+    window.CollisionBox2D = CollisionBox2D;
+    
+    // Load Button (required by NewMapDialog)
+    const Button = require('../../../Classes/systems/Button.js');
+    global.Button = Button;
+    window.Button = Button;
     
     // Load UIObject base class
-    const UIObject = require('../../../Classes/ui/UIObject.js');
+    const UIObject = require('../../../Classes/ui/_baseObjects/UIObject.js');
     global.UIObject = UIObject;
     window.UIObject = UIObject;
     
     // Load Dialog base class
-    const Dialog = require('../../../Classes/ui/Dialog.js');
+    const Dialog = require('../../../Classes/ui/_baseObjects/modalWindow/Dialog.js');
     global.Dialog = Dialog;
     window.Dialog = Dialog;
     
-    // Load NewMapDialog (will fail until implemented)
+    // Load NewMapDialog
     try {
-      NewMapDialog = require('../../../Classes/ui/NewMapDialog.js');
+      NewMapDialog = require('../../../Classes/ui/_baseObjects/modalWindow/NewMapDialog.js');
     } catch (e) {
       // Expected to fail - we haven't created the file yet
-      console.log('ΓÜá∩╕Å  NewMapDialog.js not found (expected for TDD)');
+      console.log('⚠️  NewMapDialog.js not found (expected for TDD)');
     }
   });
   
   beforeEach(function() {
-    // Reset graphics mock
+    // Reset graphics mock (full mock with all Button.renderToBuffer() methods)
     mockGraphics = {
       width: 400,
       height: 300,
@@ -91,9 +125,22 @@ describe('NewMapDialog', function() {
       text: sinon.stub(),
       textAlign: sinon.stub(),
       textSize: sinon.stub(),
+      textFont: sinon.stub(),
+      textWrap: sinon.stub(),
       image: sinon.stub(),
+      imageMode: sinon.stub(),
+      rectMode: sinon.stub(),
       push: sinon.stub(),
-      pop: sinon.stub()
+      pop: sinon.stub(),
+      translate: sinon.stub(),
+      scale: sinon.stub(),
+      tint: sinon.stub(),
+      noTint: sinon.stub(),
+      CENTER: 'center',
+      LEFT: 'left',
+      RIGHT: 'right',
+      TOP: 'top',
+      BOTTOM: 'bottom'
     };
     
     global.createGraphics.resetHistory();
@@ -531,9 +578,11 @@ describe('NewMapDialog', function() {
       
       const confirmSpy = sinon.spy(dialog, 'confirm');
       
-      // Click within Create button bounds (right side, buttonY = height - 60 = 260)
-      const createButtonX = 220; // centerX + spacing/2 = 200 + 10 = 210
-      const createButtonY = 260;
+      // Click within Create button bounds
+      // buttonY = height - 50 = 320 - 50 = 270
+      // createX = 40 + 100 + 120 = 260
+      const createButtonX = 260;
+      const createButtonY = 270;
       
       dialog.handleClick(createButtonX, createButtonY);
       
@@ -553,8 +602,8 @@ describe('NewMapDialog', function() {
       const confirmSpy = sinon.spy(dialog, 'confirm');
       
       // Click within Create button bounds
-      const createButtonX = 220;
-      const createButtonY = 260;
+      const createButtonX = 260;
+      const createButtonY = 270;
       
       dialog.handleClick(createButtonX, createButtonY);
       
@@ -571,9 +620,10 @@ describe('NewMapDialog', function() {
       
       const cancelSpy = sinon.spy(dialog, 'cancel');
       
-      // Click within Cancel button bounds (left side)
-      const cancelButtonX = 90; // centerX - buttonWidth - spacing/2 = 200 - 100 - 10 = 90
-      const cancelButtonY = 260;
+      // Click within Cancel button bounds
+      // cancelX = 40
+      const cancelButtonX = 40;
+      const cancelButtonY = 270;
       
       dialog.handleClick(cancelButtonX, cancelButtonY);
       

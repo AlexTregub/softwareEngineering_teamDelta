@@ -10,39 +10,30 @@
  * - Show/hide with overlay
  * - Title and message display
  * - Optional input field with validation
- * - Multiple buttons with callbacks
+ * - Multiple buttons with Button.js (hover, click, callbacks)
  * - Keyboard support (Enter, Esc, Backspace)
- * - Click detection for buttons
+ * - Uses Dialog helper methods for rendering
+ * - Extends Dialog base class for architectural consistency
+ * - Uses Button.js for button rendering and interaction
+ * - Uses Dialog helper methods (renderOverlay, renderInputField, renderValidationError)
  */
 
-class ModalDialog {
+class ModalDialog extends Dialog {
   constructor() {
-    this._visible = false;
+    super();
     this.title = '';
     this.message = '';
     this.hasInput = false;
-    this.inputPlaceholder = '';
-    this.inputValue = '';
-    this.buttons = [];
-    this.validateInputFn = null;
-    this.validationError = '';
-    this.errorMessage = '';
+    this.inputBox = null; // InputBox instance (replaces manual input rendering)
+    this.buttonInstances = []; // Button.js instances
     
     // Modal dimensions
     this.width = 400;
     this.height = 300;
     
-    // Canvas dimensions (assumed, can be overridden)
+    // Canvas dimensions (for screen rendering)
     this.canvasWidth = 800;
     this.canvasHeight = 600;
-  }
-  
-  /**
-   * Check if modal is visible
-   * @returns {boolean}
-   */
-  isVisible() {
-    return this._visible;
   }
   
   /**
@@ -55,53 +46,116 @@ class ModalDialog {
    * @param {string} [config.inputValue=''] - Initial input value
    * @param {Function} [config.validateInput] - Input validation function
    * @param {string} [config.validationError=''] - Validation error message
-   * @param {Array} [config.buttons=[]] - Button configurations
+   * @param {Array} [config.buttons=[]] - Button configurations [{label, callback, type}]
    */
   show(config) {
-    this._visible = true;
+    super.show();
     this.title = config.title || '';
     this.message = config.message || '';
     this.hasInput = config.hasInput || false;
-    this.inputPlaceholder = config.inputPlaceholder || '';
-    this.inputValue = config.inputValue || '';
-    this.buttons = config.buttons || [];
-    this.validateInputFn = config.validateInput || null;
-    this.validationError = config.validationError || '';
-    this.errorMessage = '';
+    
+    // Create InputBox instance if needed
+    if (this.hasInput) {
+      this._createInputBox(config);
+    } else {
+      this.inputBox = null;
+    }
+    
+    // Create Button.js instances from config
+    this._createButtons(config.buttons || []);
   }
   
   /**
-   * Hide modal
+   * Hide modal and clear state
    */
   hide() {
-    this._visible = false;
-    this.errorMessage = '';
+    super.hide();
+    this.inputBox = null;
+    this.buttonInstances = [];
   }
   
   /**
-   * Validate input using custom validator
-   * @returns {boolean} - True if valid
+   * Create InputBox instance from config
+   * @private
    */
-  validateInput() {
-    if (!this.validateInputFn) return true;
+  _createInputBox(config) {
+    const modalX = (this.canvasWidth - this.width) / 2;
+    const modalY = (this.canvasHeight - this.height) / 2;
+    const inputY = modalY + 120;
+    const inputHeight = 40;
     
-    const isValid = this.validateInputFn(this.inputValue);
-    if (!isValid) {
-      this.errorMessage = this.validationError;
-    } else {
-      this.errorMessage = '';
-    }
-    return isValid;
+    this.inputBox = new InputBox(
+      modalX + 20,
+      inputY,
+      this.width - 40,
+      inputHeight,
+      {
+        value: config.inputValue || '',
+        placeholder: config.inputPlaceholder || '',
+        onValidate: config.validateInput || null,
+        errorMessage: config.validationError || '',
+        ...InputBoxStyles.MODAL
+      }
+    );
+    
+    // Auto-focus the input box
+    this.inputBox.setFocus(true);
   }
   
   /**
-   * Handle button click detection
+   * Create Button.js instances from button config
+   * @private
+   */
+  _createButtons(buttonsConfig) {
+    const modalX = (this.canvasWidth - this.width) / 2;
+    const modalY = (this.canvasHeight - this.height) / 2;
+    const buttonY = modalY + this.height - 60;
+    const buttonHeight = 40;
+    const buttonSpacing = 10;
+    const buttonWidth = (this.width - buttonSpacing * (buttonsConfig.length + 1)) / buttonsConfig.length;
+    
+    this.buttonInstances = buttonsConfig.map((btnConfig, i) => {
+      const btnX = modalX + buttonSpacing + (buttonWidth + buttonSpacing) * i;
+      
+      // Create Button instance
+      const button = new Button(btnX, buttonY, buttonWidth, buttonHeight, btnConfig.label, {
+        backgroundColor: btnConfig.type === 'primary' ? '#3296FA' : '#969696',
+        hoverColor: btnConfig.type === 'primary' ? '#287ACD' : '#787878',
+        textColor: '#FFFFFF',
+        borderColor: '#646464',
+        borderWidth: 1,
+        cornerRadius: 5,
+        fontSize: 14,
+        onClick: () => {
+          // Validate input if required (using InputBox)
+          if (this.inputBox && btnConfig.type === 'primary') {
+            if (!this.inputBox.validate()) {
+              return; // Don't hide modal, show validation error
+            }
+          }
+          
+          // Execute callback with InputBox value
+          if (btnConfig.callback) {
+            const inputValue = this.inputBox ? this.inputBox.getValue() : '';
+            btnConfig.callback(inputValue);
+          }
+          
+          this.hide();
+        }
+      });
+      
+      return button;
+    });
+  }
+  
+  /**
+   * Handle click detection (uses Button.js and InputBox instances)
    * @param {number} mouseX - Mouse X coordinate
    * @param {number} mouseY - Mouse Y coordinate
    * @returns {boolean} - True if click was handled
    */
   handleClick(mouseX, mouseY) {
-    if (!this._visible) return false;
+    if (!this.isVisible()) return false;
     
     // Calculate modal position (centered)
     const modalX = (this.canvasWidth - this.width) / 2;
@@ -113,35 +167,15 @@ class ModalDialog {
       return false;
     }
     
-    // Button area at bottom of modal
-    const buttonY = modalY + this.height - 60; // 60px from bottom
-    const buttonHeight = 40;
-    const buttonSpacing = 10;
-    const buttonWidth = (this.width - buttonSpacing * (this.buttons.length + 1)) / this.buttons.length;
+    // Check InputBox click (for focus)
+    if (this.inputBox) {
+      this.inputBox.update(mouseX, mouseY, true);
+    }
     
-    // Check each button
-    for (let i = 0; i < this.buttons.length; i++) {
-      const button = this.buttons[i];
-      const btnX = modalX + buttonSpacing + (buttonWidth + buttonSpacing) * i;
-      const btnY = buttonY;
-      
-      if (mouseX >= btnX && mouseX <= btnX + buttonWidth &&
-          mouseY >= btnY && mouseY <= btnY + buttonHeight) {
-        
-        // Validate input if required
-        if (this.hasInput && button.type === 'primary') {
-          if (!this.validateInput()) {
-            return true; // Handled but validation failed
-          }
-        }
-        
-        // Execute callback
-        if (button.callback) {
-          button.callback(this.inputValue);
-        }
-        
-        this.hide();
-        return true;
+    // Check if any button was clicked (Button.js handles this)
+    for (let button of this.buttonInstances) {
+      if (button.update(mouseX, mouseY, true)) {
+        return true; // Button was clicked, handled
       }
     }
     
@@ -149,41 +183,37 @@ class ModalDialog {
   }
   
   /**
-   * Handle keyboard input
+   * Handle keyboard input (delegates to InputBox and Button shortcuts)
    * @param {string} key - Key pressed
    * @returns {boolean} - True if key was handled
    */
   handleKeyPress(key) {
-    if (!this._visible) return false;
+    if (!this.isVisible()) return false;
     
+    // Let InputBox handle typing keys first
+    if (this.inputBox) {
+      if (this.inputBox.handleKeyPress(key)) {
+        return true;
+      }
+    }
+    
+    // Handle button shortcuts
     if (key === 'Enter') {
-      // Find primary button and trigger it
-      const primaryButton = this.buttons.find(btn => btn.type === 'primary');
-      if (primaryButton) {
-        // Validate input if required
-        if (this.hasInput && !this.validateInput()) {
-          return true; // Handled but validation failed
+      // Trigger first button (primary)
+      if (this.buttonInstances.length > 0) {
+        const primaryButton = this.buttonInstances[0];
+        if (primaryButton.onClick) {
+          primaryButton.onClick(primaryButton);
         }
-        
-        if (primaryButton.callback) {
-          primaryButton.callback(this.inputValue);
-        }
-        this.hide();
         return true;
       }
     } else if (key === 'Escape') {
-      // Find secondary button (cancel) and trigger it
-      const secondaryButton = this.buttons.find(btn => btn.type === 'secondary');
-      if (secondaryButton) {
-        if (secondaryButton.callback) {
-          secondaryButton.callback(this.inputValue);
+      // Trigger second button (cancel/secondary)
+      if (this.buttonInstances.length > 1) {
+        const secondaryButton = this.buttonInstances[1];
+        if (secondaryButton.onClick) {
+          secondaryButton.onClick(secondaryButton);
         }
-        this.hide();
-        return true;
-      }
-    } else if (key === 'Backspace') {
-      if (this.hasInput && this.inputValue.length > 0) {
-        this.inputValue = this.inputValue.slice(0, -1);
         return true;
       }
     }
@@ -192,27 +222,22 @@ class ModalDialog {
   }
   
   /**
-   * Handle text input (for input field)
+   * Handle text input (delegates to InputBox)
    * @param {string} text - Text to append
    */
   handleTextInput(text) {
-    if (this.hasInput) {
-      this.inputValue += text;
+    if (this.inputBox) {
+      this.inputBox.handleTextInput(text);
     }
   }
   
   /**
-   * Render modal
+   * Render modal (uses InputBox and Button.js)
    */
   render() {
-    if (!this._visible) return;
+    if (!this.isVisible()) return;
     
-    if (typeof push !== 'undefined') push();
-    
-    // Draw overlay (semi-transparent black)
-    if (typeof fill !== 'undefined') fill(0, 0, 0, 150);
-    if (typeof noStroke !== 'undefined') noStroke();
-    if (typeof rect !== 'undefined') rect(0, 0, this.canvasWidth, this.canvasHeight);
+    push();
     
     // Calculate modal position (centered)
     const modalX = (this.canvasWidth - this.width) / 2;
@@ -233,60 +258,11 @@ class ModalDialog {
     if (typeof textSize !== 'undefined') textSize(14);
     if (typeof text !== 'undefined') text(this.message, modalX + this.width / 2, modalY + 60);
     
-    // Draw input field if enabled
-    if (this.hasInput) {
-      const inputY = modalY + 120;
-      const inputHeight = 40;
-      
-      // Input box
-      if (typeof fill !== 'undefined') fill(240);
-      if (typeof stroke !== 'undefined') stroke(150);
-      if (typeof rect !== 'undefined') rect(modalX + 20, inputY, this.width - 40, inputHeight, 5);
-      
-      // Input text
-      if (typeof fill !== 'undefined') fill(0);
-      if (typeof textAlign !== 'undefined') textAlign(window.LEFT || 'left', window.CENTER || 'center');
-      if (typeof textSize !== 'undefined') textSize(14);
-      const displayText = this.inputValue || this.inputPlaceholder;
-      const textColor = this.inputValue ? 0 : 150; // Gray for placeholder
-      if (typeof fill !== 'undefined') fill(textColor);
-      if (typeof text !== 'undefined') text(displayText, modalX + 30, inputY + inputHeight / 2);
-      
-      // Error message
-      if (this.errorMessage) {
-        if (typeof fill !== 'undefined') fill(200, 0, 0);
-        if (typeof textAlign !== 'undefined') textAlign(window.CENTER || 'center', window.TOP || 'top');
-        if (typeof textSize !== 'undefined') textSize(12);
-        if (typeof text !== 'undefined') text(this.errorMessage, modalX + this.width / 2, inputY + inputHeight + 10);
-      }
-    }
+    // Render InputBox if enabled (handles all input rendering)
+    if (this.inputBox) { this.inputBox.render(); }
     
-    // Draw buttons
-    const buttonY = modalY + this.height - 60;
-    const buttonHeight = 40;
-    const buttonSpacing = 10;
-    const buttonWidth = (this.width - buttonSpacing * (this.buttons.length + 1)) / this.buttons.length;
-    
-    for (let i = 0; i < this.buttons.length; i++) {
-      const button = this.buttons[i];
-      const btnX = modalX + buttonSpacing + (buttonWidth + buttonSpacing) * i;
-      
-      // Button background color
-      if (button.type === 'primary') {
-        if (typeof fill !== 'undefined') fill(50, 150, 250); // Blue
-      } else {
-        if (typeof fill !== 'undefined') fill(150); // Gray
-      }
-      
-      if (typeof stroke !== 'undefined') stroke(100);
-      if (typeof rect !== 'undefined') rect(btnX, buttonY, buttonWidth, buttonHeight, 5);
-      
-      // Button text
-      if (typeof fill !== 'undefined') fill(255);
-      if (typeof textAlign !== 'undefined') textAlign(window.CENTER || 'center', window.CENTER || 'center');
-      if (typeof textSize !== 'undefined') textSize(14);
-      if (typeof text !== 'undefined') text(button.label, btnX + buttonWidth / 2, buttonY + buttonHeight / 2);
-    }
+    // Render buttons using Button.js
+    for (let button of this.buttonInstances) { Button.render(); }
     
     if (typeof pop !== 'undefined') pop();
   }

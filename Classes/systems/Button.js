@@ -207,6 +207,92 @@ class Button {
   
     pop();
   }
+
+  /**
+   * Render button to a buffer
+   * 
+   * This method renders to a p5.Graphics buffer instead of the main canvas.
+   * Use this when rendering inside Dialog.renderContent(buffer) or similar buffer contexts.
+   * 
+   * @param {p5.Graphics} buffer - The buffer to render to
+   */
+  renderToBuffer(buffer) {
+    if (!buffer || typeof buffer.push !== 'function') return; // Guard against null/invalid buffer
+    
+    buffer.push();
+    if (typeof buffer.imageMode === 'function') buffer.imageMode(CENTER);
+    if (typeof buffer.rectMode === 'function') buffer.rectMode(CENTER);
+    if (typeof buffer.textAlign === 'function') buffer.textAlign(CENTER, CENTER);
+  
+    const center = this.bounds.getCenter();
+    const hovering = this.isHovered;
+  
+    // --- init scale if missing ---
+    if (this.currentScale === undefined) this.currentScale = 1.0;
+  
+    // --- target scale ---
+    let targetScale = hovering ? 1.1 : 1.0;
+    this.currentScale += (targetScale - this.currentScale) * 0.1; // easing
+  
+    // --- float offset if hovered ---
+    let hoverFloat = hovering ? sin(frameCount * 0.1) * 1 : 0;
+  
+    // --- visual tint ---
+    if (hovering && typeof buffer.tint === 'function') {
+      buffer.tint(255, 220);
+    } else if (typeof buffer.noTint === 'function') {
+      buffer.noTint();
+    }
+  
+    if (this.img) {
+      // --- draw image button ---
+      buffer.push();
+      buffer.translate(center.x, center.y + hoverFloat);
+      buffer.scale(this.currentScale);
+      buffer.image(this.img, 0, 0, this.width, this.height);
+      buffer.pop();
+    } else {
+      // --- draw rectangle button using configured style colors ---
+      buffer.push();
+      buffer.translate(center.x, center.y + hoverFloat);
+      buffer.scale(this.currentScale);
+      
+      // Use configured colors (strings like '#rrggbb' or rgb) — fall back to green if something is wrong
+      try {
+        const bgColor = hovering ? (this.hoverColor || this.backgroundColor) : (this.backgroundColor || '#64C864');
+        buffer.fill(bgColor);
+      } catch (err) {
+        buffer.fill(100, 200, 100);
+      }
+      
+      try { 
+        buffer.stroke(this.borderColor || 255); 
+      } catch (err) { 
+        buffer.stroke(255); 
+      }
+      
+      buffer.strokeWeight(this.borderWidth || 2);
+      buffer.rect(0, 0, this.width, this.height, this.cornerRadius || 5);
+
+      // Text with word wrapping
+      buffer.fill(this.textColor || 'white');
+      buffer.noStroke();
+      buffer.textFont(this.fontFamily);
+      buffer.textSize(this.fontSize);
+      
+      // Enable text wrapping if available
+      if (typeof buffer.textWrap === 'function') {
+        buffer.textWrap(WORD);
+      }
+      
+      // Wrap text to fit button width
+      const wrappedText = this.wrapTextToFit(this.caption, this.width - 10, this.fontSize);
+      buffer.text(wrappedText, 0, 0);
+      buffer.pop();
+    }
+  
+    buffer.pop();
+  }
   
 
   /**
@@ -545,6 +631,24 @@ const ButtonStyles = {
     borderColor: '#4A148C',
     borderWidth: 2,
     cornerRadius: 8
+  },
+  
+  // Button Group styles (used in ButtonGroup component)
+  CANCEL: {
+    backgroundColor: '#969696',
+    hoverColor: '#787878',
+    textColor: '#FFFFFF',
+    borderColor: '#646464',
+    borderWidth: 2,
+    cornerRadius: 5
+  },
+  PRIMARY: {
+    backgroundColor: '#228B22',
+    hoverColor: '#1B6B1B',
+    textColor: '#FFFFFF',
+    borderColor: '#155315',
+    borderWidth: 2,
+    cornerRadius: 5
   },
   
   // Universal Button Group System - Dynamic styling
