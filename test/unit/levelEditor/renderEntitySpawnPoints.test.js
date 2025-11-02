@@ -43,6 +43,7 @@ describe('LevelEditor - Render Entity Spawn Points', function() {
     global.imageMode = sinon.stub();
     global.tint = sinon.stub();
     global.noTint = sinon.stub();
+    global.noSmooth = sinon.stub();
     global.CORNER = 'CORNER';
     global.CENTER = 'CENTER';
     
@@ -70,8 +71,13 @@ describe('LevelEditor - Render Entity Spawn Points', function() {
   });
   
   beforeEach(function() {
-    // Reset all stubs
+    // Reset all stubs and call counts
     sinon.resetHistory();
+    
+    // Explicitly reset key spies
+    if (global.image) global.image.resetHistory();
+    if (global.push) global.push.resetHistory();
+    if (global.pop) global.pop.resetHistory();
     
     // Mock terrain
     mockTerrain = {
@@ -97,11 +103,22 @@ describe('LevelEditor - Render Entity Spawn Points', function() {
     };
     mockEntityPalette._imageCache.set('ant_worker.png', mockCanvas);
     
+    // CRITICAL: Clear global levelEditor instance (module cached)
+    if (typeof window !== 'undefined' && window.levelEditor) {
+      window.levelEditor._entitySpawnData = [];
+    }
+    if (typeof global !== 'undefined' && global.levelEditor) {
+      global.levelEditor._entitySpawnData = [];
+    }
+    
     // Create LevelEditor instance
     levelEditor = new LevelEditor();
     levelEditor.terrain = mockTerrain;
     levelEditor.entityPalette = mockEntityPalette;
     levelEditor.active = true;
+    
+    // CRITICAL: Clear _entitySpawnData to start fresh
+    levelEditor._entitySpawnData = [];
   });
   
   afterEach(function() {
@@ -136,10 +153,16 @@ describe('LevelEditor - Render Entity Spawn Points', function() {
     });
     
     it('should render multiple spawn points', function() {
+      // Verify array starts empty
+      expect(levelEditor._entitySpawnData.length).to.equal(0);
+      
       // Place multiple entities
       levelEditor._placeSingleEntity(0, 0, 'ant_worker', {});
       levelEditor._placeSingleEntity(5, 5, 'ant_worker', {});
       levelEditor._placeSingleEntity(10, 10, 'ant_worker', {});
+      
+      // Verify exactly 3 entities in array
+      expect(levelEditor._entitySpawnData.length).to.equal(3);
       
       levelEditor.renderEntitySpawnPoints();
       

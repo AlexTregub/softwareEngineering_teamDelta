@@ -1445,9 +1445,9 @@ describe('EventManager', function() {
         condition: { delay: 5000 }
       };
 
-      const registered = eventManager.registerTrigger(triggerConfig);
+      const triggerId = eventManager.registerTrigger(triggerConfig);
       
-      expect(registered).to.be.true;
+      expect(triggerId).to.be.a('string'); // Returns trigger ID
       expect(eventManager.triggers.size).to.equal(1);
     });
 

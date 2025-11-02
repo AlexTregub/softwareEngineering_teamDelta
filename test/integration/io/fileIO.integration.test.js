@@ -447,7 +447,7 @@ global.localStorage = dom.window.localStorage;
 
 // Load FileMenuBar
 let fileMenuBarCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/FileMenuBar.js'),
+  path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js'),
   'utf8'
 );
 

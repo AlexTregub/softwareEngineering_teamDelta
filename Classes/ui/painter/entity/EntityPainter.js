@@ -277,6 +277,7 @@ class EntityPainter {
   /**
    * Import entities from JSON (single file format)
    * CRITICAL: Reads grid coordinates, converts to world coordinates
+   * Supports both gridPosition format and gridX/gridY format
    * @param {Object} json - JSON object with entities array
    */
   importFromJSON(json) {
@@ -296,19 +297,42 @@ class EntityPainter {
     
     // Recreate entities from JSON
     json.entities.forEach(entityData => {
-      if (!entityData.gridPosition) {
-        return; // Skip invalid data
+      // Support both formats: gridPosition.{x,y} OR gridX/gridY
+      let gridX, gridY;
+      
+      if (entityData.gridPosition) {
+        // New format: { gridPosition: { x, y } }
+        gridX = entityData.gridPosition.x;
+        gridY = entityData.gridPosition.y;
+      } else if (entityData.gridX !== undefined && entityData.gridY !== undefined) {
+        // Old format (CaveTutorial.json): { gridX, gridY }
+        gridX = entityData.gridX;
+        gridY = entityData.gridY;
+      } else {
+        return; // Skip invalid data - no coordinates
       }
       
       // Convert grid coordinates to world coordinates
-      const worldX = entityData.gridPosition.x * TILE_SIZE;
-      const worldY = entityData.gridPosition.y * TILE_SIZE;
+      const worldX = gridX * TILE_SIZE;
+      const worldY = gridY * TILE_SIZE;
       
       let entity = null;
       const props = entityData.properties || {};
       
+      // Determine entity type from templateId if type not provided
+      let entityType = entityData.type;
+      if (!entityType && entityData.templateId) {
+        if (entityData.templateId.startsWith('ant_')) {
+          entityType = 'Ant';
+        } else if (entityData.templateId.startsWith('building_')) {
+          entityType = 'Building';
+        } else if (entityData.templateId.startsWith('resource_')) {
+          entityType = 'Resource';
+        }
+      }
+      
       // Create entity based on type
-      switch (entityData.type) {
+      switch (entityType) {
         case 'Ant':
           if (typeof ant !== 'undefined') {
             entity = new ant(
@@ -351,11 +375,12 @@ class EntityPainter {
         default:
           // Resource - create simple resource entity with centering offset
           entity = {
-            type: entityData.type,
+            type: entityType || 'Resource',
             posX: worldX + 16,
             posY: worldY + 16,
             canBePickedUp: props.canBePickedUp !== undefined ? props.canBePickedUp : true,
             weight: props.weight !== undefined ? props.weight : 0.5,
+            nutritionValue: props.nutritionValue !== undefined ? props.nutritionValue : 0,
             getPosition: function() { return { x: this.posX, y: this.posY }; }
           };
           break;

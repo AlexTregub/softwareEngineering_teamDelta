@@ -1975,16 +1975,62 @@ class LevelEditor {
    */
   loadFromData(data) {
     if (data && this.terrain) {
-      const importer = new TerrainImporter(this.terrain);
-      const success = importer.importFromJSON(data);
+      let terrainSuccess = false;
+      let entitiesLoaded = false;
       
-      if (success) {
-        // Import entities if present
-        if (data.entities && this.entityPainter) {
-          this.entityPainter.importFromJSON({ entities: data.entities });
-        }
+      // Try to import terrain (if terrain data exists)
+      if (data.terrain || data.metadata || data.tiles) {
+        const importer = new TerrainImporter(this.terrain);
+        terrainSuccess = importer.importFromJSON(data);
         
+        if (!terrainSuccess) {
+          console.warn('[LevelEditor] Terrain import failed or returned false');
+        }
+      } else {
+        console.warn('[LevelEditor] No terrain data in JSON, skipping terrain import');
+      }
+      
+      // Import entities REGARDLESS of terrain success (entities can exist without terrain)
+      // CRITICAL: Load into _entitySpawnData (the PRIMARY storage for Level Editor)
+      // NOT into entityPainter.placedEntities (that's for runtime game entities)
+      if (data.entities && Array.isArray(data.entities)) {
+        console.log(`[LevelEditor] Importing ${data.entities.length} entity spawn points...`);
+        
+        // Clear existing spawn data
+        this._entitySpawnData = [];
+        
+        // Copy entities to _entitySpawnData (spawn point data, not runtime entities)
+        data.entities.forEach(entityData => {
+          // Validate entity has required fields
+          if ((entityData.gridX !== undefined && entityData.gridY !== undefined) ||
+              (entityData.gridPosition && entityData.gridPosition.x !== undefined && entityData.gridPosition.y !== undefined)) {
+            
+            // Support both coordinate formats
+            const gridX = entityData.gridX !== undefined ? entityData.gridX : entityData.gridPosition.x;
+            const gridY = entityData.gridY !== undefined ? entityData.gridY : entityData.gridPosition.y;
+            
+            // Store in _entitySpawnData (this is what renders as visual markers)
+            this._entitySpawnData.push({
+              id: entityData.id || `entity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              templateId: entityData.templateId,
+              gridX: gridX,
+              gridY: gridY,
+              properties: entityData.properties || {}
+            });
+          }
+        });
+        
+        entitiesLoaded = this._entitySpawnData.length > 0;
+        console.log(`[LevelEditor] Loaded ${this._entitySpawnData.length} entity spawn points into _entitySpawnData`);
+      }
+      
+      // Show appropriate notification
+      if (terrainSuccess && entitiesLoaded) {
         this.notifications.show('Level loaded successfully!', 'success');
+      } else if (entitiesLoaded) {
+        this.notifications.show('Entities loaded (terrain skipped)', 'warning');
+      } else if (terrainSuccess) {
+        this.notifications.show('Terrain loaded (no entities)', 'warning');
       } else {
         this.notifications.show('Failed to load level', 'error');
       }
