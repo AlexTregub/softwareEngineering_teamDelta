@@ -51,14 +51,26 @@ describe('DraggablePanel Auto-Sizing Integration Tests', () => {
 
     // Mock CollisionBox2D
     global.CollisionBox2D = class {
-      constructor() {
-        this.x = 0;
-        this.y = 0;
-        this.width = 0;
-        this.height = 0;
+      constructor(x = 0, y = 0, width = 0, height = 0) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
       }
       updateDimensions() {}
-      containsPoint() { return false; }
+      containsPoint(x, y) {
+        return x >= this.x && x <= this.x + this.width &&
+               y >= this.y && y <= this.y + this.height;
+      }
+      contains(x, y) {
+        return this.containsPoint(x, y);
+      }
+      getCenter() {
+        return {
+          x: this.x + this.width / 2,
+          y: this.y + this.height / 2
+        };
+      }
     };
 
     // Mock window
@@ -2932,18 +2944,20 @@ let dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
 global.window = dom.window;
 global.document = dom.window.document;
 
-// Load FileMenuBar and mock dependencies
-let fileMenuBarCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js'),
-  'utf8'
-);
+// Load FileMenuBar and mock dependencies (only if not already loaded)
+if (typeof FileMenuBar === 'undefined') {
+  let fileMenuBarCode = fs.readFileSync(
+    path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js'),
+    'utf8'
+  );
 
-// Execute in global context
-vm.runInThisContext(fileMenuBarCode);
+  // Execute in global context
+  vm.runInThisContext(fileMenuBarCode);
 
-// Sync to window
-global.FileMenuBar = FileMenuBar;
-window.FileMenuBar = FileMenuBar;
+  // Sync to window
+  global.FileMenuBar = FileMenuBar;
+  window.FileMenuBar = FileMenuBar;
+}
 
 describe('LevelEditor + FileMenuBar Integration Tests', function() {
   let mockP5;
@@ -3715,7 +3729,7 @@ let propertiesPanelCode = fs.readFileSync(
   'utf8'
 );
 let notificationManagerCode = fs.readFileSync(
-  path.join(__dirname, '../../../Classes/ui/UIComponents/NotificationManager.js'),
+  path.join(__dirname, '../../../Classes/ui/levelEditor/toastNotifications/NotificationManager.js'),
   'utf8'
 );
 

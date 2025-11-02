@@ -10,6 +10,9 @@ let { expect } = require('chai');
 let sinon = require('sinon');
 let { JSDOM } = require('jsdom');
 
+// Setup integration test environment FIRST (before requiring EventManager)
+let { setupIntegrationTestEnvironment, cleanupIntegrationTestEnvironment } = require('../../helpers/integrationTestHelpers');
+setupIntegrationTestEnvironment();
 
 // ================================================================
 // eventManager.integration.test.js (23 tests)
@@ -32,7 +35,7 @@ if (typeof global !== 'undefined') {
   global.createVector = sinon.stub().callsFake((x, y) => ({ x, y, z: 0 }));
 }
 
-// Load classes
+// Load classes (after helper setup so logNormal is available)
 let EventManager = require('../../../Classes/managers/EventManager.js');
 let EventDebugManager = require('../../../debug/EventDebugManager.js');
 
@@ -1513,6 +1516,7 @@ describe('GameEvent System Integration Tests', function() {
 
 // Load required classes (GameEvent and DialogueEvent already loaded at top of file)
 // DUPLICATE REMOVED: let { GameEvent, DialogueEvent } = require('../../../Classes/events/Event.js');
+let Button = require('../../../Classes/systems/Button.js'); // Button must be loaded before DraggablePanel
 let DraggablePanelManager = require('../../../Classes/systems/ui/DraggablePanelManager.js');
 let DraggablePanel = require('../../../Classes/systems/ui/DraggablePanel.js');
 
@@ -3503,7 +3507,7 @@ describe('EventEditorPanel - Placement Mode Integration Tests', function() {
  * Tests EventEditorPanel drag-and-drop integration with EventFlagLayer in Level Editor
  */
 
-let { setupIntegrationTestEnvironment, cleanupIntegrationTestEnvironment } = require('../../helpers/integrationTestHelpers');
+// DUPLICATE REQUIRE REMOVED: let { setupIntegrationTestEnvironment, cleanupIntegrationTestEnvironment } = require('../../helpers/integrationTestHelpers');
 
 describe('Drag-and-Drop Integration', function() {
   let terrain;

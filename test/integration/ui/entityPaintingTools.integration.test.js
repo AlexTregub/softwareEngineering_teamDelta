@@ -16,6 +16,11 @@ describe('Entity Painting Tools - Integration', function() {
   let entityPainter, entitySelectionTool, toolbar, mockP5, mockTerrain, mockEvents;
   
   beforeEach(function() {
+    // Mock console methods
+    if (!global.console.warn) global.console.warn = sinon.stub();
+    if (!global.console.error) global.console.error = sinon.stub();
+    if (!global.console.log) global.console.log = sinon.stub();
+    
     // Mock p5.js functions
     mockP5 = {
       fill: sinon.stub(),

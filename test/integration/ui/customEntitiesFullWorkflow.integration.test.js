@@ -62,7 +62,15 @@ const localStorageMock = {
 global.localStorage = localStorageMock;
 window.localStorage = localStorageMock;
 
-// Load classes
+// Load classes - inheritance chain: UIObject → Dialog → ModalDialog
+const UIObject = require('../../../Classes/ui/_baseObjects/UIObject.js');
+global.UIObject = UIObject;
+window.UIObject = UIObject;
+
+const Dialog = require('../../../Classes/ui/_baseObjects/modalWindow/Dialog.js');
+global.Dialog = Dialog;
+window.Dialog = Dialog;
+
 const ModalDialog = require('../../../Classes/ui/_baseObjects/modalWindow/ModalDialog.js');
 global.ModalDialog = ModalDialog;
 window.ModalDialog = ModalDialog;

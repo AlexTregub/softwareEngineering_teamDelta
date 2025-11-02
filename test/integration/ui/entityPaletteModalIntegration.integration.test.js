@@ -59,9 +59,15 @@ const localStorageMock = {
 global.localStorage = localStorageMock;
 window.localStorage = localStorageMock;
 
-// Load classes
+// Load classes (Dialog must be loaded before ModalDialog)
+const UIObject = require('../../../Classes/ui/_baseObjects/UIObject.js');
+const Dialog = require('../../../Classes/ui/_baseObjects/modalWindow/Dialog.js');
 const ModalDialog = require('../../../Classes/ui/_baseObjects/modalWindow/ModalDialog.js');
+global.UIObject = UIObject;
+global.Dialog = Dialog;
 global.ModalDialog = ModalDialog;
+window.UIObject = UIObject;
+window.Dialog = Dialog;
 window.ModalDialog = ModalDialog;
 
 // Mock CategoryRadioButtons
