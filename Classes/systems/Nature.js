@@ -110,3 +110,26 @@ class GlobalTime{
         this.inGameSeconds = 0;
     }
 }
+
+/*
+function draw() {
+
+  // Update time logic
+  globalTime.update();
+
+  // Sky background
+  background(100, 200, 255);
+
+  // Overlay filter based on time of day
+  noStroke();
+  let a = globalTime.transitionAlpha;
+  if (globalTime.timeOfDay === "sunset") {
+    fill(0, 0, 50, a*0.7); // orange overlay
+  } else if (globalTime.timeOfDay === "night") {
+    fill(0, 0, 50, 180); // dark blue night
+  } else if (globalTime.timeOfDay === "sunrise") {
+    fill(255, 180, 80, a * 0.6); // warm sunrise tone
+  } else {
+    noFill();
+  }
+*/
