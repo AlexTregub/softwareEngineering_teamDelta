@@ -93,10 +93,10 @@
     <script src="Classes/managers/SettingsManager.js"></script>
     
     <!-- UI Components (reusable) -->
-    <script src="Classes/ui/components/Toggle.js"></script>
-    <script src="Classes/ui/components/Slider.js"></script>
+    <script src="Classes/ui/UIComponents/Toggle.js"></script>
+    <script src="Classes/ui/UIComponents/Slider.js"></script>
     
-    <script src="Classes/ui/SettingsPanel.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/settings/SettingsPanel.js"></script>
     
     <script src="Classes/systems/shapes/circle.js"></script>
     <script src="Classes/pathfinding/pathfinding.js"></script>
@@ -188,56 +188,56 @@
     <script src="Classes/terrainUtils/TerrainImporter.js"></script>
     
     <!-- UI Base Class (must load before UI components) -->
-    <script src="Classes/ui/UIObject.js"></script>
+    <script src="Classes/ui/_baseObjects/UIObject.js"></script>
     
     <!-- Level Editor UI Components (ScrollIndicator before ScrollableContentArea) -->
-    <script src="Classes/ui/ScrollIndicator.js"></script>
+    <script src="Classes/ui/UIComponents/scroll/ScrollIndicator.js"></script>
     
     <!-- Material Palette Components (must load before MaterialPalette) -->
-    <script src="Classes/ui/MaterialCategory.js"></script>
-    <script src="Classes/ui/MaterialSearchBar.js"></script>
-    <script src="Classes/ui/MaterialFavorites.js"></script>
-    <script src="Classes/ui/MaterialPreviewTooltip.js"></script>
-    <script src="Classes/ui/MaterialPalette.js"></script>
-    <script src="Classes/ui/ToolBar.js"></script>
-    <script src="Classes/ui/BrushSizeControl.js"></script>
-    <script src="Classes/ui/MiniMap.js"></script>
-    <script src="Classes/ui/DynamicMinimap.js"></script>
-    <script src="Classes/ui/DynamicGridOverlay.js"></script>
-    <script src="Classes/ui/PropertiesPanel.js"></script>
-    <script src="Classes/ui/GridOverlay.js"></script>
-    <script src="Classes/ui/MapBoundaryOverlay.js"></script>
-    <script src="Classes/ui/NotificationManager.js"></script>
-    <script src="Classes/ui/ConfirmationDialog.js"></script>
-    <script src="Classes/ui/Dialog.js"></script>
-    <script src="Classes/ui/SaveDialog.js"></script>
-    <script src="Classes/ui/LoadDialog.js"></script>
-    <script src="Classes/ui/NewMapDialog.js"></script>
-    <script src="Classes/ui/LocalStorageManager.js"></script>
-    <script src="Classes/ui/AutoSave.js"></script>
-    <script src="Classes/ui/ServerIntegration.js"></script>
-    <script src="Classes/ui/FormatConverter.js"></script>
-    <script src="Classes/ui/ToolModeToggle.js"></script>
-    <script src="Classes/ui/FileMenuBar.js"></script>
-    <script src="Classes/ui/menuBar/BrushSizeMenuModule.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialCategory.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialSearchBar.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialFavorites.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialPreviewTooltip.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialPalette.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/toolBar/ToolBar.js"></script>
+    <script src="Classes/ui/_baseObjects/brushes/BrushSizeControl.js"></script>
+    <script src="Classes/ui/_baseObjects/minimap/MiniMap.js"></script>
+    <script src="Classes/ui/_baseObjects/minimap/DynamicMinimap.js"></script>
+    <script src="Classes/ui/_baseObjects/grids/DynamicGridOverlay.js"></script>
+    <script src="Classes/ui/levelEditor/panels/PropertiesPanel.js"></script>
+    <script src="Classes/ui/_baseObjects/grids/GridOverlay.js"></script>
+    <script src="Classes/ui/_baseObjects/grids/MapBoundaryOverlay.js"></script>
+    <script src="Classes/ui/levelEditor/toastNotifications/NotificationManager.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/ConfirmationDialog.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/Dialog.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/SaveDialog.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/LoadDialog.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/NewMapDialog.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/LocalStorageManager.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/AutoSave.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/ServerIntegration.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/FormatConverter.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/toolBar/ToolModeToggle.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/menuBar/BrushSizeMenuModule.js"></script>
     <!-- ScrollIndicator already loaded above (line 194) -->
-    <script src="Classes/ui/ScrollableContentArea.js"></script>
-    <script src="Classes/ui/LevelEditorSidebar.js"></script>
+    <script src="Classes/ui/UIComponents/scroll/ScrollableContentArea.js"></script>
+    <script src="Classes/ui/levelEditor/panels/LevelEditorSidebar.js"></script>
     
     <!-- Entity Painter Components -->
-    <script src="Classes/ui/EntityPalette.js"></script>
-    <script src="Classes/ui/CategoryRadioButtons.js"></script>
-    <script src="Classes/ui/EntityPropertyEditor.js"></script>
-    <script src="Classes/ui/EntityPainter.js"></script>
-    <script src="Classes/ui/EntitySelectionTool.js"></script>
-    <script src="Classes/ui/SelectionManager.js"></script>
-    <script src="Classes/ui/HoverPreviewManager.js"></script>
+    <script src="Classes/ui/painter/entity/EntityPalette.js"></script>
+    <script src="Classes/ui/UIComponents/radioButton/CategoryRadioButtons.js"></script>
+    <script src="Classes/ui/painter/entity/EntityPropertyEditor.js"></script>
+    <script src="Classes/ui/painter/entity/EntityPainter.js"></script>
+    <script src="Classes/ui/painter/entity/EntitySelectionTool.js"></script>
+    <script src="Classes/ui/painter/entity/SelectionManager.js"></script>
+    <script src="Classes/ui/_baseObjects/brushes/HoverPreviewManager.js"></script>
     <script src="Classes/levelEditor/GroupPlacer.js"></script>
-    <script src="Classes/ui/EventTemplates.js"></script>
+    <script src="Classes/ui/eventTemplates/EventTemplates.js"></script>
     <script src="Classes/rendering/EventFlagRenderer.js"></script>
-    <script src="Classes/ui/DialogueCreationPanel.js"></script>
+    <script src="Classes/ui/eventTemplates/DialogueCreationPanel.js"></script>
     <script src="Classes/systems/ui/EventEditorPanel.js"></script>
-    <script src="Classes/ui/EventPropertyWindow.js"></script>
+    <script src="Classes/ui/eventTemplates/EventPropertyWindow.js"></script>
     <script src="Classes/systems/ui/LevelEditor.js"></script>
     <script src="Classes/systems/ui/LevelEditorPanels.js"></script>
     
