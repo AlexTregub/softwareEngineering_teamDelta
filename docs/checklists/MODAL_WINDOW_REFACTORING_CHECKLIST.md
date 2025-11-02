@@ -6,7 +6,7 @@
 
 ## Overview
 
-**Goal:** Refactor modal window classes to eliminate code duplication by extracting common patterns into the base `Dialog` class.
+**Goal:** Refactor modal window classes to eliminate code duplication by extracting common patterns into reusable components and the base `Dialog` class.
 
 **Affected Files:**
 - `Classes/ui/_baseObjects/modalWindow/Dialog.js` (base class)
@@ -16,8 +16,97 @@
 - `Classes/ui/_baseObjects/modalWindow/settings/SettingsPanel.js`
 - `Classes/ui/levelEditor/fileIO/SaveDialog.js`
 - `Classes/ui/levelEditor/fileIO/LoadDialog.js`
+- `Classes/ui/UIComponents/DialogButton.js` (NEW - component)
+- `Classes/ui/UIComponents/DialogInputField.js` (NEW - component)
+- `Classes/managers/KeyboardManager.js` (NEW - manager)
+- `Classes/managers/ShortcutManager.js` (ENHANCE - existing)
 
 ## Common Patterns Identified
+
+### Component vs Helper Method Decision Matrix
+
+| Pattern | Component? | Helper Method? | Rationale |
+|---------|-----------|----------------|-----------|
+| Dialog Positioning | ❌ | ✅ | Simple calculation, no state |
+| Overlay Rendering | ❌ | ✅ | One-time render, no interaction |
+| Point-in-Bounds | ❌ | ✅ | Pure utility function |
+| **Button Rendering** | ✅ | ⚠️ | **Complex state, reusable** |
+| **Input Field** | ✅ | ⚠️ | **Complex state, reusable** |
+| Dialog Dimensions | ❌ | ✅ | Simple properties |
+| Button Bounds Storage | ❌ | ✅ | Internal bookkeeping |
+| **Keyboard Handling** | ✅ Manager | ⚠️ | **Global system, configurable** |
+| Show/Hide | ❌ | ✅ | Lifecycle methods |
+| Validation Error | ❌ | ✅ | Simple rendering |
+
+**Decision:** Use **hybrid approach** - Components for complex/reusable elements, Helper methods for simple utilities.
+
+---
+
+## Refactoring Strategy: Hybrid Approach
+
+### Strategy A: Helper Methods (RECOMMENDED for Phase 1)
+**Pros:**
+- ✅ Faster implementation (~11 hours)
+- ✅ Less complexity (no component lifecycle)
+- ✅ Easier testing (unit tests for methods)
+- ✅ Backward compatible
+- ✅ No additional files to load
+
+**Cons:**
+- ❌ Less reusable outside dialogs
+- ❌ Tightly coupled to Dialog class
+- ❌ No standalone button/input components
+
+**Use for:** Positioning, Overlay, Bounds Testing, Validation Display
+
+### Strategy B: UI Components (RECOMMENDED for Phase 2)
+**Pros:**
+- ✅ Highly reusable (use anywhere)
+- ✅ Self-contained state management
+- ✅ Matches existing pattern (Slider, Toggle)
+- ✅ Easier to style/theme consistently
+- ✅ Better separation of concerns
+
+**Cons:**
+- ❌ More files to create/maintain
+- ❌ Longer development time (~6 additional hours)
+- ❌ Need to load components in index.html
+- ❌ More complex testing (component + integration)
+
+**Use for:** DialogButton, DialogInputField (Phase 2)
+
+### Strategy C: Manager Pattern (RECOMMENDED for Keyboard)
+**Pros:**
+- ✅ **Centralized shortcut management**
+- ✅ **User-configurable from settings**
+- ✅ **Consistent across entire app**
+- ✅ **ShortcutManager already exists** (can enhance)
+- ✅ **Supports runtime rebinding**
+- ✅ **Persist to LocalStorage**
+
+**Cons:**
+- ❌ Global state (singleton pattern)
+- ❌ Need to integrate with SettingsManager
+- ❌ Migration work for existing shortcuts
+
+**Use for:** KeyboardManager (wraps ShortcutManager)
+
+---
+
+## REVISED APPROACH: Phased Refactoring
+
+### Phase 1 (This Checklist): Helper Methods
+Extract to Dialog base class as methods (fast, safe, backward compatible)
+
+### Phase 2 (Future Checklist): UI Components
+Create DialogButton and DialogInputField components (reusable, better architecture)
+
+### Phase 3 (Future Checklist): KeyboardManager Integration
+Enhance ShortcutManager for global keyboard handling with settings UI
+
+---
+
+## Common Patterns Identified (Phase 1 - Helper Methods)
 
 ### 1. Dialog Positioning & Centering
 **Found in:** All classes  
@@ -26,7 +115,8 @@
 const dialogX = (canvasWidth - this.dialogWidth) / 2;
 const dialogY = (canvasHeight - this.dialogHeight) / 2;
 ```
-**Extract to:** `Dialog.getCenteredCoordinates()`, `Dialog.center()`
+**Extract to:** `Dialog.getCenteredCoordinates()`, `Dialog.center()`  
+**Strategy:** ✅ Helper Method
 
 ### 2. Overlay Rendering
 **Found in:** SaveDialog, LoadDialog, ModalDialog, NewMapDialog  
@@ -36,7 +126,8 @@ fill(0, 0, 0, 180);
 noStroke();
 rect(0, 0, canvasWidth, canvasHeight);
 ```
-**Extract to:** `Dialog.renderOverlay(opacity = 180)`
+**Extract to:** `Dialog.renderOverlay(opacity = 180)`  
+**Strategy:** ✅ Helper Method
 
 ### 3. Point-in-Bounds Testing
 **Found in:** All classes  
@@ -45,7 +136,8 @@ rect(0, 0, canvasWidth, canvasHeight);
 return x >= bounds.x && x <= bounds.x + bounds.width &&
        y >= bounds.y && y <= bounds.y + bounds.height;
 ```
-**Extract to:** `Dialog.isPointInBounds(x, y, bounds)`
+**Extract to:** `Dialog.isPointInBounds(x, y, bounds)`  
+**Strategy:** ✅ Helper Method
 
 ### 4. Button Rendering
 **Found in:** SaveDialog, LoadDialog, ModalDialog, NewMapDialog  
@@ -55,7 +147,9 @@ fill(buttonEnabled ? activeColor : disabledColor);
 stroke(borderColor);
 rect(x, y, width, height, radius);
 ```
-**Extract to:** `Dialog.renderButton(config)`
+**Phase 1:** `Dialog.renderButton(config)` - Helper method  
+**Phase 2:** `DialogButton` component - See separate checklist  
+**Strategy:** ✅ Helper Method (Phase 1), ⏭️ Component (Phase 2)
 
 ### 5. Input Field Rendering
 **Found in:** SaveDialog, NewMapDialog, ModalDialog  
@@ -65,7 +159,9 @@ fill(30, 30, 40);
 stroke(100, 100, 120);
 rect(x, y, width, height, radius);
 ```
-**Extract to:** `Dialog.renderInputField(config)`
+**Phase 1:** `Dialog.renderInputField(config)` - Helper method  
+**Phase 2:** `DialogInputField` component - See separate checklist  
+**Strategy:** ✅ Helper Method (Phase 1), ⏭️ Component (Phase 2)
 
 ### 6. Dialog Dimensions & Storage
 **Found in:** All classes  
@@ -74,7 +170,8 @@ rect(x, y, width, height, radius);
 this.dialogWidth = 500;
 this.dialogHeight = 300;
 ```
-**Extract to:** `Dialog` base class properties with getters/setters
+**Extract to:** `Dialog` base class properties with getters/setters  
+**Strategy:** ✅ Helper Method
 
 ### 7. Button Bounds Storage
 **Found in:** All classes  
@@ -82,7 +179,8 @@ this.dialogHeight = 300;
 ```javascript
 this._createButtonBounds = { x: 0, y: 0, width: 0, height: 0 };
 ```
-**Extract to:** `Dialog.setButtonBounds(id, bounds)`, `Dialog.getButtonBounds(id)`
+**Extract to:** `Dialog.setButtonBounds(id, bounds)`, `Dialog.getButtonBounds(id)`  
+**Strategy:** ✅ Helper Method
 
 ### 8. Keyboard Handling
 **Found in:** SaveDialog, LoadDialog, ModalDialog, NewMapDialog  
@@ -91,7 +189,9 @@ this._createButtonBounds = { x: 0, y: 0, width: 0, height: 0 };
 if (key === 'Enter') { this.confirm(); }
 if (key === 'Escape') { this.cancel(); }
 ```
-**Extract to:** `Dialog.handleKeyPress(key, keyCode)` - already exists, needs enhancement
+**Phase 1:** `Dialog.handleKeyPress(key, keyCode)` - Enhanced method  
+**Phase 3:** `KeyboardManager` integration - See separate checklist  
+**Strategy:** ✅ Enhanced Helper (Phase 1), ⏭️ Manager (Phase 3)
 
 ### 9. Show/Hide with State Reset
 **Found in:** All classes  
@@ -103,7 +203,8 @@ show() {
   // Reset other state
 }
 ```
-**Extract to:** `Dialog.show()`, `Dialog.hide()` - already exist, need enhancement
+**Extract to:** `Dialog.show()`, `Dialog.hide()` - already exist, need enhancement  
+**Strategy:** ✅ Helper Method
 
 ### 10. Validation Error Display
 **Found in:** SaveDialog, NewMapDialog, ModalDialog  
@@ -114,7 +215,47 @@ if (this._validationError) {
   text(this._validationError, x, y);
 }
 ```
-**Extract to:** `Dialog.renderValidationError(error, x, y)`
+**Extract to:** `Dialog.renderValidationError(error, x, y)`  
+**Strategy:** ✅ Helper Method
+
+---
+
+## Phase 0: Visual Baseline Capture (30 min) - DO THIS FIRST! ⚠️
+
+**CRITICAL**: Capture baseline screenshots BEFORE any refactoring to verify visual consistency after changes.
+
+### ✅ Step 0.1: Run Baseline Capture Test
+- [x] **Start dev server**: `npm run dev` ✓ Already running
+- [x] **Run baseline capture**: `node test/e2e/ui/pw_modal_baseline_capture.js` ✓ Completed
+- [x] **Verify screenshots created** in `test/e2e/screenshots/ui/baseline/success/`:
+  - [ ] ~~`modal_save_dialog.png`~~ - Not loaded in game (Level Editor only)
+  - [ ] ~~`modal_load_dialog.png`~~ - Not loaded in game (Level Editor only)
+  - [x] `modal_new_map_dialog.png` - NewMapDialog with dimension inputs ✅
+  - [ ] ~~`modal_confirmation_dialog.png`~~ - Not loaded in game (Level Editor only)
+  - [x] `modal_generic_dialog.png` - ModalDialog with input field and buttons ✅
+  - [x] `modal_settings_panel.png` - SettingsPanel with toggles/sliders ✅
+
+**Note**: SaveDialog, LoadDialog, and ConfirmationDialog are only loaded in Level Editor context. We'll need to create a separate baseline test for those when we enter Level Editor mode.
+
+### ✅ Step 0.2: Document Baseline
+- [x] **Commit baselines to git**: `git add test/e2e/screenshots/ui/baseline/`
+- [x] **Record metadata** in this checklist:
+  - Date captured: **November 2, 2025**
+  - Browser: **Chromium (Puppeteer headless)**
+  - Resolution: **1280x720**
+  - Commit hash: _(to be filled after commit)_
+  - **Modals captured**: NewMapDialog, ModalDialog (generic), SettingsPanel
+- [x] **Verify images viewable** ✓ Confirmed 3 PNG files created
+
+### ⬜ Step 0.3: Create Baseline Comparison Script
+- [ ] Create `test/e2e/ui/pw_modal_visual_regression.js` (compares against baseline)
+- [ ] Test script can detect visual differences (change a color, re-run, should fail)
+
+**Why This Matters:**
+- ✅ Visual proof that refactoring doesn't break UI
+- ✅ Catch layout/styling regressions immediately  
+- ✅ Confidence to refactor aggressively
+- ✅ Reference for "before" state
 
 ---
 
@@ -539,21 +680,297 @@ git revert <commit-hash>
 
 ---
 
-## Timeline Estimate
+## Timeline Estimate - Phase 1 (Helper Methods)
 
 | Phase | Duration | Cumulative |
 |-------|----------|-----------|
-| 1. Analysis & Design | 1 hour | 1 hour |
-| 2. Write Tests FIRST | 2 hours | 3 hours |
-| 3. Implement Base Class | 2 hours | 5 hours |
-| 4. Refactor Subclasses | 2 hours | 7 hours |
-| 5. Update Tests | 1 hour | 8 hours |
-| 6. Integration Testing | 1 hour | 9 hours |
-| 7. E2E Testing | 1 hour | 10 hours |
-| 8. Documentation | 30 min | 10.5 hours |
-| 9. Review & Cleanup | 30 min | 11 hours |
+| **0. Baseline Capture** | **30 min** | **30 min** |
+| 1. Analysis & Design | 1 hour | 1.5 hours |
+| 2. Write Tests FIRST | 2 hours | 3.5 hours |
+| 3. Implement Base Class | 2 hours | 5.5 hours |
+| 4. Refactor Subclasses | 2 hours | 7.5 hours |
+| 5. Update Tests | 1 hour | 8.5 hours |
+| 6. Integration Testing | 1 hour | 9.5 hours |
+| 7. E2E Testing | 1 hour | 10.5 hours |
+| 8. Documentation | 30 min | 11 hours |
+| 9. Review & Cleanup | 30 min | 11.5 hours |
 
-**Total:** ~11 hours (revised from initial 6-8 estimate)
+**Phase 1 Total:** ~11.5 hours (includes baseline capture)
+
+---
+
+## Phase 2 (FUTURE): UI Components - DialogButton & DialogInputField
+
+**See:** `docs/checklists/DIALOG_COMPONENTS_REFACTORING_CHECKLIST.md` (to be created)
+
+### Overview
+Convert helper methods to reusable UI components following the existing pattern (Slider, Toggle).
+
+### Components to Create
+
+#### DialogButton Component
+```javascript
+class DialogButton {
+  constructor(config) {
+    this.x = config.x;
+    this.y = config.y;
+    this.width = config.width;
+    this.height = config.height;
+    this.label = config.label;
+    this.enabled = config.enabled !== false;
+    this.primary = config.primary || false;
+    this.onClick = config.onClick || null;
+    this._hovered = false;
+  }
+  
+  render() { /* Render button with state-based styling */ }
+  containsPoint(x, y) { /* Hit testing */ }
+  handleClick() { /* Trigger onClick callback */ }
+  setEnabled(enabled) { /* Enable/disable button */ }
+}
+```
+
+**Benefits:**
+- ✅ Reusable in ANY UI context (not just dialogs)
+- ✅ Self-contained state (hover, enabled, focus)
+- ✅ Consistent button styling across app
+- ✅ Easier to add features (tooltips, icons, etc.)
+
+#### DialogInputField Component
+```javascript
+class DialogInputField {
+  constructor(config) {
+    this.x = config.x;
+    this.y = config.y;
+    this.width = config.width;
+    this.height = config.height;
+    this.label = config.label;
+    this.value = config.value || '';
+    this.placeholder = config.placeholder || '';
+    this.active = false;
+    this.validation = config.validation || null;
+    this._error = '';
+  }
+  
+  render() { /* Render input with label and validation */ }
+  containsPoint(x, y) { /* Hit testing */ }
+  handleKeyPress(key) { /* Text input handling */ }
+  validate() { /* Run validation function */ }
+  getValue() { /* Get current value */ }
+  setValue(value) { /* Set value */ }
+}
+```
+
+**Benefits:**
+- ✅ Reusable for any form input needs
+- ✅ Built-in validation support
+- ✅ Consistent input styling
+- ✅ Focus state management
+
+### Timeline Estimate - Phase 2
+
+| Task | Duration | Cumulative |
+|------|----------|-----------|
+| 1. Design Component APIs | 1 hour | 1 hour |
+| 2. Write Component Tests | 2 hours | 3 hours |
+| 3. Implement DialogButton | 1.5 hours | 4.5 hours |
+| 4. Implement DialogInputField | 1.5 hours | 6 hours |
+| 5. Update Dialogs to Use Components | 2 hours | 8 hours |
+| 6. Update Tests | 1 hour | 9 hours |
+| 7. Integration & E2E Testing | 1 hour | 10 hours |
+| 8. Documentation | 30 min | 10.5 hours |
+
+**Phase 2 Total:** ~10.5 hours
+
+### Migration Path (Phase 1 → Phase 2)
+```javascript
+// Phase 1: Helper method
+this.renderButton(buffer, {
+  id: 'save',
+  label: 'Save',
+  x: 100, y: 200
+});
+
+// Phase 2: Component
+this._saveButton = new DialogButton({
+  x: 100, y: 200,
+  label: 'Save',
+  onClick: () => this.confirm()
+});
+this._saveButton.render();
+```
+
+---
+
+## Phase 3 (FUTURE): KeyboardManager Integration
+
+**See:** `docs/checklists/KEYBOARD_MANAGER_INTEGRATION_CHECKLIST.md` (to be created)
+
+### Overview
+Create centralized keyboard management system with user-configurable shortcuts.
+
+### Architecture
+
+```
+KeyboardManager (NEW)
+├── Wraps ShortcutManager (EXISTING)
+├── Integrates with SettingsManager (EXISTING)
+├── Provides UI for shortcut customization
+└── Persists shortcuts to LocalStorage
+
+ShortcutManager (ENHANCE EXISTING)
+├── Add: getShortcut(id)
+├── Add: getAllShortcuts()
+├── Add: updateShortcut(id, newConfig)
+├── Add: resetToDefaults()
+└── Add: validateShortcut(config)
+
+SettingsManager (ENHANCE EXISTING)
+├── Add: keyboard.shortcuts section
+├── Add: keyboard.customShortcuts (user overrides)
+└── Add: keyboard.resetOnConflict (conflict resolution)
+```
+
+### Features
+
+#### 1. Programmatic Shortcut Registration
+```javascript
+KeyboardManager.register({
+  id: 'dialog.confirm',
+  key: 'Enter',
+  contexts: ['dialog'],
+  description: 'Confirm dialog action',
+  action: () => { /* ... */ }
+});
+```
+
+#### 2. Settings UI Integration
+```javascript
+// In SettingsPanel - new "Keyboard" tab
+this._renderKeyboardTab() {
+  const shortcuts = KeyboardManager.getAllShortcuts();
+  shortcuts.forEach(shortcut => {
+    // Render shortcut name
+    // Render current key binding
+    // Render "Edit" button
+    // Allow user to press new key combo
+  });
+}
+```
+
+#### 3. Conflict Detection
+```javascript
+KeyboardManager.register({
+  id: 'new.shortcut',
+  key: 'Ctrl+S',  // Already used by "Save"
+  // Auto-detect conflict, show warning, require user confirmation
+});
+```
+
+#### 4. LocalStorage Persistence
+```javascript
+// Save custom shortcuts
+{
+  "keyboard.shortcuts": {
+    "dialog.confirm": { "key": "Enter", "enabled": true },
+    "dialog.cancel": { "key": "Escape", "enabled": true },
+    "save": { "key": "Ctrl+S", "enabled": true }
+  }
+}
+```
+
+### Integration with Dialogs
+
+**Before (Phase 1):**
+```javascript
+class Dialog {
+  handleKeyPress(key, keyCode) {
+    if (key === 'Enter') this.confirm();
+    if (key === 'Escape') this.cancel();
+  }
+}
+```
+
+**After (Phase 3):**
+```javascript
+class Dialog {
+  constructor(config) {
+    super(config);
+    
+    // Register shortcuts with context
+    KeyboardManager.register({
+      id: 'dialog.confirm',
+      key: 'Enter',
+      contexts: ['dialog'],
+      action: () => this.confirm()
+    });
+    
+    KeyboardManager.register({
+      id: 'dialog.cancel',
+      key: 'Escape',
+      contexts: ['dialog'],
+      action: () => this.cancel()
+    });
+  }
+  
+  handleKeyPress(key, keyCode) {
+    // Delegate to KeyboardManager
+    return KeyboardManager.handleKeyPress(key, keyCode, 'dialog');
+  }
+}
+```
+
+### Timeline Estimate - Phase 3
+
+| Task | Duration | Cumulative |
+|------|----------|-----------|
+| 1. Design KeyboardManager API | 1 hour | 1 hour |
+| 2. Write Tests FIRST | 2 hours | 3 hours |
+| 3. Implement KeyboardManager | 2 hours | 5 hours |
+| 4. Enhance ShortcutManager | 1 hour | 6 hours |
+| 5. Create Settings UI (Keyboard Tab) | 2 hours | 8 hours |
+| 6. Integrate with Dialogs | 1.5 hours | 9.5 hours |
+| 7. Add LocalStorage Persistence | 1 hour | 10.5 hours |
+| 8. Update Tests | 1 hour | 11.5 hours |
+| 9. Integration & E2E Testing | 1 hour | 12.5 hours |
+| 10. Documentation | 1 hour | 13.5 hours |
+
+**Phase 3 Total:** ~13.5 hours
+
+### Benefits of KeyboardManager
+
+- ✅ **User Customization**: Users can change shortcuts in settings
+- ✅ **Consistency**: All keyboard shortcuts in one place
+- ✅ **Discoverability**: Settings UI shows all available shortcuts
+- ✅ **Conflict Prevention**: Automatic detection and warnings
+- ✅ **Persistence**: Custom shortcuts saved across sessions
+- ✅ **Context-Aware**: Shortcuts active only in relevant contexts
+- ✅ **Accessibility**: Users can adapt to their workflow
+
+### Cons to Consider
+
+- ❌ **Complexity**: More code to maintain
+- ❌ **Testing Overhead**: Need to test shortcut system thoroughly
+- ❌ **Migration Work**: Update all existing keyboard handling
+- ❌ **UI Development**: Settings panel needs keyboard configuration UI
+- ❌ **Conflict Resolution**: Edge cases around shortcut conflicts
+
+---
+
+## TOTAL PROJECT TIMELINE (All 3 Phases)
+
+| Phase | Duration | Description |
+|-------|----------|-------------|
+| **Phase 0** | 0.5 hours | Visual baseline capture (REQUIRED) |
+| **Phase 1** | 11 hours | Helper methods in Dialog base class |
+| **Phase 2** | 10.5 hours | DialogButton & DialogInputField components |
+| **Phase 3** | 13.5 hours | KeyboardManager with settings UI |
+| **TOTAL** | **35.5 hours** | Complete refactoring project |
+
+**Recommended Schedule:**
+- Phase 1: Week 1-2 (foundation)
+- Phase 2: Week 3-4 (components - optional, high value)
+- Phase 3: Week 5-7 (keyboard - optional, user-facing)
 
 ---
 
