@@ -314,7 +314,7 @@ class DraggablePanel {
 
     // Update button interactions (only if not dragging panel and didn't click minimize)
     let buttonConsumedEvent = false;
-    if (!this.isDragging && !this.isMinimized()) {
+    if (!this.isDragging && !this.isMinimized() && this.isVisible()) {
       this.buttons.forEach(button => {
         const consumed = button.update(mouseX, mouseY, mousePressed);
         if (consumed) buttonConsumedEvent = true;

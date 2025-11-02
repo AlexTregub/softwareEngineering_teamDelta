@@ -322,7 +322,7 @@ class LevelEditorPanels {
     console.log('[LevelEditorPanels.handleClick] Called with:', { mouseX, mouseY });
     
     // Materials Panel
-    if (this.panels.materials && this.panels.materials.state.visible) {
+    if (this.panels.materials && this.panels.materials.state.visible && !this.panels.materials.isMinimized()) {
       const matPanel = this.panels.materials;
       const matPos = matPanel.getPosition();
       const titleBarHeight = matPanel.calculateTitleBarHeight();
@@ -351,7 +351,7 @@ class LevelEditorPanels {
       const contentY = toolPos.y + titleBarHeight + toolPanel.config.style.padding;
       
       // Check if click is in the toolbar area (regardless of panel visibility)
-      if (this.levelEditor.toolbar && this.levelEditor.toolbar.containsPoint(mouseX, mouseY, contentX, contentY)) {
+      if (this.levelEditor.toolbar && this.levelEditor.toolbar.containsPoint(mouseX, mouseY, contentX, contentY) && !this.panels.toolbar.isMinimized()) {
         const tool = this.levelEditor.toolbar.handleClick(mouseX, mouseY, contentX, contentY);
         if (tool) {
           this.levelEditor.notifications.show(`Selected tool: ${tool}`);
@@ -366,7 +366,7 @@ class LevelEditorPanels {
     }
 
     // Brush Size Panel
-    if (this.panels.brush && this.panels.brush.state.visible) {
+    if (this.panels.brush && this.panels.brush.state.visible && !this.panels.brush.isMinimized()) {
       const brushPanel = this.panels.brush;
       const brushPos = brushPanel.getPosition();
       const titleBarHeight = brushPanel.calculateTitleBarHeight();
@@ -386,7 +386,7 @@ class LevelEditorPanels {
     }
 
     // Events Panel
-    if (this.panels.events && this.panels.events.state.visible) {
+    if (this.panels.events && this.panels.events.state.visible && !this.panels.events.isMinimized()) {
       const eventPanel = this.panels.events;
       const eventPos = eventPanel.getPosition();
       const titleBarHeight = eventPanel.calculateTitleBarHeight();
@@ -411,7 +411,7 @@ class LevelEditorPanels {
     }
 
     // Entity Palette Panel
-    if (this.panels.entityPalette && this.panels.entityPalette.state.visible) {
+    if (this.panels.entityPalette && this.panels.entityPalette.state.visible && !this.panels.entityPalette.isMinimized()) {
       console.log('[LevelEditorPanels.handleClick] Checking Entity Palette panel');
       const palettePanel = this.panels.entityPalette;
       const palettePos = palettePanel.getPosition();
@@ -462,7 +462,7 @@ class LevelEditorPanels {
     }
 
     // Sidebar Panel (Phase 4 integration)
-    if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar) {
+    if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar & !this.panels.sidebar.isMinimized()) {
       const sidebarPanel = this.panels.sidebar;
       const sidebarPos = sidebarPanel.getPosition();
       const titleBarHeight = sidebarPanel.calculateTitleBarHeight();

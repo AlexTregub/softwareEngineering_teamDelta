@@ -75,7 +75,7 @@ function setup() {
   
   // Now spawn initial resources (after spatial grid exists)
   if (typeof spawnInitialResources === 'function') {
-    spawnInitialResources();
+    //spawnInitialResources();
   }
   
   initializeWorld();
@@ -360,6 +360,185 @@ function initializeWorld() {
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
   queenAnt = spawnQueen();
+  
+  // Auto-track queen ant with camera (Phase 4.2 - Camera Following Integration)
+  if (cameraManager && queenAnt) {
+    cameraManager.followEntity(queenAnt);
+    logVerbose('[initializeWorld] Camera now following queen ant');
+  }
+}
+
+/**
+ * loadCustomLevel
+ * ----------------
+ * Load custom level from JSON file (Level Editor export)
+ * @param {string} levelPath - Path to level JSON file (e.g., 'levels/CaveTutorial.json')
+ * @returns {Promise<boolean>} True if successful, false on error
+ */
+/**
+ * Safe Logging Wrappers
+ * ======================
+ * Fallback to console methods if verboseLogger functions are not available
+ * Handles logWarning/logWarn mismatch (verboseLogger exports logWarn, not logWarning)
+ */
+const safeLogNormal = (msg) => {
+  if (typeof logNormal === 'function') logNormal(msg);
+  else if (typeof console !== 'undefined') console.log(msg);
+};
+
+const safeLogError = (msg) => {
+  if (typeof logError === 'function') logError(msg);
+  else if (typeof console !== 'undefined') console.error(msg);
+};
+
+const safeLogWarning = (msg) => {
+  if (typeof logWarning === 'function') logWarning(msg);
+  else if (typeof logWarn === 'function') logWarn(msg); // verboseLogger uses logWarn
+  else if (typeof console !== 'undefined') console.warn(msg);
+};
+
+/**
+ * Clear Game Entities
+ * ====================
+ * Clears all procedurally generated entities before loading custom level
+ * Ensures clean slate for JSON-defined levels
+ * 
+ * @returns {Object} Count of cleared entities
+ */
+function clearGameEntities() {
+  const counts = {
+    ants: (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : 0,
+    resources: (typeof resource_list !== 'undefined' && Array.isArray(resource_list)) ? resource_list.length : 0,
+    buildings: (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) ? Buildings.length : 0,
+    selectables: (typeof selectables !== 'undefined' && Array.isArray(selectables)) ? selectables.length : 0
+  };
+
+  safeLogNormal(`[clearGameEntities] Clearing existing entities: ${counts.ants} ants, ${counts.resources} resources, ${counts.buildings} buildings, ${counts.selectables} selectables`);
+
+  // Clear arrays (preserve references by setting length to 0, not reassigning)
+  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+    ants.length = 0;
+  }
+  
+  if (typeof resource_list !== 'undefined' && Array.isArray(resource_list)) {
+    resource_list.length = 0;
+  }
+  
+  if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
+    Buildings.length = 0;
+  }
+  
+  if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+    selectables.length = 0;
+  }
+
+  // Reset global queen reference
+  if (typeof window !== 'undefined') {
+    window.queenAnt = null;
+  }
+  if (typeof global !== 'undefined') {
+    global.queenAnt = null;
+  }
+
+  // Clear spatial grid if available
+  if (typeof spatialGridManager !== 'undefined' && 
+      spatialGridManager !== null && 
+      typeof spatialGridManager.clear === 'function') {
+    spatialGridManager.clear();
+    safeLogNormal('[clearGameEntities] Cleared spatial grid');
+  }
+
+  // CRITICAL: Stop resource spawning timer to prevent procedural generation
+  // Custom levels should only have entities defined in JSON
+  if (typeof g_resourceManager !== 'undefined' && 
+      g_resourceManager !== null && 
+      typeof g_resourceManager.stopSpawning === 'function') {
+    g_resourceManager.stopSpawning();
+    safeLogNormal('[clearGameEntities] Stopped resource spawning timer');
+  }
+
+  safeLogNormal(`[clearGameEntities] Cleanup complete - all entity arrays cleared`);
+  
+  return counts;
+}
+
+async function loadCustomLevel(levelPath) {
+  try {
+    safeLogNormal(`[loadCustomLevel] Loading level from: ${levelPath}`);
+    
+    // CRITICAL: Clear all existing entities before loading custom level
+    // This ensures procedurally generated entities don't mix with JSON data
+    const clearedCounts = clearGameEntities();
+    safeLogNormal(`[loadCustomLevel] Cleared ${clearedCounts.ants + clearedCounts.resources + clearedCounts.buildings} entities`);
+    
+    // Fetch level JSON
+    const response = await fetch(levelPath);
+    if (!response.ok) {
+      throw new Error(`Failed to load level: ${response.status} ${response.statusText}`);
+    }
+    
+    const levelData = await response.json();
+    safeLogNormal(`[loadCustomLevel] Level data loaded: ${levelData.tileCount || 0} tiles`);
+    
+    // Load terrain via MapManager
+    const mapId = 'custom-level'; // Could extract from levelData.metadata.id
+    const terrain = mapManager.loadLevel(levelData, mapId, true);
+    if (!terrain) {
+      throw new Error('MapManager failed to load level terrain');
+    }
+    safeLogNormal(`[loadCustomLevel] Terrain loaded and set as active map`);
+    
+    // Update global references
+    g_activeMap = terrain;
+    g_map2 = terrain; // For backwards compatibility
+    
+    // Load entities via LevelLoader
+    if (typeof LevelLoader !== 'undefined') {
+      const loader = new LevelLoader();
+      const result = loader.loadLevel(levelData);
+      
+      if (result && result.success) {
+        safeLogNormal(`[loadCustomLevel] Entities loaded: ${result.entities.length}`);
+        
+        // Find queen ant for camera following
+        const queenDetection = typeof findQueen !== 'undefined' ? findQueen : null;
+        if (queenDetection) {
+          const queen = queenDetection(result.entities);
+          if (queen) {
+            window.queenAnt = queen;
+            
+            // Start camera following queen
+            if (cameraManager && cameraManager.followEntity) {
+              cameraManager.followEntity(queen);
+              safeLogNormal('[loadCustomLevel] Camera now following queen ant');
+            }
+          } else {
+            safeLogWarning('[loadCustomLevel] No queen found in level');
+          }
+        }
+        
+        // TODO: Register entities with game systems (spatial grid, etc.)
+        // For now, just log entity count
+      } else {
+        safeLogWarning('[loadCustomLevel] Entity loading failed or returned no entities');
+      }
+    } else {
+      safeLogWarning('[loadCustomLevel] LevelLoader not available, skipping entity spawning');
+    }
+    
+    // Transition to IN_GAME state
+    if (typeof GameState !== 'undefined' && GameState.goToGame) {
+      GameState.goToGame();
+      safeLogNormal('[loadCustomLevel] Game state set to IN_GAME');
+    }
+    
+    safeLogNormal(`[loadCustomLevel] Level loaded successfully: ${levelPath}`);
+    return true;
+  } catch (error) {
+    console.error('[loadCustomLevel] Error:', error);
+    safeLogError(`[loadCustomLevel] Failed to load level: ${error.message}`);
+    return false;
+  }
 }
 
 /**
@@ -388,8 +567,8 @@ function draw() {
     cameraManager.update();
   }
 
-  // Update game systems (only if playing)
-  if (GameState.getState() === 'PLAYING') {
+  // Update game systems (only if playing or in-game)
+  if (GameState.getState() === 'PLAYING' || GameState.getState() === 'IN_GAME') {
     // Update brush systems
     if (window.g_enemyAntBrush) {
       window.g_enemyAntBrush.update();

@@ -133,8 +133,28 @@ function loadButtons() {
 }
 
 // Start game with fade transition
-function startGameTransition() {
-    // Only start fade out, do NOT switch state yet
+async function startGameTransition() {
+    // Load custom level instead of procedural generation
+    if (typeof loadCustomLevel === 'function') {
+        logNormal('[startGameTransition] Loading custom level: CaveTutorial');
+        const success = await loadCustomLevel('levels/CaveTutorial.json');
+        
+        if (!success) {
+            logError('[startGameTransition] Failed to load custom level, falling back to procedural');
+            // Fallback: initialize procedural world
+            if (typeof initializeWorld === 'function') {
+                initializeWorld();
+            }
+        }
+    } else {
+        logWarning('[startGameTransition] loadCustomLevel not available, using procedural generation');
+        // Fallback: initialize procedural world
+        if (typeof initializeWorld === 'function') {
+            initializeWorld();
+        }
+    }
+    
+    // Start fade out transition, do NOT switch state yet
     GameState.startFadeTransition("out");
     soundManager.stop("bgMusic");
 }
@@ -184,8 +204,12 @@ function updateMenu() {
   
       if (fadeComplete) {
         if (GameState.fadeDirection === "out") {
-          // Fade-out done → switch state to PLAYING
-          GameState.setState("PLAYING", true); // skip callbacks if needed
+          // Fade-out done → check if custom level already loaded
+          // If already IN_GAME (from loadCustomLevel), don't override
+          if (GameState.getState() !== "IN_GAME") {
+            // Otherwise, default to PLAYING (procedural generation)
+            GameState.setState("PLAYING", true); // skip callbacks if needed
+          }
           GameState.startFadeTransition("in"); // start fade-in
         } else {
           // Fade-in done → stop fading

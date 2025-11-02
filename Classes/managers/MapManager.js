@@ -36,7 +36,7 @@ class MapManager {
   /**
    * Register a new map
    * @param {string} mapId - Unique identifier for this map
-   * @param {gridTerrain} map - The terrain map instance
+   * @param {gridTerrain|SparseTerrain} map - The terrain map instance
    * @param {boolean} setActive - Whether to immediately set as active map
    * @returns {boolean} True if successful
    */
@@ -46,8 +46,12 @@ class MapManager {
       return false;
     }
 
-    if (!map || typeof map.chunkArray === 'undefined') {
-      console.error("MapManager.registerMap: Invalid map object");
+    // Support both gridTerrain (chunkArray) and SparseTerrain (getTile)
+    const isGridTerrain = map && typeof map.chunkArray !== 'undefined';
+    const isSparseTerrain = map && typeof map.getTile === 'function';
+    
+    if (!map || (!isGridTerrain && !isSparseTerrain)) {
+      console.error("MapManager.registerMap: Invalid map object (must be gridTerrain or SparseTerrain)");
       return false;
     }
 
@@ -283,6 +287,83 @@ class MapManager {
   }
 
   // --- Map Creation Helpers ---
+
+  /**
+   * Load a custom level from JSON data
+   * @param {Object} levelData - Level JSON with metadata and tiles
+   * @param {string} mapId - Unique identifier for this map
+   * @param {boolean} setActive - Whether to set as active map
+   * @returns {SparseTerrain|null} Created terrain or null if failed
+   */
+  loadLevel(levelData, mapId, setActive = false) {
+    // Validation
+    if (!levelData || typeof levelData !== 'object') {
+      console.error("MapManager.loadLevel: Invalid level data");
+      return null;
+    }
+
+    if (!mapId || typeof mapId !== 'string' || mapId.trim() === '') {
+      console.error("MapManager.loadLevel: Invalid map ID");
+      return null;
+    }
+
+    if (!Array.isArray(levelData.tiles)) {
+      console.error("MapManager.loadLevel: Level data must contain tiles array");
+      return null;
+    }
+
+    try {
+      // Extract metadata or use defaults
+      const metadata = levelData.metadata || {};
+      const tileSize = metadata.tileSize || this._defaultTileSize;
+      const defaultMaterial = metadata.defaultMaterial || 'dirt';
+      
+      // Determine bounds from metadata or tiles
+      let bounds = metadata.bounds;
+      if (!bounds && levelData.tiles.length > 0) {
+        // Calculate bounds from tiles
+        const xs = levelData.tiles.map(t => t.x);
+        const ys = levelData.tiles.map(t => t.y);
+        bounds = {
+          minX: Math.min(...xs),
+          maxX: Math.max(...xs),
+          minY: Math.min(...ys),
+          maxY: Math.max(...ys)
+        };
+      }
+      
+      // Create SparseTerrain instance
+      // Requires: SparseTerrain to be loaded in global scope
+      const SparseTerrainClass = (typeof SparseTerrain !== 'undefined') ? SparseTerrain : 
+                                 (typeof window !== 'undefined' && window.SparseTerrain) ? window.SparseTerrain :
+                                 null;
+      
+      if (!SparseTerrainClass) {
+        console.error("MapManager.loadLevel: SparseTerrain class not available");
+        return null;
+      }
+      
+      const terrain = new SparseTerrainClass(tileSize, defaultMaterial);
+      
+      // Apply tiles to terrain
+      for (const tileData of levelData.tiles) {
+        const { x, y, material } = tileData;
+        if (typeof x === 'number' && typeof y === 'number' && material) {
+          terrain.setTile(x, y, material);
+        }
+      }
+      
+      // Register with MapManager
+      this.registerMap(mapId, terrain, setActive);
+      
+      logNormal(`MapManager: Loaded level '${mapId}' with ${levelData.tiles.length} tiles`);
+      
+      return terrain;
+    } catch (error) {
+      console.error("MapManager.loadLevel error:", error);
+      return null;
+    }
+  }
 
   /**
    * Create and register a new procedural map

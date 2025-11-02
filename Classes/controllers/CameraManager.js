@@ -613,6 +613,43 @@ class CameraManager {
   }
 
   /**
+   * Enable camera following for a specific entity (e.g., queen ant)
+   * Used for auto-tracking entities when game/level starts
+   * 
+   * @param {Object|null} entity - Entity to follow (must have x, y properties) or null to disable
+   * @returns {boolean} True if following enabled, false if disabled
+   * 
+   * @example
+   * // Follow queen ant on game start
+   * const queen = findQueen(entities);
+   * if (queen) {
+   *   cameraManager.followEntity(queen);
+   * }
+   * 
+   * // Disable following
+   * cameraManager.followEntity(null);
+   */
+  followEntity(entity) {
+    // Handle null/undefined entity - disable following
+    if (!entity) {
+      this.cameraFollowEnabled = false;
+      this.cameraFollowTarget = null;
+      return false;
+    }
+
+    // Enable following and set target
+    this.cameraFollowEnabled = true;
+    this.cameraFollowTarget = entity;
+
+    // Center camera on entity if it has valid coordinates
+    if (typeof entity.x === 'number' && typeof entity.y === 'number') {
+      this.centerOnEntity(entity);
+    }
+
+    return true;
+  }
+
+  /**
    * Set custom level bounds for camera clamping
    * @param {Object} bounds - {width: number, height: number} or null to use current map
    * @param {Object} levelMap - Reference to level map object (defaults to g_activeMap)

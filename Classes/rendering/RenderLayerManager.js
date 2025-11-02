@@ -500,6 +500,8 @@ class RenderLayerManager {
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_DEBUG, this.layers.UI_MENU];
         
       case 'PLAYING':
+      case 'IN_GAME':
+        // IN_GAME state for custom level gameplay - same layers as PLAYING
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_DEBUG];
         
       case 'PAUSED':
@@ -528,7 +530,7 @@ class RenderLayerManager {
     }
     
     // Only render terrain for game states that need it
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
+    if (!['PLAYING', 'IN_GAME', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
       background(0);
       return;
     }
@@ -559,7 +561,7 @@ class RenderLayerManager {
    */
   renderEntitiesLayer(gameState) {
     // Only render entities during gameplay states
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU'].includes(gameState)) {
+    if (!['PLAYING', 'IN_GAME', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU'].includes(gameState)) {
       return;
     }
     
@@ -582,7 +584,7 @@ class RenderLayerManager {
    */
   renderEffectsLayer(gameState) {
     // Render effects in most game states
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MAIN_MENU'].includes(gameState)) {
+    if (!['PLAYING', 'IN_GAME', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MAIN_MENU'].includes(gameState)) {
       return;
     }
     
@@ -609,7 +611,7 @@ class RenderLayerManager {
    * GAME UI LAYER - In-game interface elements
    */
   renderGameUILayer(gameState) {
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER'].includes(gameState)) { return; }
+    if (!['PLAYING', 'IN_GAME', 'PAUSED', 'GAME_OVER'].includes(gameState)) { return; }
     
     // Use comprehensive UI renderer
     const uiRenderer = (typeof window !== 'undefined') ? window.UIRenderer : 
@@ -654,7 +656,7 @@ class RenderLayerManager {
    */
   renderInteractionUI(gameState) {
     // Only show interaction UI during active gameplay
-    if (gameState !== 'PLAYING') return;
+    if (gameState !== 'PLAYING' && gameState !== 'IN_GAME') return;
     
     window.updateDropoffUI();
     window.drawDropoffUI();
@@ -691,7 +693,7 @@ class RenderLayerManager {
     }
     
     // Debug grid for playing state
-    if (gameState === 'PLAYING' && window.drawDebugGrid) {
+    if ((gameState === 'PLAYING' || gameState === 'IN_GAME') && window.drawDebugGrid) {
       if (window.g_gridMap) {
         window.drawDebugGrid(window.TILE_SIZE, window.g_gridMap.width, window.g_gridMap.height);
       }
@@ -827,7 +829,7 @@ class RenderLayerManager {
    */
   renderButtonGroups(gameState) {
     // Only render buttons in appropriate game states (including MENU for testing)
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU'].includes(gameState)) {
+    if (!['PLAYING', 'IN_GAME', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU'].includes(gameState)) {
       return;
     }
     
@@ -839,7 +841,7 @@ class RenderLayerManager {
    */
   renderQueenControlPanel(gameState) {
     // Only render in playing states
-    if (!['PLAYING', 'PAUSED'].includes(gameState)) {
+    if (!['PLAYING', 'IN_GAME', 'PAUSED'].includes(gameState)) {
       return;
     }
     
@@ -861,7 +863,7 @@ class RenderLayerManager {
    */
   renderFireballEffects(gameState) {
     // Only render in playing states
-    if (!['PLAYING', 'PAUSED'].includes(gameState)) {
+    if (!['PLAYING', 'IN_GAME', 'PAUSED'].includes(gameState)) {
       return;
     }
     

@@ -15,6 +15,7 @@ class GameStateManager {
       OPTIONS: "OPTIONS", 
       DEBUG_MENU: "DEBUG_MENU",
       PLAYING: "PLAYING",
+      IN_GAME: "IN_GAME",
       PAUSED: "PAUSED",
       GAME_OVER: "GAME_OVER",
       KAN_BAN: "KANBAN",
@@ -127,7 +128,8 @@ class GameStateManager {
   // Convenience methods for common states
   isInMenu = () => this.currentState === this.STATES.MENU;
   isInOptions = () => this.currentState === this.STATES.OPTIONS;
-  isInGame = () => this.currentState === this.STATES.PLAYING;
+  isInGame = () => this.currentState === this.STATES.PLAYING || this.currentState === this.STATES.IN_GAME;
+  isPlayingGame = () => this.currentState === this.STATES.IN_GAME;
   isPaused = () => this.currentState === this.STATES.PAUSED;
   isGameOver = () => this.currentState === this.STATES.GAME_OVER;
   isDebug = () => this.currentState === this.STATES.DEBUG_MENU;
@@ -140,6 +142,7 @@ class GameStateManager {
   goToDebug = () => this.setState(this.STATES.DEBUG_MENU);
   goToLevelEditor = () => this.setState(this.STATES.LEVEL_EDITOR);
   startGame = () => { this.startFadeTransition(); return this.setState(this.STATES.PLAYING); };
+  goToGame = () => this.setState(this.STATES.IN_GAME);
   pauseGame = () => this.setState(this.STATES.PAUSED);
   resumeGame = () => this.setState(this.STATES.PLAYING);
   endGame = () => this.setState(this.STATES.GAME_OVER);

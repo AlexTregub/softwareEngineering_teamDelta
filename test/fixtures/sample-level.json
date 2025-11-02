@@ -1,0 +1,49 @@
+{
+  "id": "test_level_001",
+  "name": "Test Level",
+  "version": "1.0",
+  "terrain": {
+    "type": "sparse",
+    "tileSize": 32,
+    "tiles": [
+      { "gridX": 0, "gridY": 0, "material": "grass" },
+      { "gridX": 1, "gridY": 0, "material": "dirt" },
+      { "gridX": 2, "gridY": 0, "material": "stone" },
+      { "gridX": 0, "gridY": 1, "material": "grass" },
+      { "gridX": 1, "gridY": 1, "material": "water" },
+      { "gridX": 2, "gridY": 1, "material": "grass" },
+      { "gridX": 0, "gridY": 2, "material": "sand" },
+      { "gridX": 1, "gridY": 2, "material": "sand" },
+      { "gridX": 2, "gridY": 2, "material": "grass" }
+    ]
+  },
+  "entities": [
+    {
+      "id": "entity_001",
+      "type": "Ant",
+      "gridPosition": { "x": 1, "y": 1 },
+      "properties": {
+        "JobName": "Worker",
+        "faction": "player"
+      }
+    },
+    {
+      "id": "entity_002",
+      "type": "Resource",
+      "gridPosition": { "x": 2, "y": 0 },
+      "properties": {
+        "resourceType": "food",
+        "amount": 50
+      }
+    },
+    {
+      "id": "entity_003",
+      "type": "Queen",
+      "gridPosition": { "x": 0, "y": 2 },
+      "properties": {
+        "faction": "player",
+        "health": 100
+      }
+    }
+  ]
+}

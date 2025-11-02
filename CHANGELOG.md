@@ -22,6 +22,212 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### User-Facing Changes
 
 #### Added
+- **Custom Level Loading: LevelLoader System** (Phase 2.1 Complete)
+  - **Feature**: Load custom levels from Level Editor JSON exports
+  - **LevelLoader**: Parse terrain + entities, spawn in game world
+  - **Grid → World Conversion**: Automatic coordinate translation
+  - **Validation**: Reject malformed JSON with detailed error messages
+  - **Extensibility**: Custom terrain/entity factories for advanced use
+  - **Testing**: 27 unit tests passing (TDD)
+  
+- **Custom Level Loading: Terrain Adapters** (Phase 1.2 Complete)
+  - **Feature**: Custom levels from Level Editor can now use pathfinding
+  - **GridTerrainAdapter**: Enables pathfinding on procedural terrain (chunk-based)
+  - **SparseTerrainAdapter**: Enables pathfinding on Level Editor terrain (sparse storage)
+  - **Benefit**: Ants can navigate custom-painted terrain from Level Editor
+  - **Testing**: 83 tests passing (39 unit + 44 integration)
+
+---
+
+### Developer-Facing Changes
+
+#### Added
+- **Level Loader System - Phase 2.1 Complete**
+  - **LevelLoader** (`Classes/loaders/LevelLoader.js`)
+    - Main class: loadLevel(levelData) parses JSON and returns {success, terrain, entities, errors}
+    - Terrain loading: _loadTerrain() creates SparseTerrain or GridTerrain from JSON
+    - Entity spawning: _spawnEntities() creates entities with world coordinates (position.x, position.y)
+    - Coordinate conversion: gridToWorld(gridX, gridY) → {x, y} pixels
+    - Validation: Rejects null data, missing fields, malformed types (includes terrain.tiles validation)
+    - Extensibility: Optional terrainFactory and entityFactory for custom implementations
+    - Level Editor JSON support: Handles both gridX/gridY and x/y tile formats
+    - Edge cases: Handles empty levels, large entity counts (1000+ entities in <2s)
+    - **Tests**: 27 unit tests + 17 integration tests = 44 total ✅
+    - **Usage**: `const {terrain, entities} = loader.loadLevel(levelJSON)`
+  
+  - **Integration Test Coverage**:
+    - Load real Level Editor JSON (sample-level.json fixture)
+    - Verify SparseTerrain creation with correct tiles
+    - Verify entity spawning at correct world coordinates
+    - PathMap compatibility via SparseTerrainAdapter
+    - Performance benchmarks: 1000+ entities (<2s), 10k tiles (<3s)
+    - Edge cases: Sparse gaps, negative coordinates, malformed JSON rejection
+    - Game system integration: Terrain + entities ready for spatial grid
+  
+  - **Fixtures**: `test/fixtures/sample-level.json`, `large-level.json`
+  
+- **Level Validation System - Phase 2.2 Complete**
+  - **LevelValidator** (`Classes/validators/LevelValidator.js`)
+    - Main class: validate(levelData) returns {valid, errors[]}
+    - Validates required fields (terrain, entities)
+    - Validates terrain structure (tiles array, coordinates, materials)
+    - Validates entity structure (id, type, gridPosition, properties)
+    - Validates entity types against allowed list (Ant, Queen, Resource, Building)
+    - Validates coordinate bounds (configurable max limits)
+    - Supports both gridX/gridY and x/y tile formats
+    - Detailed error messages with entity/tile indices
+    - Custom options: maxEntities (default: 10000), maxTiles (default: 100000), maxCoordinate (default: 10000), allowedEntityTypes
+    - Performance: Validates 2000 entities + 5000 tiles in <500ms
+    - **Tests**: 36 unit tests + 13 integration tests = 49 total ✅
+    - **Usage**: `const validator = new LevelValidator(options); const {valid, errors} = validator.validate(levelData);`
+  
+  - **LevelLoader Integration**:
+    - Automatic validation enabled by default
+    - Can be disabled via constructor option: `new LevelLoader({ validate: false })`
+    - Custom validator options: `new LevelLoader({ validatorOptions: { maxEntities: 5000 } })`
+    - Validation errors returned directly to caller
+    - Invalid levels rejected before loading (performance optimization)
+  
+  - **Integration Test Coverage**:
+    - Validation integration (5 tests) - verify validator called, errors returned
+    - Validation options (3 tests) - custom options, disable validation, entity types
+    - Error propagation (2 tests) - detailed errors, indices included
+    - Valid levels pass through (3 tests) - validation doesn't block valid levels
+  
+- **Entity Factory System - Phase 3.1 Complete**
+  - **EntityFactory** (`Classes/factories/EntityFactory.js`)
+    - Main class: Creates game entities from Level Editor data
+    - createEntity(type, gridX, gridY, properties, id) - create entity from type string
+    - createFromLevelData(levelEntityData) - create from Level Editor JSON
+    - Grid→world coordinate conversion (gridX * TILE_SIZE)
+    - Property application from level data
+    - Automatic ID generation with uniqueness
+    - Supported types: Ant, Queen, Resource, Building
+    - Custom entity class support (inject real classes or use fallback mocks)
+    - Error handling: Unknown types, invalid coordinates, malformed data
+    - Performance: Create 1000 entities in <500ms
+    - **Tests**: 34 unit tests ✅
+    - **Usage**: `const factory = new EntityFactory(); const ant = factory.createEntity('Ant', 5, 10, {faction: 'player'});`
+  
+  - **Features**:
+    - Type-based entity creation (string → entity instance)
+    - Grid coordinate conversion (tile-based → pixel-based)
+    - Property preservation from level JSON
+    - ID management (auto-generate or use provided)
+    - Custom class injection for real game entities
+    - Fallback mock classes for testing
+    - Batch creation support (1000+ entities)
+    - Fractional coordinate handling
+    - Negative coordinate support
+  
+  - **Integration Status**: EntityFactory integrated with LevelLoader (automatic entity creation from level data)
+
+- **Game State Integration - Phase 3.5 Complete**
+  - **LevelLoader Enhancements** (`Classes/loaders/LevelLoader.js`)
+    - **Metadata Support**: loadLevel() now returns {success, terrain, entities, metadata}
+    - Metadata fields: id, name, description, author, version (extracted from level JSON)
+    - **Terrain API Compatibility**: Verified SparseTerrain.getTile() works with game systems
+    - **Entity Format**: Entities include both x/y AND position.x/y for compatibility
+    - **SpatialGrid Integration**: Entity format compatible with SpatialGridManager.registerEntity()
+    - **Unique IDs**: All entities have unique IDs for grid tracking
+    - **Performance Targets Met**: <3s for 100+ entities, <5s for 1500 entities
+    - **Tests**: 17 integration tests ✅
+    - **Usage**: `const {success, terrain, entities, metadata} = loader.loadLevel(levelJSON); spatialGrid.registerEntity(entities[0]);`
+  
+  - **Integration Test Coverage**:
+    - Game initialization workflow (4 tests) - data structure, terrain API, entity coordinates, performance
+    - CameraManager compatibility (3 tests) - queen entity detection, no queen fallback, multiple queens
+    - SpatialGrid compatibility (3 tests) - entity format, registration, unique IDs
+    - Game startup workflow (3 tests) - complete data, empty level, property preservation
+    - Performance benchmarks (2 tests) - 100+ entities, 1000+ entities
+    - Error handling (2 tests) - invalid level detection, error context
+
+- **Queen Detection System - Phase 4.1 Complete**
+  - **queenDetection Utility** (`Classes/utils/queenDetection.js`)
+    - Main function: findQueen(entities) returns queen entity or null
+    - **Algorithm**: O(n) linear search through entity array
+    - **Type Matching**: Case-sensitive check (entity.type === 'Queen')
+    - **Return Value**: Reference to actual entity (not copy)
+    - **Edge Cases**: Handles null, undefined, non-array inputs, null/undefined elements
+    - **Performance**: <50ms for 10k entities, <100ms worst case (queen at end)
+    - **Tests**: 17 unit tests ✅
+    - **Usage**: `const queen = findQueen(entities); if (queen) cameraManager.followEntity(queen);`
+  
+  - **Test Coverage**:
+    - Basic functionality (4 tests) - find queen, first queen if multiple, null if not found, empty array
+    - Entity type validation (3 tests) - case-sensitive matching, missing type, null type
+    - Edge cases (5 tests) - null input, undefined input, non-array, null elements, undefined elements
+    - Performance (2 tests) - large arrays (10k entities), worst case (queen at end)
+    - Return value structure (2 tests) - complete object, reference not copy
+    - LevelLoader integration (1 test) - compatible with LevelLoader entity format
+  
+  - **Integration Status**: Complete - followEntity() implemented and integrated with initializeWorld()
+
+- **Camera Following Integration - Phase 4.2 Complete**
+  - **CameraManager.followEntity() Method** (`Classes/controllers/CameraManager.js`)
+    - Main method: followEntity(entity) enables camera tracking for specific entity
+    - **Enable Following**: Pass entity object to start tracking (entity must have x, y properties)
+    - **Disable Following**: Pass null or undefined to stop tracking
+    - **Auto-Centering**: Camera centers on entity position when following enabled
+    - **Return Value**: Returns true if following enabled, false if disabled
+    - **Edge Cases**: Handles null, undefined, entities without coordinates, zero coords, negative coords
+    - **Zoom Compatible**: Works at any zoom level
+    - **Tests**: 16 unit tests ✅
+    - **Usage**: `cameraManager.followEntity(queenAnt); // Start following`
+  
+  - **Test Coverage**:
+    - Basic functionality (4 tests) - method exists, enables following, sets target, centers camera
+    - Edge cases (5 tests) - null/undefined, no coords, zero coords, negative coords
+    - Entity replacement (2 tests) - replace target, update position
+    - Integration (2 tests) - works with toggleFollow(), maintains state
+    - Return value (2 tests) - returns true/false
+    - Zoom compatibility (1 test) - works at different zooms
+  
+  - **Game Integration** (`sketch.js`)
+    - **initializeWorld()**: Automatically calls followEntity() after spawnQueen()
+    - Camera follows queen ant on game start
+    - Graceful fallback if no queen present (no error)
+    - Works for both procedural and custom level initialization
+  
+  - **Next Phase**: Phase 5 - Game Over on Queen Death
+
+- **Terrain System Integration - Phase 1.2 Complete**
+  - **GridTerrainAdapter** (`Classes/adapters/GridTerrainAdapter.js`)
+    - Exposes OLD Terrain API (_xCount, _yCount, _tileStore[], conv2dpos) for PathMap
+    - Converts GridTerrain chunk-based structure to flat array
+    - Handles coordinate conversion (grid → flat array index)
+    - **Tests**: 19 unit tests + 18 integration tests = 37 total ✅
+  
+  - **SparseTerrainAdapter** (`Classes/adapters/SparseTerrainAdapter.js`)
+    - Exposes OLD Terrain API for PathMap while wrapping SparseTerrain
+    - Handles dynamic bounds and negative coordinates
+    - Fills unpainted tiles with default material
+    - Coordinate offset calculations (world → array indices)
+    - **Tests**: 20 unit tests + 26 integration tests = 46 total ✅
+  
+  - **Test Helper** (`test/helpers/terrainIntegrationHelper.js`)
+    - Reusable helper for terrain adapter + PathMap integration tests
+    - Centralized JSDOM setup, mocks, and class loading
+    - Mock classes: MockGridTerrain, MockPathMap (matches real APIs)
+    - Helper functions: setupTestEnvironment(), loadClasses(), createTestGridTerrain(), verifyPathMapStructure()
+    - **Purpose**: Minimize duplication, maximize maintainability
+  
+  - **Integration with PathMap**:
+    - Both adapters compatible with existing PathMap constructor
+    - PathMap can now work with GridTerrain (procedural) OR SparseTerrain (Level Editor)
+    - No changes to PathMap required (Adapter Pattern)
+    - Verified through comprehensive integration tests
+  
+  - **Documentation**:
+    - API analysis: `docs/api/GridTerrain_Analysis.md`
+    - API analysis: `docs/api/SparseTerrain_Analysis.md`
+    - Coupling analysis: `docs/api/PathMap_Coupling_Analysis.md`
+
+---
+
+### User-Facing Changes (Previous)
+
+#### Added
 - **Level Editor: Event Template Browser** (`Classes/ui/EventTemplates.js`, `Classes/systems/ui/EventEditorPanel.js`)
   - **Feature**: Browse predefined event templates for quick event creation
   - **Templates**: 4 templates (dialogue 💬, spawn 🐜, tutorial 💡, boss 👑)

@@ -38,6 +38,7 @@ class DraggablePanelManager {
     this.stateVisibility = {
       'MENU': ['presentation-control', 'debug'],
       'PLAYING': ['ant_spawn', 'health_controls', 'debug', 'tasks','buildings',"resources", 'cheats', 'queen-powers-panel'],
+      'IN_GAME':[],
       'PAUSED': ['ant_spawn', 'health_controls', 'debug'],
       'DEBUG_MENU': ['ant_spawn', 'health_controls', 'debug', 'cheats'],
       'GAME_OVER': ['stats', 'debug'],
