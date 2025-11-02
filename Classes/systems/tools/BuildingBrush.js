@@ -29,7 +29,7 @@ class BuildingBrush extends BrushBase {
       'antcone': [139, 69, 19],    // Brown
       'anthill': [160, 82, 45],     // Sienna
       'hivesource': [218, 165, 32],  // Goldenrod
-      'farm': [34, 139, 34]         // Forest Green
+      'farm': [139, 69, 19]         // Brown
     };
   }
 

@@ -541,7 +541,7 @@ class DraggablePanelManager {
           {
             caption: 'Farm (Paint)',
             onClick: () => this.toggleBuildingBrush('farm'),
-            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#228B22', color: '#FFFFFF' }
+            style: { ...ButtonStyles.SUCCESS, backgroundColor: '#4a2d07ff', color: '#FFFFFF' }
           },
           {
             caption: 'Clear Buildings',
