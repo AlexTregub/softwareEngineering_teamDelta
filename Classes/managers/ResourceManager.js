@@ -117,7 +117,6 @@ class ResourceManager {
    * @param {Array} globalResourceArray - Global resource collection array
    */
   processDropOff(globalResourceArray) {
-    // Allow explicit processing of drop-off even if isDroppingOff isn't true.
     if (globalResourceArray) {
       const droppedResources = this.dropAllResources();
 
@@ -128,12 +127,18 @@ class ResourceManager {
         }
         globalResourceArray.push(resource);
 
-        // --- update aggregated totals so tasks/UI can read progress ---
+        // Update resource totals (simpler type detection)
         try {
-          const rtype = resource.type || resource.resourceType || resource._type || 'misc';
-          const ramt = (typeof resource.amount === 'number') ? resource.amount : 1;
-          addGlobalResource(rtype, ramt);
-        } catch (e) { /* ignore totals update errors */ }
+          const rtype = resource._resourceType || resource.type || resource.resourceType || 'misc';
+          const ramt = resource.amount || 1;
+          
+          if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
+            window.addGlobalResource(rtype, ramt);
+            logNormal(`Added to global totals: ${rtype} +${ramt}`);
+          }
+        } catch (e) {
+          logNormal('Error updating resource totals:', e);
+        }
       }
 
       return droppedResources;
@@ -397,6 +402,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = ResourceManager;
 }
 
+//
 // === Global resource totals helpers ===
 // Maintains aggregated counts of resources by type (updated on drop-off)
 const _resourceTotals = {};

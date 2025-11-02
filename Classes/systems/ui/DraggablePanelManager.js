@@ -425,7 +425,8 @@ class DraggablePanelManager {
             caption: 'Gather 10 wood',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('Gather 10 wood clicked');
+              console.log('Task button clicked');
+              console.log('Gather 10 wood clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T1') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('10 wood')));
@@ -433,14 +434,14 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
+                console.log(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Gather 10 wood'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
@@ -448,7 +449,7 @@ class DraggablePanelManager {
             caption: 'spawn 5 new ants',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('spawn 5 new ants clicked');
+              console.log('spawn 5 new ants clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T2') || (t.description && t.description.toLowerCase().includes('spawn') && t.description.includes('5')));
@@ -456,14 +457,14 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
+                console.log(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.toLowerCase().includes('spawn 5'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
@@ -471,7 +472,7 @@ class DraggablePanelManager {
             caption: 'Kill 10 ants',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('Kill 10 ants clicked');
+              console.log('Kill 10 ants clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T3') || (t.description && t.description.toLowerCase().includes('kill') && t.description.includes('10')));
@@ -479,14 +480,14 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
+                console.log(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Kill 10'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
@@ -494,7 +495,7 @@ class DraggablePanelManager {
             caption: 'Gather 20 leaves',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('Gather 20 leaves clicked');
+              console.log('Gather 20 leaves clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T4') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('20 leaves')));
@@ -502,7 +503,7 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
+                console.log(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('20 leaves'));
