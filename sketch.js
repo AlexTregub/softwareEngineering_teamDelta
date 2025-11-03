@@ -29,6 +29,7 @@ let g_recordingPath;
 let queenAnt;
 // -- Time ---
 let g_globalTime;
+let g_timeOfDayOverlay;
 
 // Buildings
 let Buildings = [];
@@ -283,6 +284,10 @@ function initializeWorld() {
   
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
+  
+  // Initialize Time of Day Overlay system
+  g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
+  window.g_timeOfDayOverlay = g_timeOfDayOverlay; // Make globally available
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
