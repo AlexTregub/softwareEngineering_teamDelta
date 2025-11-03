@@ -77,7 +77,7 @@ class ant extends Entity {
     );
     
     // Initialize resource management
-    this._resourceManager = new ResourceManager(this, 2, 25);
+    this._resourceManager = new ResourceManager(this, 8, 25);
     
     // Initialize state machine
     this._stateMachine = new AntStateMachine();
