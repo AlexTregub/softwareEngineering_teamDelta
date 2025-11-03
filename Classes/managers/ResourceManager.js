@@ -199,7 +199,7 @@ class ResourceManager {
             }
           }
 
-          if (this.isAtMaxLoad() && this.parentEntity.jobName != 'Queen') {
+          if (this.isAtMaxLoad() && this.parentEntity.jobName == 'Queen' && this.parentEntity.jobName == 'Boss') {
             const dropPointX = 0; // Default drop-off coordinates
             const dropPointY = 0;
             this.startDropOff(dropPointX, dropPointY);
@@ -230,7 +230,7 @@ class ResourceManager {
             delete fruits[key];
           }
 
-          if (this.isAtMaxLoad() && this.parentEntity.jobName != 'Queen') {
+          if (this.isAtMaxLoad() && this.parentEntity.jobName == 'Queen' && this.parentEntity.jobName == 'Boss') {
             const dropPointX = 0; // Default drop-off coordinates
             const dropPointY = 0;
             this.startDropOff(dropPointX, dropPointY);

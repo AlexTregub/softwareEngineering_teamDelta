@@ -52,9 +52,9 @@ function preload(){
 
 function setup() {
   // Initialize TaskLibrary before other systems that depend on it
-  /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
-  logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
-*/
+  // window.taskLibrary = window.taskLibrary || new TaskLibrary();
+  // logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
+
   
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
@@ -344,6 +344,9 @@ function initializeWorld() {
 
   // npc test
   Buildings.push(createNPC(100,100));
+  // Boss
+  let boss = new Boss();
+  // boss.output();
 }
 
 /**
