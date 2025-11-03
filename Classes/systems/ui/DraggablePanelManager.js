@@ -597,6 +597,11 @@ class DraggablePanelManager {
             style: { ...ButtonStyles.PRIMARY, backgroundColor: '#1E90FF', color: '#FFFFFF' }
           },
           {
+            caption: '🔆 Unlock Final Flash',
+            onClick: () => this.unlockPower('finalFlash'),
+            style: { ...ButtonStyles.PRIMARY, backgroundColor: '#ffff1aff', color: '#FFFFFF' }
+          },
+          {
             caption: '🔓 Unlock All Powers',
             onClick: () => this.unlockAllPowers(),
             style: { ...ButtonStyles.SUCCESS, backgroundColor: '#FFD700', color: '#000000' }
@@ -1437,7 +1442,7 @@ class DraggablePanelManager {
       return;
     }
 
-    const powers = ['fireball', 'lightning', 'blackhole', 'sludge', 'tidalWave'];
+    const powers = ['fireball', 'lightning', 'blackhole', 'sludge', 'tidalWave', 'finalFlash'];
     let unlocked = 0;
 
     for (const power of powers) {

@@ -1,7 +1,7 @@
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
-const TILE_SIZE = 32; //  Default 35
+const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
 let COORDSY;
@@ -29,6 +29,7 @@ let g_recordingPath;
 let queenAnt;
 // -- Time ---
 let g_globalTime;
+let g_timeOfDayOverlay;
 
 // GameObjects list (NPC, Buildings, etc.)
 let Buildings = [];
@@ -339,6 +340,10 @@ function initializeWorld() {
   
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
+  
+  // Initialize Time of Day Overlay system
+  g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
+  window.g_timeOfDayOverlay = g_timeOfDayOverlay; // Make globally available
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
