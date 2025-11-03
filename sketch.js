@@ -79,23 +79,8 @@ function setup() {
     }
   }
   
-  // Now spawn initial resources (after spatial grid exists)
-  if (typeof spawnInitialResources === 'function') {
-    spawnInitialResources();
-  }
-  
   initializeWorld();
-
-  // Initialize Draggable Panel System (must be after initializeWorld, before any UI that uses panels)
-  if (typeof initializeDraggablePanelSystem !== 'undefined') {
-    initializeDraggablePanelSystem().then(() => {
-      logVerbose('✅ DraggablePanelSystem ready');
-    }).catch((error) => {
-      console.error('❌ Failed to initialize DraggablePanelSystem:', error);
-    });
-  } else {
-    console.warn('⚠️ initializeDraggablePanelSystem not found - draggable panels will not work');
-  }
+  initializeDraggablePanelSystem()
 
   // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
@@ -103,9 +88,7 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  logVerbose('[SETUP] About to create SelectionBoxController, g_mouseController:', g_mouseController, 'ants:', ants);
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-  logVerbose('[SETUP] Created g_selectionBoxController:', g_selectionBoxController);
   window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
 
   // Ensure selection adapter is registered with RenderManager now that controller exists
@@ -164,40 +147,13 @@ function setup() {
         return false;
       }
     });
-    
-    logVerbose('🚫 Right-click context menu disabled for brush controls');
   }
 
-  // Initialize Queen Control Panel system
-  if (typeof initializeQueenControlPanel !== 'undefined') {
-    initializeQueenControlPanel();
-    logVerbose('👑 Queen Control Panel initialized in setup');
-  }
-
-  // Initialize Fireball System
-  if (typeof window !== 'undefined' && typeof FireballManager !== 'undefined') {
-    window.g_fireballManager = new FireballManager();
-    logVerbose('🔥 Fireball System initialized in setup');
-  }
-
-  // Initialize Event Manager (singleton)
-  if (typeof EventManager !== 'undefined') {
-    window.eventManager = EventManager.getInstance();
-    logVerbose('🎯 Event Manager initialized in setup');
-  }
-
-  // Initialize Event Debug Manager
-  if (typeof EventDebugManager !== 'undefined') {
-    window.eventDebugManager = new EventDebugManager();
-    
-    // Connect EventDebugManager to EventManager
-    if (window.eventManager) {
-      window.eventManager.setEventDebugManager(window.eventDebugManager);
-      logVerbose('🔗 Event Debug Manager connected to Event Manager');
-    }
-    
-    logVerbose('🐛 Event Debug Manager initialized in setup');
-  }
+  initializeQueenControlPanel();
+  window.g_fireballManager = new FireballManager();
+  window.eventManager = EventManager.getInstance();
+  window.eventDebugManager = new EventDebugManager();
+  window.eventManager.setEventDebugManager(window.eventDebugManager);
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
@@ -218,25 +174,18 @@ function setup() {
           const terrain = new CustomTerrain(50, 50, 32, 'dirt');
           levelEditor.initialize(terrain);
         }
-        logVerbose('🎨 Level Editor activated with blank CustomTerrain');
       } else if (oldState === 'LEVEL_EDITOR') {
-        // Deactivate level editor when leaving
         levelEditor.deactivate();
-        logVerbose('🎨 Level Editor deactivated');
       }
     });
   }
-  
-  // Start automatic BGM monitoring after menu initialization
-  if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
-    soundManager.startBGMMonitoring();
-  }
-  
-  // Initialize context menu prevention for better brush control
+  soundManager.startBGMMonitoring();
   initializeContextMenuPrevention();
-  //
-
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
+}
+
+function addListeners() {
+  
 }
 
 /**
@@ -277,25 +226,6 @@ function initializeContextMenuPrevention() {
   }
   
   logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
-}
-
-/**
- * Global function to test context menu prevention
- */
-function testContextMenuPrevention() {
-  logVerbose('🧪 Testing context menu prevention...');
-  logVerbose('Right-click anywhere to test - context menu should NOT appear');
-  logVerbose('If context menu still appears, try: disableContextMenu()');
-  return true;
-}
-
-/**
- * Global function to force disable context menu
- */
-function disableContextMenu() {
-  initializeContextMenuPrevention();
-  logVerbose('🔒 Context menu prevention forcibly re-applied');
-  return true;
 }
 
 // Make functions globally available
