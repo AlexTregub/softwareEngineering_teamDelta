@@ -1,3 +1,18 @@
+// NPC Dialogue Scripts (global)
+// ----------------------------
+const NPCDialogues = {
+  antony: [
+    "Pssst, hey... come here...",
+    "They got you too, huh?",
+    "Me? I stole this dope hat from a crying kid",
+    "I guess that's enough to put you in the slammer now adays...",
+    "But hey, the hat is cool, right?",
+    "Hows about we break out of here",
+    "Can you collect 8 of those sticks for me?"
+  ],
+  // add other NPCs here
+}
+
 let Character;
 
 function NPCPreloader() {
@@ -5,7 +20,7 @@ function NPCPreloader() {
 }
 
 
-
+ 
 class NPC extends Building{
   constructor(x, y) {
     super(x, y, 40, 40, Character, 'NPC', null);
@@ -18,6 +33,8 @@ class NPC extends Building{
     this.isPlayerNearby = false;
     this.dialogueActive = false;
     this.name = "Antony"; // gonna change it later for multiple NPC names, this is just a placeholder
+    this.dialogueLines = [];  // current vector of lines
+    this.dialogueIndex = 0;   // which line we're on
   }
 
 
@@ -31,8 +48,6 @@ class NPC extends Building{
     _renderBoxHover() {
     this._renderController.highlightBoxHover();
   }
-
-
 
   initDialogues() {
     const nearbyAnts = this.getAnts(this.faction);
@@ -74,28 +89,34 @@ class NPC extends Building{
   }
 
   
-  startDialogue() {
+  startDialogue(lines) {
     this.dialogueActive = true;
-    const text = `Hey there, Queen! How’s the colony life treating ya?`;
+    this.dialogueLines = lines;
+    this.dialogueIndex = 0;
   
     const dialogueBg = loadImage('Images/Assets/Menu/dialogue_bg.png');
-    const portraitImg = this._image;
+    const firstLine = this.dialogueLines[this.dialogueIndex];
+    window.DIAManager.open(firstLine, dialogueBg, this._image, this.name);
+    window.currentNPC = this;
+  }
+
+  advanceDialogue() {
+    if (!this.dialogueActive) return;
   
-    if (window.DIAManager && typeof window.DIAManager.open === "function") {
-      window.DIAManager.open(text, dialogueBg, portraitImg, this.name);
-      window.currentNPC = this; // remember who's talking
-  
-      // log distance from player when dialogue starts
-      const playerQueen = getQueen?.();
-      if (playerQueen) {
-        const distance = dist(this._x, this._y, playerQueen.posX, playerQueen.posY);
-        console.log(`Distance from ${this.name} at dialogue start: ${distance.toFixed(2)} units`);
-      } else {
-        console.warn(" Couldn’t find playerQueen to measure distance!");
-      }
-  
+    // Move to next line
+    this.dialogueIndex++;
+    if (this.dialogueIndex < this.dialogueLines.length) {
+      const nextLine = this.dialogueLines[this.dialogueIndex];
+      window.DIAManager.open(nextLine, window.DIAManager.bgImage, this._image, this.name);
     } else {
-      console.warn(" DIAManager instance not ready!");
+      // Finished this set of lines
+      this.dialogueActive = false;
+      window.currentNPC = null;
+      // CLOSE THE DIALOGUE BOX
+      if (window.DIAManager) {
+        window.DIAManager.close();
+      }
+      console.log(`${this.name} finished dialogue sequence.`);
     }
   }
   

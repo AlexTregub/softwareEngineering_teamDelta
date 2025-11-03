@@ -5,7 +5,7 @@ class DIAManager {
     this.displayedText = '';
     this.charIndex = 0;
     this.lastCharTime = 0;
-    this.charDelay = 40; // ms per letter
+    this.charDelay = 25; // ms per letter
     this.bgImage = null;
     this.portrait = null;
     this.name = '';
@@ -60,9 +60,9 @@ class DIAManager {
   
     // Portrait
     const portraitSize = 100;
-    let textStartX = boxX + padding - 245;
+    let textStartX = boxX + padding - 300;
     let textStartY = boxY + padding - 60;  // <--- define it here
-    let headStartX = boxX + padding - 265;
+    let headStartX = boxX + padding - 250;
     let headStartY = boxY + padding - 90;  // <--- define it here
     if (this.portrait) {
         const portraitY = boxY + (boxH - portraitSize) / 2;

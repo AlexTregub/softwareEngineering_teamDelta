@@ -966,12 +966,13 @@ function keyPressed() {
   }
   // --- NPC Interaction (Press E to Talk) ---
   if (key === 'e' || key === 'E') {
-    if (window.NPCList) {
-      for (let npc of window.NPCList) {
-        if (npc.isPlayerNearby && !npc.dialogueActive) {
-          npc.startDialogue();
-          return; // stop other systems from eating the key
-        }
+    if (window.currentNPC) {
+      window.currentNPC.advanceDialogue();
+    } else {
+      // start dialogue if nearby
+      const antony = NPCList.find(n => n.name === "Antony");
+      if (antony && antony.isPlayerNearby) {
+        antony.startDialogue(NPCDialogues.antony);
       }
     }
   }
