@@ -641,6 +641,10 @@ class RenderLayerManager {
     if (renderCurrencies) {
       renderCurrencies();
     }
+
+    if(renderTasks){
+      renderTasks();
+    }
     
     // Selection box
     if (g_selectionBoxController) {

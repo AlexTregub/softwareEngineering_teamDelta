@@ -422,34 +422,48 @@ class DraggablePanelManager {
         horizontalPadding: 10,
         items: [
           {
-            caption: 'Gather 10 wood',
-            style: ButtonStyles.SUCCESS,
+            caption: 'Gather 10 sticks',
+            style: ButtonStyles.DANGER,
             onClick: () => {
-              console.log('Task button clicked');
-              console.log('Gather 10 wood clicked');
+              console.log('Gather 10 sticks clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
+
               const task = lib.availableTasks.find(t => (t.ID === 'T1') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('10 wood')));
               if (!task) { console.warn('Task T1 not found'); return; }
+             
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
                 console.log(`Task ${task.ID} complete`);
+                
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Gather 10 wood'));
-                  if (btn) btn.caption = `${task.description} [COMPLETE]`;
+                  if (btn) /*btn.caption = `${task.description} [COMPLETE]`;
+                  btn.style = ButtonStyles.SUCCESS;//set style to const calling method to update to avoid and just call reference (get & set)
+                  //btn.style.fontWeight = 'bold';*/
+                  btn.setCaption(`${task.description} [COMPLETE]`);
+                  btn.setBackgroundColor('#4CAF50'); // ✅ Green for completion
+                  btn.setHoverColor('#45a049');
+                  btn.setTextColor('white');
                 }
+
+                if (panel && typeof panel.render === 'function') {
+                  panel.render();
+                }
+
               } else {
                 console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
-            }
+            },
+            //style: ButtonStyles.SUCCESS,
           },
           {
-            caption: 'spawn 5 new ants',
+            caption: 'Gather 5 stones',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              console.log('spawn 5 new ants clicked');
+              console.log('Gather 5 stones clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T2') || (t.description && t.description.toLowerCase().includes('spawn') && t.description.includes('5')));
@@ -459,20 +473,21 @@ class DraggablePanelManager {
                 task.status = 'COMPLETE';
                 console.log(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
+                console.log('Spawn 5 ants completed')
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.toLowerCase().includes('spawn 5'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+                //console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
           {
-            caption: 'Kill 10 ants',
+            caption: 'Gather 20 maple leaves',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              console.log('Kill 10 ants clicked');
+              console.log('Gather 20 maple leaves');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T3') || (t.description && t.description.toLowerCase().includes('kill') && t.description.includes('10')));
@@ -482,20 +497,21 @@ class DraggablePanelManager {
                 task.status = 'COMPLETE';
                 console.log(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
+                console.log('Gather 20 maple leaves completed')
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Kill 10'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
-                }
+                }//change this.background
               } else {
-                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+                //console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
           {
-            caption: 'Gather 20 leaves',
+            caption: 'Gather 15 green leaves',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              console.log('Gather 20 leaves clicked');
+              console.log('Gather 15 green leaves');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T4') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('20 leaves')));
@@ -504,13 +520,14 @@ class DraggablePanelManager {
               if (satisfied) {
                 task.status = 'COMPLETE';
                 console.log(`Task ${task.ID} complete`);
+                console.log('Gather 15 green leaves completed')
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('20 leaves'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
+                console.log('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           }

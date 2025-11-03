@@ -134,10 +134,10 @@ class ResourceManager {
           
           if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
             window.addGlobalResource(rtype, ramt);
-            logNormal(`Added to global totals: ${rtype} +${ramt}`);
+            console.log(`Added to global totals: ${rtype} +${ramt}`);
           }
         } catch (e) {
-          logNormal('Error updating resource totals:', e);
+          console.log('Error updating resource totals:', e);
         }
       }
 
