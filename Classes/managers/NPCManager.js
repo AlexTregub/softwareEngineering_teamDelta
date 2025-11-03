@@ -7,16 +7,18 @@ function NPCPreloader() {
 
 
 class NPC extends Building{
-    constructor(x, y) {
-        super(x, y, 40, 40, Character, 'NPC', null);
+  constructor(x, y) {
+    super(x, y, 40, 40, Character, 'NPC', null);
+    this._x = x;
+    this._y = y;
+    this._faction = 'player';
+    this.isBoxHovered = false;
+    this.dialogueRange = 100;
 
-        // --- Basic properties ---
-        this._x = x;
-        this._y = y;
-        this._faction = 'player';
-        this.isBoxHovered = false;
-        this.dialogueRange = 100; // Distance within which NPCs will interact with ants
-    }
+    this.isPlayerNearby = false;
+    this.dialogueActive = false;
+    this.name = "Antony"; // gonna change it later for multiple NPC names, this is just a placeholder
+  }
 
 
     get _renderController() { return this.getController('render'); }
@@ -34,31 +36,62 @@ class NPC extends Building{
 
   initDialogues() {
     const nearbyAnts = this.getAnts(this.faction);
+    this.isPlayerNearby = false; // reset each frame
+
     nearbyAnts.forEach(ant => {
-      if(ant.jobName == 'Queen'){
+      if (ant.jobName === 'Queen') {
         const range = dist(this._x, this._y, ant.posX, ant.posY);
         if (range < this.dialogueRange) {
-          console.log(`NPC at (${this._x}, ${this._y}) says: Hello Ant at (${ant.posX}, ${ant.posY})!`);
+          this.isPlayerNearby = true;
         }
-      }}
-    );
+      }
+    });
   }
 
-  update(){
+  update() {
     super.update();
     this.initDialogues();
+
+    if (!this.isPlayerNearby && this.dialogueActive) {
+      this.dialogueActive = false;
+    }
   }
 
   
+  startDialogue() {
+    this.dialogueActive = true;
+    const text = `${this.name}: Hey there, Queen! How’s the colony life treating ya?`;
+  
+    // optional portrait or bg
+    const dialogueBg = loadImage('Images/UI/dialogue_bg.png');
+    const portraitImg = this._image; // or a specific portrait file
+  
+    DIAManager.open(text, dialogueBg, portraitImg, this.name);
+  }
+
   render() {
     if (!this.isActive) return;
     super.render();
-    if (this.isBoxHovered) {
-      this._renderBoxHover();
-    }
 
+    if (this.isBoxHovered) this._renderBoxHover();
+
+    // show prompt if close enough and not already talking
+    if (this.isPlayerNearby && !this.dialogueActive) {
+      push();
+      textAlign(CENTER);
+      textSize(16);
+      fill(255);
+      if (!terrariaFont) {
+        console.warn("terrariaFont not loaded yet!");
+      }
+      textFont(terrariaFont);
+      // position slightly below NPC (like a subtitle)
+      text(`[E] Talk to ${this.name}`, this._x + 35, this._y + 70);
+      pop();
+    }
   }
 }
+
 
 function createNPC(x, y) {
     const npc = new NPC(x, y);
@@ -94,3 +127,4 @@ if (typeof module !== 'undefined' && module.exports) {
     createNPC
   };
 }
+

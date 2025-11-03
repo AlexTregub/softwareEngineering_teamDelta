@@ -36,6 +36,7 @@ let Buildings = [];
 // Camera system - now managed by CameraManager
 let cameraManager;
 
+let terrariaFont;
 
 function preload(){
   terrainPreloader();
@@ -47,6 +48,7 @@ function preload(){
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
+  terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
 
@@ -419,6 +421,11 @@ function draw() {
       if (keyIsDown(65)) playerQueen.move("a");
       if (keyIsDown(83)) playerQueen.move("w");
       if (keyIsDown(68)) playerQueen.move("d");
+    }
+
+    if (window.DIAManager) {
+      DIAManager.update();
+      DIAManager.render();
     }
   }
   
@@ -980,6 +987,18 @@ function keyPressed() {
       setCameraZoom(currentZoom / CAMERA_ZOOM_STEP);
     } else if (key === '=' || key === '+' || keyCode === 187 || keyCode === 107) {
       setCameraZoom(currentZoom * CAMERA_ZOOM_STEP);
+    }
+    
+  }
+  // --- NPC Interaction (Press E to Talk) ---
+  if (key === 'e' || key === 'E') {
+    if (window.NPCList) {
+      for (let npc of window.NPCList) {
+        if (npc.isPlayerNearby && !npc.dialogueActive) {
+          npc.startDialogue();
+          return; // stop other systems from eating the key
+        }
+      }
     }
   }
 }
