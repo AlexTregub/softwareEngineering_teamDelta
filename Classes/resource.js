@@ -351,7 +351,7 @@ class ResourceSpawner {
     if (!this.isActive) {
       this.isActive = true;
       this.timer = setInterval(() => this.spawn(), this.interval * 1000);
-      console.log('ResourceSpawner: Started spawning resources');
+      logNormal('ResourceSpawner: Started spawning resources');
     }
   }
 
@@ -363,7 +363,7 @@ class ResourceSpawner {
         clearInterval(this.timer);
         this.timer = null;
       }
-      console.log('ResourceSpawner: Stopped spawning resources');
+      logNormal('ResourceSpawner: Stopped spawning resources');
     }
   }
 

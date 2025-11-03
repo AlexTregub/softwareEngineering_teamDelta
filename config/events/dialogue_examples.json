@@ -1,0 +1,258 @@
+{
+  "events": [
+    {
+      "id": "queen_welcome",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "Welcome to our colony, brave warrior! I am the Queen. Our colony is under constant threat from enemy insects. Will you help us defend our home?",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "Yes, I will defend the colony!",
+            "nextEventId": "tutorial_gathering"
+          },
+          {
+            "text": "What kind of enemies do you face?",
+            "nextEventId": "queen_explain_enemies"
+          },
+          {
+            "text": "I need to think about it",
+            "nextEventId": "queen_waiting"
+          }
+        ]
+      },
+      "priority": 1,
+      "metadata": {
+        "questId": "main_quest_intro",
+        "importance": "critical",
+        "voiceFile": "audio/dialogue/queen_welcome.mp3"
+      }
+    },
+    {
+      "id": "queen_explain_enemies",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "Beetles, wasps, and spiders attack our food stores daily. We need strong warriors to fight them off and gatherers to collect resources. The survival of our colony depends on it!",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "I understand. I'm ready to help!",
+            "nextEventId": "tutorial_gathering"
+          },
+          {
+            "text": "That sounds dangerous...",
+            "nextEventId": "queen_reassurance"
+          }
+        ]
+      },
+      "priority": 1
+    },
+    {
+      "id": "queen_reassurance",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "Don't worry! You won't be alone. Our brave ant soldiers will fight alongside you, and you can always retreat if things get too difficult. We just need someone to coordinate the defense!",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "Alright, I'll do it!",
+            "nextEventId": "tutorial_gathering"
+          },
+          {
+            "text": "Maybe another time",
+            "nextEventId": "queen_waiting"
+          }
+        ]
+      },
+      "priority": 1
+    },
+    {
+      "id": "queen_waiting",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "I understand. Take your time to prepare. When you're ready, our colony will be here, fighting for survival. Come back when you're ready to help.",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "I'll be back soon",
+            "data": { "delayQuest": true }
+          }
+        ]
+      },
+      "priority": 1
+    },
+    {
+      "id": "tutorial_gathering",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "Excellent! First, let's gather some resources. Select worker ants by clicking them, then right-click on nearby wood or leaves to gather them. Bring resources back to the colony!",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "Got it!",
+            "nextEventId": "tutorial_spawn_resources"
+          }
+        ]
+      },
+      "priority": 1
+    },
+    {
+      "id": "first_wave_warning",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "Enemies detected on the horizon! A wave of beetles is approaching. Prepare our defenses!",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "Bring it on!",
+            "nextEventId": "wave_1_start"
+          },
+          {
+            "text": "Give me a moment to prepare",
+            "data": { "delay": 10000 }
+          }
+        ]
+      },
+      "priority": 10,
+      "metadata": {
+        "questId": "main_quest_wave_1",
+        "importance": "high"
+      }
+    },
+    {
+      "id": "wave_1_complete",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "Victory! You've defended the colony admirably. But this is only the beginning. More enemies will come. Are you ready to continue?",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "Yes, let's keep fighting!",
+            "nextEventId": "wave_2_prep"
+          },
+          {
+            "text": "I need a break",
+            "autoContinue": true,
+            "autoContinueDelay": 30000
+          }
+        ]
+      },
+      "priority": 5
+    },
+    {
+      "id": "game_over_defeat",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "The colony has fallen... Our enemies were too strong this time. But we can rebuild and try again!",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "Let's try again!",
+            "data": { "action": "restart" }
+          },
+          {
+            "text": "Return to menu",
+            "data": { "action": "main_menu" }
+          }
+        ]
+      },
+      "priority": 100
+    },
+    {
+      "id": "boss_beetle_appears",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "By the colony! A GIANT BEETLE approaches! This is the leader of our enemies. Defeat it, and the raids will stop!",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "I'll take it down!",
+            "nextEventId": "boss_fight_start"
+          }
+        ]
+      },
+      "priority": 50,
+      "metadata": {
+        "questId": "boss_battle",
+        "importance": "critical",
+        "voiceFile": "audio/dialogue/queen_boss_warning.mp3"
+      }
+    },
+    {
+      "id": "victory_final",
+      "type": "dialogue",
+      "content": {
+        "speaker": "Queen Ant",
+        "message": "YOU DID IT! The giant beetle is defeated! Peace will return to our colony. You are a true hero of the ant kingdom!",
+        "portrait": "Images/Characters/queen.png",
+        "choices": [
+          {
+            "text": "Happy to help!",
+            "data": { "action": "credits" }
+          }
+        ]
+      },
+      "priority": 100,
+      "metadata": {
+        "questId": "main_quest_complete",
+        "importance": "critical",
+        "voiceFile": "audio/dialogue/queen_victory.mp3"
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "eventId": "queen_welcome",
+      "type": "time",
+      "condition": { "delay": 2000 },
+      "oneTime": true
+    },
+    {
+      "eventId": "first_wave_warning",
+      "type": "flag",
+      "condition": {
+        "flag": "resources_gathered",
+        "operator": ">=",
+        "value": 10
+      },
+      "oneTime": true
+    },
+    {
+      "eventId": "wave_1_complete",
+      "type": "flag",
+      "condition": {
+        "flag": "wave_1_enemies_defeated",
+        "value": true
+      },
+      "oneTime": true
+    },
+    {
+      "eventId": "boss_beetle_appears",
+      "type": "flag",
+      "condition": {
+        "flag": "waves_completed",
+        "operator": ">=",
+        "value": 5
+      },
+      "oneTime": true
+    },
+    {
+      "eventId": "victory_final",
+      "type": "flag",
+      "condition": {
+        "flag": "boss_defeated",
+        "value": true
+      },
+      "oneTime": true
+    }
+  ]
+}

@@ -99,8 +99,8 @@ globalThis.setVerbosity = function(level) {
   saveVerbosityPreference(level);
   
   const levels = ['SILENT', 'QUIET', 'NORMAL', 'VERBOSE', 'DEBUG'];
-  console.log(`🔊 Verbosity set to ${level} (${levels[level]})`);
-  console.log('💾 Preference saved - verbosity will persist on page reload');
+  logNormal(`🔊 Verbosity set to ${level} (${levels[level]})`);
+  logNormal('💾 Preference saved - verbosity will persist on page reload');
   return true;
 };
 
@@ -110,7 +110,7 @@ globalThis.setVerbosity = function(level) {
 globalThis.getVerbosity = function() {
   const levels = ['SILENT', 'QUIET', 'NORMAL', 'VERBOSE', 'DEBUG'];
   const level = globalThis.globalDebugVerbosity;
-  console.log(`🔊 Current verbosity: ${level} (${levels[level]})`);
+  logNormal(`🔊 Current verbosity: ${level} (${levels[level]})`);
   return level;
 };
 
@@ -156,7 +156,7 @@ globalThis.registerTest = function(name, testFn) {
     globalThis.registeredTests.push({ name, fn: testFn });
     if (globalThis.globalDebugTestRunner) {
       if (globalThis.shouldLog(1)) {
-        console.log(`🧪 Auto-running test: ${name}`);
+        logNormal(`🧪 Auto-running test: ${name}`);
       }
       testFn();
     }
@@ -169,9 +169,9 @@ globalThis.registerTest = function(name, testFn) {
 globalThis.enableTests = function() {
   globalThis.globalDebugTestRunner = true;
   saveTestPreference(true);
-  console.log('✅ Debug tests ENABLED - tests will run automatically');
-  console.log(`📊 ${globalThis.registeredTests.length} test suites available`);
-  console.log('💾 Preference saved - tests will auto-enable on page reload');
+  logNormal('✅ Debug tests ENABLED - tests will run automatically');
+  logNormal(`📊 ${globalThis.registeredTests.length} test suites available`);
+  logNormal('💾 Preference saved - tests will auto-enable on page reload');
   return true;
 };
 
@@ -181,9 +181,9 @@ globalThis.enableTests = function() {
 globalThis.disableTests = function() {
   globalThis.globalDebugTestRunner = false;
   saveTestPreference(false);
-  console.log('❌ Debug tests DISABLED - tests will not run automatically');
-  console.log('💡 Use runTests() to manually execute tests');
-  console.log('💾 Preference saved - tests will stay disabled on page reload');
+  logNormal('❌ Debug tests DISABLED - tests will not run automatically');
+  logNormal('💡 Use runTests() to manually execute tests');
+  logNormal('💾 Preference saved - tests will stay disabled on page reload');
   return false;
 };
 
@@ -194,11 +194,11 @@ globalThis.toggleTests = function() {
   const newState = !globalThis.globalDebugTestRunner;
   globalThis.globalDebugTestRunner = newState;
   saveTestPreference(newState);
-  console.log(`🔄 Debug tests ${newState ? 'ENABLED' : 'DISABLED'}`);
+  logNormal(`🔄 Debug tests ${newState ? 'ENABLED' : 'DISABLED'}`);
   if (newState) {
-    console.log(`📊 ${globalThis.registeredTests.length} test suites available for auto-run`);
+    logNormal(`📊 ${globalThis.registeredTests.length} test suites available for auto-run`);
   }
-  console.log('💾 Preference saved');
+  logNormal('💾 Preference saved');
   return newState;
 };
 
@@ -206,29 +206,29 @@ globalThis.toggleTests = function() {
  * Manually run all registered tests
  */
 globalThis.runTests = function() {
-  console.log(`🚀 Running ${globalThis.registeredTests.length} test suites manually...`);
-  console.log('='.repeat(50));
+  logNormal(`🚀 Running ${globalThis.registeredTests.length} test suites manually...`);
+  logNormal('='.repeat(50));
   
   let totalSuites = 0;
   let suitesWithErrors = 0;
   
   for (const test of globalThis.registeredTests) {
     totalSuites++;
-    console.log(`\n🧪 Running: ${test.name}`);
+    logNormal(`\n🧪 Running: ${test.name}`);
     try {
       test.fn();
-      console.log(`✅ ${test.name} completed`);
+      logNormal(`✅ ${test.name} completed`);
     } catch (error) {
       suitesWithErrors++;
       console.error(`❌ ${test.name} failed:`, error);
     }
   }
   
-  console.log('\n' + '='.repeat(50));
-  console.log(`📊 Test Summary: ${totalSuites - suitesWithErrors}/${totalSuites} suites completed successfully`);
+  logNormal('\n' + '='.repeat(50));
+  logNormal(`📊 Test Summary: ${totalSuites - suitesWithErrors}/${totalSuites} suites completed successfully`);
   
   if (suitesWithErrors > 0) {
-    console.log(`⚠️  ${suitesWithErrors} test suites had errors`);
+    logNormal(`⚠️  ${suitesWithErrors} test suites had errors`);
   }
   
   return { totalSuites, suitesWithErrors };
@@ -248,16 +248,16 @@ globalThis.getTestStatus = function() {
     persistentVerbosity: loadVerbosityPreference()
   };
   
-  console.log('🧪 Debug Test Runner Status:');
-  console.log(`   Tests: ${status.enabled ? '✅ ENABLED' : '❌ DISABLED'}`);
-  console.log(`   Verbosity: ${status.verbosity} (${levels[status.verbosity]})`);
-  console.log(`   Registered Tests: ${status.registeredTests}`);
-  console.log(`   💾 Saved Preferences:`);
-  console.log(`      Tests: ${status.persistentSetting ? '✅ Enabled' : '❌ Disabled'}`);
-  console.log(`      Verbosity: ${status.persistentVerbosity} (${levels[status.persistentVerbosity]})`);
+  logNormal('🧪 Debug Test Runner Status:');
+  logNormal(`   Tests: ${status.enabled ? '✅ ENABLED' : '❌ DISABLED'}`);
+  logNormal(`   Verbosity: ${status.verbosity} (${levels[status.verbosity]})`);
+  logNormal(`   Registered Tests: ${status.registeredTests}`);
+  logNormal(`   💾 Saved Preferences:`);
+  logNormal(`      Tests: ${status.persistentSetting ? '✅ Enabled' : '❌ Disabled'}`);
+  logNormal(`      Verbosity: ${status.persistentVerbosity} (${levels[status.persistentVerbosity]})`);
   if (status.testNames.length > 0) {
-    console.log('   Available Tests:');
-    status.testNames.forEach(name => console.log(`     • ${name}`));
+    logNormal('   Available Tests:');
+    status.testNames.forEach(name => logNormal(`     • ${name}`));
   }
   
   return status;
@@ -269,7 +269,7 @@ globalThis.getTestStatus = function() {
 globalThis.clearTests = function() {
   const count = globalThis.registeredTests.length;
   globalThis.registeredTests = [];
-  console.log(`🗑️  Cleared ${count} registered tests`);
+  logNormal(`🗑️  Cleared ${count} registered tests`);
   return count;
 };
 
@@ -285,12 +285,12 @@ if (typeof console !== 'undefined' && globalThis.globalDebugVerbosity >= 1) {
   const savedPref = loadTestPreference() ? '✅ Enabled' : '❌ Disabled';
   const verbosity = globalThis.globalDebugVerbosity;
   
-  console.log(`🧪 Debug Test Runner initialized: ${initialStatus}`);
-  console.log(`🔊 Verbosity Level: ${verbosity} (${levels[verbosity]})`);
-  console.log(`💾 Saved preferences: Tests ${savedPref}, Verbosity ${verbosity}`);
-  console.log('💡 Console commands:');
-  console.log('    Tests: enableTests(), disableTests(), toggleTests(), runTests(), getTestStatus()');
-  console.log('    Verbosity: setVerbosity(0-4), setQuiet(), setSilent(), setDebug(), getVerbosity()');
+  logNormal(`🧪 Debug Test Runner initialized: ${initialStatus}`);
+  logNormal(`🔊 Verbosity Level: ${verbosity} (${levels[verbosity]})`);
+  logNormal(`💾 Saved preferences: Tests ${savedPref}, Verbosity ${verbosity}`);
+  logNormal('💡 Console commands:');
+  logNormal('    Tests: enableTests(), disableTests(), toggleTests(), runTests(), getTestStatus()');
+  logNormal('    Verbosity: setVerbosity(0-4), setQuiet(), setSilent(), setDebug(), getVerbosity()');
 }
 
 // Export for module environments (if needed)

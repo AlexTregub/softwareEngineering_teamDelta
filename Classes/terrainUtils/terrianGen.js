@@ -2,6 +2,13 @@ let GRASS_IMAGE;
 let DIRT_IMAGE;
 let STONE_IMAGE;
 let MOSS_IMAGE;
+let CAVE_1_IMAGE;
+let CAVE_2_IMAGE;
+let CAVE_3_IMAGE;
+let CAVE_EXDARK_IMAGE;
+let CAVE_DIRT_IMAGE;
+let WATER;
+let WATER_CAVE;
 let FARMLAND_IMAGE;
 
 let xCount = 32;
@@ -23,6 +30,14 @@ let PERLIN_SCALE = 0.08;
 // };
 
 let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y)
+  'NONE' : [[0,0], (x,y,squareSize) => image(MOSS_IMAGE,x,y,squareSize,squareSize)],
+  'cave_1' : [[0,0], (x,y,squareSize) => image(CAVE_1_IMAGE,x,y,squareSize,squareSize)],
+  'cave_2' : [[0,0], (x,y,squareSize) => image(CAVE_2_IMAGE,x,y,squareSize,squareSize)],
+  'cave_3' : [[0,0], (x,y,squareSize) => image(CAVE_3_IMAGE,x,y,squareSize,squareSize)],
+  'cave_dark' : [[0,0], (x,y,squareSize) => image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
+  'cave_dirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
+  'water' : [[0,0], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
+  'water_cave' : [[0,0], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
   // 'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Testing... ALL IS FARM
   'moss' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
   'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
@@ -92,6 +107,13 @@ function terrainPreloader(){
   DIRT_IMAGE = loadImage('Images/16x16 Tiles/dirt.png');
   STONE_IMAGE = loadImage('Images/16x16 Tiles/stone.png');
   MOSS_IMAGE = loadImage('Images/16x16 Tiles/moss.png');
+  CAVE_1_IMAGE = loadImage('Images/16x16 Tiles/cave_1.png');
+  CAVE_2_IMAGE = loadImage('Images/16x16 Tiles/cave_2.png');
+  CAVE_3_IMAGE = loadImage('Images/16x16 Tiles/cave_3.png');
+  CAVE_DIRT_IMAGE = loadImage('Images/16x16 Tiles/cave_dirt.png');
+  CAVE_EXDARK_IMAGE = loadImage('Images/16x16 Tiles/cave_extraDark.png');
+  WATER = loadImage('Images/16x16 Tiles/water.png');
+  WATER_CAVE = loadImage('Images/16x16 Tiles/water_cave.png');
   FARMLAND_IMAGE = loadImage('Images/16x16 Tiles/farmland.png');
 }
 
@@ -290,7 +312,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
     // coordSys.setViewCornerBC([0,0]);
     if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
       this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
-      // console.log("updating tile...");
+      // logNormal("updating tile...");
     }
     
     noSmooth();

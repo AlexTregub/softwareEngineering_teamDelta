@@ -27,11 +27,44 @@ Team contrib repo for Software Engineering course with Dr. Delozier (CS33901)
 
 ## 🧪 Testing
 
+### Testing Stack
+- **Unit Tests**: Mocha + Chai + Sinon (mocking/stubbing)
+- **Integration Tests**: Mocha + Chai + JSDOM
+- **E2E Tests**: Puppeteer (headless Chrome)
+- **BDD Tests**: Behave (Python)
+
 ### Quick Start
 ```bash
 npm run dev                # Start dev server (required for E2E tests)
 npm test                   # Run all unit tests
 npm run test:e2e          # Run all E2E browser tests
+npm run test:integration  # Run integration tests
+```
+
+### Unit Tests (Mocha + Chai + Sinon)
+```bash
+npm run test:unit              # Run all unit tests
+npm run test:unit:verbose      # Detailed output
+npm run test:unit:controllers  # Controller tests only
+npm run test:unit:managers     # Manager tests only
+npm run test:unit:systems      # System tests only
+
+# Run specific test file
+npx mocha "test/unit/ui/DraggablePanel.test.js"
+```
+
+**Sinon Features:**
+- **Stubs**: Replace functions with controllable fakes
+- **Spies**: Track function calls and arguments
+- **Mocks**: Set expectations for function behavior
+- Used for mocking: localStorage, p5.js functions, DOM APIs
+
+### Integration Tests
+```bash
+npm run test:integration   # Run all integration tests
+
+# Run specific integration test
+npx mocha "test/integration/ui/draggablePanel.growth.integration.test.js" --timeout 10000
 ```
 
 ### E2E Browser Tests (Puppeteer)
@@ -43,6 +76,7 @@ npm run test:e2e:combat   # Combat system tests
 
 # Run individual test
 node test/e2e/ui/pw_panel_minimize.js
+node test/e2e/ui/pw_draggable_panel_growth.js
 ```
 
 **For AI Agents**: See [`docs/guides/E2E_TESTING_QUICKSTART.md`](docs/guides/E2E_TESTING_QUICKSTART.md) for complete E2E testing guide including:
@@ -54,11 +88,12 @@ node test/e2e/ui/pw_panel_minimize.js
 
 Full E2E documentation: [`test/e2e/README.md`](test/e2e/README.md)
 
-### Node.js Unit Tests
+### BDD Tests (Python Behave)
 ```bash
-npm test                    # Run all tests
-npm run test:ant           # Run ant-specific tests
-npm run test:all           # Run comprehensive test suite
+npm run test:bdd           # Run all BDD tests
+npm run test:bdd:ants      # Ant behavior tests
+npm run test:bdd:ui        # UI behavior tests
+npm run test:bdd:core      # Core system tests
 ```
 
 ### Legacy Browser Tests (Being Migrated to E2E)

@@ -368,7 +368,7 @@ class SpatialGrid {
    * @returns {Object} Grid statistics
    * @example
    * const stats = spatialGrid.getStats();
-   * console.log(`Entities: ${stats.entityCount}, Cells: ${stats.cellCount}`);
+   * logNormal(`Entities: ${stats.entityCount}, Cells: ${stats.cellCount}`);
    */
   getStats() {
     let minEntitiesPerCell = Infinity;
@@ -465,9 +465,9 @@ if (typeof window !== 'undefined') {
   window.visualizeSpatialGrid = function() {
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
       window.VISUALIZE_SPATIAL_GRID = !window.VISUALIZE_SPATIAL_GRID;
-      console.log('Spatial grid visualization:', window.VISUALIZE_SPATIAL_GRID ? 'ON' : 'OFF');
+      logNormal('Spatial grid visualization:', window.VISUALIZE_SPATIAL_GRID ? 'ON' : 'OFF');
     } else {
-      console.log('SpatialGridManager not available');
+      logNormal('SpatialGridManager not available');
     }
   };
 
@@ -478,10 +478,10 @@ if (typeof window !== 'undefined') {
   window.getSpatialGridStats = function() {
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager && spatialGridManager._grid) {
       const stats = spatialGridManager._grid.getStats();
-      console.log('Spatial Grid Statistics:', stats);
+      logNormal('Spatial Grid Statistics:', stats);
       return stats;
     } else {
-      console.log('SpatialGridManager not available');
+      logNormal('SpatialGridManager not available');
       return null;
     }
   };

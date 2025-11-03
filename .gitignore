@@ -40,4 +40,6 @@ test/e2e/**/screenshots/
 test/smoke/**/screenshots/
 test/integration/**/screenshots/
 test/unit/**/screenshots/
+test/baseline/e2e/screenshots/
+test/baseline/e2e/*.json
 test/e2e/MORNING_QUICK_REFERENCE.md

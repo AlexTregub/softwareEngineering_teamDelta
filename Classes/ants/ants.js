@@ -77,7 +77,7 @@ class ant extends Entity {
     );
     
     // Initialize resource management
-    this._resourceManager = new ResourceManager(this, 2, 25);
+    this._resourceManager = new ResourceManager(this, 8, 25);
     
     // Initialize state machine
     this._stateMachine = new AntStateMachine();
@@ -276,7 +276,7 @@ class ant extends Entity {
           resources.push(r); deposited++;
         }
       }
-      if (typeof console !== 'undefined') console.log(`Ant ${this._antIndex} deposited ${deposited} resource(s) at dropoff.`);
+      if (typeof console !== 'undefined') logNormal(`Ant ${this._antIndex} deposited ${deposited} resource(s) at dropoff.`);
       if (this._stateMachine) this._stateMachine.setState("IDLE");
       this._targetDropoff = null;
     }
@@ -326,14 +326,14 @@ class ant extends Entity {
    * Remove this ant from all game systems when it dies
    */
   _removeFromGame() {
-    console.log(`💀 Removing dead ant ${this._antIndex} from game systems`);
+    logNormal(`💀 Removing dead ant ${this._antIndex} from game systems`);
     
     // 1. Remove from global ants array
     if (typeof ants !== 'undefined' && Array.isArray(ants)) {
       const index = ants.indexOf(this);
       if (index !== -1) {
         ants.splice(index, 1);
-        console.log(`   ✅ Removed from ants array (${ants.length} remaining)`);
+        logNormal(`   ✅ Removed from ants array (${ants.length} remaining)`);
       }
     }
     
@@ -344,7 +344,7 @@ class ant extends Entity {
         const tileX = Math.floor(pos.x / (g_tileInteractionManager.tileSize || 32));
         const tileY = Math.floor(pos.y / (g_tileInteractionManager.tileSize || 32));
         g_tileInteractionManager.removeObjectFromTile(this, tileX, tileY);
-        console.log(`   ✅ Removed from TileInteractionManager`);
+        logNormal(`   ✅ Removed from TileInteractionManager`);
       }
     }
     
@@ -364,7 +364,7 @@ class ant extends Entity {
         antManager.selectedAnt = null;
       }
       
-      console.log(`   ✅ Cleared from selection systems`);
+      logNormal(`   ✅ Cleared from selection systems`);
     }
     
     // 4. Clear combat targets pointing to this dead ant
@@ -372,7 +372,7 @@ class ant extends Entity {
       ants.forEach(otherAnt => {
         if (otherAnt._combatTarget === this) {
           otherAnt._combatTarget = null;
-          console.log(`   ✅ Cleared combat target from ant ${otherAnt._antIndex}`);
+          logNormal(`   ✅ Cleared combat target from ant ${otherAnt._antIndex}`);
         }
       });
     }
@@ -380,7 +380,7 @@ class ant extends Entity {
     // 5. Update UI selection entities if function exists
     if (typeof updateUISelectionEntities === 'function') {
       updateUISelectionEntities();
-      console.log(`   ✅ Updated UI selection entities`);
+      logNormal(`   ✅ Updated UI selection entities`);
     }
     
     // Remove from selectables so selection system stops referencing it
@@ -471,12 +471,12 @@ class ant extends Entity {
       // Update gather state behavior if ant is in GATHERING state
       if (this._stateMachine.getCurrentState() == "GATHERING" && this._stateMachine.isGathering() && this._gatherState) {
         if (!this._gatherState.isActive) {
-          //console.log(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
+          //logNormal(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
           this._gatherState.enter() 
         }
         if (this._gatherState.update()) {this.stateMachine.beginIdle();};
       } else if (this._gatherState && this._gatherState.isActive) {
-        //console.log(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
+        //logNormal(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
         this._gatherState.exit();
         
       }
@@ -600,7 +600,7 @@ class ant extends Entity {
         this._renderController.showDamageNumber(attackPower, [255, 100, 100]);
       }
       
-      console.log(`🗡️ Ant ${this._antIndex} (${this._faction}) attacked enemy ${target._antIndex || 'unknown'} for ${attackPower} damage`);
+      logNormal(`🗡️ Ant ${this._antIndex} (${this._faction}) attacked enemy ${target._antIndex || 'unknown'} for ${attackPower} damage`);
     }
   }
   
@@ -805,7 +805,7 @@ function spawnQueen(){
     30, 0,
     antBaseSprite,
     'Queen',  // This makes it type "Queen"
-    'Player'
+    'player'
   );
 
   // Wrap in QueenAnt to get Queen-specific behavior

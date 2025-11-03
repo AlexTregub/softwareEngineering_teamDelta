@@ -77,21 +77,29 @@
 
     // --- Render Pause Menu ---
     function renderPauseMenuUI() {
-        // Top-right pause button
-        // const pauseBtnX = g_canvasX - PauseMenu.width - PauseMenu.margin;
-        //const pauseBtnY = PauseMenu.margin;
+        // Get current game state
+        const currentGameState = (typeof window !== 'undefined' && window.GameState) 
+            ? (typeof window.GameState.getState === 'function' ? window.GameState.getState() : null)
+            : null;
         
-        // Top-left pause button
-        const pauseBtnX = PauseMenu.margin;
-        const pauseBtnY = PauseMenu.margin;
+        // Only render pause button when game state is PLAYING
+        if (currentGameState === 'PLAYING') {
+            // Top-right pause button
+            // const pauseBtnX = g_canvasX - PauseMenu.width - PauseMenu.margin;
+            //const pauseBtnY = PauseMenu.margin;
+            
+            // Top-left pause button
+            const pauseBtnX = PauseMenu.margin;
+            const pauseBtnY = PauseMenu.margin;
 
-        if (!PauseMenu.pauseButton) {
-            PauseMenu.pauseButton = createMenuButton(pauseBtnX, pauseBtnY, PauseMenu.width, PauseMenu.height, 'Pause', 'default', togglePause);
-            PauseMenu.pauseButton.img = PauseMenu.images.pause;
+            if (!PauseMenu.pauseButton) {
+                PauseMenu.pauseButton = createMenuButton(pauseBtnX, pauseBtnY, PauseMenu.width, PauseMenu.height, 'Pause', 'default', togglePause);
+                PauseMenu.pauseButton.img = PauseMenu.images.pause;
+            }
+
+            PauseMenu.pauseButton.update(mouseX, mouseY, mouseIsPressed);
+            PauseMenu.pauseButton.render(); // <--- handles hover & animation automatically
         }
-
-        PauseMenu.pauseButton.update(mouseX, mouseY, mouseIsPressed);
-        PauseMenu.pauseButton.render(); // <--- handles hover & animation automatically
 
         if (!PauseMenu.isActive) return;
 

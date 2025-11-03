@@ -30,7 +30,7 @@ class PathMap{
     }
 
 
-    console.log("Pathfinding using "+this._grid.infoStr());
+    logNormal("Pathfinding using "+this._grid.infoStr());
 
     this._gridSize = this._grid.getSize();
     // for(let y = 0; y < this._gridSize[1]; y++){ 
@@ -76,7 +76,7 @@ class Node{
     this.reset();
   }
   reset(){
-    this.f = 0; //Easier for resetting the g_map when finished travelling
+    this.f = 0; //Easier for resetting the map when finished travelling
     this.g = 0;
     this.h = 0; //Note, add a function to reset travelled tiles when a path is found
     this.previousStart = null;
@@ -249,14 +249,14 @@ function resetSearch(start, end, pathMap){
   closedSetEnd = new Set(); //All are recreated for easy reset
 
   //////// THIS FORMAT FOR A RESET IS ONLY BENEFICIAL WHEN A SINGLE ENTITY IS MOVING!!! IF USING A SHARED PATHMAP, RESET DIFFERENTLY
-  //////// OTHERWISE EVERY ENTITY WOULD NEED ITS OWN g_map
+  //////// OTHERWISE EVERY ENTITY WOULD NEED ITS OWN map
 
   start.g = 0;
   start.f = distanceFinder(start, end);
   end.g = 0;
   end.f = distanceFinder(end, start);
   openSetStart.push(start);
-  openMapStart.set(start.id,start); //Sets up g_map and set for use
+  openMapStart.set(start.id,start); //Sets up map and set for use
   openSetEnd.push(end);
   openMapEnd.set(end.id,end);
   path = []; //Clears path
@@ -264,13 +264,13 @@ function resetSearch(start, end, pathMap){
 }
 
 function findPath(start, end, pathMap){
-  resetSearch(start, end, pathMap); //Resets g_map
+  resetSearch(start, end, pathMap); //Resets map
 
   // NOTE: RESET IS IMPORTANT BECAUSE F G H ARE TIED TO THE TILES, NOT THE ANTS. IF AN ANT TRAVELLED ON A UNRESET TILE IT WOULD MESS WITH OTHER PATHS
 
   while(!openSetStart.isEmpty() && !openSetEnd.isEmpty()){ // While both sets have something to search
     let currentStart = openSetStart.pop(); //Removes item from searching
-    openMapStart.delete(currentStart.id); //Removes item from g_map
+    openMapStart.delete(currentStart.id); //Removes item from map
     closedSetStart.add(currentStart.id); //Adds to search list
 
     let currentEnd = openSetEnd.pop(); //Same with other path

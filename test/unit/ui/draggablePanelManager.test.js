@@ -1,24 +1,38 @@
 const { expect } = require('chai');
 
 // Load minimal test environment
-require('./test-setup');
+const { setupUITestEnvironment, cleanupUITestEnvironment } = require('../../helpers/uiTestHelpers');
 
 // Load the class under test
-const DraggablePanelManager = require('../../Classes/systems/ui/DraggablePanelManager.js');
+const DraggablePanelManager = require('../../../Classes/systems/ui/DraggablePanelManager.js');
 
 describe('DraggablePanelManager (unit)', function() {
   let manager;
 
   beforeEach(function() {
+    setupUITestEnvironment();
+    
+    // Mock RenderManager
+    global.RenderManager = {
+      layers: { UI_GAME: 'UI_GAME' },
+      _drawables: {},
+      clear: function() { this._drawables = {}; },
+      addDrawableToLayer: function(layer, drawable) {
+        if (!this._drawables[layer]) this._drawables[layer] = [];
+        this._drawables[layer].push(drawable);
+      }
+    };
+    
     // Clear globals that manager may reuse
     global.ants = [];
-    RenderManager.clear();
+    global.RenderManager.clear();
     manager = new DraggablePanelManager();
   });
 
   afterEach(function() {
     if (manager && typeof manager.dispose === 'function') manager.dispose();
     manager = null;
+    cleanupUITestEnvironment();
   });
 
   it('constructs with defaults', function() {

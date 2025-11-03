@@ -42,7 +42,7 @@ class BuildingBrush extends BrushBase {
     const color = this.buildingColors[type] || [139, 69, 19];
     this.brushColor = [...color, 100];
     this.brushOutlineColor = [...color, 255];
-    console.log(`🏗️ Building Brush type set to: ${type}`);
+    logNormal(`🏗️ Building Brush type set to: ${type}`);
   }
 
   /**
@@ -59,7 +59,7 @@ class BuildingBrush extends BrushBase {
    */
   toggle() {
     this.isActive = !this.isActive;
-    console.log(`🏗️ Building Brush ${this.isActive ? 'activated' : 'deactivated'}`);
+    logNormal(`🏗️ Building Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 
@@ -72,7 +72,7 @@ class BuildingBrush extends BrushBase {
       this.setBuildingType(type);
     }
     this.isActive = true;
-    console.log(`🏗️ Building Brush activated: ${this.buildingType}`);
+    logNormal(`🏗️ Building Brush activated: ${this.buildingType}`);
   }
 
   /**
@@ -81,7 +81,7 @@ class BuildingBrush extends BrushBase {
   deactivate() {
     this.isActive = false;
     this.lastPlacementPos = null;
-    console.log('🏗️ Building Brush deactivated');
+    logNormal('🏗️ Building Brush deactivated');
   }
 
   /**
@@ -246,7 +246,7 @@ class BuildingBrush extends BrushBase {
         // Track this placement
         this.lastPlacementPos = { x: snappedX, y: snappedY };
         
-        console.log(`🏗️ Building placed: ${this.buildingType} at (${snappedX}, ${snappedY})`);
+        logNormal(`🏗️ Building placed: ${this.buildingType} at (${snappedX}, ${snappedY})`);
         return true;
       }
     } else {

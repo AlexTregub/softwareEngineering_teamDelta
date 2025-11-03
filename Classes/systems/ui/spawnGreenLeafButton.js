@@ -34,7 +34,7 @@ function initSpawnGreenLeafButton() {
 
 function spawnGreenLeaves(n = 10) {
   if (typeof resources === 'undefined' || !Array.isArray(resources)) {
-    console.log("❌ Global 'resources' array not found.");
+    logNormal("❌ Global 'resources' array not found.");
     return;
   }
   const img = (typeof leafImg !== 'undefined') ? leafImg : (typeof greenLeaf !== 'undefined' ? greenLeaf : null);
@@ -51,7 +51,7 @@ function spawnGreenLeaves(n = 10) {
       try { resources.push(new Resource(px, py, size.x, size.y, 'greenLeaf', img)); } catch (err) { console.warn("Spawn fallback failed:", err); }
     }
   }
-  console.log(`✅ Spawned ${n} greenLeaf resource(s). Total resources: ${resources.length}`);
+  logNormal(`✅ Spawned ${n} greenLeaf resource(s). Total resources: ${resources.length}`);
 }
 
 function updateSpawnGreenLeafUI() {

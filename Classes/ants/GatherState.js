@@ -66,7 +66,7 @@ class GatherState {
     }
     
     if (this.debugEnabled) {
-      console.log(`🐜 Ant ${this.ant._antIndex || 'unknown'} entered GATHER state`);
+      logNormal(`🐜 Ant ${this.ant._antIndex || 'unknown'} entered GATHER state`);
     }
   }
 
@@ -78,7 +78,7 @@ class GatherState {
     this.targetResource = null;
     
     if (this.debugEnabled) {
-      console.log(`🐜 Ant ${this.ant._antIndex || 'unknown'} exited GATHER state`);
+      logNormal(`🐜 Ant ${this.ant._antIndex || 'unknown'} exited GATHER state`);
     }
 
     return true
@@ -105,7 +105,7 @@ class GatherState {
     // If we have a target resource, move toward it
     if (this.targetResource) {
       if (this.debugEnabled) {
-        console.log(`🎯 Ant ${this.ant.id} moving toward resource at (${this.targetResource.x}, ${this.targetResource.y})`);
+        logNormal(`🎯 Ant ${this.ant.id} moving toward resource at (${this.targetResource.x}, ${this.targetResource.y})`);
       }
       this.updateTargetMovement();
       this.gatherStartTime  = 0;
@@ -113,7 +113,7 @@ class GatherState {
     // Otherwise, search for new resources
     else if (this.searchCooldown <= 0) {
       if (this.debugEnabled) {
-        console.log(`🔍 Ant ${this.ant.id} searching for resources...`);
+        logNormal(`🔍 Ant ${this.ant.id} searching for resources...`);
       }
       this.searchForResources();
       this.searchCooldown = this.searchInterval;
@@ -130,7 +130,7 @@ class GatherState {
   searchForResources() {
     const antPos = this.getAntPosition();
     if (!antPos) {
-      if (this.debugEnabled) console.log(`❌ Ant ${this.ant.id} could not get position for resource search`);
+      if (this.debugEnabled) logNormal(`❌ Ant ${this.ant.id} could not get position for resource search`);
       return [];
     }
 
@@ -138,7 +138,7 @@ class GatherState {
     this.lastScanResults = nearbyResources.length;
 
     if (this.debugEnabled) {
-      console.log(`🔍 Ant ${this.ant.id} found ${nearbyResources.length} resources within ${this.gatherRadius} tiles`);
+      logNormal(`🔍 Ant ${this.ant.id} found ${nearbyResources.length} resources within ${this.gatherRadius} tiles`);
     }
 
     if (nearbyResources.length > 0) {
@@ -153,7 +153,7 @@ class GatherState {
       this.targetResource = nearbyResources[0];
       
       if (this.debugEnabled) {
-        console.log(`🔍 Found ${nearbyResources.length} resources, targeting closest at (${this.targetResource.x}, ${this.targetResource.y})`);
+        logNormal(`🔍 Found ${nearbyResources.length} resources, targeting closest at (${this.targetResource.x}, ${this.targetResource.y})`);
       }
     }
 
@@ -177,7 +177,7 @@ class GatherState {
       if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
         resourceList = g_resourceManager.getResourceList ? g_resourceManager.getResourceList() : [];
         if (this.debugEnabled) {
-          console.log(`🔍 Using g_resourceManager, found ${resourceList.length} total resources`);
+          logNormal(`🔍 Using g_resourceManager, found ${resourceList.length} total resources`);
         }
       }
 
@@ -252,7 +252,7 @@ class GatherState {
         this.removeResourceFromSystem(this.targetResource.resource);
         
         if (this.debugEnabled) {
-          console.log(`✅ Collected ${this.targetResource.type} resource`);
+          logNormal(`✅ Collected ${this.targetResource.type} resource`);
         }
       }
     } catch (error) {
@@ -313,7 +313,7 @@ class GatherState {
    */
   transitionToDropOff() {
     if (this.debugEnabled) {
-      console.log(`📦 Ant ${this.ant._antIndex || 'unknown'} at max capacity, transitioning to drop-off`);
+      logNormal(`📦 Ant ${this.ant._antIndex || 'unknown'} at max capacity, transitioning to drop-off`);
     }
 
     // Set ant to DROPPING_OFF state
@@ -383,7 +383,7 @@ class GatherState {
    */
   setDebugEnabled(enabled) {
     this.debugEnabled = enabled;
-    console.log(`🐛 GatherState debug ${enabled ? 'enabled' : 'disabled'}`);
+    logNormal(`🐛 GatherState debug ${enabled ? 'enabled' : 'disabled'}`);
   }
 }
 

@@ -542,7 +542,7 @@
     
 //     for (const d of btnDefs) {
 //       const btn = new Button(bx, btnY, btnW, btnH, d.label, { onClick: () => {
-//         console.log('menu_debug button clicked:', d.label, d.action);
+//         logNormal('menu_debug button clicked:', d.label, d.action);
 //         btn._action = d.action;
 //         try { if (d.action !== 'undo' && d.action !== 'redo') _pushMenuYOffsetHistory(menuYOffset); } catch (e) {}
 //         try { if (d.action === 'inc') menuYOffset += d.amount; } catch (e) {}
@@ -560,7 +560,7 @@
 //     }
     
 //     try { if (typeof setActiveButtons === 'function') setActiveButtons(_menuDebugButtons); } catch (err) {}
-//     console.log('menu_debug_buttons_test initialized - buttons created:', _menuDebugButtons.length);
+//     logNormal('menu_debug_buttons_test initialized - buttons created:', _menuDebugButtons.length);
 //   }
 // }
 
@@ -589,7 +589,7 @@
 //   }
 
 //   if (!_drawLogged) { 
-//     console.log('menu_debug buttons drawn (first frame)'); 
+//     logNormal('menu_debug buttons drawn (first frame)'); 
 //     _drawLogged = true; 
 //   }
 // }

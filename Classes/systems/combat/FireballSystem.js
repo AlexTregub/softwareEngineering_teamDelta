@@ -46,7 +46,7 @@ class Fireball {
     // Collision detection
     this.collisionRadius = 15;
     
-    console.log(`🔥 Fireball created from (${Math.round(startX)}, ${Math.round(startY)}) to (${Math.round(targetX)}, ${Math.round(targetY)})`);
+    logNormal(`🔥 Fireball created from (${Math.round(startX)}, ${Math.round(startY)}) to (${Math.round(targetX)}, ${Math.round(targetY)})`);
   }
 
   /**
@@ -137,12 +137,12 @@ class Fireball {
    * @param {Object} ant - The ant that was hit
    */
   hitAnt(ant) {
-    console.log(`🔥 Fireball hit ant ${ant._antIndex || 'unknown'}!`);
+    logNormal(`🔥 Fireball hit ant ${ant._antIndex || 'unknown'}!`);
     
     // Deal damage to the ant
     if (typeof ant.takeDamage === 'function') {
       ant.takeDamage(this.damage);
-      console.log(`💥 Dealt ${this.damage} damage to ant. Health: ${ant.health}/${ant._maxHealth}`);
+      logNormal(`💥 Dealt ${this.damage} damage to ant. Health: ${ant.health}/${ant._maxHealth}`);
     }
 
     // Create explosion effect
@@ -160,7 +160,7 @@ class Fireball {
   explode() {
     this.hasExploded = true;
     this.isActive = false;
-    console.log(`💥 Fireball exploded at (${Math.round(this.x)}, ${Math.round(this.y)})`);
+    logNormal(`💥 Fireball exploded at (${Math.round(this.x)}, ${Math.round(this.y)})`);
     
     // Could add particle effects here later
   }
@@ -359,7 +359,7 @@ let g_fireballManager = null;
 function initializeFireballSystem() {
   if (!g_fireballManager) {
     g_fireballManager = new FireballManager();
-    console.log('🔥 Fireball system initialized');
+    logNormal('🔥 Fireball system initialized');
   }
   return g_fireballManager;
 }

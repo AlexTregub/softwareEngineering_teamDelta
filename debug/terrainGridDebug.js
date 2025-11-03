@@ -21,7 +21,7 @@ window.terrainGridShowLabels = true; // Show tile coordinates
  */
 function toggleTerrainGrid() {
   window.terrainGridDebugEnabled = !window.terrainGridDebugEnabled;
-  console.log(`Terrain Grid Debug: ${window.terrainGridDebugEnabled ? 'ON' : 'OFF'}`);
+  logNormal(`Terrain Grid Debug: ${window.terrainGridDebugEnabled ? 'ON' : 'OFF'}`);
   return window.terrainGridDebugEnabled;
 }
 
@@ -30,7 +30,7 @@ function toggleTerrainGrid() {
  */
 function showTerrainGrid() {
   window.terrainGridDebugEnabled = true;
-  console.log('Terrain Grid Debug: ON');
+  logNormal('Terrain Grid Debug: ON');
 }
 
 /**
@@ -38,7 +38,7 @@ function showTerrainGrid() {
  */
 function hideTerrainGrid() {
   window.terrainGridDebugEnabled = false;
-  console.log('Terrain Grid Debug: OFF');
+  logNormal('Terrain Grid Debug: OFF');
 }
 
 /**
@@ -47,7 +47,7 @@ function hideTerrainGrid() {
  */
 function setTerrainGridOpacity(opacity) {
   window.terrainGridOpacity = Math.max(0, Math.min(1, opacity));
-  console.log(`Terrain Grid Opacity: ${window.terrainGridOpacity}`);
+  logNormal(`Terrain Grid Opacity: ${window.terrainGridOpacity}`);
 }
 
 /**
@@ -55,7 +55,7 @@ function setTerrainGridOpacity(opacity) {
  */
 function toggleTerrainGridLabels() {
   window.terrainGridShowLabels = !window.terrainGridShowLabels;
-  console.log(`Terrain Grid Labels: ${window.terrainGridShowLabels ? 'ON' : 'OFF'}`);
+  logNormal(`Terrain Grid Labels: ${window.terrainGridShowLabels ? 'ON' : 'OFF'}`);
 }
 
 /**
@@ -340,4 +340,4 @@ window.drawTerrainGrid = drawTerrainGrid;
 window.handleTerrainGridKeys = handleTerrainGridKeys;
 window.getTerrainTile = getTerrainTile; // Helper for debugging
 
-console.log('Terrain Grid Debug loaded. Use toggleTerrainGrid() or Ctrl+Shift+G');
+logNormal('Terrain Grid Debug loaded. Use toggleTerrainGrid() or Ctrl+Shift+G');

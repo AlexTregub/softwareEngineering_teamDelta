@@ -215,14 +215,6 @@ class RenderLayerManager {
       }
     }
 
-    // Button groups: update is still handled in update cycle, but rendering belongs to UI_GAME
-    if (window.buttonGroupManager && !RenderManager._registeredDrawables.buttonGroupManager) {
-      if (typeof window.buttonGroupManager.render === 'function') {
-        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.buttonGroupManager.render.bind(window.buttonGroupManager));
-        RenderManager._registeredDrawables.buttonGroupManager = true;
-      }
-    }
-
     // Brush systems: register render methods to UI_GAME layer
     if (window.g_enemyAntBrush && !RenderManager._registeredDrawables.enemyAntBrush) {
       if (typeof window.g_enemyAntBrush.render === 'function') {
@@ -486,14 +478,6 @@ class RenderLayerManager {
       const layerEnd = performance.now();
       this.renderStats.layerTimes[layerName] = layerEnd - layerStart;
     }
-    // Update button groups (rendering handled by RenderLayerManager)
-    if (window.buttonGroupManager) {
-      try {
-        window.buttonGroupManager.update(mouseX, mouseY, mouseIsPressed);
-      } catch (error) {
-        console.error('❌ Error updating button group system:', error);
-      }
-    }
     
     // Update performance stats
     this.renderStats.frameCount++;
@@ -524,6 +508,10 @@ class RenderLayerManager {
       case 'GAME_OVER':
         return [this.layers.TERRAIN, this.layers.ENTITIES, this.layers.EFFECTS, this.layers.UI_GAME, this.layers.UI_MENU];
         
+      case 'LEVEL_EDITOR':
+        // Level Editor needs UI layers for draggable panels
+        return [this.layers.UI_GAME, this.layers.UI_DEBUG];
+        
       default:
         console.warn(`Unknown game state: ${gameState}`);
         return [this.layers.TERRAIN, this.layers.UI_MENU];
@@ -534,6 +522,11 @@ class RenderLayerManager {
    * TERRAIN LAYER - Cached background rendering
    */
   renderTerrainLayer(gameState) {
+    // Skip terrain rendering for Level Editor - it handles its own background
+    if (gameState === 'LEVEL_EDITOR') {
+      return;
+    }
+    
     // Only render terrain for game states that need it
     if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
       background(0);
@@ -704,9 +697,9 @@ class RenderLayerManager {
     }
     
     // Debug grid for playing state
-    if (gameState === 'PLAYING' && drawDebugGrid) {
-      if (g_gridMap) {
-        drawDebugGrid(TILE_SIZE, g_gridMap.width, g_gridMap.height);
+    if (gameState === 'PLAYING' && window.drawDebugGrid) {
+      if (window.g_gridMap) {
+        window.drawDebugGrid(window.TILE_SIZE, window.g_gridMap.width, window.g_gridMap.height);
       }
     }
 
@@ -844,37 +837,7 @@ class RenderLayerManager {
       return;
     }
     
-    // Check if Universal Button Group System is available
-    if (window.buttonGroupManager && 
-        typeof window.buttonGroupManager.render === 'function') {
-      
-      try {
-        // Set up state bridge for button groups (uppercase -> lowercase conversion)
-        const stateMapping = {
-          'PLAYING': 'playing',
-          'PAUSED': 'paused',
-          'GAME_OVER': 'gameOver',
-          'MENU': 'menu',
-          'DEBUG_MENU': 'debug'
-        };
-        
-        // Set the current game state for button group conditions
-        window.currentGameState = stateMapping[gameState] || gameState.toLowerCase();
-        window.gameState = window.currentGameState; // Fallback
-        
-        // Debug logging (can be removed later)
-
-        
-        // Render the button groups on top of other UI elements
-        window.buttonGroupManager.render({
-          gameState: gameState,
-          layerName: 'ui_game',
-          zIndex: 1000 // Ensure buttons render on top
-        });
-      } catch (error) {
-        console.error('❌ Error rendering button groups in UI layer:', error);
-      }
-    }
+    // ButtonGroupManager has been removed from the codebase
   }
   
   /**
@@ -1000,7 +963,7 @@ class RenderLayerManager {
    */
   forceAllLayersVisible() {
     this.enableAllLayers();
-    console.log('✅ All render layers forced visible:', this.getLayerStates());
+    logNormal('✅ All render layers forced visible:', this.getLayerStates());
     return this.getLayerStates();
   }
 
@@ -1104,7 +1067,7 @@ class RenderLayerManager {
             if (handlerName && typeof interactive[handlerName] === 'function') {
               const consumed = interactive[handlerName](pointer) === true;
               if (consumed) {
-                console.log(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
+                logNormal(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
                 // If interactive wants pointer capture, it should set capture via return value or property
                 if (interactive.capturePointer) {
                   this._pointerCapture = { owner: interactive, pointerId: pointer.pointerId };
@@ -1224,7 +1187,7 @@ if (typeof window !== 'undefined') {
   
   // Add global console command to check layer states
   window.checkLayerStates = function() {
-    console.log('🎨 Current layer states:', RenderManager.getLayerStates());
+    logNormal('🎨 Current layer states:', RenderManager.getLayerStates());
     return RenderManager.getLayerStates();
   };
   

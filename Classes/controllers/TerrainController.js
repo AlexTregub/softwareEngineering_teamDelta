@@ -70,7 +70,7 @@ class TerrainController {
       
       // Debug logging (enable with window.DEBUG_TERRAIN = true)
       if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN) {
-        console.log(`[TerrainController] ${this._entity._type} terrain changed: ${oldTerrain} → ${newTerrain}`, {
+        logNormal(`[TerrainController] ${this._entity._type} terrain changed: ${oldTerrain} → ${newTerrain}`, {
           entityId: this._entity._id,
           position: this._getEntityPosition()
         });
@@ -132,7 +132,7 @@ class TerrainController {
       
       // Debug logging for first detection
       if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN && !this._terrainCache.has(cacheKey)) {
-        console.log(`[TerrainController] Detected terrain:`, {
+        logNormal(`[TerrainController] Detected terrain:`, {
           method: detectionMethod,
           position: pos,
           tileMaterial: tile.material,

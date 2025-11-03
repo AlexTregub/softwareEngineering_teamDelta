@@ -23,7 +23,7 @@ function initDropoffUI() {
   dropoffUI.button = createMenuButton(0, 0, 140, 34, "Place Dropoff", 'default', () => {
     // toggle placing mode when clicked
     dropoffUI.placing = true;
-    console.log("Place Dropoff: click a tile to place, press ESC to cancel.");
+    logNormal("Place Dropoff: click a tile to place, press ESC to cancel.");
   });
   
   // Register with UI Debug System if available
@@ -70,7 +70,7 @@ function updateDropoffUI() {
   // handle placement clicks when in placing mode (wait for a fresh mouse press)
   if (dropoffUI.placing) {
     // cancel with ESC
-    if (keyIsDown && keyIsDown(27)) { dropoffUI.placing = false; console.log("Place Dropoff cancelled."); }
+    if (keyIsDown && keyIsDown(27)) { dropoffUI.placing = false; logNormal("Place Dropoff cancelled."); }
     // detect fresh click (mouse press edge)
     if (mouseIsPressed && !dropoffUI.prevMousePressed) {
       // ignore clicks on the UI button itself
@@ -83,7 +83,7 @@ function updateDropoffUI() {
           // ensure inventory controller available (DropoffLocation uses InventoryController if present)
           dropoffUI.dropoffs.push(d);
           if (typeof window.dropoffs === 'undefined') window.dropoffs = dropoffUI.dropoffs;
-          console.log(`✅ Dropoff placed at tile (${gx}, ${gy})`);
+          logNormal(`✅ Dropoff placed at tile (${gx}, ${gy})`);
         } catch (e) {
           console.error("Failed to create DropoffLocation:", e);
         } finally {

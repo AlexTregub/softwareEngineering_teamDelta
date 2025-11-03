@@ -15,7 +15,7 @@
  * @example
  * // Matches "functionName" from "functionName@file.js:10:5"
  * const match = "functionName@file.js:10:5".match(functionNameRegX);
- * console.log(match[1]); // "functionName"
+ * logNormal(match[1]); // "functionName"
  */
 const functionNameRegX = /^([^@]*)/
 
@@ -26,7 +26,7 @@ const functionNameRegX = /^([^@]*)/
  * @returns {string} The complete stack trace including function names, file paths, and line numbers
  * @example
  * function myFunction() {
- *   console.log(getCurrentCallStack());
+ *   logNormal(getCurrentCallStack());
  *   // Output: Error\n    at myFunction (file.js:2:15)\n    at Object.<anonymous> (file.js:5:1)...
  * }
  */
@@ -151,7 +151,7 @@ function IncorrectParamPassed(expectedParam, offendingParam) {
  * 
  * // Usage - logs warning and calls newFunction
  * const result = oldFunction(5, 3); // Warns: "oldFunction is deprecated. Use newFunction() instead."
- * console.log(result); // 8
+ * logNormal(result); // 8
  * 
  * @example
  * // Invalid usage - triggers parameter error
@@ -266,28 +266,28 @@ function incorrectLoadOrderWarning(typeMissing){
  * // String length: 11
  */
 function paramInfo(param) {
-    console.log("=== Parameter Debug Info ===");
-    console.log("Received:", param);
-    console.log("Type:", typeof param);
-    console.log("Is function:", typeof param === "function");
-    console.log("Is null:", param === null);
-    console.log("Is undefined:", param === undefined);
-    console.log("Detailed type:", getType(param));
+    logNormal("=== Parameter Debug Info ===");
+    logNormal("Received:", param);
+    logNormal("Type:", typeof param);
+    logNormal("Is function:", typeof param === "function");
+    logNormal("Is null:", param === null);
+    logNormal("Is undefined:", param === undefined);
+    logNormal("Detailed type:", getType(param));
     
     if (typeof param === "function") {
-        console.log("Function name:", param.name || "(anonymous)");
-        console.log("Function length (params):", param.length);
-        console.log("Function string preview:", param.toString().substring(0, 100) + "...");
+        logNormal("Function name:", param.name || "(anonymous)");
+        logNormal("Function length (params):", param.length);
+        logNormal("Function string preview:", param.toString().substring(0, 100) + "...");
     } else if (typeof param === "string") {
-        console.log("String value:", `"${param}"`);
-        console.log("String length:", param.length);
+        logNormal("String value:", `"${param}"`);
+        logNormal("String length:", param.length);
     } else if (typeof param === "object" && param !== null) {
-        console.log("Object keys:", Object.keys(param));
-        console.log("Constructor:", param.constructor?.name || "unknown");
+        logNormal("Object keys:", Object.keys(param));
+        logNormal("Constructor:", param.constructor?.name || "unknown");
     }
     
-    console.log("Called from function:", getFunctionName(3));
-    console.log("=============================");
+    logNormal("Called from function:", getFunctionName(3));
+    logNormal("=============================");
 }
 
 /**
