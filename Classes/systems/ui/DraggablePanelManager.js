@@ -59,8 +59,8 @@ class DraggablePanelManager {
       return;
     }
 
-    // Create default game panels
-    this.createDefaultPanels();
+    // DISABLED FOR PRESENTATION
+    //this.createDefaultPanels();
     
     // Register with RenderLayerManager if available
     // Register with RenderLayerManager using addDrawableToLayer
