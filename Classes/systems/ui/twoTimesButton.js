@@ -1,0 +1,33 @@
+/*2x Button:
+    Needs to increase game speed by 2x
+    Needs to reset game speed when re-pressed
+    Increase things like hunger, movement speed, time changes
+    power cooldowns, interaction times?
+*/
+class SpeedUpButton{
+    constructor(){
+        this.speed = 1; //Use 0.5 and 2 for less code
+    }
+
+    changeGameSpeed(){
+        if(this.speed === 1){
+            this.speed = 2; //Double game speed if normal/slowed
+            for (let i = 0; i < ants.length; i++) {
+                this.ant = ants[i];
+                this.ant.movementSpeed *= this.speed; //Changes movement speed
+                this.ant.brain.changeIncrement(speed); //Changes speed of hunger
+                window.g_timeOfDayOverlay.globalTime.setTimeSpeed(speed); //Changes Day/Night Speed (Change for return)
+            }
+        }
+        else{
+            this.speed = 1; //Go from double to 1x
+            for (let i = 0; i < ants.length; i++) {
+                this.ant = ants[i];
+                this.ant.movementSpeed *= 0.5; //Changes movement speed
+                this.ant.brain.changeIncrement(0.5); //Changes speed of hunger
+                window.g_timeOfDayOverlay.globalTime.setTimeSpeed(speed); //Changes Day/Night Speed (Change for return)
+            }
+        }
+        //Crap ton of updates
+    }
+};
