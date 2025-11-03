@@ -1,13 +1,33 @@
 class QueenAnt extends ant {
+  /**
+   * Ensure Queen sprite is loaded (lazy load if needed)
+   * @returns {p5.Image|undefined} The queen sprite image
+   */
+  static getQueenSprite() {
+    // Check JobImages first (preloaded)
+    if (typeof JobImages !== 'undefined' && JobImages["Queen"]) {
+      return JobImages["Queen"];
+    }
+    
+    // Lazy load if not already loaded (for custom level direct loading)
+    if (!QueenAnt._queenSprite && typeof loadImage === 'function') {
+      QueenAnt._queenSprite = loadImage('Images/Ants/gray_ant_queen.png');
+    }
+    
+    return QueenAnt._queenSprite;
+  }
+  
   constructor(baseAnt) {
     // If a base ant is passed, use its properties; otherwise create a default queen ant
     const posX = baseAnt ? baseAnt.posX : 400;
     const posY = baseAnt ? baseAnt.posY : 300;
-    const sizeX = baseAnt ? baseAnt.getSize().x : 60;
-    const sizeY = baseAnt ? baseAnt.getSize().y : 60;
+    const sizeX = baseAnt ? baseAnt.getSize().x : 32;
+    const sizeY = baseAnt ? baseAnt.getSize().y : 32;
     const movementSpeed = baseAnt ? baseAnt.movementSpeed : 30;
     const rotation = baseAnt ? baseAnt.rotation : 0;
-    const img = baseAnt ? baseAnt.getImage() : JobImages["Builder"];
+    // CRITICAL: Queen MUST ALWAYS use gray_ant_queen.png sprite
+    // Get Queen sprite (from JobImages or lazy load)
+    const img = baseAnt ? baseAnt.getImage() : QueenAnt.getQueenSprite();
     const faction = baseAnt ? baseAnt.faction : "player";
 
     // Call parent ant constructor

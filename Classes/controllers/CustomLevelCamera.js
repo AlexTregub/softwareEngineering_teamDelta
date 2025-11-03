@@ -36,8 +36,10 @@ class CustomLevelCamera {
     this.cameraX = 0;
     this.cameraY = 0;
     
-    // Zoom level
-    this.cameraZoom = 1.0;
+    // Zoom level (start at 2.0x for close-up view)
+    this.cameraZoom = 2.0;
+    this.minZoom = 1.5;
+    this.maxZoom = 4.0;
     
     // Follow target
     this.followTarget = null;
@@ -153,49 +155,8 @@ class CustomLevelCamera {
    * the camera within valid bounds.
    */
   clampToMapBounds() {
-    if (!this.currentMap) {
-      return;
-    }
-    
-    // Get map bounds in world coordinates
-    const mapBounds = this.currentMap.getWorldBounds();
-    if (!mapBounds) {
-      return;
-    }
-    
-    const mapWidth = mapBounds.width;
-    const mapHeight = mapBounds.height;
-    
-    // Calculate view dimensions in world coordinates
-    const viewWidth = this.canvasWidth / this.cameraZoom;
-    const viewHeight = this.canvasHeight / this.cameraZoom;
-    
-    // Calculate min/max camera positions
-    let minX = 0;
-    let minY = 0;
-    let maxX = mapWidth - viewWidth;
-    let maxY = mapHeight - viewHeight;
-    
-    // Handle case where viewport is larger than map (center the map)
-    if (viewWidth >= mapWidth) {
-      minX = -(viewWidth - mapWidth) / 2;
-      maxX = minX;
-    }
-    
-    if (viewHeight >= mapHeight) {
-      minY = -(viewHeight - mapHeight) / 2;
-      maxY = minY;
-    }
-    
-    // Apply clamping
-    if (typeof constrain === 'function') {
-      this.cameraX = constrain(this.cameraX, minX, maxX);
-      this.cameraY = constrain(this.cameraY, minY, maxY);
-    } else {
-      // Fallback if constrain not available
-      this.cameraX = Math.max(minX, Math.min(maxX, this.cameraX));
-      this.cameraY = Math.max(minY, Math.min(maxY, this.cameraY));
-    }
+    // DISABLED: No camera bounds restrictions
+    return;
   }
   
   /**
@@ -235,7 +196,8 @@ class CustomLevelCamera {
    * @param {number} zoom - New zoom level (1.0 = normal, 2.0 = 2x zoomed in)
    */
   setZoom(zoom) {
-    this.cameraZoom = zoom;
+    // Constrain zoom to min/max limits
+    this.cameraZoom = Math.max(this.minZoom, Math.min(this.maxZoom, zoom));
   }
   
   /**

@@ -169,15 +169,10 @@ class EntityRenderer {
    * Collect ant entities
    */
   collectAnts(gameState) {
-    console.log(`[EntityRenderer] collectAnts() - ants.length: ${ants.length}, gameState: ${gameState}`);
-    
     for (let i = 0; i < ants.length; i++) {
       if (ants[i]) {
         const ant = ants[i];
         this.stats.totalEntities++;
-        
-        const pos = this.getEntityPosition(ant);
-        console.log(`[EntityRenderer] Ant ${i}: type=${ant.type}, pos=(${Math.round(pos.x)}, ${Math.round(pos.y)})`);
         
         if (this.shouldRenderEntity(ant)) {
           const entityData = {
@@ -187,15 +182,11 @@ class EntityRenderer {
             position: this.getEntityPosition(ant)
           };
           this.renderGroups.ANTS.push(entityData);
-          console.log(`[EntityRenderer]   ✅ Added to render group (total: ${this.renderGroups.ANTS.length})`);
         } else {
           this.stats.culledEntities++;
-          console.log(`[EntityRenderer]   ❌ CULLED (not in viewport)`);
         }
       }
     }
-    
-    console.log(`[EntityRenderer] collectAnts() complete - Collected: ${this.renderGroups.ANTS.length}, Culled: ${this.stats.culledEntities}`);
     
     // Update ants if in playing state  
     if (gameState === 'PLAYING' && antsUpdate) {
@@ -366,14 +357,9 @@ class EntityRenderer {
    * Standard rendering for entity groups
    */
   renderEntityGroupStandard(entityGroup) {
-    console.log(`[EntityRenderer] renderEntityGroupStandard() - Rendering ${entityGroup.length} entities`);
-    
     for (const entityData of entityGroup) {
       try {
         if (entityData.entity && entityData.entity.render) {
-          const pos = entityData.position || { x: 0, y: 0 };
-          console.log(`[EntityRenderer]   Rendering ${entityData.type} at (${Math.round(pos.x)}, ${Math.round(pos.y)})`);
-          
           // Start entity performance tracking
           if (g_performanceMonitor) {
             g_performanceMonitor.startEntityRender(entityData.entity);
@@ -387,7 +373,7 @@ class EntityRenderer {
             g_performanceMonitor.endEntityRender();
           }
         } else {
-          console.warn(`[EntityRenderer]   Entity missing render method:`, entityData.entity);
+          console.warn(`[EntityRenderer] Entity missing render method:`, entityData.entity);
         }
       } catch (error) {
         console.warn('EntityRenderer: Error rendering entity:', error);

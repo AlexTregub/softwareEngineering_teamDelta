@@ -129,10 +129,10 @@ class CameraManager {
 
     // Check for manual camera input (arrow keys only)
     // DISABLE arrow keys in IN_GAME state (custom levels) - camera should only follow queen
-    const left = !isCustomLevel && keyIsDown(LEFT_ARROW);
-    const right = !isCustomLevel && keyIsDown(RIGHT_ARROW);
-    const up = !isCustomLevel && keyIsDown(UP_ARROW);
-    const down = !isCustomLevel && keyIsDown(DOWN_ARROW);
+    const left = keyIsDown(LEFT_ARROW);
+    const right = keyIsDown(RIGHT_ARROW);
+    const up = keyIsDown(UP_ARROW);
+    const down = keyIsDown(DOWN_ARROW);
     const manualInput = left || right || up || down;
 
     if (manualInput) {

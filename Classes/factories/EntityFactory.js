@@ -241,6 +241,7 @@ class EntityFactory {
     switch (type) {
       case 'Ant':
         // ant constructor: (posX, posY, sizex, sizey, movementSpeed, rotation, img, JobName, faction)
+        // CRITICAL: Use undefined instead of null for img to allow default parameter to work
         return new EntityClass(
           worldX,
           worldY,
@@ -248,7 +249,7 @@ class EntityFactory {
           props.sizey || 20,
           props.movementSpeed || 20,   // Default movement speed
           props.rotation || 0,
-          props.img || null,           // Will use default antBaseSprite
+          props.img || undefined,      // undefined allows default antBaseSprite parameter
           props.JobName || "Scout",
           props.faction || "player"
         );

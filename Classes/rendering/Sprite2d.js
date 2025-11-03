@@ -37,29 +37,36 @@ class Sprite2D {
       return; // Don't render if no image
     }
     
-    // Convert world position (pixels) to screen position using terrain's coordinate converter
-    let screenX = this.pos.x;
-    let screenY = this.pos.y;
+    // CRITICAL: RenderLayerManager applies camera transform (translate/scale) before calling this.
+    // In IN_GAME state (CustomLevelCamera), we're already in transformed space.
+    // In PLAYING state (GridTerrain), terrain uses convPosToCanvas for its own coordinate system.
+    // We need to detect which system is active and render accordingly.
     
-    // Use terrain's coordinate system if available (syncs entities with terrain camera)
-    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      // Entity positions are already tile-centered (+0.5 applied in Entity constructor)
-      // GridTerrain works in tile coordinates and handles screen conversion
+    let renderX = this.pos.x;
+    let renderY = this.pos.y;
+    
+    // Check if we're using GridTerrain's coordinate system (PLAYING state with g_activeMap)
+    const usingGridTerrain = typeof g_activeMap !== 'undefined' && 
+                            g_activeMap && 
+                            g_activeMap.renderConversion && 
+                            typeof TILE_SIZE !== 'undefined';
+    
+    if (usingGridTerrain) {
+      // GridTerrain: Entity positions are tile-centered, need convPosToCanvas conversion
       const tileX = this.pos.x / TILE_SIZE;
       const tileY = this.pos.y / TILE_SIZE;
-      
-      // Use terrain's converter to get screen position
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
-      screenX = screenPos[0];
-      screenY = screenPos[1];
+      renderX = screenPos[0];
+      renderY = screenPos[1];
     }
+    // else: CustomLevelCamera (IN_GAME state) - camera transform already applied by RenderLayerManager,
+    //       use world coordinates directly (they're already in transformed space)
     
     push();
     noSmooth();
-    // Use CENTER mode for proper flipping/rotation around sprite center
     imageMode(CENTER);
-    // Translate to center of sprite (screenX/Y is top-left, add half size for center)
-    translate(screenX + this.size.x / 2, screenY + this.size.y / 2);
+    // Translate to center of sprite for proper rotation/flipping
+    translate(renderX + this.size.x / 2, renderY + this.size.y / 2);
     scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
     rotate(radians(this.rotation));
     
@@ -67,7 +74,7 @@ class Sprite2D {
     if (this.alpha && this.alpha < 255) {
       tint(255, this.alpha);
     }
-    // Render sprite centered at origin (position is now center)
+    // Render sprite centered at origin
     image(this.img, 0, 0, this.size.x, this.size.y);
     pop();
   }

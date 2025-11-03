@@ -465,8 +465,15 @@ class ant extends Entity {
     // Update Entity systems first
     super.update();
     
+    // Lazy initialize brain for custom level ants (brain created in setJobName)
+    if (!this.brain && this.jobName && typeof AntBrain !== 'undefined') {
+      this.brain = new AntBrain(this, this.jobName);
+    }
+    
     // Update ant-specific systems
-    this.brain.update(deltaTime);
+    if (this.brain) {
+      this.brain.update(deltaTime);
+    }
     this._updateStats();
     this._updateStateMachine();
     this._updateResourceManager();

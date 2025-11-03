@@ -582,75 +582,51 @@ async function loadCustomLevel(levelPath) {
     g_map2 = terrain; // For backwards compatibility
     
     // Load entities via LevelLoader
-    console.log('[loadCustomLevel] DEBUG: Checking LevelLoader availability...', typeof LevelLoader !== 'undefined');
     if (typeof LevelLoader !== 'undefined') {
-      console.log('[loadCustomLevel] DEBUG: Creating LevelLoader instance...');
       const loader = new LevelLoader();
-      
-      console.log('[loadCustomLevel] DEBUG: Calling loader.loadLevel()...');
       const result = loader.loadLevel(levelData);
-      
-      console.log('[loadCustomLevel] DEBUG: LevelLoader result:', result);
-      console.log('[loadCustomLevel] DEBUG: Result success:', result?.success);
-      console.log('[loadCustomLevel] DEBUG: Entities returned:', result?.entities?.length);
       
       if (result && result.success) {
         safeLogNormal(`[loadCustomLevel] Entities loaded: ${result.entities.length}`);
         
-        // DEBUG: Log first entity (avoid circular reference by logging properties only)
-        if (result.entities.length > 0) {
-          const entity = result.entities[0];
-          console.log('[loadCustomLevel] DEBUG: First entity type:', entity.type, 'id:', entity.id, 'position:', entity.position);
-        }
-        
-        // CRITICAL BUG FIX: Register entities with game world
-        console.log('[loadCustomLevel] DEBUG: Registering entities with game world...');
-        
-        // TODO: ADD ENTITIES TO ants[] ARRAY HERE
-        // Register entities with global game arrays
-        console.log('[loadCustomLevel] DEBUG: Registering entities with game world...');
         const registeredCounts = registerEntitiesWithGameWorld(result.entities);
-        console.log('[loadCustomLevel] DEBUG: Registration complete -', 
-          `Ants: ${registeredCounts.ants},`,
-          `Resources: ${registeredCounts.resources},`,
-          `Buildings: ${registeredCounts.buildings}`);
         
         // Find queen ant for camera following
-        console.log('[loadCustomLevel] DEBUG: Checking for queen detection...', typeof findQueen !== 'undefined');
         const queenDetection = typeof findQueen !== 'undefined' ? findQueen : (typeof window.queenDetection !== 'undefined' ? window.queenDetection.findQueen : null);
         
         if (queenDetection) {
-          console.log('[loadCustomLevel] DEBUG: Searching for queen in entities...');
           const queen = queenDetection(result.entities);
-          console.log('[loadCustomLevel] DEBUG: Queen found:', queen ? true : false);
           
           if (queen) {
-            console.log('[loadCustomLevel] DEBUG: Queen type:', queen.type, 'Position:', queen.position);
             window.queenAnt = queen;
             
             // Start camera following queen
             if (cameraManager && cameraManager.followEntity) {
-              console.log('[loadCustomLevel] DEBUG: Calling cameraManager.followEntity()...');
-              const followResult = cameraManager.followEntity(queen);
-              console.log('[loadCustomLevel] DEBUG: followEntity result:', followResult);
+              cameraManager.followEntity(queen);
+              
+              // Center camera on Queen immediately
+              if (cameraManager.activeCamera) {
+                const queenX = queen.x || queen.position?.x || 0;
+                const queenY = queen.y || queen.position?.y || 0;
+                
+                if (typeof cameraManager.activeCamera.centerOn === 'function') {
+                  cameraManager.activeCamera.centerOn(queenX, queenY);
+                } else if (typeof cameraManager.activeCamera.setCameraPosition === 'function') {
+                  cameraManager.activeCamera.setCameraPosition(queenX, queenY);
+                }
+              }
+              
               safeLogNormal('[loadCustomLevel] Camera now following queen ant');
-            } else {
-              console.error('[loadCustomLevel] DEBUG: CameraManager or followEntity not available!');
             }
           } else {
             safeLogWarning('[loadCustomLevel] No queen found in level');
-            console.log('[loadCustomLevel] DEBUG: Entity types in level:', result.entities.map(e => e.type));
           }
-        } else {
-          console.error('[loadCustomLevel] DEBUG: findQueen function not available!');
         }
       } else {
         safeLogWarning('[loadCustomLevel] Entity loading failed or returned no entities');
-        console.log('[loadCustomLevel] DEBUG: Result errors:', result?.errors);
       }
     } else {
       safeLogWarning('[loadCustomLevel] LevelLoader not available, skipping entity spawning');
-      console.error('[loadCustomLevel] DEBUG: LevelLoader class not found in global scope!');
     }
     
     // Transition to IN_GAME state (camera will auto-switch via GameState callback)
@@ -702,6 +678,15 @@ function draw() {
 
   // Update game systems (only if playing or in-game)
   if (GameState.getState() === 'PLAYING' || GameState.getState() === 'IN_GAME') {
+    // Update all ants (CRITICAL: syncs sprite positions via Entity.update())
+    if (Array.isArray(ants) && ants.length > 0) {
+      ants.forEach(ant => {
+        if (ant && typeof ant.update === 'function') {
+          ant.update();
+        }
+      });
+    }
+    
     // Update brush systems
     if (window.g_enemyAntBrush) {
       window.g_enemyAntBrush.update();
@@ -775,6 +760,42 @@ function draw() {
     // Normal game rendering
     RenderManager.render(GameState.getState());
   }
+
+  // // DEBUG: Direct ant rendering for custom levels (bypasses render system)
+  // if (GameState.getState() === 'IN_GAME' && Array.isArray(ants) && ants.length > 0) {
+  //   push();
+    
+  //   // Apply camera transform manually
+  //   if (cameraManager) {
+  //     const camPos = cameraManager.getCameraPosition();
+  //     if (camPos) {
+  //       translate(-camPos.x, -camPos.y);
+  //       scale(camPos.zoom);
+  //     }
+  //   }
+    
+  //   // Draw each ant directly
+  //   ants.forEach((ant, index) => {
+  //     if (!ant || !ant.x || !ant.y) return;
+      
+  //     // Draw ant as colored circle with label
+  //     const isQueen = ant.type === 'Queen' || ant.JobName === 'Queen';
+      
+  //     // Draw circle
+  //     fill(isQueen ? color(255, 0, 255) : color(0, 255, 0));
+  //     noStroke();
+  //     const size = isQueen ? 40 : 30;
+  //     ellipse(ant.x + size/2, ant.y + size/2, size, size);
+      
+  //     // Draw label
+  //     fill(255);
+  //     textAlign(CENTER, CENTER);
+  //     textSize(12);
+  //     text(isQueen ? 'Q' : index, ant.x + size/2, ant.y + size/2);
+  //   });
+    
+  //   pop();
+  // }
 
   // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
   if (typeof window.drawCoordinateVisualization === 'function') {
@@ -1723,3 +1744,194 @@ window.spawnDebugAnt = function() {
 
 // Make it easily accessible
 window.testAnt = window.spawnDebugAnt;
+
+/**
+ * DEBUG: Go to Queen's location
+ * Usage: In browser console, type: goToQueen()
+ */
+window.goToQueen = function() {
+  console.log('👑 [DEBUG] Looking for Queen...');
+  
+  // Find the Queen
+  if (typeof ants === 'undefined' || !Array.isArray(ants)) {
+    console.error('❌ ants array not available');
+    return;
+  }
+  
+  const queen = ants.find(ant => 
+    ant.type === 'Queen' || ant.JobName === 'Queen' || ant.jobName === 'Queen'
+  );
+  
+  if (!queen) {
+    console.error('❌ Queen not found in ants array');
+    console.log(`   Total ants: ${ants.length}`);
+    return;
+  }
+  
+  console.log(`✅ Queen found at (${Math.round(queen.x)}, ${Math.round(queen.y)})`);
+  console.log(`   Type: ${queen.type}, JobName: ${queen.JobName || queen.jobName}`);
+  
+  // Check if Queen has sprite
+  if (queen._sprite) {
+    console.log(`   Has sprite: YES`);
+    console.log(`   Sprite has image: ${!!queen._sprite.img}`);
+    if (queen._sprite.img) {
+      console.log(`   Image size: ${queen._sprite.img.width}x${queen._sprite.img.height}`);
+    }
+  } else {
+    console.log(`   Has sprite: NO`);
+  }
+  
+  // Move camera to Queen (CENTER the camera on her)
+  if (typeof cameraManager === 'undefined' || !cameraManager) {
+    console.error('❌ cameraManager not available');
+    return;
+  }
+  
+  if (cameraManager.activeCamera && typeof cameraManager.activeCamera.centerOn === 'function') {
+    // Use centerOn to properly center the Queen in viewport
+    cameraManager.activeCamera.centerOn(queen.x, queen.y);
+    console.log(`📸 Camera centered on Queen at (${Math.round(queen.x)}, ${Math.round(queen.y)})`);
+  }
+  else {
+    console.error('❌ centerOn method not available on active camera');
+  }
+  
+  // Force redraws
+  if (typeof redraw === 'function') {
+    console.log('🔄 Forcing redraws...');
+    redraw();
+    redraw();
+    redraw();
+  }
+  
+  console.log('✅ Done! Camera centered on Queen.');
+};
+
+/**
+ * DEBUG: Check camera position
+ * Usage: In browser console, type: checkCamera()
+ */
+window.checkCamera = function() {
+  console.log('📸 [Camera Debug]');
+  
+  if (!cameraManager) {
+    console.error('❌ cameraManager not available');
+    return;
+  }
+  
+  console.log('   Active camera:', cameraManager.activeCamera?.constructor?.name || 'Unknown');
+  
+  const camPos = cameraManager.getCameraPosition();
+  if (camPos) {
+    console.log(`   Camera position: (${Math.round(camPos.x)}, ${Math.round(camPos.y)})`);
+    console.log(`   Camera zoom: ${camPos.zoom.toFixed(2)}x`);
+  }
+  
+  // Find Queen
+  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+    const queen = ants.find(ant => 
+      ant.type === 'Queen' || ant.JobName === 'Queen' || ant.jobName === 'Queen'
+    );
+    
+    if (queen) {
+      console.log(`👑 Queen position: (${Math.round(queen.x)}, ${Math.round(queen.y)})`);
+      
+      // Calculate distance
+      if (camPos) {
+        const dx = queen.x - camPos.x;
+        const dy = queen.y - camPos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        console.log(`   Distance from camera: ${Math.round(distance)} pixels`);
+        
+        // Check if Queen is in viewport
+        const viewWidth = width / camPos.zoom;
+        const viewHeight = height / camPos.zoom;
+        const inViewport = queen.x >= camPos.x && 
+                          queen.x <= camPos.x + viewWidth &&
+                          queen.y >= camPos.y && 
+                          queen.y <= camPos.y + viewHeight;
+        console.log(`   Queen in viewport: ${inViewport ? '✅ YES' : '❌ NO'}`);
+      }
+    } else {
+      console.log('❌ Queen not found');
+    }
+  }
+};
+
+// Global variable to control Queen debug circle rendering
+window.drawQueenDebugCircle = false;
+
+// Add to draw() loop to render Queen debug circle
+if (typeof window.originalDraw === 'undefined') {
+  window.originalDraw = window.draw;
+}
+
+// Hook into rendering to draw Queen debug circle
+const _oldRenderManagerRender = RenderManager.render;
+RenderManager.render = function(state) {
+  // Call original render
+  _oldRenderManagerRender.call(this, state);
+  
+  // Draw Queen debug circle if enabled
+  if (window.drawQueenDebugCircle && (state === 'IN_GAME' || state === 'PLAYING')) {
+    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      const queen = ants.find(ant => 
+        ant.type === 'Queen' || ant.JobName === 'Queen' || ant.jobName === 'Queen'
+      );
+      
+      if (queen && typeof cameraManager !== 'undefined' && cameraManager) {
+        push();
+        
+        // Apply camera transform
+        const camPos = cameraManager.getCameraPosition();
+        if (camPos) {
+          translate(-camPos.x, -camPos.y);
+          scale(camPos.zoom);
+        }
+        
+        // Draw BIG pulsing circle around Queen
+        const pulseSize = 150 + Math.sin(frameCount * 0.1) * 30;
+        
+        // Outer glow
+        noFill();
+        stroke(255, 0, 255, 100);
+        strokeWeight(10);
+        ellipse(queen.x + 30, queen.y + 30, pulseSize * 1.5, pulseSize * 1.5);
+        
+        // Middle circle
+        stroke(255, 255, 0, 200);
+        strokeWeight(5);
+        ellipse(queen.x + 30, queen.y + 30, pulseSize, pulseSize);
+        
+        // Inner circle
+        stroke(0, 255, 255, 255);
+        strokeWeight(3);
+        ellipse(queen.x + 30, queen.y + 30, pulseSize * 0.6, pulseSize * 0.6);
+        
+        // Draw arrow pointing down at Queen
+        fill(255, 0, 255);
+        noStroke();
+        triangle(
+          queen.x + 30, queen.y - 100,
+          queen.x + 10, queen.y - 50,
+          queen.x + 50, queen.y - 50
+        );
+        
+        // Draw "QUEEN HERE" text
+        fill(255, 255, 0);
+        textAlign(CENTER, CENTER);
+        textSize(24);
+        strokeWeight(2);
+        stroke(0);
+        text('👑 QUEEN HERE 👑', queen.x + 30, queen.y - 120);
+        
+        // Draw coordinates
+        textSize(16);
+        text(`(${Math.round(queen.x)}, ${Math.round(queen.y)})`, queen.x + 30, queen.y - 90);
+        
+        pop();
+      }
+    }
+  }
+};
