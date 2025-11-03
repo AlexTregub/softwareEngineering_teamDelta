@@ -177,3 +177,12 @@ class QueenAnt extends ant {
     }
   }
 }
+
+// Export for both browser and Node.js
+if (typeof window !== 'undefined') {
+  window.QueenAnt = QueenAnt;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = QueenAnt;
+}

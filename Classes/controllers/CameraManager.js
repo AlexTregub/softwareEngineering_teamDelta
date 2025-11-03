@@ -30,6 +30,7 @@ class CameraManager {
     // Camera constraints (state-aware: PLAYING uses 1.0, LEVEL_EDITOR uses 0.5)
     this.MIN_CAMERA_ZOOM_PLAYING = 1.0;  // PLAYING state minimum zoom
     this.MIN_CAMERA_ZOOM_EDITOR = 0.05;   // LEVEL_EDITOR state minimum zoom
+    this.MIN_CAMERA_ZOOM_IN_GAME = 0.3;   // LEVEL_EDITOR state minimum zoom
     this.MAX_CAMERA_ZOOM = 3;
     this.CAMERA_ZOOM_STEP = 1.1;
     
@@ -117,6 +118,7 @@ class CameraManager {
     // Allow camera updates in both normal game and Level Editor
     const isLevelEditor = (typeof GameState !== 'undefined' && GameState.getState() === 'LEVEL_EDITOR');
     const isInGame = this.isInGame();
+    const isCustomLevel = (typeof GameState !== 'undefined' && GameState.getState() === 'IN_GAME');
     
     if (!isInGame && !isLevelEditor) return;
     
@@ -126,10 +128,11 @@ class CameraManager {
     if (typeof g_canvasY !== 'undefined') this.canvasHeight = g_canvasY;
 
     // Check for manual camera input (arrow keys only)
-    const left = keyIsDown(LEFT_ARROW);
-    const right = keyIsDown(RIGHT_ARROW);
-    const up = keyIsDown(UP_ARROW);
-    const down = keyIsDown(DOWN_ARROW);
+    // DISABLE arrow keys in IN_GAME state (custom levels) - camera should only follow queen
+    const left = !isCustomLevel && keyIsDown(LEFT_ARROW);
+    const right = !isCustomLevel && keyIsDown(RIGHT_ARROW);
+    const up = !isCustomLevel && keyIsDown(UP_ARROW);
+    const down = !isCustomLevel && keyIsDown(DOWN_ARROW);
     const manualInput = left || right || up || down;
 
     if (manualInput) {
@@ -565,19 +568,21 @@ class CameraManager {
    * @param {number} worldY - World Y coordinate
    */
   centerOn(worldX, worldY) {
-    // Use CameraController's built-in centering function
-    if (typeof CameraController !== 'undefined') {
-      CameraController.centerCameraOn(worldX, worldY);
-      
-      // Update local variables
-      const pos = CameraController.getCameraPosition();
-      this.cameraX = pos.x;
-      this.cameraY = pos.y;
-    } else {
-      console.warn("Camera not set correctly. CameraController not yet init.")
-    }
-
+    // Calculate camera position (top-left) to center the target in viewport
+    // Account for zoom when calculating view dimensions
+    const viewWidth = this.canvasWidth / this.cameraZoom;
+    const viewHeight = this.canvasHeight / this.cameraZoom;
+    
+    this.cameraX = worldX - (viewWidth / 2);
+    this.cameraY = worldY - (viewHeight / 2);
+    
+    // Apply bounds clamping
     this.clampToBounds();
+    
+    // Sync with CameraController
+    if (typeof CameraController !== 'undefined') {
+      CameraController.setCameraPosition(this.cameraX, this.cameraY);
+    }
   }
 
   /**
@@ -586,8 +591,11 @@ class CameraManager {
    */
   centerOnEntity(entity) {
     const center = this.getEntityWorldCenter(entity);
+    
     if (center) {
       this.centerOn(center.x, center.y);
+    } else {
+      console.warn('[CameraManager] centerOnEntity failed - invalid entity or position');
     }
   }
 
@@ -630,20 +638,27 @@ class CameraManager {
    * cameraManager.followEntity(null);
    */
   followEntity(entity) {
+    console.log('[CameraManager.followEntity] Called with entity:', entity ? (entity.id || entity.type) : 'null');
+    
     // Handle null/undefined entity - disable following
     if (!entity) {
       this.cameraFollowEnabled = false;
       this.cameraFollowTarget = null;
+      console.log('[CameraManager.followEntity] Entity is null/undefined, disabling follow');
       return false;
     }
 
     // Enable following and set target
     this.cameraFollowEnabled = true;
     this.cameraFollowTarget = entity;
+    console.log('[CameraManager.followEntity] Follow enabled, target set to:', entity.id || entity.type);
 
     // Center camera on entity if it has valid coordinates
     if (typeof entity.x === 'number' && typeof entity.y === 'number') {
+      console.log('[CameraManager.followEntity] Centering on entity at:', entity.x, entity.y);
       this.centerOnEntity(entity);
+    } else {
+      console.warn('[CameraManager] Entity missing x/y coordinates:', entity);
     }
 
     return true;
@@ -673,7 +688,12 @@ class CameraManager {
     // Use specified level or default to g_activeMap
     const map = this.currentLevel || (typeof g_activeMap !== 'undefined' ? g_activeMap : null);
     
-    // Try to get dimensions from map
+    // SparseTerrain: Use getWorldBounds() method
+    if (map && typeof map.getWorldBounds === 'function') {
+      return map.getWorldBounds();
+    }
+    
+    // GridTerrain: Try to get dimensions from map
     if (map && map._xCount > 0 && map._yCount > 0) {
       const tileSize = (typeof TILE_SIZE !== 'undefined') ? TILE_SIZE : 32;
       return {
@@ -701,13 +721,9 @@ class CameraManager {
   clampToBounds() {
     const bounds = this.getLevelBounds();
     
-    // If bounds equals canvas size, we're probably not initialized yet
+    // If bounds equals canvas size, we don't have real map bounds yet - skip clamping
     if (bounds.width === this.canvasWidth && bounds.height === this.canvasHeight) {
-      // Don't clamp if we don't have real map bounds yet
-      const map = this.currentLevel || (typeof g_activeMap !== 'undefined' ? g_activeMap : null);
-      if (map && !(map._xCount > 0 && map._yCount > 0)) {
-        return;
-      }
+      return;
     }
 
     const viewWidth = this.canvasWidth / this.cameraZoom;

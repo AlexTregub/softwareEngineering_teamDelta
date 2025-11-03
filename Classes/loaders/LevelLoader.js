@@ -49,6 +49,18 @@ class LevelLoader {
     if (!this.entityFactory) {
       this._entityFactoryInstance = this._getEntityFactory();
     }
+    
+    // Template ID to Type mappings (Level Editor → Entity Type)
+    this.templateMappings = {
+      'ant_queen': 'Queen',
+      'ant_worker': 'Ant',
+      'ant_soldier': 'Ant',
+      'resource_leaf': 'Resource',
+      'resource_stick': 'Resource',
+      'resource_food': 'Resource',
+      'building_anthill': 'Building',
+      'building_storage': 'Building'
+    };
   }
   
   /**
@@ -57,48 +69,59 @@ class LevelLoader {
    * @returns {Object} { success: bool, terrain?, entities?, errors? }
    */
   loadLevel(levelData) {
+    console.log('[LevelLoader] DEBUG: loadLevel called');
     const errors = [];
+    
+    // Detect and normalize format (Level Editor vs Legacy)
+    const format = this._detectFormat(levelData);
+    console.log('[LevelLoader] DEBUG: Detected format:', format);
+    
+    const normalizedData = this._normalizeFormat(levelData, format);
+    console.log('[LevelLoader] DEBUG: Data normalized');
     
     // Validate level data with LevelValidator (if enabled)
     if (this.validate && this.validator) {
-      const validationResult = this.validator.validate(levelData);
+      console.log('[LevelLoader] DEBUG: Validating level data...');
+      const validationResult = this.validator.validate(normalizedData);
       if (!validationResult.valid) {
+        console.error('[LevelLoader] DEBUG: Validation failed:', validationResult.errors);
         return {
           success: false,
           errors: validationResult.errors
         };
       }
+      console.log('[LevelLoader] DEBUG: Validation passed');
     }
     
     // Basic null check (fallback if validation disabled)
-    if (!levelData) {
+    if (!normalizedData) {
       return {
         success: false,
         errors: ['Level data is null or undefined']
       };
     }
     
-    // Check required fields
-    if (!levelData.terrain) {
+    // Check required fields (normalized data should have terrain.tiles)
+    if (!normalizedData.terrain) {
       errors.push('Missing required field: terrain');
     }
     
-    if (!levelData.entities) {
+    if (!normalizedData.entities) {
       errors.push('Missing required field: entities');
     }
     
     // Validate field types
-    if (levelData.terrain && typeof levelData.terrain !== 'object') {
+    if (normalizedData.terrain && typeof normalizedData.terrain !== 'object') {
       errors.push('Terrain must be an object');
     }
     
-    if (levelData.entities && !Array.isArray(levelData.entities)) {
+    if (normalizedData.entities && !Array.isArray(normalizedData.entities)) {
       errors.push('Entities must be an array');
     }
     
     // Validate terrain structure
-    if (levelData.terrain && typeof levelData.terrain === 'object') {
-      if (!levelData.terrain.tiles || !Array.isArray(levelData.terrain.tiles)) {
+    if (normalizedData.terrain && typeof normalizedData.terrain === 'object') {
+      if (!normalizedData.terrain.tiles || !Array.isArray(normalizedData.terrain.tiles)) {
         errors.push('Terrain must have a tiles array');
       }
     }
@@ -113,20 +136,25 @@ class LevelLoader {
     
     try {
       // Load terrain
-      const terrain = this._loadTerrain(levelData.terrain);
+      console.log('[LevelLoader] DEBUG: Loading terrain...');
+      const terrain = this._loadTerrain(normalizedData.terrain);
+      console.log('[LevelLoader] DEBUG: Terrain loaded:', terrain ? terrain.constructor.name : 'null');
       
       // Spawn entities
-      const entities = this._spawnEntities(levelData.entities);
+      console.log('[LevelLoader] DEBUG: Spawning entities from data...', normalizedData.entities?.length, 'entities');
+      const entities = this._spawnEntities(normalizedData.entities);
+      console.log('[LevelLoader] DEBUG: Entities spawned:', entities.length);
       
       // Extract metadata
       const metadata = {
-        id: levelData.id || 'unknown',
-        name: levelData.name || null,
-        description: levelData.description || null,
-        author: levelData.author || null,
-        version: levelData.version || null
+        id: normalizedData.id || levelData.id || 'unknown',
+        name: normalizedData.name || levelData.name || null,
+        description: normalizedData.description || levelData.description || null,
+        author: normalizedData.author || levelData.author || null,
+        version: normalizedData.version || levelData.version || null
       };
       
+      console.log('[LevelLoader] DEBUG: Load complete - success:', true, 'entities:', entities.length);
       return {
         success: true,
         terrain,
@@ -134,6 +162,7 @@ class LevelLoader {
         metadata
       };
     } catch (error) {
+      console.error('[LevelLoader] DEBUG: Load failed:', error.message);
       return {
         success: false,
         errors: [error.message]
@@ -192,35 +221,44 @@ class LevelLoader {
    * @returns {Array} Spawned entities
    */
   _spawnEntities(entitiesData) {
+    console.log('[LevelLoader] DEBUG: _spawnEntities called with', entitiesData.length, 'entities');
     const entities = [];
     
-    entitiesData.forEach(entityData => {
+    entitiesData.forEach((entityData, index) => {
       try {
+        console.log(`[LevelLoader] DEBUG: Spawning entity ${index + 1}/${entitiesData.length}:`, entityData.type, 'at grid', entityData.gridX, entityData.gridY);
+        
         // Use custom entity factory if provided
         if (this.entityFactory) {
           const entity = this.entityFactory(entityData);
           entities.push(entity);
+          console.log('[LevelLoader] DEBUG: Entity created via custom factory');
           return;
         }
         
         // Use EntityFactory instance
         if (this._entityFactoryInstance) {
+          console.log('[LevelLoader] DEBUG: Using EntityFactory instance...');
           const entity = this._entityFactoryInstance.createFromLevelData(entityData);
           entities.push(entity);
+          console.log('[LevelLoader] DEBUG: Entity created:', entity.type, 'at world', entity.x, entity.y);
           return;
         }
         
         // Fallback: old entity spawning method
+        console.log('[LevelLoader] DEBUG: Using fallback entity creation...');
         const entity = this._createEntity(entityData);
         if (entity) {
           entities.push(entity);
+          console.log('[LevelLoader] DEBUG: Entity created via fallback');
         }
       } catch (error) {
         // Skip invalid entities (log error but continue loading)
-        console.warn(`Failed to spawn entity ${entityData.id}:`, error.message);
+        console.warn(`[LevelLoader] Failed to spawn entity ${entityData.id}:`, error.message);
       }
     });
     
+    console.log('[LevelLoader] DEBUG: _spawnEntities complete -', entities.length, 'entities created');
     return entities;
   }
   
@@ -366,6 +404,115 @@ class LevelLoader {
       console.warn('EntityFactory not available, using fallback entity creation');
       return null;
     }
+  }
+  
+  /**
+   * Detect JSON format (Level Editor vs Legacy)
+   * @private
+   * @param {Object} levelData - Raw level JSON
+   * @returns {string} 'levelEditor' or 'legacy'
+   */
+  _detectFormat(levelData) {
+    // Level Editor format has tiles at root level
+    if (levelData.tiles && Array.isArray(levelData.tiles)) {
+      return 'levelEditor';
+    }
+    
+    // Legacy format has terrain.tiles
+    if (levelData.terrain && levelData.terrain.tiles) {
+      return 'legacy';
+    }
+    
+    // Default to levelEditor if ambiguous
+    return 'levelEditor';
+  }
+  
+  /**
+   * Normalize JSON format to internal structure
+   * Converts Level Editor format → Legacy format for internal processing
+   * @private
+   * @param {Object} levelData - Raw level JSON
+   * @param {string} format - Detected format ('levelEditor' or 'legacy')
+   * @returns {Object} Normalized level data
+   */
+  _normalizeFormat(levelData, format) {
+    if (format === 'legacy') {
+      // Already in correct format, just normalize entities
+      return {
+        ...levelData,
+        entities: levelData.entities.map(e => this._normalizeEntity(e))
+      };
+    }
+    
+    // Convert Level Editor format to legacy format
+    const normalized = {
+      ...levelData,
+      terrain: {
+        type: 'sparse',
+        tiles: levelData.tiles || []
+      },
+      entities: (levelData.entities || []).map(e => this._normalizeEntity(e))
+    };
+    
+    // Remove tiles from root level
+    delete normalized.tiles;
+    
+    return normalized;
+  }
+  
+  /**
+   * Normalize entity format
+   * Converts templateId → type, gridX/gridY → gridPosition
+   * @private
+   * @param {Object} entityData - Raw entity data
+   * @returns {Object} Normalized entity data
+   */
+  _normalizeEntity(entityData) {
+    const normalized = { ...entityData };
+    
+    // Convert templateId to type
+    if (entityData.templateId && !entityData.type) {
+      normalized.type = this._templateIdToType(entityData.templateId);
+    }
+    
+    // Convert gridX/gridY to gridPosition
+    if ((entityData.gridX !== undefined || entityData.gridY !== undefined) && !entityData.gridPosition) {
+      normalized.gridPosition = {
+        x: entityData.gridX !== undefined ? entityData.gridX : 0,
+        y: entityData.gridY !== undefined ? entityData.gridY : 0
+      };
+    }
+    
+    return normalized;
+  }
+  
+  /**
+   * Map templateId to entity type
+   * @private
+   * @param {string} templateId - Template ID from Level Editor
+   * @returns {string|null} Entity type or null if unknown
+   */
+  _templateIdToType(templateId) {
+    // Direct mapping
+    if (this.templateMappings[templateId]) {
+      return this.templateMappings[templateId];
+    }
+    
+    // Pattern matching for dynamic templates
+    if (templateId.startsWith('ant_')) {
+      return 'Ant'; // Default all ant types to Ant
+    }
+    
+    if (templateId.startsWith('resource_')) {
+      return 'Resource';
+    }
+    
+    if (templateId.startsWith('building_')) {
+      return 'Building';
+    }
+    
+    // Unknown template
+    return null;
   }
 }
 

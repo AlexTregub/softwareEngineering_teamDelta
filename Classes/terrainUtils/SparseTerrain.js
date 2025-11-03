@@ -207,6 +207,19 @@ class SparseTerrain {
     }
 
     /**
+     * Get world bounds in pixel dimensions
+     * @returns {Object} {width, height} in pixels, or {width: 0, height: 0} if empty
+     */
+    getWorldBounds() {
+        if (!this.bounds) {
+            return { width: 0, height: 0 };
+        }
+        const width = (this.bounds.maxX - this.bounds.minX + 1) * this.tileSize;
+        const height = (this.bounds.maxY - this.bounds.minY + 1) * this.tileSize;
+        return { width, height };
+    }
+
+    /**
      * Get total number of painted tiles
      * @returns {number} Tile count
      */

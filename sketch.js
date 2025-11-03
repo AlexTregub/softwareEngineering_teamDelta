@@ -32,8 +32,66 @@ let g_globalTime;
 
 // Buildings
 let Buildings = [];
-// Camera system - now managed by CameraManager
-let cameraManager;
+// Camera system - now managed by CameraSystemManager (switches between CameraManager and CustomLevelCamera)
+let cameraManager; // CameraSystemManager instance
+
+/**
+ * Register entities from LevelLoader with global game arrays and systems
+ * @param {Array} entities - Array of entities from LevelLoader.loadLevel()
+ * @returns {Object} Counts of registered entities by type
+ */
+function registerEntitiesWithGameWorld(entities) {
+  const counts = { ants: 0, resources: 0, buildings: 0 };
+  
+  if (!Array.isArray(entities) || entities.length === 0) {
+    console.warn('[registerEntitiesWithGameWorld] No entities to register');
+    return counts;
+  }
+  
+  console.log('[registerEntitiesWithGameWorld] Registering', entities.length, 'entities');
+  
+  entities.forEach((entity, index) => {
+    if (!entity || !entity.type) {
+      console.warn(`[registerEntitiesWithGameWorld] Skipping invalid entity at index ${index}`);
+      return;
+    }
+    
+    // Register with appropriate global array based on type
+    if (entity.type === 'Queen' || entity.type === 'Ant') {
+      if (!window.ants) window.ants = [];
+      window.ants.push(entity);
+      counts.ants++;
+      console.log(`[registerEntitiesWithGameWorld] Registered ${entity.type}:`, entity.id, 'at', entity.position);
+    } else if (entity.type === 'Resource') {
+      if (!window.resource_list) window.resource_list = [];
+      window.resource_list.push(entity);
+      counts.resources++;
+      console.log(`[registerEntitiesWithGameWorld] Registered Resource:`, entity.id, 'at', entity.position);
+    } else if (entity.type === 'Building') {
+      if (!window.Buildings) window.Buildings = [];
+      window.Buildings.push(entity);
+      counts.buildings++;
+      console.log(`[registerEntitiesWithGameWorld] Registered Building:`, entity.id, 'at', entity.position);
+    } else {
+      console.warn(`[registerEntitiesWithGameWorld] Unknown entity type: ${entity.type}`);
+    }
+    
+    // Register with spatial grid manager if available
+    if (window.spatialGridManager && typeof window.spatialGridManager.registerEntity === 'function') {
+      try {
+        window.spatialGridManager.registerEntity(entity);
+        console.log(`[registerEntitiesWithGameWorld] Registered with spatial grid:`, entity.id);
+      } catch (error) {
+        console.error(`[registerEntitiesWithGameWorld] Failed to register entity ${entity.id} with spatial grid:`, error);
+      }
+    }
+  });
+  
+  console.log('[registerEntitiesWithGameWorld] Registration complete. Total:', 
+    `Ants: ${counts.ants}, Resources: ${counts.resources}, Buildings: ${counts.buildings}`);
+  
+  return counts;
+}
 
 function preload(){
   terrainPreloader();
@@ -127,9 +185,29 @@ function setup() {
     // This maintains compatibility with existing game input systems
   });
 
-  // Initialize camera management system
-  cameraManager = new CameraManager();
-  cameraManager.initialize();
+  // Initialize camera management system (CameraSystemManager for dual camera support)
+  if (typeof CameraSystemManager !== 'undefined') {
+    cameraManager = new CameraSystemManager(cameraController, width, height);
+    // Initialize with procedural camera for MENU state
+    cameraManager.switchCamera('MENU');
+    logVerbose('📷 CameraSystemManager initialized with dual camera support');
+    
+    // Register camera switching callback with GameState
+    if (typeof GameState !== 'undefined' && typeof GameState.onStateChange === 'function') {
+      GameState.onStateChange((newState, previousState) => {
+        if (cameraManager && typeof cameraManager.switchCamera === 'function') {
+          cameraManager.switchCamera(newState);
+          logVerbose(`📷 Camera switched for state: ${newState}`);
+        }
+      });
+      logVerbose('📷 Camera state change callback registered');
+    }
+  } else {
+    // Fallback to old system if CameraSystemManager not available
+    cameraManager = new CameraManager();
+    cameraManager.initialize();
+    logWarning('📷 Falling back to CameraManager (CameraSystemManager not available)');
+  }
 
   // Initialize settings system (for configurable editor preferences)
   if (typeof SettingsManager !== 'undefined') {
@@ -493,43 +571,87 @@ async function loadCustomLevel(levelPath) {
     g_map2 = terrain; // For backwards compatibility
     
     // Load entities via LevelLoader
+    console.log('[loadCustomLevel] DEBUG: Checking LevelLoader availability...', typeof LevelLoader !== 'undefined');
     if (typeof LevelLoader !== 'undefined') {
+      console.log('[loadCustomLevel] DEBUG: Creating LevelLoader instance...');
       const loader = new LevelLoader();
+      
+      console.log('[loadCustomLevel] DEBUG: Calling loader.loadLevel()...');
       const result = loader.loadLevel(levelData);
+      
+      console.log('[loadCustomLevel] DEBUG: LevelLoader result:', result);
+      console.log('[loadCustomLevel] DEBUG: Result success:', result?.success);
+      console.log('[loadCustomLevel] DEBUG: Entities returned:', result?.entities?.length);
       
       if (result && result.success) {
         safeLogNormal(`[loadCustomLevel] Entities loaded: ${result.entities.length}`);
         
+        // DEBUG: Log first entity (avoid circular reference by logging properties only)
+        if (result.entities.length > 0) {
+          const entity = result.entities[0];
+          console.log('[loadCustomLevel] DEBUG: First entity type:', entity.type, 'id:', entity.id, 'position:', entity.position);
+        }
+        
+        // CRITICAL BUG FIX: Register entities with game world
+        console.log('[loadCustomLevel] DEBUG: Registering entities with game world...');
+        
+        // TODO: ADD ENTITIES TO ants[] ARRAY HERE
+        // Register entities with global game arrays
+        console.log('[loadCustomLevel] DEBUG: Registering entities with game world...');
+        const registeredCounts = registerEntitiesWithGameWorld(result.entities);
+        console.log('[loadCustomLevel] DEBUG: Registration complete -', 
+          `Ants: ${registeredCounts.ants},`,
+          `Resources: ${registeredCounts.resources},`,
+          `Buildings: ${registeredCounts.buildings}`);
+        
         // Find queen ant for camera following
-        const queenDetection = typeof findQueen !== 'undefined' ? findQueen : null;
+        console.log('[loadCustomLevel] DEBUG: Checking for queen detection...', typeof findQueen !== 'undefined');
+        const queenDetection = typeof findQueen !== 'undefined' ? findQueen : (typeof window.queenDetection !== 'undefined' ? window.queenDetection.findQueen : null);
+        
         if (queenDetection) {
+          console.log('[loadCustomLevel] DEBUG: Searching for queen in entities...');
           const queen = queenDetection(result.entities);
+          console.log('[loadCustomLevel] DEBUG: Queen found:', queen ? true : false);
+          
           if (queen) {
+            console.log('[loadCustomLevel] DEBUG: Queen type:', queen.type, 'Position:', queen.position);
             window.queenAnt = queen;
             
             // Start camera following queen
             if (cameraManager && cameraManager.followEntity) {
-              cameraManager.followEntity(queen);
+              console.log('[loadCustomLevel] DEBUG: Calling cameraManager.followEntity()...');
+              const followResult = cameraManager.followEntity(queen);
+              console.log('[loadCustomLevel] DEBUG: followEntity result:', followResult);
               safeLogNormal('[loadCustomLevel] Camera now following queen ant');
+            } else {
+              console.error('[loadCustomLevel] DEBUG: CameraManager or followEntity not available!');
             }
           } else {
             safeLogWarning('[loadCustomLevel] No queen found in level');
+            console.log('[loadCustomLevel] DEBUG: Entity types in level:', result.entities.map(e => e.type));
           }
+        } else {
+          console.error('[loadCustomLevel] DEBUG: findQueen function not available!');
         }
-        
-        // TODO: Register entities with game systems (spatial grid, etc.)
-        // For now, just log entity count
       } else {
         safeLogWarning('[loadCustomLevel] Entity loading failed or returned no entities');
+        console.log('[loadCustomLevel] DEBUG: Result errors:', result?.errors);
       }
     } else {
       safeLogWarning('[loadCustomLevel] LevelLoader not available, skipping entity spawning');
+      console.error('[loadCustomLevel] DEBUG: LevelLoader class not found in global scope!');
     }
     
-    // Transition to IN_GAME state
+    // Transition to IN_GAME state (camera will auto-switch via GameState callback)
     if (typeof GameState !== 'undefined' && GameState.goToGame) {
       GameState.goToGame();
       safeLogNormal('[loadCustomLevel] Game state set to IN_GAME');
+      
+      // Set map reference for both camera systems
+      if (cameraManager && typeof cameraManager.setCurrentMap === 'function') {
+        cameraManager.setCurrentMap(terrain);
+        logVerbose('📷 Map reference set for camera systems');
+      }
     }
     
     safeLogNormal(`[loadCustomLevel] Level loaded successfully: ${levelPath}`);

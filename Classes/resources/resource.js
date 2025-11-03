@@ -559,3 +559,12 @@ class Resource extends Entity {
   }
 
 }
+
+// Export for both browser and Node.js
+if (typeof window !== 'undefined') {
+  window.Resource = Resource;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Resource;
+}

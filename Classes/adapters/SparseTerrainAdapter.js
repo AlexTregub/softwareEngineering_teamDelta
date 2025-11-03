@@ -123,6 +123,23 @@ class SparseTerrainAdapter {
     
     return tiles;
   }
+  
+  /**
+   * Set camera position (for terrain caching/culling systems)
+   * Camera position passed as [tileX, tileY] array
+   * 
+   * @param {Array<number>} centerTilePos - [x, y] camera center in tile coordinates
+   */
+  setCameraPosition(centerTilePos) {
+    // SparseTerrain doesn't need camera position for rendering
+    // (no tile caching like gridTerrain)
+    // But method must exist for API compatibility with CameraManager
+    
+    // Store for potential future use (debugging, culling, etc.)
+    if (this._sparseTerrain && typeof this._sparseTerrain.setCameraPosition === 'function') {
+      this._sparseTerrain.setCameraPosition(centerTilePos);
+    }
+  }
 }
 
 // Global export (browser)

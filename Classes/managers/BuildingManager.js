@@ -316,11 +316,14 @@ function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
 
 if (typeof window !== 'undefined') {
   window.createBuilding = createBuilding;
+  window.Building = Building;
+  window.BuildingPreloader = BuildingPreloader;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     Building,
+    BuildingPreloader,
     AntCone,
     AntHill,
     HiveSource,

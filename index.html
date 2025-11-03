@@ -105,6 +105,8 @@
     <!-- Controller System - Load all controllers before ant classes -->
     <script src="Classes/controllers/CameraController.js"></script>
     <script src="Classes/controllers/CameraManager.js"></script>
+    <script src="Classes/controllers/CustomLevelCamera.js"></script>
+    <script src="Classes/managers/CameraSystemManager.js"></script>
     <script src="Classes/controllers/MovementController.js"></script>
     <script src="Classes/controllers/TaskManager.js"></script>
     <script src="Classes/controllers/CombatController.js"></script>
@@ -182,6 +184,16 @@
     
     <!-- Map Management -->
     <script src="Classes/managers/MapManager.js"></script>
+    
+    <!-- Terrain Adapters (for PathMap compatibility) -->
+    <script src="Classes/adapters/GridTerrainAdapter.js"></script>
+    <script src="Classes/adapters/SparseTerrainAdapter.js"></script>
+    
+    <!-- Level Loading System -->
+    <script src="Classes/validators/LevelValidator.js"></script>
+    <script src="Classes/factories/EntityFactory.js"></script>
+    <script src="Classes/loaders/LevelLoader.js"></script>
+    <script src="Classes/utils/queenDetection.js"></script>
     
     <!-- Terrain Editing System -->
     <script src="Classes/terrainUtils/TerrainEditor.js"></script>
