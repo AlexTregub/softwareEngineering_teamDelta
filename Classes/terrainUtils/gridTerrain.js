@@ -797,38 +797,47 @@ class camRenderConverter {
             this._canvasSize[0]/2,
             this._canvasSize[1]/2
         ]; // Canvas center in pixels.
-        this._canvasSizePair = canvasSizePair;
 
         this._tileSize = tileSize;
 
-        let tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
+        this._tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
             // (this._canvasCenter[0]%TILE_SIZE != 0) ? floor(this._canvasCenter[0]/TILE_SIZE)+1 : this._canvasCenter[0]/TILE_SIZE,
             // (this._canvasCenter[1]%TILE_SIZE != 0) ? floor(this._canvasCenter[1]/TILE_SIZE)+1 : this._canvasCenter[1]/TILE_SIZE
             this._canvasCenter[0]/this._tileSize,
             this._canvasCenter[1]/this._tileSize
         ];
         this._viewSpan = [
-            [ // TL (-x,+y)
-                this._camPosition[0]-tileOffsets[0],
-                this._camPosition[1]+tileOffsets[1]
+            [ // TL (-x,-y)
+                this._camPosition[0]-this._tileOffsets[0],
+                this._camPosition[1]-this._tileOffsets[1]
             ],
-            [ // BR (+x,-y)
-                this._camPosition[0]+tileOffsets[0],
-                this._camPosition[1]-tileOffsets[1]
+            [ // BR (+x,+y)
+                this._camPosition[0]+this._tileOffsets[0],
+                this._camPosition[1]+this._tileOffsets[1]
             ]
         ];
 
         this._updateId = 0; // Incrementing this will trigger updates in tiles, MUST BE DONE
         // this._updateId = random()
-    }
+    } // tested
 
-    //// State modifier
-    setCenterPos(pos) {
+    //// State modifier - UPDATE ENTIRE CONFIG
+    setCenterPos(pos) { // Updates camera position on grid...
         ++this._updateId;
 
         this._camPosition = pos;
-    }
 
+        this._viewSpan = [
+            [ // TL (-x,-y)
+                this._camPosition[0]-this._tileOffsets[0],
+                this._camPosition[1]-this._tileOffsets[1]
+            ],
+            [ // BR (+x,+y)
+                this._camPosition[0]+this._tileOffsets[0],
+                this._camPosition[1]+this._tileOffsets[1]
+            ]
+        ]
+    } // tested
 
     /**
      * Update canvas dimensions and recalculate viewport boundaries
@@ -854,7 +863,7 @@ class camRenderConverter {
 
         // Store new canvas dimensions
         this._canvasSize = sizePair;
-        //logNormal(this._canvasSize)
+
         // Calculate new canvas center point (viewport origin in pixels)
         this._canvasCenter = [
             this._canvasSize[0]/2,  // Center X in pixels
@@ -864,18 +873,18 @@ class camRenderConverter {
         //logNormal(this._canvasCenter)
 
         // Calculate how many tiles fit from center to edge of viewport
-        let tileOffsets = [
-            Math.ceil(this._canvasCenter[0]/this._tileSize),  // Tiles from center to horizontal edge
-            Math.ceil(this._canvasCenter[1]/this._tileSize)   // Tiles from center to vertical edge
+        this._tileOffsets = [
+            this._canvasCenter[0]/this._tileSize,
+            this._canvasCenter[1]/this._tileSize
         ];
         this._viewSpan = [
-            [ // TL (-x,+y)
-                this._camPosition[0]-tileOffsets[0],
-                this._camPosition[1]+tileOffsets[1]
+            [ // TL (-x,-y)
+                this._camPosition[0]-this._tileOffsets[0],
+                this._camPosition[1]-this._tileOffsets[1]
             ],
-            [ // Bottom-Right corner (+x,-y) 
-                this._camPosition[0]+tileOffsets[0],  // Right boundary
-                this._camPosition[1]-tileOffsets[1]   // Bottom boundary (-Y is down)
+            [ // Bottom-Right corner (+x,+y) 
+                this._camPosition[0]+this._tileOffsets[0],  // Right boundary
+                this._camPosition[1]+this._tileOffsets[1]   // Bottom boundary (-Y is down)
             ]
         ];
         /*
@@ -883,33 +892,50 @@ class camRenderConverter {
         logNormal("LEFT:",this._viewSpan[0][0])
         logNormal("RIGHT:",this._viewSpan[1][0])
         logNormal("BOTTOM:",this._viewSpan[1][1]) */
-    }
+    } // tested
 
-    setTileSize(size) {
+    setTileSize(size) { // Can be used for scaling...
         ++this._updateId;
 
         this._tileSize = size;
-    }
 
-    forceTileUpdate() { // Use for custom rendering of map. If used for first time, will ALWAYS cause update, then, has low probability to fail.
+        this._tileOffsets = [ // Offsets without rounding (unknown if _camPosition will be rounded)
+            // (this._canvasCenter[0]%TILE_SIZE != 0) ? floor(this._canvasCenter[0]/TILE_SIZE)+1 : this._canvasCenter[0]/TILE_SIZE,
+            // (this._canvasCenter[1]%TILE_SIZE != 0) ? floor(this._canvasCenter[1]/TILE_SIZE)+1 : this._canvasCenter[1]/TILE_SIZE
+            this._canvasCenter[0]/this._tileSize,
+            this._canvasCenter[1]/this._tileSize
+        ];
+        this._viewSpan = [
+            [ // TL (-x,-y)
+                this._camPosition[0]-this._tileOffsets[0],
+                this._camPosition[1]-this._tileOffsets[1]
+            ],
+            [ // BR (+x,+y)
+                this._camPosition[0]+this._tileOffsets[0],
+                this._camPosition[1]+this._tileOffsets[1]
+            ]
+        ];
+    } // tested
+
+    forceTileUpdate() { // Use for custom rendering of map. If used for first time, will ALWAYS cause update, then, has very low probability to fail.
         this._updateId = random(Number.MIN_SAFE_INTEGER,-1);
-    }
+    } // tested
 
     //// Util
-    // ...
-
-    // Calculate offset to align gridTerrain with canvas 0,0. Always works, will not move screen more than 1 tile.
+    // Calculate offset to align gridTerrain with canvas 0,0. Always works, SHOULD not move screen more than 1 tile. (fuck it we ball)
     alignToCanvas() {
-        ++this._updateId;
+        // ++this._updateId;
         let alignPos = this.convCanvasToPos([0,0]); // Fixed reference
-         logVerbose(alignPos);
+        logVerbose(alignPos); // Gets 'coordinate' of current TL of canvas 
 
-        let alignOffsetX = floor(alignPos[0]) - alignPos[0];
-        let alignOffsetY = floor(alignPos[1]) - alignPos[1];
+        let alignOffsetX = floor(alignPos[0]) - alignPos[0] + 0.5; // Align TL corner of tile, instead of center.
+        let alignOffsetY = floor(alignPos[1]) - alignPos[1] + 0.5;
         // logNormal(alignOffsetX,alignOffsetY);
+        // console.log(alignOffsetX,alignOffsetY)
 
-        this._camPosition = [alignOffsetX,alignOffsetY];
-    }
+        // this._camPosition = [this._camPosition + alignOffsetX,this._camPosition + alignOffsetY];
+        this.setCenterPos([this._camPosition[0] + alignOffsetX,this._camPosition[1] + alignOffsetY])
+    } // tested
 
     //// Conversions
     /**
@@ -930,12 +956,12 @@ class camRenderConverter {
         // Standard conversion without Y-axis inversion
         // Converts tile coordinates to canvas pixel coordinates
         // Uses standard p5.js coordinate system: Y increases downward
-        
+        // console.log(input)
         return [
             (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0],
             (input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]
         ];
-    }
+    } // tested
 
     /**
      * Convert canvas pixel coordinates to world tile coordinates
@@ -959,48 +985,16 @@ class camRenderConverter {
             (input[0] - this._canvasCenter[0])/this._tileSize + this._camPosition[0],
             (input[1] - this._canvasCenter[1])/this._tileSize + this._camPosition[1]
         ];
-    }
+    } // tested
 
     // Get info:
-    getViewSpan() {
+    getViewSpan() { // NOTE: CHANGED CONFIG. NEED TO UPDATE FUNCTIONS...
         return this._viewSpan;
-    }
+    } // tested
 
     getUpdateId() {
         return this._updateId;
-    }
-
-    //// Get Span:
-    // getPosSpan() {
-    //     // Get canvas size/offsets.
-    //     // let posOffsetFromCamX = floor(this._canvasCenter[0]/TILE_SIZE);
-    //     // let posOffsetFromCamY = floor(this._canvasCenter[1]/TILE_SIZE);
-    //     // if (this._canvasCenter[0]%TILE_SIZE != 0) {
-    //     //     ++posOffsetFromCamX;
-    //     // }
-    //     // if (this._canvasCenter[1]%TILE_SIZE != 0) {
-    //     //     ++posOffsetFromCamY;
-    //     // }
-    //     // Conditional assign: 
-    //     // this._canvasCenter[0]%TILE_SIZE == 0 ? this._canvasCenter[0]/TILE_SIZE : floor(this._canvasCenter[0]/TILE_SIZE)+1
-
-    //     // print(this._canvasCenter);
-    //     // print(this._canvasSizePair);
-
-    //     let posOffsetFromCamX = this._canvasCenter[0]%TILE_SIZE == 0 ? this._canvasCenter[0]/TILE_SIZE : floor(this._canvasCenter[0]/TILE_SIZE)+1
-    //     let posOffsetFromCamY = this._canvasCenter[1]%TILE_SIZE == 0 ? this._canvasCenter[1]/TILE_SIZE : floor(this._canvasCenter[1]/TILE_SIZE)+1
-
-    //     return [ // Return TL, BR pos
-    //         [ // TL, -x,+y
-    //             this._camPosition[0]-posOffsetFromCamX,
-    //             this._camPosition[1]+posOffsetFromCamY
-    //         ],
-    //         [ // BR, +x,-y
-    //             this._camPosition[0]+posOffsetFromCamX,
-    //             this._camPosition[1]-posOffsetFromCamY
-    //         ]
-    //     ]
-    // }
+    } // tested
 }
 
 function convPosToCanvas(input){
@@ -1011,4 +1005,118 @@ function convPosToCanvas(input){
 function convCanvasToPos(input){
     if (typeof g_activeMap === "undefined") {return}
     return g_activeMap.renderConversion.convCanvasToPos(input)
+}
+
+
+function TEST_CAM_RENDER_CONVERTER() {
+    console.log("=============== TEST_CRC RUN:")
+    let crc = new camRenderConverter([0,0],[windowWidth,windowHeight]);
+
+    let initViewSpan = crc.getViewSpan()
+    let initMapCenter = crc.convPosToCanvas([0,0])
+    console.log("Initial view span",initViewSpan)
+    console.log("0,0",initMapCenter)
+    console.log("Canvas size",crc._canvasSize)
+
+    if (initViewSpan[0][0] != -1*initViewSpan[1][0] | initViewSpan[0][1] != -1*initViewSpan[1][1]) {
+        console.log("Initial view misconfigured.")
+        return 0
+    }
+
+    let initUID = crc.getUpdateId()
+    if (initUID != 0) {
+        console.log("Misconfigured update id.")
+        return 0
+    }
+    crc.forceTileUpdate()
+    if (initUID == crc.getUpdateId()) {
+        console.log("Force tile update failed.")
+        return 0
+    }
+
+    // NON-COMPREHENSIVE, SHOULD COVER ALL FAILURE MODES
+    let convPos = crc.convCanvasToPos([2,2])
+    let convCanvas = crc.convPosToCanvas(convPos)
+
+    if (convCanvas[0] != 2 | convCanvas[1] != 2) {
+        console.log("Conversions to->from failed.")
+
+        // console.log(convPos)
+        // console.log(convCanvas)
+        return 0
+    }
+
+    convPos = crc.convCanvasToPos([-100,-100])
+    convCanvas = crc.convPosToCanvas(convPos)
+
+    if (convCanvas[0] != -100 | convCanvas[1] != -100) {
+        console.log("Conversions to->from failed.")
+
+        // console.log(convPos)
+        // console.log(convCanvas)
+        return 0
+    }
+
+    convPos = crc.convCanvasToPos([3,-3])
+    convCanvas = crc.convPosToCanvas(convPos)
+
+    if (convCanvas[0] != 3 | convCanvas[1] != -3) {
+        console.log("Conversions to->from failed.")
+
+        // console.log(convPos)
+        // console.log(convCanvas)
+        return 0
+    }
+
+    convPos = crc.convCanvasToPos([-4,3])
+    convCanvas = crc.convPosToCanvas(convPos)
+
+    if (convCanvas[0] != -4 | convCanvas[1] != 3) {
+        console.log("Conversions to->from failed.")
+
+        // console.log(convPos)
+        // console.log(convCanvas)
+        return 0
+    }
+
+    // Canvas size shrinking
+    crc.setCanvasSize([100,100])
+    let tempViewSpan = crc.getViewSpan()
+    // console.log(tempViewSpan)
+
+    if (crc.convPosToCanvas([0,0])[0] != 50 | crc.convPosToCanvas([0,0])[1] != 50) {
+        console.log("Shrinking map inconsistent.")
+        return 0
+    }
+
+    crc.setTileSize(crc._tileSize/2)
+    if (tempViewSpan[0][0]*2 != crc.getViewSpan()[0][0] | tempViewSpan[0][1]*2 != crc.getViewSpan()[0][1] | tempViewSpan[1][0]*2 != crc.getViewSpan()[1][0] | tempViewSpan[1][1]*2 != crc.getViewSpan()[1][1]) {
+        // console.log(crc.getViewSpan())
+        console.log("Tile size configuration inconsistent.")
+        return 0
+    }
+
+    // Restore for next testing...
+    crc.setTileSize(crc._tileSize*2)
+    crc.setCanvasSize([windowWidth,windowHeight])
+
+    // Testing alignment system...
+    crc.alignToCanvas()
+    // console.log(crc.getViewSpan())
+    // console.log(crc.convPosToCanvas([0,0]))
+
+    let mapCenter = crc.convPosToCanvas([0,0])
+    let viewSpan = crc.getViewSpan()
+    if (mapCenter[0] - initMapCenter[0] > crc._tileSize | mapCenter[0] - initMapCenter[0] < -crc._tileSize | mapCenter[1] - initMapCenter[1] > crc._tileSize | mapCenter[1] - initMapCenter[1] < -crc._tileSize) {
+        console.log("On alignment, map moved too far.")
+        return 0
+    }
+
+    if (floor(viewSpan[0][0]) - viewSpan[0][0] != -0.5 | floor(viewSpan[0][1]) - viewSpan[0][1] != -0.5) {
+        console.log("Tiles not aligned to canvas.")
+        return 0
+    }
+
+    console.log("TEST_CRC END ===============")
+    return 1
 }

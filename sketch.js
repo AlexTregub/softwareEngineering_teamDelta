@@ -66,6 +66,10 @@ function setup() {
     console.log("CHUNK MALFORMED.")
     // TEST_CHUNK()
   }
+
+  if (!TEST_CAM_RENDER_CONVERTER()){
+    console.log("CAMERA RENDER CONVERTER MALFORMED.")
+  }
  
   return; // !!! REMOVE BEFORE DEV
 
