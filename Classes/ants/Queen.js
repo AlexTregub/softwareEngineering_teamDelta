@@ -136,21 +136,30 @@ class QueenAnt extends ant {
   move(direction) {
     const pos = this.getPosition();
     const speed = this.movementSpeed * 0.1; // queen moves slower
+    
+    console.log(`👑 [Queen] move(${direction}) - Current pos: (${Math.round(pos.x)}, ${Math.round(pos.y)}), speed: ${speed}`);
 
     switch (direction) {
       case "w":
+        console.log(`👑 [Queen] Moving UP to (${Math.round(pos.x)}, ${Math.round(pos.y + speed)})`);
         this.moveToLocation(pos.x, pos.y + speed);
         break;
       case "a":
+        console.log(`👑 [Queen] Moving LEFT to (${Math.round(pos.x - speed)}, ${Math.round(pos.y)})`);
         this.moveToLocation(pos.x - speed, pos.y);
         break;
       case "s":
+        console.log(`👑 [Queen] Moving DOWN to (${Math.round(pos.x)}, ${Math.round(pos.y - speed)})`);
         this.moveToLocation(pos.x, pos.y - speed);
         break;
       case "d":
+        console.log(`👑 [Queen] Moving RIGHT to (${Math.round(pos.x + speed)}, ${Math.round(pos.y)})`);
         this.moveToLocation(pos.x + speed, pos.y);
         break;
     }
+    
+    const newPos = this.getPosition();
+    console.log(`👑 [Queen] After move - New pos: (${Math.round(newPos.x)}, ${Math.round(newPos.y)})`);
   }
 
 

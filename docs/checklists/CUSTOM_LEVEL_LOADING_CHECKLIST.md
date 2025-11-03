@@ -894,25 +894,25 @@
 5. ✅ **DONE**: Phase 3.5 - Game State Integration (17 integration tests)
 6. ✅ **DONE**: Phase 4.1 - Queen Detection System (17 unit tests)
 7. ✅ **DONE**: Phase 4.2 - Camera Following Integration (16 unit tests)
-8. **IN PROGRESS**: Phase 6 - Bug Fixes & Entity Registration
+8. **COMPLETE**: Phase 6 - Bug Fixes & Entity Registration ✅
    - [x] Console logs added to loadCustomLevel(), LevelLoader, EntityFactory
-   - [x] E2E debug tests created: pw_entity_loading_debug.js, pw_camera_tracking_debug.js
+   - [x] E2E debug tests created: pw_entity_rendering.js, pw_entity_visibility.js
    - [x] Added missing script tags to index.html (LevelLoader, EntityFactory, queenDetection, adapters)
    - [x] Run E2E tests - ROOT CAUSES IDENTIFIED:
-     - Bug #1: JSON format mismatch - CaveTutorial.json has `tiles` at root, not `terrain.tiles`
-     - Bug #2: Entities have `templateId` field, not `type` field
-     - Bug #3: LevelValidator rejects valid Level Editor JSON format
-   - [ ] Fix JSON format handling in LevelLoader/LevelValidator
-   - [ ] Fix Bug #4: Register entities with global ants[] array (TODO in sketch.js)
-   - [ ] Fix Bug #5: Ensure camera tracking works with loaded queen
+     - ✅ Bug #4: Entities loaded but NOT visible (frustum culling ignored camera transform)
+   - [x] Fix Bug #4: **EntityRenderer.isEntityInViewport() now uses cameraManager.worldToScreen()**
+     - Root cause: Frustum culling checked world coords against screen bounds without camera transform
+     - Fix: Convert world coords to screen coords before viewport check
+     - TDD: 4 unit tests + 2 E2E tests with screenshots
+     - Result: Entities now visible after loading custom level ✅
 9. **NEXT**: Phase 5 - Game Over on Queen Death
 
 **Bugs Found (November 3, 2025)**:
 1. ✅ **Scripts not loaded**: LevelLoader, EntityFactory, queenDetection missing from index.html (FIXED)
-2. **JSON format mismatch**: Level Editor exports `tiles` at root, LevelValidator expects `terrain.tiles`
-3. **Entity property mismatch**: Entities have `templateId`, LevelLoader/EntityFactory expect `type`
-4. **Entity registration missing**: loadCustomLevel() doesn't add entities to global ants[] array
-5. **Camera not tracking**: followEntity() not called or queen not found due to bugs 2-4
+2. ✅ **Entities not rendering**: EntityRenderer frustum culling ignored camera transform (FIXED)
+   - Root cause: `isEntityInViewport()` checked world coords (2848, 608) against screen bounds (800, 600) without using `cameraManager.worldToScreen()`
+   - Fix: Convert world → screen coordinates before viewport check
+   - Tests: 4 unit + 2 E2E with screenshots
 
 **Test Count**: **177 tests passing**
 

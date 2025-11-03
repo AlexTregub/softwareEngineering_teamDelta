@@ -302,6 +302,39 @@ class CustomLevelCamera {
   }
   
   /**
+   * Converts world coordinates to screen coordinates.
+   * CRITICAL: Required by EntityLayerRenderer for frustum culling.
+   * 
+   * Screen coords = (world coords - camera position) * zoom
+   * 
+   * @param {number} worldX - World X coordinate
+   * @param {number} worldY - World Y coordinate
+   * @returns {Object} Screen coordinates {screenX, screenY}
+   */
+  worldToScreen(worldX, worldY) {
+    return {
+      screenX: (worldX - this.cameraX) * this.cameraZoom,
+      screenY: (worldY - this.cameraY) * this.cameraZoom
+    };
+  }
+  
+  /**
+   * Converts screen coordinates to world coordinates.
+   * 
+   * World coords = (screen coords / zoom) + camera position
+   * 
+   * @param {number} screenX - Screen X coordinate
+   * @param {number} screenY - Screen Y coordinate
+   * @returns {Object} World coordinates {worldX, worldY}
+   */
+  screenToWorld(screenX, screenY) {
+    return {
+      worldX: (screenX / this.cameraZoom) + this.cameraX,
+      worldY: (screenY / this.cameraZoom) + this.cameraY
+    };
+  }
+  
+  /**
    * Main update method - delegates to bounded follow algorithm.
    * Called every frame from the game loop.
    */

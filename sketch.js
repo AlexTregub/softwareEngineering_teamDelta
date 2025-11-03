@@ -58,8 +58,10 @@ function registerEntitiesWithGameWorld(entities) {
     
     // Register with appropriate global array based on type
     if (entity.type === 'Queen' || entity.type === 'Ant') {
-      if (!window.ants) window.ants = [];
-      window.ants.push(entity);
+      // CRITICAL: Push to bare 'ants' variable (from ants.js) so EntityLayerRenderer.collectAnts() can access it
+      ants.push(entity);
+      // Also add to selectables for selection system
+      if (typeof selectables !== 'undefined') selectables.push(entity);
       counts.ants++;
       console.log(`[registerEntitiesWithGameWorld] Registered ${entity.type}:`, entity.id, 'at', entity.position);
     } else if (entity.type === 'Resource') {
@@ -185,6 +187,13 @@ function setup() {
     // This maintains compatibility with existing game input systems
   });
 
+  // CRITICAL: Initialize EntityRenderer instance (if it's still a class)
+  if (typeof EntityRenderer === 'function' && !EntityRenderer.renderAllLayers) {
+    console.warn('⚠️ EntityRenderer was not instantiated! Creating instance now...');
+    window.EntityRenderer = new EntityRenderer();
+    console.log('✅ EntityRenderer instance created manually');
+  }
+  
   // Initialize camera management system (CameraSystemManager for dual camera support)
   if (typeof CameraSystemManager !== 'undefined') {
     // Note: CameraSystemManager doesn't require a cameraController parameter
@@ -1632,3 +1641,85 @@ function windowResized() {
 
   resizeCanvas(g_canvasX,g_canvasY);
 }
+
+/**
+ * DEBUG: Spawn a test ant at camera center for debugging rendering issues
+ * Usage: In browser console, type: spawnDebugAnt()
+ */
+window.spawnDebugAnt = function() {
+  console.log('🐜 [DEBUG] Spawning test ant at camera center...');
+  
+  // Get camera position
+  const camPos = cameraManager.getCameraPosition();
+  if (!camPos) {
+    console.error('❌ Camera position unavailable');
+    return;
+  }
+  
+  // Calculate camera center in world coordinates
+  const viewWidth = (g_canvasX || 800) / camPos.zoom;
+  const viewHeight = (g_canvasY || 600) / camPos.zoom;
+  const centerX = camPos.x + (viewWidth / 2);
+  const centerY = camPos.y + (viewHeight / 2);
+  
+  console.log(`📍 Camera: pos=(${Math.round(camPos.x)}, ${Math.round(camPos.y)}), zoom=${camPos.zoom}`);
+  console.log(`📍 Viewport: ${g_canvasX}x${g_canvasY}`);
+  console.log(`📍 Spawning at world center: (${Math.round(centerX)}, ${Math.round(centerY)})`);
+  
+  // Create a new ant at camera center using the existing ant class
+  if (typeof ant === 'undefined') {
+    console.error('❌ ant class not available');
+    return;
+  }
+  
+  const newAnt = new ant(
+    centerX, centerY,  // Position at camera center
+    40, 40,            // Size
+    30, 0,             // Movement speed, rotation
+    antBaseSprite,     // Image
+    'Scout',           // Job
+    'player'           // Faction
+  );
+  
+  // Assign job with image
+  if (typeof JobImages !== 'undefined' && JobImages['Scout']) {
+    newAnt.assignJob('Scout', JobImages['Scout']);
+  }
+  
+  // Add to ants array
+  ants.push(newAnt);
+  
+  // Add to selectables
+  if (typeof selectables !== 'undefined') {
+    selectables.push(newAnt);
+  }
+  
+  // Register with spatial grid (if method exists)
+  if (typeof spatialGridManager !== 'undefined' && spatialGridManager && 
+      typeof spatialGridManager.registerEntity === 'function') {
+    try {
+      spatialGridManager.registerEntity(newAnt);
+    } catch (e) {
+      console.warn('Could not register with spatial grid:', e.message);
+    }
+  }
+  
+  // Register with tile interaction manager
+  if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && 
+      typeof g_tileInteractionManager.addObject === 'function') {
+    try {
+      g_tileInteractionManager.addObject(newAnt, 'ant');
+    } catch (e) {
+      console.warn('Could not register with tile interaction:', e.message);
+    }
+  }
+  
+  console.log(`✅ Test ant spawned! Total ants: ${ants.length}`);
+  console.log(`   Position: (${Math.round(newAnt.x)}, ${Math.round(newAnt.y)})`);
+  console.log(`   It should be visible at the CENTER of your screen!`);
+  
+  return newAnt;
+}
+
+// Make it easily accessible
+window.testAnt = window.spawnDebugAnt;

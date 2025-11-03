@@ -134,12 +134,44 @@ class CameraSystemManager {
   }
   
   /**
+   * Initializes the camera system (for fallback CameraManager compatibility).
+   * Called once during setup.
+   */
+  initialize() {
+    if (this.activeCamera && typeof this.activeCamera.initialize === 'function') {
+      this.activeCamera.initialize();
+    }
+  }
+  
+  /**
    * Updates the active camera.
    * Called every frame from the game loop.
    */
   update() {
     if (this.activeCamera && typeof this.activeCamera.update === 'function') {
       this.activeCamera.update();
+    }
+  }
+  
+  /**
+   * Handles mouse wheel events for zooming.
+   * 
+   * @param {Event} event - Mouse wheel event
+   * @returns {boolean} True if event was handled
+   */
+  handleMouseWheel(event) {
+    if (this.activeCamera && typeof this.activeCamera.handleMouseWheel === 'function') {
+      return this.activeCamera.handleMouseWheel(event);
+    }
+    return false;
+  }
+  
+  /**
+   * Toggles camera following on/off.
+   */
+  toggleFollow() {
+    if (this.activeCamera && typeof this.activeCamera.toggleFollow === 'function') {
+      this.activeCamera.toggleFollow();
     }
   }
   
@@ -214,6 +246,54 @@ class CameraSystemManager {
     if (this.customLevelCamera) {
       this.customLevelCamera.currentMap = map;
     }
+  }
+  
+  /**
+   * Converts world coordinates to screen coordinates.
+   * CRITICAL: Required by EntityLayerRenderer for frustum culling.
+   * 
+   * @param {number} worldX - World X coordinate
+   * @param {number} worldY - World Y coordinate
+   * @returns {Object} Screen coordinates {screenX, screenY}
+   */
+  worldToScreen(worldX, worldY) {
+    if (this.activeCamera && typeof this.activeCamera.worldToScreen === 'function') {
+      return this.activeCamera.worldToScreen(worldX, worldY);
+    }
+    // Fallback: return world coords as-is (no transform)
+    return { screenX: worldX, screenY: worldY };
+  }
+  
+  /**
+   * Converts screen coordinates to world coordinates.
+   * 
+   * @param {number} screenX - Screen X coordinate
+   * @param {number} screenY - Screen Y coordinate
+   * @returns {Object} World coordinates {worldX, worldY}
+   */
+  screenToWorld(screenX, screenY) {
+    if (this.activeCamera && typeof this.activeCamera.screenToWorld === 'function') {
+      return this.activeCamera.screenToWorld(screenX, screenY);
+    }
+    // Fallback: return screen coords as-is (no transform)
+    return { worldX: screenX, worldY: screenY };
+  }
+  
+  /**
+   * Gets the active camera's zoom level.
+   * @returns {number} Camera zoom level (default 1.0 if no active camera)
+   */
+  getZoom() {
+    if (this.activeCamera) {
+      // Try method first, then property
+      if (typeof this.activeCamera.getZoom === 'function') {
+        return this.activeCamera.getZoom();
+      }
+      if (typeof this.activeCamera.cameraZoom === 'number') {
+        return this.activeCamera.cameraZoom;
+      }
+    }
+    return 1.0; // Default zoom
   }
   
   /**

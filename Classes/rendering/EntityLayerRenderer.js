@@ -27,7 +27,7 @@ class EntityRenderer {
     // Rendering configuration
     this.config = {
       enableDepthSorting: true,
-      enableFrustumCulling: true,
+      enableFrustumCulling: false, // TEMPORARILY DISABLED FOR DEBUGGING
       enableBatching: true,
       maxBatchSize: 100,
       cullMargin: 50 // Extra pixels outside view for culling
@@ -169,10 +169,15 @@ class EntityRenderer {
    * Collect ant entities
    */
   collectAnts(gameState) {
+    console.log(`[EntityRenderer] collectAnts() - ants.length: ${ants.length}, gameState: ${gameState}`);
+    
     for (let i = 0; i < ants.length; i++) {
       if (ants[i]) {
         const ant = ants[i];
         this.stats.totalEntities++;
+        
+        const pos = this.getEntityPosition(ant);
+        console.log(`[EntityRenderer] Ant ${i}: type=${ant.type}, pos=(${Math.round(pos.x)}, ${Math.round(pos.y)})`);
         
         if (this.shouldRenderEntity(ant)) {
           const entityData = {
@@ -182,11 +187,15 @@ class EntityRenderer {
             position: this.getEntityPosition(ant)
           };
           this.renderGroups.ANTS.push(entityData);
+          console.log(`[EntityRenderer]   ✅ Added to render group (total: ${this.renderGroups.ANTS.length})`);
         } else {
           this.stats.culledEntities++;
+          console.log(`[EntityRenderer]   ❌ CULLED (not in viewport)`);
         }
       }
     }
+    
+    console.log(`[EntityRenderer] collectAnts() complete - Collected: ${this.renderGroups.ANTS.length}, Culled: ${this.stats.culledEntities}`);
     
     // Update ants if in playing state  
     if (gameState === 'PLAYING' && antsUpdate) {
@@ -252,22 +261,55 @@ class EntityRenderer {
   
   /**
    * Check if entity is within the viewport (frustum culling)
+   * CRITICAL: Must convert world coordinates to screen coordinates using camera transform
    */
   isEntityInViewport(entity) {
-    const pos = this.getEntityPosition(entity);
+    const worldPos = this.getEntityPosition(entity);
     
-    if (!pos) {
+    if (!worldPos) {
       return true; // Render if we can't determine position
     }
     
     const size = this.getEntitySize(entity);
     const margin = this.config.cullMargin;
     
-    // Check bounds with margin
-    return (pos.x + size.width + margin >= 0 && 
-            pos.x - margin <= g_canvasX &&
-            pos.y + size.height + margin >= 0 && 
-            pos.y - margin <= g_canvasY);
+    // Convert world coordinates to screen coordinates using camera transform
+    let screenX, screenY;
+    
+    if (typeof cameraManager !== 'undefined' && cameraManager && 
+        typeof cameraManager.worldToScreen === 'function') {
+      // Use camera transform to convert world → screen coords
+      const screenPos = cameraManager.worldToScreen(worldPos.x, worldPos.y);
+      screenX = screenPos.screenX;
+      screenY = screenPos.screenY;
+      
+      // DEBUG: Log first entity's conversion
+      if (entity.type === 'Queen') {
+        const camPos = cameraManager.getCameraPosition ? cameraManager.getCameraPosition() : { x: 0, y: 0, zoom: 1 };
+        console.log(`[Culling] Queen: world=(${Math.round(worldPos.x)}, ${Math.round(worldPos.y)}) → screen=(${Math.round(screenX)}, ${Math.round(screenY)})`);
+        console.log(`[Culling]   Camera: pos=(${Math.round(camPos.x)}, ${Math.round(camPos.y)}), zoom=${camPos.zoom}`);
+        console.log(`[Culling]   Viewport: ${g_canvasX}x${g_canvasY}, margin=${margin}`);
+        console.log(`[Culling]   Check: screenX+margin(${Math.round(screenX+margin)}) >= 0 && screenX-margin(${Math.round(screenX-margin)}) <= ${g_canvasX}`);
+        console.log(`[Culling]   Check: screenY+margin(${Math.round(screenY+margin)}) >= 0 && screenY-margin(${Math.round(screenY-margin)}) <= ${g_canvasY}`);
+      }
+    } else {
+      // Fallback: use world coords directly (no camera transform)
+      screenX = worldPos.x;
+      screenY = worldPos.y;
+      console.log(`[Culling] WARNING: No cameraManager.worldToScreen() - using world coords directly`);
+    }
+    
+    // Check if screen position is within viewport bounds (with margin)
+    const inViewport = (screenX + size.width + margin >= 0 && 
+                        screenX - margin <= g_canvasX &&
+                        screenY + size.height + margin >= 0 && 
+                        screenY - margin <= g_canvasY);
+    
+    if (entity.type === 'Queen') {
+      console.log(`[Culling]   Result: ${inViewport ? '✅ IN VIEWPORT' : '❌ CULLED'}`);
+    }
+    
+    return inViewport;
   }
   
   /**
@@ -324,9 +366,14 @@ class EntityRenderer {
    * Standard rendering for entity groups
    */
   renderEntityGroupStandard(entityGroup) {
+    console.log(`[EntityRenderer] renderEntityGroupStandard() - Rendering ${entityGroup.length} entities`);
+    
     for (const entityData of entityGroup) {
       try {
         if (entityData.entity && entityData.entity.render) {
+          const pos = entityData.position || { x: 0, y: 0 };
+          console.log(`[EntityRenderer]   Rendering ${entityData.type} at (${Math.round(pos.x)}, ${Math.round(pos.y)})`);
+          
           // Start entity performance tracking
           if (g_performanceMonitor) {
             g_performanceMonitor.startEntityRender(entityData.entity);
@@ -339,6 +386,8 @@ class EntityRenderer {
           if (g_performanceMonitor) {
             g_performanceMonitor.endEntityRender();
           }
+        } else {
+          console.warn(`[EntityRenderer]   Entity missing render method:`, entityData.entity);
         }
       } catch (error) {
         console.warn('EntityRenderer: Error rendering entity:', error);

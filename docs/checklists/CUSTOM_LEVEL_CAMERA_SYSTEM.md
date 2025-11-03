@@ -367,6 +367,12 @@ function updateBoundedCamera() {
     - Added `getCameraPosition()` method to `CameraManager` returning `{x, y, zoom}`
     - Added `setCameraPosition(x, y)` method for API compatibility
     - Added robust null checks in `RenderLayerManager.applyZoom()` with fallbacks
+  - **BUG FIX (Nov 3, 2025)**: Fixed "cameraManager.getZoom is not a function" error
+    - Root cause: `CameraSystemManager` was missing delegation methods for camera API
+    - Added `getZoom()` method with fallback to property access
+    - Added `initialize()` method for setup phase compatibility
+    - Added `handleMouseWheel()` method for zoom control
+    - Added `toggleFollow()` method for follow toggling
   
 - [x] **State change callback registered** ✅
   - Callback switches camera on GameState changes
