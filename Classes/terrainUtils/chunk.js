@@ -301,7 +301,12 @@ function TEST_CHUNK() {
     console.log(renderConverter.convPosToCanvas([0,0]))
     console.log(renderConverter.convPosToCanvas([1,1]))
     
-    chunk.render(renderConverter) // RENDER NOT WORKING???
+    chunk.render(renderConverter) // Working...
+
+    if (chunk.get([4,4]).material != 'grass') {
+        console.log("Default state of chunk not as expected.")
+        return 0
+    }
     // return 0
     // stall(1000)
 
@@ -309,6 +314,18 @@ function TEST_CHUNK() {
     chunk.applyGenerationMode('perlin',[0,0],[1,1]) // Working...
     chunk.render(renderConverter)
     chunk.print()
+
+    let materialPrev = 'grass'
+    for (let i = 0; i < chunk.getSize()[0]*chunk.getSize()[1]; ++i) {
+        if (materialPrev != chunk.get(chunk.tileData.convToSquare(i)).material) {
+            materialPrev = chunk.get(chunk.tileData.convToSquare(i)).material;
+            break;
+        }
+        // materialPrev = chunk.get(chunk.tileData.convToSquare(i)).material;
+    }
+    if (materialPrev == 'grass') {
+        console.log("Perlin noise POTENTIALLY failed to generate. See print logs.")
+    }
     // return 0
 
     // stall(1000)
@@ -319,6 +336,11 @@ function TEST_CHUNK() {
     chunk.render(renderConverter)
     // return 0
 
+    if (chunk.get([4,4]).material == chunk.get([5,4]) | chunk.get([4,4]).material != chunk.get([4,5]).material) {
+        console.log("Column generation failed to generate.")
+        return 0
+    }     
+
     // stall(1000)
 
     console.log("Checkerboard:")
@@ -326,6 +348,11 @@ function TEST_CHUNK() {
     chunk.print()
     chunk.render(renderConverter)
     // return 0
+
+    if (chunk.get([4,4]).material == chunk.get([5,4]).material | chunk.get([4,4]).material == chunk.get([4,5]).material | chunk.get([4,4]).material != chunk.get([5,5]).material) {
+        console.log("Checkerboard generation failed.")
+        return 0
+    }
 
     // stall(1000)
 
@@ -335,6 +362,11 @@ function TEST_CHUNK() {
     chunk.render(renderConverter)
     // return 0
 
+    if (chunk.get([4,4]).material != chunk.get([4,5]).material) {
+        console.log("Flat generation failed.")
+        return 0
+    }
+
     // stall(1000)
 
     console.log("Blank:")
@@ -342,6 +374,11 @@ function TEST_CHUNK() {
     chunk.print()
     chunk.render(renderConverter)
     // return 0
+
+    if (chunk.get([4,4]).material != 'dirt' | chunk.get([4,4]).material != chunk.get([4,5]).material) {
+        console.log("Blank generation failed.")
+        return 0
+    }
 
     // stall(1000)
 
@@ -351,6 +388,11 @@ function TEST_CHUNK() {
     chunk.render(renderConverter)
     // return 0
 
+    if (chunk.get([4,4]).material != 'moss' | chunk.get([4,4]).material != chunk.get([4,5]).material) {
+        console.log("Flat generation failed. (Moss)")
+        return 0
+    }
+
     // stall(1000)
 
     console.log("Flat+Dif Material:stone")
@@ -359,10 +401,20 @@ function TEST_CHUNK() {
     chunk.render(renderConverter)
     // return 0
 
+    if (chunk.get([4,4]).material != 'stone' | chunk.get([4,4]).material != chunk.get([4,5]).material) {
+        console.log("Flat generation failed. (Stone)")
+        return 0
+    }
+
     // stall(1000)
 
     chunk.clear()
     chunk.render(renderConverter)
+
+    if (chunk.get([4,4]).material != 'grass' | chunk.get([4,4]).material != chunk.get([4,5]).material) {
+        console.log("Clearing failed. (NOTE: THIS ENSURES PERLIN TEST NOT FAILING UNNECESSARILY)")
+        return 0
+    }
 
     console.log("TEST_CHUNK END ===============")
     return 1
