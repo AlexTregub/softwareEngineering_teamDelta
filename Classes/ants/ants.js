@@ -805,7 +805,7 @@ function spawnQueen(){
     30, 0,
     antBaseSprite,
     'Queen',  // This makes it type "Queen"
-    'Player'
+    'player'
   );
 
   // Wrap in QueenAnt to get Queen-specific behavior

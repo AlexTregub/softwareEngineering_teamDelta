@@ -20,12 +20,13 @@ class AbstractBuildingFactory {
 }
 
 
+
 class AntCone extends AbstractBuildingFactory {
   constructor() {
     super();
     this.info = {
       canUpgrade: true,
-      upgradeCost: 50,
+      upgradeCost: 0,
       progressions: {
         1: {
           image: () => loadImage('Images/Buildings/Cone/Cone2.png'),
@@ -38,7 +39,6 @@ class AntCone extends AbstractBuildingFactory {
   }
 
   createBuilding(x, y, faction) {
-    logNormal(this.info, this.upgradeCost, globalResource.length)
     return new Building(x, y, 91, 97, Cone, faction, this.info);
   }
 }
@@ -48,7 +48,7 @@ class AntHill extends AbstractBuildingFactory {
     super();
     this.info = {
       canUpgrade: true,
-      upgradeCost: 50,
+      upgradeCost: 0,
       progressions: {
         1: {
           image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
@@ -71,7 +71,7 @@ class HiveSource extends AbstractBuildingFactory {
     
     this.info = {
       canUpgrade: true,
-      upgradeCost: 5,
+      upgradeCost: 0,
       progressions: {
         1: {
           image: () => loadImage('Images/Buildings/Hive/Hive2.png'),
@@ -89,10 +89,11 @@ class HiveSource extends AbstractBuildingFactory {
 }
 
 
+
 class Building extends Entity {
   constructor(x, y, width, height, img, faction, info) {
     super(x, y, width, height, {
-      type: "Ant",
+      type: "Building",
       imagePath: img,
       selectable: true,
       faction: faction
@@ -100,6 +101,10 @@ class Building extends Entity {
 
 
     // --- Basic properties ---
+    this._x = x;
+    this._y = y;
+    this._width = width;
+    this._height = height;
     this._faction = faction;
     this._health = 100;
     this._maxHealth = 100;
@@ -108,6 +113,11 @@ class Building extends Entity {
     this.lastFrameTime = performance.now();
     this.isBoxHovered = false;
     this.info = info
+
+    // -- Stats Buff --
+    this.effectRange = 250;
+    this._buffedAnts = new Set();
+
 
 
     // --- Spawning (ants) ---
@@ -122,21 +132,54 @@ class Building extends Entity {
     if (img) this.setImage(img);
   }
 
+  getAnts(faction){
+    return ants.filter(ant => (ant.faction === faction || ant.faction === 'neutral'));
+  }
+
+  statsBuff(){
+    // Apply building-specific buffs
+    const nearbyAnts = this.getAnts(this.faction);
+    nearbyAnts.forEach(ant => {
+      const range = dist(this._x, this._y, ant.posX, ant.posY);
+      const defaultStats = ant.job.stats;
+      const buff =  {
+          health : defaultStats.health + 20,
+          movementSpeed : defaultStats.movementSpeed + 90,
+          strength : defaultStats.strength + 1,
+          gatherSpeed : defaultStats.gatherSpeed + 0,
+      }
+
+
+      if(range <= this.effectRange && !this._buffedAnts.has(ant.id)){
+        ant._applyJobStats(buff);
+        console.log('Applying buff to ant ID:',buff);
+        this._buffedAnts.add(ant.id);
+      }
+      else{
+        if(this._buffedAnts.has(ant.id) && range > this.effectRange){   
+          console.log('Reverting stats for ant ID:', defaultStats);      
+          ant._applyJobStats(defaultStats);
+          this._buffedAnts.delete(ant.id);
+        }
+      }
+    })
+  }
+
   upgradeBuilding() {
     if (!this.info || !this.info.progressions) return false;
     const next = this.info.progressions[1];
-    if(this.info.upgradeCost > globalResource.length){ logNormal('Not enough resources to upgrade'); return false; }
-    if (!next) { logNormal('No further upgrades'); return false; }
+    if(this.info.upgradeCost > globalResource.length){ console.log('Not enough resources to upgrade'); return false; }
+    if (!next) { console.log('No further upgrades'); return false; }
 
     const nextImage = typeof next.image === "function" ? next.image() : next.image;
-    if (!nextImage) { logNormal('Image not loaded yet'); return false; }
+    if (!nextImage) { console.log('Image not loaded yet'); return false; }
 
     try {
       this.setImage(nextImage);
       this._spawnInterval = Math.max(1, this._spawnInterval - 1);
       this._spawnCount += 1;
       this.info = next;
-      logNormal("Building upgraded!");
+      console.log("Building upgraded!");
     } catch (e) {
       console.warn("Upgrade failed:", e);
       return false;
@@ -158,7 +201,7 @@ class Building extends Entity {
 
     if (!this.isActive) return;
     super.update();
-
+    this.statsBuff();
     this._updateHealthController();
 
     // Spawn ants if enabled — uses global antsSpawn(num, faction, x, y)
@@ -172,7 +215,7 @@ class Building extends Entity {
           const s = this.getSize ? this.getSize() : (this._size || { x: width || 32, y: height || 32 });
           const centerX = p.x + (s.x / 2);
           const centerY = p.y + (s.y / 2);
-          antsSpawn(this._spawnCount, this._faction || 'neutral', centerX , centerY);
+          antsSpawn(this._spawnCount, this._faction || 'player', centerX , centerY);
         }
       } catch (e) { console.warn('Building spawn error', e); }
     }
@@ -207,7 +250,7 @@ class Building extends Entity {
     }
 
     if (this._health <= 0) {
-      logNormal("Building has died.");
+      console.log("Building has died.");
     }
 
     return this._health;

@@ -1,18 +1,11 @@
 class QueenAnt extends ant {
   constructor(baseAnt) {
     // If a base ant is passed, use its properties; otherwise create a default queen ant
-    const posX = baseAnt ? baseAnt.posX : 400;
-    const posY = baseAnt ? baseAnt.posY : 300;
-    const sizeX = baseAnt ? baseAnt.getSize().x : 60;
-    const sizeY = baseAnt ? baseAnt.getSize().y : 60;
-    const movementSpeed = baseAnt ? baseAnt.movementSpeed : 30;
-    const rotation = baseAnt ? baseAnt.rotation : 0;
-    const img = baseAnt ? baseAnt.getImage() : JobImages["Builder"];
-    const faction = baseAnt ? baseAnt.faction : "player";
+    // console.log('queen',baseAnt.posX, baseAnt.posY, baseAnt.getSize().x, baseAnt.getSize().y, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(), baseAnt._faction);
 
     // Call parent ant constructor
-    super(posX, posY, sizeX, sizeY, movementSpeed, rotation, img, "Queen", faction);
-
+    super(baseAnt.posX, baseAnt.posY, baseAnt.getSize().x, baseAnt.getSize().y, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    
     // Queen-specific properties
     this.commandRadius = 250;
     this.ants = []; // ants under her command
