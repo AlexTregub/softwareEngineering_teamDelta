@@ -4,7 +4,6 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Default 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
-let COORDSY;
 
 const NONE = '\0'; 
 
@@ -350,10 +349,7 @@ function initializeWorld() {
     mapManager.registerMap('level1', g_map2, true);
     logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
-  
-  // COORDSY = new CoordinateSystem();
-  // COORDSY.setViewCornerBC(0,0);
-  
+     
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
   
