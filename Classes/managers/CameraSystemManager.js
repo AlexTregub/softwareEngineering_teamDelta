@@ -45,12 +45,13 @@ class CameraSystemManager {
    */
   _initializeCameras() {
     // Initialize CameraManager for procedural levels
+    // Note: CameraManager doesn't accept constructor parameters - it initializes itself
     if (typeof CameraManager !== 'undefined') {
-      this.proceduralCamera = new CameraManager(
-        this.cameraController,
-        this.canvasWidth,
-        this.canvasHeight
-      );
+      this.proceduralCamera = new CameraManager();
+      // Call initialize() to set up the camera properly
+      if (typeof this.proceduralCamera.initialize === 'function') {
+        this.proceduralCamera.initialize();
+      }
     }
     
     // Initialize CustomLevelCamera for custom levels

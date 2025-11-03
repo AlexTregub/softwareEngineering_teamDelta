@@ -187,7 +187,9 @@ function setup() {
 
   // Initialize camera management system (CameraSystemManager for dual camera support)
   if (typeof CameraSystemManager !== 'undefined') {
-    cameraManager = new CameraSystemManager(cameraController, width, height);
+    // Note: CameraSystemManager doesn't require a cameraController parameter
+    // It creates and manages its own camera instances internally
+    cameraManager = new CameraSystemManager(null, width, height);
     // Initialize with procedural camera for MENU state
     cameraManager.switchCamera('MENU');
     logVerbose('📷 CameraSystemManager initialized with dual camera support');

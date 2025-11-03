@@ -354,6 +354,19 @@ function updateBoundedCamera() {
   - Registered state change callback with GameState.onStateChange()
   - Automatic camera switching on state transitions
   - draw() loop already calls cameraManager.update() (no changes needed - API compatible)
+  - **BUG FIX (Nov 3, 2025)**: Fixed "cameraController is not defined" error
+    - Changed from `new CameraSystemManager(cameraController, width, height)` to `new CameraSystemManager(null, width, height)`
+    - Updated `CameraSystemManager._initializeCameras()` to create `CameraManager` without parameters
+    - Called `CameraManager.initialize()` after construction
+  - **BUG FIX (Nov 3, 2025)**: Fixed "nothing visible in game" error
+    - Root cause: `RenderLayerManager.applyZoom()` only scaled, didn't translate camera position
+    - Updated `applyZoom()` to apply both `translate(-cameraX, -cameraY)` AND `scale(zoom)`
+    - Now matches `CameraManager.applyTransform()` behavior (translate first, then scale)
+  - **BUG FIX (Nov 3, 2025)**: Fixed "can't access property x, cameraPos is null" error
+    - Root cause: `CameraManager` was missing `getCameraPosition()` method expected by `CameraSystemManager`
+    - Added `getCameraPosition()` method to `CameraManager` returning `{x, y, zoom}`
+    - Added `setCameraPosition(x, y)` method for API compatibility
+    - Added robust null checks in `RenderLayerManager.applyZoom()` with fallbacks
   
 - [x] **State change callback registered** ✅
   - Callback switches camera on GameState changes

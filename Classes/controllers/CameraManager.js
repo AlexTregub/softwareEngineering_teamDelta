@@ -820,6 +820,18 @@ class CameraManager {
   getZoom() { return this.cameraZoom; }
   getPosition() { return { x: this.cameraX, y: this.cameraY }; }
   
+  /**
+   * Get camera position with zoom (for CameraSystemManager compatibility)
+   * @returns {Object} Camera state {x, y, zoom}
+   */
+  getCameraPosition() {
+    return { 
+      x: this.cameraX, 
+      y: this.cameraY, 
+      zoom: this.cameraZoom 
+    };
+  }
+  
   // Setter methods
   setPosition(x, y) {
     this.cameraX = x;
@@ -827,6 +839,15 @@ class CameraManager {
     if (typeof CameraController !== 'undefined') {
       CameraController.setCameraPosition(x, y);
     }
+  }
+  
+  /**
+   * Set camera position (for CameraSystemManager compatibility)
+   * @param {number} x - Camera X position
+   * @param {number} y - Camera Y position
+   */
+  setCameraPosition(x, y) {
+    this.setPosition(x, y);
   }
 
   // Utility methods (stubs - these should reference actual game functions)

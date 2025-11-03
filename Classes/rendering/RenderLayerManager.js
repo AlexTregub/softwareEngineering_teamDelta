@@ -543,15 +543,45 @@ class RenderLayerManager {
     
   }
   /**
-   * Gets zoom from the cameraManager and applys it to the scale, 
-   * make sure you surrond this with push() and pop() or everything will scale incorrectly.
+   * Applies camera transform (translation + zoom) for world-space rendering.
+   * CRITICAL: Must apply BOTH camera position AND zoom.
+   * Make sure you surround this with push() and pop() or everything will transform incorrectly.
    */
   applyZoom(){
-    const zoom = cameraManager.getZoom();
-    // Scale around the canvas center so world tiles scale about the view
-    translate((g_canvasX/2), (g_canvasY/2));
+    // Get camera position and zoom from cameraManager
+    let cameraPos = null;
+    let zoom = 1.0;
+    
+    if (typeof cameraManager !== 'undefined' && cameraManager) {
+      // Try to get camera position
+      if (typeof cameraManager.getCameraPosition === 'function') {
+        cameraPos = cameraManager.getCameraPosition();
+      }
+      
+      // Fallback to direct property access if method fails or returns null
+      if (!cameraPos && typeof cameraManager.cameraX === 'number') {
+        cameraPos = { x: cameraManager.cameraX, y: cameraManager.cameraY };
+      }
+      
+      // Get zoom level
+      if (typeof cameraManager.getZoom === 'function') {
+        zoom = cameraManager.getZoom();
+      } else if (typeof cameraManager.cameraZoom === 'number') {
+        zoom = cameraManager.cameraZoom;
+      }
+    }
+    
+    // Final fallback if camera position is still null
+    if (!cameraPos) {
+      cameraPos = { x: 0, y: 0 };
+    }
+    
+    // CRITICAL: Order matters! Translate camera position first, THEN scale
+    // This matches CameraManager.applyTransform() behavior
+    translate(-cameraPos.x, -cameraPos.y);
     scale(zoom);
-    translate(-(g_canvasX/2), -(g_canvasY/2));
+    
+    // Update global canvas dimensions (for other systems that depend on it)
     g_canvasX = windowWidth;
     g_canvasY = windowHeight;
   }
