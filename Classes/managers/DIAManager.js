@@ -60,23 +60,36 @@ class DIAManager {
   
     // Portrait
     const portraitSize = 100;
-    let textStartX = boxX + padding;
+    let textStartX = boxX + padding - 245;
+    let textStartY = boxY + padding - 60;  // <--- define it here
+    let headStartX = boxX + padding - 265;
+    let headStartY = boxY + padding - 90;  // <--- define it here
     if (this.portrait) {
-      const portraitY = boxY + (boxH - portraitSize) / 2;
-      image(this.portrait, boxX + padding, portraitY, portraitSize, portraitSize);
-      textStartX += portraitSize + padding; // move text right
+        const portraitY = boxY + (boxH - portraitSize) / 2;
+        image(this.portrait, boxX + padding, portraitY, portraitSize, portraitSize);
+        textStartX += portraitSize + padding;
     }
   
     // Text + name
+    // --- Header (name) ---
     textAlign(LEFT, TOP);
-    textSize(18);
-    fill(255);
     textFont(terrariaFont || 'sans-serif');
+    textSize(28);
+    textStyle(BOLD);
+    fill(255);
+    stroke(0);       // black outline
+    strokeWeight(3);
+    text(this.name, headStartX, headStartY);
+
+    // --- Body (dialogue text) ---
+    textSize(25);
+    textStyle(NORMAL);
+    const bodyY = textStartY + 40; // 40px below name
     const textWidthAvailable = boxX + boxW - textStartX - padding;
-    text(`${this.name ? this.name + ': ' : ''}${this.displayedText}`, textStartX, boxY + padding, textWidthAvailable, boxH - 2*padding);
-  
+    text(`${this.displayedText}`, textStartX, bodyY, textWidthAvailable, boxH - (bodyY - boxY) - padding);
+
     pop();
-  }    
+    }
 }
 
 // global instance

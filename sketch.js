@@ -360,40 +360,32 @@ function initializeWorld() {
 function draw() {
   // ============================================================
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
-  // Updates must happen BEFORE rendering to show current frame data
   // ============================================================
 
-  // Track draw calls for sound manager
   if (typeof soundManager !== 'undefined' && soundManager.onDraw) {
     soundManager.onDraw();
   }
 
-  // Update camera (input processing, following, bounds clamping)
   if (cameraManager && (GameState.isInGame() || GameState.getState() === 'LEVEL_EDITOR')) {
     cameraManager.update();
   }
 
-  // Update game systems (only if playing)
   if (GameState.getState() === 'PLAYING') {
-    // Brush updates
+    // --- Update gameplay systems ---
     if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
     if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
     if (window.g_resourceBrush) window.g_resourceBrush.update();
     if (window.g_buildingBrush) window.g_buildingBrush.update();
 
-    // Queen control panel updates
     if (typeof updateQueenPanelVisibility !== 'undefined') updateQueenPanelVisibility();
     if (window.g_queenControlPanel) window.g_queenControlPanel.update();
 
-    // Event Manager
     if (window.eventManager) window.eventManager.update();
-
-    // Effect systems
     if (window.g_fireballManager) window.g_fireballManager.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
     if (g_globalTime) g_globalTime.update();
 
-    // Queen movement (WASD)
+    // --- Player Movement ---
     const playerQueen = getQueen();
     if (playerQueen) {
       if (keyIsDown(87)) playerQueen.move("s"); // W
@@ -402,13 +394,12 @@ function draw() {
       if (keyIsDown(68)) playerQueen.move("d"); // D
     }
 
-    // --- DIAManager update (typewriter effect, dialogue logic) ---
+    // --- DIAManager update (typewriter effect, etc) ---
     if (window.DIAManager && typeof DIAManager.update === 'function') {
       DIAManager.update();
     }
   }
 
-  // Update level editor if active
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor) levelEditor.update();
   }
@@ -417,7 +408,6 @@ function draw() {
   // GAME LOOP PHASE 2: RENDER EVERYTHING
   // ============================================================
 
-  // Render level editor if active
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
       background(40, 40, 40);
@@ -425,31 +415,38 @@ function draw() {
     }
     RenderManager.render(GameState.getState());
   } else {
-    // Normal game rendering
     RenderManager.render(GameState.getState());
   }
 
-  // --- DIAManager render (draw dialogue box on top of everything) ---
-  if (window.DIAManager && typeof DIAManager.render === 'function') {
-    DIAManager.render();
+  const playerQueen = getQueen?.();
+  if (window.DIAManager && DIAManager.active && window.currentNPC && playerQueen) {
+    const distToNPC = dist(playerQueen.posX, playerQueen.posY, window.currentNPC._x, window.currentNPC._y);
+    if (distToNPC > 150) { 
+      DIAManager.close();
+      window.currentNPC.dialogueActive = false;
+      window.currentNPC = null;
+    }
   }
 
-  // Debug visualizations
-  if (typeof window.drawCoordinateVisualization === 'function') {
-    try { window.drawCoordinateVisualization(); } 
-    catch (error) { console.error('❌ Error drawing coordinate visualization:', error); }
-  }
-
-  if (typeof window.drawTerrainGrid === 'function') {
-    try { window.drawTerrainGrid(); } 
-    catch (error) { console.error('❌ Error drawing terrain grid:', error); }
-  }
-
+  // --- Render Dialogue Box ---
   if (window.DIAManager) {
     window.DIAManager.update();
     window.DIAManager.render();
   }
+
+  // --- Debug stuff ---
+  if (typeof window.drawCoordinateVisualization === 'function') {
+    try { window.drawCoordinateVisualization(); }
+    catch (error) { console.error('❌ Error drawing coordinate visualization:', error); }
+  }
+
+  if (typeof window.drawTerrainGrid === 'function') {
+    try { window.drawTerrainGrid(); }
+    catch (error) { console.error('❌ Error drawing terrain grid:', error); }
+  }
 }
+
+
 
 
  /* handleMouseEvent

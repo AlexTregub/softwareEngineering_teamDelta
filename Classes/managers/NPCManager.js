@@ -51,27 +51,55 @@ class NPC extends Building{
   update() {
     super.update();
     this.initDialogues();
-
-    if (!this.isPlayerNearby && this.dialogueActive) {
-      this.dialogueActive = false;
+  
+    const playerQueen = getQueen?.();
+    if (playerQueen) {
+      const range = dist(this._x, this._y, playerQueen.posX, playerQueen.posY);
+  
+      // Log distance if dialogue is active (helps debug)
+      if (this.dialogueActive) {
+        console.log(`📏 ${this.name} — current distance: ${range.toFixed(2)}`);
+      }
+  
+      // Close dialogue if player moves too far
+      if (this.dialogueActive && range > this.dialogueRange) {
+        this.dialogueActive = false;
+        window.DIAManager.close();
+        window.currentNPC = null;
+        console.log(`👋 ${this.name}: Player moved too far (${range.toFixed(2)} > ${this.dialogueRange})`);
+      }
+    } else {
+      console.warn("Couldn’t find playerQueen during NPC update.");
     }
   }
 
   
   startDialogue() {
     this.dialogueActive = true;
-    const text = `${this.name}: Hey there, Queen! How’s the colony life treating ya?`;
+    const text = `Hey there, Queen! How’s the colony life treating ya?`;
   
-    // optional portrait or bg
     const dialogueBg = loadImage('Images/Assets/Menu/dialogue_bg.png');
-    const portraitImg = this._image; // or a specific portrait file
+    const portraitImg = this._image;
   
     if (window.DIAManager && typeof window.DIAManager.open === "function") {
       window.DIAManager.open(text, dialogueBg, portraitImg, this.name);
+      window.currentNPC = this; // remember who's talking
+  
+      // log distance from player when dialogue starts
+      const playerQueen = getQueen?.();
+      if (playerQueen) {
+        const distance = dist(this._x, this._y, playerQueen.posX, playerQueen.posY);
+        console.log(`Distance from ${this.name} at dialogue start: ${distance.toFixed(2)} units`);
+      } else {
+        console.warn(" Couldn’t find playerQueen to measure distance!");
+      }
+  
     } else {
-      console.warn("⚠️ DIAManager instance not ready!");
+      console.warn(" DIAManager instance not ready!");
     }
   }
+  
+  
 
   render() {
     if (!this.isActive) return;
