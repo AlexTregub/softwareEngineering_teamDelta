@@ -362,118 +362,95 @@ function draw() {
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
   // Updates must happen BEFORE rendering to show current frame data
   // ============================================================
-  
+
   // Track draw calls for sound manager
   if (typeof soundManager !== 'undefined' && soundManager.onDraw) {
     soundManager.onDraw();
   }
-  
+
   // Update camera (input processing, following, bounds clamping)
-  // Enable for both in-game states AND Level Editor
   if (cameraManager && (GameState.isInGame() || GameState.getState() === 'LEVEL_EDITOR')) {
     cameraManager.update();
   }
 
   // Update game systems (only if playing)
   if (GameState.getState() === 'PLAYING') {
-    // Update brush systems
-    if (window.g_enemyAntBrush) {
-      window.g_enemyAntBrush.update();
-    }
-    if (window.g_lightningAimBrush) {
-      window.g_lightningAimBrush.update();
-    }
-    if (window.g_resourceBrush) {
-      window.g_resourceBrush.update();
-    }
-    if (window.g_buildingBrush) {
-      window.g_buildingBrush.update();
-    }
+    // Brush updates
+    if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
+    if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
+    if (window.g_resourceBrush) window.g_resourceBrush.update();
+    if (window.g_buildingBrush) window.g_buildingBrush.update();
 
-    // Update queen control panel
-    if (typeof updateQueenPanelVisibility !== 'undefined') {
-      updateQueenPanelVisibility();
-    }
-    if (window.g_queenControlPanel) {
-      window.g_queenControlPanel.update();
-    }
+    // Queen control panel updates
+    if (typeof updateQueenPanelVisibility !== 'undefined') updateQueenPanelVisibility();
+    if (window.g_queenControlPanel) window.g_queenControlPanel.update();
 
-    // Update Event Manager (triggers and active events)
-    if (window.eventManager) {
-      window.eventManager.update();
-    }
+    // Event Manager
+    if (window.eventManager) window.eventManager.update();
 
-    // Update effect systems
-    if (window.g_fireballManager) {
-      window.g_fireballManager.update();
-    }
-    if (window.g_lightningManager) {
-      window.g_lightningManager.update();
-    }
-    if (g_globalTime) {
-      g_globalTime.update();
-    }
+    // Effect systems
+    if (window.g_fireballManager) window.g_fireballManager.update();
+    if (window.g_lightningManager) window.g_lightningManager.update();
+    if (g_globalTime) g_globalTime.update();
 
-    // Update queen movement (WASD keys)
+    // Queen movement (WASD)
     const playerQueen = getQueen();
     if (playerQueen) {
-      if (keyIsDown(87)) playerQueen.move("s"); // lazy flip of w and s
-      if (keyIsDown(65)) playerQueen.move("a");
-      if (keyIsDown(83)) playerQueen.move("w");
-      if (keyIsDown(68)) playerQueen.move("d");
+      if (keyIsDown(87)) playerQueen.move("s"); // W
+      if (keyIsDown(65)) playerQueen.move("a"); // A
+      if (keyIsDown(83)) playerQueen.move("w"); // S
+      if (keyIsDown(68)) playerQueen.move("d"); // D
     }
 
-    if (window.DIAManager) {
+    // --- DIAManager update (typewriter effect, dialogue logic) ---
+    if (window.DIAManager && typeof DIAManager.update === 'function') {
       DIAManager.update();
-      DIAManager.render();
-    }
-  }
-  
-  // Update level editor (if active)
-  if (GameState.getState() === 'LEVEL_EDITOR') {
-    if (window.levelEditor) {
-      levelEditor.update();
     }
   }
 
+  // Update level editor if active
+  if (GameState.getState() === 'LEVEL_EDITOR') {
+    if (window.levelEditor) levelEditor.update();
+  }
+
   // ============================================================
-  // GAME LOOP PHASE 2: RENDER EVERYTHING ONCE
-  // RenderLayerManager handles all layered rendering
+  // GAME LOOP PHASE 2: RENDER EVERYTHING
   // ============================================================
-  
-  // Render level editor (takes over rendering when active)
+
+  // Render level editor if active
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
-      background(40, 40, 40); // Dark background for editor
+      background(40, 40, 40);
       levelEditor.render();
     }
-    // IMPORTANT: Also call RenderManager.render() in Level Editor mode
-    // This ensures draggable panels get their interactive.update() calls
     RenderManager.render(GameState.getState());
   } else {
     // Normal game rendering
     RenderManager.render(GameState.getState());
   }
 
-  // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
+  // --- DIAManager render (draw dialogue box on top of everything) ---
+  if (window.DIAManager && typeof DIAManager.render === 'function') {
+    DIAManager.render();
+  }
+
+  // Debug visualizations
   if (typeof window.drawCoordinateVisualization === 'function') {
-    try {
-      window.drawCoordinateVisualization();
-    } catch (error) {
-      console.error('❌ Error drawing coordinate visualization:', error);
-    }
+    try { window.drawCoordinateVisualization(); } 
+    catch (error) { console.error('❌ Error drawing coordinate visualization:', error); }
   }
-  
-  // Debug visualization for terrain grid (toggle with toggleTerrainGrid() or Ctrl+Shift+G)
+
   if (typeof window.drawTerrainGrid === 'function') {
-    try {
-      window.drawTerrainGrid();
-    } catch (error) {
-      console.error('❌ Error drawing terrain grid:', error);
-    }
+    try { window.drawTerrainGrid(); } 
+    catch (error) { console.error('❌ Error drawing terrain grid:', error); }
   }
-  
+
+  if (window.DIAManager) {
+    window.DIAManager.update();
+    window.DIAManager.render();
+  }
 }
+
 
  /* handleMouseEvent
  * ----------------

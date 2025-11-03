@@ -63,10 +63,14 @@ class NPC extends Building{
     const text = `${this.name}: Hey there, Queen! How’s the colony life treating ya?`;
   
     // optional portrait or bg
-    const dialogueBg = loadImage('Images/UI/dialogue_bg.png');
+    const dialogueBg = loadImage('Images/Assets/Menu/dialogue_bg.png');
     const portraitImg = this._image; // or a specific portrait file
   
-    DIAManager.open(text, dialogueBg, portraitImg, this.name);
+    if (window.DIAManager && typeof window.DIAManager.open === "function") {
+      window.DIAManager.open(text, dialogueBg, portraitImg, this.name);
+    } else {
+      console.warn("⚠️ DIAManager instance not ready!");
+    }
   }
 
   render() {
