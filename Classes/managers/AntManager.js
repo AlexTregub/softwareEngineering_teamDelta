@@ -51,6 +51,34 @@ class AntManager {
      * @private
      */
     this._nextId = 0;
+    
+    /**
+     * Set of paused ant IDs (for lifecycle management)
+     * @type {Set<number>}
+     * @private
+     */
+    this._pausedAnts = new Set();
+  }
+  
+  // ========================================
+  // Singleton Pattern
+  // ========================================
+  
+  /**
+   * Get singleton instance of AntManager.
+   * Creates instance on first call.
+   * 
+   * @returns {AntManager} Singleton instance
+   * @static
+   * 
+   * @example
+   * const manager = AntManager.getInstance();
+   */
+  static getInstance() {
+    if (!AntManager._instance) {
+      AntManager._instance = new AntManager();
+    }
+    return AntManager._instance;
   }
   
   // ========================================
@@ -275,6 +303,92 @@ class AntManager {
   }
 
   // ========================================
+  // Lifecycle Management (Phase 3.4.3)
+  // ========================================
+  
+  /**
+   * Pause an individual ant by ID.
+   * Paused ants are skipped during updateAll().
+   * 
+   * @param {number} id - Ant ID to pause
+   * 
+   * @example
+   * manager.pauseAnt(ant.antIndex);
+   */
+  pauseAnt(id) {
+    if (this._ants.has(id)) {
+      this._pausedAnts.add(id);
+    }
+  }
+  
+  /**
+   * Resume an individual ant by ID.
+   * Resumes update cycle for the specified ant.
+   * 
+   * @param {number} id - Ant ID to resume
+   * 
+   * @example
+   * manager.resumeAnt(ant.antIndex);
+   */
+  resumeAnt(id) {
+    this._pausedAnts.delete(id);
+  }
+  
+  /**
+   * Pause all registered ants.
+   * Adds all ant IDs to paused set.
+   * 
+   * @example
+   * manager.pauseAll(); // Pause all ants
+   */
+  pauseAll() {
+    for (const id of this._ants.keys()) {
+      this._pausedAnts.add(id);
+    }
+  }
+  
+  /**
+   * Resume all paused ants.
+   * Clears the paused set completely.
+   * 
+   * @example
+   * manager.resumeAll(); // Resume all ants
+   */
+  resumeAll() {
+    this._pausedAnts.clear();
+  }
+  
+  /**
+   * Check if an ant is currently paused.
+   * 
+   * @param {number} id - Ant ID to check
+   * @returns {boolean} True if ant is paused, false otherwise
+   * 
+   * @example
+   * if (manager.isPaused(ant.antIndex)) {
+   *   console.log('Ant is paused');
+   * }
+   */
+  isPaused(id) {
+    return this._pausedAnts.has(id);
+  }
+  
+  /**
+   * Update all active (non-paused) ants.
+   * Skips ants in the paused set.
+   * 
+   * @example
+   * manager.updateAll(); // Called in game loop
+   */
+  updateAll() {
+    for (const [id, ant] of this._ants.entries()) {
+      if (!this._pausedAnts.has(id)) {
+        ant.update();
+      }
+    }
+  }
+
+  // ========================================
   // Selection Queries (Convenience Methods)
   // ========================================
   
@@ -289,6 +403,19 @@ class AntManager {
    */
   getSelectedAnt() {
     return this.findAnt(ant => ant.isSelected());
+  }
+
+  /**
+   * Get all currently selected ants (queries ants directly).
+   * 
+   * @returns {AntController[]} Array of all selected ants
+   * 
+   * @example
+   * const selected = manager.getSelectedAnts();
+   * console.log(`${selected.length} ants selected`);
+   */
+  getSelectedAnts() {
+    return this.getAllAnts().filter(ant => ant.isSelected());
   }
 
   /**

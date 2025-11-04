@@ -240,6 +240,69 @@ function loadMVCBaseClasses() {
 }
 
 /**
+ * Load complete Ant MVC stack with all dependencies.
+ * Sets up all globals needed for AntController to work.
+ * Call this when testing anything related to ants.
+ * 
+ * @returns {Object} Object with all loaded classes
+ * 
+ * @example
+ * const { AntController, AntManager } = loadAntMVCStack();
+ * const ant = new AntController(100, 100, 32, 32, { jobName: 'Worker' });
+ */
+function loadAntMVCStack() {
+  const sinon = require('sinon');
+  
+  // Load MVC base classes
+  const { BaseModel, BaseView, BaseController } = loadMVCBaseClasses();
+  global.BaseModel = BaseModel;
+  global.BaseView = BaseView;
+  global.BaseController = BaseController;
+  
+  // Load ant dependencies
+  const AntStateMachine = require('../../Classes/ants/antStateMachine');
+  const JobComponent = require('../../Classes/ants/JobComponent');
+  const ResourceManager = require('../../Classes/managers/ResourceManager');
+  
+  global.AntStateMachine = AntStateMachine;
+  global.JobComponent = JobComponent;
+  global.ResourceManager = ResourceManager;
+  
+  // Load Ant MVC classes
+  const AntModel = require('../../Classes/models/AntModel');
+  const AntView = require('../../Classes/views/AntView');
+  const AntController = require('../../Classes/controllers/mvc/AntController');
+  
+  global.AntModel = AntModel;
+  global.AntView = AntView;
+  global.AntController = AntController;
+  
+  // Mock spatialGridManager (required dependency)
+  if (!global.spatialGridManager) {
+    global.spatialGridManager = {
+      addEntity: sinon.spy(),
+      removeEntity: sinon.spy()
+    };
+  }
+  
+  // Load AntManager
+  const AntManager = require('../../Classes/managers/AntManager');
+  
+  return {
+    BaseModel,
+    BaseView,
+    BaseController,
+    AntStateMachine,
+    JobComponent,
+    ResourceManager,
+    AntModel,
+    AntView,
+    AntController,
+    AntManager
+  };
+}
+
+/**
  * Create a simple test model that extends BaseModel.
  * Useful for testing views and controllers.
  */
@@ -375,6 +438,7 @@ module.exports = {
   
   // Class loaders
   loadMVCBaseClasses,
+  loadAntMVCStack,
   loadClassWithCacheClear,
   setupAndLoadClasses,
   

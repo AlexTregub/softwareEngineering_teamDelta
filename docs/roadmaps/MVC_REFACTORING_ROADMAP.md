@@ -887,11 +887,11 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
 **Roadmap**: See `docs/roadmaps/ANT_MANAGER_REGISTRY_REFACTORING.md`
 
 **Sub-Phases**:
-- [ ] **3.4.1**: Core Registry (Map CRUD, auto-ID generation) - 30 tests
-- [ ] **3.4.2**: Query Methods (job, faction, spatial, predicate) - 20 tests
-- [ ] **3.4.3**: Lifecycle Management (updateAll, renderAll) - 10 tests
-- [ ] **3.4.4**: Backward Compatibility (migration layer)
-- [ ] **3.4.5**: System Integration (SpatialGrid, RenderLayer, legacy Ant)
+- [x] **3.4.1**: Core Registry (Map CRUD, auto-ID generation) - 35/35 tests ✅ COMPLETE
+- [x] **3.4.2**: Query Methods (job, faction, spatial, predicate) - 20/20 tests ✅ COMPLETE
+- [x] **3.4.3**: Lifecycle Management (pause/resume, updateAll) - 19/19 tests ✅ COMPLETE (Nov 4, 2025)
+- [ ] **3.4.4**: Backward Compatibility (migration layer) - SKIPPED (per user decision)
+- [x] **3.4.5**: System Integration (SpatialGrid, RenderLayer, legacy Ant) - 34/34 tests ✅ COMPLETE (Nov 4, 2025)
 - [ ] **3.4.6**: AntFactory (optional enhancement) - 10 tests
 
 **Key Features**:
