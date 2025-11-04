@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated Miscellaneous Integration Tests
  * Generated: 2025-10-29T03:16:53.982Z
  * Source files: 5
@@ -7,7 +7,6 @@
 
 // Common requires
 let { expect } = require('chai');
-let { JSDOM } = require('jsdom');
 
 
 // ================================================================
@@ -23,7 +22,16 @@ let { JSDOM } = require('jsdom');
 
 let EventDebugManager = require('../../../debug/EventDebugManager');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('EventDebugManager Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let eventDebugManager;
   
   beforeEach(function() {
@@ -376,15 +384,12 @@ describe('Ant Controller Integration Tests (JSDOM)', function() {
 
   beforeEach(function() {
     // Create a browser-like environment with JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true,
       resources: 'usable'
     });
     
     window = dom.window;
-    global.window = window;
-    global.document = window.document;
     global.localStorage = window.localStorage;
     global.console = console;
     
@@ -1439,15 +1444,12 @@ describe('Entity Integration Tests (JSDOM)', function() {
 
   beforeEach(function() {
     // Create a browser-like environment with JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true,
       resources: 'usable'
     });
     
     window = dom.window;
-    global.window = window;
-    global.document = window.document;
     global.localStorage = window.localStorage;
     global.console = console;
     
@@ -2253,7 +2255,7 @@ describe('Entity Integration Tests (JSDOM)', function() {
       expect(inactiveState).to.equal(false);
     });
 
-    it('should handle complex entity scenarios: pathfind → interact → return', function() {
+    it('should handle complex entity scenarios: pathfind â†’ interact â†’ return', function() {
       // Worker entity
       const worker = new Entity(50, 50, 32, 32, {
         type: 'Worker'
@@ -2367,7 +2369,6 @@ describe('ActiveMap Integration Tests', function() {
 
     before(function() {
         // Create JSDOM environment
-        dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
             url: 'http://localhost',
             pretendToBeVisual: true,
             resources: 'usable'
@@ -2375,8 +2376,6 @@ describe('ActiveMap Integration Tests', function() {
 
         window = dom.window;
         document = window.document;
-        global.window = window;
-        global.document = document;
 
         // Setup p5.js mocks
         setupP5Mocks();
@@ -3236,15 +3235,12 @@ describe('SoundManager Integration Tests (JSDOM)', function() {
 
   beforeEach(function() {
     // Create a browser-like environment with JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true,
       resources: 'usable'
     });
     
     window = dom.window;
-    global.window = window;
-    global.document = window.document;
     global.localStorage = window.localStorage;
     
     // Clear localStorage for clean test

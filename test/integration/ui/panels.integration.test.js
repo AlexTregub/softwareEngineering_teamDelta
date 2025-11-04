@@ -6,10 +6,11 @@
  */
 
 // Common requires
-let { expect } = require('chai');
-let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
+const { expect } = require('chai');
+const sinon = require('sinon');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
+setupTestEnvironment({ rendering: true });
 
 // ================================================================
 // draggablePanel.growth.integration.test.js (6 tests)
@@ -27,30 +28,8 @@ describe('DraggablePanel Growth Prevention (Integration)', () => {
   let localStorageData = {};
 
   before(() => {
-    // Mock p5.js functions (simple stubs, no sinon needed)
-    global.push = () => {};
-    global.pop = () => {};
-    global.fill = () => {};
-    global.stroke = () => {};
-    global.strokeWeight = () => {};
-    global.noStroke = () => {};
-    global.rect = () => {};
-    global.textSize = () => {};
-    global.textAlign = () => {};
-    global.text = () => {};
-    global.textWidth = () => 50;
-    global.LEFT = 'left';
-    global.CENTER = 'center';
-    global.TOP = 'top';
-
     // Mock devConsoleEnabled
     global.devConsoleEnabled = false;
-
-    // Mock window
-    global.window = {
-      innerWidth: 1920,
-      innerHeight: 1080
-    };
 
     // Mock localStorage with simple in-memory storage
     global.localStorage = {
@@ -94,6 +73,10 @@ describe('DraggablePanel Growth Prevention (Integration)', () => {
   beforeEach(() => {
     // Clear localStorage
     localStorageData = {};
+  });
+
+  afterEach(() => {
+    cleanupTestEnvironment();
   });
 
   describe('Long-running panel stability', () => {
@@ -300,7 +283,6 @@ describe('DraggablePanel Growth Prevention (Integration)', () => {
       panel.buttons[0].height = 30;
       panel.buttons[1].height = 40;
 
-      const initialHeight = panel.config.size.height;
       const heightMeasurements = [];
 
       // Simulate 2000 cycles of auto-resize 
@@ -312,8 +294,6 @@ describe('DraggablePanel Growth Prevention (Integration)', () => {
         }
       }
 
-      const finalHeight = panel.config.size.height;
-      
       // Check that height stabilized (all measurements the same after initial resize)
       const uniqueHeights = [...new Set(heightMeasurements)];
       expect(uniqueHeights.length).to.be.lessThanOrEqual(2, 
@@ -389,34 +369,8 @@ describe('Panel Sizing Issues Investigation', function() {
   let manager;
   
   before(function() {
-    // Mock p5.js functions
-    global.push = sinon.stub();
-    global.pop = sinon.stub();
-    global.fill = sinon.stub();
-    global.stroke = sinon.stub();
-    global.strokeWeight = sinon.stub();
-    global.noStroke = sinon.stub();
-    global.rect = sinon.stub();
-    global.textSize = sinon.stub();
-    global.textAlign = sinon.stub();
-    global.text = sinon.stub();
-    global.textWidth = sinon.stub().returns(50);
-    global.image = sinon.stub();
-    global.createVector = sinon.stub().callsFake((x, y) => ({ x, y, mag: () => Math.sqrt(x*x + y*y) }));
-    global.LEFT = 'left';
-    global.CENTER = 'center';
-    global.TOP = 'top';
-    global.BOTTOM = 'bottom';
-    global.BASELINE = 'alphabetic';
-
     // Mock devConsoleEnabled
     global.devConsoleEnabled = false;
-
-    // Mock window
-    global.window = {
-      innerWidth: 1920,
-      innerHeight: 1080
-    };
 
     // Mock localStorage
     global.localStorage = {
@@ -484,7 +438,7 @@ describe('Panel Sizing Issues Investigation', function() {
   });
   
   after(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Resource Spawner Panel', function() {
@@ -823,42 +777,9 @@ describe('Panel Sizing Issues Investigation', function() {
  */
 
 describe('ScrollableContentArea Integration Tests', function() {
-  let contentArea, mockP5, dom;
+  let contentArea;
   
   beforeEach(function() {
-    // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
-    
-    // Mock p5.js drawing functions
-    mockP5 = {
-      fill: sinon.stub(),
-      noStroke: sinon.stub(),
-      stroke: sinon.stub(),
-      rect: sinon.stub(),
-      text: sinon.stub(),
-      textAlign: sinon.stub(),
-      textSize: sinon.stub(),
-      push: sinon.stub(),
-      pop: sinon.stub(),
-      LEFT: 'LEFT',
-      CENTER: 'CENTER'
-    };
-    
-    // Assign to global BEFORE requiring classes (so classes capture these)
-    global.fill = mockP5.fill;
-    global.noStroke = mockP5.noStroke;
-    global.stroke = mockP5.stroke;
-    global.rect = mockP5.rect;
-    global.text = mockP5.text;
-    global.textAlign = mockP5.textAlign;
-    global.textSize = mockP5.textSize;
-    global.push = mockP5.push;
-    global.pop = mockP5.pop;
-    global.LEFT = mockP5.LEFT;
-    global.CENTER = mockP5.CENTER;
-    
     // Load REAL ScrollIndicator
     const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
     global.ScrollIndicator = ScrollIndicator;
@@ -873,9 +794,7 @@ describe('ScrollableContentArea Integration Tests', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
-    delete global.window;
-    delete global.document;
+    cleanupTestEnvironment();
   });
   
   describe('ScrollIndicator Integration', function() {
@@ -1316,60 +1235,16 @@ describe('ScrollableContentArea Integration Tests', function() {
  */
 
 describe('ScrollIndicator Integration Tests', function() {
-  let indicator, mockP5, dom;
+  let indicator;
   
   beforeEach(function() {
-    // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
-    
-    // Mock p5.js drawing functions
-    mockP5 = {
-      fill: sinon.stub(),
-      noStroke: sinon.stub(),
-      stroke: sinon.stub(),
-      rect: sinon.stub(),
-      text: sinon.stub(),
-      textAlign: sinon.stub(),
-      textSize: sinon.stub(),
-      push: sinon.stub(),
-      pop: sinon.stub(),
-      CENTER: 'CENTER'
-    };
-    
-    // Assign to both global and window
-    global.fill = mockP5.fill;
-    global.noStroke = mockP5.noStroke;
-    global.stroke = mockP5.stroke;
-    global.rect = mockP5.rect;
-    global.text = mockP5.text;
-    global.textAlign = mockP5.textAlign;
-    global.textSize = mockP5.textSize;
-    global.push = mockP5.push;
-    global.pop = mockP5.pop;
-    global.CENTER = mockP5.CENTER;
-    
-    window.fill = global.fill;
-    window.noStroke = global.noStroke;
-    window.stroke = global.stroke;
-    window.rect = global.rect;
-    window.text = global.text;
-    window.textAlign = global.textAlign;
-    window.textSize = global.textSize;
-    window.push = global.push;
-    window.pop = global.pop;
-    window.CENTER = global.CENTER;
-    
     // Load ScrollIndicator
     const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
     indicator = new ScrollIndicator();
   });
   
   afterEach(function() {
-    sinon.restore();
-    delete global.window;
-    delete global.document;
+    cleanupTestEnvironment();
   });
   
   describe('Rendering with Different Scroll States', function() {
@@ -1381,64 +1256,64 @@ describe('ScrollIndicator Integration Tests', function() {
       indicator.renderBottom(10, 600, 300, scrollOffset, maxScrollOffset);
       
       // Neither should render
-      expect(mockP5.push.called).to.be.false;
-      expect(mockP5.rect.called).to.be.false;
-      expect(mockP5.text.called).to.be.false;
+      expect(global.push.called).to.be.false;
+      expect(global.rect.called).to.be.false;
+      expect(global.text.called).to.be.false;
     });
     
     it('should render only bottom arrow when scrolled to top', function() {
       const scrollOffset = 0;
       const maxScrollOffset = 200;
       
-      mockP5.push.resetHistory();
-      mockP5.rect.resetHistory();
-      mockP5.text.resetHistory();
+      global.push.resetHistory();
+      global.rect.resetHistory();
+      global.text.resetHistory();
       
       indicator.renderTop(10, 20, 300, scrollOffset);
       indicator.renderBottom(10, 600, 300, scrollOffset, maxScrollOffset);
       
       // Only bottom should render (1 push/pop pair)
-      expect(mockP5.push.callCount).to.equal(1);
-      expect(mockP5.pop.callCount).to.equal(1);
-      expect(mockP5.text.calledOnce).to.be.true;
-      expect(mockP5.text.calledWith('↓', sinon.match.number, sinon.match.number)).to.be.true;
+      expect(global.push.callCount).to.equal(1);
+      expect(global.pop.callCount).to.equal(1);
+      expect(global.text.calledOnce).to.be.true;
+      expect(global.text.calledWith('↓', sinon.match.number, sinon.match.number)).to.be.true;
     });
     
     it('should render only top arrow when scrolled to bottom', function() {
       const scrollOffset = 200;
       const maxScrollOffset = 200;
       
-      mockP5.push.resetHistory();
-      mockP5.rect.resetHistory();
-      mockP5.text.resetHistory();
+      global.push.resetHistory();
+      global.rect.resetHistory();
+      global.text.resetHistory();
       
       indicator.renderTop(10, 20, 300, scrollOffset);
       indicator.renderBottom(10, 600, 300, scrollOffset, maxScrollOffset);
       
       // Only top should render (1 push/pop pair)
-      expect(mockP5.push.callCount).to.equal(1);
-      expect(mockP5.pop.callCount).to.equal(1);
-      expect(mockP5.text.calledOnce).to.be.true;
-      expect(mockP5.text.calledWith('↑', sinon.match.number, sinon.match.number)).to.be.true;
+      expect(global.push.callCount).to.equal(1);
+      expect(global.pop.callCount).to.equal(1);
+      expect(global.text.calledOnce).to.be.true;
+      expect(global.text.calledWith('↑', sinon.match.number, sinon.match.number)).to.be.true;
     });
     
     it('should render both arrows when in middle position', function() {
       const scrollOffset = 100;
       const maxScrollOffset = 200;
       
-      mockP5.push.resetHistory();
-      mockP5.rect.resetHistory();
-      mockP5.text.resetHistory();
+      global.push.resetHistory();
+      global.rect.resetHistory();
+      global.text.resetHistory();
       
       indicator.renderTop(10, 20, 300, scrollOffset);
       indicator.renderBottom(10, 600, 300, scrollOffset, maxScrollOffset);
       
       // Both should render (2 push/pop pairs)
-      expect(mockP5.push.callCount).to.equal(2);
-      expect(mockP5.pop.callCount).to.equal(2);
-      expect(mockP5.text.callCount).to.equal(2);
+      expect(global.push.callCount).to.equal(2);
+      expect(global.pop.callCount).to.equal(2);
+      expect(global.text.callCount).to.equal(2);
       
-      const textCalls = mockP5.text.getCalls();
+      const textCalls = global.text.getCalls();
       expect(textCalls[0].args[0]).to.equal('↑');
       expect(textCalls[1].args[0]).to.equal('↓');
     });
@@ -1451,7 +1326,7 @@ describe('ScrollIndicator Integration Tests', function() {
       
       indicator.renderTop(10, 20, 300, scrollOffset, false);
       
-      const fillCalls = mockP5.fill.getCalls();
+      const fillCalls = global.fill.getCalls();
       // Should have called fill with arrowColor (not hoverColor)
       const arrowColorCall = fillCalls.find(call => 
         Array.isArray(call.args[0]) && 
@@ -1464,11 +1339,10 @@ describe('ScrollIndicator Integration Tests', function() {
     
     it('should render with hoverColor when hovered', function() {
       const scrollOffset = 50;
-      const maxScrollOffset = 100;
       
       indicator.renderTop(10, 20, 300, scrollOffset, true);
       
-      const fillCalls = mockP5.fill.getCalls();
+      const fillCalls = global.fill.getCalls();
       // Should have called fill with hoverColor (not arrowColor)
       const hoverColorCall = fillCalls.find(call => 
         Array.isArray(call.args[0]) && 
@@ -1481,23 +1355,22 @@ describe('ScrollIndicator Integration Tests', function() {
     
     it('should transition between hover states correctly', function() {
       const scrollOffset = 50;
-      const maxScrollOffset = 100;
       
       // Render not hovered
-      mockP5.fill.resetHistory();
+      global.fill.resetHistory();
       indicator.renderTop(10, 20, 300, scrollOffset, false);
       
-      let fillCalls = mockP5.fill.getCalls();
+      let fillCalls = global.fill.getCalls();
       let arrowColorCall = fillCalls.find(call => 
         Array.isArray(call.args[0]) && call.args[0][0] === 200
       );
       expect(arrowColorCall).to.exist;
       
       // Render hovered
-      mockP5.fill.resetHistory();
+      global.fill.resetHistory();
       indicator.renderTop(10, 20, 300, scrollOffset, true);
       
-      fillCalls = mockP5.fill.getCalls();
+      fillCalls = global.fill.getCalls();
       let hoverColorCall = fillCalls.find(call => 
         Array.isArray(call.args[0]) && call.args[0][0] === 255
       );
@@ -1588,10 +1461,10 @@ describe('ScrollIndicator Integration Tests', function() {
         hoverColor: [0, 255, 0]
       });
       
-      mockP5.fill.resetHistory();
+      global.fill.resetHistory();
       customIndicator.renderTop(10, 20, 300, 50, false);
       
-      const fillCalls = mockP5.fill.getCalls();
+      const fillCalls = global.fill.getCalls();
       
       // Check backgroundColor
       const bgCall = fillCalls.find(call => 
@@ -1616,20 +1489,20 @@ describe('ScrollIndicator Integration Tests', function() {
       const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
       const customIndicator = new ScrollIndicator({ fontSize: 18 });
       
-      mockP5.textSize.resetHistory();
+      global.textSize.resetHistory();
       customIndicator.renderTop(10, 20, 300, 50, false);
       
-      expect(mockP5.textSize.calledWith(18)).to.be.true;
+      expect(global.textSize.calledWith(18)).to.be.true;
     });
     
     it('should use custom height in rendering', function() {
       const ScrollIndicator = require('../../../Classes/ui/UIComponents/scroll/ScrollIndicator');
       const customIndicator = new ScrollIndicator({ height: 30 });
       
-      mockP5.rect.resetHistory();
+      global.rect.resetHistory();
       customIndicator.renderTop(10, 20, 300, 50, false);
       
-      expect(mockP5.rect.calledWith(10, 20, 300, 30)).to.be.true;
+      expect(global.rect.calledWith(10, 20, 300, 30)).to.be.true;
     });
   });
   
@@ -1638,21 +1511,21 @@ describe('ScrollIndicator Integration Tests', function() {
       indicator.renderTop(10, 20, 0, 50, false);
       
       // Should still render, just with 0 width
-      expect(mockP5.rect.calledWith(10, 20, 0, 20)).to.be.true;
+      expect(global.rect.calledWith(10, 20, 0, 20)).to.be.true;
     });
     
     it('should handle negative scroll offset edge case', function() {
       // Should not render (canScrollUp returns false for negative)
       indicator.renderTop(10, 20, 300, -10, false);
       
-      expect(mockP5.push.called).to.be.false;
+      expect(global.push.called).to.be.false;
     });
     
     it('should handle scroll offset exceeding max edge case', function() {
       // Should not render bottom (canScrollDown returns false)
       indicator.renderBottom(10, 20, 300, 150, 100, false);
       
-      expect(mockP5.push.called).to.be.false;
+      expect(global.push.called).to.be.false;
     });
     
     it('should handle containsPoint with exact boundary values', function() {
@@ -2111,49 +1984,12 @@ describe('PropertiesPanel Integration Tests', function() {
   let editor;
 
   beforeEach(function() {
-    // Mock p5.js functions
-    global.push = sinon.stub();
-    global.pop = sinon.stub();
-    global.fill = sinon.stub();
-    global.stroke = sinon.stub();
-    global.strokeWeight = sinon.stub();
-    global.noStroke = sinon.stub();
-    global.rect = sinon.stub();
-    global.text = sinon.stub();
-    global.textAlign = sinon.stub();
-    global.textSize = sinon.stub();
-    global.line = sinon.stub();
-    global.image = sinon.stub();
-    global.CENTER = 'center';
-    global.TOP = 'top';
-    global.LEFT = 'left';
-
     // Mock terrain materials
     global.TERRAIN_MATERIALS_RANGED = {
       'grass': [[0, 1], (x, y, s) => {}],
       'dirt': [[0, 0.5], (x, y, s) => {}],
       'stone': [[0.5, 1], (x, y, s) => {}]
     };
-
-    // Sync to window
-    if (typeof window !== 'undefined') {
-      window.push = global.push;
-      window.pop = global.pop;
-      window.fill = global.fill;
-      window.stroke = global.stroke;
-      window.strokeWeight = global.strokeWeight;
-      window.noStroke = global.noStroke;
-      window.rect = global.rect;
-      window.text = global.text;
-      window.textAlign = global.textAlign;
-      window.textSize = global.textSize;
-      window.line = global.line;
-      window.image = global.image;
-      window.CENTER = global.CENTER;
-      window.TOP = global.TOP;
-      window.LEFT = global.LEFT;
-      window.TERRAIN_MATERIALS_RANGED = global.TERRAIN_MATERIALS_RANGED;
-    }
 
     // Load classes
     PropertiesPanel = require('../../../Classes/ui/levelEditor/panels/PropertiesPanel');
@@ -2169,22 +2005,7 @@ describe('PropertiesPanel Integration Tests', function() {
   });
 
   afterEach(function() {
-    sinon.restore();
-    delete global.push;
-    delete global.pop;
-    delete global.fill;
-    delete global.stroke;
-    delete global.strokeWeight;
-    delete global.noStroke;
-    delete global.rect;
-    delete global.text;
-    delete global.textAlign;
-    delete global.textSize;
-    delete global.line;
-    delete global.image;
-    delete global.CENTER;
-    delete global.TOP;
-    delete global.LEFT;
+    cleanupTestEnvironment();
     delete global.TERRAIN_MATERIALS_RANGED;
   });
 

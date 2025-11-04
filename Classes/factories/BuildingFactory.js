@@ -18,14 +18,6 @@
  * ```
  */
 
-// Load BuildingController (browser uses window.* directly, Node.js requires it)
-let BuildingController;
-if (typeof require !== 'undefined') {
-  BuildingController = require('../controllers/mvc/BuildingController');
-} else {
-  BuildingController = window.BuildingController;
-}
-
 /**
  * Building type configurations.
  * Each type has specific stats, spawn rates, and dimensions.

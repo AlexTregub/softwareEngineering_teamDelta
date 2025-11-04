@@ -10,6 +10,31 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### BREAKING CHANGES
 
+- **Old Building System Removed** (Phase 2 Complete - November 4, 2025)
+  - **Removed Functions**: `createBuilding()` global function, `BuildingPreloader()` global function
+  - **Removed Files**: Old Building class (Entity-based), AbstractBuildingFactory classes
+  - **Before**: `createBuilding('antcone', x, y, 'player')` or `new Building(x, y, ...)`
+  - **After**: `g_buildingManager.createBuilding('antcone', x, y, 'player')` returns `BuildingController`
+  - **Impact**: All building creation must use BuildingManager or BuildingFactory
+  - **Migration**: Replace `createBuilding()` with `g_buildingManager.createBuilding()`
+  - **API Changes**:
+    - `.type` → `.getType()`
+    - `.faction` → `.getFaction()`
+    - `.health` → `.getHealth()`
+    - `.position` → `.getPosition()`
+    - `.size` → `.getSize()`
+    - Direct property access no longer supported
+    - `.render()` now delegates to BuildingView (MVC pattern)
+  - **Files Updated**:
+    - `BuildingBrush.js`: Uses g_buildingManager API
+    - `sketch.js`: Added g_buildingManager initialization, removed BuildingPreloader() call
+    - `index.html`: Updated with MVC script tags (BuildingModel, BuildingView, BuildingController, BuildingFactory, BuildingManager)
+  - **Tests**: 172 unit + integration tests passing (55 Model + 26 View + 44 Controller + 23 Factory + 24 Manager)
+  - **API Documentation**:
+    - `docs/api/BuildingController_API_Reference.md`
+    - `docs/api/BuildingFactory_API_Reference.md`
+    - `docs/api/BuildingManager_API_Reference.md`
+
 - **Old Resource Class Removed** (Phase 1.8 Complete - December 4, 2025)
   - **Removed Files**: `Classes/resources/resource.js`, `Classes/resources/resources.js`
   - **Before**: `Resource.createGreenLeaf(x, y)` or `new Resource(x, y, ...)`
@@ -39,6 +64,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### User-Facing Changes
 
 #### Changed
+- **Building System - MVC Refactoring (Phase 2 Complete)**
+  - Building placement, spawn timers, upgrades, and health display continue to work seamlessly
+  - Internal refactoring to MVC pattern (no visible changes to gameplay)
+  - Foundation for future features (building customization, advanced upgrade trees, save/load support)
+  - Three building types available: AntCone (fast spawn), AntHill (balanced), HiveSource (high output)
+
 - **Resource System - MVC Refactoring (Phase 1.7c-d Complete)**
   - Resource collection, drop-off, and UI display continue to work seamlessly
   - Internal refactoring to MVC pattern (no visible changes to gameplay)
@@ -65,6 +96,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Developer-Facing Changes
 
 #### Added
+- **Buildings MVC Refactoring (Phase 2 Complete - November 4, 2025)**
+  - **MVC Architecture**: Complete separation of concerns for building entities
+    - **BuildingModel** (`Classes/models/BuildingModel.js`): Health, spawn, upgrade systems
+    - **BuildingView** (`Classes/views/BuildingView.js`): Sprite rendering, health bar display
+    - **BuildingController** (`Classes/controllers/mvc/BuildingController.js`): Public API, input handling
+    - **BuildingFactory** (`Classes/factories/BuildingFactory.js`): Factory methods for AntCone, AntHill, HiveSource
+    - **BuildingManager** (`Classes/managers/BuildingManager.js`): Global coordination, lifecycle management
+  - **Test Coverage**: 172 tests passing (100% coverage)
+    - 55 BuildingModel unit tests (health, spawn, upgrade systems)
+    - 26 BuildingView integration tests (rendering, model reactions)
+    - 44 BuildingController unit tests (API, input handling, serialization)
+    - 23 BuildingFactory unit tests (building configurations, factory methods)
+    - 24 BuildingManager integration tests (creation, tracking, updates)
+  - **API Documentation** (Godot-style format):
+    - `docs/api/BuildingController_API_Reference.md` - Main public API
+    - `docs/api/BuildingFactory_API_Reference.md` - Factory methods and configurations
+    - `docs/api/BuildingManager_API_Reference.md` - Global building coordination
+  - **Building Types**:
+    - **AntCone**: 64x64, 80 HP, 8s spawn, 1 unit/spawn, 3 upgrade levels
+    - **AntHill**: 96x96, 150 HP, 12s spawn, 2 units/spawn, 3 upgrade levels
+    - **HiveSource**: 128x128, 250 HP, 15s spawn, 3 units/spawn, 3 upgrade levels
+  - **Features**:
+    - Observable pattern (automatic view updates on model changes)
+    - Delta-time based spawn timers (frame-independent)
+    - Upgrade trees with stat progression
+    - Health system with damage/heal/death notifications
+    - Serialization support for save/load
+    - Input handling (click detection)
+  - **Migration**:
+    ```javascript
+    // OLD (removed)
+    createBuilding('antcone', x, y, 'player');
+    BuildingPreloader();
+    
+    // NEW
+    g_buildingManager.createBuilding('antcone', x, y, 'player');
+    // Images handled by BuildingFactory automatically
+    ```
+  - **Files Affected**:
+    - Created: BuildingModel, BuildingView, BuildingController, BuildingFactory, BuildingManager
+    - Updated: BuildingBrush (uses g_buildingManager API)
+    - Updated: sketch.js (g_buildingManager initialization, removed BuildingPreloader)
+    - Removed: Old Building class (Entity-based), AbstractBuildingFactory, global functions
+
 - **Resource BDD Test Suite (Phase 1.9 Complete)**
   - **BDD Tests** (`test/bdd/features/resource_mvc.feature`, `test/bdd/steps/resource_mvc_steps.js`)
     - Comprehensive BDD test suite using Cucumber + Selenium WebDriver

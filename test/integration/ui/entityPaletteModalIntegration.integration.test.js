@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: EntityPalette Modal Integration
  * 
  * Tests modal dialog integration with EntityPalette for:
@@ -9,11 +9,11 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
 
 // Setup global window object
 if (typeof window === 'undefined') {
-  global.window = {};
 }
 
 // Mock p5.js functions
@@ -106,6 +106,8 @@ window.CategoryRadioButtons = global.CategoryRadioButtons;
 
 const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette.js');
 
+setupTestEnvironment({ rendering: true });
+
 describe('EntityPalette - Modal Integration', function() {
   let palette;
   
@@ -116,7 +118,7 @@ describe('EntityPalette - Modal Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Add New Custom Entity Modal', function() {

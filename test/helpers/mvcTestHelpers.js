@@ -45,6 +45,10 @@ function setupP5Globals() {
   global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
   global.window.createVector = global.createVector;
   
+  // p5.js constants
+  global.CENTER = 'center';
+  global.window.CENTER = 'center';
+  
   // Set up logging functions (used by many game systems)
   global.logNormal = sinon.stub();
   global.logVerbose = sinon.stub();
@@ -71,6 +75,7 @@ function setupP5Rendering() {
     pop: sinon.stub(),
     fill: sinon.stub(),
     stroke: sinon.stub(),
+    strokeWeight: sinon.stub(),
     noStroke: sinon.stub(),
     noFill: sinon.stub(),
     ellipse: sinon.stub(),
@@ -83,7 +88,10 @@ function setupP5Rendering() {
     image: sinon.stub(),
     line: sinon.stub(),
     circle: sinon.stub(),
-    triangle: sinon.stub()
+    triangle: sinon.stub(),
+    text: sinon.stub(),
+    textAlign: sinon.stub(),
+    textSize: sinon.stub()
   };
   
   // Set as globals
@@ -146,6 +154,25 @@ function setupMockSprite2D() {
  * - sprite: true/false (default: false) - Include Sprite2D mock
  * 
  * Returns object with all setup components for easy access.
+ * 
+ * Example:
+ * ```javascript
+ * const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+ * 
+ * setupTestEnvironment({ rendering: true });
+ * 
+ * describe('MyTest', function() {
+ *   let MyClass;
+ *   
+ *   before(function() {
+ *     MyClass = require('../../../Classes/MyClass');
+ *   });
+ *   
+ *   afterEach(function() {
+ *     cleanupTestEnvironment();
+ *   });
+ * });
+ * ```
  */
 function setupTestEnvironment(options = {}) {
   const { rendering = false, sprite = false } = options;
@@ -155,7 +182,9 @@ function setupTestEnvironment(options = {}) {
   const CollisionBox2D = setupCollisionBox2D();
   
   const result = {
-    CollisionBox2D
+    CollisionBox2D,
+    window: global.window,
+    document: global.document
   };
   
   if (rendering) {
@@ -289,6 +318,49 @@ function createMockPointer(x, y, pressed = false) {
   };
 }
 
+/**
+ * Load a class with cache clearing (ensures fresh instance).
+ * Use this to reload classes after environment setup.
+ * 
+ * Example:
+ * ```javascript
+ * const MyClass = loadClassWithCacheClear('../../../Classes/MyClass');
+ * ```
+ */
+function loadClassWithCacheClear(relativePath) {
+  delete require.cache[require.resolve(relativePath)];
+  const LoadedClass = require(relativePath);
+  global[LoadedClass.name] = LoadedClass;
+  global.window[LoadedClass.name] = LoadedClass;
+  return LoadedClass;
+}
+
+/**
+ * Setup test environment and load multiple classes in one call.
+ * Convenience function for integration tests.
+ * 
+ * Example:
+ * ```javascript
+ * const { CategoryRadioButtons, EntityPalette } = setupAndLoadClasses(
+ *   { rendering: true },
+ *   {
+ *     CategoryRadioButtons: '../../../Classes/ui/UIComponents/radioButton/CategoryRadioButtons',
+ *     EntityPalette: '../../../Classes/ui/painter/entity/EntityPalette'
+ *   }
+ * );
+ * ```
+ */
+function setupAndLoadClasses(options = {}, classPaths = {}) {
+  const env = setupTestEnvironment(options);
+  
+  const loadedClasses = {};
+  Object.keys(classPaths).forEach(className => {
+    loadedClasses[className] = loadClassWithCacheClear(classPaths[className]);
+  });
+  
+  return { ...env, ...loadedClasses };
+}
+
 // Export all helpers
 module.exports = {
   // Setup functions
@@ -303,6 +375,8 @@ module.exports = {
   
   // Class loaders
   loadMVCBaseClasses,
+  loadClassWithCacheClear,
+  setupAndLoadClasses,
   
   // Test utilities
   createTestModel,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: RenderLayerManager with IN_GAME State
  * ==========================================================
  * Tests for rendering custom level gameplay state
@@ -10,9 +10,17 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('RenderLayerManager - IN_GAME State Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let dom, document, window;
   let RenderLayerManager;
   let mockP5;
@@ -20,7 +28,6 @@ describe('RenderLayerManager - IN_GAME State Integration', function() {
 
   before(function() {
     // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
@@ -70,7 +77,7 @@ describe('RenderLayerManager - IN_GAME State Integration', function() {
 
   after(function() {
     // Clean up
-    sinon.restore();
+    cleanupTestEnvironment();
   });
 
   describe('State Recognition', function() {
@@ -216,13 +223,13 @@ describe('RenderLayerManager - IN_GAME State Integration', function() {
 
       RenderLayerManager.render('IN_GAME');
 
-      // Expected order: TERRAIN → ENTITIES → EFFECTS → UI_GAME
+      // Expected order: TERRAIN â†’ ENTITIES â†’ EFFECTS â†’ UI_GAME
       expect(renderOrder).to.deep.equal(['TERRAIN', 'ENTITIES', 'EFFECTS', 'UI_GAME']);
     });
   });
 
   describe('State Transitions', function() {
-    it('should handle MENU → IN_GAME transition', function() {
+    it('should handle MENU â†’ IN_GAME transition', function() {
       const menuDrawable = sandbox.stub();
       const gameDrawable = sandbox.stub();
 
@@ -244,7 +251,7 @@ describe('RenderLayerManager - IN_GAME State Integration', function() {
       expect(gameDrawable.called).to.be.true;
     });
 
-    it('should handle IN_GAME → PAUSED transition', function() {
+    it('should handle IN_GAME â†’ PAUSED transition', function() {
       const entitiesDrawable = sandbox.stub();
       
       RenderLayerManager.addDrawableToLayer(RenderLayerManager.layers.ENTITIES, entitiesDrawable);

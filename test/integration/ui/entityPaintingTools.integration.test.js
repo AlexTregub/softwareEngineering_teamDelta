@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: Entity Painting & Toolbar Tools
  * 
  * Tests the integration of EntitySelectionTool, EntityPainter, ToolBar,
@@ -6,12 +6,19 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
 
 // Mock global constants
 global.TILE_SIZE = 32;
 
+setupTestEnvironment({ rendering: true });
+
 describe('Entity Painting Tools - Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let EntitySelectionTool, EntityPainter, ToolBar, ToolModeToggle;
   let entityPainter, entitySelectionTool, toolbar, mockP5, mockTerrain, mockEvents;
   
@@ -74,11 +81,11 @@ describe('Entity Painting Tools - Integration', function() {
     // Create ToolBar with modes
     if (ToolBar) {
       toolbar = new ToolBar([
-        { name: 'paint', id: 'paint', icon: '🖌️', tooltip: 'Paint' },
+        { name: 'paint', id: 'paint', icon: 'ðŸ–Œï¸', tooltip: 'Paint' },
         { 
           name: 'eraser', 
           id: 'eraser', 
-          icon: '🧱', 
+          icon: 'ðŸ§±', 
           tooltip: 'Eraser',
           hasModes: true,
           modes: ['ALL', 'TERRAIN', 'ENTITY', 'EVENTS']
@@ -86,7 +93,7 @@ describe('Entity Painting Tools - Integration', function() {
         { 
           name: 'select', 
           id: 'select', 
-          icon: '⬚', 
+          icon: 'â¬š', 
           tooltip: 'Select',
           hasModes: true,
           modes: ['PAINT', 'ENTITY', 'EVENT']
@@ -96,7 +103,7 @@ describe('Entity Painting Tools - Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('EntitySelectionTool + EntityPainter Integration', function() {

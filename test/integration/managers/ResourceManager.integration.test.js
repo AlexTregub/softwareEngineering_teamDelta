@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration tests for ResourceManager with ResourceController
  * Tests ant resource collection using ResourceController API
  */
@@ -11,6 +11,10 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('ResourceManager with ResourceController', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let ResourceManager, ResourceController, ResourceModel;
   let manager, mockAnt;
   

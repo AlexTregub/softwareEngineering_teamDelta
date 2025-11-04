@@ -38,17 +38,6 @@
  * ```
  */
 
-// Load dependencies (browser uses window.* directly, Node.js requires them)
-let BaseController, ResourceModel, ResourceView;
-if (typeof require !== 'undefined') {
-  BaseController = require('./BaseController');
-  ResourceModel = require('../../models/ResourceModel');
-  ResourceView = require('../../views/ResourceView');
-} else {
-  BaseController = window.BaseController;
-  ResourceModel = window.ResourceModel;
-  ResourceView = window.ResourceView;
-}
 
 class ResourceController extends BaseController {
   /**

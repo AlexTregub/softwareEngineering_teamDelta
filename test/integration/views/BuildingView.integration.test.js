@@ -23,8 +23,7 @@ describe('BuildingView', function() {
   });
   
   afterEach(function() {
-    cleanupTestEnvironment();
-    sinon.restore(); // Restore all stubs/spies
+    cleanupTestEnvironment(); // Already restores all Sinon stubs
   });
   
   describe('Constructor', function() {

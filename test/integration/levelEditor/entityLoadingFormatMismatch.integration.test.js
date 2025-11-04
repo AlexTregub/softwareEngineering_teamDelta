@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration tests for entity loading format mismatch bug
  * 
  * BUG: CaveTutorial.json uses gridX/gridY format, but EntityPainter.importFromJSON()
@@ -9,9 +9,17 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('EntityPainter - Format Mismatch Fix (Integration)', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let EntityPainter;
   let painter;
   let mockAnt;
@@ -19,9 +27,6 @@ describe('EntityPainter - Format Mismatch Fix (Integration)', function() {
   
   beforeEach(function() {
     // Setup JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js environment
     global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
@@ -59,7 +64,7 @@ describe('EntityPainter - Format Mismatch Fix (Integration)', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.createVector;
     delete window.createVector;
     delete global.ant;

@@ -15,7 +15,6 @@
  */
 
 const { expect } = require('chai');
-const sinon = require('sinon');
 const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
 // Setup environment (JSDOM, p5.js, CollisionBox2D, Sprite2D)
@@ -30,8 +29,7 @@ describe('BuildingFactory', function() {
   });
   
   afterEach(function() {
-    cleanupTestEnvironment();
-    sinon.restore();
+    cleanupTestEnvironment(); // Already restores all Sinon stubs
   });
   
   describe('Factory Methods', function() {

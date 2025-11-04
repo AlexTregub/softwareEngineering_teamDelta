@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests for LevelEditorPanels Sidebar Integration
  * 
  * Tests the integration of LevelEditorSidebar with DraggablePanel system.
@@ -7,10 +7,17 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('LevelEditorPanels - Sidebar Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let LevelEditorPanels;
   let LevelEditorSidebar;
   let DraggablePanel;
@@ -23,9 +30,6 @@ describe('LevelEditorPanels - Sidebar Integration', function() {
     sandbox = sinon.createSandbox();
     
     // Setup JSDOM
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js functions
     global.push = sandbox.stub();

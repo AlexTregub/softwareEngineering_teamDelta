@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: ToolBar + TerrainEditor - No Tool Mode
  * 
  * Tests for No Tool mode integration between ToolBar and TerrainEditor.
@@ -10,7 +10,16 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('ToolBar + TerrainEditor - No Tool Mode Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let TerrainEditor, ToolBar;
   let toolbar, editor, mockTerrain;
 
@@ -44,14 +53,14 @@ describe('ToolBar + TerrainEditor - No Tool Mode Integration', function() {
     // Create real components
     editor = new TerrainEditor(mockTerrain);
     toolbar = new ToolBar([
-      { name: 'paint', icon: '🖌️', tooltip: 'Paint Tool' },
-      { name: 'eraser', icon: '🧱', tooltip: 'Eraser Tool' },
-      { name: 'fill', icon: '🪣', tooltip: 'Fill Tool' }
+      { name: 'paint', icon: 'ðŸ–Œï¸', tooltip: 'Paint Tool' },
+      { name: 'eraser', icon: 'ðŸ§±', tooltip: 'Eraser Tool' },
+      { name: 'fill', icon: 'ðŸª£', tooltip: 'Fill Tool' }
     ]);
   });
 
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
 
   describe('Initialization', function() {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests for LevelLoader with LevelValidator
  * Tests that LevelLoader properly integrates with LevelValidator
  * 
@@ -13,22 +13,27 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const path = require('path');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('LevelLoader + LevelValidator Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let LevelLoader;
   let LevelValidator;
   let sandbox;
 
   before(function() {
     // Setup JSDOM for browser globals
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
     
-    global.window = dom.window;
-    global.document = dom.window.document;
 
     // Load classes
     const loaderPath = path.join(__dirname, '../../..', 'Classes/loaders/LevelLoader.js');

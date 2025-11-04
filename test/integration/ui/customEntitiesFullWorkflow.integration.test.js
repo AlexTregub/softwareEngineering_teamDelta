@@ -1,22 +1,22 @@
-/**
+﻿/**
  * Full Workflow Integration Tests: Custom Entities
  * 
  * Tests complete user workflows for custom entities:
- * - Add → appears in list → persists
- * - Rename → updates in list + storage
- * - Delete → confirmation → removed
- * - Category switching → persistence
- * - Page reload simulation → restoration
- * - Multiple entities → display
- * - Selection → properties preserved
+ * - Add â†’ appears in list â†’ persists
+ * - Rename â†’ updates in list + storage
+ * - Delete â†’ confirmation â†’ removed
+ * - Category switching â†’ persistence
+ * - Page reload simulation â†’ restoration
+ * - Multiple entities â†’ display
+ * - Selection â†’ properties preserved
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
 
 // Setup global window object
 if (typeof window === 'undefined') {
-  global.window = {};
 }
 
 // Mock p5.js functions
@@ -62,7 +62,7 @@ const localStorageMock = {
 global.localStorage = localStorageMock;
 window.localStorage = localStorageMock;
 
-// Load classes - inheritance chain: UIObject → Dialog → ModalDialog
+// Load classes - inheritance chain: UIObject â†’ Dialog â†’ ModalDialog
 const UIObject = require('../../../Classes/ui/_baseObjects/UIObject.js');
 global.UIObject = UIObject;
 window.UIObject = UIObject;
@@ -111,6 +111,8 @@ window.CategoryRadioButtons = global.CategoryRadioButtons;
 
 const EntityPalette = require('../../../Classes/ui/painter/entity/EntityPalette.js');
 
+setupTestEnvironment({ rendering: true });
+
 describe('Custom Entities - Full Workflow Integration', function() {
   let palette;
   
@@ -121,7 +123,7 @@ describe('Custom Entities - Full Workflow Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Add Workflow', function() {

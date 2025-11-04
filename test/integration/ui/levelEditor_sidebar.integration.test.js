@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: LevelEditor - Sidebar Integration
  * 
  * Tests integration between LevelEditor and LevelEditorSidebar component.
@@ -8,10 +8,17 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('LevelEditor - Sidebar Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let sandbox;
   let LevelEditor;
   let mockLevelEditorPanels;
@@ -39,11 +46,8 @@ describe('LevelEditor - Sidebar Integration', function() {
     sandbox = sinon.createSandbox();
 
     // Setup JSDOM
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost'
     });
-    global.window = dom.window;
-    global.document = dom.window.document;
 
     // Mock p5.js functions
     global.createVector = sandbox.stub().callsFake((x, y) => ({ x, y, mag: () => Math.sqrt(x*x + y*y) }));

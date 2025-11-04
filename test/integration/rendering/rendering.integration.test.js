@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated Rendering Integration Tests
  * Generated: 2025-10-29T03:16:53.977Z
  * Source files: 9
@@ -8,7 +8,6 @@
 // Common requires
 let { expect } = require('chai');
 let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
 
 
 // ================================================================
@@ -27,7 +26,16 @@ let { JSDOM } = require('jsdom');
 
 let { setupUITestEnvironment } = require('../../helpers/uiTestHelpers');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('CacheManager - Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let cleanup;
   let CacheManager;
 
@@ -256,7 +264,7 @@ describe('CacheManager - Integration Tests', function() {
   });
 
   describe('Cache Lifecycle', function() {
-    it('should complete full lifecycle: create → use → invalidate → evict → destroy', function() {
+    it('should complete full lifecycle: create â†’ use â†’ invalidate â†’ evict â†’ destroy', function() {
       const manager = CacheManager.getInstance();
       manager.setMemoryBudget(400 * 1024); // 400KB to fit both caches
       manager.setEvictionEnabled(true);
@@ -540,7 +548,6 @@ describe('CacheManager + TiledCacheStrategy Integration', function() {
     beforeEach(function() {
         // JSDOM setup
         if (typeof window === 'undefined') {
-            global.window = global;
         }
         
         // Mock p5.js createGraphics
@@ -566,7 +573,7 @@ describe('CacheManager + TiledCacheStrategy Integration', function() {
     });
     
     afterEach(function() {
-        sinon.restore();
+        cleanupTestEnvironment();
         delete global.createGraphics;
         
         if (cacheManager) {
@@ -1171,9 +1178,6 @@ describe('Infinite Canvas Rendering Integration', function() {
   
   beforeEach(function() {
     // Setup JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js functions
     mockP5 = {
@@ -1214,7 +1218,7 @@ describe('Infinite Canvas Rendering Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     if (dom && dom.window) {
       dom.window.close();
     }
@@ -1578,11 +1582,8 @@ describe('Level Editor + RenderLayerManager + Game State Integration', function(
 
   beforeEach(function() {
     // Create fresh DOM
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
 
     // Mock p5.js globals
     global.mouseX = 0;
@@ -2004,7 +2005,7 @@ describe('Level Editor + RenderLayerManager + Game State Integration', function(
 
       renderManager.render('LEVEL_EDITOR');
 
-      // Expected order: interactive_update → ui_game_renderer → drawable → interactive_render
+      // Expected order: interactive_update â†’ ui_game_renderer â†’ drawable â†’ interactive_render
       expect(executionOrder.indexOf('interactive_update')).to.be.lessThan(executionOrder.indexOf('ui_game_renderer'));
       expect(executionOrder.indexOf('ui_game_renderer')).to.be.lessThan(executionOrder.indexOf('drawable'));
       expect(executionOrder.indexOf('drawable')).to.be.lessThan(executionOrder.indexOf('interactive_render'));
@@ -2182,9 +2183,6 @@ describe('RenderController Integration', function() {
   
   beforeEach(function() {
     // Create JSDOM environment
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js drawing functions
     global.push = sinon.stub();
@@ -2360,7 +2358,7 @@ describe('RenderController Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
     delete global.push;
@@ -2558,7 +2556,7 @@ describe('RenderController Integration', function() {
  * Integration Tests for RenderLayerManager
  * 
  * Tests the integration of RenderLayerManager with:
- * - Layer rendering and ordering (TERRAIN → ENTITIES → EFFECTS → UI_GAME → UI_DEBUG → UI_MENU)
+ * - Layer rendering and ordering (TERRAIN â†’ ENTITIES â†’ EFFECTS â†’ UI_GAME â†’ UI_DEBUG â†’ UI_MENU)
  * - Game state management (layer visibility per state)
  * - Layer toggle functionality (enabling/disabling layers)
  * - Performance tracking
@@ -2584,7 +2582,6 @@ describe('RenderLayerManager Integration Tests', function() {
 
     before(function() {
         // Create JSDOM environment
-        dom = new JSDOM('<!DOCTYPE html><html><body><canvas id="defaultCanvas0"></canvas></body></html>', {
             url: 'http://localhost',
             pretendToBeVisual: true,
             resources: 'usable'
@@ -2592,8 +2589,6 @@ describe('RenderLayerManager Integration Tests', function() {
 
         window = dom.window;
         document = window.document;
-        global.window = window;
-        global.document = document;
 
         // Setup p5.js and game environment mocks
         setupEnvironmentMocks();
@@ -3804,13 +3799,13 @@ describe('RenderLayerManager Integration Tests', function() {
  * 2. INITIALIZATION FLOW - WORKING (?test=1):
  *    a) preload() runs
  *    b) terrainPreloader() loads images (MOSS_IMAGE, STONE_IMAGE, etc.)
- *    c) terrianGen.js executes → TERRAIN_MATERIALS_RANGED created
+ *    c) terrianGen.js executes â†’ TERRAIN_MATERIALS_RANGED created
  *    d) setup() runs
  *    e) User clicks Level Editor
  *    f) LevelEditor creates MaterialPalette
- *    g) MaterialPalette constructor checks: typeof TERRAIN_MATERIALS_RANGED !== 'undefined' ✅
+ *    g) MaterialPalette constructor checks: typeof TERRAIN_MATERIALS_RANGED !== 'undefined' âœ…
  *    h) Palette loads materials: Object.keys(TERRAIN_MATERIALS_RANGED) = ['moss', 'stone', 'dirt', 'grass']
- *    i) Swatches created: 4 materials with render functions ✅
+ *    i) Swatches created: 4 materials with render functions âœ…
  * 
  * 3. INITIALIZATION FLOW - BROKEN (from menu):
  *    a) preload() runs
@@ -3821,7 +3816,7 @@ describe('RenderLayerManager Integration Tests', function() {
  *    f) LevelEditor.initialize() runs
  *    g) MaterialPalette constructor checks: typeof TERRAIN_MATERIALS_RANGED !== 'undefined'
  *       
- *       ⚠️ CRITICAL TIMING ISSUE:
+ *       âš ï¸ CRITICAL TIMING ISSUE:
  *       - terrianGen.js HAS loaded (script tag executed)
  *       - TERRAIN_MATERIALS_RANGED IS defined
  *       - BUT image references (MOSS_IMAGE, STONE_IMAGE) might not be loaded yet!
@@ -3838,7 +3833,7 @@ describe('RenderLayerManager Integration Tests', function() {
  *    - TERRAIN_MATERIALS_RANGED might not be populated correctly
  *    
  *    EVIDENCE FROM E2E TEST:
- *    - paletteDetails.swatchCount = 0 ❌
+ *    - paletteDetails.swatchCount = 0 âŒ
  *    - This means: typeof TERRAIN_MATERIALS_RANGED === 'undefined' OR Object.keys() returned []
  *    - So TERRAIN_MATERIALS_RANGED is actually UNDEFINED when palette is created!
  * 
@@ -3871,10 +3866,10 @@ describe('RenderLayerManager Integration Tests', function() {
  *   "hasTerrain": true,
  *   "hasEditor": true,
  *   "paletteDetails": {
- *     "swatchCount": 0,  // ← THE SMOKING GUN!
+ *     "swatchCount": 0,  // â† THE SMOKING GUN!
  *     "selectedMaterial": "grass"
  *   },
- *   "terrainMaterialsRanged": true  // ← But this says it exists?
+ *   "terrainMaterialsRanged": true  // â† But this says it exists?
  * }
  * ```
  * 
@@ -3922,9 +3917,9 @@ describe('ROOT CAUSE ANALYSIS - Material Palette Issue', function() {
     console.log('  3. OR Object.keys(TERRAIN_MATERIALS_RANGED) returns []');
     console.log('');
     console.log('NEXT INVESTIGATION:');
-    console.log('  → Check LevelEditor.initialize() - how is palette created?');
-    console.log('  → Check terrianGen.js - is TERRAIN_MATERIALS_RANGED populated on load?');
-    console.log('  → Add console.log to MaterialPalette constructor in E2E test');
+    console.log('  â†’ Check LevelEditor.initialize() - how is palette created?');
+    console.log('  â†’ Check terrianGen.js - is TERRAIN_MATERIALS_RANGED populated on load?');
+    console.log('  â†’ Add console.log to MaterialPalette constructor in E2E test');
     console.log('');
     console.log('='.repeat(80));
     
@@ -3954,14 +3949,14 @@ describe('ROOT CAUSE ANALYSIS - Material Palette Issue', function() {
  * ```javascript
  * render() { // Render, previously draw
  *   noSmooth();
- *   TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // ← USES OLD VARIABLE
+ *   TERRAIN_MATERIALS[this._materialSet][1](this._x,this._y,this._squareSize); // â† USES OLD VARIABLE
  *   smooth();
  *   return;
  * }
  * ```
  * 
  * Problem: References `TERRAIN_MATERIALS` which is commented out (line 18)!
- * This causes: TypeError or undefined behavior → falls back to brown color
+ * This causes: TypeError or undefined behavior â†’ falls back to brown color
  * 
  * METHOD 2 (Line 262-270): CORRECT - Uses current variable  
  * -------
@@ -3972,7 +3967,7 @@ describe('ROOT CAUSE ANALYSIS - Material Palette Issue', function() {
  *   }
  *   
  *   noSmooth();
- *   TERRAIN_MATERIALS_RANGED[this._materialSet][1](this._coordSysPos[0],this._coordSysPos[1],this._squareSize); // ← CORRECT
+ *   TERRAIN_MATERIALS_RANGED[this._materialSet][1](this._coordSysPos[0],this._coordSysPos[1],this._squareSize); // â† CORRECT
  *   smooth();
  * }
  * ```
@@ -3985,7 +3980,7 @@ describe('ROOT CAUSE ANALYSIS - Material Palette Issue', function() {
  * 
  * From chunk.js line 171:
  * ```javascript
- * this.tileData.rawArray[i].render(coordSys);  // ← Passes coordSys parameter
+ * this.tileData.rawArray[i].render(coordSys);  // â† Passes coordSys parameter
  * ```
  * 
  * So the CORRECT method (render(coordSys)) SHOULD be called.
@@ -4013,12 +4008,12 @@ describe('ROOT CAUSE ANALYSIS - Material Palette Issue', function() {
  * EVIDENCE FROM E2E TESTS
  * ==============================================================================
  * 
- * ✅ TERRAIN_MATERIALS_RANGED exists and has 6 materials
- * ✅ All render functions are defined and reference correct images  
- * ✅ MaterialPalette loads 6 materials correctly
- * ✅ Images (MOSS_IMAGE, STONE_IMAGE, etc.) all exist
- * ❌ Painted tiles show brown solid colors (RGB: 120, 80, 40)
- * ❌ Pixel variance is 0-1 (no texture)
+ * âœ… TERRAIN_MATERIALS_RANGED exists and has 6 materials
+ * âœ… All render functions are defined and reference correct images  
+ * âœ… MaterialPalette loads 6 materials correctly
+ * âœ… Images (MOSS_IMAGE, STONE_IMAGE, etc.) all exist
+ * âŒ Painted tiles show brown solid colors (RGB: 120, 80, 40)
+ * âŒ Pixel variance is 0-1 (no texture)
  * 
  * ==============================================================================
  * SOLUTION (DON'T IMPLEMENT YET - WAITING FOR CONFIRMATION)
@@ -4046,30 +4041,30 @@ describe('ROOT CAUSE FOUND - Tile Render Methods', function() {
   it('should document the duplicate render() methods issue', function() {
     console.log('');
     console.log('='.repeat(80));
-    console.log('🔍 ROOT CAUSE INVESTIGATION - DUPLICATE RENDER METHODS');
+    console.log('ðŸ” ROOT CAUSE INVESTIGATION - DUPLICATE RENDER METHODS');
     console.log('='.repeat(80));
     console.log('');
     console.log('FILE: Classes/terrainUtils/terrianGen.js');
     console.log('');
     console.log('BROKEN METHOD (Line 254):');
     console.log('  render() {');
-    console.log('    TERRAIN_MATERIALS[this._materialSet][1](...)  ← UNDEFINED!');
+    console.log('    TERRAIN_MATERIALS[this._materialSet][1](...)  â† UNDEFINED!');
     console.log('  }');
     console.log('');
     console.log('CORRECT METHOD (Line 262):');
     console.log('  render(coordSys) {');
-    console.log('    TERRAIN_MATERIALS_RANGED[this._materialSet][1](...)  ← WORKS!');
+    console.log('    TERRAIN_MATERIALS_RANGED[this._materialSet][1](...)  â† WORKS!');
     console.log('  }');
     console.log('');
     console.log('CALLED FROM (chunk.js line 171):');
-    console.log('  this.tileData.rawArray[i].render(coordSys)  ← Passes parameter');
+    console.log('  this.tileData.rawArray[i].render(coordSys)  â† Passes parameter');
     console.log('');
     console.log('ISSUE:');
     console.log('  JavaScript sees TWO methods named "render"');
     console.log('  It might call the FIRST one and ignore the parameter!');
     console.log('');
     console.log('RESULT:');
-    console.log('  TERRAIN_MATERIALS is undefined → Error or fallback');
+    console.log('  TERRAIN_MATERIALS is undefined â†’ Error or fallback');
     console.log('  Tiles painted with solid brown color instead of textures');
     console.log('');
     console.log('RECOMMENDED FIX:');

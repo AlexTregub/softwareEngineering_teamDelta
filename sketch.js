@@ -140,27 +140,14 @@ function setup() {
   g_buildingManager = new BuildingManager();
   
   initializeWorld();
+  initializeDraggablePanelSystem()
 
-  // Initialize Draggable Panel System (must be after initializeWorld, before any UI that uses panels)
-  if (typeof initializeDraggablePanelSystem !== 'undefined') {
-    initializeDraggablePanelSystem().then(() => {
-      logVerbose('✅ DraggablePanelSystem ready');
-    }).catch((error) => {
-      console.error('❌ Failed to initialize DraggablePanelSystem:', error);
-    });
-  } else {
-    console.warn('⚠️ initializeDraggablePanelSystem not found - draggable panels will not work');
-  }
-
-  // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  logVerbose('[SETUP] About to create SelectionBoxController, g_mouseController:', g_mouseController, 'ants:', ants);
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-  logVerbose('[SETUP] Created g_selectionBoxController:', g_selectionBoxController);
   window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
 
   // Ensure selection adapter is registered with RenderManager now that controller exists
@@ -182,18 +169,8 @@ function setup() {
     }
   } catch (e) { console.warn('Failed to ensure selection adapter registration', e); }
 
-  // Connect keyboard controller for general input handling
-  g_keyboardController.onKeyPress((keyCode, key) => {
-    // UI shortcuts are now handled directly in keyPressed() function
-    // This maintains compatibility with existing game input systems
-  });
+  window.EntityRenderer = new EntityRenderer();
 
-  // CRITICAL: Initialize EntityRenderer instance (if it's still a class)
-  if (typeof EntityRenderer === 'function' && !EntityRenderer.renderAllLayers) {
-    console.warn('⚠️ EntityRenderer was not instantiated! Creating instance now...');
-    window.EntityRenderer = new EntityRenderer();
-    console.log('✅ EntityRenderer instance created manually');
-  }
   
   // Initialize camera management system (CameraSystemManager for dual camera support)
   if (typeof CameraSystemManager !== 'undefined') {
@@ -260,43 +237,13 @@ function setup() {
     logVerbose('🚫 Right-click context menu disabled for brush controls');
   }
 
-  // Initialize Queen Control Panel system
-  if (typeof initializeQueenControlPanel !== 'undefined') {
-    initializeQueenControlPanel();
-    logVerbose('👑 Queen Control Panel initialized in setup');
-  }
-
-  // Initialize Fireball System
-  if (typeof window !== 'undefined' && typeof FireballManager !== 'undefined') {
-    window.g_fireballManager = new FireballManager();
-    logVerbose('🔥 Fireball System initialized in setup');
-  }
-
-  // Initialize Event Manager (singleton)
-  if (typeof EventManager !== 'undefined') {
-    window.eventManager = EventManager.getInstance();
-    logVerbose('🎯 Event Manager initialized in setup');
-  }
-
-  // Initialize Event Debug Manager
-  if (typeof EventDebugManager !== 'undefined') {
-    window.eventDebugManager = new EventDebugManager();
-    
-    // Connect EventDebugManager to EventManager
-    if (window.eventManager) {
-      window.eventManager.setEventDebugManager(window.eventDebugManager);
-      logVerbose('🔗 Event Debug Manager connected to Event Manager');
-    }
-    
-    logVerbose('🐛 Event Debug Manager initialized in setup');
-  }
-
+  initializeQueenControlPanel();
+  window.g_fireballManager = new FireballManager();
+  window.eventManager = EventManager.getInstance();
+  window.eventDebugManager = new EventDebugManager();
+  window.eventManager.setEventDebugManager(window.eventDebugManager);
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
-
-  // Farmland working...
-  // g_tileInteractionManager.turnToFarmland(-60,-60,0,0); // NOTE: current Y is flipped...
-  // g_tileInteractionManager.turnToFarmland(0,0); // NOTE: current Y is flipped...
   
   // Register state change callback for level editor initialization
   if (typeof GameState !== 'undefined' && typeof levelEditor !== 'undefined') {

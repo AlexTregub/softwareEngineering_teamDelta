@@ -1,4 +1,4 @@
-/**
+﻿/**
  * EntityPalette Cursor Following - Integration Tests (TDD Red Phase)
  * 
  * Tests real integration between EntityPalette and LevelEditor for cursor following:
@@ -8,24 +8,28 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('EntityPalette Cursor Following - Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let dom, window, document;
   let sandbox;
   let EntityPalette, LevelEditor;
   
   before(function() {
     // Setup JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
     
     // Mock p5.js globals
     const mockP5Functions = {

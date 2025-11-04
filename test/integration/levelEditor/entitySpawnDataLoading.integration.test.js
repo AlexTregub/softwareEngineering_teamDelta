@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Test: LevelEditor entity spawn data loading
  * Verifies entities load into _entitySpawnData (not placedEntities)
  * Tests the CORRECT Level Editor workflow for spawn markers
@@ -6,19 +6,24 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
 const path = require('path');
 const fs = require('fs');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('LevelEditor._entitySpawnData loading (spawn markers)', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let LevelEditor, TerrainImporter, EntityPainter, EntityPalette;
   let levelEditor, mockTerrain;
   
   beforeEach(function() {
     // Setup JSDOM
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock logging functions (stub for integration test)
     global.logVerbose = sinon.stub();
@@ -157,7 +162,7 @@ describe('LevelEditor._entitySpawnData loading (spawn markers)', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
   });

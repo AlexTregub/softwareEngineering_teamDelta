@@ -37,6 +37,7 @@
  * }
  * ```
  */
+
 class BaseController {
   /**
    * Construct a controller with model and view.

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests for NewMapDialog
  * 
  * Tests the integration of NewMapDialog with LevelEditor and related systems.
@@ -6,12 +6,19 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
 const path = require('path');
 const fs = require('fs');
 
+setupTestEnvironment({ rendering: true });
+
 describe('NewMapDialog Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let dom, window, document, global;
   let LevelEditor, NewMapDialog, Dialog, UIObject, SparseTerrain, CustomTerrain, gridTerrain;
   let TerrainEditor, NotificationManager, MiniMap, PropertiesPanel;
@@ -21,7 +28,6 @@ describe('NewMapDialog Integration', function() {
   
   before(function() {
     // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body><canvas id="defaultCanvas0"></canvas></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
@@ -31,8 +37,6 @@ describe('NewMapDialog Integration', function() {
     global = window;
     
     // Sync global and window
-    global.window = window;
-    global.document = document;
     
     // Mock p5.js constants
     global.CONTROL = 17;
@@ -410,7 +414,7 @@ describe('NewMapDialog Integration', function() {
   });
   
   after(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('LevelEditor Integration', function() {

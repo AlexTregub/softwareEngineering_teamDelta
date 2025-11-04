@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated Material Palette & Painting Integration Tests
  * Generated: 2025-10-29T03:16:53.945Z
  * Source files: 4
@@ -8,7 +8,6 @@
 // Common requires
 let { expect } = require('chai');
 let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
 
 
 // ================================================================
@@ -324,14 +323,11 @@ describe('Material Palette Painting Integration', function() {
 
   beforeEach(function() {
     // Create JSDOM environment
-    dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
       url: 'http://localhost'
     });
 
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
 
     // Mock p5.js functions
     global.push = sinon.stub();
@@ -434,7 +430,7 @@ describe('Material Palette Painting Integration', function() {
   });
 
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
   });
@@ -833,12 +829,12 @@ describe('Grid/Terrain Coordinate Alignment Integration', function() {
  * SUMMARY OF FINDINGS:
  * ====================
  * 
- * ✅ TERRAIN_MATERIALS_RANGED is loaded correctly (6 materials)
- * ✅ Images exist (MOSS_IMAGE, STONE_IMAGE, etc.)
- * ✅ MaterialPalette has 6 materials
- * ✅ Render functions are defined and reference images
+ * âœ… TERRAIN_MATERIALS_RANGED is loaded correctly (6 materials)
+ * âœ… Images exist (MOSS_IMAGE, STONE_IMAGE, etc.)
+ * âœ… MaterialPalette has 6 materials
+ * âœ… Render functions are defined and reference images
  * 
- * ❌ ISSUE: Painted tiles show solid brown colors (variance 0-1)
+ * âŒ ISSUE: Painted tiles show solid brown colors (variance 0-1)
  * 
  * HYPOTHESIS:
  * The issue is NOT in MaterialPalette or TERRAIN_MATERIALS_RANGED.
@@ -858,13 +854,13 @@ describe('Complete Material Painting Flow - Integration', function() {
     console.log('INTEGRATION TEST FINDINGS - Material Painting Issue');
     console.log('='.repeat(80));
     console.log('');
-    console.log('DATA LAYER: ✅ ALL CORRECT');
+    console.log('DATA LAYER: âœ… ALL CORRECT');
     console.log('  - TERRAIN_MATERIALS_RANGED: 6 materials loaded');
     console.log('  - Images: MOSS_IMAGE, STONE_IMAGE, DIRT_IMAGE, GRASS_IMAGE exist');
     console.log('  - MaterialPalette: 6 materials in array');
     console.log('  - Render functions: All defined, all reference correct images');
     console.log('');
-    console.log('VISUAL LAYER: ❌ BROKEN');
+    console.log('VISUAL LAYER: âŒ BROKEN');
     console.log('  - E2E pixel analysis: Brown colors (120, 80, 40)');
     console.log('  - Pixel variance: 0-1 (solid colors, not textures)');
     console.log('  - User screenshot: Shows brown terrain');
@@ -873,12 +869,12 @@ describe('Complete Material Painting Flow - Integration', function() {
     console.log('  The disconnect happens between selecting a material and rendering a tile.');
     console.log('');
     console.log('  Flow:');
-    console.log('    1. User clicks material in palette → ✅ Works');
-    console.log('    2. MaterialPalette.selectMaterial(name) → ✅ selectedMaterial set');
-    console.log('    3. User clicks terrain to paint → ?');
-    console.log('    4. TerrainEditor.paintTile(x, y, material) → ?');
-    console.log('    5. Tile.setMaterial(material) → ?');
-    console.log('    6. Tile.render() calls TERRAIN_MATERIALS_RANGED[material][1]() → ❌ FAILS?');
+    console.log('    1. User clicks material in palette â†’ âœ… Works');
+    console.log('    2. MaterialPalette.selectMaterial(name) â†’ âœ… selectedMaterial set');
+    console.log('    3. User clicks terrain to paint â†’ ?');
+    console.log('    4. TerrainEditor.paintTile(x, y, material) â†’ ?');
+    console.log('    5. Tile.setMaterial(material) â†’ ?');
+    console.log('    6. Tile.render() calls TERRAIN_MATERIALS_RANGED[material][1]() â†’ âŒ FAILS?');
     console.log('');
     console.log('NEXT STEPS:');
     console.log('  1. Check TerrainEditor - does it pass material name to paintTile?');

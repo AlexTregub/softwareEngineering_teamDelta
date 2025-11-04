@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ResourceView Integration Tests
  * ------------------------------
  * Tests for ResourceView class with real p5.js rendering context.
@@ -18,6 +18,10 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('ResourceView', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let BaseModel, BaseView, ResourceModel, ResourceView;
   
   before(function() {

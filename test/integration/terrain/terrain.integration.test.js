@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated Terrain Integration Tests
  * Generated: 2025-10-29T03:16:53.971Z
  * Refactored: 2025-11-02 - Uses shared terrainTestHelper and gridTerrainTestHelper
@@ -9,7 +9,6 @@
 // Common requires
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
 const { 
   setupTerrainTest, 
   cleanupTerrainTest, 
@@ -20,6 +19,9 @@ const {
 // Load SparseTerrain and TerrainEditor once at the top (used by multiple test suites)
 const SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
 const TerrainEditor = require('../../../Classes/terrainUtils/TerrainEditor');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
 
 
 // ================================================================
@@ -43,7 +45,13 @@ const TerrainEditor = require('../../../Classes/terrainUtils/TerrainEditor');
  * 4. tileToScreen() returns expected pixel positions
  */
 
+setupTestEnvironment({ rendering: true });
+
 describe('CustomTerrain imageMode Regression Prevention (Integration)', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
     let CustomTerrain;
     let mockP5;
     let imageModeSpy;
@@ -332,7 +340,6 @@ describe('GridTerrain imageMode Regression Prevention (Integration)', function()
     
     beforeEach(function() {
         // Create JSDOM environment
-        dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
             url: 'http://localhost',
             pretendToBeVisual: true
         });
@@ -340,8 +347,6 @@ describe('GridTerrain imageMode Regression Prevention (Integration)', function()
         document = window.document;
         
         // Setup global and window sync
-        global.window = window;
-        global.document = document;
         
         // Mock p5.js drawing functions
         mockP5 = {
@@ -394,7 +399,7 @@ describe('GridTerrain imageMode Regression Prevention (Integration)', function()
     });
     
     afterEach(function() {
-        sinon.restore();
+        cleanupTestEnvironment();
         delete global.window;
         delete global.document;
     });
@@ -674,10 +679,6 @@ describe('TerrainEditor Fill Bounds - Integration', function() {
   
   beforeEach(function() {
     // Setup JSDOM
-    const { JSDOM } = require('jsdom');
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js and logging
     global.logVerbose = sinon.stub();
@@ -690,7 +691,7 @@ describe('TerrainEditor Fill Bounds - Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
     delete global.logVerbose;
@@ -1432,7 +1433,7 @@ describe('GridTerrain Integration Tests', function() {
       expect(newTerrain.getArrPos([3, 7]).getMaterial()).to.equal('dirt');
     });
     
-    it('should handle edit → save → load → edit workflow', function() {
+    it('should handle edit â†’ save â†’ load â†’ edit workflow', function() {
       // Initial terrain
       const terrain1 = createMockGridTerrain(2, 2);
       
@@ -1541,10 +1542,6 @@ describe('SparseTerrain Size Customization - Integration', function() {
   
   beforeEach(function() {
     // Setup JSDOM
-    const { JSDOM } = require('jsdom');
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js and logging
     global.logVerbose = sinon.stub();
@@ -1557,7 +1554,7 @@ describe('SparseTerrain Size Customization - Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
     delete global.logVerbose;
@@ -1847,9 +1844,6 @@ describe('SparseTerrain Integration', function() {
   
   beforeEach(function() {
     // Setup JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     global.Map = Map;
     global.Math = Math;
     
@@ -1875,7 +1869,7 @@ describe('SparseTerrain Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     // Clean up JSDOM
     if (dom && dom.window) {
       dom.window.close();
@@ -2217,7 +2211,7 @@ describe('Terrain System Integration Tests', function() {
     cleanupTerrainSystemTest();
   });
   
-  describe('Export → Import Workflow', function() {
+  describe('Export â†’ Import Workflow', function() {
     
     it('should export and re-import terrain without data loss', function() {
       // Create original terrain
@@ -2303,7 +2297,7 @@ describe('Terrain System Integration Tests', function() {
     });
   });
   
-  describe('Editor → Export Workflow', function() {
+  describe('Editor â†’ Export Workflow', function() {
     
     it('should export terrain after editing', function() {
       const terrain = new gridTerrain(2, 2, 12345);
@@ -2468,7 +2462,7 @@ describe('Terrain System Integration Tests', function() {
     });
   });
   
-  describe('Editor → Pathfinding Workflow', function() {
+  describe('Editor â†’ Pathfinding Workflow', function() {
     
     it('should create paths around editor-created walls', function() {
       const terrain = new gridTerrain(3, 3, 12345);
@@ -2527,7 +2521,7 @@ describe('Terrain System Integration Tests', function() {
   
   describe('Full Round-Trip Integration', function() {
     
-    it('should complete: Create → Edit → Export → Import → Pathfind', function() {
+    it('should complete: Create â†’ Edit â†’ Export â†’ Import â†’ Pathfind', function() {
       // 1. Create terrain
       const originalTerrain = new gridTerrain(3, 3, 12345);
       
@@ -2668,7 +2662,6 @@ describe('Level Editor with SparseTerrain Integration', function() {
   beforeEach(function() {
     // Mock window if needed
     if (typeof global.window === 'undefined') {
-      global.window = {};
     }
     
     // Create SparseTerrain instead of CustomTerrain
@@ -2677,7 +2670,7 @@ describe('Level Editor with SparseTerrain Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
 
   describe('TerrainEditor Basic Operations', function() {

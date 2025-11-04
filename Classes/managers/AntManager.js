@@ -1,243 +1,323 @@
 /**
- * @fileoverview AntManager class for handling ant selection, movement, and interaction logic
- * Provides centralized management of ant selection state and related operations.
+ * @fileoverview AntManager class with Map-based registry pattern (Phase 3.4)
+ * Provides centralized ant lifecycle management with O(1) lookups.
+ * 
+ * Features:
+ * - Map-based registry (no global arrays or counters)
+ * - Auto-ID generation (sequential, never reused)
+ * - O(1) lookup by ID
+ * - Type-safe queries (job, faction, spatial)
+ * - Auto-integration with SpatialGridManager
+ * - Selection as query (no internal state)
  * 
  * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
+ * @version 2.1.0 (Phase 3.4 - Selection Query Pattern)
  */
 
 /**
- * Manages ant selection, movement, and interaction logic.
- * Encapsulates the selected ant state and provides methods for ant operations.
+ * Manages all ants in the game with Map-based registry pattern.
+ * Single source of truth for ant creation, lookup, and destruction.
  * 
  * @class AntManager
  * @example
- * const manager = new AntManager();
- * manager.handleAntClick(); // Handle click interactions
- * const selected = manager.getSelectedAnt(); // Get current selection
+ * // Create ant with auto-ID
+ * const ant = manager.createAnt(100, 100, { jobName: 'Warrior' });
+ * 
+ * // O(1) lookup
+ * const retrieved = manager.getAntById(ant.antIndex);
+ * 
+ * // Type queries
+ * const warriors = manager.getAntsByJob('Warrior');
+ * const playerAnts = manager.getAntsByFaction('player');
+ * 
+ * // Selection queries (no internal state)
+ * const selected = manager.getSelectedAnt(); // Queries ants
  */
 class AntManager {
   /**
-   * Creates a new AntManager instance with no selected ant.
+   * Creates a new AntManager instance with empty registry.
    */
   constructor() {
-    this.selectedAnt = null;
+    /**
+     * Map-based registry (ID → AntController)
+     * @type {Map<number, AntController>}
+     * @private
+     */
+    this._ants = new Map();
+    
+    /**
+     * Next ant ID (auto-incremented, never reused)
+     * @type {number}
+     * @private
+     */
+    this._nextId = 0;
   }
-
+  
+  // ========================================
+  // Core Registry Methods
+  // ========================================
+  
   /**
-   * Handles ant click control logic - moves selected ant or selects ant under mouse.
-   * If an ant is already selected, moves it to the mouse position.
-   * Otherwise, checks all ants to see if any are under the mouse cursor for selection.
+   * Create ant with auto-generated ID.
+   * Automatically registers with spatial grid if available.
+   * 
+   * @param {number} x - World X position
+   * @param {number} y - World Y position
+   * @param {Object} [options={}] - Ant configuration
+   * @param {string} [options.jobName='Scout'] - Job type
+   * @param {string} [options.faction='neutral'] - Faction
+   * @param {number} [options.health] - Initial health
+   * @param {number} [options.maxHealth] - Max health
+   * @returns {AntController} Created ant with auto-generated ID
    * 
    * @example
-   * // In mouse click handler
-   * antManager.handleAntClick();
+   * const ant = manager.createAnt(100, 100, {
+   *   jobName: 'Warrior',
+   *   faction: 'player'
+   * });
    */
-  handleAntClick() {
-    if (this.selectedAnt) {
-      // Move the selected ant but keep it selected
-      this.moveSelectedAnt(false);
-    } else {
-      // No ant selected, try to select one under the mouse
-      for (let i = 0; i < antIndex; i++) {
-        let antObj = this.getAntObject(i);
-        if (antObj && antObj.isMouseOver()) {
-          // Deselect any previously selected ant
-          if (this.selectedAnt) {
-            this.selectedAnt.setSelected(false);
-          }
-          // Select this ant
-          antObj.setSelected(true);
-          this.selectedAnt = antObj;
-          break; // Only select one ant
-        }
-      }
-    }
+  createAnt(x, y, options = {}) {
+    // Generate unique ID
+    const id = this._nextId++;
+    
+    // Add ID to options for AntController
+    const antOptions = { ...options, antIndex: id };
+    
+    // Create AntController (which creates AntModel + AntView)
+    const ant = new AntController(id, x, y, 32, 32, antOptions);
+    
+    // Store in registry
+    this._ants.set(id, ant);
+    
+    // Auto-register with spatial grid
+    spatialGridManager.addEntity(ant);
+    
+    return ant;
   }
-
+  
   /**
-   * Moves the selected ant to the current mouse position.
-   * Validates the resetSelection parameter and handles the ant movement.
+   * Get ant by ID (O(1) lookup).
    * 
-   * @param {boolean} resetSelection - Whether to reset selection after move
+   * @param {number} id - Ant ID
+   * @returns {AntController|undefined} Ant or undefined if not found
+   * 
    * @example
-   * // Move selected ant and keep it selected
-   * antManager.moveSelectedAnt(true);
-   * 
-   * // Move selected ant and deselect it
-   * antManager.moveSelectedAnt(false);
-   */
-  moveSelectedAnt(resetSelection) {
-    if (typeof resetSelection === "boolean") {
-      if (this.selectedAnt) {
-        this.selectedAnt.moveToLocation(mouseX, mouseY);
-        if (resetSelection === true) {
-          // Reset selection: deselect and clear
-          this.selectedAnt.setSelected(false);
-          this.selectedAnt = null;
-        }
-        // If resetSelection is false, keep the ant selected
-      }
-    } else {
-      // Use global IncorrectParamPassed function for error reporting
-      if (typeof IncorrectParamPassed === 'function') {
-        IncorrectParamPassed(true, resetSelection);
-      } else {
-        console.error('AntManager: Invalid parameter type for resetSelection. Expected boolean, got', typeof resetSelection);
-      }
-    }
-  }
-
-  /**
-   * Selects an ant if it's under the mouse cursor.
-   * Validates the ant instance and checks if the mouse is over it.
-   * 
-   * @param {ant} antCurrent - The ant to potentially select
-   * @example
-   * const antObj = antManager.getAntObject(0);
-   * antManager.selectAnt(antObj);
-   */
-  selectAnt(antCurrent = null) {
-    // Use global ant class for instanceof check
-    if (typeof ant !== 'undefined' && !(antCurrent instanceof ant)) return;
-    if (antCurrent && antCurrent.isMouseOver()) {
-      antCurrent.setSelected(true);
-      this.selectedAnt = antCurrent;
-    }
-  }
-
-  /**
-   * Gets the ant object from the global ants array, handling wrapped and unwrapped ants.
-   * Safely retrieves ant objects from the ants array, accounting for AntWrapper structures.
-   * 
-   * @param {number} antIndex - Index of the ant in the ants array
-   * @returns {ant|null} The ant object or null if not found
-   * @example
-   * const antObj = antManager.getAntObject(5);
-   * if (antObj) {
-   *   const pos = antObj.getPosition();
-   *   logNormal('Ant position:', pos.x, pos.y);
+   * const ant = manager.getAntById(5);
+   * if (ant) {
+   *   console.log(ant.position);
    * }
    */
-  getAntObject(antIndex) {
-    // Use global ants array - now returns direct ant objects
-    if (typeof ants === 'undefined' || !ants[antIndex]) return null;
-    return ants[antIndex];
+  getAntById(id) {
+    return this._ants.get(id);
+  }
+  
+  /**
+   * Get all ants as array (for iteration).
+   * Returns new array each call (does not expose internal Map).
+   * 
+   * @returns {Array<AntController>} All ants
+   * 
+   * @example
+   * manager.getAllAnts().forEach(ant => {
+   *   ant.update(deltaTime);
+   * });
+   */
+  getAllAnts() {
+    return Array.from(this._ants.values());
+  }
+  
+  /**
+   * Get ant count.
+   * 
+   * @returns {number} Total ants in registry
+   * 
+   * @example
+   * console.log(`Total ants: ${manager.getAntCount()}`);
+   */
+  getAntCount() {
+    return this._ants.size;
+  }
+  
+  /**
+   * Destroy ant and cleanup resources.
+   * Removes from registry, calls ant.destroy(), removes from spatial grid.
+   * 
+   * @param {number} id - Ant ID
+   * @returns {boolean} True if destroyed, false if not found
+   * 
+   * @example
+   * const destroyed = manager.destroyAnt(ant.antIndex);
+   * if (destroyed) {
+   *   console.log('Ant destroyed');
+   * }
+   */
+  destroyAnt(id) {
+    const ant = this._ants.get(id);
+    if (!ant) return false;
+    
+    // Remove from spatial grid
+    spatialGridManager.removeEntity(ant);
+    
+    // Cleanup ant
+    ant.destroy();
+    
+    // Remove from registry
+    this._ants.delete(id);
+    
+    return true;
+  }
+  
+  /**
+   * Clear all ants from registry.
+   * Calls destroy() on all ants.
+   * 
+   * @example
+   * manager.clearAll(); // Remove all ants
+   */
+  clearAll() {
+    // Destroy all ants
+    this._ants.forEach(ant => {
+      // Remove from spatial grid
+      spatialGridManager.removeEntity(ant);
+      
+      // Cleanup ant
+      ant.destroy();
+    });
+    
+    // Clear registry
+    this._ants.clear();
   }
 
+  // ========================================
+  // Query Methods
+  // ========================================
+  
   /**
-   * Gets the currently selected ant.
+   * Get all ants with specific job name.
    * 
-   * @returns {ant|null} The selected ant or null if none selected
+   * @param {string} jobName - Job name to filter by
+   * @returns {Array<AntController>} Ants with matching job
+   * 
    * @example
-   * const selected = antManager.getSelectedAnt();
-   * if (selected) {
-   *   const pos = selected.getPosition();
-   *   logNormal('Selected ant at:', pos.x, pos.y);
-   * }
+   * const workers = manager.getAntsByJob('Worker');
+   */
+  getAntsByJob(jobName) {
+    return this.filterAnts(ant => ant.jobName === jobName);
+  }
+  
+  /**
+   * Get all ants with specific faction.
+   * 
+   * @param {string} faction - Faction to filter by
+   * @returns {Array<AntController>} Ants with matching faction
+   * 
+   * @example
+   * const playerAnts = manager.getAntsByFaction('player');
+   */
+  getAntsByFaction(faction) {
+    return this.filterAnts(ant => ant.faction === faction);
+  }
+  
+  /**
+   * Get ants within radius of position.
+   * 
+   * @param {number} x - Center X coordinate
+   * @param {number} y - Center Y coordinate
+   * @param {number} radius - Search radius
+   * @returns {Array<AntController>} Ants within radius
+   * 
+   * @example
+   * const nearby = manager.getNearbyAnts(100, 100, 50);
+   */
+  getNearbyAnts(x, y, radius) {
+    const radiusSquared = radius * radius;
+    return this.filterAnts(ant => {
+      const pos = ant.position;
+      const dx = pos.x - x;
+      const dy = pos.y - y;
+      return (dx * dx + dy * dy) <= radiusSquared;
+    });
+  }
+  
+  /**
+   * Find first ant matching predicate.
+   * 
+   * @param {Function} predicate - Test function (ant) => boolean
+   * @returns {AntController|undefined} First matching ant or undefined
+   * 
+   * @example
+   * const firstWorker = manager.findAnt(ant => ant.jobName === 'Worker');
+   */
+  findAnt(predicate) {
+    for (const ant of this._ants.values()) {
+      if (predicate(ant)) return ant;
+    }
+    return undefined;
+  }
+  
+  /**
+   * Filter ants by predicate.
+   * 
+   * @param {Function} predicate - Test function (ant) => boolean
+   * @returns {Array<AntController>} All matching ants
+   * 
+   * @example
+   * const healthyWorkers = manager.filterAnts(ant => 
+   *   ant.jobName === 'Worker' && ant.health > 50
+   * );
+   */
+  filterAnts(predicate) {
+    const result = [];
+    for (const ant of this._ants.values()) {
+      if (predicate(ant)) result.push(ant);
+    }
+    return result;
+  }
+
+  // ========================================
+  // Selection Queries (Convenience Methods)
+  // ========================================
+  
+  /**
+   * Get currently selected ant (queries ants directly).
+   * 
+   * @returns {AntController|undefined} Selected ant or undefined if none selected
+   * 
+   * @example
+   * const selected = manager.getSelectedAnt();
+   * if (selected) console.log(selected.position);
    */
   getSelectedAnt() {
-    return this.selectedAnt;
+    return this.findAnt(ant => ant.isSelected());
   }
 
   /**
-   * Sets the selected ant.
-   * 
-   * @param {ant|null} ant - The ant to select or null to deselect
-   * @example
-   * // Select a specific ant
-   * antManager.setSelectedAnt(myAnt);
-   * 
-   * // Clear selection
-   * antManager.setSelectedAnt(null);
-   */
-  setSelectedAnt(ant) {
-    this.selectedAnt = ant;
-  }
-
-  /**
-   * Clears the current selection by deselecting the ant and setting selectedAnt to null.
+   * Clear all selections (bulk operation).
    * 
    * @example
-   * // Clear current selection
-   * antManager.clearSelection();
+   * manager.clearSelection();
    */
   clearSelection() {
-    if (this.selectedAnt) {
-      this.selectedAnt.setSelected(false);
-      this.selectedAnt = null;
-    }
+    this.getAllAnts().forEach(ant => ant.setSelected(false));
   }
 
   /**
-   * Checks if there is currently a selected ant.
+   * Check if any ant is selected.
    * 
-   * @returns {boolean} True if an ant is selected, false otherwise
+   * @returns {boolean} True if any ant is selected
+   * 
    * @example
-   * if (antManager.hasSelection()) {
-   *   logNormal('An ant is selected');
-   * }
+   * if (manager.hasSelection()) 
    */
   hasSelection() {
-    return this.selectedAnt !== null;
-  }
-
-  /**
-   * Gets debug information about the current state of the AntManager.
-   * 
-   * @returns {Object} Debug information object
-   * @example
-   * const debug = antManager.getDebugInfo();
-   * logNormal('Manager state:', debug);
-   */
-  getDebugInfo() {
-    return {
-      hasSelectedAnt: this.selectedAnt !== null,
-      selectedAntIndex: this.selectedAnt ? this.selectedAnt.antIndex : null,
-      selectedAntPosition: this.selectedAnt ? 
-        this.selectedAnt.getPosition() : null
-    };
-  }
-
-  // --- Legacy Compatibility Interface ---
-  /**
-   * Legacy compatibility method for AntClickControl.
-   * @deprecated Use handleAntClick() instead
-   */
-  AntClickControl() {
-    this.handleAntClick();
-  }
-
-  /**
-   * Legacy compatibility method for MoveAnt.
-   * @deprecated Use moveSelectedAnt() instead
-   * @param {boolean} resetSection - Whether to reset selection after move
-   */
-  MoveAnt(resetSection) {
-    this.moveSelectedAnt(resetSection);
-  }
-
-  /**
-   * Legacy compatibility method for SelectAnt.
-   * @deprecated Use selectAnt() instead
-   * @param {ant} antCurrent - The ant to potentially select
-   */
-  SelectAnt(antCurrent = null) {
-    this.selectAnt(antCurrent);
-  }
-
-  /**
-   * Legacy compatibility method for getAntObj.
-   * @deprecated Use getAntObject() instead
-   * @param {number} antCurrent - Index of the ant in the ants array
-   * @returns {ant|null} The ant object or null if not found
-   */
-  getAntObj(antCurrent) {
-    return this.getAntObject(antCurrent);
+    return this.getSelectedAnt() !== undefined;
   }
 }
 
 // Export for Node.js compatibility
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = AntManager;
+}
+if (typeof window !== 'undefined') {
+  window.AntManager = AntManager;
 }

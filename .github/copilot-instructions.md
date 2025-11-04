@@ -14,6 +14,17 @@
 
 **NO CODE IN CHECKLISTS**: Checklists should only contain task descriptions, key design decisions, and algorithms used. Tests serve as implementation documentation.
 
+**FAIL FAST - NO DEFENSIVE CODING**: 
+- ❌ NEVER check `if (typeof X !== 'undefined' && X)` - let it crash if missing
+- ❌ NEVER use try-catch for missing dependencies
+- ❌ NEVER log warnings for missing globals
+- ✅ Assume dependencies exist - fail immediately if they don't
+- ✅ Clean, readable code over "safe" code
+- ✅ Fast crashes reveal initialization order bugs immediately
+- **Rationale**: If something is called too early, we have bigger architectural issues. Fix the root cause, don't hide it with defensive checks.
+
+**NO LEGACY CODE**: Remove deprecated methods immediately. If something breaks, fix it quickly rather than maintaining compatibility layers.
+
 ### ⚠️ CRITICAL:  Test-Driven Development (TDD)
 
 **WE FOLLOW STRICT TDD**. Write tests FIRST, then implement.

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Entity Painter Panel Toggle - Integration Tests
  * 
  * Tests integration between LevelEditorPanels, FileMenuBar, DraggablePanelManager,
@@ -8,10 +8,17 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('Entity Painter Panel Toggle - Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let sandbox;
   let dom;
   let LevelEditorPanels;
@@ -23,9 +30,6 @@ describe('Entity Painter Panel Toggle - Integration Tests', function() {
     sandbox = sinon.createSandbox();
     
     // Setup JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js functions
     global.push = sandbox.stub();
@@ -314,7 +318,7 @@ describe('Entity Painter Panel Toggle - Integration Tests', function() {
         tools: {
           'entity_painter': {
             name: 'entity_painter',
-            icon: '🐜',
+            icon: 'ðŸœ',
             tooltip: 'Entity Painter',
             onClick: null
           }
@@ -370,7 +374,7 @@ describe('Entity Painter Panel Toggle - Integration Tests', function() {
         tools: {
           'entity_painter': {
             name: 'entity_painter',
-            icon: '🐜',
+            icon: 'ðŸœ',
             onClick: null
           }
         }

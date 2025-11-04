@@ -1,25 +1,29 @@
-/**
+﻿/**
  * EntityPalette UI Integration Tests
  * Tests CategoryRadioButtons + EntityPalette integration with real components
  * TDD Phase 3: Integration testing with real dependencies
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('EntityPalette UI Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let dom, window, document;
   let EntityPalette, CategoryRadioButtons;
   let p5Mocks;
 
   beforeEach(function() {
     // Setup JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
 
     // Mock p5.js drawing functions (real rendering in integration)
     p5Mocks = {
@@ -54,7 +58,7 @@ describe('EntityPalette UI Integration', function() {
   });
 
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
     Object.keys(p5Mocks).forEach(key => {

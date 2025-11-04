@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated UI Level Editor Integration Tests
  * Generated: 2025-10-29T03:16:53.941Z
  * Source files: 15
@@ -8,7 +8,6 @@
 // Common requires
 let { expect } = require('chai');
 let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
 
 
 // ================================================================
@@ -74,9 +73,6 @@ describe('DraggablePanel Auto-Sizing Integration Tests', () => {
     };
 
     // Mock window
-    global.window = {
-      innerWidth: 1920,
-      innerHeight: 1080,
       draggablePanelManager: null
     };
 
@@ -147,7 +143,7 @@ describe('DraggablePanel Auto-Sizing Integration Tests', () => {
   });
 
   after(() => {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
 
   describe('ant_spawn Panel Auto-Sizing', () => {
@@ -415,10 +411,6 @@ describe('Fixed Panel Auto-Sizing Integration', function() {
     global.devConsoleEnabled = false;
 
     // Mock window
-    global.window = {
-      innerWidth: 1920,
-      innerHeight: 1080
-    };
 
     // Mock localStorage
     global.localStorage = {
@@ -478,7 +470,7 @@ describe('Fixed Panel Auto-Sizing Integration', function() {
   });
   
   after(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Resource Spawner Panel Auto-Sizing', function() {
@@ -540,7 +532,7 @@ describe('Fixed Panel Auto-Sizing Integration', function() {
     });
     
     it('should have correct calculated height', function() {
-      // Expected: 26.8 (title) + 109 (4×25 + 3×3 spacing) + 20 (padding) = 155.8px
+      // Expected: 26.8 (title) + 109 (4Ã—25 + 3Ã—3 spacing) + 20 (padding) = 155.8px
       expect(panel.config.size.height).to.be.closeTo(155.8, 1);
     });
     
@@ -576,7 +568,7 @@ describe('Fixed Panel Auto-Sizing Integration', function() {
     });
     
     it('should have correct calculated height', function() {
-      // Expected: 26.8 (title) + 109 (4×25 + 3×3 spacing) + 20 (padding) = 155.8px
+      // Expected: 26.8 (title) + 109 (4Ã—25 + 3Ã—3 spacing) + 20 (padding) = 155.8px
       expect(panel.config.size.height).to.be.closeTo(155.8, 1);
     });
     
@@ -612,7 +604,7 @@ describe('Fixed Panel Auto-Sizing Integration', function() {
     });
     
     it('should have correct calculated height', function() {
-      // Expected: 26.8 (title) + 212 (6×32 + 5×4 spacing) + 20 (padding) = 258.8px
+      // Expected: 26.8 (title) + 212 (6Ã—32 + 5Ã—4 spacing) + 20 (padding) = 258.8px
       expect(panel.config.size.height).to.be.closeTo(258.8, 1);
     });
     
@@ -694,26 +686,26 @@ describe('Fixed Panel Auto-Sizing Integration', function() {
       const tasksPanel = manager.panels.get('tasks');
       const cheatsPanel = manager.panels.get('cheats');
       
-      console.log('\n✅ Panel Auto-Sizing Fix Results:');
+      console.log('\nâœ… Panel Auto-Sizing Fix Results:');
       console.log('================================================================================');
       console.log(`Resource Spawner:`);
-      console.log(`  Before: 180×150px`);
-      console.log(`  After:  180×${resourcesPanel.config.size.height}px`);
+      console.log(`  Before: 180Ã—150px`);
+      console.log(`  After:  180Ã—${resourcesPanel.config.size.height}px`);
       console.log(`  Space saved: ${150 - resourcesPanel.config.size.height}px (${Math.round((1 - resourcesPanel.config.size.height/150) * 100)}% reduction)`);
       
       console.log(`\nDebug Controls:`);
-      console.log(`  Before: 160×450px`);
-      console.log(`  After:  160×${debugPanel.config.size.height}px`);
+      console.log(`  Before: 160Ã—450px`);
+      console.log(`  After:  160Ã—${debugPanel.config.size.height}px`);
       console.log(`  Space saved: ${450 - debugPanel.config.size.height}px (${Math.round((1 - debugPanel.config.size.height/450) * 100)}% reduction)`);
       
       console.log(`\nTask Objectives:`);
-      console.log(`  Before: 160×320px`);
-      console.log(`  After:  160×${tasksPanel.config.size.height}px`);
+      console.log(`  Before: 160Ã—320px`);
+      console.log(`  After:  160Ã—${tasksPanel.config.size.height}px`);
       console.log(`  Space saved: ${320 - tasksPanel.config.size.height}px (${Math.round((1 - tasksPanel.config.size.height/320) * 100)}% reduction)`);
       
       console.log(`\nCheats Panel:`);
-      console.log(`  Before: 180×220px (TOO SMALL - buttons cut off)`);
-      console.log(`  After:  180×${cheatsPanel.config.size.height}px`);
+      console.log(`  Before: 180Ã—220px (TOO SMALL - buttons cut off)`);
+      console.log(`  After:  180Ã—${cheatsPanel.config.size.height}px`);
       console.log(`  Space added: ${cheatsPanel.config.size.height - 220}px (${Math.round((cheatsPanel.config.size.height/220 - 1) * 100)}% increase - now fits all buttons!)`);
       console.log('================================================================================\n');
     });
@@ -777,7 +769,7 @@ describe('Level Editor Panel Auto-Sizing Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     
     // Clean up global variables
     delete global.devConsoleEnabled;
@@ -857,9 +849,9 @@ describe('Level Editor Panel Auto-Sizing Integration', function() {
   describe('ToolBar Panel Auto-Sizing', function() {
     it('should auto-size panel based on ToolBar content', function() {
       const toolbar = new ToolBar([
-        { name: 'brush', icon: '🖌️', tooltip: 'Brush' },
-        { name: 'fill', icon: '🪣', tooltip: 'Fill' },
-        { name: 'rectangle', icon: '▭', tooltip: 'Rectangle' },
+        { name: 'brush', icon: 'ðŸ–Œï¸', tooltip: 'Brush' },
+        { name: 'fill', icon: 'ðŸª£', tooltip: 'Fill' },
+        { name: 'rectangle', icon: 'â–­', tooltip: 'Rectangle' },
         { name: 'line', icon: '/', tooltip: 'Line' }
       ]); // 4 tools
       
@@ -1053,8 +1045,8 @@ describe('Level Editor Panel Auto-Sizing Integration', function() {
       
       panel.autoResizeToFitContent();
       
-      // Expected: width = 90 (content) + 60 (2×30 padding) = 150px
-      // Expected: height = ~26.8 (title) + 50 (content) + 40 (2×20 padding) = ~116.8px
+      // Expected: width = 90 (content) + 60 (2Ã—30 padding) = 150px
+      // Expected: height = ~26.8 (title) + 50 (content) + 40 (2Ã—20 padding) = ~116.8px
       expect(panel.config.size.width).to.be.closeTo(150, 1);
       expect(panel.config.size.height).to.be.greaterThan(111);
       expect(panel.config.size.height).to.be.lessThan(121);
@@ -1453,7 +1445,6 @@ describe('Level Editor Panel Content Rendering Integration', function() {
     global.BOTTOM = 'bottom';
     
     // Mock environment
-    global.window = { innerWidth: 1920, innerHeight: 1080 };
     global.localStorage = {
       getItem: sinon.stub().returns(null),
       setItem: sinon.stub()
@@ -1482,7 +1473,7 @@ describe('Level Editor Panel Content Rendering Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Materials Panel Content Rendering', function() {
@@ -1721,7 +1712,6 @@ describe('Level Editor Draggable Panels Integration Tests', function() {
 
   beforeEach(function() {
     // Create JSDOM environment
-    dom = new JSDOM(`
       <!DOCTYPE html>
       <html>
         <body>
@@ -1736,8 +1726,6 @@ describe('Level Editor Draggable Panels Integration Tests', function() {
 
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
 
     // Mock localStorage
     global.localStorage = {
@@ -2299,11 +2287,8 @@ describe('LevelEditorSidebar Integration', function() {
   
   beforeEach(function() {
     // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
     
     // Mock p5.js drawing functions
     global.push = sinon.stub();
@@ -2362,7 +2347,7 @@ describe('LevelEditorSidebar Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
   });
@@ -2708,9 +2693,6 @@ describe('LevelEditor + Dialog Integration', function() {
 
     beforeEach(function() {
         // Set up JSDOM
-        const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-        global.window = dom.window;
-        global.document = dom.window.document;
 
         // Mock p5.js constants
         global.CONTROL = 17;
@@ -2783,7 +2765,7 @@ describe('LevelEditor + Dialog Integration', function() {
     });
 
     afterEach(function() {
-        sinon.restore();
+        cleanupTestEnvironment();
         delete global.window;
         delete global.document;
         delete global.CONTROL;
@@ -2940,9 +2922,6 @@ let fs = require('fs');
 let path = require('path');
 let vm = require('vm');
 // Setup JSDOM
-let dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window;
-global.document = dom.window.document;
 
 // Load FileMenuBar and mock dependencies (only if not already loaded)
 if (typeof FileMenuBar === 'undefined') {
@@ -3004,7 +2983,7 @@ describe('LevelEditor + FileMenuBar Integration Tests', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('FileMenuBar Initialization', function() {
@@ -3317,7 +3296,7 @@ describe('LevelEditor + View Toggles Integration', function() {
     });
 
     afterEach(function() {
-        sinon.restore();
+        cleanupTestEnvironment();
         delete global.push;
         delete global.pop;
         delete global.fill;
@@ -4605,7 +4584,6 @@ global.constrain = (val, min, max) => Math.max(min, Math.min(max, val));
 global.logVerbose = () => {};
 global.verboseLog = () => {};
 global.logNormal = () => {};
-global.window = global;
 global.console = { log: () => {}, warn: () => {} };
 
 // Mock GameState
@@ -4937,15 +4915,12 @@ describe('Tile Rendering Investigation', function() {
   
   beforeEach(function() {
     // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body><canvas id="defaultCanvas0"></canvas></body></html>', {
       url: 'http://localhost:8000',
       pretendToBeVisual: true
     });
     
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
     
     // Mock p5.js functions
     global.image = sinon.stub();
@@ -4992,7 +4967,7 @@ describe('Tile Rendering Investigation', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
   });
@@ -5042,7 +5017,7 @@ describe('Tile Rendering Investigation', function() {
           const [r, g, b] = fillCall.args;
           console.log('      RGB values:', { r, g, b });
           if (r > 100 && r < 180 && g > 40 && g < 100 && b > 0 && b < 50) {
-            console.log('      ⚠️  BROWN COLOR DETECTED!');
+            console.log('      âš ï¸  BROWN COLOR DETECTED!');
           }
         }
       }
@@ -5070,9 +5045,9 @@ describe('Tile Rendering Investigation', function() {
       console.log('      Used fill()?', usedFill);
       
       if (usedFill && !usedImage) {
-        console.log('      🐛 Tile is using fill() instead of image() - this is the bug!');
+        console.log('      ðŸ› Tile is using fill() instead of image() - this is the bug!');
       } else if (usedImage) {
-        console.log('      ✓ Tile is using image() as expected');
+        console.log('      âœ“ Tile is using image() as expected');
       }
     });
     
@@ -5130,10 +5105,10 @@ describe('Tile Rendering Investigation', function() {
       });
       
       if (mismatches.length > 0) {
-        console.log('    🐛 MISMATCH FOUND! Materials in palette but not in TERRAIN_MATERIALS_RANGED:');
+        console.log('    ðŸ› MISMATCH FOUND! Materials in palette but not in TERRAIN_MATERIALS_RANGED:');
         mismatches.forEach(m => console.log('      -', m));
       } else {
-        console.log('    ✓ All palette materials exist in TERRAIN_MATERIALS_RANGED');
+        console.log('    âœ“ All palette materials exist in TERRAIN_MATERIALS_RANGED');
       }
       
       // Test rendering with each palette material
@@ -5238,7 +5213,6 @@ global.windowHeight = 600;
 global.constrain = (val, min, max) => Math.max(min, Math.min(max, val));
 global.logVerbose = () => {};
 global.verboseLog = () => {};
-global.window = global; // CRITICAL: Makes window.CameraManager accessible as global.CameraManager
 global.console = { log: () => {} };
 
 // Mock GameState

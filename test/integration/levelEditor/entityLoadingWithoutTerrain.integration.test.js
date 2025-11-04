@@ -1,21 +1,26 @@
-/**
+﻿/**
  * Integration Test: LevelEditor.loadFromData() - Entity loading without terrain
  * Verifies entities load even when terrain data is missing/invalid
  */
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('LevelEditor.loadFromData() - Entity loading independence', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let LevelEditor, EntityPainter, EntityPalette, TerrainImporter;
   let levelEditor;
   
   beforeEach(function() {
     // Setup JSDOM
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js
     global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
@@ -76,7 +81,7 @@ describe('LevelEditor.loadFromData() - Entity loading independence', function() 
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
     delete global.createVector;

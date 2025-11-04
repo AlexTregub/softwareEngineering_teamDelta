@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ToastNotification Integration with EntityPalette - Integration Tests
  * 
  * Testing toast notifications shown after CRUD operations:
@@ -10,9 +10,16 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
 
+setupTestEnvironment({ rendering: true });
+
 describe('EntityPalette Toast Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let clock;
   let EntityPalette, ToastNotification;
 
@@ -99,7 +106,7 @@ describe('EntityPalette Toast Integration', function() {
 
   afterEach(function() {
     clock.restore();
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.localStorage;
     delete global.ModalDialog;
     if (typeof window !== 'undefined') {

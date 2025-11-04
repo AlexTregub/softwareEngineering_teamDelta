@@ -1,22 +1,27 @@
-const { expect } = require('chai');
+﻿const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('CameraManager + SparseTerrain Integration (Custom Levels)', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let dom, window, document;
   let cameraManager, sparseTerrain, queenEntity;
   let mockGameState;
 
   beforeEach(function() {
     // Setup JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
 
     // Setup p5.js mocks
     const p5Mocks = {
@@ -114,7 +119,7 @@ describe('CameraManager + SparseTerrain Integration (Custom Levels)', function()
   });
 
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     dom.window.close();
   });
 

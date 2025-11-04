@@ -38,13 +38,6 @@
  * ```
  */
 
-// Load BaseModel (browser uses window.BaseModel directly, Node.js requires it)
-let BaseModel;
-if (typeof require !== 'undefined') {
-  BaseModel = require('./BaseModel');
-} else {
-  BaseModel = window.BaseModel;
-}
 
 class BuildingModel extends BaseModel {
   /**

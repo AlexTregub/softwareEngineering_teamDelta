@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests for CustomLevelCamera
  * 
  * These tests use REAL classes (CustomLevelCamera, SparseTerrain) to verify
@@ -7,12 +7,8 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
 
 // Set up JSDOM for window object
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window;
-global.document = dom.window.document;
 
 // Mock p5.js functions
 global.constrain = function(val, min, max) {
@@ -31,6 +27,9 @@ window.CustomLevelCamera = CustomLevelCamera;
 // Mock SparseTerrain (since we can't load the full game stack)
 class MockSparseTerrain {
   constructor(width, height) {
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
     this.bounds = {
       minX: 0,
       minY: 0,
@@ -53,7 +52,13 @@ class MockSparseTerrain {
   }
 }
 
+setupTestEnvironment({ rendering: true });
+
 describe('CustomLevelCamera Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let camera;
   let terrain;
   let queen;
@@ -78,7 +83,7 @@ describe('CustomLevelCamera Integration Tests', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Camera Following Queen in Open Space', function() {

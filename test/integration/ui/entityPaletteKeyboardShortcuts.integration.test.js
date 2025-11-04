@@ -1,4 +1,4 @@
-/**
+﻿/**
  * EntityPalette Keyboard Shortcuts Integration - Integration Tests (TDD)
  * 
  * Testing keyboard shortcut integration with EntityPalette:
@@ -10,9 +10,16 @@
  */
 
 const { expect } = require('chai');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 const sinon = require('sinon');
 
+setupTestEnvironment({ rendering: true });
+
 describe('EntityPalette Keyboard Shortcuts Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let clock;
   let EntityPalette, ToastNotification, ShortcutManager;
 
@@ -107,7 +114,7 @@ describe('EntityPalette Keyboard Shortcuts Integration', function() {
 
   afterEach(function() {
     clock.restore();
-    sinon.restore();
+    cleanupTestEnvironment();
     ShortcutManager.clearAll();
     delete global.localStorage;
     delete global.ModalDialog;

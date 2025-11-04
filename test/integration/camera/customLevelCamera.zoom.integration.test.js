@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Test: CustomLevelCamera Zoom Initialization
  * 
  * Tests that CustomLevelCamera:
@@ -8,20 +8,25 @@
  */
 
 const { expect } = require('chai');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('CustomLevelCamera - Zoom Initialization', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let dom, window, CustomLevelCamera;
   
   before(function() {
     // Create JSDOM environment
-    dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
     window = dom.window;
-    global.window = window;
-    global.document = window.document;
     
     // Load CustomLevelCamera
     const CustomLevelCameraModule = require('../../../Classes/controllers/CustomLevelCamera.js');

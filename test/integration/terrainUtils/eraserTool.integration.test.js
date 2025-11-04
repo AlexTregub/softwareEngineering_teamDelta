@@ -1,28 +1,23 @@
-/**
+﻿/**
  * Integration Tests - Eraser Tool with Real Terrain Systems
  * Tests TerrainEditor.erase() with SparseTerrain and gridTerrain
  */
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+// Setup test environment with rendering support
+setupTestEnvironment({ rendering: true });
 
 describe('TerrainEditor - Eraser Tool (Integration)', function() {
-  let dom, window, document;
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let TerrainEditor, SparseTerrain;
   
   before(function() {
-    // Setup JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    window = dom.window;
-    document = window.document;
-    global.window = window;
-    global.document = document;
-    
-    // Mock p5.js globals
-    global.createVector = (x, y) => ({ x, y, mag: () => Math.sqrt(x*x + y*y) });
-    window.createVector = global.createVector;
-    
     // Load modules
     const TerrainEditorModule = require('../../../Classes/terrainUtils/TerrainEditor.js');
     TerrainEditor = TerrainEditorModule.TerrainEditor || TerrainEditorModule;
@@ -35,10 +30,11 @@ describe('TerrainEditor - Eraser Tool (Integration)', function() {
     window.SparseTerrain = SparseTerrain;
   });
   
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
+  
   after(function() {
-    delete global.window;
-    delete global.document;
-    delete global.createVector;
     delete global.TerrainEditor;
     delete global.SparseTerrain;
   });

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: Settings System
  * 
  * Tests the integration between SettingsManager, SettingsPanel, FileMenuBar, and CameraManager
@@ -12,7 +12,16 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('Settings System Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let SettingsManager, SettingsPanel, FileMenuBar, CameraManager;
   let mockP5, mockLevelEditor;
   
@@ -61,7 +70,6 @@ describe('Settings System Integration', function() {
     
     // Mock window for browser environment
     if (typeof window === 'undefined') {
-      global.window = global;
     }
     
     // Load component classes FIRST (SettingsPanel depends on them)
@@ -93,7 +101,7 @@ describe('Settings System Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('SettingsManager + CameraManager Integration', function() {

@@ -26,6 +26,12 @@ const colors = {
 // Test suite configuration
 const testSuites = [
   {
+    name: 'Linting (ESLint)',
+    command: 'npx eslint test/',
+    color: colors.yellow,
+    description: 'Running ESLint to enforce test helper usage and code quality...'
+  },
+  {
     name: 'Unit Tests',
     command: 'npx mocha "test/unit/**/*.test.js" --reporter spec',
     color: colors.cyan,
@@ -247,7 +253,7 @@ function runTestSuite(suite) {
 async function runAllTests() {
   printHeader('COMPREHENSIVE TEST RUNNER', colors.bright + colors.green);
   console.log(`${colors.bright}Running all test suites in sequence...${colors.reset}\n`);
-  console.log(`${colors.cyan}Test Order: Unit → Integration → BDD → E2E${colors.reset}\n`);
+  console.log(`${colors.cyan}Test Order: Linting → Unit → Integration → BDD${colors.reset}\n`);
 
   let serverStarted = false;
 

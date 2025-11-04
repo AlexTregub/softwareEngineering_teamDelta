@@ -35,8 +35,7 @@ describe('BuildingController', function() {
   });
   
   afterEach(function() {
-    cleanupTestEnvironment();
-    sinon.restore();
+    cleanupTestEnvironment(); // Already restores all Sinon stubs
   });
   
   describe('Constructor', function() {

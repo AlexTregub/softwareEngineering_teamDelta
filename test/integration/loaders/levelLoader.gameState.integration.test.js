@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: LevelLoader + Game State
  * 
  * Tests the integration between LevelLoader and game systems:
@@ -18,7 +18,16 @@ const fs = require('fs');
 // Load the classes
 const LevelLoader = require('../../../Classes/loaders/LevelLoader');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('LevelLoader + Game State Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let loader;
   let mockCameraManager;
   let mockSpatialGrid;
@@ -51,7 +60,7 @@ describe('LevelLoader + Game State Integration', function() {
   });
 
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
 
   describe('Game Initialization Integration', function() {

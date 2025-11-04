@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated Grid & Overlays Integration Tests
  * Generated: 2025-10-29T03:16:53.948Z
  * Source files: 4
@@ -8,7 +8,6 @@
 // Common requires
 let { expect } = require('chai');
 let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
 
 
 // ================================================================
@@ -24,9 +23,6 @@ let { JSDOM } = require('jsdom');
  */
 
 // Setup JSDOM
-let dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window;
-global.document = dom.window.document;
 
 // Load classes
 let SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
@@ -67,7 +63,7 @@ describe.skip('DynamicGridOverlay with SparseTerrain - Integration (OUTDATED - v
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Grid at Mouse Position (No Tiles Painted)', function() {
@@ -285,9 +281,6 @@ describe.skip('DynamicGridOverlay Edge Detection - Integration (OUTDATED - v1/v2
 
   before(function() {
     // Set up JSDOM for browser globals
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    global.window = dom.window;
-    global.document = dom.window.document;
 
     // Mock p5.js drawing functions
     global.push = sinon.stub();
@@ -1195,9 +1188,6 @@ describe.skip('DynamicGridOverlay v2 Integration Tests (OUTDATED - v2 API)', fun
  */
 
 // Setup JSDOM
-// DUPLICATE REQUIRE REMOVED: let dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window;
-global.document = dom.window.document;
 
 // Load classes
 // DUPLICATE REQUIRE REMOVED: let SparseTerrain = require('../../../Classes/terrainUtils/SparseTerrain');
@@ -1237,7 +1227,7 @@ describe('MiniMap with SparseTerrain - Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Empty Terrain Rendering', function() {
@@ -1288,8 +1278,8 @@ describe('MiniMap with SparseTerrain - Integration', function() {
       
       // Should scale to fit 11x11 tile region, not 100x100
       // Scale should be larger for smaller region
-      // With 200x200 minimap and 11x11 tiles (352px), scale ≈ 0.568
-      // Each tile display size ≈ 32 * 0.568 ≈ 18px
+      // With 200x200 minimap and 11x11 tiles (352px), scale â‰ˆ 0.568
+      // Each tile display size â‰ˆ 32 * 0.568 â‰ˆ 18px
       
       const rectCalls = mockP5Graphics.rect.getCalls();
       if (rectCalls.length > 0) {

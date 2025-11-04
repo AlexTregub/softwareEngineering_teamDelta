@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Integration Tests: EventPropertyWindow + LevelEditor
  * 
  * Tests EventPropertyWindow integration with LevelEditor.
- * Verifies flag click → property window workflow.
+ * Verifies flag click â†’ property window workflow.
  * 
  * Following TDD: RED PHASE - Tests will fail until LevelEditor integration is complete.
  * 
  * Test Coverage:
- * - Click flag → property window opens
+ * - Click flag â†’ property window opens
  * - Window receives correct trigger data
  * - Window positioned near clicked flag
  * - Save changes updates EventManager
@@ -19,18 +19,23 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
 
 // Setup JSDOM
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window;
-global.document = dom.window.document;
 
 // Import systems
 const EventManager = require('../../../Classes/managers/EventManager');
 const EventPropertyWindow = require('../../../Classes/ui/eventTemplates/EventPropertyWindow');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('EventPropertyWindow + LevelEditor Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let sandbox;
   let eventManager;
   let mockLevelEditor;

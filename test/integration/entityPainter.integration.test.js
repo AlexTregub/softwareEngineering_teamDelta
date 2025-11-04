@@ -1,23 +1,28 @@
-/**
+﻿/**
  * Entity Painter Integration Tests
  * Tests component interactions with real dependencies
  */
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('Entity Painter Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let EntityPalette, EntityPainter, CategoryRadioButtons, EntityPropertyEditor;
   let dom, window, document;
   
   before(function() {
     // Setup JSDOM for browser environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
     
     // Mock p5.js functions
     global.push = sinon.stub();
@@ -85,7 +90,7 @@ describe('Entity Painter Integration Tests', function() {
   });
   
   after(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
     delete global.ant;

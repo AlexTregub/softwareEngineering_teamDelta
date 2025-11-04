@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests for LevelLoader
  * Tests LevelLoader with real Level Editor JSON exports
  * 
@@ -14,9 +14,17 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
-const { JSDOM } = require('jsdom');
+
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
 
 describe('LevelLoader Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let LevelLoader;
   let SparseTerrainAdapter;
   let sampleLevelData;
@@ -24,13 +32,10 @@ describe('LevelLoader Integration Tests', function() {
 
   before(function() {
     // Setup JSDOM for browser globals
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
     
-    global.window = dom.window;
-    global.document = dom.window.document;
     // Load LevelLoader
     const loaderPath = path.join(__dirname, '../../..', 'Classes/loaders/LevelLoader.js');
     LevelLoader = require(loaderPath);
@@ -54,7 +59,7 @@ describe('LevelLoader Integration Tests', function() {
   });
 
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
 
   describe('Load Real Level Editor JSON', function() {

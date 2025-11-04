@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Test: Mouse Wheel Scrolling in Level Editor
  * 
  * Tests that mouse wheel events are correctly delegated to the appropriate handler
@@ -13,9 +13,12 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
-// Mock p5.js globals
-global.createVector = sinon.stub().callsFake((x, y) => ({ x, y, add: function(v) { this.x += v.x; this.y += v.y; return this; } }));
+// Setup test environment
+setupTestEnvironment({ rendering: true });
+
+// Mock p5.js constants and globals
 global.SHIFT = 16;
 global.keyIsDown = sinon.stub().returns(false);
 global.mouseX = 500;
@@ -31,6 +34,10 @@ if (typeof window !== 'undefined') {
 }
 
 describe('Integration: Mouse Wheel Scrolling', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let levelEditor, materialsPalette, sidebarPanel, mockEvent;
   
   beforeEach(function() {
@@ -149,7 +156,7 @@ describe('Integration: Mouse Wheel Scrolling', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Materials Panel Scrolling', function() {

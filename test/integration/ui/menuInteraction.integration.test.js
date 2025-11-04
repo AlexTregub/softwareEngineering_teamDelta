@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated Menu & Interaction Integration Tests
  * Generated: 2025-10-29T03:16:53.966Z
  * Source files: 4
@@ -8,7 +8,6 @@
 // Common requires
 let { expect } = require('chai');
 let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
 
 
 // ================================================================
@@ -89,7 +88,7 @@ describe('Menu Blocking - Integration Tests', function() {
     delete window.FileMenuBar;
   });
   
-  describe('Menu Open → Terrain Blocking', function() {
+  describe('Menu Open â†’ Terrain Blocking', function() {
     it('should block handleClick when menu opens', function() {
       menuBar.openDropdown();
       
@@ -557,15 +556,12 @@ describe('Menu to Level Editor Integration', function() {
   
   beforeEach(function() {
     // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body><canvas id="defaultCanvas0"></canvas></body></html>', {
       url: 'http://localhost:8000',
       pretendToBeVisual: true
     });
     
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
     
     // Mock p5.js globals
     global.createCanvas = sinon.stub();
@@ -630,7 +626,7 @@ describe('Menu to Level Editor Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
   });
@@ -866,15 +862,12 @@ describe('Level Editor Script Loading Order Issue', function() {
   let dom, window, document;
   
   beforeEach(function() {
-    dom = new JSDOM('<!DOCTYPE html><html><body><canvas id="defaultCanvas0"></canvas></body></html>', {
       url: 'http://localhost:8000',
       pretendToBeVisual: true
     });
     
     window = dom.window;
     document = window.document;
-    global.window = window;
-    global.document = document;
     
     // Mock p5.js functions
     global.image = sinon.stub();
@@ -897,7 +890,7 @@ describe('Level Editor Script Loading Order Issue', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.window;
     delete global.document;
     delete global.TERRAIN_MATERIALS_RANGED;
@@ -928,7 +921,7 @@ describe('Level Editor Script Loading Order Issue', function() {
       const palette = new MaterialPalette(100, 100, 200, 400);
       
       // CRITICAL BUG: Palette has 0 swatches because TERRAIN_MATERIALS_RANGED is undefined!
-      console.log('    🐛 Palette swatches when TERRAIN_MATERIALS_RANGED is undefined:', palette.swatches.length);
+      console.log('    ðŸ› Palette swatches when TERRAIN_MATERIALS_RANGED is undefined:', palette.swatches.length);
       expect(palette.swatches.length).to.equal(0);
       
       // When palette renders, it has nothing to show
@@ -956,7 +949,7 @@ describe('Level Editor Script Loading Order Issue', function() {
       const palette = new MaterialPalette(100, 100, 200, 400);
       
       // NOW it should have swatches
-      console.log('    ✅ Palette swatches when TERRAIN_MATERIALS_RANGED exists:', palette.swatches.length);
+      console.log('    âœ… Palette swatches when TERRAIN_MATERIALS_RANGED exists:', palette.swatches.length);
       expect(palette.swatches.length).to.be.greaterThan(0);
     });
     
@@ -966,12 +959,12 @@ describe('Level Editor Script Loading Order Issue', function() {
       // 2. terrianGen.js loads and creates TERRAIN_MATERIALS_RANGED
       // 3. setup() runs
       // 4. User clicks Level Editor
-      // 5. MaterialPalette is created with TERRAIN_MATERIALS_RANGED defined ✅
+      // 5. MaterialPalette is created with TERRAIN_MATERIALS_RANGED defined âœ…
       
-      console.log('    📋 Working flow (?test=1):');
-      console.log('       1. preload() → terrainPreloader() → images loading...');
-      console.log('       2. terrianGen.js loads → TERRAIN_MATERIALS_RANGED created');
-      console.log('       3. MaterialPalette created → swatches loaded ✅');
+      console.log('    ðŸ“‹ Working flow (?test=1):');
+      console.log('       1. preload() â†’ terrainPreloader() â†’ images loading...');
+      console.log('       2. terrianGen.js loads â†’ TERRAIN_MATERIALS_RANGED created');
+      console.log('       3. MaterialPalette created â†’ swatches loaded âœ…');
       
       // BROKEN SCENARIO: From main menu
       // 1. preload() runs and loads images
@@ -980,14 +973,14 @@ describe('Level Editor Script Loading Order Issue', function() {
       // 4. LevelEditor.js tries to create MaterialPalette
       // 5. BUT terrianGen.js might not be fully initialized yet
       // 6. TERRAIN_MATERIALS_RANGED might be undefined
-      // 7. MaterialPalette gets 0 swatches ❌
+      // 7. MaterialPalette gets 0 swatches âŒ
       
-      console.log('    🐛 Broken flow (from menu):');
-      console.log('       1. preload() → images loading...');
+      console.log('    ðŸ› Broken flow (from menu):');
+      console.log('       1. preload() â†’ images loading...');
       console.log('       2. Menu shows (user might click BEFORE images fully load)');
       console.log('       3. Level Editor opens');
-      console.log('       4. MaterialPalette created → TERRAIN_MATERIALS_RANGED undefined?');
-      console.log('       5. Palette has 0 swatches → no textures ❌');
+      console.log('       4. MaterialPalette created â†’ TERRAIN_MATERIALS_RANGED undefined?');
+      console.log('       5. Palette has 0 swatches â†’ no textures âŒ');
       
       // This is a RACE CONDITION between:
       // - Image loading (async)
@@ -1032,7 +1025,7 @@ describe('Level Editor Script Loading Order Issue', function() {
   
   describe('Solution Hypothesis', function() {
     it('should demonstrate that palette needs to check if TERRAIN_MATERIALS_RANGED exists', function() {
-      console.log('    💡 SOLUTION: MaterialPalette should:');
+      console.log('    ðŸ’¡ SOLUTION: MaterialPalette should:');
       console.log('       1. Check if TERRAIN_MATERIALS_RANGED is defined');
       console.log('       2. If undefined, defer swatch loading');
       console.log('       3. Or provide a reload/refresh method');

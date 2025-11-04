@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests: EventFlagRenderer
  * 
  * Tests EventFlagRenderer integration with EventManager and RenderManager.
@@ -9,7 +9,7 @@
  * Test Coverage:
  * - Spatial trigger rendering (flag icon + radius circle)
  * - Event ID labels
- * - Camera transforms (world coords → screen coords)
+ * - Camera transforms (world coords â†’ screen coords)
  * - Multiple flags without overlap
  * - Non-spatial triggers excluded (time, flag, viewport)
  * - EFFECTS layer registration
@@ -18,17 +18,22 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { JSDOM } = require('jsdom');
 
 // Setup JSDOM
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window;
-global.document = dom.window.document;
 
 // Import systems
 const EventManager = require('../../../Classes/managers/EventManager');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('EventFlagRenderer Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let sandbox;
   let eventManager;
   let mockCameraManager;
@@ -136,12 +141,12 @@ describe('EventFlagRenderer Integration Tests', function() {
       renderer.renderEventFlags(mockCameraManager);
       
       // Verify flag icon rendered (emoji or sprite)
-      // Text call for flag emoji (🚩) at world coords (100, 100) transformed to screen (200, 200)
+      // Text call for flag emoji (ðŸš©) at world coords (100, 100) transformed to screen (200, 200)
       expect(mockP5.text.called).to.be.true;
       
       // Find text call with flag emoji
       const flagTextCall = mockP5.text.getCalls().find(call => 
-        call.args[0] === '🚩' || call.args[0].includes('flag')
+        call.args[0] === 'ðŸš©' || call.args[0].includes('flag')
       );
       expect(flagTextCall).to.exist;
     });
@@ -162,7 +167,7 @@ describe('EventFlagRenderer Integration Tests', function() {
       renderer.renderEventFlags(mockCameraManager);
       
       // Verify radius circle rendered
-      // World coords (100, 100) → screen (200, 200), radius 64 → 128 (2x zoom)
+      // World coords (100, 100) â†’ screen (200, 200), radius 64 â†’ 128 (2x zoom)
       expect(mockP5.ellipse.called).to.be.true;
       
       const ellipseCall = mockP5.ellipse.getCalls().find(call =>

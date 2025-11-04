@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated Events System Integration Tests
  * Generated: 2025-10-29T03:16:53.958Z
  * Source files: 11
@@ -8,7 +8,6 @@
 // Common requires
 let { expect } = require('chai');
 let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
 
 // Setup integration test environment FIRST (before requiring EventManager)
 let { setupIntegrationTestEnvironment, cleanupIntegrationTestEnvironment } = require('../../helpers/integrationTestHelpers');
@@ -39,7 +38,16 @@ if (typeof global !== 'undefined') {
 let EventManager = require('../../../Classes/managers/EventManager.js');
 let EventDebugManager = require('../../../debug/EventDebugManager.js');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('EventManager Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let eventManager;
   let sandbox;
   
@@ -1530,7 +1538,6 @@ describe('DialogueEvent Integration Tests', function() {
 
   beforeEach(function() {
     // Create JSDOM environment
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
@@ -1540,8 +1547,6 @@ describe('DialogueEvent Integration Tests', function() {
     sandbox = sinon.createSandbox();
 
     // Set up global p5.js-like environment
-    global.window = window;
-    global.document = document;
     window.innerWidth = 1920;
     window.innerHeight = 1080;
     
@@ -2116,7 +2121,6 @@ describe('EventEditorPanel Displaying DialogueEvents (Integration)', function() 
 
   beforeEach(function() {
     // Create JSDOM environment
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
@@ -2126,8 +2130,6 @@ describe('EventEditorPanel Displaying DialogueEvents (Integration)', function() 
     sandbox = sinon.createSandbox();
 
     // Set up globals
-    global.window = window;
-    global.document = document;
     window.innerWidth = 1920;
     window.innerHeight = 1080;
 
@@ -2967,12 +2969,9 @@ describe('EventEditorPanel Integration Tests', function() {
     sandbox = sinon.createSandbox();
     
     // Set up JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js globals
     global.push = sandbox.stub();
@@ -3286,12 +3285,9 @@ describe('EventEditorPanel - Placement Mode Integration Tests', function() {
     sandbox = sinon.createSandbox();
     
     // Set up JSDOM
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });
-    global.window = dom.window;
-    global.document = dom.window.document;
     
     // Mock p5.js globals
     global.push = sandbox.stub();
@@ -3861,7 +3857,7 @@ describe('Event Drag Workflow Integration', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   after(function() {
@@ -4348,7 +4344,7 @@ describe('Events Panel Toggle Bug - Integration Tests', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   after(function() {
@@ -4519,7 +4515,7 @@ describe('Events Panel Toggle Bug - Integration Tests', function() {
   });
   
   describe('Multiple Toggle Clicks', function() {
-    it('should toggle panel on → off → on correctly', function() {
+    it('should toggle panel on â†’ off â†’ on correctly', function() {
       const levelEditor = new LevelEditor();
       levelEditor.initialize(terrain);
       

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration tests for Resource spawning with ResourceController
  * Tests factory methods and spawner creating ResourceController instances
  */
@@ -11,6 +11,10 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('Resource Spawning with ResourceController', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let ResourceController, ResourceSystemManager;
   let greenLeafFactory, mapleLeafFactory, stickFactory, stoneFactory;
   

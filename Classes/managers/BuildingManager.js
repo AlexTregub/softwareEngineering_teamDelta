@@ -17,14 +17,6 @@
  * ```
  */
 
-// Load BuildingFactory (browser uses window.* directly, Node.js requires it)
-let BuildingFactory;
-if (typeof require !== 'undefined') {
-  BuildingFactory = require('../factories/BuildingFactory');
-} else {
-  BuildingFactory = window.BuildingFactory;
-}
-
 class BuildingManager {
   constructor() {
     /**

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Test: sketch.js mouseWheel() function
  * 
  * Tests the p5.js mouseWheel() handler in sketch.js to ensure it correctly
@@ -11,7 +11,16 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('Integration: sketch.js mouseWheel() delegation', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let mockEvent, mockLevelEditor, mockGameState;
   
   beforeEach(function() {
@@ -39,7 +48,6 @@ describe('Integration: sketch.js mouseWheel() delegation', function() {
     // Mock globals
     global.GameState = mockGameState;
     global.levelEditor = mockLevelEditor;
-    global.window = { levelEditor: mockLevelEditor };
     global.SHIFT = 16;
     global.keyIsDown = sinon.stub().returns(false);
     global.mouseX = 500;
@@ -47,7 +55,7 @@ describe('Integration: sketch.js mouseWheel() delegation', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     delete global.GameState;
     delete global.levelEditor;
     delete global.window;

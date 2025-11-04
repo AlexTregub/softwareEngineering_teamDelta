@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BuildingManager Integration Tests
  * ----------------------------------
  * Test-driven development for simplified BuildingManager.
@@ -29,6 +29,10 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('BuildingManager Integration', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let BuildingManager, BuildingFactory, BuildingController;
   let manager;
   
@@ -45,7 +49,7 @@ describe('BuildingManager Integration', function() {
   
   afterEach(function() {
     cleanupTestEnvironment();
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Singleton Pattern', function() {

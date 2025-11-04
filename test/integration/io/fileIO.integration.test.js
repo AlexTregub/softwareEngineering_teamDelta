@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Consolidated File I/O Integration Tests
  * Generated: 2025-10-29T03:16:53.963Z
  * Source files: 7
@@ -8,7 +8,6 @@
 // Common requires
 let { expect } = require('chai');
 let sinon = require('sinon');
-let { JSDOM } = require('jsdom');
 
 
 // ================================================================
@@ -21,7 +20,16 @@ let { JSDOM } = require('jsdom');
 
 let { setupUITestEnvironment } = require('../../helpers/uiTestHelpers');
 
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+
+
+setupTestEnvironment({ rendering: true });
+
 describe('Brush Size Menu - Integration Tests', function() {
+
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
   let sandbox;
   let editor;
   let brushSizeMenu;
@@ -74,7 +82,7 @@ describe('Brush Size Menu - Integration Tests', function() {
     delete window.TerrainEditor;
   });
   
-  describe('Menu → TerrainEditor Synchronization', function() {
+  describe('Menu â†’ TerrainEditor Synchronization', function() {
     it('should update TerrainEditor brush size when menu size changes', function() {
       brushSizeMenu.setSize(5);
       expect(terrainEditor.getBrushSize()).to.equal(5);
@@ -257,7 +265,7 @@ describe('Brush Size Scroll - Integration Tests', function() {
     delete window.TerrainEditor;
   });
   
-  describe('Scroll → Menu → TerrainEditor Chain', function() {
+  describe('Scroll â†’ Menu â†’ TerrainEditor Chain', function() {
     it('should update both menu and TerrainEditor on scroll up', function() {
       const result = editor.handleMouseWheel({ delta: 1 }, true);
       expect(result).to.be.true;
@@ -428,7 +436,7 @@ describe('Brush Size Scroll - Integration Tests', function() {
 // ================================================================
 /**
  * Integration Tests for FileMenuBar with Save/Load File I/O
- * Tests complete workflow from menu → levelEditor save/load methods
+ * Tests complete workflow from menu â†’ levelEditor save/load methods
  * 
  * Following TDD: These tests verify FileMenuBar correctly triggers LevelEditor I/O
  * Note: Full terrain export/import testing is done in terrainExporter/terrainImporter tests
@@ -438,11 +446,8 @@ let fs = require('fs');
 let path = require('path');
 let vm = require('vm');
 // Setup JSDOM with localStorage
-let dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
   url: 'http://localhost'
 });
-global.window = dom.window;
-global.document = dom.window.document;
 global.localStorage = dom.window.localStorage;
 
 // Load FileMenuBar
@@ -524,7 +529,7 @@ describe('FileMenuBar Save/Load I/O Integration Tests', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
     localStorage.clear();
   });
   
@@ -721,8 +726,6 @@ describe('FileMenuBar Save/Load I/O Integration Tests', function() {
 // DUPLICATE REQUIRE REMOVED: let vm = require('vm');
 // Setup JSDOM
 // DUPLICATE REQUIRE REMOVED: let dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window;
-global.document = dom.window.document;
 
 // Load all required classes
 // DUPLICATE REQUIRE REMOVED: let fileMenuBarCode = fs.readFileSync(path.join(__dirname, '../../../Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js'), 'utf8');
@@ -802,7 +805,7 @@ describe('FileMenuBar Integration Tests', function() {
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
   describe('Save Functionality Integration', function() {
@@ -1056,7 +1059,7 @@ describe('FileMenuBar Integration Tests', function() {
       expect(menuBar.isMenuOpen('File')).to.be.false;
     });
     
-    it('should handle Save → Undo → Redo workflow', function() {
+    it('should handle Save â†’ Undo â†’ Redo workflow', function() {
       // Start with undo/redo disabled
       mockLevelEditor.editor.canUndo.returns(false);
       mockLevelEditor.editor.canRedo.returns(false);
@@ -1336,7 +1339,7 @@ describe('Filename Display - Integration Tests', function() {
 // fileNew.integration.test.js (17 tests)
 // ================================================================
 /**
- * Integration Tests: File → New
+ * Integration Tests: File â†’ New
  * Tests interaction between LevelEditor, TerrainEditor, and terrain creation
  */
 
@@ -1682,7 +1685,7 @@ describe('File Save/Export - Integration Tests', function() {
     delete window.TerrainExporter;
   });
   
-  describe('Save → Filename → Export Workflow', function() {
+  describe('Save â†’ Filename â†’ Export Workflow', function() {
     it('should show dialog, store filename, then allow export', function() {
       // Step 1: Save - show dialog
       editor.handleFileSave();
@@ -1698,7 +1701,7 @@ describe('File Save/Export - Integration Tests', function() {
       expect(terrainExporter.lastExport.filename).to.equal('MyLevel.json');
     });
     
-    it('should handle Save → Export without reopening dialog', function() {
+    it('should handle Save â†’ Export without reopening dialog', function() {
       editor.handleFileSave();
       saveDialog.simulateInput('TestMap');
       
