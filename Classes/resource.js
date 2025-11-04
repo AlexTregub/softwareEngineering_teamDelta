@@ -446,7 +446,6 @@ class Resource extends Entity {
 
     // Call Entity constructor
     super(x, y, width, height, entityOptions);
-
     // Resource specific state
     this._resourceIndex = resourceIndex++;
     this._resourceType = resourceType;

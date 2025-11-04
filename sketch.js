@@ -79,6 +79,11 @@ function setup() {
       });
     }
   }
+
+  // Now spawn initial resources (after spatial grid exists)
+  if (typeof spawnInitialResources === 'function') {
+    spawnInitialResources();
+  }
   
   initializeWorld();
   initializeDraggablePanelSystem()
