@@ -58,10 +58,13 @@
 **BDD Tests** (Cucumber/Selenium, PRIMARY for user workflows):
 - ✅ Test user-facing behavior with real browser
 - ✅ Use plain language (no technical jargon)
-- ✅ Test complete user workflows (menu → game → actions)
+- ✅ Test complete user workflows (create → interact → verify)
 - ✅ Selenium WebDriver for browser automation
 - ✅ Run headless for CI/CD
 - ✅ Screenshot verification where applicable
+- ✅ Integrated into main test suite (`npm test` runs all)
+- ✅ Create feature files in `test/bdd/features/`
+- ✅ Create step definitions in `test/bdd/steps/`
 
 **Example Test Setup** (MVC):
 ```javascript
@@ -576,147 +579,67 @@ it('should avoid water when pathfinding', function() {
 4. Add PheromoneController to Entity
 5. Register in EFFECTS rendering layer
 
-## E2E Testing Critical Patterns
+## BDD Testing with Cucumber/Selenium
 
-**MANDATORY**: See `docs/guides/E2E_TESTING_QUICKSTART.md`
+**Structure**: Feature files (`test/bdd/features/`) + Step definitions (`test/bdd/steps/`)
 
-### 1. Server Setup
+**Creating BDD Tests**:
+
+1. **Write Feature File** (Gherkin - plain language):
+```gherkin
+# test/bdd/features/my_feature.feature
+Feature: My Feature
+  As a player
+  I want to do something
+  So that I achieve a goal
+
+@my-feature @core
+Scenario: Player performs action
+  Given the game is loaded on localhost:8000
+  And the game has started
+  When I create an entity at position (100, 100)
+  Then the entity should exist
+  And the entity should have correct properties
+```
+
+2. **Write Step Definitions** (Selenium WebDriver):
+```javascript
+// test/bdd/steps/my_feature_steps.js
+const { Given, When, Then } = require('@cucumber/cucumber');
+const { Builder } = require('selenium-webdriver');
+
+Given('the game is loaded on localhost:8000', async function() {
+  await driver.get('http://localhost:8000');
+  await driver.sleep(2000);
+});
+
+When('I create an entity at position \\({int}, {int})', async function(x, y) {
+  await driver.executeScript((posX, posY) => {
+    window.testEntity = new Entity(posX, posY);
+  }, x, y);
+});
+
+Then('the entity should exist', async function() {
+  const exists = await driver.executeScript(() => {
+    return window.testEntity !== undefined;
+  });
+  assert.strictEqual(exists, true);
+});
+```
+
+3. **Run Tests**:
 ```bash
-npm run dev  # Must be running on localhost:8000
+npm test  # Integrated into main suite
+# OR
+npm run test:bdd:my-feature  # Individual run
 ```
 
-### 2. Menu Bypass (CRITICAL!)
-
-**For Game Tests**:
-```javascript
-const cameraHelper = require('../camera_helper');
-const gameStarted = await cameraHelper.ensureGameStarted(page);
-if (!gameStarted.started) throw new Error('Failed to start - still on menu');
-```
-
-**For Level Editor Tests**:
-```javascript
-const cameraHelper = require('../camera_helper');
-const editorStarted = await cameraHelper.ensureLevelEditorStarted(page);
-if (!editorStarted.started) throw new Error('Failed to start - still on main menu');
-```
-
-**Without this**: Screenshots show main menu, not game/editor!
-
-### 3. Force Rendering After State Changes
-```javascript
-await page.evaluate(() => {
-  window.gameState = 'PLAYING'; // Or 'LEVEL_EDITOR' for editor tests
-  
-  if (window.draggablePanelManager) {
-    window.draggablePanelManager.renderPanels('PLAYING'); // Or 'LEVEL_EDITOR'
-  }
-  
-  if (typeof window.redraw === 'function') {
-    window.redraw(); window.redraw(); window.redraw();
-  }
-});
-await sleep(500);
-await saveScreenshot(page, 'category/name', true);
-```
-**Without this**: Screenshots show old state!
-
-### 4. Panel Visibility System
-```javascript
-await page.evaluate(() => {
-  const state = 'PLAYING'; // Or 'LEVEL_EDITOR' for editor tests
-  if (!window.draggablePanelManager.stateVisibility[state]) {
-    window.draggablePanelManager.stateVisibility[state] = [];
-  }
-  window.draggablePanelManager.stateVisibility[state].push('test-panel-id');
-});
-```
-**Without this**: Panel won't render!
-
-### 5. Screenshot Proof (MANDATORY)
-```javascript
-await saveScreenshot(page, 'ui/test_name', true);  // success/
-await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
-```
-
-**Verify screenshots show**:
-- ✅ Game terrain or Level Editor (NOT main menu)
-- ✅ Expected UI elements
-- ✅ Correct visual state
-- ❌ Main menu = test failed
-
-**Location**: `test/e2e/screenshots/{category}/{success|failure}/{name}.png`
-
-### 6. Test Reuse & Real User Flows (CRITICAL!)
-
-**MANDATORY**: See `test/E2E_TEST_CATALOG.md` for complete list of reusable tests
-
-**BEFORE creating ANY new E2E test**:
-1. **Check `test/E2E_TEST_CATALOG.md`** - Catalog lists ALL available helpers and tests
-2. **Use existing helpers** from `test/e2e/levelEditor/userFlowHelpers.js` if applicable
-3. **Only create new test** if functionality not covered by existing helpers
-
-**Real User Flows vs API Calls**:
-
-**✅ CORRECT - Real User Flow** (ALWAYS do this unless dev says otherwise):
-```javascript
-// Use helper functions that simulate real user interactions
-const { placeEntityAtGrid, eraseEntityAtGrid } = require('../levelEditor/userFlowHelpers');
-
-// Place entity using REAL user flow (toolbar click → entity palette → place)
-await placeEntityAtGrid(page, 10, 10);
-
-// Erase entity using REAL user flow (eraser mode → click at grid position)
-await eraseEntityAtGrid(page, 10, 10);
-
-// Verify actual level data (not just visual state)
-const result = await page.evaluate(() => {
-  return {
-    entityCount: window.levelEditor._entitySpawnData.length,
-    placedCount: window.levelEditor.entityPainter.placedEntities.length
-  };
-});
-```
-
-**❌ WRONG - Direct API Manipulation** (NEVER do this unless explicitly requested by dev):
-```javascript
-// BAD: Bypassing UI, directly manipulating properties
-await page.evaluate(() => {
-  window.levelEditor._entitySpawnData.push({
-    type: 'Ant',
-    gridPosition: { x: 10, y: 10 }
-  }); // WRONG - bypasses toolbar, palette, placement flow
-});
-
-// BAD: Not verifying actual level data
-const result = await page.evaluate(() => {
-  return { hasEntity: window.levelEditor.entityPainter.placedEntities.length > 0 };
-}); // WRONG - only checks visual array, not actual level JSON data
-```
-
-**Available Helper Functions** (`test/e2e/levelEditor/userFlowHelpers.js`):
-- `startLevelEditor(page)` - Initialize Level Editor
-- `clickToolbarTool(page, toolName)` - Select toolbar tool
-- `openEntityPalette(page)` - Open entity palette panel
-- `clickEntityTemplate(page, index)` - Select entity template
-- `placeEntityAtGrid(page, gridX, gridY)` - Place entity with real workflow
-- `clickToolModeToggle(page, mode)` - Select tool mode (place/erase)
-- `eraseEntityAtGrid(page, gridX, gridY)` - Erase entity with real workflow
-- `verifyEntityAtGrid(page, gridX, gridY)` - Check entity exists in level data
-- `verifyEntityErasedAtGrid(page, gridX, gridY)` - Verify entity removed from level data
-
-**Key Rules**:
-1. **ALWAYS use real user flows** - mouse clicks, toolbar interactions, system APIs
-2. **NEVER bypass UI** - no direct property manipulation unless dev explicitly requests it
-3. **ALWAYS verify level data** - check `_entitySpawnData`, not just visual arrays
-4. **ALWAYS check catalog first** - reuse before creating new tests
-5. **ALWAYS use helper functions** - don't duplicate placement/erasure logic
-
-**Why Real User Flows Matter**:
-- Tests catch UI bugs (broken buttons, missing event handlers)
-- Tests verify complete workflows (toolbar → palette → placement → data storage)
-- Tests ensure level data integrity (entities actually saved to JSON, not just visual)
-- Tests mimic actual user behavior (more realistic, higher confidence)
+**Key Principles**:
+- ✅ Plain language scenarios (no technical jargon)
+- ✅ Real browser automation (headless Chrome)
+- ✅ Test complete workflows (create → interact → verify)
+- ✅ Screenshot capture for visual verification
+- ✅ Integrated into `npm test` (automatic execution)
 
 ## Development Process & Checklists
 
@@ -725,7 +648,7 @@ const result = await page.evaluate(() => {
 ### Why Checklists Matter
 
 **Checklists enforce**:
-- TDD at every phase (unit → integration → E2E)
+- TDD at every phase (unit → integration → BDD)
 - Systematic verification (no missed steps)
 - Documentation updates (keep docs current)
 - Quality gates (all tests pass before commit)
@@ -740,7 +663,7 @@ const result = await page.evaluate(() => {
 
 **Use checklist**: `docs/checklists/templates/BUG_FIX_CHECKLIST.md`
 
-**CRITICAL**: Only add bugs to KNOWN_ISSUES.md AFTER feature is fully implemented (passed integration/E2E testing). Bugs found during development stay in active feature checklist.
+**CRITICAL**: Only add bugs to KNOWN_ISSUES.md AFTER feature is fully implemented (passed integration/BDD testing). Bugs found during development stay in active feature checklist.
 
 1. **Document** in `KNOWN_ISSUES.md` (file, behavior, root cause, priority)
 2. **Write failing test** reproducing the bug
@@ -756,7 +679,7 @@ const result = await page.evaluate(() => {
 
 1. **Create Roadmap** in `docs/roadmaps/[FEATURE_NAME]_ROADMAP.md`
    - Break feature into phases
-   - Add checklists for each phase (TDD: unit → integration → E2E)
+   - Add checklists for each phase (TDD: unit → integration → BDD)
    - List deliverables, files affected, documentation needs
    - Estimate time per phase
    
@@ -765,7 +688,7 @@ const result = await page.evaluate(() => {
 4. **Implement feature** (minimal code to pass)
 5. **Run tests** (confirm pass)
 6. **Integration tests** (real system interactions)
-7. **E2E tests** (browser with screenshots)
+7. **BDD tests** (Cucumber/Selenium scenarios)
 8. **Update roadmap** (mark phases complete, update existing doc)
 9. **Update docs** (usage examples, architecture docs)
 10. **Update CHANGELOG.md**:
@@ -796,14 +719,14 @@ Brief description, goals, affected systems
 - [ ] Run tests (pass)
 **Deliverables**: [List files]
 
-### Phase 3: E2E & Documentation
-- [ ] Write E2E tests with screenshots
+### Phase 3: BDD & Documentation
+- [ ] Write BDD scenarios with Cucumber/Selenium
 - [ ] Create API reference
 - [ ] Update architecture docs
 **Deliverables**: [List docs]
 
 ## Testing Strategy
-Unit → Integration → E2E breakdown
+Unit → Integration → BDD breakdown
 
 ## Documentation Updates
 - [ ] API reference
@@ -847,7 +770,7 @@ These sections provide:
 3. **Implement parent method** (tests now pass)
 4. **Refactor child classes** to use parent method
 5. **Run all tests** (behavior unchanged)
-6. **E2E verification** (visual/interactive behavior unchanged)
+6. **BDD verification** (user workflows unchanged)
 7. **Clean JSDoc** - Remove refactoring commentary, keep brief professional docs
 
 **Key Patterns** (see strategy guide for details):
@@ -873,10 +796,10 @@ npm run test:integration
 npm run test:bdd
 npm run test:bdd:ants
 
-# E2E (PRIMARY with screenshots)
-npm run test:e2e
-npm run test:e2e:ui
-node test/e2e/ui/pw_panel_minimize.js
+# BDD (Cucumber/Selenium)
+npm run test:bdd:resources
+npm run test:bdd:resources:core
+npm run test:bdd:resources:api
 
 # All tests (CI/CD)
 npm test  # unit → integration → BDD → E2E

@@ -15,10 +15,13 @@ npm run test:all
 
 The comprehensive test runner executes tests in this order:
 
-1. **Unit Tests** - Fast, isolated tests for individual modules
-2. **Integration Tests** - Tests for component interactions
-3. **BDD Tests** - Behavior-driven development tests (Behave/Python)
-4. **E2E Tests** - End-to-end browser tests (Puppeteer)
+1. **Unit Tests** - Fast, isolated tests for individual modules (190 tests)
+2. **Integration Tests** - Tests for component interactions (17 tests)
+3. **BDD Tests (Python/Behave)** - Behavior-driven tests (if available)
+4. **BDD Tests (Resource MVC)** - Cucumber/Selenium tests (8 scenarios, 68 steps) ⭐ NEW
+5. **E2E Tests** - End-to-end browser tests (Puppeteer)
+
+**Note**: HTTP server automatically starts before BDD/E2E tests and stops after completion.
 
 ## Available Commands
 
@@ -43,6 +46,13 @@ The comprehensive test runner executes tests in this order:
 - `npm run test:bdd:ui` - Run UI BDD tests
 - `npm run test:bdd:integration` - Run integration BDD tests
 - `npm run test:bdd:core` - Run core functionality BDD tests
+
+### BDD Tests (Cucumber/Selenium - Resource MVC)
+- `npm run test:bdd:resources` - Run all Resource MVC scenarios (8 scenarios, 68 steps)
+- `npm run test:bdd:resources:core` - Core resource functionality
+- `npm run test:bdd:resources:api` - ResourceController API validation
+- `npm run test:bdd:resources:gathering` - Resource gathering behavior
+- `npm run test:bdd:resources:performance` - Performance tests (100 resources)
 
 ### E2E Tests (Puppeteer)
 - `npm run test:e2e` - Run main E2E test suite
@@ -76,9 +86,13 @@ The comprehensive test runner (`test/run-all-tests.js`) provides:
 
 Current test coverage:
 
-- **Unit Tests**: 862 passing tests across 17 controller modules
-- **BDD Tests**: Comprehensive behavior scenarios
+- **Unit Tests**: 190 passing tests (MVC models, views, controllers, factories)
+- **Integration Tests**: 17 passing tests (ResourceSystemManager, ResourceManager)
+- **BDD Tests (Resource MVC)**: 8 scenarios, 68 steps (Cucumber/Selenium) ⭐ NEW
+- **BDD Tests (Python/Behave)**: Comprehensive behavior scenarios (if available)
 - **E2E Tests**: Full browser automation with screenshot validation
+
+**Total**: 207+ automated tests + BDD scenarios
 
 ## Prerequisites
 

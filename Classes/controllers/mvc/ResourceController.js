@@ -38,18 +38,17 @@
  * ```
  */
 
-// Load dependencies
-const BaseController = (typeof require !== 'undefined') 
-  ? require('./BaseController') 
-  : window.BaseController;
-
-const ResourceModel = (typeof require !== 'undefined') 
-  ? require('../../models/ResourceModel') 
-  : window.ResourceModel;
-
-const ResourceView = (typeof require !== 'undefined') 
-  ? require('../../views/ResourceView') 
-  : window.ResourceView;
+// Load dependencies (browser uses window.* directly, Node.js requires them)
+let BaseController, ResourceModel, ResourceView;
+if (typeof require !== 'undefined') {
+  BaseController = require('./BaseController');
+  ResourceModel = require('../../models/ResourceModel');
+  ResourceView = require('../../views/ResourceView');
+} else {
+  BaseController = window.BaseController;
+  ResourceModel = window.ResourceModel;
+  ResourceView = window.ResourceView;
+}
 
 class ResourceController extends BaseController {
   /**

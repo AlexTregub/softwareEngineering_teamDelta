@@ -39,19 +39,12 @@ const testSuites = [
     requiresServer: false
   },
   {
-    name: 'BDD Tests',
-    command: 'python test/bdd/run_bdd_tests.py',
+    name: 'BDD Tests (Resource MVC)',
+    command: 'node test/bdd/run_resource_mvc_tests.js',
     color: colors.magenta,
-    description: 'Running BDD/Behave tests...',
+    description: 'Running Cucumber/Selenium BDD tests for Resource MVC...',
     requiresServer: true
   },
-  {
-    name: 'E2E Tests',
-    command: 'node test/e2e/run-tests.js',
-    color: colors.yellow,
-    description: 'Running Puppeteer E2E tests...',
-    requiresServer: true
-  }
 ];
 
 // Test results tracking

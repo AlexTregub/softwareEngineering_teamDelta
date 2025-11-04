@@ -24,8 +24,13 @@
  * ```
  */
 
-// Load BaseView
-const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : window.BaseView;
+// Load BaseView (browser uses window.BaseView directly, Node.js requires it)
+let BaseView;
+if (typeof require !== 'undefined') {
+  BaseView = require('./BaseView');
+} else {
+  BaseView = window.BaseView;
+}
 
 class ResourceView extends BaseView {
   /**

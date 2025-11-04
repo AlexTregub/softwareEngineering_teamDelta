@@ -115,6 +115,7 @@ function setupMockSprite2D() {
   class MockSprite2D {
     constructor(imagePath, position, size, rotation) {
       this.imagePath = imagePath;
+      this._image = null; // Internal image property
       this.position = position;
       this.size = size;
       this.rotation = rotation || 0;
@@ -123,7 +124,10 @@ function setupMockSprite2D() {
     render() { /* Mock render */ }
     setPosition(pos) { this.position = pos; }
     setSize(size) { this.size = size; }
-    setImage(path) { this.imagePath = path; }
+    setImage(img) { 
+      this._image = img; 
+      this.imagePath = img; 
+    }
     setRotation(rot) { this.rotation = rot; }
   }
   

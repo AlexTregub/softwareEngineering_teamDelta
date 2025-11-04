@@ -130,9 +130,17 @@ class ResourceManager {
 
         // --- update aggregated totals so tasks/UI can read progress ---
         try {
-          const rtype = resource.type || resource.resourceType || resource._type || 'misc';
+          // Use getType() for ResourceController, fallback to old properties
+          const rtype = (typeof resource.getType === 'function')
+            ? resource.getType()
+            : (resource.type || resource.resourceType || resource._type || 'misc');
           const ramt = (typeof resource.amount === 'number') ? resource.amount : 1;
-          addGlobalResource(rtype, ramt);
+          // Use window.addGlobalResource for testability
+          if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
+            window.addGlobalResource(rtype, ramt);
+          } else {
+            addGlobalResource(rtype, ramt);
+          }
         } catch (e) { /* ignore totals update errors */ }
       }
 
@@ -178,7 +186,10 @@ class ResourceManager {
         if (xDifference <= this.collectionRange && yDifference <= this.collectionRange) {
           // Check if focused collection is enabled and if so, only collect selected type
           if (this.focusedCollection && this.selectedResourceType) {
-            const resourceType = resource.type || resource._type || resource.resourceType;
+            // Use getType() for ResourceController, fallback to old properties
+            const resourceType = (typeof resource.getType === 'function') 
+              ? resource.getType() 
+              : (resource.type || resource._type || resource.resourceType);
             if (resourceType !== this.selectedResourceType) {
               continue; // Skip resources that don't match selected type
             }
@@ -377,7 +388,11 @@ class ResourceManager {
       isDroppingOff: this.isDroppingOff,
       isAtMaxCapacity: this.isAtMaxCapacity,
       collectionRange: this.collectionRange,
-      resourceTypes: Array.isArray(this.resources) ? this.resources.map(r => (r && (r.type || r._type)) || 'unknown') : []
+      resourceTypes: Array.isArray(this.resources) ? this.resources.map(r => {
+        if (!r) return 'unknown';
+        // Use getType() for ResourceController, fallback to old properties
+        return (typeof r.getType === 'function') ? r.getType() : (r.type || r._type || 'unknown');
+      }) : []
     };
   }
 

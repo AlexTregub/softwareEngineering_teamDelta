@@ -231,12 +231,15 @@ class BuildingBrush extends BrushBase {
       return false;
     }
 
-    // Create building
-    if (typeof createBuilding === 'function') {
-      const building = createBuilding(this.buildingType, snappedX, snappedY, 'Player', true);
+    // Create building using MVC BuildingManager
+    if (typeof g_buildingManager !== 'undefined' && g_buildingManager) {
+      const building = g_buildingManager.createBuilding(this.buildingType, snappedX, snappedY, 'Player');
       
-      if (building && typeof Buildings !== 'undefined') {
-        Buildings.push(building);
+      if (building) {
+        // Add to legacy Buildings[] array for compatibility
+        if (typeof Buildings !== 'undefined') {
+          Buildings.push(building);
+        }
         
         // Register with TileInteractionManager
         if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
@@ -248,9 +251,11 @@ class BuildingBrush extends BrushBase {
         
         logNormal(`🏗️ Building placed: ${this.buildingType} at (${snappedX}, ${snappedY})`);
         return true;
+      } else {
+        console.warn(`⚠️ Failed to create building: ${this.buildingType}`);
       }
     } else {
-      console.warn('⚠️ createBuilding function not available');
+      console.warn('⚠️ g_buildingManager not available');
     }
     
     return false;

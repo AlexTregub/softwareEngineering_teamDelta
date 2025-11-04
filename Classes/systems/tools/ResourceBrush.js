@@ -15,12 +15,12 @@ class ResourceBrush extends BrushBase {
     this.spawnCooldown = 100; // override default if needed
     this.showResourceChangeEffect = false;
 
-    // Resource types available for painting - harmonize with BrushBase.availableTypes
+    // Resource types available for painting - use ResourceFactory
     this.availableTypes = [
-      { type: 'greenLeaf', name: 'Green Leaf', color: [0, 255, 0], factory: Resource.createGreenLeaf },
-      { type: 'mapleLeaf', name: 'Maple Leaf', color: [255, 100, 0], factory: Resource.createMapleLeaf },
-      { type: 'stick', name: 'Stick', color: [139, 69, 19], factory: Resource.createStick },
-      { type: 'stone', name: 'Stone', color: [128, 128, 128], factory: Resource.createStone }
+      { type: 'greenLeaf', name: 'Green Leaf', color: [0, 255, 0], factory: ResourceFactory.createGreenLeaf },
+      { type: 'mapleLeaf', name: 'Maple Leaf', color: [255, 100, 0], factory: ResourceFactory.createMapleLeaf },
+      { type: 'stick', name: 'Stick', color: [139, 69, 19], factory: ResourceFactory.createStick },
+      { type: 'stone', name: 'Stone', color: [128, 128, 128], factory: ResourceFactory.createStone }
     ];
 
     this.currentIndex = 0;

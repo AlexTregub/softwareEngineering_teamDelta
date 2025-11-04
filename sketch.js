@@ -32,6 +32,7 @@ let g_globalTime;
 
 // Buildings
 let Buildings = [];
+let g_buildingManager; // BuildingManager instance (MVC pattern)
 // Camera system - now managed by CameraSystemManager (switches between CameraManager and CustomLevelCamera)
 let cameraManager; // CameraSystemManager instance
 
@@ -98,9 +99,12 @@ function registerEntitiesWithGameWorld(entities) {
 function preload(){
   terrainPreloader();
   soundManagerPreload();
-  resourcePreLoad();
+  // Initialize ResourceManager for MVC resource system
+  if (typeof ResourceManager !== 'undefined') {
+    g_resourceManager = new ResourceManager();
+  }
   preloadPauseImages();
-  BuildingPreloader();
+  // BuildingPreloader removed - images now handled by BuildingFactory
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
@@ -132,11 +136,8 @@ function setup() {
       });
     }
   }
-  
-  // Now spawn initial resources (after spatial grid exists)
-  if (typeof spawnInitialResources === 'function') {
-    //spawnInitialResources();
-  }
+
+  g_buildingManager = new BuildingManager();
   
   initializeWorld();
 
@@ -341,7 +342,14 @@ function setup() {
   }
   //
 
-  Buildings.push(createBuilding('hivesource', 200, 200, 'neutral'));
+  // Create initial test building (using MVC BuildingManager)
+  if (g_buildingManager) {
+    const building = g_buildingManager.createBuilding('hivesource', 200, 200, 'neutral');
+    if (building) {
+      Buildings.push(building); // Keep legacy Buildings[] array for compatibility
+      logNormal('🏗️ Test building created: hivesource at (200, 200)');
+    }
+  }
 }
 
 /**

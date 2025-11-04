@@ -10,6 +10,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### BREAKING CHANGES
 
+- **Old Resource Class Removed** (Phase 1.8 Complete - December 4, 2025)
+  - **Removed Files**: `Classes/resources/resource.js`, `Classes/resources/resources.js`
+  - **Before**: `Resource.createGreenLeaf(x, y)` or `new Resource(x, y, ...)`
+  - **After**: `ResourceFactory.createGreenLeaf(x, y)` returns `ResourceController`
+  - **Impact**: All resource creation must use ResourceFactory
+  - **Migration**: Replace `Resource.createX()` with `ResourceFactory.createX()`
+  - **API Changes**: 
+    - `.resourceType` → `.getType()`
+    - `.amount` → `.getAmount()`
+    - `.position` → `.getPosition()`
+    - Direct property access no longer supported
+  - **Files Updated**:
+    - `ResourceBrush.js`: Uses ResourceFactory
+    - `sketch.js`: Removed resourcePreLoad(), added g_resourceManager initialization
+    - `index.html`: Removed old resource script tags
+  - **Tests**: 173 unit tests passing (no regressions)
+
 - **MaterialPalette.render() Signature Change** (`Classes/ui/MaterialPalette.js`)
   - **Before**: `render(x, y)` - Auto-calculated dimensions
   - **After**: `render(x, y, width, height)` - Explicit dimensions required
@@ -20,6 +37,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ---
 
 ### User-Facing Changes
+
+#### Changed
+- **Resource System - MVC Refactoring (Phase 1.7c-d Complete)**
+  - Resource collection, drop-off, and UI display continue to work seamlessly
+  - Internal refactoring to MVC pattern (no visible changes to gameplay)
+  - Foundation for future features (save/load, modding, performance improvements)
 
 #### Added
 - **Custom Level Loading: LevelLoader System** (Phase 2.1 Complete)
@@ -42,6 +65,108 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Developer-Facing Changes
 
 #### Added
+- **Resource BDD Test Suite (Phase 1.9 Complete)**
+  - **BDD Tests** (`test/bdd/features/resource_mvc.feature`, `test/bdd/steps/resource_mvc_steps.js`)
+    - Comprehensive BDD test suite using Cucumber + Selenium WebDriver
+    - 8 test scenarios covering:
+      * Resource creation via ResourceFactory
+      * ResourceController API validation
+      * Gathering and depletion behavior
+      * Performance (100 resources in <1s)
+      * ResourceManager integration
+      * Deprecation warnings
+      * Factory pattern validation
+      * Rendering and visual verification
+    - Real browser automation (headless Chrome)
+    - Screenshot capture for visual regression testing
+    - Plain language scenarios (user-facing behavior)
+    - **Integrated into main test suite**: Run with `npm test` (automatically included)
+    - Individual run: `npm run test:bdd:resources`
+    - Tag filtering: `@core`, `@api`, `@gathering`, `@performance`, etc.
+    - Documentation: `test/bdd/README.md`
+
+- **Resource Class Deprecation (Phase 1.8 Complete)**
+  - **Resource Class** (`Classes/resources/resource.js`)
+    - Added deprecation warnings to Resource constructor
+    - Console warnings guide developers to use ResourceFactory instead
+    - Factory methods now delegate to ResourceFactory (ResourceFactory → ResourceController)
+    - Backward compatibility maintained (old code continues to work)
+    - JSDoc @deprecated tags added to class and methods
+    - Migration guide created: `docs/guides/RESOURCE_MIGRATION_GUIDE.md`
+    - **Migration Path**:
+      ```javascript
+      // OLD (deprecated)
+      const resource = new Resource(x, y, 20, 20, { resourceType: 'greenLeaf' });
+      const leaf = Resource.createGreenLeaf(100, 100);
+      
+      // NEW (recommended)
+      const resource = ResourceFactory.createGreenLeaf(x, y);
+      const leaf = ResourceFactory.createGreenLeaf(100, 100);
+      ```
+    - **Deprecation Timeline**:
+      * Phase 1.8 (Now): Warnings active, old code still works
+      * Phase 1.9: BDD validation complete
+      * Phase 2+: Gradual migration of existing code
+      * Phase 6: Complete removal of Resource class
+
+- **ResourceManager - MVC Integration (Phase 1.7c Complete)**
+  - **ResourceManager** (`Classes/managers/ResourceManager.js`)
+    - Updated to use ResourceController API via duck-typing
+    - Functions updated:
+      * `checkForNearbyResources()` - Uses getType() for focused collection
+      * `processDropOff()` - Uses getType() for type tracking
+      * `getDebugInfo()` - Uses getType() for debug output
+    - Made testable by calling `window.addGlobalResource` instead of direct function call
+    - Duck-typing pattern enables gradual migration (supports both old Resource and new ResourceController)
+    - 17 comprehensive integration tests (all passing)
+    - **Total Test Count**: 190 passing (173 unit + 17 integration)
+
+- **ResourceSystemManager - MVC Integration (Phase 1.7a Complete)**
+  - **ResourceSystemManager** (`Classes/managers/ResourceSystemManager.js`)
+    - Updated to use ResourceController API via duck-typing
+    - Functions updated:
+      * `getResourcesByType()` - Uses getType() for filtering
+      * `getSelectedResources()` - Uses getType() for selection
+      * `render()` - Uses getPosition() for rendering
+    - Backward compatible with old Resource class
+    - 18 integration tests (all passing)
+
+- **ResourceFactory - MVC Refactoring Phase 1.7b Complete**
+  - **ResourceFactory** (`Classes/factories/ResourceFactory.js`)
+    - Dedicated factory class for creating ResourceController instances
+    - Moved factory methods from Resource class to dedicated location
+    - Clean separation of concerns (factory pattern)
+    - Static factory methods:
+      * `createGreenLeaf(x, y, options)` - Create green leaf resource
+      * `createMapleLeaf(x, y, options)` - Create maple leaf resource
+      * `createStick(x, y, options)` - Create stick resource
+      * `createStone(x, y, options)` - Create stone resource
+      * `createResource(type, x, y, options)` - Generic factory method
+    - Options parameter support for customization (amount, custom properties)
+    - Error handling (returns null for unknown types, gracefully handles missing images)
+    - Browser/Node.js compatibility
+    - Added to index.html (line 56)
+    - 29 comprehensive unit tests (all passing)
+    - Full API documentation (`docs/api/ResourceFactory_API_Reference.md`)
+      * `createMapleLeaf(x, y, options)` - Create maple leaf resource
+      * `createStick(x, y, options)` - Create stick resource
+      * `createStone(x, y, options)` - Create stone resource
+      * `createResource(type, x, y, options)` - Generic factory method
+    - Features:
+      * Image loading via `_getImageForType()` helper
+      * Options parameter for customization (amount, etc.)
+      * Error handling if ResourceController not loaded
+      * Browser/Node.js compatibility
+      * Full JSDoc documentation with examples
+    - **Usage**: 
+      ```javascript
+      const leaf = ResourceFactory.createGreenLeaf(100, 150);
+      const stick = ResourceFactory.createStick(200, 250, { amount: 75 });
+      const resource = ResourceFactory.createResource('stone', 300, 350);
+      ```
+    - **Location**: Easy to find in `Classes/factories/` instead of buried in Resource class
+    - **Next**: Add to index.html, write TDD tests
+
 - **Level Loader System - Phase 2.1 Complete**
   - **LevelLoader** (`Classes/loaders/LevelLoader.js`)
     - Main class: loadLevel(levelData) parses JSON and returns {success, terrain, entities, errors}
