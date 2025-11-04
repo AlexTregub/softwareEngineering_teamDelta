@@ -57,6 +57,8 @@ class SoundManager {
     this.soundList = {
       click: "sounds/clickSound.mp3",
       bgMusic: "sounds/bgMusic.mp3",
+      prisonMusic: "sounds/prison.mp3",
+      tonyMusic: "sounds/TonyTheme.mp3",
     };
 
     // Map game states to their background music
@@ -64,7 +66,7 @@ class SoundManager {
       "MENU": "bgMusic",
       "OPTIONS": "bgMusic",
       "DEBUG_MENU": "bgMusic",
-      "PLAYING": null, // No BGM during gameplay
+      "PLAYING": "prisonMusic", // No BGM during gameplay
       "PAUSED": null,
       "GAME_OVER": null,
       "KANBAN": null
