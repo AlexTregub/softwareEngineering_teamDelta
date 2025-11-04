@@ -142,15 +142,15 @@ class Building extends Entity {
     nearbyAnts.forEach(ant => {
       const range = dist(this._x, this._y, ant.posX, ant.posY);
       const defaultStats = ant.job.stats;
-      const buff =  {
-          health : defaultStats.health + 20,
-          movementSpeed : defaultStats.movementSpeed + 90,
-          strength : defaultStats.strength + 1,
-          gatherSpeed : defaultStats.gatherSpeed + 0,
-      }
+      const buff = {
+        health: defaultStats.health * 1.1,           // +10% max health
+        movementSpeed: defaultStats.movementSpeed * 1.15, // +15% movement
+        strength: defaultStats.strength * 1.1,       // +10% strength
+        gatherSpeed: defaultStats.gatherSpeed * 1.1  // +10% gather efficiency
+      };
 
 
-      if(range <= this.effectRange && !this._buffedAnts.has(ant.id)){
+      if(range <= this.effectRange && !this._buffedAnts.has(ant.id)  && ant._faction === this._faction){
         ant._applyJobStats(buff);
         console.log('Applying buff to ant ID:',buff);
         this._buffedAnts.add(ant.id);

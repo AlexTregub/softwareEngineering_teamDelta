@@ -12,7 +12,7 @@ class QueenAnt extends ant {
     this.coolDown = false;
     this.showCommandRadius = false;
     // Queen should not perform idle random skitter movements
-    this.disableSkitter = true;
+    this.getController('movement').disableSkitter = true;
 
     // Power unlock flags (false by default - unlock via cheats or progression)
     this.unlockedPowers = {
@@ -146,9 +146,17 @@ class QueenAnt extends ant {
     }
   }
 
+  // State Override -- 
+  startGathering(){return;}
+
 
   update() {
     super.update();
+    let isIdle = this._stateMachine.isPrimaryState("IDLE");
+    if(!isIdle){
+      this._stateMachine.setPrimaryState("IDLE");
+    }
+
     // Example AI logic placeholder
     // this.broadcastCommand({ type: "GATHER" });
   }

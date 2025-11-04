@@ -29,7 +29,7 @@ function antsPreloader() {
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
     DeLozier: loadImage('Images/Ants/greg.jpg'),
     Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
-    Boss:    loadImage('Images/Ants/gray_ant_spitter.png')
+    Spider: loadImage('Images/Ants/spider.png')
   };
   initializeAntManager();
 }
@@ -140,6 +140,7 @@ class ant extends Entity {
     this.brain = new AntBrain(this, jobName);
     
     // Set image if provided
+    console.log(image, jobName);
     if (image) {
       this.setImage(image);
     }
@@ -168,21 +169,45 @@ class ant extends Entity {
     }
   }
   
-  _getFallbackJobStats(jobName) {
-    // Fallback job stats when JobComponent isn't available
-    switch (jobName) {
-      case "Builder": return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 60 };
-      case "Scout": return { strength: 10, health: 80, gatherSpeed: 10, movementSpeed: 80 };
-      case "Farmer": return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 60 };
-      case "Warrior": return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
-      case "Spitter": return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
-      case "DeLozier": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
-      case "Queen": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
-      case "Boss": return { strength: 20, health: 10000, gatherSpeed: 1, movementSpeed: 100000 };
-      default: return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
-    }
+_getFallbackJobStats(jobName) {
+  // Balanced fallback stats when JobComponent isn't available
+  switch (jobName) {
+    case "Builder":
+      // Strong enough to build and carry, average mobility
+      return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 55 };
+
+    case "Scout":
+      // Fast and agile, but fragile
+      return { strength: 10, health: 70, gatherSpeed: 8, movementSpeed: 85 };
+
+    case "Farmer":
+      // Focused on gathering efficiency
+      return { strength: 15, health: 100, gatherSpeed: 35, movementSpeed: 50 };
+
+    case "Warrior":
+      // Heavy combat role: high strength and durability, slower speed
+      return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
+
+    case "Spitter":
+      // Ranged attacker: moderate health, good damage, slightly faster than warrior
+      return { strength: 35, health: 110, gatherSpeed: 5, movementSpeed: 55 };
+
+    case "DeLozier":
+      return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
+
+    case "Queen":
+      // Central unit: extremely durable but immobile and weak in combat
+      return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 10 };
+
+    case "Spider":
+      return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 40 };
+
+    default:
+      // Generic fallback for untyped ants
+      return { strength: 15, health: 100, gatherSpeed: 10, movementSpeed: 60 };
   }
-  
+}
+
   getJobStats() {
     return this.job ? this.job.stats : this._getFallbackJobStats(this.jobName);
   }

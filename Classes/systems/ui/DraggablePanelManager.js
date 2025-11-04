@@ -147,6 +147,7 @@ class DraggablePanelManager {
    * Create the default example panels
    */
   createDefaultPanels() {
+    console.log("create panel")
     // Ant Spawn Panel (vertical layout with ant spawning options)
     this.panels.set('ant_spawn', new DraggablePanel({
       id: 'ant-Spawn-panel',

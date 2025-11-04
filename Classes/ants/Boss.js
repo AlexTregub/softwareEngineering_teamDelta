@@ -2,15 +2,18 @@ class Boss extends QueenAnt {
     constructor() {
         let queenBase = new spawnQueen();
         super(queenBase);
-        this._type = 'Boss';
+        this._type = 'Spider';
         this._faction = 'enemy';
 
-        this.assignJob('Boss');
+        this.assignJob('Spider',JobImages['Spider']);
         this.attackRange = 20;
+        this.detectionRange = 100;
         this.setSize(50,50);
         ants.splice(ants.indexOf(queenBase), 1); 
-
         ants.push(this);
+        this.currentTarget = null;
+        this._gatherState = null;
+        this._movementController._skitterRange = 100;
     }
 
     nearestAnt(){
@@ -30,25 +33,31 @@ class Boss extends QueenAnt {
         return [nearest,minDist];
     }
 
-    _updateResourceManager(){
-        return;
-    }
+    _updateResourceManager(){}
+
 
 
     rush(targetAnt){
-        this.attack(targetAnt);
+        if(!targetAnt.isDead){
+            this._attackTarget(this.currentTarget);
+        }else{
+            console.log(ants[targetAnt]);
+        }
     }
 
-    update(){
+    update() {
         super.update();
         let [nearestAnt, distance] = this.nearestAnt();
-        if (nearestAnt) {
-            if(distance <= this.attackRange){
-                this.rush(nearestAnt);
-            }
-            else{
-                this.moveToLocation(nearestAnt.posX, nearestAnt.posY);
-            }
+        if(!nearestAnt){ console.log(this._skitterRange); return;}
+
+        if (this.currentTarget == null) {
+            this.currentTarget = nearestAnt;
+        }
+        if(distance < this.attackRange){
+           this.rush(this.currentTarget);
+        }
+        else {
+            this.moveToLocation(this.currentTarget.posX, this.currentTarget.posY);
         }
     }
 }
