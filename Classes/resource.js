@@ -244,6 +244,7 @@ function getCurrenciesRenderStyles() {
 
 function setRenderListLocation(style, order = "standard"){
   let renderList = {}
+  /*
   switch (order) {
     case "standard":
       renderList = {
@@ -264,6 +265,7 @@ function setRenderListLocation(style, order = "standard"){
     default:
       break;
   } 
+      */
   return renderList;
 }
 
@@ -280,7 +282,8 @@ switch (style.name) {
     order = "reversed"; break;
   }
   renderList = setRenderListLocation (style, order)
-  return renderList
+  // UNCOMMENT TO SHOW RENDER LIST
+  return renderList;
 }
 
 function renderCurrencies(){

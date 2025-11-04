@@ -61,9 +61,9 @@ class DIAManager {
     // Portrait
     const portraitSize = 100;
     let textStartX = boxX + padding - 300;
-    let textStartY = boxY + padding - 60;  // <--- define it here
+    let textStartY = boxY + padding - 60;  
     let headStartX = boxX + padding - 250;
-    let headStartY = boxY + padding - 90;  // <--- define it here
+    let headStartY = boxY + padding - 90;  
     if (this.portrait) {
         const portraitY = boxY + (boxH - portraitSize) / 2;
         image(this.portrait, boxX + padding, portraitY, portraitSize, portraitSize);
