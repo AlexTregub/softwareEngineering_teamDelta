@@ -42,12 +42,19 @@ let antFactory; // AntFactory instance (creation logic)
 
 
 function setUpManagers() {
+  // Ant MVC system
   antManager = AntManager.getInstance();
   
+  // Building MVC system
+  g_buildingManager = new BuildingManager();
 }
 
 function setUpFactories() {
+  // Ant Factory (requires AntManager)
   antFactory = new AntFactory(antManager);
+  
+  // Building Factory would go here when we refactor it
+  // buildingFactory = new BuildingFactory(g_buildingManager);
 }
 
 function initGlobals() {
@@ -156,7 +163,8 @@ function setup() {
     }
   }
 
-  g_buildingManager = new BuildingManager();
+  // Initialize all managers and factories (centralized initialization)
+  initGlobals();
   
   initializeWorld();
   initializeDraggablePanelSystem()
