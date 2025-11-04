@@ -169,9 +169,12 @@ class EntityRenderer {
    * Collect ant entities
    */
   collectAnts(gameState) {
-    for (let i = 0; i < ants.length; i++) {
-      if (ants[i]) {
-        const ant = ants[i];
+    // Use AntManager (MVC pattern) - FAIL FAST if not initialized
+    const antList = antManager.getAllAnts();
+    
+    for (let i = 0; i < antList.length; i++) {
+      if (antList[i]) {
+        const ant = antList[i];
         this.stats.totalEntities++;
         
         if (this.shouldRenderEntity(ant)) {
@@ -188,9 +191,9 @@ class EntityRenderer {
       }
     }
     
-    // Update ants if in playing state  
-    if (gameState === 'PLAYING' && antsUpdate) {
-      antsUpdate();
+    // Update ants if in playing state - FAIL FAST
+    if (gameState === 'PLAYING') {
+      antManager.updateAll();
     }
   }
   

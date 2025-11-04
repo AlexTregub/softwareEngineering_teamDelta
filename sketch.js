@@ -36,6 +36,25 @@ let g_buildingManager; // BuildingManager instance (MVC pattern)
 // Camera system - now managed by CameraSystemManager (switches between CameraManager and CustomLevelCamera)
 let cameraManager; // CameraSystemManager instance
 
+// Ant MVC system (Manager + Factory pattern)
+let antManager; // AntManager instance (registry and lifecycle)
+let antFactory; // AntFactory instance (creation logic)
+
+
+function setUpManagers() {
+  antManager = AntManager.getInstance();
+  
+}
+
+function setUpFactories() {
+  antFactory = new AntFactory(antManager);
+}
+
+function initGlobals() {
+  setUpManagers();
+  setUpFactories();
+}
+
 /**
  * Register entities from LevelLoader with global game arrays and systems
  * @param {Array} entities - Array of entities from LevelLoader.loadLevel()
@@ -400,10 +419,11 @@ function initializeWorld() {
   
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
-  
+
+  initGlobals();
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
-  queenAnt = spawnQueen();
+  queenAnt = antFactory.spawnQueen();
   
   // Auto-track queen ant with camera (Phase 4.2 - Camera Following Integration)
   if (cameraManager && queenAnt) {
