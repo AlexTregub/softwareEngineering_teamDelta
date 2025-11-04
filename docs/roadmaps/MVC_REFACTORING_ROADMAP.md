@@ -69,12 +69,12 @@
 
 **Deliverable**: `docs/TEST_COVERAGE_BASELINE.md`
 
-#### 0.3: Create MVC Base Classes
-- [ ] **Write tests for base Model class** (TDD)
+#### 0.3: Create MVC Base Classes ✅ COMPLETE
+- [x] **Write tests for base Model class** (TDD - 23 tests)
   - Property storage
   - Change notifications
   - Serialization (toJSON/fromJSON)
-- [ ] **Implement BaseModel**
+- [x] **Implement BaseModel** (Classes/models/BaseModel.js - 151 lines)
   ```javascript
   // Classes/models/BaseModel.js
   class BaseModel {
@@ -92,37 +92,18 @@
   ```
 - [ ] **Write tests for base View class** (E2E)
 - [ ] **Implement BaseView**
-  ```javascript
-  // Classes/views/BaseView.js
-  class BaseView {
-    constructor(model) {
-      this._model = model;
-      this._modelChangeHandler = this._onModelChange.bind(this);
-      model.addChangeListener(this._modelChangeHandler);
-    }
-    
-    _onModelChange(property, data, model) { ... }
-    render() { ... }
-    destroy() { ... }
-  }
-  ```
-- [ ] **Write tests for base Controller class** (Integration)
-- [ ] **Implement BaseController**
-  ```javascript
-  // Classes/controllers/BaseController.js
-  class BaseController {
-    constructor(model, view) {
-      this._model = model;
-      this._view = view;
-    }
-    
-    update(deltaTime) { this._model.update(deltaTime); }
-    render() { this._view.render(); }
-    destroy() { this._model.destroy(); this._view.destroy(); }
-  }
-  ```
+- [x] **Write tests for base View class** (23 tests)
+- [x] **Implement BaseView** (Classes/views/BaseView.js - 117 lines)
+- [x] **Write tests for base Controller class** (24 tests)
+- [x] **Implement BaseController** (Classes/controllers/mvc/BaseController.js - 125 lines)
+- [x] **Create test helpers** (test/helpers/mvcTestHelpers.js - 300+ lines)
+  - setupTestEnvironment() - One call for complete test setup
+  - cleanupTestEnvironment() - Automatic Sinon cleanup
+  - loadMVCBaseClasses() - Load all base classes
+  - Real CollisionBox2D (no mocks)
+  - All 5 test files refactored to use helpers
 
-**Deliverable**: Base classes with 100% test coverage
+**Deliverable**: Base classes with 100% test coverage (70 tests passing)
 
 #### 0.4: Create Adapter Pattern Infrastructure
 - [ ] **EntityAdapter** (makes MVC look like old Entity)
@@ -169,8 +150,8 @@
 
 ### Tasks
 
-#### 1.1: Write ResourceModel Tests (TDD)
-- [ ] **Unit tests for ResourceModel**
+#### 1.1: Write ResourceModel Tests (TDD) ✅ COMPLETE
+- [x] **Unit tests for ResourceModel** (test/unit/models/ResourceModel.test.js - 29 tests)
   ```javascript
   // test/unit/models/ResourceModel.test.js
   describe('ResourceModel', function() {
@@ -210,8 +191,8 @@
   npx mocha "test/unit/models/ResourceModel.test.js"
   ```
 
-#### 1.2: Implement ResourceModel
-- [ ] **Create ResourceModel class**
+#### 1.2: Implement ResourceModel ✅ COMPLETE
+- [x] **Create ResourceModel class** (Classes/models/ResourceModel.js - 218 lines, 29 tests passing)
   ```javascript
   // Classes/models/ResourceModel.js
   class ResourceModel extends BaseModel {
@@ -284,8 +265,8 @@
   ```
 - [ ] **Run tests** (should pass)
 
-#### 1.3: Write ResourceView Tests (E2E with screenshots)
-- [ ] **E2E tests for ResourceView**
+#### 1.3: Write ResourceView Tests (Integration) ✅ COMPLETE
+- [x] **Integration tests for ResourceView** (test/integration/views/ResourceView.integration.test.js - 19 tests)
   ```javascript
   // test/e2e/views/pw_resource_view.js
   const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
@@ -325,8 +306,8 @@
   ```
 - [ ] **Run tests** (should fail - no implementation yet)
 
-#### 1.4: Implement ResourceView
-- [ ] **Create ResourceView class**
+#### 1.4: Implement ResourceView ✅ COMPLETE
+- [x] **Create ResourceView class** (Classes/views/ResourceView.js - 165 lines, 19 tests passing)
   ```javascript
   // Classes/views/ResourceView.js
   class ResourceView extends BaseView {
@@ -380,37 +361,22 @@
   ```
 - [ ] **Run tests** (should pass with screenshot proof)
 
-#### 1.5: Write ResourceController Tests (Integration)
-- [ ] **Integration tests**
-  ```javascript
-  // test/integration/controllers/ResourceController.test.js
-  describe('ResourceController', function() {
-    it('should coordinate model and view', function() {
-      const controller = new ResourceController(100, 100, 32, 32, { type: 'Food' });
-      
-      expect(controller.getPosition().x).to.equal(100);
-      expect(controller.type).to.equal('Food');
-      
-      controller.setPosition(200, 200);
-      expect(controller.getPosition().x).to.equal(200);
-    });
-    
-    it('should handle resource gathering', function() {
-      const controller = new ResourceController(100, 100, 32, 32, { amount: 100 });
-      
-      controller.gather(30);
-      expect(controller.getAmount()).to.equal(70);
-      
-      controller.gather(70);
-      expect(controller.getAmount()).to.equal(0);
-      expect(controller.isDepleted()).to.be.true;
-    });
-  });
-  ```
-- [ ] **Run tests** (should fail)
+#### 1.5: Write ResourceController Tests (Integration) ✅ COMPLETE
+- [x] **Integration tests** (test/unit/controllers/ResourceController.test.js - 45 tests)
+  - Constructor tests (6): extends BaseController, creates model/view, passes parameters
+  - Position API tests (5): get/set position, triggers view updates
+  - Type API tests (2): returns resource type
+  - Amount API tests (5): get/gather/reduce amount with bounds
+  - Depletion API tests (4): isDepleted check, inactive when depleted
+  - Collision API tests (6): contains point, collides with other resources
+  - Update/Render tests (4): delegates to model/view, respects inactive state
+  - Input handling tests (5): click detection, gathering callbacks
+  - Serialization tests (4): toJSON/fromJSON with full state
+  - Lifecycle tests (4): destroy cleans up model/view/references
+- [x] **Run tests** (45 passing)
 
-#### 1.6: Implement ResourceController
-- [ ] **Create ResourceController class**
+#### 1.6: Implement ResourceController ✅ COMPLETE
+- [x] **Create ResourceController class** (Classes/controllers/mvc/ResourceController.js - 230 lines)
   ```javascript
   // Classes/controllers/ResourceController.js
   class ResourceController extends BaseController {
@@ -443,102 +409,296 @@
   ```
 - [ ] **Run tests** (should pass)
 
-#### 1.7: Create ResourceAdapter (Backward Compatibility)
-- [ ] **Create adapter**
+#### 1.7: Clean Integration - NO ADAPTER! ✨
+**Decision**: Skip adapter pattern - do clean refactoring instead!
+
+**Why Clean Refactoring?**
+- ✅ Consistent API everywhere (getPosition, getType, etc.)
+- ✅ No wrapper/adapter complexity
+- ✅ Better long-term maintainability
+- ✅ Learning experience for team
+- ✅ Sets precedent for Ants/Buildings migration
+
+**What We're Changing**:
+1. Resource class → Use ResourceController directly
+2. ResourceSystemManager → Work with ResourceController API
+3. ResourceManager (ant inventory) → Use ResourceController methods
+4. ResourceSpawner → Spawn ResourceController instances
+5. UI Components → Use consistent getType(), getPosition() API
+
+**Expectations**:
+- 🎯 **Game stays playable** at every step
+- 🎯 **Test-driven** - write tests first, then change
+- 🎯 **Incremental** - one system at a time
+- 🎯 **Verify often** - run game + tests after each change
+- 🎯 **Time estimate**: 4-6 hours total
+
+---
+
+#### 1.7a: Update ResourceSystemManager (Global Resource Registry)
+**Goal**: Make global resource system work with ResourceController
+
+- [ ] **Write tests for ResourceSystemManager** (TDD)
   ```javascript
-  // Classes/adapters/ResourceAdapter.js
-  class ResourceAdapter {
-    constructor(resourceController) {
-      this._controller = resourceController;
+  // test/integration/systems/ResourceSystemManager.test.js
+  describe('ResourceSystemManager with ResourceController', function() {
+    it('should add ResourceController to system', function() {
+      const system = new ResourceSystemManager();
+      const resource = new ResourceController(100, 100, 32, 32, { type: 'Food' });
       
-      // Make controller look like old Entity/Resource API
-      this.id = this._controller.id;
-      this.type = this._controller.type;
-      this.getPosition = () => this._controller.getPosition();
-      this.setPosition = (x, y) => this._controller.setPosition(x, y);
-      this.render = () => this._controller.render();
-      this.update = (dt) => this._controller.update(dt);
-      this.gather = (amount) => this._controller.gather(amount);
-      this.isDepleted = () => this._controller.isDepleted();
-    }
-  }
-  
-  if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ResourceAdapter;
-  }
-  ```
-- [ ] **Write adapter tests**
-  ```javascript
-  // test/integration/adapters/ResourceAdapter.test.js
-  describe('ResourceAdapter', function() {
-    it('should make controller look like old Resource API', function() {
-      const controller = new ResourceController(100, 100, 32, 32, { type: 'Food' });
-      const adapter = new ResourceAdapter(controller);
+      system.addResource(resource);
       
-      // Old code can still use old API
-      const pos = adapter.getPosition();
-      expect(pos.x).to.equal(100);
+      expect(system.getResourceList().length).to.equal(1);
+      expect(system.getResourceList()[0]).to.equal(resource);
+    });
+    
+    it('should get resources by type using getType()', function() {
+      const system = new ResourceSystemManager();
+      const food = new ResourceController(100, 100, 32, 32, { type: 'Food' });
+      const wood = new ResourceController(200, 200, 32, 32, { type: 'Wood' });
       
-      adapter.setPosition(200, 200);
-      expect(adapter.getPosition().x).to.equal(200);
+      system.addResource(food);
+      system.addResource(wood);
       
-      adapter.gather(30);
-      expect(controller.getAmount()).to.equal(70);
+      const foodResources = system.getResourcesByType('Food');
+      expect(foodResources.length).to.equal(1);
+      expect(foodResources[0].getType()).to.equal('Food');
+    });
+    
+    it('should remove resources correctly', function() {
+      const system = new ResourceSystemManager();
+      const resource = new ResourceController(100, 100, 32, 32);
+      
+      system.addResource(resource);
+      system.removeResource(resource);
+      
+      expect(system.getResourceList().length).to.equal(0);
     });
   });
   ```
+- [ ] **Update ResourceSystemManager implementation**
+  - Change `resource.type` → `resource.getType()`
+  - Change `resource.x/resource.posX` → `resource.getPosition().x`
+  - Change `resource.y/resource.posY` → `resource.getPosition().y`
+  - Update all resource property access to use controller API
+- [ ] **Run tests** (should pass)
 
-#### 1.8: Update ResourceManager to Use MVC
-- [ ] **Refactor ResourceManager**
+---
+
+#### 1.7b: Update ResourceSpawner
+**Goal**: Spawn ResourceController instances instead of old Resource class
+
+- [ ] **Write tests for ResourceSpawner** (TDD)
   ```javascript
-  // Classes/managers/ResourceManager.js
-  class ResourceManager {
-    constructor() {
-      this._resources = []; // Array of ResourceController (not Entity)
-    }
-    
-    addResource(x, y, type, amount) {
-      const controller = new ResourceController(x, y, 32, 32, { type, amount });
-      this._resources.push(controller);
+  // test/integration/spawning/ResourceSpawner.test.js
+  describe('ResourceSpawner with ResourceController', function() {
+    it('should spawn ResourceController instances', function() {
+      const spawner = new ResourceSpawner(1000, 10);
+      const spawned = spawner.spawnResource(100, 100, 'Food');
       
-      // Return adapter for backward compatibility
-      return new ResourceAdapter(controller);
-    }
-    
-    update(deltaTime) {
-      this._resources.forEach(controller => controller.update(deltaTime));
-    }
-    
-    render() {
-      this._resources.forEach(controller => controller.render());
-    }
-    
-    removeDepletedResources() {
-      this._resources = this._resources.filter(c => !c.isDepleted());
+      expect(spawned).to.be.instanceOf(ResourceController);
+      expect(spawned.getType()).to.equal('Food');
+      expect(spawned.getPosition().x).to.equal(100);
+    });
+  });
+  ```
+- [ ] **Update ResourceSpawner class**
+  ```javascript
+  // In resource.js or spawner file
+  class ResourceSpawner {
+    spawnResource(x, y, type) {
+      // OLD: return new Resource(x, y, 32, 32, { resourceType: type });
+      // NEW: return ResourceController instance
+      return new ResourceController(x, y, 32, 32, { 
+        type: type,
+        amount: 100,
+        imagePath: this._getImageForType(type)
+      });
     }
   }
   ```
-- [ ] **Write manager tests**
-- [ ] **Run full test suite**
+- [ ] **Update factory methods** (createGreenLeaf, createMapleLeaf, etc.)
+  ```javascript
+  // OLD Resource.createGreenLeaf()
+  static createGreenLeaf(x, y) {
+    return new Resource(x, y, 20, 20, { resourceType: 'greenLeaf' });
+  }
+  
+  // NEW: Use ResourceController
+  static createGreenLeaf(x, y) {
+    return new ResourceController(x, y, 20, 20, { 
+      type: 'greenLeaf',
+      imagePath: greenLeaf || null
+    });
+  }
+  ```
+- [ ] **Run tests** (should pass)
+
+---
+
+#### 1.7c: Update ResourceManager (Ant Inventory)
+**Goal**: Make ant resource collection work with ResourceController
+
+- [ ] **Write tests for ResourceManager with ResourceController** (TDD)
+  ```javascript
+  // test/integration/managers/ResourceManager.test.js
+  describe('ResourceManager with ResourceController', function() {
+    it('should add ResourceController to inventory', function() {
+      const ant = { posX: 100, posY: 100 };
+      const manager = new ResourceManager(ant, 2);
+      const resource = new ResourceController(110, 110, 32, 32, { type: 'Food' });
+      
+      const added = manager.addResource(resource);
+      
+      expect(added).to.be.true;
+      expect(manager.getCurrentLoad()).to.equal(1);
+    });
+    
+    it('should detect resources using getPosition()', function() {
+      const ant = { posX: 100, posY: 100 };
+      const manager = new ResourceManager(ant, 2, 25);
+      
+      // Mock global resource system with ResourceController
+      global.g_resourceManager = {
+        getResourceList: () => [
+          new ResourceController(110, 110, 32, 32, { type: 'Food' })
+        ],
+        removeResource: sinon.spy()
+      };
+      
+      manager.checkForNearbyResources();
+      
+      expect(manager.getCurrentLoad()).to.equal(1);
+    });
+  });
+  ```
+- [ ] **Update ResourceManager.checkForNearbyResources()**
+  - Change `resource.x/resource.posX` → `resource.getPosition().x`
+  - Change `resource.y/resource.posY` → `resource.getPosition().y`
+  - Change `resource.type/resource._type/resource.resourceType` → `resource.getType()`
+  - Remove `resource.pickUp()` calls (ResourceController doesn't need this)
+  - Remove `resource.drop()` calls (ResourceController doesn't need this)
+- [ ] **Update ResourceManager.processDropOff()**
+  - Use `resource.getType()` for type checking
+  - Resources are already ResourceController instances
+- [ ] **Run tests** (should pass)
+
+---
+
+#### 1.7d: Update UI Components
+**Goal**: Make UI work with ResourceController API
+
+- [ ] **Update DraggablePanelSystem**
+  ```javascript
+  // OLD: wood = g_resourceManager.getResourcesByType('wood').length;
+  // NEW: Same (getResourcesByType still works, but uses getType() internally)
+  
+  // If directly accessing resources:
+  // OLD: resource.type or resource._type
+  // NEW: resource.getType()
+  ```
+- [ ] **Update ResourceBrush (Level Editor)**
+  - Change resource creation to use ResourceController
+  - Update property access to use controller API
+- [ ] **Update other UI components**
+  - Search codebase for `resource.type`, `resource._type`, `resource.resourceType`
+  - Replace with `resource.getType()`
+  - Search for `resource.x`, `resource.posX` → `resource.getPosition().x`
+- [ ] **Manual testing**: Open game, verify resource display works
+
+---
+
+#### 1.8: Remove Old Resource Class
+**Goal**: Clean up legacy code after migration complete
+
+- [ ] **Verify all tests passing**
   ```bash
   npm test
   ```
-
-#### 1.9: E2E Validation (Game Still Works)
-- [ ] **Play the game manually**
-  - Can still gather resources?
-  - Resources render correctly?
-  - No console errors?
-- [ ] **E2E test: Full resource workflow**
+- [ ] **Verify game playable**
+  - Start game
+  - Spawn resources
+  - Ants can gather resources
+  - Resources render correctly
+  - No console errors
+- [ ] **Deprecate/remove Resource class**
   ```javascript
-  // test/e2e/workflows/pw_resource_gathering.js
-  // Test: Ant walks to resource, gathers, resource depletes
+  // Classes/resources/resource.js
+  
+  // Keep factory methods but use ResourceController:
+  class Resource {
+    // DEPRECATED: Use ResourceController directly
+    static createGreenLeaf(x, y) {
+      console.warn('Resource.createGreenLeaf() deprecated - use ResourceController');
+      return new ResourceController(x, y, 20, 20, { type: 'greenLeaf' });
+    }
+  }
   ```
+- [ ] **Update CHANGELOG.md**
+  ```markdown
+  ## [Unreleased]
+  
+  ### BREAKING CHANGES
+  - Resource class replaced with ResourceController (MVC pattern)
+  - Old Entity-based Resource API deprecated
+  - Migration: Use ResourceController instead of Resource
+  
+  ### Developer-Facing Changes
+  
+  #### Refactored
+  - **Resource System**: Migrated to MVC pattern
+    - ResourceModel: Data and business logic
+    - ResourceView: Rendering with Sprite2D
+    - ResourceController: Public API and coordination
+    - Functions changed: All resource access now via controller methods
+    - New workflow: Use getType(), getPosition(), gather(), isDepleted()
+    - Breaking: Old Resource(x, y, w, h, type, img) → ResourceController(x, y, w, h, { type, amount, imagePath })
+  ```
+
+---
+
+#### 1.9: Final E2E Validation
+**Goal**: Prove complete resource system works end-to-end
+
+- [ ] **BDD Test: Resource Gathering Workflow**
+  ```gherkin
+  # test/bdd/features/resource_gathering.feature
+  Feature: Resource Gathering
+    As a player
+    I want my ants to gather resources
+    So I can build my colony
+  
+  Scenario: Ant gathers food resource
+    Given the game is running
+    And a Food resource exists at grid position (10, 10)
+    And an ant exists at grid position (8, 8)
+    When the ant moves within 25 pixels of the resource
+    Then the ant should collect the resource
+    And the resource should be removed from the game
+    And the ant inventory should show 1 Food
+  ```
+- [ ] **Manual gameplay test**
+  - Start game
+  - Spawn resources (Food, Wood, Stone)
+  - Watch ants gather automatically
+  - Verify resources deplete correctly
+  - Check resource counts in UI
+  - No console errors
 - [ ] **Screenshot proof** (before/after comparison)
+- [ ] **Performance check** (no frame rate drops)
 
-**Deliverable**: ResourceModel + ResourceView + ResourceController + ResourceAdapter, fully tested, game still works
+**Deliverable**: ResourceModel + ResourceView + ResourceController fully integrated, 100% tests passing, game playable
 
-**Time Estimate**: 60-80 hours (2-3 weeks)
+**Time Estimate (Clean Refactoring)**: 
+- Phase 1.1-1.6 (Base + Model + View + Controller): ✅ COMPLETE (~20 hours)
+- Phase 1.7a (ResourceSystemManager): ~2 hours
+- Phase 1.7b (ResourceSpawner): ~1 hour
+- Phase 1.7c (ResourceManager - ant inventory): ~1.5 hours
+- Phase 1.7d (UI Components): ~1 hour
+- Phase 1.8 (Remove old Resource class): ~0.5 hours
+- Phase 1.9 (E2E validation): ~1 hour
+- **TOTAL**: ~27 hours (~1.5 weeks) vs 60-80 hours for adapter approach
+- **Savings**: Clean approach is FASTER and cleaner! 🎉
 
 ---
 

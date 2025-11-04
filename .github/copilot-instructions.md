@@ -7,7 +7,7 @@
 **REUSE FIRST**: Before creating anything new:
 1. **Scan codebase** - Search for existing classes/functions that do what you need
 2. **Use existing tests** - Add to existing test files instead of creating new ones
-3. **Use test helpers** - Add to `test/helpers/uiTestHelpers.js` if code used >1 time
+3. **Use test helpers** - Add to `test/helpers/mvcTestHelpers.js` if code used >1 time
 4. **Check documentation** - Review `docs/` for existing patterns and APIs
 
 **AVOID DUPLICATION**: If you write the same code twice, extract it to a helper/utility. For UI dialogs, see `docs/guides/DIALOG_REFACTORING_STRATEGY.md` for systematic refactoring patterns.
@@ -28,44 +28,142 @@
 
 ### Test Type Expectations
 
+**⚠️ CRITICAL: ALWAYS use test helpers** from `test/helpers/`:
+- `mvcTestHelpers.js` - For MVC pattern tests (models, views, controllers)
+
 **All Tests**:
-- ✅ Use available helper in the test folder (example: "test/helpers/uiTestHelpers.js")
+- ✅ Use `setupTestEnvironment()` from helpers (NO manual JSDOM/mock setup)
+- ✅ Use `cleanupTestEnvironment()` in afterEach hooks
 - ❌ NEVER use "real", "actual", "fake" (see BDD_LANGUAGE_STYLE_GUIDE.md)
 - ❌ NEVER hardcode test results
+- ❌ NEVER duplicate test setup code (use helpers!)
 
 **Unit Tests** (write FIRST):
 - ✅ Test individual functions in isolation
-- ✅ Mock all external dependencies (p5.js, managers)
+- ✅ Use `setupTestEnvironment()` for consistent environment
 - ✅ Fast (<10ms per test)
 - ✅ Target 100% coverage for new code
-- ✅ If a new global mock is needed, add it to a helper and reuse it later
+- ✅ Use `loadMVCBaseClasses()` to load BaseModel/BaseView/BaseController
 - ❌ NEVER test loop counters or internal mechanics
+- ❌ NEVER manually set up JSDOM or p5.js mocks
 
 **Integration Tests**:
 - ✅ Test component interactions with real dependencies
 - ✅ Verify data flows between systems
-- ✅ Use JSDOM, sync `global` and `window` objects
-- ✅ Add class definitions to a test helper for reuse later
+- ✅ Use `setupTestEnvironment({ rendering: true, sprite: true })` for full setup
+- ✅ Use real CollisionBox2D (included in setupTestEnvironment)
 - ❌ Don't mock core systems (MapManager, SpatialGrid)
+- ❌ NEVER duplicate mock definitions
 
-**E2E Tests** (Puppeteer, PRIMARY with screenshots):
-- ✅ Test complete workflows in real browser
-- ✅ Follow front end flow that is available to the user (click buttons on screen)
-- ✅ Provide screenshot proof (visual evidence)
-- ✅ Screenshots should be provided for both pass and fail conditions
-- ✅ Use system APIs, not manual property injection
-- ✅ Run headless for CI/CD
-- ❌ NEVER skip `ensureGameStarted()` (must bypass menu)
-- ❌ NEVER change state without `redraw()` calls
-- ❌ NEVER skip screenshot verification
-
-**BDD Tests** (Python Behave, headless):
-- ✅ Test user-facing behavior
+**BDD Tests** (Cucumber/Selenium, PRIMARY for user workflows):
+- ✅ Test user-facing behavior with real browser
 - ✅ Use plain language (no technical jargon)
+- ✅ Test complete user workflows (menu → game → actions)
+- ✅ Selenium WebDriver for browser automation
+- ✅ Run headless for CI/CD
+- ✅ Screenshot verification where applicable
+
+**Example Test Setup** (MVC):
+```javascript
+const { setupTestEnvironment, cleanupTestEnvironment, loadMVCBaseClasses } = require('../../helpers/mvcTestHelpers');
+
+// Minimal setup - just JSDOM, p5.js, CollisionBox2D
+setupTestEnvironment();
+
+// With rendering - adds all p5.js rendering functions
+setupTestEnvironment({ rendering: true });
+
+// Full setup - adds rendering + Sprite2D mock
+setupTestEnvironment({ rendering: true, sprite: true });
+
+describe('MyTest', function() {
+  let MyClass;
+  
+  before(function() {
+    MyClass = require('../../../Classes/MyClass');
+  });
+  
+  afterEach(function() {
+    cleanupTestEnvironment(); // Restores all Sinon stubs
+  });
+  
+  it('should work', function() {
+    // Test code
+  });
+});
+```
 
 ## Core Architecture
 
-### Entity-Controller Pattern (Composition Over Inheritance)
+### MVC Pattern (NEW - Primary Pattern for New Code)
+
+**⚠️ CRITICAL**: All new game entities MUST use MVC pattern. Legacy Entity-Controller pattern is being phased out.
+
+**MVC Structure**:
+- **Model** (`Classes/models/`) - Data and business logic ONLY
+- **View** (`Classes/views/`) - Rendering and visual presentation ONLY
+- **Controller** (`Classes/controllers/mvc/`) - Coordination between model and view
+
+**Base Classes** (inherit from these):
+- `BaseModel` - Change notification system, serialization, lifecycle
+- `BaseView` - Model observation, rendering abstraction
+- `BaseController` - Model-view coordination, input handling
+
+**MVC Benefits**:
+- Clear separation of concerns
+- Easier testing (isolated components)
+- Observable pattern for automatic view updates
+- Better code reusability
+
+**Example MVC Entity**:
+```javascript
+// Model - Data and logic
+class ResourceModel extends BaseModel {
+  constructor(x, y, width, height, options) {
+    super();
+    this._position = { x, y };
+    this._amount = options.amount || 100;
+  }
+  
+  reduceAmount(value) {
+    this._amount = Math.max(0, this._amount - value);
+    this._notifyChange('amount', this._amount);
+    if (this._amount === 0) this._notifyChange('depleted', true);
+  }
+}
+
+// View - Rendering
+class ResourceView extends BaseView {
+  constructor(model, options) {
+    super(model, options);
+    this._sprite = new Sprite2D(options.imagePath, model.position, model.size);
+  }
+  
+  _onModelChange(property, data) {
+    if (property === 'position') this._sprite.setPosition(data);
+  }
+  
+  _renderContent() {
+    this._sprite.render();
+  }
+}
+
+// Controller - Public API
+class ResourceController extends BaseController {
+  constructor(x, y, width, height, options) {
+    const model = new ResourceModel(x, y, width, height, options);
+    const view = new ResourceView(model, options);
+    super(model, view, options);
+  }
+  
+  gather(amount) { this._model.reduceAmount(amount); }
+  getPosition() { return this._model.position; }
+}
+```
+
+### Entity-Controller Pattern (LEGACY - Being Phased Out)
+
+**⚠️ WARNING**: Only for maintaining existing code. Use MVC for new features.
 
 **Entity** (`Classes/containers/Entity.js`) - Base class with optional controllers:
 - `TransformController` - Position, rotation, scale
@@ -77,134 +175,248 @@
 
 Controllers auto-initialize if available. Access via `entity.getController('name')` or delegate methods.
 
-### Creating a New Controller - TDD CHECKLIST
+### Creating MVC Classes - TDD CHECKLIST
 
-**STEP 1: Write Tests FIRST**
+**⚠️ ALWAYS use test helpers** from `test/helpers/mvcTestHelpers.js`
+
+**STEP 1: Write Model Tests FIRST**
 ```javascript
-// test/unit/controllers/MyController.test.js
+// test/unit/models/MyModel.test.js
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
-describe('MyController', function() {
-  let entity, controller;
+// Setup environment (JSDOM, p5.js, CollisionBox2D)
+setupTestEnvironment();
+
+describe('MyModel', function() {
+  let BaseModel, MyModel;
   
-  beforeEach(function() {
-    // Mock p5.js
-    global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
-    window.createVector = global.createVector; // Sync for JSDOM
-    
-    entity = new Entity(0, 0, 32, 32);
-    controller = entity.getController('myController'); // Will fail
+  before(function() {
+    BaseModel = require('../../../Classes/models/BaseModel');
+    MyModel = require('../../../Classes/models/MyModel');
   });
   
   afterEach(function() {
-    sinon.restore();
+    cleanupTestEnvironment();
   });
   
-  it('should initialize with defaults', function() {
-    expect(controller).to.exist;
-    expect(controller.myProperty).to.equal(expectedValue);
+  it('should extend BaseModel', function() {
+    const model = new MyModel(100, 100);
+    expect(model).to.be.instanceOf(BaseModel);
   });
   
-  it('should perform behavior', function() {
-    controller.myMethod(arg);
-    expect(controller.myProperty).to.equal(expectedResult);
+  it('should notify listeners on change', function() {
+    const model = new MyModel(100, 100);
+    const listener = sinon.spy();
+    model.addChangeListener(listener);
+    
+    model.setMyProperty(newValue);
+    
+    expect(listener.calledOnce).to.be.true;
+    expect(listener.firstCall.args[0]).to.equal('myProperty');
   });
 });
 ```
 
-**STEP 2: Run tests (should fail)**
-```bash
-npx mocha "test/unit/controllers/MyController.test.js"
-```
-
-**STEP 3: Create controller class**
+**STEP 2: Create Model Class**
 ```javascript
-// Classes/controllers/MyController.js
-class MyController {
-  constructor(entity) {
-    this._entity = entity;
-    this._myProperty = defaultValue;
+// Classes/models/MyModel.js
+const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
+
+class MyModel extends BaseModel {
+  constructor(x, y, options = {}) {
+    super();
+    this._position = { x, y };
+    this._myProperty = options.myProperty || defaultValue;
   }
   
-  myMethod(arg) {
-    this._myProperty = transform(arg);
-  }
-  
-  update() { /* called each frame */ }
-  
+  get position() { return this._position; }
   get myProperty() { return this._myProperty; }
+  
+  setMyProperty(value) {
+    if (this._myProperty !== value) {
+      this._myProperty = value;
+      this._notifyChange('myProperty', value);
+    }
+  }
+  
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      position: this._position,
+      myProperty: this._myProperty
+    };
+  }
 }
 
-// Global export
-if (typeof window !== 'undefined') window.MyController = MyController;
-if (typeof module !== 'undefined') module.exports = MyController;
+if (typeof module !== 'undefined' && module.exports) module.exports = MyModel;
+if (typeof window !== 'undefined') window.MyModel = MyModel;
 ```
 
-**STEP 4: Register in Entity**
+**STEP 3: Write View Tests**
 ```javascript
-// Classes/containers/Entity.js - _initializeControllers()
-const availableControllers = {
-  'myController': typeof MyController !== 'undefined' ? MyController : null,
-  // ... other controllers
-};
-```
+// test/integration/views/MyView.integration.test.js
+const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
-**STEP 5: Add delegate methods (optional)**
-```javascript
-// Classes/containers/Entity.js - _initializeEnhancedAPI()
-const myController = this._controllers.get('myController');
-if (myController) {
-  this.myDelegateMethod = (arg) => myController.myMethod(arg);
-}
-```
+// Setup with rendering and sprite support
+setupTestEnvironment({ rendering: true, sprite: true });
 
-**STEP 6: Add to index.html**
-```html
-<script src="Classes/controllers/MyController.js"></script>
-```
-
-**STEP 7: Run tests (should pass)**
-```bash
-npx mocha "test/unit/controllers/MyController.test.js"
-```
-
-**STEP 8: Integration tests**
-```javascript
-// test/integration/controllers/myController.integration.test.js
-it('should work with real systems', function() {
-  const entity = new Entity(100, 100, 32, 32);
-  entity.myDelegateMethod(arg);
-  expect(entity.getController('myController').myProperty).to.equal(expected);
+describe('MyView', function() {
+  let MyModel, MyView;
+  
+  before(function() {
+    MyModel = require('../../../Classes/models/MyModel');
+    MyView = require('../../../Classes/views/MyView');
+  });
+  
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
+  
+  it('should update on model change', function() {
+    const model = new MyModel(100, 100);
+    const view = new MyView(model);
+    
+    model.setMyProperty(newValue);
+    
+    // Assert view reacted to change
+    expect(view.renderCalled).to.be.true;
+  });
 });
 ```
 
-**STEP 9: E2E tests with screenshots**
+**STEP 4: Create View Class**
 ```javascript
-// test/e2e/controllers/pw_my_controller.js
-const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
-const cameraHelper = require('../camera_helper');
+// Classes/views/MyView.js
+const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : window.BaseView;
 
-(async () => {
-  const browser = await launchBrowser();
-  const page = await browser.newPage();
-  await page.goto('http://localhost:8000?test=1');
+class MyView extends BaseView {
+  constructor(model, options = {}) {
+    super(model, options);
+    this._sprite = new Sprite2D(options.imagePath, model.position, model.size);
+  }
   
-  // CRITICAL: Ensure game started
-  const gameStarted = await cameraHelper.ensureGameStarted(page);
-  if (!gameStarted.started) throw new Error('Game failed to start');
+  _onModelChange(property, data) {
+    if (property === 'position') {
+      this._sprite.setPosition(data);
+    }
+  }
   
-  const result = await page.evaluate(() => {
-    const entity = new Entity(100, 100, 32, 32);
-    entity.myDelegateMethod(testArg);
-    return { success: entity.myProperty === expectedValue };
+  _renderContent() {
+    if (this._sprite) {
+      this._sprite.render();
+    }
+  }
+  
+  destroy() {
+    this._sprite = null;
+    super.destroy();
+  }
+}
+
+if (typeof module !== 'undefined' && module.exports) module.exports = MyView;
+if (typeof window !== 'undefined') window.MyView = MyView;
+```
+
+**STEP 5: Write Controller Tests**
+```javascript
+// test/unit/controllers/MyController.test.js
+const { setupTestEnvironment, cleanupTestEnvironment, loadMVCBaseClasses } = require('../../helpers/mvcTestHelpers');
+
+setupTestEnvironment({ rendering: true, sprite: true });
+
+describe('MyController', function() {
+  let MyModel, MyView, MyController;
+  
+  before(function() {
+    MyModel = require('../../../Classes/models/MyModel');
+    MyView = require('../../../Classes/views/MyView');
+    MyController = require('../../../Classes/controllers/mvc/MyController');
   });
   
-  await saveScreenshot(page, 'controllers/my_controller', result.success);
-  await browser.close();
-  process.exit(result.success ? 0 : 1);
-})();
+  afterEach(function() {
+    cleanupTestEnvironment();
+  });
+  
+  it('should coordinate model and view', function() {
+    const controller = new MyController(100, 100, { myProperty: initialValue });
+    
+    controller.setMyProperty(newValue);
+    
+    expect(controller.model.myProperty).to.equal(newValue);
+  });
+});
 ```
+
+**STEP 6: Create Controller Class**
+```javascript
+// Classes/controllers/mvc/MyController.js
+const BaseController = (typeof require !== 'undefined') ? require('./BaseController') : window.BaseController;
+const MyModel = (typeof require !== 'undefined') ? require('../../models/MyModel') : window.MyModel;
+const MyView = (typeof require !== 'undefined') ? require('../../views/MyView') : window.MyView;
+
+class MyController extends BaseController {
+  constructor(x, y, options = {}) {
+    const model = new MyModel(x, y, options);
+    const view = new MyView(model, options);
+    super(model, view, options);
+  }
+  
+  // Public API methods (delegate to model)
+  getPosition() { return this._model.position; }
+  getMyProperty() { return this._model.myProperty; }
+  setMyProperty(value) { this._model.setMyProperty(value); }
+  
+  // Input handling (override from BaseController)
+  handleInput(type, data) {
+    if (type === 'click') {
+      this._model.setSelected(true);
+    }
+  }
+}
+
+if (typeof module !== 'undefined' && module.exports) module.exports = MyController;
+if (typeof window !== 'undefined') window.MyController = MyController;
+```
+
+**STEP 7: Add to index.html**
+```html
+<!-- MVC Base Classes (load first) -->
+<script src="Classes/models/BaseModel.js"></script>
+<script src="Classes/views/BaseView.js"></script>
+<script src="Classes/controllers/mvc/BaseController.js"></script>
+
+<!-- Your MVC Classes -->
+<script src="Classes/models/MyModel.js"></script>
+<script src="Classes/views/MyView.js"></script>
+<script src="Classes/controllers/mvc/MyController.js"></script>
+```
+
+**STEP 8: Run All Tests**
+```bash
+npx mocha "test/unit/models/MyModel.test.js" "test/integration/views/MyView.integration.test.js" "test/unit/controllers/MyController.test.js"
+```
+
+**STEP 9: BDD Tests (Cucumber/Selenium)**
+```gherkin
+# test/bdd/features/my_feature.feature
+Feature: My Feature
+  As a player
+  I want to interact with MyEntity
+  So that I can achieve game goals
+
+Scenario: Player clicks on entity
+  Given the game is loaded
+  And a MyEntity exists at position (100, 100)
+  When I click on the entity
+  Then the entity should be selected
+  And the entity property should change
+```
+
+### Creating Legacy Entity Controllers - TDD CHECKLIST
+
+**⚠️ WARNING**: Only use for maintaining existing Entity-based code. Prefer MVC pattern above.
 
 ## Rendering Pipeline
 
@@ -1044,29 +1256,66 @@ Returns ReturnType. Additional return details.
 // ⚠️ CRITICAL: Must initialize before use
 ```
 
+## Test Helpers Reference
+
+### MVC Test Helpers (`test/helpers/mvcTestHelpers.js`)
+
+**Core Functions**:
+```javascript
+// Complete setup (one call does it all)
+setupTestEnvironment({ rendering: true, sprite: true });
+
+// Options:
+// - rendering: true/false - Include p5.js rendering functions
+// - sprite: true/false - Include Sprite2D mock
+
+// Cleanup after each test
+cleanupTestEnvironment(); // Restores all Sinon stubs
+
+// Load MVC base classes
+const { BaseModel, BaseView, BaseController } = loadMVCBaseClasses();
+
+// Test utilities
+const TestModel = createTestModel(BaseModel);
+const TestView = createTestView(BaseView);
+const pointer = createMockPointer(x, y, pressed);
+assertChangeListenerCalled(spy, 'property', data);
+```
+
+**What setupTestEnvironment() provides**:
+- JSDOM environment (window, document)
+- p5.js globals (createVector)
+- CollisionBox2D (real implementation)
+- Optional: p5.js rendering functions (push, pop, fill, etc.)
+- Optional: Sprite2D mock class
+
+**Benefits**:
+- Single source of truth for test setup
+- No duplicate boilerplate
+- Easy to extend with new mocks
+- Consistent across all MVC tests
+
+### UI Test Helpers (`test/helpers/uiTestHelpers.js`)
+
+For UI components (dialogs, panels, buttons).
+
 ## Critical Reminders
 
-1. **TDD ALWAYS** - Write tests before implementation (unit → integration → E2E)
-2. **USE CHECKLISTS** - Follow templates in `docs/checklists/templates/` for all features/bugs
-3. **CREATE ROADMAPS** - Document phases for features >8 hours work
-4. **UPDATE DOCS** - Modify existing docs, don't create new summaries
-5. **API REFERENCES** - Use expanded table format with backticks (see API Reference Documentation section)
-6. **CHECK E2E CATALOG FIRST** - See `test/E2E_TEST_CATALOG.md` before creating new E2E tests
-7. **USE HELPER FUNCTIONS** - Reuse from `test/e2e/levelEditor/userFlowHelpers.js` when applicable
-8. **REAL USER FLOWS** - Use mouse clicks, toolbar interactions, system APIs (not direct property manipulation)
-9. **VERIFY LEVEL DATA** - Check `_entitySpawnData` (actual level JSON), not just visual arrays
-10. **Script load order matters** - Rendering before Entity, Entity before controllers
-11. **System APIs only** - Never manual property injection in tests
-12. **Headless only** - `--headless=new` for all browser tests
-13. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
-14. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
-15. **E2E screenshots** - Visual proof required, not just internal state
-16. **Force redraw** - Call `window.redraw()` multiple times after state changes
-17. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
-18. **Controllers optional** - Check availability before delegation
-19. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
-20. **KNOWN_ISSUES timing** - Only add bugs AFTER feature fully implemented (post-integration/E2E)
-21. **Archive old fixes** - Move to KNOWN_ISSUES_ARCHIVE.md 2 weeks after fix
+1. **TDD ALWAYS** - Write tests before implementation (unit → integration → BDD)
+2. **USE TEST HELPERS** - `mvcTestHelpers.js` for MVC, `uiTestHelpers.js` for UI
+3. **MVC PATTERN** - All new entities use Model-View-Controller (Controllers in `Classes/controllers/mvc/`)
+4. **USE CHECKLISTS** - Follow templates in `docs/checklists/templates/` for all features/bugs
+5. **CREATE ROADMAPS** - Document phases for features >8 hours work
+6. **UPDATE DOCS** - Modify existing docs, don't create new summaries
+7. **Script load order matters** - BaseModel/BaseView/BaseController before entity-specific classes
+8. **System APIs only** - Never manual property injection in tests
+9. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
+10. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
+11. **BDD for user workflows** - Cucumber/Selenium, headless, plain language
+12. **Controllers optional** - Check availability before delegation
+13. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
+14. **KNOWN_ISSUES timing** - Only add bugs AFTER feature fully implemented (post-integration/BDD)
+15. **Archive old fixes** - Move to KNOWN_ISSUES_ARCHIVE.md 2 weeks after fix
 
 ## Quick Reference
 
@@ -1079,9 +1328,8 @@ Returns ReturnType. Additional return details.
 
 **Testing & Development**:
 - **Testing Guide**: `docs/guides/TESTING_TYPES_GUIDE.md`
-- **E2E Quickstart**: `docs/guides/E2E_TESTING_QUICKSTART.md`
-- **E2E Test Catalog**: `test/E2E_TEST_CATALOG.md` - **Check FIRST before creating new E2E tests**
-- **E2E Helper Functions**: `test/e2e/levelEditor/userFlowHelpers.js` - Reusable test utilities
+- **MVC Test Helpers**: `test/helpers/mvcTestHelpers.js` - Reusable MVC test utilities
+- **UI Test Helpers**: `test/helpers/uiTestHelpers.js` - Reusable UI test utilities
 - **Feature Enhancement Checklist**: `docs/checklists/templates/FEATURE_ENHANCEMENT_CHECKLIST.md`
 - **Feature Development Checklist**: `docs/checklists/templates/FEATURE_DEVELOPMENT_CHECKLIST.md`
 - **Bug Fix Checklist**: `docs/checklists/templates/BUG_FIX_CHECKLIST.md`
@@ -1089,6 +1337,13 @@ Returns ReturnType. Additional return details.
 - **Feature Requests**: `FEATURE_REQUESTS.md`
 - **Changelog**: `CHANGELOG.md`
 
+**MVC Pattern (Current Focus)**:
+- **MVC Refactoring Example**: `docs/guides/MVC_REFACTORING_EXAMPLE.md`
+- **MVC Refactoring Roadmap**: `docs/roadmaps/MVC_REFACTORING_ROADMAP.md`
+- **Base Classes**: `Classes/models/BaseModel.js`, `Classes/views/BaseView.js`, `Classes/controllers/mvc/BaseController.js`
+- **Example Implementation**: ResourceModel, ResourceView, ResourceController (Phase 1 in progress)
+
 **Current Work**:
 - **Level Editor Setup**: `docs/LEVEL_EDITOR_SETUP.md`
 - **Random Events Roadmap**: `docs/roadmaps/RANDOM_EVENTS_ROADMAP.md` (Phase 3A complete)
+- **MVC Refactoring**: Phase 1 - Resources (Model/View complete, Controller in progress)

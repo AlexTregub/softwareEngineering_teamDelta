@@ -466,19 +466,53 @@ class Resource extends Entity {
   }
 
   // Factory methods for common resource types
+  // UPDATED: Now return ResourceController (MVC pattern) instead of Resource (Entity pattern)
   static createGreenLeaf(x, y) {
+    // Load ResourceController if available, otherwise fall back to old Resource
+    if (typeof ResourceController !== 'undefined') {
+      const imagePath = Resource._getImageForType('greenLeaf');
+      return new ResourceController(x, y, 20, 20, { 
+        type: 'greenLeaf',
+        amount: 100,
+        imagePath: imagePath
+      });
+    }
     return new Resource(x, y, 20, 20, { resourceType: 'greenLeaf' });
   }
 
   static createMapleLeaf(x, y) {
+    if (typeof ResourceController !== 'undefined') {
+      const imagePath = Resource._getImageForType('mapleLeaf');
+      return new ResourceController(x, y, 20, 20, { 
+        type: 'mapleLeaf',
+        amount: 100,
+        imagePath: imagePath
+      });
+    }
     return new Resource(x, y, 20, 20, { resourceType: 'mapleLeaf' });
   }
 
   static createStick(x, y) {
+    if (typeof ResourceController !== 'undefined') {
+      const imagePath = Resource._getImageForType('stick');
+      return new ResourceController(x, y, 20, 20, { 
+        type: 'stick',
+        amount: 100,
+        imagePath: imagePath
+      });
+    }
     return new Resource(x, y, 20, 20, { resourceType: 'stick' });
   }
 
   static createStone(x, y) {
+    if (typeof ResourceController !== 'undefined') {
+      const imagePath = Resource._getImageForType('stone');
+      return new ResourceController(x, y, 20, 20, { 
+        type: 'stone',
+        amount: 100,
+        imagePath: imagePath
+      });
+    }
     return new Resource(x, y, 20, 20, { resourceType: 'stone' });
   }
 

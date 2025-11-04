@@ -309,7 +309,10 @@ class ResourceSystemManager {
     // Notify resources of selection change if they support it
     this.resources.forEach(resource => {
       if (resource && typeof resource.setSelected === 'function') {
-        const resourceType = resource.type || resource._type || resource.resourceType;
+        // Use ResourceController API if available (getType method)
+        const resourceType = (typeof resource.getType === 'function')
+          ? resource.getType()
+          : (resource.type || resource._type || resource.resourceType);
         resource.setSelected(resourceType === this.selectedResourceType);
       }
     });
@@ -367,7 +370,10 @@ class ResourceSystemManager {
     
     return this.resources.filter(resource => {
       if (!resource) return false;
-      const resourceType = resource.type || resource._type || resource.resourceType;
+      // Use ResourceController API if available (getType method)
+      const resourceType = (typeof resource.getType === 'function')
+        ? resource.getType()
+        : (resource.type || resource._type || resource.resourceType);
       return resourceType === this.selectedResourceType;
     });
   }
@@ -381,7 +387,10 @@ class ResourceSystemManager {
   getResourcesByType(resourceType) {
     return this.resources.filter(resource => {
       if (!resource) return false;
-      const rType = resource.type || resource._type || resource.resourceType;
+      // Use ResourceController API if available (getType method)
+      const rType = (typeof resource.getType === 'function') 
+        ? resource.getType() 
+        : (resource.type || resource._type || resource.resourceType);
       return rType === resourceType;
     });
   }
@@ -795,7 +804,10 @@ class ResourceSystemManager {
   getSystemStatus() {
     const resourceCounts = {};
     this.resources.forEach(resource => {
-      const type = resource?.type || resource?._type || resource?.resourceType || 'unknown';
+      // Use ResourceController API if available (getType method)
+      const type = (resource && typeof resource.getType === 'function')
+        ? resource.getType()
+        : (resource?.type || resource?._type || resource?.resourceType || 'unknown');
       resourceCounts[type] = (resourceCounts[type] || 0) + 1;
     });
 
@@ -821,8 +833,14 @@ class ResourceSystemManager {
       ...this.getSystemStatus(),
       resourceDetails: this.resources.map((resource, index) => ({
         index: index,
-        type: resource?.type || resource?._type || resource?.resourceType || 'unknown',
-        position: resource?.getPosition ? resource.getPosition() : { x: resource?.x, y: resource?.y },
+        // Use ResourceController API if available (getType method)
+        type: (resource && typeof resource.getType === 'function')
+          ? resource.getType()
+          : (resource?.type || resource?._type || resource?.resourceType || 'unknown'),
+        // Use ResourceController API if available (getPosition method)
+        position: (resource && typeof resource.getPosition === 'function') 
+          ? resource.getPosition() 
+          : { x: resource?.x, y: resource?.y },
         isCarried: resource?.isCarried || false
       }))
     };

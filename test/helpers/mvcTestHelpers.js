@@ -38,12 +38,26 @@ function setupJSDOM() {
 }
 
 /**
- * Set up p5.js core globals (createVector, etc.).
+ * Set up p5.js core globals (createVector, etc.) and logging functions.
  * Call this after setupJSDOM() or use setupTestEnvironment().
  */
 function setupP5Globals() {
   global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
   global.window.createVector = global.createVector;
+  
+  // Set up logging functions (used by many game systems)
+  global.logNormal = sinon.stub();
+  global.logVerbose = sinon.stub();
+  global.logDebug = sinon.stub();
+  global.window.logNormal = global.logNormal;
+  global.window.logVerbose = global.logVerbose;
+  global.window.logDebug = global.logDebug;
+  
+  // globalThis versions for modern code
+  global.globalThis = global.globalThis || global;
+  global.globalThis.logNormal = global.logNormal;
+  global.globalThis.logVerbose = global.logVerbose;
+  global.globalThis.logDebug = global.logDebug;
 }
 
 /**
