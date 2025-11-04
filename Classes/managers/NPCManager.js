@@ -22,7 +22,23 @@ const NPCDialogues = {
   antony3: [
     "This is a horrible rage bait"
   ],
-  
+  antony4: [
+    "Look at you, eight whole sticks",
+    "I was worried about you for a second there",
+    "Now gimme one second",
+    // ... wait like 1.5 seconds ... he pulls out a bomb
+    "Yep, still got it.",
+    "What? No, I didn't make this out of sticks...",
+    "I just wanted to see if you could follow instructions.",
+    "It's 2025, I got this thing off Antsy.",
+    // ... lights fuse ...
+    "Is it a bad time to tell you I had the key",
+    // ... bomb blows up and flashes white, once it clears, enemies are in the room ->
+  ],
+  antony5: [
+    "Uhhhhhh",
+    "Do combat (idk what the controls are yet)",
+  ],
 };
 
 let Character;
@@ -50,8 +66,8 @@ class NPC extends Building{
     this.dialogueIndex = 0;   // which line we're on
     this.questAmount = 8;          // required amount of items to collect
     this.questAssigned = false;
+    this.dontContTree = false;
   }
-
 
     get _renderController() { return this.getController('render'); }
     get _healthController() { return this.getController('health'); }
@@ -88,7 +104,7 @@ class NPC extends Building{
   
       // Log distance if dialogue is active (helps debug)
       if (this.dialogueActive) {
-        console.log(`📏 ${this.name} — current distance: ${range.toFixed(2)}`);
+        //console.log(`📏 ${this.name} — current distance: ${range.toFixed(2)}`);
       }
   
       // Close dialogue if player moves too far
@@ -119,6 +135,13 @@ class NPC extends Building{
       switch (this.dialogueStage) {
         case 0:
           this.dialogueLines = NPCDialogues.antony1;
+          // EXAMPLE OF HOW TO START A QUEST
+          window.QuestManager.startQuest("antony_sticks", {
+            name: "Get Some Sticks",
+            description: "Collect 8 sticks for Antony.",
+            objective: { type: "collect", item: "stick", amount: 8 },
+          });
+          this.questAssigned = true;
           break;
         case 1:
           this.dialogueLines = NPCDialogues.antony2;
@@ -132,6 +155,7 @@ class NPC extends Building{
             this.dialogueLines = ["Good job! You collected all 8 sticks!"];
           } else {
             this.dialogueLines = NPCDialogues.antony3;
+            this.dontContTree = true;
           }
           break;
       }
@@ -162,23 +186,17 @@ class NPC extends Building{
       window.currentNPC = null;
       if (window.DIAManager) window.DIAManager.close();
   
-      // Only increment stage if quest is complete
+      // Only increment stage if dontContTree is false
       const collected = getResourceCount();
   
-      if (!this.questAssigned || collected >= this.questAmount) {
+      if (!this.dontContTree) {
         this.dialogueStage++;
         console.log(`${this.name} dialogue stage incremented to ${this.dialogueStage}`);
       } else {
-        console.log(`${this.name} dialogue stage NOT incremented, quest still incomplete`);
+        console.log(`${this.name} dialogue stage NOT incremented, dontContTree is true`);
       }
     }
   }
-  
-
-  
-  
-  
-  
 
   render() {
     if (!this.isActive) return;

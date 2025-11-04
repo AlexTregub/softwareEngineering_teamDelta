@@ -46,6 +46,7 @@ function preload(){
   preloadPauseImages();
   BuildingPreloader();
   NPCPreloader();
+  QuestUIPreloader()
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
@@ -182,6 +183,7 @@ function setup() {
   soundManager.startBGMMonitoring();
   initializeContextMenuPrevention();
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
+  window.QuestManager.preloadAssets();
 }
 
 function addListeners() {
@@ -361,6 +363,11 @@ function draw() {
       window.currentNPC.dialogueActive = false;
       window.currentNPC = null;
     }
+  }
+
+  // --- Render Quest UI (if any) ---
+  if (window.QuestManager && typeof window.QuestManager.renderUI === 'function') {
+    window.QuestManager.renderUI();
   }
 
   // --- Render Dialogue Box ---
