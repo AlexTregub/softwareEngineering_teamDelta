@@ -50,6 +50,16 @@ jobs:
                 $RUN "cd ~/softwareEngineering_teamDelta/ ; git fetch ; git switch Dev ; git pull"
 
                 # $RUN "cd softwareEngineering_teamDelta/"
+
+            - name: Start screen with http server...
+              run:
+                $LOGGING
+
+                # python -m http.server 8029
+
+                $RUN killall screen
+
+                $RUN screen -dm python -m http.server 8029
                 
                 
 
