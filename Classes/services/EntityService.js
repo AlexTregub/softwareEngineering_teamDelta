@@ -140,8 +140,9 @@ class EntityService {
       throw new Error(`Failed to create ${type} entity`);
     }
     
-    // 3. Assign ID to entity
+    // 3. Assign ID and type to entity
     entity._id = id;
+    entity.type = type;  // Set type for getByType() queries
     
     // 4. Register in unified registry
     this._entities.set(id, entity);
@@ -183,7 +184,10 @@ class EntityService {
    * @returns {Array<Object>} Array of matching entities
    */
   getByFaction(faction) {
-    return Array.from(this._entities.values()).filter(entity => entity.faction === faction);
+    return Array.from(this._entities.values()).filter(entity => {
+      // All controllers now use consistent getter property for faction
+      return entity.faction === faction;
+    });
   }
   
   /**

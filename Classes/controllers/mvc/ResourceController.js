@@ -66,7 +66,7 @@ class ResourceController extends BaseController {
    * Get resource position.
    * @returns {{x: number, y: number}} Position object
    */
-  getPosition() {
+  get position() {
     return this._model.position;
   }
   
@@ -85,7 +85,7 @@ class ResourceController extends BaseController {
    * Get resource type.
    * @returns {string} Resource type ('Food', 'Wood', 'Stone')
    */
-  getType() {
+  get resourceType() {
     return this._model.type;
   }
   
@@ -95,7 +95,7 @@ class ResourceController extends BaseController {
    * Get current resource amount.
    * @returns {number} Current amount
    */
-  getAmount() {
+  get amount() {
     return this._model.amount;
   }
   

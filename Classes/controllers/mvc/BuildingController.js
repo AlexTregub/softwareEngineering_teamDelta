@@ -74,7 +74,7 @@ class BuildingController extends BaseController {
    * Get building position.
    * @returns {{x: number, y: number}} Building position
    */
-  getPosition() {
+  get position() {
     return this._model.position;
   }
   
@@ -82,7 +82,7 @@ class BuildingController extends BaseController {
    * Get building size.
    * @returns {{width: number, height: number}} Building size
    */
-  getSize() {
+  get size() {
     return this._model.size;
   }
   
@@ -92,7 +92,7 @@ class BuildingController extends BaseController {
    * Get current health.
    * @returns {number} Current health
    */
-  getHealth() {
+  get health() {
     return this._model.health;
   }
   
@@ -100,7 +100,7 @@ class BuildingController extends BaseController {
    * Get maximum health.
    * @returns {number} Maximum health
    */
-  getMaxHealth() {
+  get maxHealth() {
     return this._model.maxHealth;
   }
   
@@ -108,9 +108,7 @@ class BuildingController extends BaseController {
    * Damage the building.
    * @param {number} amount - Damage amount
    */
-  takeDamage(amount) {
-    this._model.takeDamage(amount);
-  }
+  takeDamage(amount) { this._model.takeDamage(amount); }
   
   /**
    * Heal the building.
@@ -181,17 +179,13 @@ class BuildingController extends BaseController {
    * Get building type.
    * @returns {string} Building type (AntCone, AntHill, HiveSource)
    */
-  getType() {
-    return this._model.type;
-  }
+  get buildingType() { return this._model.type; }
   
   /**
    * Get building faction.
    * @returns {string} Building faction (player, enemy, neutral)
    */
-  getFaction() {
-    return this._model.faction;
-  }
+  get faction() { return this._model.faction; }
   
   // --- Lifecycle Methods ---
   
@@ -199,9 +193,7 @@ class BuildingController extends BaseController {
    * Update building state (spawn timer, etc).
    * @param {number} deltaTime - Time elapsed in seconds
    */
-  update(deltaTime) {
-    this._model.update(deltaTime);
-  }
+  update(deltaTime) { this._model.update(deltaTime); }
   
   /**
    * Handle input events.

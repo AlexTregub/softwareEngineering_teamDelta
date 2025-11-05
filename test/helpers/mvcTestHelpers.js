@@ -312,6 +312,106 @@ function loadAntMVCStack() {
 }
 
 /**
+ * Load complete Building MVC stack with all dependencies.
+ * Sets up all globals needed for BuildingController to work.
+ * Call this when testing anything related to buildings.
+ * 
+ * @returns {Object} Object with all loaded classes
+ * 
+ * @example
+ * const { BuildingController, BuildingManager } = loadBuildingMVCStack();
+ * const building = new BuildingController(100, 100, 64, 64, { buildingType: 'AntCone' });
+ */
+function loadBuildingMVCStack() {
+  // Load MVC base classes
+  const { BaseModel, BaseView, BaseController } = loadMVCBaseClasses();
+  global.BaseModel = BaseModel;
+  global.BaseView = BaseView;
+  global.BaseController = BaseController;
+  
+  // Load Building MVC classes
+  const BuildingModel = require('../../Classes/models/BuildingModel');
+  const BuildingView = require('../../Classes/views/BuildingView');
+  const BuildingController = require('../../Classes/controllers/mvc/BuildingController');
+  
+  global.BuildingModel = BuildingModel;
+  global.BuildingView = BuildingView;
+  global.BuildingController = BuildingController;
+  
+  // Load BuildingManager
+  const BuildingManager = require('../../Classes/managers/BuildingManager');
+  
+  return {
+    BaseModel,
+    BaseView,
+    BaseController,
+    BuildingModel,
+    BuildingView,
+    BuildingController,
+    BuildingManager
+  };
+}
+
+/**
+ * Load complete Resource MVC stack with all dependencies.
+ * Sets up all globals needed for ResourceController to work.
+ * Call this when testing anything related to resources.
+ * 
+ * @returns {Object} Object with all loaded classes
+ * 
+ * @example
+ * const { ResourceController } = loadResourceMVCStack();
+ * const resource = new ResourceController(100, 100, 32, 32, { resourceType: 'GreenLeaf' });
+ */
+function loadResourceMVCStack() {
+  // Load MVC base classes
+  const { BaseModel, BaseView, BaseController } = loadMVCBaseClasses();
+  global.BaseModel = BaseModel;
+  global.BaseView = BaseView;
+  global.BaseController = BaseController;
+  
+  // Load Resource MVC classes
+  const ResourceModel = require('../../Classes/models/ResourceModel');
+  const ResourceView = require('../../Classes/views/ResourceView');
+  const ResourceController = require('../../Classes/controllers/mvc/ResourceController');
+  
+  global.ResourceModel = ResourceModel;
+  global.ResourceView = ResourceView;
+  global.ResourceController = ResourceController;
+  
+  return {
+    BaseModel,
+    BaseView,
+    BaseController,
+    ResourceModel,
+    ResourceView,
+    ResourceController
+  };
+}
+
+/**
+ * Load ALL MVC stacks (Ant + Building + Resource) at once.
+ * Convenience function for integration tests that need everything.
+ * 
+ * @returns {Object} Object with all loaded classes from all stacks
+ * 
+ * @example
+ * const classes = loadAllMVCStacks();
+ * // Now you can use classes.AntController, classes.BuildingController, etc.
+ */
+function loadAllMVCStacks() {
+  const antStack = loadAntMVCStack();
+  const buildingStack = loadBuildingMVCStack();
+  const resourceStack = loadResourceMVCStack();
+  
+  return {
+    ...antStack,
+    ...buildingStack,
+    ...resourceStack
+  };
+}
+
+/**
  * Create a simple test model that extends BaseModel.
  * Useful for testing views and controllers.
  */
@@ -448,6 +548,9 @@ module.exports = {
   // Class loaders
   loadMVCBaseClasses,
   loadAntMVCStack,
+  loadBuildingMVCStack,
+  loadResourceMVCStack,
+  loadAllMVCStacks,
   loadClassWithCacheClear,
   setupAndLoadClasses,
   
