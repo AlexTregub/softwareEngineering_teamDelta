@@ -9,6 +9,7 @@ env:
     TARGET: ants@cassini.cs.kent.edu
     RUN: ssh -o LogLevel=ERROR ants@cassini.cs.kent.edu 
     COPY: scp -o LogLevel=ERROR
+    LOGGING: set -o xtrace
 
 jobs:
     cassini_deploy:
@@ -26,18 +27,29 @@ jobs:
             - name: See VM...
               run: |
                 echo $ set -o xtrace ; # Log all commands without explicit echo
-                set -o xtrace 
+                $LOGGING
                 
                 ls -la
                 whoami
 
             - name: See cassini...
               run:
-                echo "Enabling xtrace on cassini (should set only locally) ~ set -o xtrace" ; 
-                set -o xtrace 
+                echo "Enabling xtrace on remote, displays commands run on cassini via ssh ~ set -o xtrace" ; 
+                $LOGGING
 
                 $RUN ls -la
 
-                $RUN echo "TEST"
+            - name: Update cassini files for deploy...
+              run: 
+                $LOGGING
+
+                $RUN rm -rf ~/antsGit
+                $RUN mkdir -v ~/antsGit
+
+                $RUN "cd ~/antsGit ; git clone https://github.com/AlexTregub/softwareEngineering_teamDelta.git"
+
+                $RUN "cd ~/antsGit/softwareEngineering_teamDelta/ ; git fetch ; git switch Dev ; git pull"
+
+                
                 
                 
