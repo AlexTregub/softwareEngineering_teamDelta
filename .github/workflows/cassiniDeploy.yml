@@ -7,7 +7,7 @@ env:
     HOST: cassini.cs.kent.edu
     USER: ants
     TARGET: ants@cassini.cs.kent.edu
-    RUN: ssh -o LogLevel=ERROR ants@cassini.cs.kent.edu
+    RUN: ssh -o LogLevel=ERROR ants@cassini.cs.kent.edu "bash -x ; 
     COPY: scp -o LogLevel=ERROR
 
 jobs:
@@ -34,10 +34,6 @@ jobs:
             - name: See cassini...
               run:
                 echo "Enabling xtrace on cassini (should set only locally) ~ set -o xtrace" ; 
-                $RUN bash -x 
 
-                $RUN ls -la
-
-                $RUN bash +x
-
+                $RUN ls -la"
                 
