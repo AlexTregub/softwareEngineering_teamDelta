@@ -117,8 +117,8 @@ class ResourceBrush extends BrushBase {
       
         if (resource) {
         // Add to resource manager
-        if (g_resourceManager && typeof g_resourceManager.addResource === 'function') {
-          const added = g_resourceManager.addResource(resource);
+        if (resourceManager && typeof resourceManager.addResource === 'function') {
+          const added = resourceManager.addResource(resource);
           if (added) {
             const paintedName = (type && type.name) ? type.name : 'Resource';
             logNormal(`🎨 Painted ${paintedName} at (${Math.round(finalX)}, ${Math.round(finalY)})`);

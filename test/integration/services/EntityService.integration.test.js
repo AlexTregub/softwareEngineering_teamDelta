@@ -12,7 +12,7 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
+const { setupTestEnvironment, cleanupTestEnvironment, loadAllMVCStacks } = require('../../helpers/mvcTestHelpers');
 
 // Setup test environment (JSDOM, p5.js, CollisionBox2D, rendering, sprite support)
 setupTestEnvironment({ rendering: true, sprite: true });
@@ -23,25 +23,10 @@ describe('EntityService Integration Tests', function() {
   let service, antFactory, buildingFactory, resourceFactory;
   
   before(function() {
-    // Load MVC base classes and expose as globals (required for extending)
-    global.BaseModel = require('../../../Classes/models/BaseModel');
-    global.BaseView = require('../../../Classes/views/BaseView');
-    global.BaseController = require('../../../Classes/controllers/mvc/BaseController');
-    
-    // Load Models (extend BaseModel)
-    require('../../../Classes/models/AntModel');
-    require('../../../Classes/models/BuildingModel');
-    require('../../../Classes/models/ResourceModel');
-    
-    // Load Views (extend BaseView)
-    require('../../../Classes/views/AntView');
-    require('../../../Classes/views/BuildingView');
-    require('../../../Classes/views/ResourceView');
-    
-    // Load Controllers (extend BaseController) and expose as globals
-    global.AntController = require('../../../Classes/controllers/mvc/AntController');
-    global.BuildingController = require('../../../Classes/controllers/mvc/BuildingController');
-    global.ResourceController = require('../../../Classes/controllers/mvc/ResourceController');
+    // Load ALL MVC stacks (Ant + Building + Resource) with one helper call
+    const mvcClasses = loadAllMVCStacks();
+    AntManager = mvcClasses.AntManager;
+    BuildingManager = mvcClasses.BuildingManager;
     
     // Load EntityService
     EntityService = require('../../../Classes/services/EntityService');
@@ -50,10 +35,6 @@ describe('EntityService Integration Tests', function() {
     AntFactory = require('../../../Classes/factories/AntFactory');
     BuildingFactory = require('../../../Classes/factories/BuildingFactory');
     ResourceFactory = require('../../../Classes/factories/ResourceFactory');
-    
-    // Load managers (for factory dependencies)
-    AntManager = require('../../../Classes/managers/AntManager');
-    BuildingManager = require('../../../Classes/managers/BuildingManager');
   });
   
   beforeEach(function() {
@@ -109,18 +90,17 @@ describe('EntityService Integration Tests', function() {
       // Verify it's an AntController with MVC methods
       expect(ant).to.have.property('model');
       expect(ant).to.have.property('view');
-      expect(ant.getPosition).to.be.a('function');
-      expect(ant.getJobName).to.be.a('function');
-      expect(ant.getFaction).to.be.a('function');
+      expect(ant.position).to.exist; // position is a getter property
+      expect(ant.jobName).to.exist; // jobName is a getter property
+      expect(ant.faction).to.exist; // faction is a getter property
       
       // Verify position
-      const position = ant.getPosition();
-      expect(position.x).to.equal(150);
-      expect(position.y).to.equal(250);
+      expect(ant.position.x).to.equal(150);
+      expect(ant.position.y).to.equal(250);
       
-      // Verify job and faction
-      expect(ant.getJobName()).to.equal('Worker');
-      expect(ant.getFaction()).to.equal('player');
+      // Verify job and faction (Scout, not Worker)
+      expect(ant.jobName).to.equal('Scout');
+      expect(ant.faction).to.equal('player');
     });
     
     it('should spawn ant registered in spatial grid', function() {
@@ -150,7 +130,7 @@ describe('EntityService Integration Tests', function() {
       expect(enemyAnts).to.have.lengthOf(1);
       
       playerAnts.forEach(ant => {
-        expect(ant.getFaction()).to.equal('player');
+        expect(ant.faction).to.equal('player'); // faction is a getter property
       });
     });
     
@@ -191,7 +171,7 @@ describe('EntityService Integration Tests', function() {
         
         expect(building).to.exist;
         expect(building.type).to.equal('Building');
-        expect(building.getType()).to.equal(buildingType);
+        expect(building.buildingType).to.equal(buildingType); // Use getter instead of method
       });
       
       expect(service.getCount()).to.equal(3);
@@ -208,18 +188,17 @@ describe('EntityService Integration Tests', function() {
       // Verify it's a BuildingController with MVC methods
       expect(building).to.have.property('model');
       expect(building).to.have.property('view');
-      expect(building.getPosition).to.be.a('function');
-      expect(building.getType).to.be.a('function');
-      expect(building.getFaction).to.be.a('function');
+      expect(building.position).to.exist; // position is a getter property
+      expect(building.buildingType).to.exist; // buildingType is a getter property
+      expect(building.faction).to.exist; // faction is a getter property
       
       // Verify position
-      const position = building.getPosition();
-      expect(position.x).to.equal(300);
-      expect(position.y).to.equal(400);
+      expect(building.position.x).to.equal(300);
+      expect(building.position.y).to.equal(400);
       
       // Verify type and faction
-      expect(building.getType()).to.equal('AntCone');
-      expect(building.getFaction()).to.equal('player');
+      expect(building.buildingType).to.equal('AntCone');
+      expect(building.faction).to.equal('player');
     });
     
     it('should query spawned buildings by faction', function() {
@@ -280,7 +259,7 @@ describe('EntityService Integration Tests', function() {
       const resource2 = service.spawn('Resource', { 
         x: 200, 
         y: 200, 
-        resourceType: 'berry'
+        resourceType: 'mapleLeaf' // Use mapleLeaf instead of berry
       });
       
       expect(resource1).to.exist;
@@ -301,24 +280,23 @@ describe('EntityService Integration Tests', function() {
       // Verify it's a ResourceController with MVC methods
       expect(resource).to.have.property('model');
       expect(resource).to.have.property('view');
-      expect(resource.getPosition).to.be.a('function');
-      expect(resource.getType).to.be.a('function');
-      expect(resource.getAmount).to.be.a('function');
+      expect(resource.position).to.exist; // position is a getter property
+      expect(resource.resourceType).to.exist; // resourceType is a getter property
+      expect(resource.amount).to.exist; // amount is a getter property
       
       // Verify position
-      const position = resource.getPosition();
-      expect(position.x).to.equal(150);
-      expect(position.y).to.equal(250);
+      expect(resource.position.x).to.equal(150);
+      expect(resource.position.y).to.equal(250);
       
       // Verify type and amount
-      expect(resource.getType()).to.equal('greenLeaf');
-      expect(resource.getAmount()).to.equal(50);
+      expect(resource.resourceType).to.equal('greenLeaf');
+      expect(resource.amount).to.equal(50);
     });
     
     it('should query spawned resources by type', function() {
       service.spawn('Resource', { x: 100, y: 100, resourceType: 'greenLeaf' });
       service.spawn('Resource', { x: 200, y: 200, resourceType: 'greenLeaf' });
-      service.spawn('Resource', { x: 300, y: 300, resourceType: 'berry' });
+      service.spawn('Resource', { x: 300, y: 300, resourceType: 'stick' }); // Use stick instead of berry
       
       const resources = service.getByType('Resource');
       
@@ -353,12 +331,12 @@ describe('EntityService Integration Tests', function() {
       // Gather 30 units
       resource.gather(30);
       
-      expect(resource.getAmount()).to.equal(70);
+      expect(resource.amount).to.equal(70); // Use getter instead of method
       
       // Gather remaining
       resource.gather(70);
       
-      expect(resource.getAmount()).to.equal(0);
+      expect(resource.amount).to.equal(0); // Use getter instead of method
     });
   });
 });

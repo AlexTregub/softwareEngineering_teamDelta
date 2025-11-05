@@ -63,7 +63,7 @@ Creates a new BuildingManager instance. Initializes empty buildings array.
 ```javascript
 // Usually created once in setup()
 const buildingManager = new BuildingManager();
-window.g_buildingManager = buildingManager;
+window.buildingManager = buildingManager;
 ```
 
 **Note:** Typically you want a singleton manager for the entire game.
@@ -220,10 +220,10 @@ console.log(`Buildings remaining: ${buildingManager.getBuildingCount()}`); // 0
 
 ```javascript
 // In sketch.js setup()
-let g_buildingManager;
+let buildingManager;
 
 function setup() {
-    g_buildingManager = new BuildingManager();
+    buildingManager = new BuildingManager();
 }
 ```
 
@@ -232,12 +232,12 @@ function setup() {
 ```javascript
 // Building placement tool
 function placeBuilding(buildingType, x, y) {
-  if (!g_buildingManager) {
+  if (!buildingManager) {
     console.error('BuildingManager not initialized');
     return null;
   }
   
-  const building = g_buildingManager.createBuilding(buildingType, x, y, 'player');
+  const building = buildingManager.createBuilding(buildingType, x, y, 'player');
   
   if (building) {
     // Add to legacy Buildings[] array for compatibility
@@ -269,13 +269,13 @@ function draw() {
   lastTime = currentTime;
   
   // Update all buildings
-  if (g_buildingManager) {
-    g_buildingManager.update(deltaTime);
+  if (buildingManager) {
+    buildingManager.update(deltaTime);
   }
   
   // Render all buildings
-  if (g_buildingManager) {
-    g_buildingManager.getAllBuildings().forEach(building => {
+  if (buildingManager) {
+    buildingManager.getAllBuildings().forEach(building => {
       building.render();
     });
   }
@@ -286,14 +286,14 @@ function draw() {
 
 ```javascript
 function removeDestroyedBuildings() {
-  if (!g_buildingManager) return;
+  if (!buildingManager) return;
   
-  const deadBuildings = g_buildingManager.getAllBuildings()
+  const deadBuildings = buildingManager.getAllBuildings()
     .filter(building => building.isDead());
   
   deadBuildings.forEach(building => {
     // Remove from manager
-    g_buildingManager.removeBuilding(building);
+    buildingManager.removeBuilding(building);
     
     // Remove from legacy Buildings[] array
     if (typeof Buildings !== 'undefined') {
@@ -313,7 +313,7 @@ function removeDestroyedBuildings() {
 ```javascript
 // Save level
 function saveLevelBuildings() {
-  const buildingsData = g_buildingManager.getAllBuildings().map(building => {
+  const buildingsData = buildingManager.getAllBuildings().map(building => {
     return building.toJSON();
   });
   
@@ -325,11 +325,11 @@ function loadLevelBuildings() {
   const buildingsData = JSON.parse(localStorage.getItem('level_buildings'));
   
   // Clear existing buildings
-  g_buildingManager.clear();
+  buildingManager.clear();
   
   // Recreate buildings
   buildingsData.forEach(data => {
-    const building = g_buildingManager.createBuilding(
+    const building = buildingManager.createBuilding(
       data.type.toLowerCase(),
       data.position.x,
       data.position.y,
@@ -349,7 +349,7 @@ function loadLevelBuildings() {
 
 ```javascript
 function getBuildingStats() {
-  const buildings = g_buildingManager.getAllBuildings();
+  const buildings = buildingManager.getAllBuildings();
   
   const stats = {
     total: buildings.length,
@@ -395,7 +395,7 @@ Buildings.push(building);
 **NEW (Current):**
 ```javascript
 // Use manager method
-const building = g_buildingManager.createBuilding('antcone', x, y, 'player');
+const building = buildingManager.createBuilding('antcone', x, y, 'player');
 // Manager automatically tracks building
 ```
 

@@ -179,11 +179,11 @@ function renderResourceDisplayContent(contentArea, style) {
   // Get current resource values from the new resource system
   let wood = 0, food = 0;
   
-  if (g_resourceManager && typeof g_resourceManager.getResourcesByType === 'function') {
-    wood = g_resourceManager.getResourcesByType('wood').length;
-    food = g_resourceManager.getResourcesByType('food').length + 
-           g_resourceManager.getResourcesByType('greenLeaf').length + 
-           g_resourceManager.getResourcesByType('mapleLeaf').length;
+  if (resourceManager && typeof resourceManager.getResourcesByType === 'function') {
+    wood = resourceManager.getResourcesByType('wood').length;
+    food = resourceManager.getResourcesByType('food').length + 
+           resourceManager.getResourcesByType('greenLeaf').length + 
+           resourceManager.getResourcesByType('mapleLeaf').length;
   } else if (g_resourceList && g_resourceList.wood) {
     // Fallback to old system
     wood = g_resourceList.wood.length;
@@ -277,8 +277,8 @@ function renderDebugInfoContent(contentArea, style) {
     }
     
     // Resources count from new system
-    if (g_resourceManager && typeof g_resourceManager.getResourceList === 'function') {
-      text(`Resources: ${g_resourceManager.getResourceList().length || 0}`, contentArea.x, contentArea.y + yOffset);
+    if (resourceManager && typeof resourceManager.getResourceList === 'function') {
+      text(`Resources: ${resourceManager.getResourceList().length || 0}`, contentArea.x, contentArea.y + yOffset);
       yOffset += lineHeight;
     } else if (g_resourceList && g_resourceList.resources) {
       text(`Resources: ${g_resourceList.resources.length || 0}`, contentArea.x, contentArea.y + yOffset);

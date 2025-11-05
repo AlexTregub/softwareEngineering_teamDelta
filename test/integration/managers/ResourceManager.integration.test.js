@@ -49,8 +49,8 @@ describe('ResourceManager with ResourceController', function() {
     cleanupTestEnvironment();
     
     // Clean up global mocks
-    delete global.g_resourceManager;
-    delete window.g_resourceManager;
+    delete global.resourceManager;
+    delete window.resourceManager;
   });
   
   describe('Constructor and Basic Properties', function() {
@@ -105,31 +105,31 @@ describe('ResourceManager with ResourceController', function() {
       const resource = new ResourceController(110, 110, 32, 32, { type: 'Food' });
       
       // Mock global resource system with ResourceController
-      global.g_resourceManager = {
+      global.resourceManager = {
         getResourceList: () => [resource],
         removeResource: sinon.spy()
       };
-      window.g_resourceManager = global.g_resourceManager;
+      window.resourceManager = global.resourceManager;
       
       manager.checkForNearbyResources();
       
       expect(manager.getCurrentLoad()).to.equal(1);
-      expect(global.g_resourceManager.removeResource.calledOnce).to.be.true;
+      expect(global.resourceManager.removeResource.calledOnce).to.be.true;
     });
     
     it('should not detect resources outside collection range', function() {
       const resource = new ResourceController(200, 200, 32, 32, { type: 'Food' }); // Far away
       
-      global.g_resourceManager = {
+      global.resourceManager = {
         getResourceList: () => [resource],
         removeResource: sinon.spy()
       };
-      window.g_resourceManager = global.g_resourceManager;
+      window.resourceManager = global.resourceManager;
       
       manager.checkForNearbyResources();
       
       expect(manager.getCurrentLoad()).to.equal(0);
-      expect(global.g_resourceManager.removeResource.called).to.be.false;
+      expect(global.resourceManager.removeResource.called).to.be.false;
     });
     
     it('should collect multiple resources up to capacity', function() {
@@ -137,27 +137,27 @@ describe('ResourceManager with ResourceController', function() {
       const resource2 = new ResourceController(110, 110, 32, 32, { type: 'Wood' });
       const resource3 = new ResourceController(115, 115, 32, 32, { type: 'Stone' });
       
-      global.g_resourceManager = {
+      global.resourceManager = {
         getResourceList: () => [resource1, resource2, resource3],
         removeResource: sinon.spy()
       };
-      window.g_resourceManager = global.g_resourceManager;
+      window.resourceManager = global.resourceManager;
       
       manager.checkForNearbyResources();
       
       expect(manager.getCurrentLoad()).to.equal(2); // Capacity limit
-      expect(global.g_resourceManager.removeResource.callCount).to.equal(2);
+      expect(global.resourceManager.removeResource.callCount).to.equal(2);
     });
     
     it('should initiate drop-off when reaching max capacity', function() {
       const resource1 = new ResourceController(105, 105, 32, 32, { type: 'Food' });
       const resource2 = new ResourceController(110, 110, 32, 32, { type: 'Wood' });
       
-      global.g_resourceManager = {
+      global.resourceManager = {
         getResourceList: () => [resource1, resource2],
         removeResource: sinon.spy()
       };
-      window.g_resourceManager = global.g_resourceManager;
+      window.resourceManager = global.resourceManager;
       
       manager.checkForNearbyResources();
       
@@ -169,11 +169,11 @@ describe('ResourceManager with ResourceController', function() {
       const foodResource = new ResourceController(105, 105, 32, 32, { type: 'Food' });
       const woodResource = new ResourceController(110, 110, 32, 32, { type: 'Wood' });
       
-      global.g_resourceManager = {
+      global.resourceManager = {
         getResourceList: () => [foodResource, woodResource],
         removeResource: sinon.spy()
       };
-      window.g_resourceManager = global.g_resourceManager;
+      window.resourceManager = global.resourceManager;
       
       // Focus collection on Food only
       manager.selectResource('Food');

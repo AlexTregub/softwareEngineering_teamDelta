@@ -662,7 +662,7 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
       const manager = new ResourceManager(ant, 2, 25);
       
       // Mock global resource system with ResourceController
-      global.g_resourceManager = {
+      global.resourceManager = {
         getResourceList: () => [
           new ResourceController(110, 110, 32, 32, { type: 'Food' })
         ],
@@ -693,7 +693,7 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
 
 - [ ] **Update DraggablePanelSystem**
   ```javascript
-  // OLD: wood = g_resourceManager.getResourcesByType('wood').length;
+  // OLD: wood = resourceManager.getResourcesByType('wood').length;
   // NEW: Same (getResourcesByType still works, but uses getType() internally)
   
   // If directly accessing resources:
@@ -724,7 +724,7 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
   - Removed script tags from `index.html`
 - [x] **Update all references**
   - `ResourceBrush.js`: Resource.createX() → ResourceFactory.createX()
-  - `sketch.js`: Removed resourcePreLoad(), added g_resourceManager init
+  - `sketch.js`: Removed resourcePreLoad(), added resourceManager init
 - [x] **Update CHANGELOG.md** with breaking changes
   ```javascript
   // Classes/resources/resource.js
@@ -819,7 +819,7 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
 - [x] BuildingController (public API, input handling) - 44 tests passing
 - [x] BuildingFactory (AntCone, AntHill, HiveSource) - 23 tests passing
 - [x] BuildingManager refactored (simplified to 120 lines) - 24 tests passing
-- [x] BuildingBrush updated (uses g_buildingManager API)
+- [x] BuildingBrush updated (uses buildingManager API)
 - [x] API Documentation (BuildingController, BuildingFactory, BuildingManager)
 - [x] CHANGELOG.md updated (breaking changes, migration guide)
 

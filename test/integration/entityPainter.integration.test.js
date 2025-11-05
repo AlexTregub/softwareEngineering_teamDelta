@@ -61,7 +61,7 @@ describe('Entity Painter Integration Tests', function() {
     };
     
     // Mock resource manager
-    global.g_resourceManager = {
+    global.resourceManager = {
       createResource: sinon.stub().callsFake((type, x, y) => ({
         type: type,
         posX: x,
@@ -95,7 +95,7 @@ describe('Entity Painter Integration Tests', function() {
     delete global.document;
     delete global.ant;
     delete global.spatialGridManager;
-    delete global.g_resourceManager;
+    delete global.resourceManager;
   });
   
   describe('EntityPalette + CategoryRadioButtons Integration', function() {

@@ -174,8 +174,8 @@ const stick = ResourceFactory.createStick(300, 350);
 const stone = ResourceFactory.createStone(400, 450);
 
 // Add to game world
-g_resourceManager.addResource(leaf);
-g_resourceManager.addResource(stick);
+resourceManager.addResource(leaf);
+resourceManager.addResource(stick);
 ```
 
 ### Custom Resource Configuration
@@ -205,7 +205,7 @@ function spawnRandomResource(x, y) {
   const resource = ResourceFactory.createResource(randomType, x, y);
   
   if (resource) {
-    g_resourceManager.addResource(resource);
+    resourceManager.addResource(resource);
     return resource;
   } else {
     console.error('Failed to create resource');
@@ -228,7 +228,7 @@ class ResourceSpawner {
     }
     
     // Register with game systems
-    g_resourceManager.addResource(resource);
+    resourceManager.addResource(resource);
     spatialGridManager.registerEntity(resource);
     
     return resource;
@@ -300,12 +300,12 @@ function createSafeResource(type, x, y) {
    // ✅ GOOD: Check return value
    const resource = ResourceFactory.createStone(100, 100);
    if (resource) {
-     g_resourceManager.addResource(resource);
+     resourceManager.addResource(resource);
    }
    
    // ❌ BAD: Assume success
    const resource = ResourceFactory.createStone(100, 100);
-   g_resourceManager.addResource(resource); // May crash if null
+   resourceManager.addResource(resource); // May crash if null
    ```
 
 4. **Use Specific Methods When Type is Known**

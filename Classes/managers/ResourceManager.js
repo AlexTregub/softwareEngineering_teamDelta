@@ -154,14 +154,14 @@ class ResourceManager {
    * Uses the global resource system to find available resources.
    */
   checkForNearbyResources() {
-    // Check if g_resourceManager (ResourceSystemManager) is available globally
+    // Check if resourceManager (ResourceSystemManager) is available globally
     let resourceSystem = null;
     let fruits = [];
 
     // Try new ResourceSystemManager first
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getResourceList === 'function') {
-      resourceSystem = g_resourceManager;
-      fruits = g_resourceManager.getResourceList();
+    if (typeof resourceManager !== 'undefined' && resourceManager && typeof resourceManager.getResourceList === 'function') {
+      resourceSystem = resourceManager;
+      fruits = resourceManager.getResourceList();
     }
     // Fallback to old g_resourceList for compatibility
     else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.getResourceList === 'function') {
@@ -269,8 +269,8 @@ class ResourceManager {
     }
     
     // Notify global resource system if available
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.setSelectedType === 'function') {
-      g_resourceManager.setSelectedType(resourceType);
+    if (typeof resourceManager !== 'undefined' && resourceManager && typeof resourceManager.setSelectedType === 'function') {
+      resourceManager.setSelectedType(resourceType);
     } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.setSelectedType === 'function') {
       g_resourceList.setSelectedType(resourceType);
     }
@@ -299,8 +299,8 @@ class ResourceManager {
     }
     
     // Notify global resource system if available
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.setSelectedType === 'function') {
-      g_resourceManager.setSelectedType(null);
+    if (typeof resourceManager !== 'undefined' && resourceManager && typeof resourceManager.setSelectedType === 'function') {
+      resourceManager.setSelectedType(null);
     } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.setSelectedType === 'function') {
       g_resourceList.setSelectedType(null);
     }
@@ -327,8 +327,8 @@ class ResourceManager {
     }
     
     // Try new ResourceSystemManager first
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getSelectedTypeResources === 'function') {
-      return g_resourceManager.getSelectedTypeResources();
+    if (typeof resourceManager !== 'undefined' && resourceManager && typeof resourceManager.getSelectedTypeResources === 'function') {
+      return resourceManager.getSelectedTypeResources();
     }
     
     // Fallback to old system

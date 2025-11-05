@@ -32,34 +32,46 @@ let g_globalTime;
 
 // Buildings
 let Buildings = [];
-let g_buildingManager; // BuildingManager instance (MVC pattern)
-// Camera system - now managed by CameraSystemManager (switches between CameraManager and CustomLevelCamera)
+let buildingManager; // BuildingManager instance (MVC pattern)
 let cameraManager; // CameraSystemManager instance
 
-// Ant MVC system (Manager + Factory pattern)
 let antManager; // AntManager instance (registry and lifecycle)
 let antFactory; // AntFactory instance (creation logic)
+let entityService; // EntityService instance (unified entity registry and lifecycle)
+let buildingFactory; // BuildingFactory instance
+let resourceFactory; // ResourceFactory instance
 
 
 function setUpManagers() {
-  // Ant MVC system
   antManager = AntManager.getInstance();
-  
-  // Building MVC system
-  g_buildingManager = new BuildingManager();
+  buildingManager = BuildingManager.getInstance();
+  resourceManger = ResourceManger.getInstance();
 }
 
 function setUpFactories() {
-  // Ant Factory (requires AntManager)
   antFactory = new AntFactory(antManager);
+  buildingFactory = new BuildingFactory(buildingManager);
+  resourceFactory = new ResourceFactory(resourceManger);
   
-  // Building Factory would go here when we refactor it
-  // buildingFactory = new BuildingFactory(g_buildingManager);
+  // Use this to call all spawns from now on. 
+  /**
+   * entityService.spawn('Ant', { x: 100, y: 100, jobName: 'Worker', faction: 'player' });
+   * entityService.spawn('Building', { x: 200, y: 200, buildingType: 'AntHill', faction: 'player' });
+   * entityService.spawn('Resource', { x: 300, y: 300, resourceType: 'food', amount: 100 });
+   * 
+   * entityService.getById(42);              
+   * entityService.getByType('Ant');         // All ants
+   * entityService.getByFaction('player');   // Player entities
+   * entityService.query(e => e.health < 50); // Custom filter
+   */
+  entityService = new EntityService(antFactory, buildingFactory, resourceFactory);
+
 }
 
 function initGlobals() {
   setUpManagers();
   setUpFactories();
+  entityService.setSpatialGrid(spatialGridManager);
 }
 
 /**
@@ -127,22 +139,16 @@ function preload(){
   soundManagerPreload();
   // Initialize ResourceManager for MVC resource system
   if (typeof ResourceManager !== 'undefined') {
-    g_resourceManager = new ResourceManager();
+    resourceManager = new ResourceManager();
   }
   preloadPauseImages();
-  // BuildingPreloader removed - images now handled by BuildingFactory
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
 }
 
 
-function setup() {
-  // Initialize TaskLibrary before other systems that depend on it
-  /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
-  logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
-*/
-  
+function setup() {  
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   RenderMangerOverwrite = false
@@ -165,9 +171,21 @@ function setup() {
 
   // Initialize all managers and factories (centralized initialization)
   initGlobals();
-  
   initializeWorld();
-  initializeDraggablePanelSystem()
+  initializeDraggablePanelSystem();
+
+  // Initialize WorldService (Phase 6.2 - Unified World Management)
+  // Requires: MapManager (auto-initializes in MapManager.js), SpatialGridManager (line 159)
+  if (typeof WorldService !== 'undefined' && mapManager && spatialGridManager) {
+    window.worldService = new WorldService(mapManager, spatialGridManager);
+    logNormal('WorldService initialized with MapManager + SpatialGridManager');
+  } else {
+    console.warn('WorldService initialization skipped - missing dependencies', {
+      WorldService: typeof WorldService,
+      mapManager: typeof mapManager,
+      spatialGridManager: typeof spatialGridManager
+    });
+  }
 
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
@@ -198,40 +216,15 @@ function setup() {
 
   window.EntityRenderer = new EntityRenderer();
 
-  
-  // Initialize camera management system (CameraSystemManager for dual camera support)
   if (typeof CameraSystemManager !== 'undefined') {
-    // Note: CameraSystemManager doesn't require a cameraController parameter
-    // It creates and manages its own camera instances internally
     cameraManager = new CameraSystemManager(null, width, height);
-    // Initialize with procedural camera for MENU state
     cameraManager.switchCamera('MENU');
-    logVerbose('📷 CameraSystemManager initialized with dual camera support');
     
-    // Register camera switching callback with GameState
-    if (typeof GameState !== 'undefined' && typeof GameState.onStateChange === 'function') {
-      GameState.onStateChange((newState, previousState) => {
-        if (cameraManager && typeof cameraManager.switchCamera === 'function') {
-          cameraManager.switchCamera(newState);
-          logVerbose(`📷 Camera switched for state: ${newState}`);
-        }
+    GameState.onStateChange((newState, previousState) => {
+        cameraManager.switchCamera(newState);
       });
-      logVerbose('📷 Camera state change callback registered');
-    }
-  } else {
-    // Fallback to old system if CameraSystemManager not available
-    cameraManager = new CameraManager();
-    cameraManager.initialize();
-    logWarning('📷 Falling back to CameraManager (CameraSystemManager not available)');
-  }
 
-  // Initialize settings system (for configurable editor preferences)
-  if (typeof SettingsManager !== 'undefined') {
     SettingsManager.getInstance().loadSettings();
-    if (typeof SettingsPanel !== 'undefined') {
-      window.settingsPanel = new SettingsPanel();
-    }
-  }
 
   // Disable right-click context menu to prevent interference with brush controls
   if (typeof document !== 'undefined') {
@@ -283,10 +276,8 @@ function setup() {
           let terrain;
           if (typeof SparseTerrain !== 'undefined') {
             terrain = new SparseTerrain(32, 'dirt');
-            logVerbose('🎨 Level Editor activated with SparseTerrain (lazy loading)');
           } else if (typeof CustomTerrain !== 'undefined') {
             terrain = new CustomTerrain(50, 50, 32, 'dirt');
-            logVerbose('🎨 Level Editor activated with CustomTerrain (fallback)');
           } else {
             console.error('No terrain class available for Level Editor');
             return;
@@ -296,10 +287,10 @@ function setup() {
       } else if (oldState === 'LEVEL_EDITOR') {
         // Deactivate level editor when leaving
         levelEditor.deactivate();
-        logVerbose('🎨 Level Editor deactivated');
       }
     });
   }
+}
   
   // Start automatic BGM monitoring after menu initialization
   if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
@@ -308,22 +299,9 @@ function setup() {
   
   // Initialize context menu prevention for better brush control
   initializeContextMenuPrevention();
-  
-  // Initialize middle-click pan shortcuts
-  if (typeof MiddleClickPan !== 'undefined') {
-    MiddleClickPan.initialize();
-    logVerbose('🖱️ Middle-click pan initialized');
-  }
-  //
+  MiddleClickPan.initialize();
 
-  // Create initial test building (using MVC BuildingManager)
-  if (g_buildingManager) {
-    const building = g_buildingManager.createBuilding('hivesource', 200, 200, 'neutral');
-    if (building) {
-      Buildings.push(building); // Keep legacy Buildings[] array for compatibility
-      logNormal('🏗️ Test building created: hivesource at (200, 200)');
-    }
-  }
+  const building = buildingManager.createBuilding('hivesource', 200, 200, 'neutral');
 }
 
 /**
@@ -363,17 +341,6 @@ function initializeContextMenuPrevention() {
     console.warn('⚠️ Could not set canvas context menu prevention:', error);
   }
   
-  logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
-}
-
-/**
- * Global function to test context menu prevention
- */
-function testContextMenuPrevention() {
-  logVerbose('🧪 Testing context menu prevention...');
-  logVerbose('Right-click anywhere to test - context menu should NOT appear');
-  logVerbose('If context menu still appears, try: disableContextMenu()');
-  return true;
 }
 
 /**
@@ -381,13 +348,11 @@ function testContextMenuPrevention() {
  */
 function disableContextMenu() {
   initializeContextMenuPrevention();
-  logVerbose('🔒 Context menu prevention forcibly re-applied');
   return true;
 }
 
 // Make functions globally available
 if (typeof window !== 'undefined') {
-  window.testContextMenuPrevention = testContextMenuPrevention;
   window.disableContextMenu = disableContextMenu;
 }
 
@@ -441,35 +406,6 @@ function initializeWorld() {
 }
 
 /**
- * loadCustomLevel
- * ----------------
- * Load custom level from JSON file (Level Editor export)
- * @param {string} levelPath - Path to level JSON file (e.g., 'levels/CaveTutorial.json')
- * @returns {Promise<boolean>} True if successful, false on error
- */
-/**
- * Safe Logging Wrappers
- * ======================
- * Fallback to console methods if verboseLogger functions are not available
- * Handles logWarning/logWarn mismatch (verboseLogger exports logWarn, not logWarning)
- */
-const safeLogNormal = (msg) => {
-  if (typeof logNormal === 'function') logNormal(msg);
-  else if (typeof console !== 'undefined') console.log(msg);
-};
-
-const safeLogError = (msg) => {
-  if (typeof logError === 'function') logError(msg);
-  else if (typeof console !== 'undefined') console.error(msg);
-};
-
-const safeLogWarning = (msg) => {
-  if (typeof logWarning === 'function') logWarning(msg);
-  else if (typeof logWarn === 'function') logWarn(msg); // verboseLogger uses logWarn
-  else if (typeof console !== 'undefined') console.warn(msg);
-};
-
-/**
  * Clear Game Entities
  * ====================
  * Clears all procedurally generated entities before loading custom level
@@ -485,153 +421,184 @@ function clearGameEntities() {
     selectables: (typeof selectables !== 'undefined' && Array.isArray(selectables)) ? selectables.length : 0
   };
 
-  safeLogNormal(`[clearGameEntities] Clearing existing entities: ${counts.ants} ants, ${counts.resources} resources, ${counts.buildings} buildings, ${counts.selectables} selectables`);
+  ants.length = 0;
+  resource_list.length = 0;
+  Buildings.length = 0;
+  selectables.length = 0;
+  window.queenAnt = null;
+  spatialGridManager.clear();
+  resourceManager.stopSpawning();
 
-  // Clear arrays (preserve references by setting length to 0, not reassigning)
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-    ants.length = 0;
-  }
-  
-  if (typeof resource_list !== 'undefined' && Array.isArray(resource_list)) {
-    resource_list.length = 0;
-  }
-  
-  if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
-    Buildings.length = 0;
-  }
-  
-  if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
-    selectables.length = 0;
-  }
-
-  // Reset global queen reference
-  if (typeof window !== 'undefined') {
-    window.queenAnt = null;
-  }
-  if (typeof global !== 'undefined') {
-    global.queenAnt = null;
-  }
-
-  // Clear spatial grid if available
-  if (typeof spatialGridManager !== 'undefined' && 
-      spatialGridManager !== null && 
-      typeof spatialGridManager.clear === 'function') {
-    spatialGridManager.clear();
-    safeLogNormal('[clearGameEntities] Cleared spatial grid');
-  }
-
-  // CRITICAL: Stop resource spawning timer to prevent procedural generation
-  // Custom levels should only have entities defined in JSON
-  if (typeof g_resourceManager !== 'undefined' && 
-      g_resourceManager !== null && 
-      typeof g_resourceManager.stopSpawning === 'function') {
-    g_resourceManager.stopSpawning();
-    safeLogNormal('[clearGameEntities] Stopped resource spawning timer');
-  }
-
-  safeLogNormal(`[clearGameEntities] Cleanup complete - all entity arrays cleared`);
-  
   return counts;
 }
 
+
+/**
+ * loadCustomLevel
+ * ----------------
+ * Load custom level from JSON file (Level Editor export)
+ * @param {string} levelPath - Path to level JSON file (e.g., 'levels/CaveTutorial.json')
+ * @returns {Promise<boolean>} True if successful, false on error
+ */
 async function loadCustomLevel(levelPath) {
-  try {
-    safeLogNormal(`[loadCustomLevel] Loading level from: ${levelPath}`);
-    
-    // CRITICAL: Clear all existing entities before loading custom level
-    // This ensures procedurally generated entities don't mix with JSON data
-    const clearedCounts = clearGameEntities();
-    safeLogNormal(`[loadCustomLevel] Cleared ${clearedCounts.ants + clearedCounts.resources + clearedCounts.buildings} entities`);
+  try {    
+    // Clear all existing entities via EntityService
+    entityService.clearAll();
     
     // Fetch level JSON
     const response = await fetch(levelPath);
     if (!response.ok) {
       throw new Error(`Failed to load level: ${response.status} ${response.statusText}`);
     }
-    
     const levelData = await response.json();
-    safeLogNormal(`[loadCustomLevel] Level data loaded: ${levelData.tileCount || 0} tiles`);
     
     // Load terrain via MapManager
-    const mapId = 'custom-level'; // Could extract from levelData.metadata.id
+    const mapId = levelData.metadata?.id || 'custom-level';
     const terrain = mapManager.loadLevel(levelData, mapId, true);
     if (!terrain) {
       throw new Error('MapManager failed to load level terrain');
     }
-    safeLogNormal(`[loadCustomLevel] Terrain loaded and set as active map`);
     
     // Update global references
     g_activeMap = terrain;
     g_map2 = terrain; // For backwards compatibility
     
     // Load entities via LevelLoader
-    if (typeof LevelLoader !== 'undefined') {
-      const loader = new LevelLoader();
-      const result = loader.loadLevel(levelData);
+    if (typeof LevelLoader === 'undefined') {
+      console.warn('[loadCustomLevel] LevelLoader not available, skipping entity spawning');
+      GameState.goToGame();
+      cameraManager.setCurrentMap(terrain);
+      return true;
+    }
+    
+    const loader = new LevelLoader();
+    const result = loader.loadLevel(levelData);
+    
+    if (!result || !result.success) {
+      console.warn('[loadCustomLevel] Entity loading failed or returned no entities');
+      GameState.goToGame();
+      cameraManager.setCurrentMap(terrain);
+      return true;
+    }
+    
+    // Spawn entities via EntityService (Phase 6.1)
+    let spawnedCounts = { ants: 0, resources: 0, buildings: 0 };
+    let queen = null;
+    
+    if (entityService && Array.isArray(result.entities)) {
+      console.log(`[loadCustomLevel] Spawning ${result.entities.length} entities via EntityService`);
       
-      if (result && result.success) {
-        safeLogNormal(`[loadCustomLevel] Entities loaded: ${result.entities.length}`);
+      result.entities.forEach((entityData, index) => {
+        if (!entityData || !entityData.type) {
+          console.warn(`[loadCustomLevel] Skipping invalid entity at index ${index}`);
+          return;
+        }
         
-        const registeredCounts = registerEntitiesWithGameWorld(result.entities);
-        
-        // Find queen ant for camera following
-        const queenDetection = typeof findQueen !== 'undefined' ? findQueen : (typeof window.queenDetection !== 'undefined' ? window.queenDetection.findQueen : null);
-        
-        if (queenDetection) {
-          const queen = queenDetection(result.entities);
+        try {
+          const { type, x, y, properties } = entityData;
+          let spawnedEntity = null;
           
-          if (queen) {
-            window.queenAnt = queen;
+          // Spawn entity based on type
+          if (type === 'Ant' || type === 'Queen') {
+            const jobName = properties?.JobName || properties?.job || (type === 'Queen' ? 'Queen' : 'Worker');
+            const faction = properties?.faction || 'player';
             
-            // Start camera following queen
-            if (cameraManager && cameraManager.followEntity) {
-              cameraManager.followEntity(queen);
-              
-              // Center camera on Queen immediately
-              if (cameraManager.activeCamera) {
-                const queenX = queen.x || queen.position?.x || 0;
-                const queenY = queen.y || queen.position?.y || 0;
-                
-                if (typeof cameraManager.activeCamera.centerOn === 'function') {
-                  cameraManager.activeCamera.centerOn(queenX, queenY);
-                } else if (typeof cameraManager.activeCamera.setCameraPosition === 'function') {
-                  cameraManager.activeCamera.setCameraPosition(queenX, queenY);
-                }
-              }
-              
-              safeLogNormal('[loadCustomLevel] Camera now following queen ant');
+            spawnedEntity = entityService.spawn('Ant', {
+              x, y,
+              jobName,
+              faction
+            });
+            
+            spawnedCounts.ants++;
+            
+            // Track queen for camera
+            if (type === 'Queen' || jobName === 'Queen') {
+              queen = spawnedEntity;
             }
+            
+            // Legacy: Add to ants array for rendering compatibility
+            if (typeof ants !== 'undefined') ants.push(spawnedEntity);
+            if (typeof selectables !== 'undefined') selectables.push(spawnedEntity);
+            
+          } else if (type === 'Resource') {
+            const resourceType = properties?.resourceType || 'food';
+            const amount = properties?.amount || 100;
+            
+            spawnedEntity = entityService.spawn('Resource', {
+              x, y,
+              resourceType,
+              amount
+            });
+            
+            spawnedCounts.resources++;
+            
+            // Legacy: Add to resource_list for rendering compatibility
+            if (!window.resource_list) window.resource_list = [];
+            window.resource_list.push(spawnedEntity);
+            
+          } else if (type === 'Building') {
+            const buildingType = properties?.buildingType || 'AntHill';
+            const faction = properties?.faction || 'neutral';
+            
+            spawnedEntity = entityService.spawn('Building', {
+              x, y,
+              buildingType,
+              faction
+            });
+            
+            spawnedCounts.buildings++;
+            window.Buildings.push(spawnedEntity);
+            
           } else {
-            safeLogWarning('[loadCustomLevel] No queen found in level');
+            console.warn(`[loadCustomLevel] Unknown entity type: ${type}`);
+            return;
+          }
+          
+          console.log(`[loadCustomLevel] Spawned ${type}: ${spawnedEntity._id} at (${x}, ${y})`);
+          
+        } catch (error) {
+          console.error(`[loadCustomLevel] Failed to spawn entity at index ${index}:`, error);
+        }
+      });
+      
+      console.log(`[loadCustomLevel] Spawned entities - Ants: ${spawnedCounts.ants}, Resources: ${spawnedCounts.resources}, Buildings: ${spawnedCounts.buildings}`);
+      
+    }     
+    // Setup camera to follow queen
+    if (queen) {
+      window.queenAnt = queen;
+      
+      if (cameraManager && cameraManager.followEntity) {
+        cameraManager.followEntity(queen);
+        
+        // Center camera on Queen immediately
+        if (cameraManager.activeCamera) {
+          const queenX = queen.x || queen.position?.x || 0;
+          const queenY = queen.y || queen.position?.y || 0;
+          
+          if (typeof cameraManager.activeCamera.centerOn === 'function') {
+            cameraManager.activeCamera.centerOn(queenX, queenY);
+          } else if (typeof cameraManager.activeCamera.setCameraPosition === 'function') {
+            cameraManager.activeCamera.setCameraPosition(queenX, queenY);
           }
         }
-      } else {
-        safeLogWarning('[loadCustomLevel] Entity loading failed or returned no entities');
       }
     } else {
-      safeLogWarning('[loadCustomLevel] LevelLoader not available, skipping entity spawning');
+      console.warn('[loadCustomLevel] No queen found in level');
     }
     
-    // Transition to IN_GAME state (camera will auto-switch via GameState callback)
-    if (typeof GameState !== 'undefined' && GameState.goToGame) {
-      GameState.goToGame();
-      safeLogNormal('[loadCustomLevel] Game state set to IN_GAME');
-      
-      // Set map reference for both camera systems
-      if (cameraManager && typeof cameraManager.setCurrentMap === 'function') {
-        cameraManager.setCurrentMap(terrain);
-        logVerbose('📷 Map reference set for camera systems');
-      }
-    }
-    
-    safeLogNormal(`[loadCustomLevel] Level loaded successfully: ${levelPath}`);
+    // Transition to game
+    GameState.goToGame();
+    cameraManager.setCurrentMap(terrain);
     return true;
+    
   } catch (error) {
     console.error('[loadCustomLevel] Error:', error);
-    safeLogError(`[loadCustomLevel] Failed to load level: ${error.message}`);
     return false;
   }
 }
+
+
 
 /**
  * draw
@@ -648,10 +615,7 @@ function draw() {
   // Updates must happen BEFORE rendering to show current frame data
   // ============================================================
   
-  // Track draw calls for sound manager
-  if (typeof soundManager !== 'undefined' && soundManager.onDraw) {
-    soundManager.onDraw();
-  }
+  soundManager.onDraw();
   
   // Update camera (input processing, following, bounds clamping)
   // Enable for both in-game states AND Level Editor
@@ -661,52 +625,30 @@ function draw() {
 
   // Update game systems (only if playing or in-game)
   if (GameState.getState() === 'PLAYING' || GameState.getState() === 'IN_GAME') {
-    // Update all ants (CRITICAL: syncs sprite positions via Entity.update())
-    if (Array.isArray(ants) && ants.length > 0) {
-      ants.forEach(ant => {
-        if (ant && typeof ant.update === 'function') {
-          ant.update();
-        }
-      });
+    // Update all entities via EntityService (CRITICAL: syncs sprite positions via Entity.update())
+    if (typeof entityService !== 'undefined' && entityService) {
+      entityService.update(deltaTime || 16.67); // 16.67ms = 60fps default
+    } else {
+      // LEGACY FALLBACK: Update ants directly (Phase 6.1 migration in progress)
+      if (Array.isArray(ants) && ants.length > 0) {
+        ants.forEach(ant => {
+          if (ant && typeof ant.update === 'function') {
+            ant.update();
+          }
+        });
+      }
     }
     
-    // Update brush systems
-    if (window.g_enemyAntBrush) {
-      window.g_enemyAntBrush.update();
-    }
-    if (window.g_lightningAimBrush) {
-      window.g_lightningAimBrush.update();
-    }
-    if (window.g_resourceBrush) {
-      window.g_resourceBrush.update();
-    }
-    if (window.g_buildingBrush) {
-      window.g_buildingBrush.update();
-    }
-
-    // Update queen control panel
-    if (typeof updateQueenPanelVisibility !== 'undefined') {
-      updateQueenPanelVisibility();
-    }
-    if (window.g_queenControlPanel) {
-      window.g_queenControlPanel.update();
-    }
-
-    // Update Event Manager (triggers and active events)
-    if (window.eventManager) {
-      window.eventManager.update();
-    }
-
-    // Update effect systems
-    if (window.g_fireballManager) {
-      window.g_fireballManager.update();
-    }
-    if (window.g_lightningManager) {
-      window.g_lightningManager.update();
-    }
-    if (g_globalTime) {
-      g_globalTime.update();
-    }
+    window.g_enemyAntBrush.update();
+    window.g_lightningAimBrush.update();
+    window.g_resourceBrush.update();
+    window.g_buildingBrush.update();
+    updateQueenPanelVisibility();
+    window.g_queenControlPanel.update();
+    window.eventManager.update();
+    window.g_fireballManager.update();
+    window.g_lightningManager.update();
+    g_globalTime.update();
 
     // Update queen movement (WASD keys)
     const playerQueen = getQueen();
@@ -744,42 +686,6 @@ function draw() {
     RenderManager.render(GameState.getState());
   }
 
-  // // DEBUG: Direct ant rendering for custom levels (bypasses render system)
-  // if (GameState.getState() === 'IN_GAME' && Array.isArray(ants) && ants.length > 0) {
-  //   push();
-    
-  //   // Apply camera transform manually
-  //   if (cameraManager) {
-  //     const camPos = cameraManager.getCameraPosition();
-  //     if (camPos) {
-  //       translate(-camPos.x, -camPos.y);
-  //       scale(camPos.zoom);
-  //     }
-  //   }
-    
-  //   // Draw each ant directly
-  //   ants.forEach((ant, index) => {
-  //     if (!ant || !ant.x || !ant.y) return;
-      
-  //     // Draw ant as colored circle with label
-  //     const isQueen = ant.type === 'Queen' || ant.JobName === 'Queen';
-      
-  //     // Draw circle
-  //     fill(isQueen ? color(255, 0, 255) : color(0, 255, 0));
-  //     noStroke();
-  //     const size = isQueen ? 40 : 30;
-  //     ellipse(ant.x + size/2, ant.y + size/2, size, size);
-      
-  //     // Draw label
-  //     fill(255);
-  //     textAlign(CENTER, CENTER);
-  //     textSize(12);
-  //     text(isQueen ? 'Q' : index, ant.x + size/2, ant.y + size/2);
-  //   });
-    
-  //   pop();
-  // }
-
   // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
   if (typeof window.drawCoordinateVisualization === 'function') {
     try {
@@ -798,10 +704,7 @@ function draw() {
     }
   }
   
-  // Render SettingsPanel (if visible)
-  if (window.settingsPanel && settingsPanel.visible) {
-    settingsPanel.render();
-  }
+  settingsPanel.render();
 }
 
  /* handleMouseEvent
@@ -858,90 +761,25 @@ function mousePressed() {
     if (handled) return;
   }
 
-  // PRIORITY 1: Check active brushes FIRST (before UI elements)
-  // This ensures brush clicks work even if panels are visible
-  
-  // Handle Enemy Ant Brush events
-  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling enemy ant brush events:', error);
-    }
-  }
-
-  // Handle Resource Brush events
-  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling resource brush events:', error);
-    }
-  }
-
-  // Handle Building Brush events
-  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling building brush events:', error);
-    }
-  }
-
-  // Handle Lightning Aim Brush events
-  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return;
-    } catch (error) {
-      console.error('❌ Error handling lightning aim brush events:', error);
-    }
-  }
-
-  // Handle Queen Control Panel right-click for power cycling
-  if (window.g_queenControlPanel && mouseButton === RIGHT) {
-    try {
-      const handled = window.g_queenControlPanel.handleRightClick();
-      if (handled) return; // Queen panel consumed the right-click
-    } catch (error) {
-      console.error('❌ Error handling queen control panel right-click:', error);
-    }
-  }
+  // Check active brushes first. If mouse is pressed while over, the mouse should be consumed
+  brushHandling()
 
   // PRIORITY 2: RenderManager UI elements (buttons, panels, etc.)
   // Forward to RenderManager interactive dispatch (gives adapters priority)
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
     if (consumed) {
-      logVerbose('🖱️ Mouse click consumed by RenderManager');
       return; // consumed by an interactive (buttons/panels/etc.)
     }
-    logVerbose('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
-    // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
   } catch (e) {
-    console.error('Error dispatching pointerdown to RenderManager:', e);
-    // best-effort: still notify legacy controller if present to avoid breaking older flows
     try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
   }
-
-  // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
   
   // Handle DraggablePanel mouse events
   if (window.draggablePanelManager && 
       typeof window.draggablePanelManager.handleMouseEvents === 'function') {
-    try {
       const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
-      if (handled) return; // Panel consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling draggable panel mouse events:', error);
-    }
+      if (handled) return;
   }
 
   // Handle Queen Control Panel events
@@ -1005,53 +843,37 @@ function mouseReleased() {
   }
   
   // Handle level editor release events FIRST
-  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
+  if (levelEditor.isActive()) {
     levelEditor.handleMouseRelease(mouseX, mouseY);
   }
   
   // Handle UI Debug Manager release events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
+  if (g_uiDebugManager && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
   }
   
   // Handle Enemy Ant Brush release events
   if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling enemy ant brush release events:', error);
-    }
+    const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+    window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, buttonName);
   }
   
   // Handle Resource Brush release events
-  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
-    try {
+  if (window.g_resourceBrush.isActive) {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       window.g_resourceBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling resource brush release events:', error);
-    }
   }
 
   // Handle Building Brush release events
-  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
-    try {
+  if (window.g_buildingBrush.isActive) {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       window.g_buildingBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling building brush release events:', error);
-    }
   }
 
   // Handle Lightning Aim Brush release events
-  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
-    try {
+  if (window.g_lightningAimBrush.isActive) {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling lightning aim brush release events:', error);
-    }
   }
   
   // Forward to RenderManager first
@@ -1469,14 +1291,12 @@ function getMapPixelDimensions() {
  */
 function deactivateActiveBrushes() {
   let deactivated = false;
-  if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
+  if (g_resourceBrush.isActive) {
     g_resourceBrush.toggle();
-    logNormal('🎨 Resource brush deactivated via ESC key');
     deactivated = true;
   }
-  if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
+  if (g_enemyAntBrush.isActive) {
     g_enemyAntBrush.toggle();
-    logNormal('🎨 Enemy brush deactivated via ESC key');
     deactivated = true;
   }
   return deactivated;
@@ -1836,83 +1656,6 @@ window.checkCamera = function() {
       }
     } else {
       console.log('❌ Queen not found');
-    }
-  }
-};
-
-// Global variable to control Queen debug circle rendering
-window.drawQueenDebugCircle = false;
-
-// Add to draw() loop to render Queen debug circle
-if (typeof window.originalDraw === 'undefined') {
-  window.originalDraw = window.draw;
-}
-
-// Hook into rendering to draw Queen debug circle
-const _oldRenderManagerRender = RenderManager.render;
-RenderManager.render = function(state) {
-  // Call original render
-  _oldRenderManagerRender.call(this, state);
-  
-  // Draw Queen debug circle if enabled
-  if (window.drawQueenDebugCircle && (state === 'IN_GAME' || state === 'PLAYING')) {
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-      const queen = ants.find(ant => 
-        ant.type === 'Queen' || ant.JobName === 'Queen' || ant.jobName === 'Queen'
-      );
-      
-      if (queen && typeof cameraManager !== 'undefined' && cameraManager) {
-        push();
-        
-        // Apply camera transform
-        const camPos = cameraManager.getCameraPosition();
-        if (camPos) {
-          translate(-camPos.x, -camPos.y);
-          scale(camPos.zoom);
-        }
-        
-        // Draw BIG pulsing circle around Queen
-        const pulseSize = 150 + Math.sin(frameCount * 0.1) * 30;
-        
-        // Outer glow
-        noFill();
-        stroke(255, 0, 255, 100);
-        strokeWeight(10);
-        ellipse(queen.x + 30, queen.y + 30, pulseSize * 1.5, pulseSize * 1.5);
-        
-        // Middle circle
-        stroke(255, 255, 0, 200);
-        strokeWeight(5);
-        ellipse(queen.x + 30, queen.y + 30, pulseSize, pulseSize);
-        
-        // Inner circle
-        stroke(0, 255, 255, 255);
-        strokeWeight(3);
-        ellipse(queen.x + 30, queen.y + 30, pulseSize * 0.6, pulseSize * 0.6);
-        
-        // Draw arrow pointing down at Queen
-        fill(255, 0, 255);
-        noStroke();
-        triangle(
-          queen.x + 30, queen.y - 100,
-          queen.x + 10, queen.y - 50,
-          queen.x + 50, queen.y - 50
-        );
-        
-        // Draw "QUEEN HERE" text
-        fill(255, 255, 0);
-        textAlign(CENTER, CENTER);
-        textSize(24);
-        strokeWeight(2);
-        stroke(0);
-        text('👑 QUEEN HERE 👑', queen.x + 30, queen.y - 120);
-        
-        // Draw coordinates
-        textSize(16);
-        text(`(${Math.round(queen.x)}, ${Math.round(queen.y)})`, queen.x + 30, queen.y - 90);
-        
-        pop();
-      }
     }
   }
 };
