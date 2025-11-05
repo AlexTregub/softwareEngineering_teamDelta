@@ -138,7 +138,9 @@ class WorldService {
     switch(type) {
       case 'Ant':
         if (this._antFactory) {
-          entity = this._antFactory.createScout(x, y, opts);
+          // Check if jobName is specified, otherwise default to Scout
+          const jobName = opts.jobName || 'Scout';
+          entity = this._antFactory._createAntWithJob(x, y, jobName, opts.faction || 'neutral');
         }
         break;
       case 'Building':
@@ -147,6 +149,15 @@ class WorldService {
         }
         break;
       case 'Resource':
+        // Check max capacity before spawning
+        if (this._resourceSystem && this._resourceSystem.maxCapacity) {
+          const currentCount = this.getEntitiesByType('Resource').length;
+          if (currentCount >= this._resourceSystem.maxCapacity) {
+            console.warn(`Resource capacity reached (${this._resourceSystem.maxCapacity})`);
+            return null;
+          }
+        }
+        
         if (this._resourceFactory) {
           const resourceType = opts.resourceType || 'greenLeaf';
           entity = this._resourceFactory.createResource(resourceType, x, y, opts);
@@ -165,6 +176,7 @@ class WorldService {
     // Enforce consistent interface (replaces EntityAccessor)
     entity._worldServiceId = id;
     entity.id = id;
+    entity._id = id; // Legacy support
     entity.type = type; // Ensure type is always set
     // DON'T set entity.faction directly - controllers have read-only getter
     // Faction is set via factory options and stored in model
@@ -1096,7 +1108,8 @@ class WorldService {
       lastSpawnTime: 0,
       maxCapacity: 100,
       registeredTypes: new Map(), // Map<type, config>
-      selectedType: null
+      selectedType: null,
+      focusedCollection: false
     };
   }
   
@@ -1140,7 +1153,11 @@ class WorldService {
    */
   getResourcesByType(type) {
     return this.getEntitiesByType('Resource').filter(resource => {
-      const resType = resource.getType ? resource.getType() : resource.type;
+      // Check multiple possible property names
+      const resType = resource.resourceType || 
+                      (resource.getResourceType && resource.getResourceType()) ||
+                      (resource.getType && resource.getType()) || 
+                      resource.type;
       return resType === type;
     });
   }
@@ -1158,12 +1175,28 @@ class WorldService {
   }
   
   /**
+   * Get selected resource type
+   * 
+   * @returns {string|null} Selected resource type or null
+   */
+  getSelectedResourceType() {
+    return this._resourceSystem ? this._resourceSystem.selectedType : null;
+  }
+  
+  /**
    * Clear resource type selection
    */
   clearResourceTypeSelection() {
     if (this._resourceSystem) {
       this._resourceSystem.selectedType = null;
     }
+  }
+  
+  /**
+   * Clear resource selection (alias for clearResourceTypeSelection)
+   */
+  clearResourceSelection() {
+    return this.clearResourceTypeSelection();
   }
   
   /**
@@ -1189,6 +1222,27 @@ class WorldService {
   }
   
   /**
+   * Enable/disable focused collection mode
+   * 
+   * @param {boolean} enabled - True to enable focused collection
+   */
+  setFocusedCollection(enabled) {
+    if (!this._resourceSystem) {
+      this._initResourceSystem();
+    }
+    this._resourceSystem.focusedCollection = enabled;
+  }
+  
+  /**
+   * Check if focused collection is enabled
+   * 
+   * @returns {boolean} True if focused collection is enabled
+   */
+  isFocusedCollectionEnabled() {
+    return this._resourceSystem ? this._resourceSystem.focusedCollection === true : false;
+  }
+  
+  /**
    * Register resource type for spawning
    * 
    * @param {string} type - Resource type
@@ -1199,25 +1253,54 @@ class WorldService {
       this._initResourceSystem();
     }
     this._resourceSystem.registeredTypes.set(type, config);
+    
+    // If initialSpawnCount is specified, spawn resources immediately
+    if (config.initialSpawnCount && config.initialSpawnCount > 0) {
+      for (let i = 0; i < config.initialSpawnCount; i++) {
+        const x = Math.random() * 800;
+        const y = Math.random() * 600;
+        // Use greenLeaf as base, then override resourceType property
+        const resource = this.spawnEntity('Resource', { x, y, resourceType: 'greenLeaf', ...config });
+        if (resource) {
+          resource.resourceType = type; // Override with custom type
+        }
+      }
+    }
+  }
+  
+  /**
+   * Get registered resource types
+   * 
+   * @returns {Object} Map of registered resource types
+   */
+  getRegisteredResourceTypes() {
+    if (!this._resourceSystem) {
+      this._initResourceSystem();
+    }
+    // Convert Map to plain object for easier testing
+    const types = {};
+    for (const [key, value] of this._resourceSystem.registeredTypes) {
+      types[key] = value;
+    }
+    return types;
   }
   
   /**
    * Force spawn resource immediately
    * 
-   * @param {string} type - Resource type
+   * @param {string} [type='greenLeaf'] - Resource type
    * @returns {Object|null} Spawned resource or null
    */
-  forceSpawnResource(type) {
-    if (!this._resourceSystem) return null;
-    
-    const config = this._resourceSystem.registeredTypes.get(type);
-    if (!config) return null;
+  forceSpawnResource(type = 'greenLeaf') {
+    if (!this._resourceSystem) {
+      this._initResourceSystem();
+    }
     
     // Spawn at random position
     const x = Math.random() * 800;
     const y = Math.random() * 600;
     
-    return this.spawnEntity('Resource', x, y, { resourceType: type, ...config });
+    return this.spawnEntity('Resource', { x, y, resourceType: type });
   }
   
   /**
@@ -1234,7 +1317,9 @@ class WorldService {
     
     return {
       active: this._resourceSystem.active,
+      isSpawningActive: this._resourceSystem.active, // Alias for active
       count: resourceCount,
+      totalResources: resourceCount, // Alias for count
       maxCapacity: this._resourceSystem.maxCapacity,
       selectedType: this._resourceSystem.selectedType,
       registeredTypes: Array.from(this._resourceSystem.registeredTypes.keys())

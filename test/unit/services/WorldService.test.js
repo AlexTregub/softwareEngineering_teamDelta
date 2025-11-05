@@ -1794,13 +1794,13 @@ describe('WorldService', function() {
       
       ant1.isSelected = sinon.stub().returns(true);
       ant2.isSelected = sinon.stub().returns(false);
-      ant1.changeState = sinon.stub();
-      ant2.changeState = sinon.stub();
+      ant1.setState = sinon.stub();
+      ant2.setState = sinon.stub();
       
       world.changeSelectedAntsState('gathering');
       
-      expect(ant1.changeState.calledWith('gathering')).to.be.true;
-      expect(ant2.changeState.called).to.be.false;
+      expect(ant1.setState.calledWith('gathering')).to.be.true;
+      expect(ant2.setState.called).to.be.false;
     });
     
     it('should set selected ants to idle', function() {
@@ -1808,11 +1808,11 @@ describe('WorldService', function() {
       
       const ant = world.spawnEntity('Ant', { x: 100, y: 100, faction: 'player' });
       ant.isSelected = sinon.stub().returns(true);
-      ant.changeState = sinon.stub();
+      ant.setState = sinon.stub();
       
       world.setSelectedAntsIdle();
       
-      expect(ant.changeState.calledWith('idle')).to.be.true;
+      expect(ant.setState.calledWith('idle')).to.be.true;
     });
     
     it('should set selected ants to gathering', function() {
@@ -1820,11 +1820,11 @@ describe('WorldService', function() {
       
       const ant = world.spawnEntity('Ant', { x: 100, y: 100, faction: 'player' });
       ant.isSelected = sinon.stub().returns(true);
-      ant.changeState = sinon.stub();
+      ant.setState = sinon.stub();
       
       world.setSelectedAntsGathering();
       
-      expect(ant.changeState.calledWith('gathering')).to.be.true;
+      expect(ant.setState.calledWith('gathering')).to.be.true;
     });
     
     it('should pause/resume individual ants', function() {
@@ -1832,6 +1832,10 @@ describe('WorldService', function() {
       
       const ant1 = world.spawnEntity('Ant', { x: 100, y: 100, faction: 'player' });
       const ant2 = world.spawnEntity('Ant', { x: 200, y: 200, faction: 'player' });
+      
+      // Stub update methods to track calls
+      ant1.update = sinon.stub();
+      ant2.update = sinon.stub();
       
       world.pauseEntity(ant1._id);
       

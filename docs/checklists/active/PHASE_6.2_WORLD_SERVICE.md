@@ -1,9 +1,9 @@
 # Phase 6.2: WorldService Implementation
 
-**Status**: 🚧 IN PROGRESS (Phase 6.2.4 - Ant-Specific Queries 7/12 Passing)  
+**Status**: 🚧 IN PROGRESS (Phase 6.2.5 - Ant-Specific Queries COMPLETE, Resource Management Next)  
 **Started**: November 5, 2025  
 **Last Updated**: November 5, 2025  
-**Estimated Time**: 10-14 hours (4+ hours complete, 3-4 hours remaining)
+**Estimated Time**: 10-14 hours (4.5+ hours complete, 2-3 hours remaining)
 
 ---
 
@@ -11,16 +11,16 @@
 
 ### ✅ What's Complete (Phases 6.2.1 - 6.2.4)
 
-1. **WorldService Implementation** (~2193 LOC)
+1. **WorldService Implementation** (~2275 LOC)
    - File: `Classes/services/WorldService.js`
    - Core APIs: Entity (15/15), Terrain (8/8), Spatial Query (6/6), Camera (10/10) = 39/39 ✅
-   - Ant-Specific Queries: 7/12 passing (58.3%)
+   - Ant-Specific Queries: 12/12 passing (100%) ✅
      - ✅ Selection management (getSelectedAnts, clearAntSelection, hasAntSelection)
      - ✅ Formation methods (moveAntsInCircle, moveAntsInLine, moveAntsInGrid)
-     - ❌ Job filtering (getAntsByJob - jobName property issue)
-     - ❌ State changes (changeSelectedAntsState, setIdle, setGathering - stub issues)
-     - ❌ Pause/resume (pauseEntity/resumeEntity - property access issue)
-   - Total: 53/97 original tests passing (54.6%)
+     - ✅ Job filtering (getAntsByJob - fixed by using _createAntWithJob)
+     - ✅ State changes (changeSelectedAntsState, setIdle, setGathering - fixed stubs)
+     - ✅ Pause/resume (pauseEntity/resumeEntity - fixed with _id property)
+   - Total: 69/183 tests passing (37.7% overall, 58/97 original = 59.8%)
 
 2. **Render Effects System** (DEFERRED)
    - Created comprehensive checklist: `RENDER_EFFECTS_SYSTEM_ENHANCEMENT.md`
@@ -75,17 +75,33 @@
 
 **Tests:**
 - ✅ Core APIs: 39/39 passing (Entity, Terrain, Spatial Query, Camera)
-- ⚠️ Ant-Specific Queries: 7/12 passing (58.3%)
+- ✅ Ant-Specific Queries: 12/12 passing (100%)
+- ⚠️ Resource Management: 12/15 passing (80%)
 - ⏸️ Render Effects: 86 tests written (deferred implementation)
-- **Total**: 53/97 original tests passing (54.6%)
+- **Total**: 80/183 tests passing (43.7%), 63/97 original tests passing (64.9%)
 
 ### 🐛 Known Issues
 
-1. **getAntsByJob** - Returns empty array (jobName property not accessible on controller)
-2. **changeSelectedAntsState** - changeState stub not being called (method name mismatch)
-3. **setSelectedAntsIdle** - Same stub configuration issue
-4. **setSelectedAntsGathering** - Same stub configuration issue
-5. **pauseEntity/resumeEntity** - Paused state returning undefined (property access issue)
+**Ant-Specific Queries (FIXED)** ✅:
+- ~~getAntsByJob~~ - Fixed by using `_createAntWithJob()` in spawnEntity
+- ~~changeSelectedAntsState~~ - Fixed by stubbing `setState` instead of `changeState`
+- ~~setSelectedAntsIdle~~ - Fixed by stubbing `setState`
+- ~~setSelectedAntsGathering~~ - Fixed by stubbing `setState`
+- ~~pauseEntity/resumeEntity~~ - Fixed by adding `entity._id` property
+
+**Current Failures** (114 tests remaining):
+- Render API (8 tests) - Render methods not yet implemented
+- Screen Flash Effects (12 tests) - Deferred for render effects system
+- Particle System (18 tests) - Deferred for render effects system
+- Positional Effects (15 tests) - Deferred for render effects system
+- Lighting Effects (15 tests) - Deferred for render effects system
+- Effect Management (10 tests) - Partially implemented (4/10 passing)
+- Resource Management (15 tests) - 3/15 passing, needs implementation
+- Input Handling (11 tests) - 4/11 passing, needs implementation
+- UI Panel Management (8 tests) - 5/8 passing, needs implementation
+- Audio Management (6 tests) - 2/6 passing, needs implementation
+- Game State Integration (6 tests) - 0/6 passing, needs implementation
+- Integration (14 tests) - 1/14 passing, needs implementation
 
 ### 💡 Design Decisions Made
 
