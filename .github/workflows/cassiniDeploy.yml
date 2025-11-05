@@ -55,7 +55,7 @@ jobs:
               run:
                 $LOGGING
 
-                $RUN killall screen
+                $RUN pkill screen
 
                 $RUN screen -dm python -m http.server 8029
                 
