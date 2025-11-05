@@ -35,7 +35,6 @@ class QueenAnt extends ant {
 
     // Queen-specific properties
     this.commandRadius = 250;
-    this.ants = []; // ants under her command
     this.coolDown = false;
     this.showCommandRadius = false;
     // Queen should not perform idle random skitter movements
@@ -161,25 +160,20 @@ class QueenAnt extends ant {
 
     switch (direction) {
       case "w":
-        console.log(`👑 [Queen] Moving UP to (${Math.round(pos.x)}, ${Math.round(pos.y + speed)})`);
         this.moveToLocation(pos.x, pos.y + speed);
         break;
       case "a":
-        console.log(`👑 [Queen] Moving LEFT to (${Math.round(pos.x - speed)}, ${Math.round(pos.y)})`);
         this.moveToLocation(pos.x - speed, pos.y);
         break;
       case "s":
-        console.log(`👑 [Queen] Moving DOWN to (${Math.round(pos.x)}, ${Math.round(pos.y - speed)})`);
         this.moveToLocation(pos.x, pos.y - speed);
         break;
       case "d":
-        console.log(`👑 [Queen] Moving RIGHT to (${Math.round(pos.x + speed)}, ${Math.round(pos.y)})`);
-        this.moveToLocation(pos.x + speed, pos.y);
+       this.moveToLocation(pos.x + speed, pos.y);
         break;
     }
     
     const newPos = this.getPosition();
-    console.log(`👑 [Queen] After move - New pos: (${Math.round(newPos.x)}, ${Math.round(newPos.y)})`);
   }
 
 

@@ -64,6 +64,11 @@
     <script src="Classes/views/AntView.js"></script>
     <script src="Classes/controllers/mvc/AntController.js"></script>
     
+    <!-- MVC Entities - Ants -->
+    <script src="Classes/models/AntModel.js"></script>
+    <script src="Classes/views/AntView.js"></script>
+    <script src="Classes/controllers/mvc/AntController.js"></script>
+    
     <!-- Factories -->
     <script src="Classes/factories/AntFactory.js"></script>
     <script src="Classes/factories/ResourceFactory.js"></script>
@@ -144,7 +149,6 @@
     <script src="Classes/controllers/InventoryController.js"></script>
     <!-- HealthController.js manages the health state and logic for entities; added to support entity health tracking and updates. -->
     <script src="Classes/controllers/HealthController.js"></script>
-    <script src="Classes/controllers/AntUtilities.js"></script>
 
     <!-- <script src="Classes/coordinateSystem.js"></script> -->
     <script src="Classes/containers/DropoffLocation.js"></script>
@@ -173,13 +177,19 @@
     <script src="debug/selectionBoxDebug.js"></script>
     <script src="debug/selectionRenderDebug.js"></script>
     <script src="debug/selectionStateMachine.js"></script>
+    <!-- Ant Support Systems -->
     <script src="Classes/ants/JobComponent.js"></script>
     <script src="Classes/ants/GatherState.js"></script>
     <script src="Classes/systems/GatherDebugRenderer.js"></script>
-    <script src="Classes/ants/ants.js"></script>
     <script src="Classes/ants/antBrain.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
     <script src="Classes/ants/Queen.js"></script>
+    
+    <!-- Ant Management (MVC Pattern) -->
+    <script src="Classes/managers/AntManager.js"></script>
+    <script src="Classes/factories/AntFactory.js"></script>
+    
+    <!-- Other Managers -->
     <script src="Classes/managers/EventManager.js"></script>
     <script src="Classes/managers/ShortcutManager.js"></script>
     <script src="Classes/managers/MiddleClickPan.js"></script>

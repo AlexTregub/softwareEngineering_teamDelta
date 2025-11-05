@@ -393,24 +393,35 @@ function handleDebugCommand(args) {
 function handleSelectCommand(args){
   if(!args.length){ logNormal("❌ Specify 'all','none', or an ant index"); return; }
   const target = args[0].toLowerCase();
+  const antManager = AntManager.getInstance();
+  
   switch(target){
     case 'all': {
-      let count = 0;
-      for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a){ a.isSelected = true; count++; } }
+      antManager.selectAllAnts();
+      const count = antManager.getSelectedAnts().length;
       logNormal(`✅ Selected ${count} ants`);
       break;
     }
     case 'none': {
-      for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a) a.isSelected = false; }
-      selectedAnt = null; logNormal("✅ Deselected all ants");
+      antManager.deselectAllAnts();
+      selectedAnt = null;
+      logNormal("✅ Deselected all ants");
       break;
     }
     default: {
       const index = Number.parseInt(target, 10);
-      if(!Number.isInteger(index) || index < 0 || index >= ants.length || !ants[index]) { logNormal(`❌ Invalid ant index: ${target}`); return; }
-      for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a) a.isSelected = false; }
-      const a = ants[index]?.antObject ?? ants[index];
-      if(a){ a.isSelected = true; selectedAnt = a; logNormal(`✅ Selected ant ${index}`); }
+      const allAnts = antManager.getAllAnts();
+      
+      if(!Number.isInteger(index) || index < 0 || index >= allAnts.length || !allAnts[index]) {
+        logNormal(`❌ Invalid ant index: ${target}`);
+        return;
+      }
+      
+      antManager.deselectAllAnts();
+      const ant = allAnts[index];
+      ant.setSelected(true);
+      selectedAnt = ant;
+      logNormal(`✅ Selected ant ${index}`);
     }
   }
 }
@@ -425,29 +436,48 @@ function handleSelectCommand(args){
 function handleKillCommand(args) {
   if (!args.length) { logNormal("❌ Specify 'all', 'selected', or an ant index"); return; }
   const target = args[0].toLowerCase();
+  const antManager = AntManager.getInstance();
+  
   switch (target) {
     case 'all': {
-      const count = antIndex;
-      ants = []; antIndex = 0; selectedAnt = null;
+      const allAnts = antManager.getAllAnts();
+      const count = allAnts.length;
+      
+      // Remove all ants from manager
+      allAnts.forEach(ant => {
+        const id = ant.model.id;
+        antManager.removeAnt(id);
+      });
+      
+      antIndex = 0; selectedAnt = null;
       logNormal(`💀 Removed all ${count} ants`);
       break;
     }
     case 'selected': {
-      let count = 0;
-      for (let i = ants.length - 1; i >= 0; i--) {
-        const antObj = ants[i]?.antObject ?? ants[i];
-        if (antObj && antObj.isSelected) { ants.splice(i, 1); count++; }
-      }
-      antIndex = ants.length; selectedAnt = null;
+      const selectedAnts = antManager.getSelectedAnts();
+      const count = selectedAnts.length;
+      
+      // Remove selected ants from manager
+      selectedAnts.forEach(ant => {
+        const id = ant.model.id;
+        antManager.removeAnt(id);
+      });
+      
+      antIndex = antManager.getAntCount(); selectedAnt = null;
       logNormal(`💀 Removed ${count} selected ants`);
       break;
     }
     default: {
       const index = Number.parseInt(target, 10);
-      if (!Number.isInteger(index) || index < 0 || index >= ants.length || !ants[index]) {
+      const allAnts = antManager.getAllAnts();
+      
+      if (!Number.isInteger(index) || index < 0 || index >= allAnts.length || !allAnts[index]) {
         logNormal(`❌ Invalid ant index: ${target}`); return;
       }
-      ants.splice(index, 1); antIndex = ants.length; selectedAnt = null;
+      
+      const antToRemove = allAnts[index];
+      antManager.removeAnt(antToRemove.model.id);
+      antIndex = antManager.getAntCount(); selectedAnt = null;
       logNormal(`💀 Removed ant ${index}`);
     }
   }
@@ -758,11 +788,12 @@ function handleDamageCommand(args) {
     return;
   }
   
-  // Get selected ants using AntUtilities if available, otherwise fall back to global selectedAnt
-  let selectedAnts = [];
-  if (typeof AntUtilities !== 'undefined' && AntUtilities.getSelectedAnts) {
-    selectedAnts = AntUtilities.getSelectedAnts(ants || []);
-  } else if (selectedAnt) {
+  // Get selected ants using AntManager (MVC pattern)
+  const antManager = AntManager.getInstance();
+  let selectedAnts = antManager.getSelectedAnts();
+  
+  // Fallback to global selectedAnt if no manager selections
+  if (selectedAnts.length === 0 && selectedAnt) {
     selectedAnts = [selectedAnt];
   }
   
@@ -808,11 +839,12 @@ function handleHealCommand(args) {
     return;
   }
   
-  // Get selected ants using AntUtilities if available, otherwise fall back to global selectedAnt
-  let selectedAnts = [];
-  if (typeof AntUtilities !== 'undefined' && AntUtilities.getSelectedAnts) {
-    selectedAnts = AntUtilities.getSelectedAnts(ants || []);
-  } else if (selectedAnt) {
+  // Get selected ants using AntManager (MVC pattern)
+  const antManager = AntManager.getInstance();
+  let selectedAnts = antManager.getSelectedAnts();
+  
+  // Fallback to global selectedAnt if no manager selections
+  if (selectedAnts.length === 0 && selectedAnt) {
     selectedAnts = [selectedAnt];
   }
   

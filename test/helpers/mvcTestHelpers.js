@@ -78,6 +78,7 @@ function setupP5Rendering() {
     strokeWeight: sinon.stub(),
     noStroke: sinon.stub(),
     noFill: sinon.stub(),
+    noSmooth: sinon.stub(),
     ellipse: sinon.stub(),
     rect: sinon.stub(),
     translate: sinon.stub(),
@@ -121,22 +122,30 @@ function setupCollisionBox2D() {
  */
 function setupMockSprite2D() {
   class MockSprite2D {
-    constructor(imagePath, position, size, rotation) {
-      this.imagePath = imagePath;
-      this._image = null; // Internal image property
-      this.position = position;
+    constructor(img, pos, size, rotation) {
+      // Match real Sprite2D interface: img, pos, size, rotation
+      // In tests, img might be a string path or an image object
+      this.img = img;
+      this.imagePath = typeof img === 'string' ? img : null; // For test assertions
+      this.pos = pos;
+      this.position = pos; // Alias for backward compatibility
       this.size = size;
       this.rotation = rotation || 0;
     }
     
     render() { /* Mock render */ }
-    setPosition(pos) { this.position = pos; }
+    setPosition(pos) { 
+      this.pos = pos; 
+      this.position = pos;
+    }
     setSize(size) { this.size = size; }
     setImage(img) { 
-      this._image = img; 
-      this.imagePath = img; 
+      this.img = img;
+      this.imagePath = typeof img === 'string' ? img : null;
     }
     setRotation(rot) { this.rotation = rot; }
+    getImage() { return this.img; }
+    hasImage() { return this.img != null; }
   }
   
   global.Sprite2D = MockSprite2D;

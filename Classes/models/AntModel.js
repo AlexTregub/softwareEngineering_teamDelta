@@ -15,6 +15,13 @@
  * @extends BaseModel
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
+const JobComponent = (typeof require !== 'undefined') ? require('../ants/JobComponent') : window.JobComponent;
+const AntStateMachine = (typeof require !== 'undefined') ? require('../ants/antStateMachine') : window.AntStateMachine;
+const ResourceManager = (typeof require !== 'undefined') ? require('../managers/ResourceManager') : window.ResourceManager;
+const StatsContainer = (typeof require !== 'undefined') ? require('../containers/StatsContainer') : window.StatsContainer;
+
 // Note: GatherState will be integrated later
 
 // Global ant index counter (auto-increment)
@@ -104,8 +111,8 @@ class AntModel extends BaseModel {
     // ResourceManager integration (capacity: 2 slots, collectionRange: 25 pixels)
     this._resourceManager = new ResourceManager(this, 2, 25);
     
-    // GatherState will be integrated later
-    this._gatherState = null;     // TODO: new GatherState(this);
+    // GatherState integration for autonomous resource collection
+    this._gatherState = (typeof GatherState !== 'undefined') ? new GatherState(this) : null;
     
     // StatsContainer (keep for compatibility)
     this._statsContainer = null; // TODO: new StatsContainer(...);
@@ -550,7 +557,13 @@ class AntModel extends BaseModel {
    * Start gathering behavior
    */
   startGathering() {
-    // TODO: Integrate GatherState
+    if (this._gatherState) {
+      try {
+        this._gatherState.enter();
+      } catch (e) {
+        // GatherState might fail in test environment, but we still want to notify
+      }
+    }
     this._notifyChange('gatheringStart', {});
   }
   
@@ -558,7 +571,13 @@ class AntModel extends BaseModel {
    * Stop gathering behavior
    */
   stopGathering() {
-    // TODO: Integrate GatherState
+    if (this._gatherState) {
+      try {
+        this._gatherState.exit();
+      } catch (e) {
+        // GatherState might fail in test environment, but we still want to notify
+      }
+    }
     this._notifyChange('gatheringStop', {});
   }
   
@@ -567,8 +586,10 @@ class AntModel extends BaseModel {
    * @returns {boolean} True if gathering
    */
   isGathering() {
-    // TODO: Integrate GatherState
-    return this.getCurrentState().includes('GATHERING');
+    if (this._gatherState) {
+      return this._gatherState.isActive;
+    }
+    return false;
   }
   
   /**

@@ -7,6 +7,10 @@
  * @extends BaseController
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseController = (typeof require !== 'undefined') ? require('./BaseController') : window.BaseController;
+const AntModel = (typeof require !== 'undefined') ? require('../../models/AntModel') : window.AntModel;
+const AntView = (typeof require !== 'undefined') ? require('../../views/AntView') : window.AntView;
 
 class AntController extends BaseController {
   /**

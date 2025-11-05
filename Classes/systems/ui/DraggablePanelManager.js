@@ -1141,21 +1141,20 @@ class DraggablePanelManager {
         return false;
       },
       
-      // Method 2: Try global ants array
+      // Method 2: AntManager + AntFactory (MVC pattern)
       () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants) && typeof Ant !== 'undefined') {
-          for (let i = 0; i < count; i++) {
-            const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-            const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-            const newAnt = new Ant(spawnX, spawnY);
-            ants.push(newAnt);
-            spawned++;
-          }
-          return true;
+        const antManager = AntManager.getInstance();
+        const antFactory = new AntFactory(antManager);
+        
+        for (let i = 0; i < count; i++) {
+          const centerX = g_canvasX / 2 || width / 2 || 400;
+          const centerY = g_canvasY / 2 || height / 2 || 400;
+          const spawnX = (mouseX || centerX) + (Math.random() - 0.5) * 100;
+          const spawnY = (mouseY || centerY) + (Math.random() - 0.5) * 100;
+          antFactory.spawnAnts(1, 'player', spawnX, spawnY);
+          spawned++;
         }
-        return false;
+        return true;
       },
       
       // Method 4: Try command line spawning system
@@ -1195,19 +1194,19 @@ class DraggablePanelManager {
     
     // Try multiple spawning methods until we find one that works
     const spawnMethods = [
-      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      // Method 1: Use AntFactory directly (MVC pattern)
       () => {
-        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
-          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-          const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 50;
-          const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 50;
-          
-          const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
-          if (enemyAnt) {
-            logNormal('✅ Successfully spawned enemy ant using AntUtilities');
-            return true;
-          }
+        const antManager = AntManager.getInstance();
+        const antFactory = new AntFactory(antManager);
+        const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+        const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+        const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 50;
+        const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 50;
+        
+        const enemyAnt = antFactory.createWarrior(spawnX, spawnY, "enemy");
+        if (enemyAnt) {
+          logNormal('✅ Successfully spawned enemy ant using AntFactory');
+          return true;
         }
         return false;
       },
@@ -1251,26 +1250,26 @@ class DraggablePanelManager {
     
     // Try multiple spawning methods until we find one that works
     const spawnMethods = [
-      // Method 1: Try AntUtilities.spawnAnt (preferred method)
+      // Method 1: Use AntFactory directly (MVC pattern)
       () => {
-        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
-          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+        const antManager = AntManager.getInstance();
+        const antFactory = new AntFactory(antManager);
+        const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+        const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+        
+        for (let i = 0; i < count; i++) {
+          const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+          const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
           
-          for (let i = 0; i < count; i++) {
-            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-            
-            const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
-            if (enemyAnt) {
-              spawned++;
-            }
+          const enemyAnt = antFactory.createWarrior(spawnX, spawnY, "enemy");
+          if (enemyAnt) {
+            spawned++;
           }
-          
-          if (spawned > 0) {
-            logNormal(`✅ Successfully spawned ${spawned} enemy ant(s) using AntUtilities`);
-            return true;
-          }
+        }
+        
+        if (spawned > 0) {
+          logNormal(`✅ Successfully spawned ${spawned} enemy ant(s) using AntFactory`);
+          return true;
         }
         return false;
       },
@@ -1914,23 +1913,11 @@ class DraggablePanelManager {
         return false;
       },
       
-      // Method 2: Use AntUtilities
+      // Method 2: Use AntManager (MVC pattern)
       () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          if (typeof AntUtilities.selectAllAnts === 'function') {
-            AntUtilities.selectAllAnts(ants);
-            return true;
-          } else if (typeof AntUtilities.getSelectedAnts === 'function') {
-            // Manually select all ants
-            ants.forEach(ant => {
-              if (ant && typeof ant.isSelected !== 'undefined') {
-                ant.isSelected = true;
-              }
-            });
-            return true;
-          }
-        }
-        return false;
+        const antManager = AntManager.getInstance();
+        antManager.selectAllAnts();
+        return true;
       },
       
       // Method 3: Direct ant array manipulation
@@ -1982,15 +1969,11 @@ class DraggablePanelManager {
         return false;
       },
       
-      // Method 2: Use AntUtilities
+      // Method 2: Use AntManager (MVC pattern)
       () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          if (typeof AntUtilities.deselectAllAnts === 'function') {
-            AntUtilities.deselectAllAnts(ants);
-            return true;
-          }
-        }
-        return false;
+        const antManager = AntManager.getInstance();
+        antManager.deselectAllAnts();
+        return true;
       },
       
       // Method 3: Direct ant array manipulation
@@ -2034,10 +2017,10 @@ class DraggablePanelManager {
       }
     } catch (e) { selected = []; }
 
-    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
-    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
-      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
-      else selected = ants.filter(a => a && a.isSelected);
+    // Fallback: AntManager.getSelectedAnts
+    if ((!selected || selected.length === 0)) {
+      const antManager = AntManager.getInstance();
+      selected = antManager.getSelectedAnts();
     }
 
     // If still nothing selected, warn and return
@@ -2072,10 +2055,10 @@ class DraggablePanelManager {
       }
     } catch (e) { selected = []; }
 
-    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
-    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
-      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
-      else selected = ants.filter(a => a && a.isSelected);
+    // Fallback: AntManager.getSelectedAnts
+    if ((!selected || selected.length === 0)) {
+      const antManager = AntManager.getInstance();
+      selected = antManager.getSelectedAnts();
     }
 
     if (!selected || selected.length === 0) {
@@ -2134,107 +2117,27 @@ class DraggablePanelManager {
    */
   setSelectedAntsGathering() {
     logNormal('🔍 Setting selected ants to GATHERING state (7-grid radius)...');
-    if (typeof AntUtilities !== 'undefined' && AntUtilities.setSelectedAntsGathering && typeof ants !== 'undefined' && Array.isArray(ants)) {
-      const count = AntUtilities.setSelectedAntsGathering(ants);
+    const antManager = AntManager.getInstance();
+    antManager.setSelectedAntsGathering();
+    const count = antManager.getSelectedAnts().length;
+    if (count > 0) {
       logNormal(`✅ Set ${count} ants to autonomous gathering mode`);
-    } else {
-      console.warn('AntUtilities.setSelectedAntsGathering not available - using fallback');
-      // Fallback to basic state setting
-      this._setSelectedAntsState('GATHERING', 'OUT_OF_COMBAT', 'DEFAULT');
     }
   }
 
   /**
-   * Internal method to set ant states using multiple fallback approaches
+   * Internal method to set ant states using AntManager (MVC pattern)
    * @param {string} primaryState - Primary state to set
    * @param {string} combatModifier - Combat modifier to set
    * @param {string} terrainModifier - Terrain modifier to set
    */
   _setSelectedAntsState(primaryState, combatModifier, terrainModifier) {
-    // Method 1: Use AntUtilities if available
-    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-      if (typeof AntUtilities.changeSelectedAntsState === 'function') {
-        AntUtilities.changeSelectedAntsState(ants, primaryState, combatModifier, terrainModifier);
-        
-        // Synchronize selection systems after successful state change
-        if (typeof AntUtilities.synchronizeSelections === 'function') {
-          AntUtilities.synchronizeSelections(ants);
-        }
-        return;
-      }
-      
-      // Method 2: Use specific AntUtilities method based on state
-      const stateMethodMap = {
-        'IDLE': 'setSelectedAntsIdle',
-        'GATHERING': 'setSelectedAntsGathering', 
-        'PATROL': 'setSelectedAntsPatrol',
-        'BUILDING': 'setSelectedAntsBuilding'
-      };
-      
-      const methodName = stateMethodMap[primaryState];
-      if (methodName && typeof AntUtilities[methodName] === 'function') {
-        AntUtilities[methodName](ants);
-        
-        // Synchronize selection systems after successful state change
-        if (typeof AntUtilities.synchronizeSelections === 'function') {
-          AntUtilities.synchronizeSelections(ants);
-        }
-        return;
-      }
-      
-      // Method 3: Manual state change using AntUtilities.getSelectedAnts
-      if (typeof AntUtilities.getSelectedAnts === 'function') {
-        const selectedAnts = AntUtilities.getSelectedAnts(ants);
-        let changedCount = 0;
-        
-        selectedAnts.forEach(ant => {
-          if (ant && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
-            const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
-            if (success) changedCount++;
-          }
-        });
-        
-        if (changedCount > 0) {
-          logNormal(`✅ Changed state of ${changedCount} ants to ${primaryState}`);
-          return;
-        }
-      }
-    }
+    const antManager = AntManager.getInstance();
+    antManager.changeSelectedAntsState(primaryState, combatModifier, terrainModifier);
     
-    // Method 4: Direct ant array manipulation (fallback)
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-      let changedCount = 0;
-      
-      ants.forEach(ant => {
-        // Check if ant is selected
-        const isSelected = ant._selectionController ? 
-          ant._selectionController.isSelected() : 
-          (ant.isSelected || false);
-          
-        if (isSelected && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
-          const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
-          if (success) changedCount++;
-        }
-      });
-      
-      if (changedCount > 0) {
-        logNormal(`✅ Changed state of ${changedCount} ants to ${primaryState} (direct manipulation)`);
-        
-        // Synchronize selection systems after successful state change
-        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.synchronizeSelections === 'function') {
-          AntUtilities.synchronizeSelections(ants);
-        }
-        return;
-      }
-    }
-    
-    console.warn(`⚠️ Could not change ant states - no selected ants found or compatible state system unavailable`);
-    
-    // After any state change attempt, synchronize the selection systems
-    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-      if (typeof AntUtilities.synchronizeSelections === 'function') {
-        AntUtilities.synchronizeSelections(ants);
-      }
+    const count = antManager.getSelectedAnts().length;
+    if (count > 0) {
+      logNormal(`✅ Changed state of ${count} ants to ${primaryState}`);
     }
   }
 

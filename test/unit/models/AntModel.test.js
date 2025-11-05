@@ -34,9 +34,15 @@ describe('AntModel', function() {
     // Load ant-specific components
     JobComponent = require('../../../Classes/ants/JobComponent');
     AntStateMachine = require('../../../Classes/ants/antStateMachine');
-    // ResourceManager = require('../../../Classes/managers/ResourceManager');
-    // GatherState = require('../../../Classes/ants/GatherState');
+    ResourceManager = require('../../../Classes/managers/ResourceManager');
+    GatherState = require('../../../Classes/ants/GatherState');
     StatsContainer = require('../../../Classes/containers/StatsContainer');
+    
+    // Make GatherState globally available for AntModel
+    global.GatherState = GatherState;
+    if (typeof window !== 'undefined') {
+      window.GatherState = GatherState;
+    }
     
     // Load AntModel (will fail initially - TDD red phase)
     AntModel = require('../../../Classes/models/AntModel');
@@ -774,20 +780,24 @@ describe('AntModel', function() {
       expect(dropoffCall).to.exist;
     });
     
-    it.skip('should handle combat modifier states (Phase 3.5 - State Machine Refactor)', function() {
+    it('should handle combat modifier states', function() {
       const model = new AntModel(100, 100, 32, 32);
       
       model.setState('IDLE', 'IN_COMBAT');
       
-      expect(model.getCurrentState()).to.include('IN_COMBAT');
+      // Use stateMachine.getFullState() to get complete state with modifiers
+      const fullState = model.stateMachine.getFullState();
+      expect(fullState).to.include('IN_COMBAT');
     });
     
-    it.skip('should handle terrain modifier states (Phase 3.5 - State Machine Refactor)', function() {
+    it('should handle terrain modifier states', function() {
       const model = new AntModel(100, 100, 32, 32);
       
       model.setState('MOVING', 'OUT_OF_COMBAT', 'IN_WATER');
       
-      expect(model.getCurrentState()).to.include('IN_WATER');
+      // Use stateMachine.getFullState() to get complete state with modifiers
+      const fullState = model.stateMachine.getFullState();
+      expect(fullState).to.include('IN_WATER');
     });
   });
   
@@ -796,12 +806,12 @@ describe('AntModel', function() {
   // ========================================
   
   describe('Behavior System', function() {
-    it.skip('should have gatherState property (Task 1.9 - GatherState Integration)', function() {
+    it('should have gatherState property', function() {
       const model = new AntModel(100, 100, 32, 32);
       expect(model.gatherState).to.exist;
     });
     
-    it.skip('should start gathering with startGathering() (Task 1.9 - GatherState Integration)', function() {
+    it('should start gathering with startGathering()', function() {
       const model = new AntModel(100, 100, 32, 32);
       
       model.startGathering();
@@ -818,7 +828,7 @@ describe('AntModel', function() {
       expect(model.isGathering()).to.be.false;
     });
     
-    it.skip('should check gathering status with isGathering() (Task 1.9 - GatherState Integration)', function() {
+    it('should check gathering status with isGathering()', function() {
       const model = new AntModel(100, 100, 32, 32);
       
       expect(model.isGathering()).to.be.false;
@@ -854,8 +864,14 @@ describe('AntModel', function() {
       
       model.startGathering();
       
-      expect(listener.calledOnce).to.be.true;
-      expect(listener.firstCall.args[0]).to.equal('gatheringStart');
+      // GatherState.enter() triggers a state change ('state') followed by gatheringStart
+      // So we expect at least 2 calls: 'state' and 'gatheringStart'
+      expect(listener.called).to.be.true;
+      
+      // Find the 'gatheringStart' call
+      const gatheringStartCall = listener.getCalls().find(call => call.args[0] === 'gatheringStart');
+      expect(gatheringStartCall).to.exist;
+      expect(gatheringStartCall.args[0]).to.equal('gatheringStart');
     });
     
     it('should notify on gathering stop', function() {

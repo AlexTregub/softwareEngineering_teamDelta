@@ -161,14 +161,14 @@ class EnemyAntBrush extends BrushBase {
     const spawnX = x + (Math.random() - 0.5) * randomOffset;
     const spawnY = y + (Math.random() - 0.5) * randomOffset;
 
-    // Try to spawn ant using AntUtilities
+    // Spawn ant using AntFactory (MVC pattern)
     let spawned = false;
-    if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
-      const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
-      if (enemyAnt) {
-        spawned = true;
-        logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)})`);
-      }
+    const antManager = AntManager.getInstance();
+    const antFactory = new AntFactory(antManager);
+    const enemyAnt = antFactory.createWarrior(spawnX, spawnY, "enemy");
+    if (enemyAnt) {
+      spawned = true;
+      logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)})`);
     }
 
     // Fallback to command system

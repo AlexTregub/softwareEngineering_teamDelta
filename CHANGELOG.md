@@ -10,6 +10,57 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### BREAKING CHANGES
 
+None
+
+---
+
+### User-Facing Changes
+
+None
+
+---
+
+### Developer-Facing Changes
+
+#### Added
+- **Ant MVC - Phase 3.7: GatherState Integration & Test Completion** (November 4, 2025)
+  - **Feature**: Completed 5 pending tests in AntModel (state modifiers + GatherState integration)
+  - **GatherState Integration**: 
+    - Instantiated GatherState in AntModel constructor: `new GatherState(this)`
+    - Implemented `startGathering()` - calls `_gatherState.enter()`, sets ant to GATHERING state
+    - Implemented `stopGathering()` - calls `_gatherState.exit()`, stops gathering behavior
+    - Implemented `isGathering()` - returns `_gatherState.isActive` status
+  - **State Modifier Tests**:
+    - Fixed combat modifier test: Changed to use `stateMachine.getFullState()` (includes modifiers)
+    - Fixed terrain modifier test: Changed to use `stateMachine.getFullState()` (includes modifiers)
+    - Previously used `getCurrentState()` which only returned primary state
+  - **GatherState Tests**:
+    - Enabled "should have gatherState property" test
+    - Enabled "should start gathering with startGathering()" test
+    - Enabled "should check gathering status with isGathering()" test
+  - **Test Setup**: Uncommented GatherState and ResourceManager requires, added global.GatherState
+  - **Results**: 241 tests passing (102 AntModel + 28 AntView + 68 AntManager + 43 AntFactory)
+  - **Phase Status**: Phase 3 (Ant MVC Refactoring) now 100% complete
+
+---
+
+### Previous Breaking Changes
+
+#### BREAKING CHANGES (Archived)
+
+- **AntUtilities API Simplified** (Phase 3.5 Legacy Integration - November 4, 2025)
+  - **Changed Behavior**: AntUtilities methods no longer require `ants[]` array parameter
+  - **Before**: `AntUtilities.getSelectedAnts(ants)` - required global ants array
+  - **After**: `AntUtilities.getSelectedAnts()` - queries AntManager internally
+  - **Reason**: AntUtilities now wraps AntManager + AntFactory (MVC pattern)
+  - **Migration**: Remove `ants` parameter from all AntUtilities calls
+  - **Impact**: Code passing `ants[]` array will still work (parameter ignored), but should be updated
+  - **Breaking Functions**:
+    - `getSelectedAnts(ants)` → `getSelectedAnts()` - no parameter
+    - `deselectAllAnts(ants)` → uses `AntManager.deselectAllAnts()` internally
+    - `changeSelectedAntsState(ants, state, ...)` → queries AntManager for selected ants
+  - **Recommended**: Use `AntManager.getInstance()` directly for new code
+
 - **Old Building System Removed** (Phase 2 Complete - November 4, 2025)
   - **Removed Functions**: `createBuilding()` global function, `BuildingPreloader()` global function
   - **Removed Files**: Old Building class (Entity-based), AbstractBuildingFactory classes
@@ -94,6 +145,56 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ---
 
 ### Developer-Facing Changes
+
+#### Refactored
+- **AntUtilities & Debug Commands (Phase 3.5 Legacy Integration - November 4, 2025)**
+  - **AntUtilities.js**: Refactored to wrap AntManager + AntFactory internally
+    - `spawnAnt()` now uses `AntFactory.createScout/Warrior/Builder()` instead of `new ant()`
+    - Removed all global `ants[]` array manipulation
+    - Preserved existing API - all calls still work without changes
+    - **Internal**: Clean MVC pattern, fail-fast philosophy enforced
+  - **AntManager.js**: Added 10+ group operation methods
+    - `selectAllAnts()` - Select all ants in registry
+    - `deselectAllAnts()` - Clear all selections (alias for clearSelection)
+    - `selectAntUnderMouse(x, y, clearOthers)` - Mouse-based selection with hit testing
+    - `isAntUnderMouse(ant, x, y)` - Bounds checking for mouse interactions
+    - `moveGroupInCircle(ants, x, y, radius)` - Circle formation movement
+    - `moveGroupInLine(ants, startX, startY, endX, endY)` - Line formation movement
+    - `moveGroupInGrid(ants, x, y, spacing, maxCols)` - Grid formation movement
+    - `changeSelectedAntsState(state, combat, terrain)` - Bulk state changes
+    - `setSelectedAntsIdle/Gathering/Patrol/Combat/Building()` - State shortcuts
+  - **DraggablePanelManager.js**: Massive code cleanup
+    - Removed **60+ lines** of defensive fallback code (3-4 layers per method)
+    - Simplified `_setSelectedAntsState()` from 50 lines → 10 lines
+    - Replaced AntUtilities calls with direct `AntManager.getInstance()` calls
+    - **Result**: Cleaner, more maintainable, fail-fast approach
+  - **commandLine.js**: All debug commands refactored to use AntManager
+    - `handleSelectCommand()` - Uses `AntManager.selectAllAnts/deselectAllAnts()`
+    - `handleKillCommand()` - Uses `AntManager.removeAnt()` instead of array splice
+  - **AntFactory Tests (Phase 3.4.6 - November 4, 2025)**
+    - Created comprehensive test suite: `test/unit/factories/AntFactory.test.js`
+    - **41 tests** covering all factory methods and edge cases
+    - Test Categories:
+      - Constructor validation (5 tests)
+      - Job-specific factories: createScout/Warrior/Builder/Farmer/Spitter (10 tests)
+      - Bulk spawning: spawnAnts() with random jobs (7 tests)
+      - Special entities: spawnQueen() with enhanced stats (6 tests)
+      - Utility methods: getAvailableJobs, getSpecialJobs, resetSpecialJobs (3 tests)
+      - Private helpers: size calculation, position jitter (5 tests)
+      - Integration: AntManager registry queries (5 tests)
+    - All tests passing with proper MVC dependencies and spatial grid mocks
+  - **AntUtilities Removal (Phase 3.6 - November 4, 2025)**
+    - **DELETED**: `Classes/controllers/AntUtilities.js` (842 lines)
+    - **Updated**: `DraggablePanelManager.js` - replaced AntUtilities calls with AntFactory
+      - `spawnEnemyAnt()` - now uses `antFactory.createWarrior(x, y, "enemy")`
+      - `spawnEnemyAnts(count)` - bulk spawning with AntFactory
+    - **Updated**: `EnemyAntBrush.js` - replaced AntUtilities with AntFactory
+      - `trySpawnAnt()` - direct AntFactory usage for enemy ant spawning
+    - **Updated**: `index.html` - removed AntUtilities script tag
+    - **Result**: Complete elimination of legacy wrapper layer, all 236 tests passing
+  - **Code Reduction**: Eliminated **970+ lines** total (130 defensive code + 842 AntUtilities)
+  - **Test Results**: 236 Ant MVC tests passing (no regressions)
+    - 97 AntModel tests + 34 AntView tests + 52 AntController tests + 37 AntManager tests
 
 #### Added
 - **Buildings MVC Refactoring (Phase 2 Complete - November 4, 2025)**

@@ -419,13 +419,34 @@ class AntManager {
   }
 
   /**
+   * Select all ants (bulk operation).
+   * 
+   * @example
+   * manager.selectAllAnts();
+   */
+  selectAllAnts() {
+    this.getAllAnts().forEach(ant => ant.setSelected(true));
+  }
+
+  /**
    * Clear all selections (bulk operation).
+   * Also available as: deselectAllAnts() (alias for compatibility)
    * 
    * @example
    * manager.clearSelection();
    */
   clearSelection() {
     this.getAllAnts().forEach(ant => ant.setSelected(false));
+  }
+
+  /**
+   * Alias for clearSelection() - for backward compatibility.
+   * 
+   * @example
+   * manager.deselectAllAnts();
+   */
+  deselectAllAnts() {
+    this.clearSelection();
   }
 
   /**
@@ -438,6 +459,215 @@ class AntManager {
    */
   hasSelection() {
     return this.getSelectedAnt() !== undefined;
+  }
+
+  // ===== GROUP OPERATIONS (Moved from AntUtilities) =====
+
+  /**
+   * Select ant under mouse cursor (with optional multi-select).
+   * 
+   * @param {number} mouseX - Mouse X coordinate
+   * @param {number} mouseY - Mouse Y coordinate
+   * @param {boolean} clearOthers - If true, deselect other ants first
+   * @returns {AntController|null} Selected ant or null if none found
+   * 
+   * @example
+   * const ant = manager.selectAntUnderMouse(mouseX, mouseY, true);
+   */
+  selectAntUnderMouse(mouseX, mouseY, clearOthers = true) {
+    if (clearOthers) {
+      this.clearSelection();
+    }
+
+    const ant = this.findAnt(a => this.isAntUnderMouse(a, mouseX, mouseY));
+    if (ant) {
+      ant.setSelected(true);
+    }
+    return ant;
+  }
+
+  /**
+   * Check if ant is under mouse cursor.
+   * 
+   * @param {AntController} ant - Ant to check
+   * @param {number} mouseX - Mouse X coordinate
+   * @param {number} mouseY - Mouse Y coordinate
+   * @returns {boolean} True if ant is under mouse
+   */
+  isAntUnderMouse(ant, mouseX, mouseY) {
+    const pos = ant.getPosition();
+    const size = ant.model.size || { width: 20, height: 20 };
+    
+    return mouseX >= pos.x && 
+           mouseX <= pos.x + size.width &&
+           mouseY >= pos.y && 
+           mouseY <= pos.y + size.height;
+  }
+
+  /**
+   * Move group of ants in circle formation.
+   * 
+   * @param {AntController[]} antArray - Array of ants to move
+   * @param {number} x - Center X coordinate
+   * @param {number} y - Center Y coordinate
+   * @param {number} radius - Circle radius in pixels
+   * 
+   * @example
+   * const selected = manager.getSelectedAnts();
+   * manager.moveGroupInCircle(selected, 400, 400, 50);
+   */
+  moveGroupInCircle(antArray, x, y, radius = 40) {
+    if (!antArray || antArray.length === 0) return;
+    
+    const angleStep = (2 * Math.PI) / antArray.length;
+    
+    for (let i = 0; i < antArray.length; i++) {
+      const ant = antArray[i];
+      const angle = i * angleStep;
+      const offsetX = Math.cos(angle) * radius;
+      const offsetY = Math.sin(angle) * radius;
+      
+      ant.moveToLocation(x + offsetX, y + offsetY);
+      ant.setSelected(false);
+    }
+  }
+
+  /**
+   * Move group of ants in line formation.
+   * 
+   * @param {AntController[]} antArray - Array of ants to move
+   * @param {number} startX - Line start X
+   * @param {number} startY - Line start Y
+   * @param {number} endX - Line end X
+   * @param {number} endY - Line end Y
+   * 
+   * @example
+   * const selected = manager.getSelectedAnts();
+   * manager.moveGroupInLine(selected, 100, 100, 500, 100);
+   */
+  moveGroupInLine(antArray, startX, startY, endX, endY) {
+    if (!antArray || antArray.length === 0) return;
+    
+    const length = antArray.length;
+    
+    for (let i = 0; i < length; i++) {
+      const ant = antArray[i];
+      const t = length === 1 ? 0.5 : i / (length - 1);
+      
+      const x = startX + (endX - startX) * t;
+      const y = startY + (endY - startY) * t;
+      
+      ant.moveToLocation(x, y);
+    }
+  }
+
+  /**
+   * Move group of ants in grid formation.
+   * 
+   * @param {AntController[]} antArray - Array of ants to move
+   * @param {number} centerX - Grid center X
+   * @param {number} centerY - Grid center Y
+   * @param {number} spacing - Spacing between ants
+   * @param {number} maxCols - Maximum columns
+   * 
+   * @example
+   * const selected = manager.getSelectedAnts();
+   * manager.moveGroupInGrid(selected, 400, 400, 32, 5);
+   */
+  moveGroupInGrid(antArray, centerX, centerY, spacing = 32, maxCols = null) {
+    if (!antArray || antArray.length === 0) return;
+    
+    if (!maxCols) {
+      maxCols = Math.ceil(Math.sqrt(antArray.length));
+    }
+    
+    const rows = Math.ceil(antArray.length / maxCols);
+    const gridWidth = (maxCols - 1) * spacing;
+    const gridHeight = (rows - 1) * spacing;
+    
+    const startX = centerX - gridWidth / 2;
+    const startY = centerY - gridHeight / 2;
+    
+    for (let i = 0; i < antArray.length; i++) {
+      const row = Math.floor(i / maxCols);
+      const col = i % maxCols;
+      
+      const x = startX + col * spacing;
+      const y = startY + row * spacing;
+      
+      antArray[i].moveToLocation(x, y);
+    }
+  }
+
+  /**
+   * Change state for all selected ants.
+   * 
+   * @param {string} primaryState - Primary state to set
+   * @param {string|null} combatModifier - Optional combat modifier
+   * @param {string|null} terrainModifier - Optional terrain modifier
+   * 
+   * @example
+   * manager.changeSelectedAntsState('gathering');
+   * manager.changeSelectedAntsState('combat', 'aggressive');
+   */
+  changeSelectedAntsState(primaryState, combatModifier = null, terrainModifier = null) {
+    const selected = this.getSelectedAnts();
+    
+    selected.forEach(ant => {
+      if (ant.changeState) {
+        ant.changeState(primaryState, combatModifier, terrainModifier);
+      }
+    });
+  }
+
+  /**
+   * Set all selected ants to idle state.
+   * 
+   * @example
+   * manager.setSelectedAntsIdle();
+   */
+  setSelectedAntsIdle() {
+    this.changeSelectedAntsState('idle');
+  }
+
+  /**
+   * Set all selected ants to gathering state.
+   * 
+   * @example
+   * manager.setSelectedAntsGathering();
+   */
+  setSelectedAntsGathering() {
+    this.changeSelectedAntsState('gathering');
+  }
+
+  /**
+   * Set all selected ants to patrol state.
+   * 
+   * @example
+   * manager.setSelectedAntsPatrol();
+   */
+  setSelectedAntsPatrol() {
+    this.changeSelectedAntsState('patrol');
+  }
+
+  /**
+   * Set all selected ants to combat state.
+   * 
+   * @example
+   * manager.setSelectedAntsCombat();
+   */
+  setSelectedAntsCombat() {
+    this.changeSelectedAntsState('combat', 'aggressive');
+  }
+
+  /**
+   * Set all selected ants to building state.
+   * 
+   * @example
+   * manager.setSelectedAntsBuilding();
+   */
+  setSelectedAntsBuilding() {
+    this.changeSelectedAntsState('building');
   }
 }
 

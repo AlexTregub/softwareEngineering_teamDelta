@@ -1735,24 +1735,22 @@ window.testAnt = window.spawnDebugAnt;
 window.goToQueen = function() {
   console.log('👑 [DEBUG] Looking for Queen...');
   
-  // Find the Queen
-  if (typeof ants === 'undefined' || !Array.isArray(ants)) {
-    console.error('❌ ants array not available');
-    return;
-  }
+  // Find the Queen via AntManager
+  const allAnts = antManager.getAllAnts();
   
-  const queen = ants.find(ant => 
-    ant.type === 'Queen' || ant.JobName === 'Queen' || ant.jobName === 'Queen'
+  const queen = allAnts.find(ant => 
+    ant.jobName === 'Queen' || ant.getJobName() === 'Queen'
   );
   
   if (!queen) {
-    console.error('❌ Queen not found in ants array');
-    console.log(`   Total ants: ${ants.length}`);
+    console.error('❌ Queen not found');
+    console.log(`   Total ants: ${allAnts.length}`);
     return;
   }
   
-  console.log(`✅ Queen found at (${Math.round(queen.x)}, ${Math.round(queen.y)})`);
-  console.log(`   Type: ${queen.type}, JobName: ${queen.JobName || queen.jobName}`);
+  const pos = queen.getPosition();
+  console.log(`✅ Queen found at (${Math.round(pos.x)}, ${Math.round(pos.y)})`);
+  console.log(`   JobName: ${queen.getJobName()}`);
   
   // Check if Queen has sprite
   if (queen._sprite) {
