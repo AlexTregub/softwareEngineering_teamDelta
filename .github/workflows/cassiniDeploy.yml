@@ -33,4 +33,6 @@ jobs:
 
             - name: See cassini...
               run:
+                echo Enabling xtrace on cassini (should set only locally) ~ set -o xtrace
+                $RUN set -o xtrace
                 $RUN ls -la
