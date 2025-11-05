@@ -43,7 +43,7 @@ jobs:
               run: 
                 $LOGGING
 
-                $RUN rm -rf ~/softwareEngineering_teamDelta/ ;
+                $RUN "rm -rf ~/softwareEngineering_teamDelta/" ;
 
                 $RUN git clone https://github.com/AlexTregub/softwareEngineering_teamDelta.git ;
 
