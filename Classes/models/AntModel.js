@@ -15,17 +15,6 @@
  * @extends BaseModel
  */
 
-// Load dependencies (Node.js require, or use global in browser)
-const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
-const JobComponent = (typeof require !== 'undefined') ? require('../ants/JobComponent') : window.JobComponent;
-const AntStateMachine = (typeof require !== 'undefined') ? require('../ants/antStateMachine') : window.AntStateMachine;
-const ResourceManager = (typeof require !== 'undefined') ? require('../managers/ResourceManager') : window.ResourceManager;
-const StatsContainer = (typeof require !== 'undefined') ? require('../containers/StatsContainer') : window.StatsContainer;
-
-// Note: GatherState will be integrated later
-
-// Global ant index counter (auto-increment)
-let nextAntIndex = 0;
 
 class AntModel extends BaseModel {
   /**

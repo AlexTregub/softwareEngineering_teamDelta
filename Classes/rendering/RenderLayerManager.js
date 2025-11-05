@@ -1177,8 +1177,8 @@ function renderPipelineInit() {
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
-      if (g_resourceManager && typeof g_resourceManager.forceSpawn === 'function') {
-        g_resourceManager.forceSpawn();
+      if (resourceManager && typeof resourceManager.forceSpawn === 'function') {
+        resourceManager.forceSpawn();
       }
   } catch (e) { /* non-fatal; spawner will populate via interval */ }
   

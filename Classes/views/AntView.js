@@ -14,13 +14,6 @@
  * @extends BaseView
  */
 
-// Load dependencies (Node.js require, or use global in browser)
-const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : window.BaseView;
-// Sprite2D: Use global if available (test mock), otherwise require real class
-const Sprite2D = (typeof global !== 'undefined' && global.Sprite2D) ? global.Sprite2D :
-                 (typeof window !== 'undefined' && window.Sprite2D) ? window.Sprite2D :
-                 require('../rendering/Sprite2d');
-
 class AntView extends BaseView {
   /**
    * Creates an AntView

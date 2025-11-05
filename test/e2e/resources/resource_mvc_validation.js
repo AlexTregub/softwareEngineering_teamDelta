@@ -184,9 +184,9 @@ async function runResourceE2ETest() {
       } catch (e) { errors.push(`greenLeaf2: ${e.message}`); resources.push(null); }
       
       // Add to ResourceSystemManager if available
-      if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
+      if (typeof resourceManager !== 'undefined' && resourceManager) {
         resources.forEach(r => {
-          if (r) g_resourceManager.addResource(r);
+          if (r) resourceManager.addResource(r);
         });
       }
       
@@ -295,8 +295,8 @@ async function runResourceE2ETest() {
       const creationTime = performance.now() - startTime;
       
       // Add to manager
-      if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
-        resources.forEach(r => g_resourceManager.addResource(r));
+      if (typeof resourceManager !== 'undefined' && resourceManager) {
+        resources.forEach(r => resourceManager.addResource(r));
       }
       
       // Test rendering performance
@@ -366,14 +366,14 @@ async function runResourceE2ETest() {
     // Test 8: ResourceManager integration
     console.log('\n✅ TEST 8: ResourceManager integration');
     const managerTest = await page.evaluate(() => {
-      if (typeof g_resourceManager === 'undefined' || !g_resourceManager) {
+      if (typeof resourceManager === 'undefined' || !resourceManager) {
         return { available: false };
       }
       
-      const resources = g_resourceManager.getResourceList();
-      const foodResources = g_resourceManager.getResourcesByType('Food');
-      const woodResources = g_resourceManager.getResourcesByType('Wood');
-      const stoneResources = g_resourceManager.getResourcesByType('Stone');
+      const resources = resourceManager.getResourceList();
+      const foodResources = resourceManager.getResourcesByType('Food');
+      const woodResources = resourceManager.getResourcesByType('Wood');
+      const stoneResources = resourceManager.getResourcesByType('Stone');
       
       return {
         available: true,

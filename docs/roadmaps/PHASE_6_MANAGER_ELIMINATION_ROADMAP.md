@@ -95,7 +95,7 @@ class EntityService {
 
 **Breaking Changes**:
 - `g_antManager.createAnt()` → `gameContext.entities.spawn('Ant', { ... })`
-- `g_buildingManager.createBuilding()` → `gameContext.entities.spawn('Building', { ... })`
+- `buildingManager.createBuilding()` → `gameContext.entities.spawn('Building', { ... })`
 - `g_resourceSystemManager.spawnResource()` → `gameContext.entities.spawn('Resource', { ... })`
 
 ---

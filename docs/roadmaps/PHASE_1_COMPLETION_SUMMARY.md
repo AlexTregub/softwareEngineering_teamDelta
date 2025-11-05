@@ -192,7 +192,7 @@ if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'functi
 **Status**: **No changes needed** - already compatible!
 
 **Why No Changes Required**:
-1. DraggablePanelSystem uses `g_resourceManager.getResourcesByType()`
+1. DraggablePanelSystem uses `resourceManager.getResourcesByType()`
 2. ResourceSystemManager internally uses duck-typed `getType()`
 3. No UI code directly accesses `resource.type` or `resource.posX/posY`
 4. All access is through manager APIs (indirect)

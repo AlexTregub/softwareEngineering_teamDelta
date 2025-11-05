@@ -116,6 +116,52 @@ class BrushBase {
   }
 }
 
+
+
+/**
+ * BrushHandling
+ * Basic pattern
+ * Handle DraggablePanel mouse events
+ *   if (window.{BRUSH}.isActive) {
+ *   const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
+ *   if (handled) return; }
+ */
+function brushHandling() {
+      // Handle Enemy Ant Brush events
+  if (window.g_enemyAntBrush.isActive) {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+  }
+
+  // Handle Resource Brush events
+  if (window.g_resourceBrush.isActive) {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+  }
+
+  // Handle Building Brush events
+  if (window.g_buildingBrush.isActive) {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+  }
+
+  // Handle Lightning Aim Brush events
+  if (window.g_lightningAimBrush.isActive) {
+    const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+    const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+    if (handled) return; // Brush consumed the event, don't process other mouse events
+  }
+
+  // Handle Queen Control Panel right-click for power cycling
+  if (window.g_queenControlPanel && mouseButton === RIGHT) {
+    const handled = window.g_queenControlPanel.handleRightClick();
+    if (handled) return; // Queen panel consumed the right-click
+  }
+}
+
 // Export globals for convenience
 if (typeof window !== 'undefined') {
   window.BrushBase = BrushBase;

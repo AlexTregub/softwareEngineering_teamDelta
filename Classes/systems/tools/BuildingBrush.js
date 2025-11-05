@@ -232,8 +232,8 @@ class BuildingBrush extends BrushBase {
     }
 
     // Create building using MVC BuildingManager
-    if (typeof g_buildingManager !== 'undefined' && g_buildingManager) {
-      const building = g_buildingManager.createBuilding(this.buildingType, snappedX, snappedY, 'Player');
+    if (typeof buildingManager !== 'undefined' && buildingManager) {
+      const building = buildingManager.createBuilding(this.buildingType, snappedX, snappedY, 'Player');
       
       if (building) {
         // Add to legacy Buildings[] array for compatibility
@@ -255,7 +255,7 @@ class BuildingBrush extends BrushBase {
         console.warn(`⚠️ Failed to create building: ${this.buildingType}`);
       }
     } else {
-      console.warn('⚠️ g_buildingManager not available');
+      console.warn('⚠️ buildingManager not available');
     }
     
     return false;
