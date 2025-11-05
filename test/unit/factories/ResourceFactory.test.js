@@ -11,6 +11,7 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('ResourceFactory', function() {
+   
   let ResourceFactory, ResourceController, ResourceModel, ResourceView;
   
   before(function() {
@@ -43,6 +44,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('createGreenLeaf()', function() {
+   
     it('should create ResourceController with greenLeaf type', function() {
       const resource = ResourceFactory.createGreenLeaf(100, 150);
       
@@ -96,6 +98,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('createMapleLeaf()', function() {
+   
     it('should create ResourceController with mapleLeaf type', function() {
       const resource = ResourceFactory.createMapleLeaf(200, 250);
       
@@ -119,6 +122,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('createStick()', function() {
+   
     it('should create ResourceController with stick type', function() {
       const resource = ResourceFactory.createStick(300, 350);
       
@@ -142,6 +146,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('createStone()', function() {
+   
     it('should create ResourceController with stone type', function() {
       const resource = ResourceFactory.createStone(400, 450);
       
@@ -165,6 +170,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('createResource() - Generic Factory', function() {
+   
     it('should create greenLeaf via generic factory', function() {
       const resource = ResourceFactory.createResource('greenLeaf', 100, 150);
       
@@ -215,6 +221,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('Image Loading', function() {
+   
     it('should load greenLeaf image', function() {
       const resource = ResourceFactory.createGreenLeaf(100, 150);
       
@@ -239,6 +246,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('Size and Dimensions', function() {
+   
     it('should create resources with 20x20 dimensions', function() {
       const resource = ResourceFactory.createGreenLeaf(100, 150);
       const size = resource.model.size;
@@ -261,6 +269,7 @@ describe('ResourceFactory', function() {
   });
   
   describe('Integration with ResourceController', function() {
+   
     it('should create fully functional ResourceController', function() {
       const resource = ResourceFactory.createGreenLeaf(100, 150);
       

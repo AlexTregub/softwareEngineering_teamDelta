@@ -31,7 +31,7 @@ let g_globalTime;
 // Buildings
 let Buildings = [];
 
-let world; // WorldService instance - ONE global to rule them all
+let world; // WorldService instance
 
 function initGlobals() {
 

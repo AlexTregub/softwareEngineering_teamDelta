@@ -79,14 +79,14 @@ describe('ResourceController', function() {
   });
   
   describe('Public API - Position', function() {
-    it('should have getPosition method', function() {
+    it('should have position property via model', function() {
       const controller = new ResourceController(100, 100, 32, 32);
-      expect(controller.getPosition).to.be.a('function');
+      expect(controller.model.position).to.be.an('object');
     });
     
     it('should return position from model', function() {
       const controller = new ResourceController(150, 200, 32, 32);
-      const position = controller.getPosition();
+      const position = controller.position;
       expect(position.x).to.equal(150);
       expect(position.y).to.equal(200);
     });
@@ -112,26 +112,26 @@ describe('ResourceController', function() {
   });
   
   describe('Public API - Resource Type', function() {
-    it('should have getType method', function() {
+    it('should have type property via model', function() {
       const controller = new ResourceController(100, 100, 32, 32);
-      expect(controller.getType).to.be.a('function');
+      expect(controller.model.type).to.be.a('string');
     });
     
     it('should return type from model', function() {
       const controller = new ResourceController(100, 100, 32, 32, { type: 'Stone' });
-      expect(controller.getType()).to.equal('Stone');
+      expect(controller.model.type).to.equal('Stone');
     });
   });
   
   describe('Public API - Resource Amount', function() {
-    it('should have getAmount method', function() {
+    it('should have amount property via model', function() {
       const controller = new ResourceController(100, 100, 32, 32);
-      expect(controller.getAmount).to.be.a('function');
+      expect(controller.model.amount).to.be.a('number');
     });
     
     it('should return amount from model', function() {
       const controller = new ResourceController(100, 100, 32, 32, { amount: 75 });
-      expect(controller.getAmount()).to.equal(75);
+      expect(controller.model.amount).to.equal(75);
     });
     
     it('should have gather method', function() {
@@ -142,7 +142,7 @@ describe('ResourceController', function() {
     it('should reduce amount when gathering', function() {
       const controller = new ResourceController(100, 100, 32, 32, { amount: 100 });
       controller.gather(30);
-      expect(controller.getAmount()).to.equal(70);
+      expect(controller.model.amount).to.equal(70);
     });
     
     it('should return gathered amount', function() {
@@ -155,7 +155,7 @@ describe('ResourceController', function() {
       const controller = new ResourceController(100, 100, 32, 32, { amount: 20 });
       const gathered = controller.gather(50);
       expect(gathered).to.equal(20);
-      expect(controller.getAmount()).to.equal(0);
+      expect(controller.model.amount).to.equal(0);
     });
   });
   
@@ -289,7 +289,7 @@ describe('ResourceController', function() {
       const result = controller.handleInput('click', { x: 110, y: 110 });
       const gathered = result.onGather(25);
       expect(gathered).to.equal(25);
-      expect(controller.getAmount()).to.equal(75);
+      expect(controller.model.amount).to.equal(75);
     });
   });
   
@@ -331,12 +331,12 @@ describe('ResourceController', function() {
       const controller = ResourceController.fromJSON(json);
       
       expect(controller).to.be.instanceOf(ResourceController);
-      expect(controller.getPosition().x).to.equal(150);
-      expect(controller.getPosition().y).to.equal(200);
+      expect(controller.position.x).to.equal(150);
+      expect(controller.position.y).to.equal(200);
       expect(controller.model.size.width).to.equal(48);
       expect(controller.model.size.height).to.equal(64);
-      expect(controller.getType()).to.equal('Stone');
-      expect(controller.getAmount()).to.equal(50);
+      expect(controller.model.type).to.equal('Stone');
+      expect(controller.model.amount).to.equal(50);
     });
   });
   

@@ -94,9 +94,9 @@ class AntController extends BaseController {
    * @returns {Array} Removed resources
    */
   removeResource(amount) {
-    // Get current resources before removal
+    // Get current resources before removal (InventoryController uses getResources())
     const currentResources = this._model._resourceManager ? 
-      [...this._model._resourceManager.resources] : [];
+      this._model._resourceManager.getResources().filter(r => r !== null) : [];
     
     const toRemove = Math.min(amount, currentResources.length);
     const removed = currentResources.splice(0, toRemove);

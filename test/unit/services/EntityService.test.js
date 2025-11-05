@@ -28,7 +28,7 @@ describe('EntityService', function() {
     // Load EntityService (will fail initially - TDD red phase)
     try {
       EntityService = require('../../../Classes/services/EntityService');
-    } catch (e) {
+    } catch (_e) {
       // Expected to fail on first run
       console.log('EntityService not yet implemented (TDD red phase)');
     }

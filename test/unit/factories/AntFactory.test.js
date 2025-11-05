@@ -1,5 +1,5 @@
 /**
- * @fileoverview Unit tests for AntFactory
+ * @fileoverview Unit tests for antFactory
  * Tests factory methods for ant creation with proper job assignment
  */
 
@@ -11,7 +11,8 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('AntFactory', function() {
-  let AntFactory, AntManager, AntController, antManager, antFactory;
+  /* eslint-disable no-undef */
+  let antFactory, AntFactory, AntController;
   
   before(function() {
     // Load MVC classes
@@ -22,19 +23,20 @@ describe('AntFactory', function() {
     require('../../../Classes/views/AntView');
     AntController = require('../../../Classes/controllers/mvc/AntController');
     
-    // Make AntController globally available (required by AntManager.createAnt)
+    // Make AntController globally available
     global.AntController = AntController;
     if (typeof window !== 'undefined') {
       window.AntController = AntController;
     }
     
-    // Load managers and factories
-    AntManager = require('../../../Classes/managers/AntManager');
+    // Load factory class
     AntFactory = require('../../../Classes/factories/AntFactory');
+    // Create instance
+    antFactory = new AntFactory();
   });
   
   beforeEach(function() {
-    // Mock spatialGridManager (required by AntManager.createAnt)
+    // Mock spatialGridManager
     global.spatialGridManager = {
       addEntity: sinon.stub(),
       registerEntity: sinon.stub(),
@@ -47,29 +49,13 @@ describe('AntFactory', function() {
       window.spatialGridManager = global.spatialGridManager;
     }
     
-    // Create fresh instances for each test
-    antManager = new AntManager();
-    antFactory = new AntFactory(antManager);
   });
   
   afterEach(function() {
     cleanupTestEnvironment();
-    
-    // Clean up singletons
-    if (AntManager._instance) {
-      AntManager._instance = null;
-    }
   });
   
   describe('Constructor', function() {
-    it('should require AntManager instance', function() {
-      expect(() => new AntFactory()).to.throw('AntFactory requires AntManager instance');
-    });
-    
-    it('should store reference to AntManager', function() {
-      expect(antFactory._manager).to.equal(antManager);
-    });
-    
     it('should initialize with default job list', function() {
       const jobs = antFactory.getAvailableJobs();
       expect(jobs).to.include.members(['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter']);
@@ -105,12 +91,7 @@ describe('AntFactory', function() {
         const scout = antFactory.createScout(100, 200, 'enemy');
         expect(scout.model.faction).to.equal('enemy');
       });
-      
-      it('should register ant with manager', function() {
-        const scout = antFactory.createScout(100, 200);
-        const retrieved = antManager.getAntById(scout.model.antIndex);
-        expect(retrieved).to.equal(scout);
-      });
+  
     });
     
     describe('createWarrior()', function() {
@@ -219,17 +200,6 @@ describe('AntFactory', function() {
       // Check that positions vary (not all the same)
       const uniqueX = [...new Set(positions.map(p => Math.floor(p.x)))];
       expect(uniqueX.length).to.be.greaterThan(1);
-    });
-    
-    it('should register all ants with manager', function() {
-      const ants = antFactory.spawnAnts(5, 'player');
-      
-      expect(antManager.getAntCount()).to.equal(5);
-      
-      ants.forEach(ant => {
-        const retrieved = antManager.getAntById(ant.model.antIndex);
-        expect(retrieved).to.equal(ant);
-      });
     });
   });
   
@@ -390,6 +360,4 @@ describe('AntFactory', function() {
       });
     });
   });
-  
-  // NOTE: "Integration with AntManager" tests removed - AntManager is deprecated in favor of WorldService
 });

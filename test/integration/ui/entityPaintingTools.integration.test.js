@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Integration Tests: Entity Painting & Toolbar Tools
  * 
  * Tests the integration of EntitySelectionTool, EntityPainter, ToolBar,
@@ -61,7 +61,7 @@ describe('Entity Painting Tools - Integration', function() {
       EntityPainter = require('../../../Classes/ui/painter/entity/EntityPainter');
       ToolBar = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolBar');
       ToolModeToggle = require('../../../Classes/ui/_baseObjects/bar/toolBar/ToolModeToggle');
-    } catch (e) {
+    } catch (_e) {
       console.error('Failed to load classes:', e);
     }
     
@@ -81,11 +81,11 @@ describe('Entity Painting Tools - Integration', function() {
     // Create ToolBar with modes
     if (ToolBar) {
       toolbar = new ToolBar([
-        { name: 'paint', id: 'paint', icon: 'ðŸ–Œï¸', tooltip: 'Paint' },
+        { name: 'paint', id: 'paint', icon: '🖌️', tooltip: 'Paint' },
         { 
           name: 'eraser', 
           id: 'eraser', 
-          icon: 'ðŸ§±', 
+          icon: '🧱', 
           tooltip: 'Eraser',
           hasModes: true,
           modes: ['ALL', 'TERRAIN', 'ENTITY', 'EVENTS']
@@ -93,7 +93,7 @@ describe('Entity Painting Tools - Integration', function() {
         { 
           name: 'select', 
           id: 'select', 
-          icon: 'â¬š', 
+          icon: '⬚', 
           tooltip: 'Select',
           hasModes: true,
           modes: ['PAINT', 'ENTITY', 'EVENT']

@@ -21,7 +21,7 @@ let nextAntIndex;
 const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
 const JobComponent = (typeof require !== 'undefined') ? require('../ants/JobComponent') : window.JobComponent;
 const AntStateMachine = (typeof require !== 'undefined') ? require('../ants/antStateMachine') : window.AntStateMachine;
-const ResourceManager = (typeof require !== 'undefined') ? require('../managers/ResourceManager') : window.ResourceManager;
+const InventoryController = (typeof require !== 'undefined') ? require('../controllers/InventoryController') : window.InventoryController;
 const StatsContainer = (typeof require !== 'undefined') ? require('../containers/StatsContainer') : window.StatsContainer;
 
 class AntModel extends BaseModel {
@@ -105,8 +105,8 @@ class AntModel extends BaseModel {
     this._jobComponent = new JobComponent(this._jobName, options.jobImage);
     this._stateMachine = new AntStateMachine();
     
-    // ResourceManager integration (capacity: 2 slots, collectionRange: 25 pixels)
-    this._resourceManager = new ResourceManager(this, 2, 25);
+    // InventoryController integration (capacity: 2 slots for resource collection)
+    this._resourceManager = new InventoryController(this, 2);
     
     // GatherState integration for autonomous resource collection
     this._gatherState = (typeof GatherState !== 'undefined') ? new GatherState(this) : null;
@@ -395,8 +395,8 @@ class AntModel extends BaseModel {
       this._notifyChange('resources', { 
         action: 'add', 
         resource, 
-        count: this._resourceManager.getCurrentLoad(),
-        isFull: this._resourceManager.isAtMaxLoad()
+        count: this._resourceManager.getCount(),
+        isFull: this._resourceManager.isFull()
       });
     }
     return success;
@@ -410,22 +410,26 @@ class AntModel extends BaseModel {
   removeResource(amount) {
     if (!this._resourceManager) return false;
     
-    // ResourceManager doesn't have removeResource(amount), so we drop and re-add
-    const currentResources = [...this._resourceManager.resources];
+    // InventoryController: remove resources one by one from slots
+    const currentResources = this._resourceManager.getResources();
     if (currentResources.length === 0) return false;
     
     const toRemove = Math.min(amount, currentResources.length);
-    const removed = currentResources.splice(0, toRemove);
+    const removed = [];
     
-    // Clear and re-add remaining
-    this._resourceManager.dropAllResources();
-    currentResources.forEach(r => this._resourceManager.addResource(r));
+    // Remove from first N occupied slots
+    for (let i = 0; i < this._resourceManager.capacity && removed.length < toRemove; i++) {
+      if (currentResources[i] !== null) {
+        const res = this._resourceManager.removeResource(i, false);
+        if (res) removed.push(res);
+      }
+    }
     
     this._notifyChange('resources', { 
       action: 'remove', 
       amount: toRemove,
       removed,
-      count: this._resourceManager.getCurrentLoad()
+      count: this._resourceManager.getCount()
     });
     
     return true;
@@ -438,7 +442,8 @@ class AntModel extends BaseModel {
   dropAllResources() {
     if (!this._resourceManager) return [];
     
-    const dropped = this._resourceManager.dropAllResources();
+    const dropped = this._resourceManager.getResources().filter(r => r !== null);
+    this._resourceManager.dropAll();
     
     this._notifyChange('resources', { 
       action: 'drop', 
@@ -455,7 +460,7 @@ class AntModel extends BaseModel {
    */
   getResourceCount() {
     if (!this._resourceManager) return 0;
-    return this._resourceManager.getCurrentLoad();
+    return this._resourceManager.getCount();
   }
   
   /**
@@ -464,7 +469,7 @@ class AntModel extends BaseModel {
    */
   getMaxResources() {
     if (!this._resourceManager) return 0;
-    return this._resourceManager.maxCapacity;
+    return this._resourceManager.capacity;
   }
   
   // ========================================
@@ -618,10 +623,7 @@ class AntModel extends BaseModel {
       this._stateMachine.update(deltaTime);
     }
     
-    // Update resource manager (checks for nearby resources)
-    if (this._resourceManager) {
-      this._resourceManager.update();
-    }
+    // Note: InventoryController is passive (no update needed)
     
     // TODO: Update other components (GatherState, etc.)
   }

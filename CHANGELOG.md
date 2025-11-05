@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### BREAKING CHANGES
+
+- **Deprecated Manager Classes Removed** (Phase 6.2 - Task 10)
+  - Deleted 17 files: 8 managers + 9 rendering classes (consolidated into WorldService)
+  - Removed: AntManager, BuildingManager, ResourceManager, SpatialGridManager, CameraSystemManager, ResourceSystemManager, TileInteractionManager, GameStateManager, RenderLayerManager, EntityLayerRenderer, UILayerRenderer, EffectsLayerRenderer, EntityDelegationBuilder, EntityAccessor, UIController, UIDebugManager, PerformanceMonitor
+  - **Migration**: Use `world.spawnEntity()`, `world.render()`, `world.getNearbyEntities()` instead of manager methods
+  - **ResourceManager (inventory)** → **InventoryController**: API changes: `getCurrentLoad()` → `getCount()`, `isAtMaxLoad()` → `isFull()`, `resources` property → `getResources()` method, `dropAllResources()` → `dropAll()`
+
+---
+
 ### Developer-Facing Changes
 
 #### Refactored
@@ -50,6 +60,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `loadBuildingMVCStack()` - Loads BuildingModel, BuildingView, BuildingController
   - `loadResourceMVCStack()` - Loads ResourceModel, ResourceView, ResourceController
   - Reduces test boilerplate from 50+ lines to 2 lines
+
+- **WorldService** - Unified world management system (Phase 6.2)
+  - Consolidates EntityService + CameraManager + SpatialGrid + RenderLayerManager + DraggablePanelManager
+  - Single entry point for all game systems
+  - API: `spawnEntity()`, `render()`, `update()`, `screenToWorld()`, `worldToScreen()`, `getNearbyEntities()`, `registerPanel()`
+  - Eliminates manager spaghetti (was 8 managers, now 1 service)
+  - 180/180 tests passing (100% coverage)
+  - sketch.js: 1462 LOC (down from 1574, -112 LOC)
+  - Deleted 17 deprecated files (8 managers + 9 rendering classes)
 
 #### Changed
 

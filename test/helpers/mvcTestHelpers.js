@@ -206,6 +206,10 @@ function setupTestEnvironment(options = {}) {
   setupP5Globals();
   const CollisionBox2D = setupCollisionBox2D();
   
+  // Initialize global resources array (used by InventoryController)
+  global.resources = [];
+  global.window.resources = global.resources;
+  
   const result = {
     CollisionBox2D,
     window: global.window,
@@ -292,11 +296,11 @@ function loadAntMVCStack() {
   // Load ant dependencies
   const AntStateMachine = require('../../Classes/ants/antStateMachine');
   const JobComponent = require('../../Classes/ants/JobComponent');
-  const ResourceManager = require('../../Classes/managers/ResourceManager');
+  const InventoryController = require('../../Classes/controllers/InventoryController');
   
   global.AntStateMachine = AntStateMachine;
   global.JobComponent = JobComponent;
-  global.ResourceManager = ResourceManager;
+  global.InventoryController = InventoryController;
   
   // Load Ant MVC classes
   const AntModel = require('../../Classes/models/AntModel');
@@ -315,20 +319,16 @@ function loadAntMVCStack() {
     };
   }
   
-  // Load AntManager
-  const AntManager = require('../../Classes/managers/AntManager');
-  
   return {
     BaseModel,
     BaseView,
     BaseController,
     AntStateMachine,
     JobComponent,
-    ResourceManager,
+    InventoryController,
     AntModel,
     AntView,
-    AntController,
-    AntManager
+    AntController
   };
 }
 
@@ -359,17 +359,13 @@ function loadBuildingMVCStack() {
   global.BuildingView = BuildingView;
   global.BuildingController = BuildingController;
   
-  // Load BuildingManager
-  const BuildingManager = require('../../Classes/managers/BuildingManager');
-  
   return {
     BaseModel,
     BaseView,
     BaseController,
     BuildingModel,
     BuildingView,
-    BuildingController,
-    BuildingManager
+    BuildingController
   };
 }
 

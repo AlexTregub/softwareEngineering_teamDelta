@@ -21,6 +21,7 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('BuildingFactory', function() {
+   
   let BuildingFactory, BuildingController;
   
   before(function() {
@@ -38,6 +39,7 @@ describe('BuildingFactory', function() {
   });
   
   describe('Factory Methods', function() {
+   
     it('should have createAntCone method', function() {
       expect(BuildingFactory.createAntCone).to.be.a('function');
     });
@@ -52,6 +54,7 @@ describe('BuildingFactory', function() {
   });
   
   describe('AntCone Creation', function() {
+   
     it('should return BuildingController instance', function() {
       const cone = BuildingFactory.createAntCone(100, 150);
       expect(cone).to.be.instanceOf(BuildingController);
@@ -81,7 +84,7 @@ describe('BuildingFactory', function() {
     
     it('should have spawn configuration', function() {
       const cone = BuildingFactory.createAntCone(100, 150);
-      const config = cone.spawnConfig;
+      const config = cone.model.spawnConfig;
       expect(config).to.have.property('interval');
       expect(config).to.have.property('count');
     });
@@ -94,6 +97,7 @@ describe('BuildingFactory', function() {
   });
   
   describe('AntHill Creation', function() {
+   
     it('should return BuildingController instance', function() {
       const hill = BuildingFactory.createAntHill(200, 250);
       expect(hill).to.be.instanceOf(BuildingController);
@@ -129,6 +133,7 @@ describe('BuildingFactory', function() {
   });
   
   describe('HiveSource Creation', function() {
+   
     it('should return BuildingController instance', function() {
       const hive = BuildingFactory.createHiveSource(300, 350);
       expect(hive).to.be.instanceOf(BuildingController);
@@ -152,11 +157,11 @@ describe('BuildingFactory', function() {
     });
     
     it('should have different stats than other buildings', function() {
-      const cone = BuildingFactory.createAntCone(100, 100);
-      const hive = BuildingFactory.createHiveSource(100, 100);
+      const cone = BuildingFactory.createAntCone(100, 150);
+      const hive = BuildingFactory.createHiveSource(200, 250);
       
-      const coneSpawn = cone.spawnConfig;
-      const hiveSpawn = hive.spawnConfig;
+      const coneSpawn = cone.model.spawnConfig;
+      const hiveSpawn = hive.model.spawnConfig;
       
       // HiveSource should have different spawn configuration
       expect(hiveSpawn.interval).to.not.equal(coneSpawn.interval);
@@ -164,6 +169,7 @@ describe('BuildingFactory', function() {
   });
   
   describe('Size Configuration', function() {
+   
     it('should set default size for AntCone', function() {
       const cone = BuildingFactory.createAntCone(100, 100);
       const size = cone.size;

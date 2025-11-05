@@ -27,8 +27,9 @@ const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/
 setupTestEnvironment({ rendering: true, sprite: true }); // Need rendering + sprites for real entities
 
 describe('WorldService', function() {
+  /* eslint-disable no-undef */ // Particle, ParticlePool are internal classes tested via WorldService API
   let WorldService, AntFactory, BuildingFactory, ResourceFactory, SpatialGrid;
-  let world, spatialGrid, mockTerrain;
+  let world, spatialGrid, mockTerrain, mockSpatialGrid;
   
   before(function() {
     // Load WorldService
@@ -59,8 +60,8 @@ describe('WorldService', function() {
     
     // Load real SpatialGrid
     try {
-      SpatialGrid = require('../../../Classes/managers/SpatialGridManager');
-    } catch (e) {
+      SpatialGrid = require('../../../Classes/systems/SpatialGrid');
+    } catch (_e) {
       console.log('SpatialGrid not available - will create mock');
     }
   });

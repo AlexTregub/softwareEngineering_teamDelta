@@ -65,55 +65,55 @@ describe('BuildingController', function() {
         faction: 'player',
         health: 80
       });
-      expect(controller.getType()).to.equal('AntCone');
-      expect(controller.getFaction()).to.equal('player');
-      expect(controller.getHealth()).to.equal(80);
+      expect(controller.model.type).to.equal('AntCone');
+      expect(controller.model.faction).to.equal('player');
+      expect(controller.health).to.equal(80);
     });
   });
   
   describe('Position and Size API', function() {
-    it('should have getPosition method', function() {
+    it('should have position property via model', function() {
       const controller = new BuildingController(100, 150, 64, 64);
-      expect(controller.getPosition).to.be.a('function');
+      expect(controller.position).to.be.an('object');
     });
     
     it('should return building position', function() {
       const controller = new BuildingController(100, 150, 64, 64);
-      const pos = controller.getPosition();
+      const pos = controller.position;
       expect(pos).to.deep.equal({ x: 100, y: 150 });
     });
     
-    it('should have getSize method', function() {
+    it('should have size property via model', function() {
       const controller = new BuildingController(100, 150, 64, 96);
-      expect(controller.getSize).to.be.a('function');
+      expect(controller.size).to.be.an('object');
     });
     
     it('should return building size', function() {
       const controller = new BuildingController(100, 150, 64, 96);
-      const size = controller.getSize();
+      const size = controller.size;
       expect(size).to.deep.equal({ width: 64, height: 96 });
     });
   });
   
   describe('Health API', function() {
-    it('should have getHealth method', function() {
+    it('should have health property via model', function() {
       const controller = new BuildingController(100, 100, 64, 64);
-      expect(controller.getHealth).to.be.a('function');
+      expect(controller.health).to.be.a('number');
     });
     
     it('should return current health', function() {
       const controller = new BuildingController(100, 100, 64, 64, { health: 80 });
-      expect(controller.getHealth()).to.equal(80);
+      expect(controller.health).to.equal(80);
     });
     
-    it('should have getMaxHealth method', function() {
+    it('should have maxHealth property via model', function() {
       const controller = new BuildingController(100, 100, 64, 64);
-      expect(controller.getMaxHealth).to.be.a('function');
+      expect(controller.maxHealth).to.be.a('number');
     });
     
     it('should return max health', function() {
       const controller = new BuildingController(100, 100, 64, 64, { maxHealth: 150 });
-      expect(controller.getMaxHealth()).to.equal(150);
+      expect(controller.maxHealth).to.equal(150);
     });
     
     it('should have takeDamage method', function() {
@@ -124,7 +124,7 @@ describe('BuildingController', function() {
     it('should reduce health on damage', function() {
       const controller = new BuildingController(100, 100, 64, 64, { health: 100 });
       controller.takeDamage(30);
-      expect(controller.getHealth()).to.equal(70);
+      expect(controller.health).to.equal(70);
     });
     
     it('should have heal method', function() {
@@ -135,7 +135,7 @@ describe('BuildingController', function() {
     it('should increase health on heal', function() {
       const controller = new BuildingController(100, 100, 64, 64, { health: 60, maxHealth: 100 });
       controller.heal(20);
-      expect(controller.getHealth()).to.equal(80);
+      expect(controller.health).to.equal(80);
     });
     
     it('should have isDead method', function() {
@@ -166,7 +166,7 @@ describe('BuildingController', function() {
         spawnInterval: 5,
         spawnCount: 2
       });
-      const config = controller.getSpawnConfig();
+      const config = controller.model.spawnConfig;
       expect(config).to.have.property('interval', 5);
       expect(config).to.have.property('count', 2);
     });
@@ -276,24 +276,24 @@ describe('BuildingController', function() {
   });
   
   describe('Type and Faction API', function() {
-    it('should have getType method', function() {
+    it('should have type property via model', function() {
       const controller = new BuildingController(100, 100, 64, 64);
-      expect(controller.getType).to.be.a('function');
+      expect(controller.model.type).to.be.a('string');
     });
     
     it('should return building type', function() {
       const controller = new BuildingController(100, 100, 64, 64, { type: 'AntHill' });
-      expect(controller.getType()).to.equal('AntHill');
+      expect(controller.model.type).to.equal('AntHill');
     });
     
-    it('should have getFaction method', function() {
+    it('should have faction property via model', function() {
       const controller = new BuildingController(100, 100, 64, 64);
-      expect(controller.getFaction).to.be.a('function');
+      expect(controller.model.faction).to.be.a('string');
     });
     
     it('should return building faction', function() {
       const controller = new BuildingController(100, 100, 64, 64, { faction: 'enemy' });
-      expect(controller.getFaction()).to.equal('enemy');
+      expect(controller.model.faction).to.equal('enemy');
     });
   });
   
