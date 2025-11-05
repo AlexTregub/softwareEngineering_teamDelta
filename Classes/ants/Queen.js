@@ -25,8 +25,6 @@ class QueenAnt extends Ant {
     const sizeY = baseAnt ? baseAnt.getSize().y : 32;
     const movementSpeed = baseAnt ? baseAnt.movementSpeed : 30;
     const rotation = baseAnt ? baseAnt.rotation : 0;
-    // CRITICAL: Queen MUST ALWAYS use gray_ant_queen.png sprite
-    // Get Queen sprite (from JobImages or lazy load)
     const img = baseAnt ? baseAnt.getImage() : QueenAnt.getQueenSprite();
     const faction = baseAnt ? baseAnt.faction : "player";
 

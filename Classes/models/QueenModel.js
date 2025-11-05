@@ -1,39 +1,25 @@
 /**
- * @file AntModel.js
- * @description Data model for ant entities (Phase 3.1 - MVC Refactoring)
- * 
- * AntModel contains:
- * - Identity (antIndex, jobName, name, faction, type)
- * - Position & Movement (position, size, rotation, movementSpeed)
- * - Health System (health, maxHealth, damage, attackRange)
- * - Combat System (combatTarget, enemies, attack logic)
- * - Resource System (ResourceManager integration)
- * - State Machine (AntStateMachine integration)
- * - Job System (JobComponent integration)
- * - Behavior System (GatherState integration)
+ * @file QueenModel.js
+ * @description Data model for Queen entities. Since Queens are ants,
+ * they should do all the things ants can do, but the player should be 
+ * able to turn them on or disable them (like not having the queen go 
+ * after resources)
  * 
  * @extends BaseModel
  */
-
-// Load dependencies (Node.js require, or use global in browser)
-const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
-const JobComponent = (typeof require !== 'undefined') ? require('../ants/JobComponent') : window.JobComponent;
-const AntStateMachine = (typeof require !== 'undefined') ? require('../ants/antStateMachine') : window.AntStateMachine;
-const ResourceManager = (typeof require !== 'undefined') ? require('../managers/ResourceManager') : window.ResourceManager;
-const StatsContainer = (typeof require !== 'undefined') ? require('../containers/StatsContainer') : window.StatsContainer;
-
-// Note: GatherState will be integrated later
-
-// Global ant index counter (auto-increment)
-let nextAntIndex = 0;
-
 class QueenModel extends AntModel {
- 
-  
+    constructor(x, y, width, height, options = {}){
+
+    }
+
+    // =====================================
+    // Powers
+    // =====================================
+
+
   // ========================================
   // Serialization Methods
   // ========================================
-  
   /**
    * Serialize to JSON
    * @returns {Object} JSON representation

@@ -782,7 +782,14 @@ class WorldService {
    */
   getSelectedAnts() {
     return this.getEntitiesByType('Ant').filter(ant => {
-      return ant.isSelected === true || (ant.getSelected && ant.getSelected());
+      // Support both function and property forms
+      if (typeof ant.isSelected === 'function') {
+        return ant.isSelected();
+      }
+      if (ant.getSelected) {
+        return ant.getSelected();
+      }
+      return ant.isSelected === true;
     });
   }
   
@@ -815,12 +822,28 @@ class WorldService {
   }
   
   /**
+   * Clear all ant selections (alias for clearAntSelections)
+   */
+  clearAntSelection() {
+    return this.clearAntSelections();
+  }
+  
+  /**
    * Check if any ant is selected
    * 
    * @returns {boolean} True if at least one ant is selected
    */
   hasSelectedAnts() {
     return this.getSelectedAnts().length > 0;
+  }
+  
+  /**
+   * Check if any ant is selected (alias for hasSelectedAnts)
+   * 
+   * @returns {boolean} True if at least one ant is selected
+   */
+  hasAntSelection() {
+    return this.hasSelectedAnts();
   }
   
   /**
@@ -876,6 +899,82 @@ class WorldService {
   }
   
   /**
+   * Move ants in circle formation
+   * 
+   * @param {Array<Object>} ants - Ants to move
+   * @param {number} centerX - Circle center X
+   * @param {number} centerY - Circle center Y
+   * @param {number} radius - Circle radius
+   */
+  moveAntsInCircle(ants, centerX, centerY, radius = 50) {
+    if (!ants || ants.length === 0) return;
+    
+    const angleStep = (2 * Math.PI) / ants.length;
+    
+    ants.forEach((ant, i) => {
+      const angle = i * angleStep;
+      const x = centerX + Math.cos(angle) * radius;
+      const y = centerY + Math.sin(angle) * radius;
+      
+      if (ant.moveToLocation) {
+        ant.moveToLocation(x, y);
+      }
+    });
+  }
+  
+  /**
+   * Move ants in line formation
+   * 
+   * @param {Array<Object>} ants - Ants to move
+   * @param {number} startX - Line start X
+   * @param {number} startY - Line start Y
+   * @param {number} endX - Line end X
+   * @param {number} endY - Line end Y
+   */
+  moveAntsInLine(ants, startX, startY, endX, endY) {
+    if (!ants || ants.length === 0) return;
+    
+    const dx = endX - startX;
+    const dy = endY - startY;
+    
+    ants.forEach((ant, i) => {
+      const t = ants.length > 1 ? i / (ants.length - 1) : 0;
+      const x = startX + dx * t;
+      const y = startY + dy * t;
+      
+      if (ant.moveToLocation) {
+        ant.moveToLocation(x, y);
+      }
+    });
+  }
+  
+  /**
+   * Move ants in grid formation
+   * 
+   * @param {Array<Object>} ants - Ants to move
+   * @param {number} startX - Grid start X
+   * @param {number} startY - Grid start Y
+   * @param {number} spacing - Spacing between ants
+   * @param {number} cols - Number of columns (optional, auto-calculates if not provided)
+   */
+  moveAntsInGrid(ants, startX, startY, spacing = 32, cols = null) {
+    if (!ants || ants.length === 0) return;
+    
+    const columns = cols || Math.ceil(Math.sqrt(ants.length));
+    
+    ants.forEach((ant, i) => {
+      const row = Math.floor(i / columns);
+      const col = i % columns;
+      const x = startX + col * spacing;
+      const y = startY + row * spacing;
+      
+      if (ant.moveToLocation) {
+        ant.moveToLocation(x, y);
+      }
+    });
+  }
+  
+  /**
    * Set state for selected ants
    * 
    * @param {string} state - State to set
@@ -890,15 +989,95 @@ class WorldService {
   }
   
   /**
-   * Pause/resume ant
+   * Change state for selected ants (alias for setSelectedAntsState)
+   * 
+   * @param {string} state - State to set
+   */
+  changeSelectedAntsState(state) {
+    return this.setSelectedAntsState(state);
+  }
+  
+  /**
+   * Set selected ants to idle state
+   */
+  setSelectedAntsIdle() {
+    const selectedAnts = this.getSelectedAnts();
+    for (const ant of selectedAnts) {
+      if (ant.setState) {
+        ant.setState('idle');
+      } else if (ant.changeState) {
+        ant.changeState('idle');
+      }
+    }
+  }
+  
+  /**
+   * Set selected ants to gathering state
+   */
+  setSelectedAntsGathering() {
+    const selectedAnts = this.getSelectedAnts();
+    for (const ant of selectedAnts) {
+      if (ant.setState) {
+        ant.setState('gathering');
+      } else if (ant.changeState) {
+        ant.changeState('gathering');
+      }
+    }
+  }
+  
+  /**
+   * Pause entity
+   * 
+   * @param {number|Object} entityOrId - Entity ID or entity object
+   */
+  pauseEntity(entityOrId) {
+    const entity = typeof entityOrId === 'number' ? 
+                   this.getEntityById(entityOrId) : 
+                   entityOrId;
+    
+    if (entity) {
+      if (entity.setPaused) {
+        entity.setPaused(true);
+      } else if (entity.setActive) {
+        entity.setActive(false);
+      } else {
+        entity.isActive = false;
+      }
+    }
+  }
+  
+  /**
+   * Resume entity
+   * 
+   * @param {number|Object} entityOrId - Entity ID or entity object
+   */
+  resumeEntity(entityOrId) {
+    const entity = typeof entityOrId === 'number' ? 
+                   this.getEntityById(entityOrId) : 
+                   entityOrId;
+    
+    if (entity) {
+      if (entity.setPaused) {
+        entity.setPaused(false);
+      } else if (entity.setActive) {
+        entity.setActive(true);
+      } else {
+        entity.isActive = true;
+      }
+    }
+  }
+  
+  /**
+   * Pause/resume ant (legacy method)
    * 
    * @param {number} antId - Ant entity ID
    * @param {boolean} paused - True to pause, false to resume
    */
   setAntPaused(antId, paused) {
-    const ant = this.getEntityById(antId);
-    if (ant && ant.setPaused) {
-      ant.setPaused(paused);
+    if (paused) {
+      this.pauseEntity(antId);
+    } else {
+      this.resumeEntity(antId);
     }
   }
   
