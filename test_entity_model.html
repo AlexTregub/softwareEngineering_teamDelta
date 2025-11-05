@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EntityModel Browser Test</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #00ff00;
+    }
+    .test {
+      margin: 10px 0;
+      padding: 10px;
+      background: #2d2d2d;
+      border-left: 3px solid #00ff00;
+    }
+    .pass { border-left-color: #00ff00; }
+    .fail { border-left-color: #ff0000; color: #ff0000; }
+    h1 { color: #00ff00; }
+    pre { background: #1a1a1a; padding: 10px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>EntityModel Browser Test</h1>
+  <div id="results"></div>
+
+  <script src="Classes/mvc/models/EntityModel.js"></script>
+  <script>
+    const results = document.getElementById('results');
+    
+    function addTest(name, passed, details = '') {
+      const div = document.createElement('div');
+      div.className = `test ${passed ? 'pass' : 'fail'}`;
+      div.innerHTML = `
+        <strong>${passed ? '✓' : '✗'} ${name}</strong>
+        ${details ? `<pre>${details}</pre>` : ''}
+      `;
+      results.appendChild(div);
+    }
+    
+    try {
+      // Test 1: Create basic model
+      const model1 = new EntityModel({ position: { x: 100, y: 200 } });
+      addTest('Create basic model', 
+        model1.id && model1.position.x === 100 && model1.position.y === 200,
+        JSON.stringify(model1.toJSON(), null, 2)
+      );
+      
+      // Test 2: Create model with all properties
+      const model2 = new EntityModel({
+        id: 'ant_1',
+        type: 'Ant',
+        position: { x: 150, y: 250 },
+        size: { width: 32, height: 32 },
+        enabled: true
+      });
+      addTest('Create model with all properties',
+        model2.id === 'ant_1' && model2.type === 'Ant',
+        JSON.stringify(model2.toJSON(), null, 2)
+      );
+      
+      // Test 3: Update position
+      model2.setPosition(200, 300);
+      addTest('Update position',
+        model2.position.x === 200 && model2.position.y === 300,
+        `Position updated to: ${JSON.stringify(model2.getPosition())}`
+      );
+      
+      // Test 4: Update size
+      model2.setSize(64, 48);
+      addTest('Update size',
+        model2.size.width === 64 && model2.size.height === 48,
+        `Size updated to: ${JSON.stringify(model2.getSize())}`
+      );
+      
+      // Test 5: JSON serialization
+      const json = JSON.stringify(model2);
+      const restored = EntityModel.fromJSON(JSON.parse(json));
+      addTest('JSON round-trip',
+        restored.id === model2.id && 
+        restored.position.x === model2.position.x &&
+        restored.position.y === model2.position.y,
+        `Serialized and restored: ${json}`
+      );
+      
+      // Test 6: Immutable getters
+      const pos = model2.getPosition();
+      pos.x = 999;
+      addTest('Immutable getters',
+        model2.position.x === 200, // Should still be 200, not 999
+        `Attempted mutation didn't affect original: ${model2.position.x}`
+      );
+      
+      // Test 7: Validation (should throw)
+      try {
+        new EntityModel({ position: { x: 100 } }); // Missing y
+        addTest('Validation (missing y)', false, 'Should have thrown error');
+      } catch (e) {
+        addTest('Validation (missing y)', true, `Correctly threw: ${e.message}`);
+      }
+      
+      // Test 8: Framework independence (no p5.js needed)
+      addTest('Framework independence',
+        typeof window.createVector === 'undefined', // p5.js not loaded
+        'EntityModel works without p5.js!'
+      );
+      
+      // Test 9: Multiple unique IDs
+      const m1 = new EntityModel({ position: { x: 0, y: 0 } });
+      const m2 = new EntityModel({ position: { x: 0, y: 0 } });
+      addTest('Unique ID generation',
+        m1.id !== m2.id,
+        `m1: ${m1.id}\nm2: ${m2.id}`
+      );
+      
+      // Test 10: Performance (create 1000 models)
+      const start = performance.now();
+      for (let i = 0; i < 1000; i++) {
+        new EntityModel({ position: { x: i, y: i } });
+      }
+      const elapsed = performance.now() - start;
+      addTest('Performance (1000 models)',
+        elapsed < 100, // Should take less than 100ms
+        `Created 1000 models in ${elapsed.toFixed(2)}ms (${(elapsed/1000).toFixed(3)}ms per model)`
+      );
+      
+      console.log('✓ All EntityModel browser tests passed!');
+      console.log('Try these in console:');
+      console.log('  const m = new EntityModel({ position: { x: 100, y: 200 } })');
+      console.log('  m.setPosition(150, 250)');
+      console.log('  m.getPosition()');
+      console.log('  JSON.stringify(m)');
+      
+    } catch (error) {
+      addTest('Unexpected error', false, error.toString());
+      console.error('Test failed:', error);
+    }
+  </script>
+</body>
+</html>

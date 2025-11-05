@@ -39,7 +39,10 @@
     <script src="Classes/rendering/CacheManager.js"></script>
     <script src="Classes/rendering/caches/FullBufferCache.js"></script>
     
-    <!-- Base Systems - Load Second -->
+	<!-- MVC System - Load Before Legacy Entity System -->
+	<script src="Classes/mvc/models/EntityModel.js"></script>
+	<script src="Classes/mvc/models/AntModel.js"></script>
+	<script src="Classes/mvc/models/ResourceModel.js"></script>    <!-- Base Systems - Load Second -->
     <script src="Classes/systems/SpatialGrid.js"></script>
     <script src="Classes/managers/SpatialGridManager.js"></script>
     <script src="Classes/containers/StatsContainer.js"></script>
