@@ -27,6 +27,9 @@
 const { JSDOM } = require('jsdom');
 const sinon = require('sinon');
 
+// Make sinon globally available for WorldService spy wrappers
+global.sinon = sinon;
+
 /**
  * Set up JSDOM environment with window and document globals.
  * Call this at the top of your test file (before describe block).

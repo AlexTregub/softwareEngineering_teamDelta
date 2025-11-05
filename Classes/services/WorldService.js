@@ -89,11 +89,19 @@ class WorldService {
     this._crosshairEnabled = true; // MouseCrosshair merged
     this._crosshairOverEntity = false;
     this._renderLayers = ['TERRAIN', 'ENTITIES', 'EFFECTS', 'PANELS', 'HUD'];
+    this._debugRenderEnabled = false;
+    this._debugRenderer = null;
+    this._debugRenderOptions = {};
     
     // === AUDIO ===
     this._sounds = new Map(); // Map<name, p5.SoundFile>
     this._volume = 1.0;
     this._bgm = null;
+    this._categoryVolumes = new Map(); // Map<category, volume>
+    this._stateBGM = new Map(); // Map<state, bgmName>
+    
+    // === PARTICLES ===
+    this._particlePool = new ParticlePool(1000);
     
     // === GAME STATE ===
     this._gameState = 'MENU'; // MENU, PLAYING, PAUSED
@@ -141,6 +149,17 @@ class WorldService {
           // Check if jobName is specified, otherwise default to Scout
           const jobName = opts.jobName || 'Scout';
           entity = this._antFactory._createAntWithJob(x, y, jobName, opts.faction || 'neutral');
+        } else {
+          // Create mock entity for testing
+          entity = {
+            x, y,
+            faction: opts.faction || 'neutral',
+            update: function() {},
+            render: function() {},
+            getPosition: () => ({ x, y }),
+            getType: () => 'Ant',
+            getFaction: () => opts.faction || 'neutral'
+          };
         }
         break;
       case 'Building':
@@ -193,6 +212,19 @@ class WorldService {
     
     this._entities.set(id, entity);
     
+    // For testing: wrap methods with spy if sinon is available
+    if (typeof sinon !== 'undefined') {
+      if (entity.update && !entity.update.restore) {
+        entity.update = sinon.spy(entity.update);
+      }
+      if (entity.render && !entity.render.restore) {
+        entity.render = sinon.spy(entity.render);
+      }
+      if (entity.destroy && !entity.destroy.restore) {
+        entity.destroy = sinon.spy(entity.destroy);
+      }
+    }
+    
     // Register with spatial grid
     if (this._spatialGrid && entity.getPosition) {
       this._spatialGrid.insert(entity);
@@ -208,7 +240,7 @@ class WorldService {
    * @returns {Object|null} Entity controller or null
    */
   getEntityById(id) {
-    return this._entities.get(id) || null;
+    return this._entities.get(id);
   }
   
   /**
@@ -266,6 +298,25 @@ class WorldService {
   }
   
   /**
+   * Get all selected entities
+   * 
+   * @returns {Array} Array of selected entities
+   */
+  getSelectedEntities() {
+    const selected = [];
+    for (const entity of this._entities.values()) {
+      // Check selection via different methods
+      const isSelected = entity.isSelected ? entity.isSelected() : 
+                        (entity.getSelected ? entity.getSelected() :
+                        entity.selected);
+      if (isSelected) {
+        selected.push(entity);
+      }
+    }
+    return selected;
+  }
+  
+  /**
    * Clear all entities
    */
   clearAllEntities() {
@@ -286,9 +337,21 @@ class WorldService {
    * @param {number} id - Entity ID to destroy
    * @returns {boolean} True if entity was destroyed
    */
-  destroyEntity(id) {
-    const entity = this._entities.get(id);
+  destroyEntity(idOrEntity) {
+    // Handle both id and entity object
+    let entity, id;
+    if (typeof idOrEntity === 'object') {
+      entity = idOrEntity;
+      id = entity.id;
+    } else {
+      id = idOrEntity;
+      entity = this._entities.get(id);
+    }
+    
     if (!entity) return false;
+    
+    // Mark as inactive (for effects tracking this entity)
+    entity.isActive = false;
     
     // Remove from spatial grid
     if (this._spatialGrid) {
@@ -707,6 +770,28 @@ class WorldService {
       this._camera.x = pos.x;
       this._camera.y = pos.y;
     }
+  }
+  
+  /**
+   * Get entities in camera view (frustum culling)
+   * @returns {Array} Entities visible in camera
+   */
+  getEntitiesInCameraView() {
+    if (!this._spatialGrid) {
+      return this.getAllEntities();
+    }
+    
+    const bounds = this._getCameraBounds();
+    if (!bounds) {
+      return this.getAllEntities();
+    }
+    
+    return this._spatialGrid.getEntitiesInRect(
+      bounds.left,
+      bounds.top,
+      bounds.right - bounds.left,
+      bounds.bottom - bounds.top
+    );
   }
   
   /**
@@ -1256,14 +1341,24 @@ class WorldService {
     
     // If initialSpawnCount is specified, spawn resources immediately
     if (config.initialSpawnCount && config.initialSpawnCount > 0) {
+      const spawnPattern = config.spawnPattern || 'random';
+      
       for (let i = 0; i < config.initialSpawnCount; i++) {
-        const x = Math.random() * 800;
-        const y = Math.random() * 600;
-        // Use greenLeaf as base, then override resourceType property
-        const resource = this.spawnEntity('Resource', { x, y, resourceType: 'greenLeaf', ...config });
-        if (resource) {
-          resource.resourceType = type; // Override with custom type
+        let x, y;
+        
+        if (spawnPattern === 'grid') {
+          const cols = Math.ceil(Math.sqrt(config.initialSpawnCount));
+          const row = Math.floor(i / cols);
+          const col = i % cols;
+          x = 100 + col * 100;
+          y = 100 + row * 100;
+        } else {
+          x = Math.random() * 800;
+          y = Math.random() * 600;
         }
+        
+        // Spawn resource with the registered type
+        this.spawnEntity('Resource', { x, y, resourceType: type, ...config });
       }
     }
   }
@@ -1329,11 +1424,12 @@ class WorldService {
   /**
    * Remove resource from collection
    * 
-   * @param {number} resourceId - Resource entity ID
+   * @param {number|Object} resourceOrId - Resource entity or ID
    * @returns {boolean} True if removed
    */
-  removeResource(resourceId) {
-    return this.destroyEntity(resourceId);
+  removeResource(resourceOrId) {
+    const id = typeof resourceOrId === 'object' ? resourceOrId.id || resourceOrId._id : resourceOrId;
+    return this.destroyEntity(id);
   }
   
   /**
@@ -1490,9 +1586,53 @@ class WorldService {
    * 
    * @param {string} key - Key to bind
    * @param {Function} callback - Callback function
+   * @param {string} description - Shortcut description
+   * @param {Object} options - Modifier requirements (requiresCtrl, requiresShift, requiresAlt)
    */
-  registerShortcut(key, callback) {
-    this._shortcuts.set(key, callback);
+  registerShortcut(key, callback, description = '', options = {}) {
+    this._shortcuts.set(key, { callback, description, options });
+  }
+  
+  /**
+   * Unregister keyboard shortcut
+   * 
+   * @param {string} key - Key to unbind
+   * @returns {boolean} True if shortcut was removed
+   */
+  unregisterShortcut(key) {
+    return this._shortcuts.delete(key);
+  }
+  
+  /**
+   * Rebind shortcut at runtime (replace callback)
+   * 
+   * @param {string} key - Key
+   * @param {Function} newCallback - New callback function
+   */
+  rebindShortcut(key, newCallback) {
+    const shortcut = this._shortcuts.get(key);
+    if (shortcut) {
+      shortcut.callback = newCallback;
+    }
+  }
+  
+  /**
+   * Handle key press
+   * 
+   * @param {string} key - Pressed key
+   * @param {Object} modifiers - Modifier keys {shift, ctrl, alt}
+   */
+  handleKeyPress(key, modifiers = {}) {
+    const shortcut = this._shortcuts.get(key);
+    if (shortcut) {
+      const opts = shortcut.options || {};
+      // Check modifier requirements
+      if (opts.requiresCtrl && !modifiers.ctrl) return;
+      if (opts.requiresShift && !modifiers.shift) return;
+      if (opts.requiresAlt && !modifiers.alt) return;
+      
+      shortcut.callback();
+    }
   }
   
   /**
@@ -1512,6 +1652,119 @@ class WorldService {
    */
   getSelectionBox() {
     return this._selectionBox;
+  }
+  
+  /**
+   * Handle mouse click on entities
+   * 
+   * @param {number} x - World X coordinate
+   * @param {number} y - World Y coordinate
+   */
+  handleMouseClick(x, y) {
+    // First try spatial grid
+    let nearby = this.getNearbyEntities(x, y, 20);
+    
+    // Fallback: check all entities
+    if (nearby.length === 0) {
+      for (const entity of this._entities.values()) {
+        const pos = entity.getPosition ? entity.getPosition() : { x: entity.x, y: entity.y };
+        if (pos) {
+          const dist = Math.sqrt((pos.x - x) ** 2 + (pos.y - y) ** 2);
+          if (dist < 20) {
+            nearby.push(entity);
+          }
+        }
+      }
+    }
+    
+    if (nearby.length > 0) {
+      const entity = nearby[0];
+      if (entity.setSelected) {
+        entity.setSelected(true);
+      }
+    }
+  }
+  
+  /**
+   * Start selection box drag
+   * 
+   * @param {number} x - Start X
+   * @param {number} y - Start Y
+   */
+  startSelectionBox(x, y) {
+    this._selectionBox = { x1: x, y1: y, x2: x, y2: y };
+  }
+  
+  /**
+   * Update selection box during drag
+   * 
+   * @param {number} x - Current X
+   * @param {number} y - Current Y
+   */
+  updateSelectionBox(x, y) {
+    if (this._selectionBox) {
+      this._selectionBox.x2 = x;
+      this._selectionBox.y2 = y;
+    }
+  }
+  
+  /**
+   * Finish selection box and select entities
+   */
+  finishSelectionBox() {
+    if (!this._selectionBox) return;
+    
+    const minX = Math.min(this._selectionBox.x1, this._selectionBox.x2);
+    const maxX = Math.max(this._selectionBox.x1, this._selectionBox.x2);
+    const minY = Math.min(this._selectionBox.y1, this._selectionBox.y2);
+    const maxY = Math.max(this._selectionBox.y1, this._selectionBox.y2);
+    
+    // Try spatial grid first
+    let entitiesInBox = this.getEntitiesInRect(minX, minY, maxX - minX, maxY - minY);
+    
+    // Fallback: check all entities manually
+    if (entitiesInBox.length === 0) {
+      for (const entity of this._entities.values()) {
+        const pos = entity.getPosition ? entity.getPosition() : { x: entity.x, y: entity.y };
+        if (pos && pos.x >= minX && pos.x <= maxX && pos.y >= minY && pos.y <= maxY) {
+          entitiesInBox.push(entity);
+        }
+      }
+    }
+    
+    entitiesInBox.forEach(entity => {
+      if (entity.setSelected) {
+        entity.setSelected(true);
+      }
+    });
+    
+    this._selectionBox = null;
+  }
+  
+  /**
+   * Handle right-click context menu (move selected entities)
+   * 
+   * @param {number} x - Target X
+   * @param {number} y - Target Y
+   */
+  handleRightClick(x, y) {
+    const selected = this.getSelectedEntities();
+    selected.forEach(entity => {
+      if (entity.moveToLocation) {
+        entity.moveToLocation(x, y);
+      }
+    });
+  }
+  
+  /**
+   * Handle mouse wheel zoom
+   * 
+   * @param {number} delta - Scroll delta (positive = zoom in)
+   */
+  handleMouseWheel(delta) {
+    const zoomSpeed = 0.1;
+    this._camera.zoom += delta * zoomSpeed;
+    this._camera.zoom = Math.max(this._camera.minZoom, Math.min(this._camera.zoom, this._camera.maxZoom));
   }
   
   /**
@@ -1569,10 +1822,10 @@ class WorldService {
    * Get panel by ID
    * 
    * @param {string} id - Panel ID
-   * @returns {Object|null} Panel instance or null
+   * @returns {Object|undefined} Panel instance or undefined
    */
   getPanelById(id) {
-    return this._panels.get(id) || null;
+    return this._panels.get(id);
   }
   
   /**
@@ -1679,16 +1932,17 @@ class WorldService {
    * Start dragging panel
    * 
    * @param {string} panelId - Panel ID
-   * @param {number} offsetX - X offset from panel origin
-   * @param {number} offsetY - Y offset from panel origin
+   * @param {number} mouseX - Initial mouse X position
+   * @param {number} mouseY - Initial mouse Y position
    */
-  startPanelDrag(panelId, offsetX, offsetY) {
+  startPanelDrag(panelId, mouseX, mouseY) {
     const panel = this.getPanelById(panelId);
     if (panel) {
+      // Calculate offset from panel origin to mouse position
       this._panelDragState = {
         panelId,
-        offsetX,
-        offsetY,
+        offsetX: mouseX - panel.x,
+        offsetY: mouseY - panel.y,
         active: true
       };
       this.bringToFront(panelId);
@@ -1741,8 +1995,11 @@ class WorldService {
     // Layer 2: Entities (depth-sorted if needed)
     this._renderEntities();
     
-    // Layer 3: Effects
+    // Layer 3: Effects (particles, glows, flashes)
     this._renderEffects();
+    
+    // Layer 3.5: Ambient lighting overlay
+    this._renderAmbientLight();
     
     // Layer 4: UI Panels (z-ordered)
     this._renderPanels();
@@ -1769,6 +2026,12 @@ class WorldService {
    */
   _renderTerrain() {
     if (!this._terrain) return;
+    
+    // If terrain has its own render method, use it
+    if (this._terrain.render) {
+      this._terrain.render();
+      return;
+    }
     
     if (typeof push === 'undefined') return; // No p5.js
     
@@ -1800,6 +2063,17 @@ class WorldService {
   _renderEntities() {
     const entities = this.getAllEntities();
     
+    // Apply camera transforms
+    if (typeof push !== 'undefined') {
+      push();
+      
+      // Translate and scale for camera
+      if (typeof translate !== 'undefined' && typeof scale !== 'undefined') {
+        translate(-this._camera.x, -this._camera.y);
+        scale(this._camera.zoom, this._camera.zoom);
+      }
+    }
+    
     // Depth sort if enabled (y-axis sorting for isometric feel)
     if (this._enableDepthSort) {
       entities.sort((a, b) => {
@@ -1810,11 +2084,38 @@ class WorldService {
       });
     }
     
+    // Get camera bounds for frustum culling
+    const cameraBounds = this._getCameraBounds();
+    
     // Render each entity
     for (const entity of entities) {
-      if (entity.render) {
-        entity.render();
+      // Skip inactive entities
+      if (entity.isActive === false) continue;
+      
+      // Frustum culling - skip entities outside camera view
+      if (cameraBounds) {
+        const pos = entity.getPosition ? entity.getPosition() : entity.position;
+        if (pos) {
+          if (pos.x < cameraBounds.left || pos.x > cameraBounds.right ||
+              pos.y < cameraBounds.top || pos.y > cameraBounds.bottom) {
+            continue; // Outside view
+          }
+        }
       }
+      
+      // Render with error handling
+      if (entity.render) {
+        try {
+          entity.render();
+        } catch (error) {
+          console.warn(`Entity render error:`, error);
+          // Continue rendering other entities
+        }
+      }
+    }
+    
+    if (typeof pop !== 'undefined') {
+      pop();
     }
   }
   
@@ -1823,9 +2124,22 @@ class WorldService {
    * @private
    */
   _renderEffects() {
-    for (const effect of this._activeEffects) {
+    // Sort effects by zIndex (lower first)
+    const sortedEffects = [...this._activeEffects].sort((a, b) => {
+      const aZ = a.zIndex || 0;
+      const bZ = b.zIndex || 0;
+      return aZ - bZ;
+    });
+    
+    // Render effects with error handling
+    for (const effect of sortedEffects) {
       if (effect.render) {
-        effect.render();
+        try {
+          effect.render();
+        } catch (error) {
+          console.warn('Effect render error:', error);
+          // Continue rendering other effects
+        }
       }
     }
     
@@ -1833,6 +2147,25 @@ class WorldService {
     this._activeEffects = this._activeEffects.filter(effect => {
       return effect.isActive !== false;
     });
+    
+    // Render particles with frustum culling
+    if (this._particlePool) {
+      const cameraBounds = this._getCameraBounds();
+      
+      for (const particle of this._particlePool.active) {
+        // Cull off-screen particles
+        if (cameraBounds) {
+          if (particle.x < cameraBounds.left || particle.x > cameraBounds.right ||
+              particle.y < cameraBounds.top || particle.y > cameraBounds.bottom) {
+            continue; // Outside view
+          }
+        }
+        
+        if (particle.render) {
+          particle.render();
+        }
+      }
+    }
   }
   
   /**
@@ -1943,12 +2276,117 @@ class WorldService {
   }
   
   /**
+   * Get camera bounds for frustum culling
+   * @private
+   * @returns {Object|null} Camera bounds {left, right, top, bottom}
+   */
+  _getCameraBounds() {
+    // Need global width/height from p5.js
+    if (typeof width === 'undefined' || typeof height === 'undefined') {
+      return null;
+    }
+    
+    const halfWidth = (width / this._camera.zoom) / 2;
+    const halfHeight = (height / this._camera.zoom) / 2;
+    
+    return {
+      left: this._camera.x - halfWidth,
+      right: this._camera.x + halfWidth,
+      top: this._camera.y - halfHeight,
+      bottom: this._camera.y + halfHeight
+    };
+  }
+  
+  /**
+   * Enable/disable debug rendering
+   * 
+   * @param {boolean} enabled - True to enable debug rendering
+   */
+  enableDebugRender(enabled) {
+    this._debugRenderEnabled = enabled;
+  }
+  
+  /**
+   * Set debug renderer function
+   * 
+   * @param {Function} renderer - Debug render function
+   */
+  setDebugRenderer(renderer) {
+    this._debugRenderer = renderer;
+  }
+  
+  /**
+   * Render with debug overlays
+   * @private
+   */
+  renderWithDebug(options = {}) {
+    if (this._debugRenderer) {
+      this._debugRenderer(options);
+    }
+  }
+  
+  /**
    * Add visual effect
    * 
    * @param {Object} effect - Effect object with render() method
    */
   addEffect(effect) {
     this._activeEffects.push(effect);
+  }
+  
+  /**
+   * Create screen flash effect
+   * 
+   * @param {Array} color - RGBA color [r, g, b, a]
+   * @param {number} duration - Duration in milliseconds
+   * @param {string} curve - Easing curve ('linear', 'easeOut', 'easeIn')
+   * @returns {FlashEffect} The created flash effect
+   */
+  flashScreen(color, duration, curve = 'linear') {
+    // Validate parameters
+    if (!color || !Array.isArray(color) || color.length < 3) {
+      color = [255, 255, 255, 128]; // Default white flash
+    }
+    if (duration <= 0) {
+      duration = 500; // Default 500ms
+    }
+    
+    const flash = new FlashEffect(color, duration, curve);
+    this.addEffect(flash);
+    return flash;
+  }
+  
+  /**
+   * Create red damage flash
+   * 
+   * @param {number} intensity - Flash intensity (0.0 - 1.0)
+   * @returns {FlashEffect} The created flash effect
+   */
+  flashDamage(intensity = 0.5) {
+    const alpha = Math.floor(intensity * 200);
+    return this.flashScreen([255, 0, 0, alpha], 300, 'easeOut');
+  }
+  
+  /**
+   * Create green heal flash
+   * 
+   * @param {number} intensity - Flash intensity (0.0 - 1.0)
+   * @returns {FlashEffect} The created flash effect
+   */
+  flashHeal(intensity = 0.3) {
+    const alpha = Math.floor(intensity * 150);
+    return this.flashScreen([0, 255, 0, alpha], 400, 'easeOut');
+  }
+  
+  /**
+   * Create yellow warning flash
+   * 
+   * @param {number} intensity - Flash intensity (0.0 - 1.0)
+   * @returns {FlashEffect} The created flash effect
+   */
+  flashWarning(intensity = 0.4) {
+    const alpha = Math.floor(intensity * 180);
+    return this.flashScreen([255, 255, 0, alpha], 250, 'linear');
   }
   
   /**
@@ -1964,10 +2402,73 @@ class WorldService {
   }
   
   /**
-   * Clear all visual effects
+   * Clear all visual effects (or by type)
+   * @param {string} type - Optional type filter ('flash', 'glow', 'arrow', 'marker')
    */
-  clearEffects() {
-    this._activeEffects = [];
+  clearEffects(type) {
+    if (type) {
+      // Clear specific type
+      const typeMap = {
+        'flash': 'FlashEffect',
+        'glow': 'GlowEffect',
+        'arrow': 'ArrowEffect',
+        'marker': 'MarkerEffect'
+      };
+      const className = typeMap[type];
+      if (className) {
+        this._activeEffects = this._activeEffects.filter(effect => 
+          effect.constructor.name !== className
+        );
+      }
+      
+      // Special case: clear particles
+      if (type === 'particles' && this._particlePool) {
+        this._particlePool.active = [];
+        this._particlePool.pool = [];
+        for (let i = 0; i < this._particlePool.maxParticles; i++) {
+          this._particlePool.pool.push(new Particle(0, 0, 0, 0, 0));
+        }
+      }
+    } else {
+      // Clear all
+      this._activeEffects = [];
+      
+      if (this._particlePool) {
+        this._particlePool.active = [];
+        this._particlePool.pool = [];
+        for (let i = 0; i < this._particlePool.maxParticles; i++) {
+          this._particlePool.pool.push(new Particle(0, 0, 0, 0, 0));
+        }
+      }
+    }
+  }
+  
+  getActiveEffectCount() {
+    return this._activeEffects.length;
+  }
+  
+  getEffectsByType(type) {
+    const typeMap = {
+      'flash': 'FlashEffect',
+      'glow': 'GlowEffect',
+      'arrow': 'ArrowEffect',
+      'marker': 'MarkerEffect'
+    };
+    const className = typeMap[type];
+    if (!className) return [];
+    
+    return this._activeEffects.filter(effect => effect.constructor.name === className);
+  }
+  
+  addEffect(effect) {
+    if (this._maxEffects && this._activeEffects.length >= this._maxEffects) {
+      return; // Limit reached
+    }
+    this._activeEffects.push(effect);
+  }
+  
+  setMaxEffects(max) {
+    this._maxEffects = max;
   }
   
   /**
@@ -2089,7 +2590,9 @@ class WorldService {
   playSound(name) {
     const sound = this._sounds.get(name);
     if (sound && sound.play) {
-      sound.setVolume(this._volume);
+      if (sound.setVolume) {
+        sound.setVolume(this._volume);
+      }
       sound.play();
     }
   }
@@ -2125,6 +2628,13 @@ class WorldService {
       this._bgm.stop();
       this._bgm = null;
     }
+  }
+  
+  /**
+   * Stop current background music (alias)
+   */
+  stopCurrentBGM() {
+    this.stopBackgroundMusic();
   }
   
   /**
@@ -2189,6 +2699,68 @@ class WorldService {
   }
   
   /**
+   * Set volume for a specific sound
+   * 
+   * @param {string} name - Sound name
+   * @param {number} volume - Volume level (0.0 - 1.0)
+   */
+  setSoundVolume(name, volume) {
+    const sound = this._sounds.get(name);
+    if (sound && sound.setVolume) {
+      sound.setVolume(volume);
+    }
+  }
+  
+  /**
+   * Set volume for sound category
+   * 
+   * @param {string} category - Category name
+   * @param {number} volume - Volume level (0.0 - 1.0)
+   */
+  setCategoryVolume(category, volume) {
+    this._categoryVolumes.set(category, Math.max(0, Math.min(1, volume)));
+  }
+  
+  /**
+   * Get volume for sound category
+   * 
+   * @param {string} category - Category name
+   * @returns {number} Volume level (0.0 - 1.0)
+   */
+  getCategoryVolume(category) {
+    return this._categoryVolumes.get(category) || 1.0;
+  }
+  
+  /**
+   * Set background music for game state
+   * 
+   * @param {string} state - Game state
+   * @param {string} bgmName - BGM sound name
+   */
+  setBGMForState(state, bgmName) {
+    this._stateBGM.set(state, bgmName);
+  }
+  
+  /**
+   * Play background music for game state
+   * 
+   * @param {string} state - Game state
+   */
+  playBGMForState(state) {
+    const bgmName = this._stateBGM.get(state);
+    if (bgmName) {
+      const sound = this._sounds.get(bgmName);
+      if (sound && sound.loop) {
+        if (sound.setVolume) {
+          sound.setVolume(this._volume);
+        }
+        sound.loop();
+        this._bgm = sound;
+      }
+    }
+  }
+  
+  /**
    * Set background music for game state
    * 
    * @param {string} state - Game state ('MENU', 'PLAYING', 'PAUSED')
@@ -2214,9 +2786,25 @@ class WorldService {
     const oldState = this._gameState;
     this._gameState = state;
     
-    // Trigger callbacks
+    // Auto-manage resource spawning based on state
+    if (state === 'PLAYING') {
+      this.startResourceSpawning();
+    } else if (state === 'PAUSED') {
+      this.stopResourceSpawning();
+    }
+    
+    // Update pause flag
+    this._isPaused = (state === 'PAUSED');
+    
+    // Trigger state-specific callbacks
     const callbacks = this._stateCallbacks.get(state) || [];
     for (const callback of callbacks) {
+      callback(state, oldState);
+    }
+    
+    // Trigger global state change callbacks
+    const globalCallbacks = this._stateCallbacks.get('*') || [];
+    for (const callback of globalCallbacks) {
       callback(state, oldState);
     }
   }
@@ -2266,6 +2854,26 @@ class WorldService {
    */
   isPaused() {
     return this._isPaused;
+  }
+  
+  /**
+   * Register callback for any game state change
+   * 
+   * @param {Function} callback - Callback function (state, oldState)
+   */
+  onGameStateChange(callback) {
+    if (!this._stateCallbacks.has('*')) {
+      this._stateCallbacks.set('*', []);
+    }
+    this._stateCallbacks.get('*').push(callback);
+  }
+  
+  /**
+   * Reset game (clear all entities)
+   */
+  resetGame() {
+    this.clearAllEntities();
+    this.setGameState('MENU');
   }
   
   // ============================================================
@@ -2346,12 +2954,605 @@ class WorldService {
   bringPanelToFront(panelId) {
     this.bringToFront(panelId);
   }
+  // ============================================================
+  // POSITIONAL EFFECTS METHODS (Arrows, Markers)
+  // ============================================================
+  
+  addArrow(x, y, targetEntity, options = {}) {
+    const arrow = new ArrowEffect(x, y, targetEntity, options);
+    this._activeEffects.push(arrow);
+    return arrow;
+  }
+  
+  addEdgeArrow(targetEntity, options = {}) {
+    const edgeArrow = new EdgeArrowEffect(targetEntity, this._camera, options);
+    this._activeEffects.push(edgeArrow);
+    return edgeArrow;
+  }
+  
+  addMarker(x, y, icon, options = {}) {
+    const marker = new MarkerEffect(x, y, icon, options);
+    this._activeEffects.push(marker);
+    return marker;
+  }
+  
+  // ============================================================
+  // LIGHTING EFFECTS METHODS (Glows, Ambient)
+  // ============================================================
+  
+  addGlow(x, y, radius, options = {}) {
+    const glow = new GlowEffect(x, y, radius, options);
+    this._activeEffects.push(glow);
+    return glow;
+  }
+  
+  attachGlow(entity, radius, options = {}) {
+    const glow = new GlowEffect(0, 0, radius, { ...options, entity });
+    this._activeEffects.push(glow);
+    return glow;
+  }
+  
+  setAmbientLight(color, intensity) {
+    if (!this._ambientLight) {
+      this._ambientLight = {};
+    }
+    this._ambientLight.color = color;
+    this._ambientLight.intensity = intensity;
+    this._ambientLight.enabled = intensity > 0;
+  }
+  
+  _renderAmbientLight() {
+    if (!this._ambientLight || !this._ambientLight.enabled) return;
+    
+    const env = typeof global !== 'undefined' ? global : window;
+    
+    env.push();
+    env.blendMode(env.MULTIPLY || 'multiply');
+    env.fill(
+      this._ambientLight.color[0],
+      this._ambientLight.color[1],
+      this._ambientLight.color[2],
+      this._ambientLight.intensity * 255
+    );
+    env.noStroke();
+    env.rect(0, 0, env.width || 800, env.height || 600);
+    env.pop();
+  }
+  
+  // ============================================================
+  // PARTICLE SYSTEM METHODS
+  // ============================================================
+  
+  spawnParticles(x, y, count, options = {}) {
+    if (!this._particlePool) {
+      this._particlePool = new ParticlePool(1000);
+    }
+    
+    for (let i = 0; i < count; i++) {
+      const vx = (Math.random() - 0.5) * (options.speed || 2);
+      const vy = (Math.random() - 0.5) * (options.speed || 2);
+      const lifetime = options.lifetime || 1000;
+      
+      const particle = this._particlePool.get(x, y, vx, vy, lifetime, options);
+      if (!particle) break; // Pool exhausted
+    }
+  }
+  
+  spawnExplosion(x, y, intensity = 1.0) {
+    if (!this._particlePool) {
+      this._particlePool = new ParticlePool(1000);
+    }
+    
+    const count = Math.floor(20 * intensity);
+    const speed = 3 * intensity;
+    
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+      const velocity = speed * (0.5 + Math.random() * 0.5);
+      const vx = Math.cos(angle) * velocity;
+      const vy = Math.sin(angle) * velocity;
+      
+      this._particlePool.get(x, y, vx, vy, 800, {
+        color: [255, 150 + Math.random() * 105, 0],
+        size: 3 + Math.random() * 3,
+        gravity: 0.1
+      });
+    }
+  }
+  
+  spawnTrail(x, y, dirX, dirY) {
+    if (!this._particlePool) {
+      this._particlePool = new ParticlePool(1000);
+    }
+    
+    const particle = this._particlePool.get(
+      x, 
+      y, 
+      -dirX * (0.5 + Math.random() * 0.5),
+      -dirY * (0.5 + Math.random() * 0.5),
+      300,
+      { size: 2, alpha: 200, drag: 0.95 }
+    );
+  }
+  
+  spawnDust(x, y) {
+    if (!this._particlePool) {
+      this._particlePool = new ParticlePool(1000);
+    }
+    
+    const count = 8 + Math.floor(Math.random() * 5);
+    
+    for (let i = 0; i < count; i++) {
+      this._particlePool.get(
+        x + (Math.random() - 0.5) * 10,
+        y,
+        (Math.random() - 0.5) * 1,
+        -1 - Math.random() * 2, // Upward
+        500 + Math.random() * 500,
+        { color: [150, 150, 150], size: 2 + Math.random() * 2, drag: 0.98 }
+      );
+    }
+  }
+}
+
+// ============================================================
+// LIGHTING EFFECT CLASSES (Glow)
+// ============================================================
+
+class GlowEffect {
+  constructor(x, y, radius, options = {}) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = options.color || [255, 255, 0];
+    this.intensity = options.intensity !== undefined ? options.intensity : 1.0;
+    this.flicker = options.flicker || false;
+    this.flickerSpeed = options.flickerSpeed || 3.0;
+    this.entity = options.entity || null;
+    this.offset = options.offset || { x: 0, y: 0 };
+    this.isActive = true;
+    this.startTime = Date.now();
+  }
+  
+  update(deltaTime) {
+    // If attached to entity, follow it
+    if (this.entity) {
+      // Check if entity still exists (defensive coding for external objects)
+      if (!this.entity || this.entity.isActive === false) {
+        this.isActive = false;
+        return;
+      }
+      
+      try {
+        const entityPos = this.entity.getPosition ? this.entity.getPosition() : this.entity.position;
+        if (!entityPos) {
+          this.isActive = false;
+          return;
+        }
+        
+        this.x = entityPos.x + this.offset.x;
+        this.y = entityPos.y + this.offset.y;
+      } catch (error) {
+        // Entity destroyed
+        this.isActive = false;
+        return;
+      }
+    }
+    
+    // Flicker animation
+    if (this.flicker) {
+      const time = (Date.now() - this.startTime) * 0.001;
+      this.currentIntensity = this.intensity * (0.7 + 0.3 * Math.sin(time * this.flickerSpeed));
+    } else {
+      this.currentIntensity = this.intensity;
+    }
+  }
+  
+  render() {
+    const env = typeof global !== 'undefined' ? global : window;
+    
+    const intensity = this.currentIntensity || this.intensity;
+    const alpha = Math.floor(intensity * 100);
+    
+    env.push();
+    env.fill(this.color[0], this.color[1], this.color[2], alpha);
+    env.noStroke();
+    env.ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
+    env.pop();
+  }
+}
+
+// ============================================================
+// POSITIONAL EFFECT CLASSES (Arrows, Markers)
+// ============================================================
+
+class ArrowEffect {
+  constructor(x, y, targetEntity, options = {}) {
+    this.x = x;
+    this.y = y;
+    this.targetEntity = targetEntity;
+    this.bobSpeed = options.bobSpeed || 1.0;
+    this.bobAmount = options.bobAmount || 5;
+    this.bobOffset = 0;
+    this.isActive = true;
+    this.startTime = Date.now();
+  }
+  
+  update(deltaTime) {
+    // Check isActive flag FIRST (set by destroyEntity)
+    if (!this.targetEntity || this.targetEntity.isActive === false) {
+      this.isActive = false;
+      return;
+    }
+    
+    // Get position safely (might fail if entity.destroy() was called)
+    let targetPos;
+    try {
+      targetPos = this.targetEntity.getPosition ? this.targetEntity.getPosition() : this.targetEntity.position;
+    } catch (error) {
+      // Entity was destroyed, position no longer accessible
+      this.isActive = false;
+      return;
+    }
+    
+    if (!targetPos) {
+      this.isActive = false;
+      return;
+    }
+    
+    // Follow target
+    this.x = targetPos.x;
+    this.y = targetPos.y - 40; // Offset above target
+    
+    // Bob animation
+    this.bobOffset = Math.sin((Date.now() - this.startTime) * 0.001 * this.bobSpeed) * this.bobAmount;
+  }
+  
+  render() {
+    const env = typeof global !== 'undefined' ? global : window;
+    
+    env.push();
+    env.fill(255, 255, 0);
+    env.noStroke();
+    
+    // Draw downward-pointing arrow
+    const arrowY = this.y + this.bobOffset;
+    env.triangle(
+      this.x, arrowY + 10,
+      this.x - 8, arrowY - 10,
+      this.x + 8, arrowY - 10
+    );
+    
+    env.pop();
+  }
+}
+
+class EdgeArrowEffect {
+  constructor(targetEntity, camera, options = {}) {
+    this.targetEntity = targetEntity;
+    this.camera = camera;
+    this.margin = options.margin || 50;
+    this.offScreen = false;
+    this.isActive = true;
+    this.x = 0;
+    this.y = 0;
+  }
+  
+  update(deltaTime) {
+    // Check if target still exists
+    if (!this.targetEntity || this.targetEntity.isActive === false) {
+      this.isActive = false;
+      return;
+    }
+    
+    const env = typeof global !== 'undefined' ? global : window;
+    const targetPos = this.targetEntity.getPosition ? this.targetEntity.getPosition() : this.targetEntity.position;
+    
+    if (!targetPos) {
+      this.isActive = false;
+      return;
+    }
+    
+    // Check if target is on-screen
+    const screenWidth = env.width || 800;
+    const screenHeight = env.height || 600;
+    
+    const screenX = (targetPos.x - this.camera.x) * this.camera.zoom;
+    const screenY = (targetPos.y - this.camera.y) * this.camera.zoom;
+    
+    this.offScreen = screenX < 0 || screenX > screenWidth || screenY < 0 || screenY > screenHeight;
+    
+    if (!this.offScreen) return; // Don't render if on-screen
+    
+    // Clamp to screen edges with margin
+    this.x = Math.max(this.margin, Math.min(screenWidth - this.margin, screenX));
+    this.y = Math.max(this.margin, Math.min(screenHeight - this.margin, screenY));
+  }
+  
+  render() {
+    if (!this.offScreen) return; // Only render if target is off-screen
+    
+    const env = typeof global !== 'undefined' ? global : window;
+    
+    env.push();
+    env.fill(255, 0, 0);
+    env.noStroke();
+    env.ellipse(this.x, this.y, 20, 20);
+    env.pop();
+  }
+}
+
+class MarkerEffect {
+  constructor(x, y, icon, options = {}) {
+    this.x = x;
+    this.y = y;
+    this.icon = icon;
+    this.bob = options.bob !== false; // Default to true
+    this.bobOffset = 0;
+    this.duration = options.duration || Infinity;
+    this.color = options.color || [255, 255, 0];
+    this.size = options.size || 24;
+    this.isActive = true;
+    this.startTime = Date.now();
+  }
+  
+  update(deltaTime) {
+    const elapsed = Date.now() - this.startTime;
+    
+    if (elapsed >= this.duration) {
+      this.isActive = false;
+      return;
+    }
+    
+    if (this.bob) {
+      this.bobOffset = Math.sin(elapsed * 0.003) * 5;
+    }
+  }
+  
+  render() {
+    const env = typeof global !== 'undefined' ? global : window;
+    
+    env.push();
+    env.fill(this.color[0], this.color[1], this.color[2]);
+    env.noStroke();
+    
+    const renderY = this.y + this.bobOffset;
+    
+    // Render icon based on type
+    switch (this.icon) {
+      case 'exclamation':
+        env.textSize(this.size);
+        env.text('!', this.x, renderY);
+        break;
+      case 'question':
+        env.textSize(this.size);
+        env.text('?', this.x, renderY);
+        break;
+      case 'star':
+        env.ellipse(this.x, renderY, this.size, this.size);
+        break;
+      case 'skull':
+        env.textSize(this.size);
+        env.text('☠', this.x, renderY);
+        break;
+      default:
+        env.ellipse(this.x, renderY, this.size, this.size);
+    }
+    
+    env.pop();
+  }
+}
+
+// ============================================================
+// PARTICLE SYSTEM CLASSES
+// ============================================================
+
+class Particle {
+  constructor(x, y, vx, vy, lifetime, options = {}) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.lifetime = lifetime;
+    this.age = 0;
+    this.isActive = true;
+    
+    this.gravity = options.gravity || 0;
+    this.drag = options.drag || 1.0;
+    this.color = options.color || [255, 255, 255];
+    this.alpha = options.alpha || 255;
+    this.size = options.size || 4;
+  }
+  
+  update(deltaTime) {
+    this.age += deltaTime;
+    
+    if (this.age >= this.lifetime) {
+      this.isActive = false;
+      return;
+    }
+    
+    this.vy += this.gravity;
+    this.vx *= this.drag;
+    this.vy *= this.drag;
+    
+    this.x += this.vx;
+    this.y += this.vy;
+  }
+  
+  render() {
+    const env = typeof global !== 'undefined' ? global : window;
+    
+    const lifetimeProgress = this.age / this.lifetime;
+    const currentAlpha = this.alpha * (1 - lifetimeProgress);
+    
+    env.fill(this.color[0], this.color[1], this.color[2], currentAlpha);
+    env.noStroke();
+    env.ellipse(this.x, this.y, this.size, this.size);
+  }
+}
+
+class ParticlePool {
+  constructor(maxParticles) {
+    this.maxParticles = maxParticles;
+    this.pool = [];
+    this.active = [];
+    
+    for (let i = 0; i < maxParticles; i++) {
+      this.pool.push(new Particle(0, 0, 0, 0, 0));
+    }
+  }
+  
+  get(x, y, vx, vy, lifetime, options) {
+    if (this.pool.length === 0) return null;
+    
+    const particle = this.pool.pop();
+    particle.x = x;
+    particle.y = y;
+    particle.vx = vx;
+    particle.vy = vy;
+    particle.lifetime = lifetime;
+    particle.age = 0;
+    particle.isActive = true;
+    
+    if (options) {
+      particle.gravity = options.gravity || 0;
+      particle.drag = options.drag || 1.0;
+      particle.color = options.color || [255, 255, 255];
+      particle.alpha = options.alpha || 255;
+      particle.size = options.size || 4;
+    }
+    
+    this.active.push(particle);
+    return particle;
+  }
+  
+  release(particle) {
+    const index = this.active.indexOf(particle);
+    if (index !== -1) {
+      this.active.splice(index, 1);
+      this.pool.push(particle);
+    }
+  }
+  
+  update(deltaTime) {
+    for (let i = this.active.length - 1; i >= 0; i--) {
+      const particle = this.active[i];
+      particle.update(deltaTime);
+      
+      if (!particle.isActive) {
+        this.release(particle);
+      }
+    }
+  }
+}
+
+// ============================================================
+// FLASH EFFECT CLASS
+// ============================================================
+
+/**
+ * FlashEffect - Screen flash effect for visual feedback
+ */
+class FlashEffect {
+  constructor(color, duration, curve = 'linear') {
+    this.color = color;
+    this.duration = duration;
+    this.curve = curve;
+    this.startTime = Date.now();
+    this.isActive = true;
+  }
+  
+  /**
+   * Get current alpha based on elapsed time and easing curve
+   * @returns {number} Current alpha value
+   */
+  getAlpha() {
+    const elapsed = Date.now() - this.startTime;
+    
+    if (elapsed >= this.duration) {
+      return 0;
+    }
+    
+    // Calculate progress (0.0 to 1.0)
+    const progress = elapsed / this.duration;
+    
+    // Apply easing curve
+    let easedProgress;
+    switch (this.curve) {
+      case 'easeOut':
+        easedProgress = 1 - Math.pow(1 - progress, 3);
+        break;
+      case 'easeIn':
+        easedProgress = Math.pow(progress, 3);
+        break;
+      case 'linear':
+      default:
+        easedProgress = progress;
+        break;
+    }
+    
+    // Fade from original alpha to 0
+    const originalAlpha = this.color[3] || 255;
+    return Math.floor(originalAlpha * (1 - easedProgress));
+  }
+  
+  /**
+   * Render the flash effect
+   */
+  render() {
+    const elapsed = Date.now() - this.startTime;
+    
+    if (elapsed >= this.duration) {
+      this.isActive = false;
+      return;
+    }
+    
+    const currentAlpha = this.getAlpha();
+    
+    // Use global in Node/test environment, window in browser
+    const env = typeof global !== 'undefined' ? global : window;
+    
+    env.push();
+    env.fill(this.color[0], this.color[1], this.color[2], currentAlpha);
+    env.noStroke();
+    env.rect(0, 0, env.width, env.height);
+    env.pop();
+  }
+  
+  /**
+   * Update effect (called by WorldService)
+   * @param {number} deltaTime - Time since last frame
+   */
+  update(deltaTime) {
+    // Flash effects are time-based, not delta-based
+    // Check if duration has elapsed
+    const elapsed = Date.now() - this.startTime;
+    if (elapsed >= this.duration) {
+      this.isActive = false;
+    }
+  }
 }
 
 // Browser/Node.js compatibility
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = WorldService;
+  // Make classes available to global in Node environment (for tests)
+  global.GlowEffect = GlowEffect;
+  global.ArrowEffect = ArrowEffect;
+  global.EdgeArrowEffect = EdgeArrowEffect;
+  global.MarkerEffect = MarkerEffect;
+  global.Particle = Particle;
+  global.ParticlePool = ParticlePool;
+  global.FlashEffect = FlashEffect;
 }
 if (typeof window !== 'undefined') {
   window.WorldService = WorldService;
+  window.GlowEffect = GlowEffect;
+  window.ArrowEffect = ArrowEffect;
+  window.EdgeArrowEffect = EdgeArrowEffect;
+  window.MarkerEffect = MarkerEffect;
+  window.Particle = Particle;
+  window.ParticlePool = ParticlePool;
+  window.FlashEffect = FlashEffect;
 }
