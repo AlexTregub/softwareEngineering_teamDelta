@@ -174,6 +174,19 @@ function setup() {
   initializeWorld();
   initializeDraggablePanelSystem();
 
+  // Initialize WorldService (Phase 6.2 - Unified World Management)
+  // Requires: MapManager (auto-initializes in MapManager.js), SpatialGridManager (line 159)
+  if (typeof WorldService !== 'undefined' && mapManager && spatialGridManager) {
+    window.worldService = new WorldService(mapManager, spatialGridManager);
+    logNormal('WorldService initialized with MapManager + SpatialGridManager');
+  } else {
+    console.warn('WorldService initialization skipped - missing dependencies', {
+      WorldService: typeof WorldService,
+      mapManager: typeof mapManager,
+      spatialGridManager: typeof spatialGridManager
+    });
+  }
+
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
   // --- Initialize Controllers ---

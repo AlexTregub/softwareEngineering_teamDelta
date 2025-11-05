@@ -1,4 +1,4 @@
-class QueenAnt extends ant {
+class QueenAnt extends Ant {
   /**
    * Ensure Queen sprite is loaded (lazy load if needed)
    * @returns {p5.Image|undefined} The queen sprite image

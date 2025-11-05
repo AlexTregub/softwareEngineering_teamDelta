@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>WorldService Integration Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .test { margin: 10px 0; padding: 10px; border-left: 3px solid #007acc; }
+        .pass { border-color: #4ec9b0; }
+        .fail { border-color: #f48771; }
+        .pending { border-color: #ce9178; }
+        pre { background: #2d2d2d; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>WorldService Integration Test</h1>
+    <div id="results"></div>
+    <script>
+        function test(name, fn) {
+            const div = document.createElement('div');
+            div.className = 'test pending';
+            div.innerHTML = '<strong>' + name + '</strong><pre id="result-' + name.replace(/\s/g, '-') + '">Testing...</pre>';
+            document.getElementById('results').appendChild(div);
+            
+            setTimeout(() => {
+                try {
+                    const result = fn();
+                    const pre = document.getElementById('result-' + name.replace(/\s/g, '-'));
+                    pre.textContent = '✅ PASS\n' + JSON.stringify(result, null, 2);
+                    div.className = 'test pass';
+                } catch (e) {
+                    const pre = document.getElementById('result-' + name.replace(/\s/g, '-'));
+                    pre.textContent = '❌ FAIL\n' + e.message + '\n' + e.stack;
+                    div.className = 'test fail';
+                }
+            }, 100);
+        }
+        
+        setTimeout(() => {
+            test('WorldService exists', () => {
+                if (typeof WorldService === 'undefined') throw new Error('WorldService class not loaded');
+                return { status: 'WorldService class loaded' };
+            });
+            
+            test('worldService instance exists', () => {
+                if (typeof worldService === 'undefined') throw new Error('worldService instance not created');
+                return { status: 'worldService instance available', type: typeof worldService };
+            });
+            
+            test('worldService has dependencies', () => {
+                if (!worldService._mapManager) throw new Error('MapManager dependency missing');
+                if (!worldService._spatialGrid) throw new Error('SpatialGridManager dependency missing');
+                return { 
+                    mapManager: typeof worldService._mapManager,
+                    spatialGrid: typeof worldService._spatialGrid
+                };
+            });
+            
+            test('Tile API - getTileAt', () => {
+                const tile = worldService.getTileAt(5, 5);
+                return { tile: tile ? 'Found' : 'Not found', method: 'getTileAt(5, 5)' };
+            });
+            
+            test('Tile API - getTileAtWorldPos', () => {
+                const tile = worldService.getTileAtWorldPos(160, 160);
+                return { tile: tile ? 'Found' : 'Not found', method: 'getTileAtWorldPos(160, 160)' };
+            });
+            
+            test('Tile API - getTileMaterial', () => {
+                const material = worldService.getTileMaterial(160, 160);
+                return { material: material, method: 'getTileMaterial(160, 160)' };
+            });
+            
+            test('Tile API - getActiveMap', () => {
+                const activeMap = worldService.getActiveMap();
+                return { activeMap: activeMap ? 'Found' : 'Not found', method: 'getActiveMap()' };
+            });
+            
+            test('Spatial API - getNearbyEntities', () => {
+                const entities = worldService.getNearbyEntities(160, 160, 100);
+                return { 
+                    count: entities ? entities.length : 0, 
+                    method: 'getNearbyEntities(160, 160, 100)' 
+                };
+            });
+            
+            test('Spatial API - getAllEntities', () => {
+                const entities = worldService.getAllEntities();
+                return { 
+                    count: entities ? entities.length : 0, 
+                    method: 'getAllEntities()' 
+                };
+            });
+            
+            test('Spatial API - getEntityCount', () => {
+                const count = worldService.getEntityCount();
+                return { count: count, method: 'getEntityCount()' };
+            });
+            
+            test('Combined API - getEntitiesOnTile', () => {
+                const entities = worldService.getEntitiesOnTile(5, 5);
+                return { 
+                    count: entities ? entities.length : 0, 
+                    method: 'getEntitiesOnTile(5, 5)' 
+                };
+            });
+            
+            test('Combined API - getTileInfo', () => {
+                const info = worldService.getTileInfo(5, 5);
+                return { 
+                    hasTile: !!info.tile,
+                    entityCount: info.entityCount,
+                    method: 'getTileInfo(5, 5)' 
+                };
+            });
+            
+            test('MapManager singleton', () => {
+                if (typeof mapManager === 'undefined') throw new Error('mapManager not available');
+                return { status: 'mapManager global exists', type: typeof mapManager };
+            });
+            
+            test('SpatialGridManager instance', () => {
+                if (typeof spatialGridManager === 'undefined') throw new Error('spatialGridManager not available');
+                return { status: 'spatialGridManager global exists', type: typeof spatialGridManager };
+            });
+        }, 2000); // Wait for game to initialize
+    </script>
+</body>
+</html>

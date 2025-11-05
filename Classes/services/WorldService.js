@@ -14,8 +14,6 @@
  * const entitiesOnTile = worldService.getEntitiesOnTile(5, 10);
  */
 
-const TILE_SIZE = 32;
-
 class WorldService {
   /**
    * Create WorldService with dependency injection
@@ -278,10 +276,12 @@ class WorldService {
       return [];
     }
     
-    // Query entities near tile center (within TILE_SIZE/2)
-    const centerX = tile.worldX || (gridX * TILE_SIZE);
-    const centerY = tile.worldY || (gridY * TILE_SIZE);
-    const radius = TILE_SIZE / 2;
+    // Query entities near tile center (within tile size/2)
+    // Use global TILE_SIZE from sketch.js
+    const tileSize = (typeof TILE_SIZE !== 'undefined') ? TILE_SIZE : 32;
+    const centerX = tile.worldX || (gridX * tileSize);
+    const centerY = tile.worldY || (gridY * tileSize);
+    const radius = tileSize / 2;
     
     return this.getNearbyEntities(centerX, centerY, radius, options);
   }
