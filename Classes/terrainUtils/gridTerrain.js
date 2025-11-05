@@ -915,7 +915,7 @@ class camRenderConverter {
     /**
      * Convert world tile coordinates to canvas pixel coordinates
      * Systems affected by coordinate conversion:
-     * - Sprite2D.render() - Entity sprite rendering (has +0.5 tile centering offset)
+     * - Sprite2d.render() - Entity sprite rendering (has +0.5 tile centering offset)
      * - RenderController.worldToScreenPosition() - Highlighting and UI elements
      * - SelectionBoxController._worldToScreen() - Selection box rendering
      * - EffectsLayerRenderer - Particle effects

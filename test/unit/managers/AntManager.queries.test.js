@@ -16,7 +16,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
-// Setup test environment (JSDOM, p5.js, CollisionBox2D, Sprite2D)
+// Setup test environment (JSDOM, p5.js, CollisionBox2D, Sprite2d)
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('AntManager - Query Methods (Phase 3.4.2)', function() {

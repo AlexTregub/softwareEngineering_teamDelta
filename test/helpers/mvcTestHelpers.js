@@ -7,7 +7,7 @@
  * - JSDOM environment setup
  * - p5.js mock setup (globals and rendering functions)
  * - CollisionBox2D setup
- * - Sprite2D mock
+ * - Sprite2d mock
  * - Common test utilities
  * 
  * Usage:
@@ -48,6 +48,10 @@ function setupP5Globals() {
   global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
   global.window.createVector = global.createVector;
   
+  // p5.js utility functions
+  global.radians = sinon.stub().callsFake((degrees) => degrees * (Math.PI / 180));
+  global.window.radians = global.radians;
+  
   // p5.js constants
   global.CENTER = 'center';
   global.window.CENTER = 'center';
@@ -65,6 +69,11 @@ function setupP5Globals() {
   global.globalThis.logNormal = global.logNormal;
   global.globalThis.logVerbose = global.logVerbose;
   global.globalThis.logDebug = global.logDebug;
+  
+  // Ant counter (required by AntModel)
+  if (global.nextAntIndex === undefined) {
+    global.nextAntIndex = 0;
+  }
 }
 
 /**
@@ -90,6 +99,7 @@ function setupP5Rendering() {
     tint: sinon.stub(),
     noTint: sinon.stub(),
     image: sinon.stub(),
+    imageMode: sinon.stub(),
     line: sinon.stub(),
     circle: sinon.stub(),
     triangle: sinon.stub(),
@@ -119,14 +129,14 @@ function setupCollisionBox2D() {
 }
 
 /**
- * Create mock Sprite2D class and set as global.
+ * Create mock Sprite2d class and set as global.
  * Call this for tests that need sprite rendering.
  * Returns the mock class for custom assertions.
  */
 function setupMockSprite2D() {
   class MockSprite2D {
     constructor(img, pos, size, rotation) {
-      // Match real Sprite2D interface: img, pos, size, rotation
+      // Match real Sprite2d interface: img, pos, size, rotation
       // In tests, img might be a string path or an image object
       this.img = img;
       this.imagePath = typeof img === 'string' ? img : null; // For test assertions
@@ -151,8 +161,11 @@ function setupMockSprite2D() {
     hasImage() { return this.img != null; }
   }
   
-  global.Sprite2D = MockSprite2D;
-  global.window.Sprite2D = MockSprite2D;
+  global.Sprite2d = MockSprite2D;
+  global.window.Sprite2d = MockSprite2D;
+  // Also set lowercase 'd' version (real class name)
+  global.Sprite2d = MockSprite2D;
+  global.window.Sprite2d = MockSprite2D;
   
   return MockSprite2D;
 }
@@ -163,7 +176,7 @@ function setupMockSprite2D() {
  * 
  * Options:
  * - rendering: true/false (default: false) - Include p5.js rendering functions
- * - sprite: true/false (default: false) - Include Sprite2D mock
+ * - sprite: true/false (default: false) - Include Sprite2d mock
  * 
  * Returns object with all setup components for easy access.
  * 
@@ -204,7 +217,7 @@ function setupTestEnvironment(options = {}) {
   }
   
   if (sprite) {
-    result.Sprite2D = setupMockSprite2D();
+    result.Sprite2d = setupMockSprite2D();
   }
   
   return result;
@@ -237,6 +250,11 @@ function setupTestEnvironmentHook(options = {}) {
  */
 function cleanupTestEnvironment() {
   sinon.restore();
+  
+  // Reset ant counter for fresh tests
+  if (global.nextAntIndex !== undefined) {
+    global.nextAntIndex = 0;
+  }
 }
 
 /**

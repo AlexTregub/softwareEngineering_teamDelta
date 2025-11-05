@@ -28,6 +28,11 @@
  * ```
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : window.BaseView;
+// Use mock Sprite2d in tests if available, otherwise load real class
+const Sprite2d = (typeof global !== 'undefined' && global.Sprite2d) ? global.Sprite2d :
+                 (typeof require !== 'undefined') ? require('../rendering/Sprite2d') : window.Sprite2d;
 
 class BuildingView extends BaseView {
   /**
@@ -41,8 +46,8 @@ class BuildingView extends BaseView {
     super(model, options);
     
     // Create sprite for building rendering
-    if (options && options.imagePath && typeof Sprite2D !== 'undefined') {
-      this._sprite = new Sprite2D(
+    if (options && options.imagePath && typeof Sprite2d !== 'undefined') {
+      this._sprite = new Sprite2d(
         options.imagePath,
         model.position || { x: 0, y: 0 },
         model.size || { width: 32, height: 32 }

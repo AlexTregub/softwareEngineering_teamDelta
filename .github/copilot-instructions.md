@@ -87,7 +87,7 @@ setupTestEnvironment();
 // With rendering - adds all p5.js rendering functions
 setupTestEnvironment({ rendering: true });
 
-// Full setup - adds rendering + Sprite2D mock
+// Full setup - adds rendering + Sprite2d mock
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('MyTest', function() {
@@ -150,7 +150,7 @@ class ResourceModel extends BaseModel {
 class ResourceView extends BaseView {
   constructor(model, options) {
     super(model, options);
-    this._sprite = new Sprite2D(options.imagePath, model.position, model.size);
+    this._sprite = new Sprite2d(options.imagePath, model.position, model.size);
   }
   
   _onModelChange(property, data) {
@@ -308,7 +308,7 @@ const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : wind
 class MyView extends BaseView {
   constructor(model, options = {}) {
     super(model, options);
-    this._sprite = new Sprite2D(options.imagePath, model.position, model.size);
+    this._sprite = new Sprite2d(options.imagePath, model.position, model.size);
   }
   
   _onModelChange(property, data) {
@@ -839,7 +839,7 @@ Classes/
   controllers/   - Reusable behavior controllers
   managers/      - System managers (AntManager, ResourceManager, MapManager, SpatialGridManager)
   rendering/     - RenderLayerManager, EntityLayerRenderer, UILayerRenderer
-  systems/       - CollisionBox2D, Button, Sprite2D
+  systems/       - CollisionBox2D, Button, Sprite2d
   terrainUtils/  - Terrain generation, MapManager
   pathfinding.js - A* with terrain costs
 test/
@@ -1201,7 +1201,7 @@ setupTestEnvironment({ rendering: true, sprite: true });
 
 // Options:
 // - rendering: true/false - Include p5.js rendering functions
-// - sprite: true/false - Include Sprite2D mock
+// - sprite: true/false - Include Sprite2d mock
 
 // Cleanup after each test
 cleanupTestEnvironment(); // Restores all Sinon stubs
@@ -1221,7 +1221,7 @@ assertChangeListenerCalled(spy, 'property', data);
 - p5.js globals (createVector)
 - CollisionBox2D (real implementation)
 - Optional: p5.js rendering functions (push, pop, fill, etc.)
-- Optional: Sprite2D mock class
+- Optional: Sprite2d mock class
 
 **Benefits**:
 - Single source of truth for test setup

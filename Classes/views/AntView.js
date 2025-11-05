@@ -14,6 +14,12 @@
  * @extends BaseView
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : window.BaseView;
+// Use mock Sprite2d in tests if available, otherwise load real class
+const Sprite2d = (typeof global !== 'undefined' && global.Sprite2d) ? global.Sprite2d :
+                 (typeof require !== 'undefined') ? require('../rendering/Sprite2d') : window.Sprite2d;
+
 class AntView extends BaseView {
   /**
    * Creates an AntView
@@ -27,7 +33,7 @@ class AntView extends BaseView {
     super(model, options);
     
     // Sprite rendering
-    this._sprite = new Sprite2D(
+    this._sprite = new Sprite2d(
       options.imagePath,
       model.position,
       model.size
@@ -70,7 +76,7 @@ class AntView extends BaseView {
           this._currentImagePath = data.image;
           // Preserve rotation when creating new sprite
           const currentRotation = this._sprite ? this._sprite.rotation : 0;
-          this._sprite = new Sprite2D(
+          this._sprite = new Sprite2d(
             data.image,
             this._model.position,
             this._model.size,

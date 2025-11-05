@@ -23,8 +23,6 @@ let g_gridMap;
 let g_activeMap; // Reference to currently active terrain map (for level switching)
 // --- UI ---
 let g_menuFont;
-// --- IDK! ----
-let g_recordingPath;
 // -- Queen ---
 let queenAnt;
 // -- Time ---
@@ -32,46 +30,26 @@ let g_globalTime;
 
 // Buildings
 let Buildings = [];
-let buildingManager; // BuildingManager instance (MVC pattern)
-let cameraManager; // CameraSystemManager instance
 
-let antManager; // AntManager instance (registry and lifecycle)
-let antFactory; // AntFactory instance (creation logic)
-let entityService; // EntityService instance (unified entity registry and lifecycle)
-let buildingFactory; // BuildingFactory instance
-let resourceFactory; // ResourceFactory instance
-
-
-function setUpManagers() {
-  antManager = AntManager.getInstance();
-  buildingManager = BuildingManager.getInstance();
-  resourceManger = ResourceManger.getInstance();
-}
-
-function setUpFactories() {
-  antFactory = new AntFactory(antManager);
-  buildingFactory = new BuildingFactory(buildingManager);
-  resourceFactory = new ResourceFactory(resourceManger);
-  
-  // Use this to call all spawns from now on. 
-  /**
-   * entityService.spawn('Ant', { x: 100, y: 100, jobName: 'Worker', faction: 'player' });
-   * entityService.spawn('Building', { x: 200, y: 200, buildingType: 'AntHill', faction: 'player' });
-   * entityService.spawn('Resource', { x: 300, y: 300, resourceType: 'food', amount: 100 });
-   * 
-   * entityService.getById(42);              
-   * entityService.getByType('Ant');         // All ants
-   * entityService.getByFaction('player');   // Player entities
-   * entityService.query(e => e.health < 50); // Custom filter
-   */
-  entityService = new EntityService(antFactory, buildingFactory, resourceFactory);
-
-}
+let world; // WorldService instance - ONE global to rule them all
 
 function initGlobals() {
-  setUpManagers();
-  setUpFactories();
-  entityService.setSpatialGrid(spatialGridManager);
+
+  // Create factories for WorldService
+  const worldAntFactory = new AntFactory(null); // WorldService manages registry internally
+  const worldBuildingFactory = new BuildingFactory(null);
+  const worldResourceFactory = new ResourceFactory(null);
+  
+  // Initialize WorldService with factories
+  world = new WorldService({
+    factories: {
+      ant: worldAntFactory,
+      building: worldBuildingFactory,
+      resource: worldResourceFactory
+    }
+  });
+  
+  console.log('[WorldService] Initialized - ready to replace 40+ globals');
 }
 
 /**
@@ -216,6 +194,7 @@ function setup() {
 
   window.EntityRenderer = new EntityRenderer();
 
+  // DEPRECATED: CameraManager initialization (now handled by WorldService)
   if (typeof CameraSystemManager !== 'undefined') {
     cameraManager = new CameraSystemManager(null, width, height);
     cameraManager.switchCamera('MENU');
@@ -223,8 +202,9 @@ function setup() {
     GameState.onStateChange((newState, previousState) => {
         cameraManager.switchCamera(newState);
       });
+  }
 
-    SettingsManager.getInstance().loadSettings();
+  SettingsManager.getInstance().loadSettings();
 
   // Disable right-click context menu to prevent interference with brush controls
   if (typeof document !== 'undefined') {
@@ -301,8 +281,9 @@ function setup() {
   initializeContextMenuPrevention();
   MiddleClickPan.initialize();
 
-  const building = buildingManager.createBuilding('hivesource', 200, 200, 'neutral');
-}
+  // TEST: Spawn building via WorldService
+  world.spawnEntity('Building', { x: 200, y: 200, buildingType: 'hivesource', faction: 'neutral' });
+
 
 /**
  * Initialize context menu prevention
@@ -371,21 +352,15 @@ function initializeWorld() {
    g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
   // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
   
-  // New, Improved, and Chunked Terrain using MapManager
-  // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
-  // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
+  // Create terrain via gridTerrain
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
   
-  // IMPORTANT: Set g_activeMap immediately after g_map2 creation
+  // Register terrain with WorldService (handles MapManager registration internally)
   g_activeMap = g_map2;
-  
-  // Register with MapManager (which will also update g_activeMap)
-  if (typeof mapManager !== 'undefined') {
-    mapManager.registerMap('level1', g_map2, true);
-    logVerbose("Main map registered with MapManager as 'level1' and set as active");
-  }
+  world.loadTerrain(g_map2, 'level1', true);
+  logVerbose("Main map loaded into WorldService as 'level1'");
   
   // COORDSY = new CoordinateSystem();
   // COORDSY.setViewCornerBC(0,0);
@@ -396,12 +371,14 @@ function initializeWorld() {
   initGlobals();
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
-  queenAnt = antFactory.spawnQueen();
   
-  // Auto-track queen ant with camera (Phase 4.2 - Camera Following Integration)
-  if (cameraManager && queenAnt) {
-    cameraManager.followEntity(queenAnt);
-    logVerbose('[initializeWorld] Camera now following queen ant');
+  // Spawn queen via WorldService
+  queenAnt = world.spawnEntity('Ant', { x: 400, y: 400, jobName: 'Queen', faction: 'player' });
+  
+  // Auto-track queen ant with camera (WorldService integration)
+  if (queenAnt) {
+    world.centerCameraOnEntity(queenAnt);
+    logVerbose('[initializeWorld] Camera now following queen ant via WorldService');
   }
 }
 
@@ -442,8 +419,8 @@ function clearGameEntities() {
  */
 async function loadCustomLevel(levelPath) {
   try {    
-    // Clear all existing entities via EntityService
-    entityService.clearAll();
+    // Clear all existing entities via WorldService
+    world.clearAllEntities();
     
     // Fetch level JSON
     const response = await fetch(levelPath);
@@ -452,22 +429,21 @@ async function loadCustomLevel(levelPath) {
     }
     const levelData = await response.json();
     
-    // Load terrain via MapManager
+    // Load terrain via WorldService
     const mapId = levelData.metadata?.id || 'custom-level';
-    const terrain = mapManager.loadLevel(levelData, mapId, true);
+    const terrain = world.loadTerrain(levelData, mapId, true);
     if (!terrain) {
-      throw new Error('MapManager failed to load level terrain');
+      throw new Error('WorldService failed to load level terrain');
     }
     
-    // Update global references
+    // Update global references (for legacy compatibility)
     g_activeMap = terrain;
-    g_map2 = terrain; // For backwards compatibility
+    g_map2 = terrain;
     
     // Load entities via LevelLoader
     if (typeof LevelLoader === 'undefined') {
       console.warn('[loadCustomLevel] LevelLoader not available, skipping entity spawning');
       GameState.goToGame();
-      cameraManager.setCurrentMap(terrain);
       return true;
     }
     
@@ -477,16 +453,15 @@ async function loadCustomLevel(levelPath) {
     if (!result || !result.success) {
       console.warn('[loadCustomLevel] Entity loading failed or returned no entities');
       GameState.goToGame();
-      cameraManager.setCurrentMap(terrain);
       return true;
     }
     
-    // Spawn entities via EntityService (Phase 6.1)
+    // Spawn entities via WorldService (Phase 6.2)
     let spawnedCounts = { ants: 0, resources: 0, buildings: 0 };
     let queen = null;
     
-    if (entityService && Array.isArray(result.entities)) {
-      console.log(`[loadCustomLevel] Spawning ${result.entities.length} entities via EntityService`);
+    if (world && Array.isArray(result.entities)) {
+      console.log(`[loadCustomLevel] Spawning ${result.entities.length} entities via WorldService`);
       
       result.entities.forEach((entityData, index) => {
         if (!entityData || !entityData.type) {
@@ -503,7 +478,7 @@ async function loadCustomLevel(levelPath) {
             const jobName = properties?.JobName || properties?.job || (type === 'Queen' ? 'Queen' : 'Worker');
             const faction = properties?.faction || 'player';
             
-            spawnedEntity = entityService.spawn('Ant', {
+            spawnedEntity = world.spawnEntity('Ant', {
               x, y,
               jobName,
               faction
@@ -516,15 +491,11 @@ async function loadCustomLevel(levelPath) {
               queen = spawnedEntity;
             }
             
-            // Legacy: Add to ants array for rendering compatibility
-            if (typeof ants !== 'undefined') ants.push(spawnedEntity);
-            if (typeof selectables !== 'undefined') selectables.push(spawnedEntity);
-            
           } else if (type === 'Resource') {
             const resourceType = properties?.resourceType || 'food';
             const amount = properties?.amount || 100;
             
-            spawnedEntity = entityService.spawn('Resource', {
+            spawnedEntity = world.spawnEntity('Resource', {
               x, y,
               resourceType,
               amount
@@ -532,22 +503,17 @@ async function loadCustomLevel(levelPath) {
             
             spawnedCounts.resources++;
             
-            // Legacy: Add to resource_list for rendering compatibility
-            if (!window.resource_list) window.resource_list = [];
-            window.resource_list.push(spawnedEntity);
-            
           } else if (type === 'Building') {
             const buildingType = properties?.buildingType || 'AntHill';
             const faction = properties?.faction || 'neutral';
             
-            spawnedEntity = entityService.spawn('Building', {
+            spawnedEntity = world.spawnEntity('Building', {
               x, y,
               buildingType,
               faction
             });
             
             spawnedCounts.buildings++;
-            window.Buildings.push(spawnedEntity);
             
           } else {
             console.warn(`[loadCustomLevel] Unknown entity type: ${type}`);
@@ -564,25 +530,11 @@ async function loadCustomLevel(levelPath) {
       console.log(`[loadCustomLevel] Spawned entities - Ants: ${spawnedCounts.ants}, Resources: ${spawnedCounts.resources}, Buildings: ${spawnedCounts.buildings}`);
       
     }     
-    // Setup camera to follow queen
+    // Setup camera to follow queen via WorldService
     if (queen) {
       window.queenAnt = queen;
-      
-      if (cameraManager && cameraManager.followEntity) {
-        cameraManager.followEntity(queen);
-        
-        // Center camera on Queen immediately
-        if (cameraManager.activeCamera) {
-          const queenX = queen.x || queen.position?.x || 0;
-          const queenY = queen.y || queen.position?.y || 0;
-          
-          if (typeof cameraManager.activeCamera.centerOn === 'function') {
-            cameraManager.activeCamera.centerOn(queenX, queenY);
-          } else if (typeof cameraManager.activeCamera.setCameraPosition === 'function') {
-            cameraManager.activeCamera.setCameraPosition(queenX, queenY);
-          }
-        }
-      }
+      world.centerCameraOnEntity(queen);
+      console.log('[loadCustomLevel] Camera centered on queen via WorldService');
     } else {
       console.warn('[loadCustomLevel] No queen found in level');
     }
@@ -618,46 +570,26 @@ function draw() {
   soundManager.onDraw();
   
   // Update camera (input processing, following, bounds clamping)
-  // Enable for both in-game states AND Level Editor
-  if (cameraManager && (GameState.isInGame() || GameState.getState() === 'LEVEL_EDITOR')) {
-    cameraManager.update();
-  }
-
   // Update game systems (only if playing or in-game)
   if (GameState.getState() === 'PLAYING' || GameState.getState() === 'IN_GAME') {
-    // Update all entities via EntityService (CRITICAL: syncs sprite positions via Entity.update())
-    if (typeof entityService !== 'undefined' && entityService) {
-      entityService.update(deltaTime || 16.67); // 16.67ms = 60fps default
-    } else {
-      // LEGACY FALLBACK: Update ants directly (Phase 6.1 migration in progress)
-      if (Array.isArray(ants) && ants.length > 0) {
-        ants.forEach(ant => {
-          if (ant && typeof ant.update === 'function') {
-            ant.update();
-          }
-        });
-      }
-    }
+    // WorldService handles ALL entity updates, camera, spatial grid (Phase 6.2)
+    world.update(deltaTime || 16.67);
     
+    // Brush systems (keep separate - domain-specific)
     window.g_enemyAntBrush.update();
     window.g_lightningAimBrush.update();
     window.g_resourceBrush.update();
     window.g_buildingBrush.update();
+    
+    // UI systems (keep separate)
     updateQueenPanelVisibility();
     window.g_queenControlPanel.update();
+    
+    // Game systems (keep separate)
     window.eventManager.update();
     window.g_fireballManager.update();
     window.g_lightningManager.update();
     g_globalTime.update();
-
-    // Update queen movement (WASD keys)
-    const playerQueen = getQueen();
-    if (playerQueen) {
-      if (keyIsDown(87)) playerQueen.move("s"); // lazy flip of w and s
-      if (keyIsDown(65)) playerQueen.move("a");
-      if (keyIsDown(83)) playerQueen.move("w");
-      if (keyIsDown(68)) playerQueen.move("d");
-    }
   }
   
   // Update level editor (if active)
@@ -669,7 +601,7 @@ function draw() {
 
   // ============================================================
   // GAME LOOP PHASE 2: RENDER EVERYTHING ONCE
-  // RenderLayerManager handles all layered rendering
+  // WorldService handles all layered rendering (Phase 6.2)
   // ============================================================
   
   // Render level editor (takes over rendering when active)
@@ -678,12 +610,11 @@ function draw() {
       background(40, 40, 40); // Dark background for editor
       levelEditor.render();
     }
-    // IMPORTANT: Also call RenderManager.render() in Level Editor mode
-    // This ensures draggable panels get their interactive.update() calls
-    RenderManager.render(GameState.getState());
+    // WorldService still renders UI panels in editor mode
+    world.render();
   } else {
-    // Normal game rendering
-    RenderManager.render(GameState.getState());
+    // Normal game rendering via WorldService
+    world.render();
   }
 
   // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
@@ -979,10 +910,8 @@ function mouseWheel(event) {
       return false;
     }
     
-    // If no brush consumed the event, delegate to CameraManager for zoom (PLAYING state)
-    if (cameraManager && typeof cameraManager.handleMouseWheel === 'function') {
-      return cameraManager.handleMouseWheel(event);
-    }
+    // If no brush consumed the event, delegate to WorldService for zoom (PLAYING state)
+    return world.handleMouseWheel(event);
 
   } catch (e) {
     console.error('❌ Error handling mouseWheel for brushes:', e);
@@ -1166,31 +1095,31 @@ function keyPressed() {
   handleKeyEvent('handleKeyPressed', keyCode, key);
 
   if ((key === 'f' || key === 'F') && GameState.isInGame()) {
-    cameraManager.toggleFollow();
+    world.toggleCameraFollow();
   }
   
   // Camera navigation shortcuts
-  if (GameState.isInGame() && cameraManager) {
+  if (GameState.isInGame()) {
     if (key === 'h' || key === 'H') {
       // 'H' for Home - Center camera on map center
       const mapCenterX = (CHUNKS_X * 8 * TILE_SIZE) / 2;
       const mapCenterY = (CHUNKS_Y * 8 * TILE_SIZE) / 2;
-      cameraManager.centerOn(mapCenterX, mapCenterY);
+      world.setCameraPosition(mapCenterX, mapCenterY);
     }
     
     if (key === 'o' || key === 'O') {
       // 'O' for Overview - Zoom out to see more of the map
-      cameraManager.setZoom(0.2);
+      world.setCameraZoom(0.2);
     }
     
     if (key === 'r' || key === 'R') {
       // 'R' for Reset zoom
-      cameraManager.setZoom(1.0);
+      world.setCameraZoom(1.0);
     }
   }
 
-  if (GameState.isInGame() && cameraManager) {
-    const currentZoom = cameraManager.getZoom();
+  if (GameState.isInGame()) {
+    const currentZoom = world.getCameraZoom();
     const CAMERA_ZOOM_STEP = 1.1; // Moved constant here since it's no longer global
     
     if (key === '-' || key === '_' || keyCode === 189 || keyCode === 109) {
@@ -1271,14 +1200,7 @@ function getEntityWorldCenter(entity) {
  * @returns {Object} - An object containing the width and height of the map in pixels.
  */
 function getMapPixelDimensions() {
-  if (!g_activeMap) {
-    return { width: g_canvasX, height: g_canvasY };
-  }
-
-  const width = g_activeMap._xCount ? g_activeMap._xCount * TILE_SIZE : g_canvasX;
-  const height = g_activeMap._yCount ? g_activeMap._yCount * TILE_SIZE : g_canvasY;
-  //const gridSize = g_activeMap.getGridSizePixels()
-  return { width, height };
+  return world.getTerrainDimensions();
 }
 
 
@@ -1317,7 +1239,7 @@ function deactivateActiveBrushes() {
 function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   push();
   stroke(100, 100, 100, 100); // light gray grid lines
-  const zoom = cameraManager ? cameraManager.getZoom() : 1;
+  const zoom = world.getCameraZoom();
   strokeWeight(1 / zoom);
   noFill();
 
@@ -1332,7 +1254,7 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
  * setActiveMap
  * ------------
  * Sets the currently active terrain map by ID. Future-proof for level switching.
- * Delegates to MapManager for centralized map management.
+ * Delegates to WorldService for centralized map management.
  * 
  * @param {string|gridTerrain} mapIdOrMap - Map ID string or terrain map instance
  * @returns {boolean} True if successful, false if invalid
@@ -1343,24 +1265,19 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
  * 
  * // Switch by creating new map
  * const newMap = new gridTerrain(20, 20, seed, 8, 32, [windowWidth, windowHeight]);
- * mapManager.registerMap('level2', newMap);
+ * world.loadTerrain(newMap, 'level2', true);
  * setActiveMap('level2');
  */
 function setActiveMap(mapIdOrMap) {
-  if (typeof mapManager === 'undefined') {
-    console.error("setActiveMap: MapManager not available");
-    return false;
-  }
-  
-  // If passed a string ID, use MapManager
+  // If passed a string ID, use WorldService
   if (typeof mapIdOrMap === 'string') {
-    return mapManager.setActiveMap(mapIdOrMap);
+    return world.setActiveTerrain(mapIdOrMap);
   }
   
   // If passed a map object, register it and set active
   if (mapIdOrMap && typeof mapIdOrMap.chunkArray !== 'undefined') {
     const tempId = `map_${Date.now()}`;
-    mapManager.registerMap(tempId, mapIdOrMap, true);
+    world.loadTerrain(mapIdOrMap, tempId, true);
     return true;
   }
   
@@ -1372,15 +1289,12 @@ function setActiveMap(mapIdOrMap) {
  * getActiveMap
  * ------------
  * Returns the currently active terrain map.
- * Delegates to MapManager for centralized access.
+ * Delegates to WorldService for centralized access.
  * 
  * @returns {gridTerrain|null} The active terrain map, or null if none set
  */
 function getActiveMap() {
-  if (typeof mapManager !== 'undefined') {
-    return mapManager.getActiveMap();
-  }
-  return g_activeMap || null;
+  return world.getTerrain();
 }
 
 /**
@@ -1473,12 +1387,8 @@ function windowResized() {
 window.spawnDebugAnt = function() {
   console.log('🐜 [DEBUG] Spawning test ant at camera center...');
   
-  // Get camera position
-  const camPos = cameraManager.getCameraPosition();
-  if (!camPos) {
-    console.error('❌ Camera position unavailable');
-    return;
-  }
+  // Get camera position via WorldService
+  const camPos = world.getCameraPosition();
   
   // Calculate camera center in world coordinates
   const viewWidth = (g_canvasX || 800) / camPos.zoom;
@@ -1487,59 +1397,17 @@ window.spawnDebugAnt = function() {
   const centerY = camPos.y + (viewHeight / 2);
   
   console.log(`📍 Camera: pos=(${Math.round(camPos.x)}, ${Math.round(camPos.y)}), zoom=${camPos.zoom}`);
-  console.log(`📍 Viewport: ${g_canvasX}x${g_canvasY}`);
   console.log(`📍 Spawning at world center: (${Math.round(centerX)}, ${Math.round(centerY)})`);
   
-  // Create a new ant at camera center using the existing ant class
-  if (typeof ant === 'undefined') {
-    console.error('❌ ant class not available');
-    return;
-  }
+  // Spawn ant via WorldService (handles ALL registration automatically)
+  const newAnt = world.spawnEntity('Ant', {
+    x: centerX,
+    y: centerY,
+    jobName: 'Scout',
+    faction: 'player'
+  });
   
-  const newAnt = new ant(
-    centerX, centerY,  // Position at camera center
-    40, 40,            // Size
-    30, 0,             // Movement speed, rotation
-    antBaseSprite,     // Image
-    'Scout',           // Job
-    'player'           // Faction
-  );
-  
-  // Assign job with image
-  if (typeof JobImages !== 'undefined' && JobImages['Scout']) {
-    newAnt.assignJob('Scout', JobImages['Scout']);
-  }
-  
-  // Add to ants array
-  ants.push(newAnt);
-  
-  // Add to selectables
-  if (typeof selectables !== 'undefined') {
-    selectables.push(newAnt);
-  }
-  
-  // Register with spatial grid (if method exists)
-  if (typeof spatialGridManager !== 'undefined' && spatialGridManager && 
-      typeof spatialGridManager.registerEntity === 'function') {
-    try {
-      spatialGridManager.registerEntity(newAnt);
-    } catch (e) {
-      console.warn('Could not register with spatial grid:', e.message);
-    }
-  }
-  
-  // Register with tile interaction manager
-  if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && 
-      typeof g_tileInteractionManager.addObject === 'function') {
-    try {
-      g_tileInteractionManager.addObject(newAnt, 'ant');
-    } catch (e) {
-      console.warn('Could not register with tile interaction:', e.message);
-    }
-  }
-  
-  console.log(`✅ Test ant spawned! Total ants: ${ants.length}`);
-  console.log(`   Position: (${Math.round(newAnt.x)}, ${Math.round(newAnt.y)})`);
+  console.log(`✅ Test ant spawned at camera center (${Math.round(centerX)}, ${Math.round(centerY)})`);
   console.log(`   It should be visible at the CENTER of your screen!`);
   
   return newAnt;
@@ -1555,16 +1423,11 @@ window.testAnt = window.spawnDebugAnt;
 window.goToQueen = function() {
   console.log('👑 [DEBUG] Looking for Queen...');
   
-  // Find the Queen via AntManager
-  const allAnts = antManager.getAllAnts();
-  
-  const queen = allAnts.find(ant => 
-    ant.jobName === 'Queen' || ant.getJobName() === 'Queen'
-  );
+  // Find the Queen via WorldService
+  const queen = world.getQueen();
   
   if (!queen) {
     console.error('❌ Queen not found');
-    console.log(`   Total ants: ${allAnts.length}`);
     return;
   }
   
@@ -1583,20 +1446,9 @@ window.goToQueen = function() {
     console.log(`   Has sprite: NO`);
   }
   
-  // Move camera to Queen (CENTER the camera on her)
-  if (typeof cameraManager === 'undefined' || !cameraManager) {
-    console.error('❌ cameraManager not available');
-    return;
-  }
-  
-  if (cameraManager.activeCamera && typeof cameraManager.activeCamera.centerOn === 'function') {
-    // Use centerOn to properly center the Queen in viewport
-    cameraManager.activeCamera.centerOn(queen.x, queen.y);
-    console.log(`📸 Camera centered on Queen at (${Math.round(queen.x)}, ${Math.round(queen.y)})`);
-  }
-  else {
-    console.error('❌ centerOn method not available on active camera');
-  }
+  // Move camera to Queen via WorldService
+  world.centerCameraOnEntity(queen);
+  console.log(`📸 Camera centered on Queen at (${Math.round(queen.x)}, ${Math.round(queen.y)})`);
   
   // Force redraws
   if (typeof redraw === 'function') {
@@ -1607,55 +1459,4 @@ window.goToQueen = function() {
   }
   
   console.log('✅ Done! Camera centered on Queen.');
-};
-
-/**
- * DEBUG: Check camera position
- * Usage: In browser console, type: checkCamera()
- */
-window.checkCamera = function() {
-  console.log('📸 [Camera Debug]');
-  
-  if (!cameraManager) {
-    console.error('❌ cameraManager not available');
-    return;
-  }
-  
-  console.log('   Active camera:', cameraManager.activeCamera?.constructor?.name || 'Unknown');
-  
-  const camPos = cameraManager.getCameraPosition();
-  if (camPos) {
-    console.log(`   Camera position: (${Math.round(camPos.x)}, ${Math.round(camPos.y)})`);
-    console.log(`   Camera zoom: ${camPos.zoom.toFixed(2)}x`);
-  }
-  
-  // Find Queen
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-    const queen = ants.find(ant => 
-      ant.type === 'Queen' || ant.JobName === 'Queen' || ant.jobName === 'Queen'
-    );
-    
-    if (queen) {
-      console.log(`👑 Queen position: (${Math.round(queen.x)}, ${Math.round(queen.y)})`);
-      
-      // Calculate distance
-      if (camPos) {
-        const dx = queen.x - camPos.x;
-        const dy = queen.y - camPos.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        console.log(`   Distance from camera: ${Math.round(distance)} pixels`);
-        
-        // Check if Queen is in viewport
-        const viewWidth = width / camPos.zoom;
-        const viewHeight = height / camPos.zoom;
-        const inViewport = queen.x >= camPos.x && 
-                          queen.x <= camPos.x + viewWidth &&
-                          queen.y >= camPos.y && 
-                          queen.y <= camPos.y + viewHeight;
-        console.log(`   Queen in viewport: ${inViewport ? '✅ YES' : '❌ NO'}`);
-      }
-    } else {
-      console.log('❌ Queen not found');
-    }
-  }
 };

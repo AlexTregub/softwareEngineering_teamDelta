@@ -48,6 +48,11 @@ describe('AntModel', function() {
     AntModel = require('../../../Classes/models/AntModel');
   });
   
+  beforeEach(function() {
+    // Explicitly reset nextAntIndex before each test
+    global.nextAntIndex = 0;
+  });
+  
   afterEach(function() {
     cleanupTestEnvironment();
   });

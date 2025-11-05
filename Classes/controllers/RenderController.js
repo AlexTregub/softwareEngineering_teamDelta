@@ -531,7 +531,7 @@ class RenderController {
     noFill();
     
     // pos is screen top-left position, but sprite renders centered
-    // Translate to center and draw rect centered (matching imageMode(CENTER) in Sprite2D)
+    // Translate to center and draw rect centered (matching imageMode(CENTER) in Sprite2d)
     translate(pos.x + size.x / 2, pos.y + size.y / 2);
     rotate(rotation);
     rectMode(CENTER);

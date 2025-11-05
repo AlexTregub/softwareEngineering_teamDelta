@@ -38,7 +38,7 @@ class AntView extends BaseView {
     super(model, options);
     
     // Sprite rendering
-    this._sprite = new Sprite2D(options.imagePath, model.position, model.size);
+    this._sprite = new Sprite2d(options.imagePath, model.position, model.size);
     
     // Visual state
     this._healthBarVisible = true;
@@ -165,7 +165,7 @@ class AntView extends BaseView {
 ### Constructor Tests (5 tests)
 - Should extend BaseView
 - Should bind to AntModel
-- Should create Sprite2D
+- Should create Sprite2d
 - Should observe model changes
 - Should initialize visual state
 
@@ -208,7 +208,7 @@ AntView
   Constructor
     ✔ should extend BaseView
     ✔ should bind to AntModel
-    ✔ should create Sprite2D
+    ✔ should create Sprite2d
     ✔ should observe model changes
     ✔ should initialize visual state
   Sprite Rendering
@@ -224,7 +224,7 @@ AntView
 ### Components to Integrate:
 1. ✅ **AntModel** (already complete) - Data source
 2. ✅ **BaseView** (already exists) - Parent class
-3. ✅ **Sprite2D** (already exists) - Sprite rendering
+3. ✅ **Sprite2d** (already exists) - Sprite rendering
 4. ⚠️ **p5.js rendering** - Use test environment rendering setup
 
 ### What NOT to Include:

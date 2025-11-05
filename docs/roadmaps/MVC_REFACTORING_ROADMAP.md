@@ -411,8 +411,8 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
       const size = model.size;
       
       this._sprite = null;
-      if (typeof Sprite2D !== 'undefined' && options.imagePath) {
-        this._sprite = new Sprite2D(
+      if (typeof Sprite2d !== 'undefined' && options.imagePath) {
+        this._sprite = new Sprite2d(
           options.imagePath,
           createVector(pos.x, pos.y),
           createVector(size.width, size.height),
@@ -752,7 +752,7 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
   #### Refactored
   - **Resource System**: Migrated to MVC pattern
     - ResourceModel: Data and business logic
-    - ResourceView: Rendering with Sprite2D
+    - ResourceView: Rendering with Sprite2d
     - ResourceController: Public API and coordination
     - Functions changed: All resource access now via controller methods
     - New workflow: Use getType(), getPosition(), gather(), isDepleted()
@@ -868,7 +868,7 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
 - [x] Damage flash effect
 - [x] Resource indicator
 - [x] Integration with AntModel
-- [x] **Fixed**: Standardized Sprite2D interface (img, pos, size) across mock and real implementation
+- [x] **Fixed**: Standardized Sprite2d interface (img, pos, size) across mock and real implementation
 - **Time**: ~8 hours
 
 #### Phase 3.3: AntController ✅ COMPLETE (Nov 4, 2025)
@@ -957,7 +957,7 @@ const custom = ResourceFactory.createGreenLeaf(x, y, { amount: 50 });
 
 #### Phase 3.0: Test Infrastructure ✅ COMPLETE (Nov 4, 2025)
 - [x] Fixed module loading for all MVC classes
-- [x] Standardized Sprite2D interface across codebase
+- [x] Standardized Sprite2d interface across codebase
 - [x] Added `noSmooth` to p5.js rendering mocks
 - [x] Fixed dependency chains (BaseModel → AntModel → AntView → AntController)
 - [x] All 380 Ant tests now passing (5 pending by design)

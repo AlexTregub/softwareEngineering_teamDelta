@@ -17,7 +17,7 @@
 const { expect } = require('chai');
 const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
-// Setup environment (JSDOM, p5.js, CollisionBox2D, Sprite2D)
+// Setup environment (JSDOM, p5.js, CollisionBox2D, Sprite2d)
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('BuildingFactory', function() {
@@ -26,6 +26,11 @@ describe('BuildingFactory', function() {
   before(function() {
     BuildingController = require('../../../Classes/controllers/mvc/BuildingController');
     BuildingFactory = require('../../../Classes/factories/BuildingFactory');
+    
+    // Expose BuildingController to global scope (factory checks for this)
+    global.BuildingController = BuildingController;
+    window.BuildingController = BuildingController;
+    globalThis.BuildingController = BuildingController;
   });
   
   afterEach(function() {
@@ -54,37 +59,37 @@ describe('BuildingFactory', function() {
     
     it('should set correct position', function() {
       const cone = BuildingFactory.createAntCone(100, 150);
-      const pos = cone.getPosition();
+      const pos = cone.position;
       expect(pos.x).to.equal(100);
       expect(pos.y).to.equal(150);
     });
     
     it('should set correct type', function() {
       const cone = BuildingFactory.createAntCone(100, 150);
-      expect(cone.getType()).to.equal('AntCone');
+      expect(cone.buildingType).to.equal('AntCone');
     });
     
     it('should accept faction parameter', function() {
       const cone = BuildingFactory.createAntCone(100, 150, 'player');
-      expect(cone.getFaction()).to.equal('player');
+      expect(cone.faction).to.equal('player');
     });
     
     it('should default to neutral faction', function() {
       const cone = BuildingFactory.createAntCone(100, 150);
-      expect(cone.getFaction()).to.equal('neutral');
+      expect(cone.faction).to.equal('neutral');
     });
     
     it('should have spawn configuration', function() {
       const cone = BuildingFactory.createAntCone(100, 150);
-      const config = cone.getSpawnConfig();
+      const config = cone.spawnConfig;
       expect(config).to.have.property('interval');
       expect(config).to.have.property('count');
     });
     
     it('should have health stats', function() {
       const cone = BuildingFactory.createAntCone(100, 150);
-      expect(cone.getHealth()).to.be.a('number');
-      expect(cone.getMaxHealth()).to.be.a('number');
+      expect(cone.health).to.be.a('number');
+      expect(cone.maxHealth).to.be.a('number');
     });
   });
   
@@ -96,19 +101,19 @@ describe('BuildingFactory', function() {
     
     it('should set correct position', function() {
       const hill = BuildingFactory.createAntHill(200, 250);
-      const pos = hill.getPosition();
+      const pos = hill.position;
       expect(pos.x).to.equal(200);
       expect(pos.y).to.equal(250);
     });
     
     it('should set correct type', function() {
       const hill = BuildingFactory.createAntHill(200, 250);
-      expect(hill.getType()).to.equal('AntHill');
+      expect(hill.buildingType).to.equal('AntHill');
     });
     
     it('should accept faction parameter', function() {
       const hill = BuildingFactory.createAntHill(200, 250, 'enemy');
-      expect(hill.getFaction()).to.equal('enemy');
+      expect(hill.faction).to.equal('enemy');
     });
     
     it('should have different stats than AntCone', function() {
@@ -116,8 +121,8 @@ describe('BuildingFactory', function() {
       const hill = BuildingFactory.createAntHill(100, 100);
       
       // AntHill should have different health or spawn rates
-      const coneHealth = cone.getMaxHealth();
-      const hillHealth = hill.getMaxHealth();
+      const coneHealth = cone.maxHealth;
+      const hillHealth = hill.maxHealth;
       
       expect(hillHealth).to.not.equal(coneHealth);
     });
@@ -131,27 +136,27 @@ describe('BuildingFactory', function() {
     
     it('should set correct position', function() {
       const hive = BuildingFactory.createHiveSource(300, 350);
-      const pos = hive.getPosition();
+      const pos = hive.position;
       expect(pos.x).to.equal(300);
       expect(pos.y).to.equal(350);
     });
     
     it('should set correct type', function() {
       const hive = BuildingFactory.createHiveSource(300, 350);
-      expect(hive.getType()).to.equal('HiveSource');
+      expect(hive.buildingType).to.equal('HiveSource');
     });
     
     it('should accept faction parameter', function() {
       const hive = BuildingFactory.createHiveSource(300, 350, 'player');
-      expect(hive.getFaction()).to.equal('player');
+      expect(hive.faction).to.equal('player');
     });
     
     it('should have different stats than other buildings', function() {
       const cone = BuildingFactory.createAntCone(100, 100);
       const hive = BuildingFactory.createHiveSource(100, 100);
       
-      const coneSpawn = cone.getSpawnConfig();
-      const hiveSpawn = hive.getSpawnConfig();
+      const coneSpawn = cone.spawnConfig;
+      const hiveSpawn = hive.spawnConfig;
       
       // HiveSource should have different spawn configuration
       expect(hiveSpawn.interval).to.not.equal(coneSpawn.interval);
@@ -161,23 +166,24 @@ describe('BuildingFactory', function() {
   describe('Size Configuration', function() {
     it('should set default size for AntCone', function() {
       const cone = BuildingFactory.createAntCone(100, 100);
-      const size = cone.getSize();
+      const size = cone.size;
       expect(size.width).to.be.a('number');
       expect(size.height).to.be.a('number');
     });
     
     it('should set default size for AntHill', function() {
       const hill = BuildingFactory.createAntHill(100, 100);
-      const size = hill.getSize();
+      const size = hill.size;
       expect(size.width).to.be.a('number');
       expect(size.height).to.be.a('number');
     });
     
     it('should set default size for HiveSource', function() {
       const hive = BuildingFactory.createHiveSource(100, 100);
-      const size = hive.getSize();
+      const size = hive.size;
       expect(size.width).to.be.a('number');
       expect(size.height).to.be.a('number');
     });
   });
 });
+

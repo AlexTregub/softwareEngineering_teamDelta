@@ -7,7 +7,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
-// Setup test environment (JSDOM, p5.js, CollisionBox2D, Sprite2D)
+// Setup test environment (JSDOM, p5.js, CollisionBox2D, Sprite2d)
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('AntFactory', function() {
@@ -391,48 +391,5 @@ describe('AntFactory', function() {
     });
   });
   
-  describe('Integration with AntManager', function() {
-    it('should create ants that are retrievable from manager', function() {
-      const scout = antFactory.createScout(100, 100);
-      const warrior = antFactory.createWarrior(200, 200);
-      
-      const allAnts = antManager.getAllAnts();
-      expect(allAnts).to.have.lengthOf(2);
-      expect(allAnts).to.include(scout);
-      expect(allAnts).to.include(warrior);
-    });
-    
-    it('should create ants with sequential IDs', function() {
-      const ant1 = antFactory.createScout(100, 100);
-      const ant2 = antFactory.createWarrior(200, 200);
-      const ant3 = antFactory.createBuilder(300, 300);
-      
-      expect(ant2.model.antIndex).to.equal(ant1.model.antIndex + 1);
-      expect(ant3.model.antIndex).to.equal(ant2.model.antIndex + 1);
-    });
-    
-    it('should create ants that are queryable by job', function() {
-      antFactory.createScout(100, 100);
-      antFactory.createScout(150, 150);
-      antFactory.createWarrior(200, 200);
-      
-      const scouts = antManager.getAntsByJob('Scout');
-      const warriors = antManager.getAntsByJob('Warrior');
-      
-      expect(scouts).to.have.lengthOf(2);
-      expect(warriors).to.have.lengthOf(1);
-    });
-    
-    it('should create ants that are queryable by faction', function() {
-      antFactory.createScout(100, 100, 'player');
-      antFactory.createWarrior(200, 200, 'player');
-      antFactory.createSpitter(300, 300, 'enemy');
-      
-      const playerAnts = antManager.getAntsByFaction('player');
-      const enemyAnts = antManager.getAntsByFaction('enemy');
-      
-      expect(playerAnts).to.have.lengthOf(2);
-      expect(enemyAnts).to.have.lengthOf(1);
-    });
-  });
+  // NOTE: "Integration with AntManager" tests removed - AntManager is deprecated in favor of WorldService
 });

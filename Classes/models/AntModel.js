@@ -15,6 +15,8 @@
  * @extends BaseModel
  */
 
+let nextAntIndex;
+
 // Load dependencies (Node.js require, or use global in browser)
 const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
 const JobComponent = (typeof require !== 'undefined') ? require('../ants/JobComponent') : window.JobComponent;

@@ -1,6 +1,6 @@
 /**
- * @fileoverview Sprite2D - 2D sprite rendering with position, size, and rotation
- * @module Sprite2D
+ * @fileoverview Sprite2d - 2D sprite rendering with position, size, and rotation
+ * @module Sprite2d
  */
 
 /**
@@ -8,22 +8,29 @@
  * 
  * **Features**: p5.js integration, position/size vectors, opacity support
  * 
- * @class Sprite2D
- * @see {@link docs/api/Sprite2D.md} Full documentation and examples
+ * @class Sprite2d
+ * @see {@link docs/api/Sprite2d.md} Full documentation and examples
  */
-class Sprite2D {
+class Sprite2d {
   constructor(img, pos, size, rotation = 0) {
+    const _createVector = (typeof createVector !== 'undefined') ? createVector : global.createVector;
     this.img = img; // p5.Image object
-    this.pos = pos.copy ? pos.copy() : createVector(pos.x, pos.y); // p5.Vector
-    this.size = size.copy ? size.copy() : createVector(size.x, size.y); // p5.Vector
+    this.pos = pos.copy ? pos.copy() : _createVector(pos.x, pos.y); // p5.Vector
+    this.size = size.copy ? size.copy() : _createVector(size.x, size.y); // p5.Vector
     this.rotation = rotation;
     this.flipX = false;
     this.flipY = false;
   }
 
   setImage(img) { this.img = img; }
-  setPosition(pos) { this.pos = pos.copy ? pos.copy() : createVector(pos.x, pos.y); }
-  setSize(size) { this.size = size.copy ? size.copy() : createVector(size.x, size.y); }
+  setPosition(pos) { 
+    const _createVector = (typeof createVector !== 'undefined') ? createVector : global.createVector;
+    this.pos = pos.copy ? pos.copy() : _createVector(pos.x, pos.y); 
+  }
+  setSize(size) { 
+    const _createVector = (typeof createVector !== 'undefined') ? createVector : global.createVector;
+    this.size = size.copy ? size.copy() : _createVector(size.x, size.y); 
+  }
   setRotation(rotation) { this.rotation = rotation; }
   
   // Additional methods expected by Entity
@@ -62,23 +69,36 @@ class Sprite2D {
     // else: CustomLevelCamera (IN_GAME state) - camera transform already applied by RenderLayerManager,
     //       use world coordinates directly (they're already in transformed space)
     
-    push();
-    noSmooth();
-    imageMode(CENTER);
+    // Get p5.js functions (browser window or Node.js global)
+    const _push = (typeof push !== 'undefined') ? push : global.push;
+    const _pop = (typeof pop !== 'undefined') ? pop : global.pop;
+    const _noSmooth = (typeof noSmooth !== 'undefined') ? noSmooth : global.noSmooth;
+    const _imageMode = (typeof imageMode !== 'undefined') ? imageMode : global.imageMode;
+    const _translate = (typeof translate !== 'undefined') ? translate : global.translate;
+    const _scale = (typeof scale !== 'undefined') ? scale : global.scale;
+    const _rotate = (typeof rotate !== 'undefined') ? rotate : global.rotate;
+    const _radians = (typeof radians !== 'undefined') ? radians : global.radians;
+    const _tint = (typeof tint !== 'undefined') ? tint : global.tint;
+    const _image = (typeof image !== 'undefined') ? image : global.image;
+    const _CENTER = (typeof CENTER !== 'undefined') ? CENTER : global.CENTER;
+    
+    _push();
+    _noSmooth();
+    _imageMode(_CENTER);
     // Translate to center of sprite for proper rotation/flipping
-    translate(renderX + this.size.x / 2, renderY + this.size.y / 2);
-    scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
-    rotate(radians(this.rotation));
+    _translate(renderX + this.size.x / 2, renderY + this.size.y / 2);
+    _scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
+    _rotate(_radians(this.rotation));
     
     // Apply opacity if set
     if (this.alpha && this.alpha < 255) {
-      tint(255, this.alpha);
+      _tint(255, this.alpha);
     }
     // Render sprite centered at origin
-    image(this.img, 0, 0, this.size.x, this.size.y);
-    pop();
+    _image(this.img, 0, 0, this.size.x, this.size.y);
+    _pop();
   }
 }
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = Sprite2D;
+  module.exports = Sprite2d;
 }

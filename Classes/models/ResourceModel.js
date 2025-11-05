@@ -29,6 +29,9 @@
  * ```
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
+const CollisionBox2D = (typeof require !== 'undefined') ? require('../systems/CollisionBox2D') : window.CollisionBox2D;
 
 class ResourceModel extends BaseModel {
   /**
@@ -59,7 +62,6 @@ class ResourceModel extends BaseModel {
     this._initialAmount = this._amount;
     
     // Collision box for spatial queries
-    const CollisionBox2D = (typeof window !== 'undefined') ? window.CollisionBox2D : global.CollisionBox2D;
     this._collisionBox = new CollisionBox2D(x, y, width, height);
   }
   

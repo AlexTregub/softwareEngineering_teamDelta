@@ -64,7 +64,7 @@ describe('AntView', function() {
       expect(view.model).to.equal(mockModel);
     });
     
-    it('should create Sprite2D with correct parameters', function() {
+    it('should create Sprite2d with correct parameters', function() {
       const imagePath = 'Images/Ants/worker.png';
       view = new AntView(mockModel, { imagePath });
       

@@ -38,6 +38,10 @@
  * ```
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseController = (typeof require !== 'undefined') ? require('./BaseController') : window.BaseController;
+const ResourceModel = (typeof require !== 'undefined') ? require('../../models/ResourceModel') : window.ResourceModel;
+const ResourceView = (typeof require !== 'undefined') ? require('../../views/ResourceView') : window.ResourceView;
 
 class ResourceController extends BaseController {
   /**

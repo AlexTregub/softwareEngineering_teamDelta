@@ -21,7 +21,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const { setupTestEnvironment, cleanupTestEnvironment } = require('../../helpers/mvcTestHelpers');
 
-// Setup environment (JSDOM, p5.js, CollisionBox2D, Sprite2D)
+// Setup environment (JSDOM, p5.js, CollisionBox2D, Sprite2d)
 setupTestEnvironment({ rendering: true, sprite: true });
 
 describe('BuildingController', function() {

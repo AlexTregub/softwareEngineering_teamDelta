@@ -359,10 +359,10 @@ class EntityView {
     
     // Sprite component
     this._sprite = null;
-    if (typeof Sprite2D !== 'undefined' && options.imagePath) {
+    if (typeof Sprite2d !== 'undefined' && options.imagePath) {
       const pos = model.position;
       const size = model.size;
-      this._sprite = new Sprite2D(
+      this._sprite = new Sprite2d(
         options.imagePath,
         createVector(pos.x, pos.y),
         createVector(size.width, size.height),

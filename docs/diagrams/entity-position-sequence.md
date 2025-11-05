@@ -12,7 +12,7 @@ sequenceDiagram
     participant Transform as TransformController
     participant Movement as MovementController
     participant Stats as StatsContainer
-    participant Sprite as Sprite2D
+    participant Sprite as Sprite2d
     participant SpatialGrid as SpatialGridManager
 
     rect(0,0,0)
@@ -135,14 +135,14 @@ sequenceDiagram
 1. **CollisionBox2D** - Primary authoritative source (`this.x`, `this.y`)
 2. **TransformController** - Cached position (`_lastPosition.x`, `_lastPosition.y`)
 3. **StatsContainer** - Legacy ant system (`position.statValue.x`, `position.statValue.y`)
-4. **Sprite2D** - Visual rendering (`pos.x`, `pos.y`)
+4. **Sprite2d** - Visual rendering (`pos.x`, `pos.y`)
 
 ## Position Update Flow
 
 ### Direct Setting
 ```
 User → Entity.setPosition() → CollisionBox + TransformController + SpatialGrid
-     → (Next Frame) TransformController.update() → Sprite2D sync
+     → (Next Frame) TransformController.update() → Sprite2d sync
 ```
 
 ### Movement-Based
@@ -150,11 +150,11 @@ User → Entity.setPosition() → CollisionBox + TransformController + SpatialGr
 User → Entity.moveToLocation() → MovementController stores target
      → (Each Frame) MovementController.update() calculates new position
      → MovementController.setEntityPosition() → Entity.setPosition()
-     → CollisionBox + TransformController + StatsContainer + Sprite2D + SpatialGrid
+     → CollisionBox + TransformController + StatsContainer + Sprite2d + SpatialGrid
 ```
 
 ## Synchronization Points
 
 - **Immediate**: CollisionBox, TransformController (cached), SpatialGrid
-- **Next Frame**: Sprite2D (via TransformController._isDirty flag)
-- **During Movement**: StatsContainer and Sprite2D also updated directly by MovementController
+- **Next Frame**: Sprite2d (via TransformController._isDirty flag)
+- **During Movement**: StatsContainer and Sprite2d also updated directly by MovementController

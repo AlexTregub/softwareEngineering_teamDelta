@@ -17,6 +17,7 @@ describe('CameraManager + SparseTerrain Integration (Custom Levels)', function()
 
   beforeEach(function() {
     // Setup JSDOM
+    const dom = new JSDOM('', {
       url: 'http://localhost',
       pretendToBeVisual: true
     });

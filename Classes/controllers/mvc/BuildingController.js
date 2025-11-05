@@ -38,6 +38,10 @@
  * ```
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseController = (typeof require !== 'undefined') ? require('./BaseController') : window.BaseController;
+const BuildingModel = (typeof require !== 'undefined') ? require('../../models/BuildingModel') : window.BuildingModel;
+const BuildingView = (typeof require !== 'undefined') ? require('../../views/BuildingView') : window.BuildingView;
 
 class BuildingController extends BaseController {
   /**

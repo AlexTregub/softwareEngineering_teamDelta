@@ -122,7 +122,7 @@ setupTestEnvironment({ rendering: true });
 
 ### With Sprite Support
 ```javascript
-// Include Sprite2D mock
+// Include Sprite2d mock
 setupTestEnvironment({ rendering: true, sprite: true });
 ```
 

@@ -24,8 +24,11 @@
  * ```
  */
 
-// Load BaseView (browser uses window.BaseView directly, Node.js requires it)
-// const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : window.BaseView;
+// Load dependencies (Node.js require, or use global in browser)
+const BaseView = (typeof require !== 'undefined') ? require('./BaseView') : window.BaseView;
+// Use mock Sprite2d in tests if available, otherwise load real class
+const Sprite2d = (typeof global !== 'undefined' && global.Sprite2d) ? global.Sprite2d :
+                 (typeof require !== 'undefined') ? require('../rendering/Sprite2d') : window.Sprite2d;
 
 class ResourceView extends BaseView {
   /**
@@ -39,15 +42,16 @@ class ResourceView extends BaseView {
     
     // Sprite component (if image path provided)
     this._sprite = null;
-    if (typeof Sprite2D !== 'undefined' && options.imagePath) {
+    if (typeof Sprite2d !== 'undefined' && options.imagePath) {
       const pos = model.position;
       const size = model.size;
-      const createVector = (typeof window !== 'undefined') ? window.createVector : global.createVector;
+      const _createVector = (typeof createVector !== 'undefined') ? createVector : 
+                           ((typeof window !== 'undefined' && window.createVector) ? window.createVector : global.createVector);
       
-      this._sprite = new Sprite2D(
+      this._sprite = new Sprite2d(
         options.imagePath,
-        createVector(pos.x, pos.y),
-        createVector(size.width, size.height),
+        _createVector(pos.x, pos.y),
+        _createVector(size.width, size.height),
         0
       );
     }

@@ -526,7 +526,7 @@ describe('Ant Controller Integration Tests (JSDOM)', function() {
     const spritePath = path.join(__dirname, '../../../Classes/rendering/Sprite2d.js');
     const code = fs.readFileSync(spritePath, 'utf8');
     const cleanCode = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '');
-    global.Sprite2D = new Function(cleanCode + '; return Sprite2D;')();
+    global.Sprite2d = new Function(cleanCode + '; return Sprite2d;')();
   }
 
   function loadStatsContainer() {
@@ -1559,7 +1559,7 @@ describe('Entity Integration Tests (JSDOM)', function() {
     const code = fs.readFileSync(spritePath, 'utf8');
     // Remove comments that might have problematic syntax
     const cleanCode = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '');
-    global.Sprite2D = new Function(cleanCode + '; return Sprite2D;')();
+    global.Sprite2d = new Function(cleanCode + '; return Sprite2d;')();
   }
 
   function loadEntity() {
@@ -2526,18 +2526,18 @@ describe('ActiveMap Integration Tests', function() {
     }
 
     /**
-     * Dynamically load Sprite2D class
+     * Dynamically load Sprite2d class
      */
     function loadSprite2D() {
         const spritePath = path.resolve(__dirname, '../../../Classes/rendering/Sprite2d.js');
         const spriteCode = fs.readFileSync(spritePath, 'utf8');
         
-        const func = new Function('window', 'document', spriteCode + '\nreturn Sprite2D;');
-        const Sprite2D = func(window, document);
+        const func = new Function('window', 'document', spriteCode + '\nreturn Sprite2d;');
+        const Sprite2d = func(window, document);
         
         // Set as global (accessible by Entity)
-        window.Sprite2D = Sprite2D;
-        global.Sprite2D = Sprite2D;
+        window.Sprite2d = Sprite2d;
+        global.Sprite2d = Sprite2d;
     }
 
     /**

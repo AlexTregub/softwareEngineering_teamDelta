@@ -35,9 +35,9 @@ class Entity {
     // Initialize collision box first (required by some controllers)
     this._collisionBox = new CollisionBox2D(centeredX, centeredY, width, height);
 
-    // Initialize sprite component (if Sprite2D available) - use centered position
-    this._sprite = typeof Sprite2D !== 'undefined' ?
-      new Sprite2D(options.imagePath || null, createVector(centeredX, centeredY), createVector(width, height), 0) : null;
+    // Initialize sprite component (if Sprite2d available) - use centered position
+    this._sprite = typeof Sprite2d !== 'undefined' ?
+      new Sprite2d(options.imagePath || null, createVector(centeredX, centeredY), createVector(width, height), 0) : null;
 
     // Initialize debugger system (if UniversalDebugger available)
     this._debugger = null;
@@ -209,7 +209,7 @@ class Entity {
   
   /**
    * Get screen position (converts world position to screen coordinates for rendering)
-   * This matches the coordinate transformation used by Sprite2D rendering
+   * This matches the coordinate transformation used by Sprite2d rendering
    * @returns {{x: number, y: number}} Screen coordinates
    */
   getScreenPosition() {

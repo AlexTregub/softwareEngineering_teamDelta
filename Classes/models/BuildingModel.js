@@ -38,6 +38,9 @@
  * ```
  */
 
+// Load dependencies (Node.js require, or use global in browser)
+const BaseModel = (typeof require !== 'undefined') ? require('./BaseModel') : window.BaseModel;
+const CollisionBox2D = (typeof require !== 'undefined') ? require('../systems/CollisionBox2D') : window.CollisionBox2D;
 
 class BuildingModel extends BaseModel {
   /**

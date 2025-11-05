@@ -132,7 +132,7 @@ async function runResourceE2ETest() {
         hasMapleLeaf: typeof mapleLeaf !== 'undefined',
         hasStick: typeof stick !== 'undefined',
         hasStone: typeof stone !== 'undefined',
-        hasSprite2D: typeof Sprite2D !== 'undefined',
+        hasSprite2D: typeof Sprite2d !== 'undefined',
         hasCollisionBox2D: typeof CollisionBox2D !== 'undefined'
       };
     });
@@ -146,7 +146,7 @@ async function runResourceE2ETest() {
     console.log(`     - mapleLeaf image: ${diagnostics.hasMapleLeaf ? '✓' : '✗'}`);
     console.log(`     - stick image: ${diagnostics.hasStick ? '✓' : '✗'}`);
     console.log(`     - stone image: ${diagnostics.hasStone ? '✓' : '✗'}`);
-    console.log(`     - Sprite2D: ${diagnostics.hasSprite2D ? '✓' : '✗'}`);
+    console.log(`     - Sprite2d: ${diagnostics.hasSprite2D ? '✓' : '✗'}`);
     console.log(`     - CollisionBox2D: ${diagnostics.hasCollisionBox2D ? '✓' : '✗'}`);
     
     if (!diagnostics.hasResourceFactory) {
