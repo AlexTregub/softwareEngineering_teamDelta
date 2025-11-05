@@ -12,6 +12,14 @@
 
 class ResourceFactory {
   /**
+   * Create a new ResourceFactory instance.
+   * @param {WorldService} [worldService=null] - Optional WorldService (Phase 6)
+   */
+  constructor(worldService = null) {
+    this._worldService = worldService;
+  }
+  
+  /**
    * Get the appropriate image for a resource type
    * @private
    * @param {string} type - Resource type (greenLeaf, mapleLeaf, stick, stone)
@@ -139,7 +147,19 @@ class ResourceFactory {
   }
 
   /**
-   * Create a resource of specified type (generic factory method)
+   * Create a resource of specified type (instance method)
+   * @param {string} type - Resource type (greenLeaf, mapleLeaf, stick, stone)
+   * @param {number} x - World X position
+   * @param {number} y - World Y position
+   * @param {Object} [options={}] - Optional configuration
+   * @returns {ResourceController|null} New resource controller or null if invalid type
+   */
+  createResource(type, x, y, options = {}) {
+    return ResourceFactory.createResource(type, x, y, options);
+  }
+  
+  /**
+   * Create a resource of specified type (static method - generic factory method)
    * @param {string} type - Resource type (greenLeaf, mapleLeaf, stick, stone)
    * @param {number} x - World X position
    * @param {number} y - World Y position

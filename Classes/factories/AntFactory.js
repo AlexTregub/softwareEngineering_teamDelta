@@ -1,51 +1,42 @@
 /**
  * @fileoverview AntFactory - Handles ant creation logic with job assignment
- * Part of the MVC + Manager + Factory pattern for ant entities.
+ * Part of Phase 6 refactoring - factories now depend on WorldService instead of managers.
  * 
  * Responsibilities:
  * - Job assignment (random or specific)
  * - Size calculations and variations
  * - Position calculations (random, jittered, or specified)
- * - Delegates actual instantiation to AntManager.createAnt()
+ * - Creates ant controllers directly (no manager delegation)
  * 
  * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
+ * @version 2.0.0 (Phase 6 - WorldService integration)
  */
 
 /**
  * Factory class for creating ant entities with proper job assignment.
- * Follows Factory pattern - handles creation logic, delegates storage to AntManager.
+ * Follows Factory pattern - handles creation logic independently.
  * 
  * @class AntFactory
  * @example
  * const factory = new AntFactory();
  * 
- * // Spawn multiple ants
- * const ants = factory.spawnAnts(5, 'player');
- * 
- * // Spawn queen
- * const queen = factory.spawnQueen();
- * 
- * // Spawn specific job
- * const warrior = factory.createWarrior(100, 100, 'player');
+ * // Create specific job ants
+ * const scout = factory.createScout(100, 100, 'player');
+ * const warrior = factory.createWarrior(200, 200, 'player');
  */
 class AntFactory {
   /**
    * Creates a new AntFactory instance.
    * 
-   * @param {AntManager} antManager - Manager to handle registry
+   * @param {WorldService} [worldService=null] - Optional WorldService for advanced features (Phase 6)
    */
-  constructor(antManager) {
-    if (!antManager) {
-      throw new Error('AntFactory requires AntManager instance');
-    }
-    
+  constructor(worldService = null) {
     /**
-     * Reference to AntManager for creation/registration
-     * @type {AntManager}
+     * Optional reference to WorldService (Phase 6)
+     * @type {WorldService|null}
      * @private
      */
-    this._manager = antManager;
+    this._worldService = worldService;
     
     /**
      * Available job types for random selection
@@ -100,17 +91,8 @@ class AntFactory {
       // Calculate spawn position
       const position = this._calculateSpawnPosition(x, y);
       
-      // Calculate size with variation
-      const size = this._calculateAntSize();
-      
-      // Create ant via manager
-      const ant = this._manager.createAnt(position.x, position.y, {
-        jobName: jobName,
-        faction: faction,
-        width: size,
-        height: size,
-        movementSpeed: 30
-      });
+      // Create ant directly
+      const ant = this._createAntWithJob(position.x, position.y, jobName, faction);
       
       spawnedAnts.push(ant);
     }
@@ -137,16 +119,26 @@ class AntFactory {
     // Calculate queen size (larger than normal ants)
     const size = this._calculateQueenSize();
     
+    // Load AntController dynamically
+    const AntController = this._getAntController();
+    
     // Create Queen ant with special stats
-    const queen = this._manager.createAnt(position.x, position.y, {
-      jobName: 'Queen',
-      faction: 'player',
-      width: size,
-      height: size,
-      movementSpeed: 30,
-      health: 10000,
-      maxHealth: 10000
-    });
+    const queen = new AntController(
+      0, // ID will be assigned by WorldService
+      position.x,
+      position.y,
+      size,
+      size,
+      {
+        jobName: 'Queen',
+        faction: 'player',
+        width: size,
+        height: size,
+        movementSpeed: 30,
+        health: 10000,
+        maxHealth: 10000
+      }
+    );
     
     return queen;
   }
@@ -160,10 +152,11 @@ class AntFactory {
    * 
    * @param {number} x - X position
    * @param {number} y - Y position
-   * @param {string} [faction='neutral'] - Faction
+   * @param {string|Object} [factionOrOptions='neutral'] - Faction string OR options object
    * @returns {AntController} Scout ant
    */
-  createScout(x, y, faction = 'neutral') {
+  createScout(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
     return this._createAntWithJob(x, y, 'Scout', faction);
   }
   
@@ -172,10 +165,11 @@ class AntFactory {
    * 
    * @param {number} x - X position
    * @param {number} y - Y position
-   * @param {string} [faction='neutral'] - Faction
+   * @param {string|Object} [factionOrOptions='neutral'] - Faction string OR options object
    * @returns {AntController} Warrior ant
    */
-  createWarrior(x, y, faction = 'neutral') {
+  createWarrior(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
     return this._createAntWithJob(x, y, 'Warrior', faction);
   }
   
@@ -184,10 +178,11 @@ class AntFactory {
    * 
    * @param {number} x - X position
    * @param {number} y - Y position
-   * @param {string} [faction='neutral'] - Faction
+   * @param {string|Object} [factionOrOptions='neutral'] - Faction string OR options object
    * @returns {AntController} Builder ant
    */
-  createBuilder(x, y, faction = 'neutral') {
+  createBuilder(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
     return this._createAntWithJob(x, y, 'Builder', faction);
   }
   
@@ -196,10 +191,11 @@ class AntFactory {
    * 
    * @param {number} x - X position
    * @param {number} y - Y position
-   * @param {string} [faction='neutral'] - Faction
+   * @param {string|Object} [factionOrOptions='neutral'] - Faction string OR options object
    * @returns {AntController} Farmer ant
    */
-  createFarmer(x, y, faction = 'neutral') {
+  createFarmer(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
     return this._createAntWithJob(x, y, 'Farmer', faction);
   }
   
@@ -208,10 +204,11 @@ class AntFactory {
    * 
    * @param {number} x - X position
    * @param {number} y - Y position
-   * @param {string} [faction='neutral'] - Faction
+   * @param {string|Object} [factionOrOptions='neutral'] - Faction string OR options object
    * @returns {AntController} Spitter ant
    */
-  createSpitter(x, y, faction = 'neutral') {
+  createSpitter(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
     return this._createAntWithJob(x, y, 'Spitter', faction);
   }
   
@@ -230,15 +227,50 @@ class AntFactory {
    * @private
    */
   _createAntWithJob(x, y, jobName, faction) {
+    // Load AntController dynamically to avoid circular dependencies
+    const AntController = this._getAntController();
+    
     const size = this._calculateAntSize();
     
-    return this._manager.createAnt(x, y, {
-      jobName: jobName,
-      faction: faction,
-      width: size,
-      height: size,
-      movementSpeed: 30
-    });
+    // Create AntController directly (no manager needed in Phase 6)
+    const ant = new AntController(
+      0, // ID will be assigned by WorldService
+      x,
+      y,
+      size,
+      size,
+      {
+        jobName: jobName,
+        faction: faction,
+        width: size,
+        height: size,
+        movementSpeed: 30
+      }
+    );
+    
+    return ant;
+  }
+  
+  /**
+   * Get AntController class (lazy load to avoid circular dependencies)
+   * @private
+   */
+  _getAntController() {
+    if (!this._AntControllerClass) {
+      // Browser environment
+      if (typeof window !== 'undefined' && window.AntController) {
+        this._AntControllerClass = window.AntController;
+      }
+      // Node.js environment
+      else if (typeof require !== 'undefined') {
+        try {
+          this._AntControllerClass = require('../controllers/mvc/AntController');
+        } catch (e) {
+          throw new Error('AntController not available - ensure it is loaded before AntFactory');
+        }
+      }
+    }
+    return this._AntControllerClass;
   }
   
   /**

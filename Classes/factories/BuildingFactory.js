@@ -95,13 +95,33 @@ const BUILDING_CONFIGS = {
 
 class BuildingFactory {
   /**
+   * Create a new BuildingFactory instance.
+   * @param {WorldService} [worldService=null] - Optional WorldService (Phase 6)
+   */
+  constructor(worldService = null) {
+    this._worldService = worldService;
+  }
+  
+  /**
    * Create an AntCone building.
    * Small spawn building with fast spawn rate and low health.
    * 
    * @param {number} x - X position in world coordinates
    * @param {number} y - Y position in world coordinates
-   * @param {string} [faction='neutral'] - Building faction (player, enemy, neutral)
+   * @param {string|Object} [factionOrOptions='neutral'] - Building faction OR options object
    * @returns {BuildingController} AntCone controller
+   */
+  createAntCone(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
+    const config = BUILDING_CONFIGS.AntCone;
+    return new BuildingController(x, y, config.width, config.height, {
+      ...config,
+      faction
+    });
+  }
+  
+  /**
+   * Static version for backward compatibility
    */
   static createAntCone(x, y, faction = 'neutral') {
     const config = BUILDING_CONFIGS.AntCone;
@@ -117,8 +137,20 @@ class BuildingFactory {
    * 
    * @param {number} x - X position in world coordinates
    * @param {number} y - Y position in world coordinates
-   * @param {string} [faction='neutral'] - Building faction (player, enemy, neutral)
+   * @param {string|Object} [factionOrOptions='neutral'] - Building faction OR options object
    * @returns {BuildingController} AntHill controller
+   */
+  createAntHill(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
+    const config = BUILDING_CONFIGS.AntHill;
+    return new BuildingController(x, y, config.width, config.height, {
+      ...config,
+      faction
+    });
+  }
+  
+  /**
+   * Static version for backward compatibility
    */
   static createAntHill(x, y, faction = 'neutral') {
     const config = BUILDING_CONFIGS.AntHill;
@@ -134,8 +166,20 @@ class BuildingFactory {
    * 
    * @param {number} x - X position in world coordinates
    * @param {number} y - Y position in world coordinates
-   * @param {string} [faction='neutral'] - Building faction (player, enemy, neutral)
+   * @param {string|Object} [factionOrOptions='neutral'] - Building faction OR options object
    * @returns {BuildingController} HiveSource controller
+   */
+  createHiveSource(x, y, factionOrOptions = 'neutral') {
+    const faction = typeof factionOrOptions === 'string' ? factionOrOptions : factionOrOptions.faction || 'neutral';
+    const config = BUILDING_CONFIGS.HiveSource;
+    return new BuildingController(x, y, config.width, config.height, {
+      ...config,
+      faction
+    });
+  }
+  
+  /**
+   * Static version for backward compatibility
    */
   static createHiveSource(x, y, faction = 'neutral') {
     const config = BUILDING_CONFIGS.HiveSource;

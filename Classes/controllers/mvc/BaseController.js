@@ -81,6 +81,34 @@ class BaseController {
     return this._options;
   }
   
+  // --- Active State Management ---
+  
+  /**
+   * Get active state.
+   * @returns {boolean} True if entity is active
+   */
+  get isActive() {
+    return this._model ? this._model.isActive : true;
+  }
+  
+  /**
+   * Set active state.
+   * @param {boolean} state - Active state (true = active, false = inactive)
+   */
+  set isActive(state) {
+    if (this._model) {
+      this._model.isActive = state;
+    }
+  }
+  
+  /**
+   * Set active state (method form for explicit calls).
+   * @param {boolean} state - Active state (true = active, false = inactive)
+   */
+  setActive(state) {
+    this.isActive = state;
+  }
+  
   // --- Update/Render Lifecycle ---
   
   /**

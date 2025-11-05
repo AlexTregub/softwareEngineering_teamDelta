@@ -248,7 +248,15 @@ class AntController extends BaseController {
   }
   
   /**
-   * Get ant position
+   * Get ant position (method form)
+   * @returns {Object} Position {x, y}
+   */
+  getPosition() {
+    return this._model.position;
+  }
+  
+  /**
+   * Get ant position (property getter)
    * @returns {Object} Position {x, y}
    */
   get position() {

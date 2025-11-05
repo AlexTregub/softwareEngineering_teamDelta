@@ -89,6 +89,22 @@ class ResourceController extends BaseController {
     return this._model.type;
   }
   
+  /**
+   * Get resource faction.
+   * @returns {string} Resource faction (typically 'neutral')
+   */
+  getFaction() {
+    return this._model.faction;
+  }
+  
+  /**
+   * Get resource faction (read-only property).
+   * @returns {string} Resource faction (typically 'neutral')
+   */
+  get faction() {
+    return this._model.faction;
+  }
+  
   // --- Public API: Resource Amount ---
   
   /**

@@ -40,6 +40,7 @@ class ResourceModel extends BaseModel {
    * @param {Object} [options={}] - Configuration options
    * @param {string} [options.type='Food'] - Resource type ('Food', 'Wood', 'Stone')
    * @param {number} [options.amount=100] - Initial resource amount
+   * @param {string} [options.faction='neutral'] - Resource faction (typically 'neutral')
    */
   constructor(x = 0, y = 0, width = 32, height = 32, options = {}) {
     super();
@@ -47,6 +48,7 @@ class ResourceModel extends BaseModel {
     // Core identity
     this._id = `resource_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     this._type = options.type || 'Food';
+    this._faction = options.faction || 'neutral'; // Resources are typically neutral
     
     // Position and size (single source of truth)
     this._position = { x, y };
@@ -68,6 +70,9 @@ class ResourceModel extends BaseModel {
   
   /** @returns {string} Resource type ('Food', 'Wood', 'Stone') */
   get type() { return this._type; }
+  
+  /** @returns {string} Resource faction (typically 'neutral') */
+  get faction() { return this._faction; }
   
   /** @returns {{x: number, y: number}} Position (returns copy) */
   get position() { return { ...this._position }; }

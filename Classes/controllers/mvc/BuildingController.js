@@ -193,6 +193,14 @@ class BuildingController extends BaseController {
     return this._model.faction;
   }
   
+  /**
+   * Get building faction (read-only property).
+   * @returns {string} Building faction (player, enemy, neutral)
+   */
+  get faction() {
+    return this._model.faction;
+  }
+  
   // --- Lifecycle Methods ---
   
   /**

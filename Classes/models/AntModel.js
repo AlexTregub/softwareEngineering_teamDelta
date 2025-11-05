@@ -171,6 +171,11 @@ class AntModel extends BaseModel {
   get statsContainer() { return this._statsContainer; }
   
   get isActive() { return this._isActive; }
+  set isActive(value) { 
+    this._isActive = value;
+    this._notifyChange('isActive', value);
+  }
+  
   get targetDropoff() { return this._targetDropoff; }
   
   // ========================================
