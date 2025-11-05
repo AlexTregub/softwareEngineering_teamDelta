@@ -21,6 +21,7 @@ jobs:
               with:
                 key: ${{ secrets.ID_ED25519 }}
                 name: id_ed25519
+                known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
             - name: See VM...
               run: |
@@ -29,3 +30,5 @@ jobs:
                 
                 ls -la
                 whoami
+
+                
