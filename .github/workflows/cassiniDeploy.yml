@@ -7,8 +7,8 @@ env:
     HOST: cassini.cs.kent.edu
     USER: ants
     TARGET: ants@cassini.cs.kent.edu
-    RUN: ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ants@cassini.cs.kent.edu
-    COPY: scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+    RUN: ssh -o LogLevel=ERROR ants@cassini.cs.kent.edu
+    COPY: scp -o LogLevel=ERROR
 
 jobs:
     cassini_deploy:
@@ -31,4 +31,6 @@ jobs:
                 ls -la
                 whoami
 
-                
+            - name: See cassini...
+              run:
+                $RUN ls -la
