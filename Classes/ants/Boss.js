@@ -6,14 +6,19 @@ class Boss extends QueenAnt {
         this._faction = 'enemy';
 
         this.assignJob('Spider',JobImages['Spider']);
-        this.attackRange = 20;
-        this.detectionRange = 100;
         this.setSize(50,50);
         ants.splice(ants.indexOf(queenBase), 1); 
         ants.push(this);
         this.currentTarget = null;
+        this.currentTargetDistance = 0;
         this._gatherState = null;
         this._movementController._skitterRange = 100;
+        this._attackCooldown = .25; // seconds
+        this._attackRange = 40;
+
+        // Stats
+        this.defaultStats = this.job.stats;
+        this.amountEaten = 0;
     }
 
     nearestAnt(){
@@ -36,28 +41,29 @@ class Boss extends QueenAnt {
     _updateResourceManager(){}
 
 
+    applyBuff(){
+        let buff = {
+            health: this.defaultStats.health * .01, // 1% of max health
+            movementSpeed: this.defaultStats.movementSpeed * .01, // 1% of movement speed
+            strength: this.defaultStats.strength * .01, // 1% of strength
+            gatherSpeed: this.defaultStats.gatherSpeed,
+        };
+        this._applyJobStats(buff);
 
-    rush(targetAnt){
-        if(!targetAnt.isDead){
-            this._attackTarget(this.currentTarget);
-        }else{
-            console.log(ants[targetAnt]);
+        if(this.amountEaten % 5 === 0){
+            this.setSize(this.width * .01, this.height * .01);  // Increase size by 1%
         }
     }
 
+
+
     update() {
         super.update();
-        let [nearestAnt, distance] = this.nearestAnt();
-        if(!nearestAnt){ console.log(this._skitterRange); return;}
+        if(this._stateMachine && !this._stateMachine.isInCombat()){
+            console.log(this.getCurrentState());
+        }else{
+            this._performCombatAttack();
+        }
 
-        if (this.currentTarget == null) {
-            this.currentTarget = nearestAnt;
-        }
-        if(distance < this.attackRange){
-           this.rush(this.currentTarget);
-        }
-        else {
-            this.moveToLocation(this.currentTarget.posX, this.currentTarget.posY);
-        }
     }
 }

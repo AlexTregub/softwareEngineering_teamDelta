@@ -12,21 +12,41 @@ class JobComponent {
   static getJobStats(jobName) {
     switch (jobName) {
       case "Builder":
-        return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 60 };
+        // Strong enough to build and carry, average mobility
+        return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 55 };
+
       case "Scout":
-        return { strength: 10, health: 80, gatherSpeed: 10, movementSpeed: 80 };
+        // Fast and agile, but fragile
+        return { strength: 10, health: 70, gatherSpeed: 8, movementSpeed: 85 };
+
       case "Farmer":
-        return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 60 };
+        // Focused on gathering efficiency
+        return { strength: 15, health: 100, gatherSpeed: 35, movementSpeed: 50 };
+
       case "Warrior":
-        return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
+        // Heavy combat role: high strength and durability, slower speed
+        return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
+
       case "Spitter":
-        return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
+        // Ranged attacker: moderate health, good damage, slightly faster than warrior
+        return { strength: 35, health: 110, gatherSpeed: 5, movementSpeed: 55 };
+
       case "DeLozier":
-        return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
+        return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
+
+      case "Queen":
+        // Central unit: extremely durable but immobile and weak in combat
+        return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 10 };
+
+      case "Spider":
+        return { strength: 80, health: 5000, gatherSpeed: 3, movementSpeed: 40 };
+
       default:
-        return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
+        // Generic fallback for untyped ants
+        return { strength: 15, health: 100, gatherSpeed: 10, movementSpeed: 60 };
     }
   }
+  
 
   // Helper methods
   static getJobList() {

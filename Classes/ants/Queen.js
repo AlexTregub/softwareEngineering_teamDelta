@@ -13,6 +13,7 @@ class QueenAnt extends ant {
     this.showCommandRadius = false;
     // Queen should not perform idle random skitter movements
     this.getController('movement').disableSkitter = true;
+    this._attackCooldown = .25; // seconds
 
     // Power unlock flags (false by default - unlock via cheats or progression)
     this.unlockedPowers = {
@@ -128,7 +129,7 @@ class QueenAnt extends ant {
 
   move(direction) {
     const pos = this.getPosition();
-    const speed = this.movementSpeed * 0.1; // queen moves slower
+    const speed = this.movementSpeed ; // queen moves slower
 
     switch (direction) {
       case "w":

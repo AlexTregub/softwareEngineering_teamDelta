@@ -11,7 +11,7 @@ class CombatController {
   constructor(entity) {
     this._entity = entity;
     this._nearbyEnemies = [];
-    this._detectionRadius = 60; // pixels
+    this._detectionRadius = 200; // pixels
     this._combatState = CombatController._states.OUT;
     this._combatActionState = CombatController._actionStates.NONE;
     this._lastEnemyCheck = 0;
@@ -106,9 +106,8 @@ class CombatController {
     
     // Access global ants array (this could be improved with dependency injection)
     if (typeof ants === 'undefined' || typeof antIndex === 'undefined') return;
-    
+
     const entityFaction = this._entity.faction || "neutral";
-    
     // Check all other ants for enemies
     for (let i = 0; i < ants.length; i++) {
       if (!ants[i] || ants[i] === this._entity) continue;
@@ -121,12 +120,29 @@ class CombatController {
           otherAnt.faction === "neutral") {
         continue;
       }
+
+      
       
       // Check distance
       const distance = this.calculateDistance(this._entity, otherAnt);
-      
       if (distance <= this._detectionRadius) {
         this._nearbyEnemies.push(otherAnt);
+        return;
+      }
+    }
+
+    // Detect buildings
+    for (let i = 0; i < Buildings.length; i++) {
+      const building = Buildings[i];
+      if (!building) continue;
+      if (building.faction === entityFaction || entityFaction === "neutral" || building.faction === "neutral") {
+        continue;
+      }
+
+      const distance = this.calculateDistance(this._entity, building);
+      if (distance <= this._detectionRadius) {
+        this._nearbyEnemies.push(building);
+        return;
       }
     }
   }

@@ -103,11 +103,16 @@ class Building extends Entity {
     // --- Basic properties ---
     this._x = x;
     this._y = y;
+
+    // Included for legacy compatibility
+    this.posX = x;
+    this.posY = y;
+
     this._width = width;
     this._height = height;
     this._faction = faction;
-    this._health = 100;
-    this._maxHealth = 100;
+    this._health = 1000;
+    this._maxHealth = 1000;
     this._damage = 0;
     this._isDead = false;
     this.lastFrameTime = performance.now();
@@ -118,7 +123,8 @@ class Building extends Entity {
     this.effectRange = 250;
     this._buffedAnts = new Set();
 
-
+    // Ants Inside Building
+    this.antsInside = [];
 
     // --- Spawning (ants) ---
     this._spawnEnabled = false;
@@ -132,8 +138,22 @@ class Building extends Entity {
     if (img) this.setImage(img);
   }
 
+  enter(ant){
+    this.antsInside.push(ant);
+    ant.onEnterHive();
+  }
+
   getAnts(faction){
     return ants.filter(ant => (ant.faction === faction || ant.faction === 'neutral'));
+  }
+  
+  _releaseAnts(){
+    for(let ant of this.antsInside){
+      ant.isActive = true;
+      spawnAntByType(ant);
+      console.log("Releasing ant from Hive",ant.jobName);
+      this.antsInside = this.antsInside.filter(a => a !== ant);
+    }
   }
 
   statsBuff(){
@@ -145,19 +165,17 @@ class Building extends Entity {
       const buff = {
         health: defaultStats.health * 1.1,           // +10% max health
         movementSpeed: defaultStats.movementSpeed * 1.15, // +15% movement
-        strength: defaultStats.strength * 1.1,       // +10% strength
+        strength: defaultStats.strength * .05,       // +5% strength
         gatherSpeed: defaultStats.gatherSpeed * 1.1  // +10% gather efficiency
       };
 
 
       if(range <= this.effectRange && !this._buffedAnts.has(ant.id)  && ant._faction === this._faction){
         ant._applyJobStats(buff);
-        console.log('Applying buff to ant ID:',buff);
         this._buffedAnts.add(ant.id);
       }
       else{
         if(this._buffedAnts.has(ant.id) && range > this.effectRange){   
-          console.log('Reverting stats for ant ID:', defaultStats);      
           ant._applyJobStats(defaultStats);
           this._buffedAnts.delete(ant.id);
         }
@@ -175,11 +193,14 @@ class Building extends Entity {
     if (!nextImage) { console.log('Image not loaded yet'); return false; }
 
     try {
+      // Improve Building Stats on Upgrade
       this.setImage(nextImage);
       this._spawnInterval = Math.max(1, this._spawnInterval - 1);
       this._spawnCount += 1;
+      this._maxHealth = Math.round(this._maxHealth * 1.25);
+      this._health = this._maxHealth;
+
       this.info = next;
-      console.log("Building upgraded!");
     } catch (e) {
       console.warn("Upgrade failed:", e);
       return false;
@@ -250,7 +271,7 @@ class Building extends Entity {
     }
 
     if (this._health <= 0) {
-      console.log("Building has died.");
+      this.die();
     }
 
     return this._health;
@@ -275,6 +296,13 @@ class Building extends Entity {
   }
 
   render() {
+
+    // Release ant when threat is gone
+    if(factionList[this._faction] && factionList[this._faction].isUnderAttack == null && this.antsInside.length > 0){
+      this._releaseAnts();
+    }
+
+
     if (!this.isActive) return;
     super.render();
 
@@ -288,6 +316,7 @@ class Building extends Entity {
   }
 
   die() {
+    this._releaseAnts();
     this.isActive = false;
     this._isDead = true;
     // remove from render lists
@@ -301,6 +330,7 @@ class Building extends Entity {
     if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
       const sidx = selectables.indexOf(this);
       if (sidx !== -1) selectables.splice(sidx, 1);
+
     }
     if (g_selectionBoxController && g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
     // other cleanup...
@@ -326,10 +356,9 @@ function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
   // ensure building is active and registered in renderer arrays
   building.isActive = true;
   if (typeof window !== 'undefined') {
-    window.buildings = window.buildings || [];
-    if (!window.buildings.includes(building)) window.buildings.push(building);
+    window.Buildings = window.Buildings || [];
+    if (!window.Buildings.includes(building)) window.Buildings.push(building);
   }
-  if (typeof Buildings !== 'undefined' && !Buildings.includes(building)) Buildings.push(building);
 
   // Register in selectables so selection systems see this building
   if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
@@ -338,6 +367,7 @@ function createBuilding(type, x, y, faction = 'neutral', snapGrid = false) {
   // Ensure selection controller uses selectables reference (some controllers snapshot list)
   if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
     if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+
   }
 
   return building;

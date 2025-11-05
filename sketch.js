@@ -928,6 +928,11 @@ function keyPressed() {
     }
   }
 
+  if (key === 'u' || key === 'U') {
+    Buildings.forEach(building => {
+      building._releaseAnts();
+    });
+  }
 
   if (keyCode === ESCAPE) {
     if (deactivateActiveBrushes()) {

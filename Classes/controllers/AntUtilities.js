@@ -397,7 +397,7 @@ class AntUtilities {
     if (!imageToUse && typeof antBaseSprite !== 'undefined') {
       imageToUse = antBaseSprite;
     }
-
+ 
     try {
       // Create ant using existing ant constructor
       const newAnt = new ant(
@@ -425,6 +425,14 @@ class AntUtilities {
       // Update UI Selection Box entities
       if (updateUISelectionEntities) {
         updateUISelectionEntities();
+      }
+
+      if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+        if (!selectables.includes(newAnt)) selectables.push(newAnt);
+      }
+      // Ensure selection controller uses selectables reference (some controllers snapshot list)
+      if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+        if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
       }
 
       return newAnt;

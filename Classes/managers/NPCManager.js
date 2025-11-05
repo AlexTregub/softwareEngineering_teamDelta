@@ -13,7 +13,7 @@ class NPC extends Building{
         // --- Basic properties ---
         this._x = x;
         this._y = y;
-        this._faction = 'player';
+        this._faction = 'neutral';
         this.isBoxHovered = false;
         this.dialogueRange = 100; // Distance within which NPCs will interact with ants
     }
@@ -38,7 +38,7 @@ class NPC extends Building{
       if(ant.jobName == 'Queen'){
         const range = dist(this._x, this._y, ant.posX, ant.posY);
         if (range < this.dialogueRange) {
-          console.log(`NPC at (${this._x}, ${this._y}) says: Hello Ant at (${ant.posX}, ${ant.posY})!`);
+
         }
       }}
     );
@@ -79,6 +79,7 @@ function createNPC(x, y) {
   if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
     if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
   }
+
   
 
   return npc;
