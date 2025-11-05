@@ -1,0 +1,32 @@
+name: cassiniDeployFlow
+
+on:
+    workflow_dispatch:
+
+env: 
+    HOST: cassini.cs.kent.edu
+    USER: ants
+    TARGET: ants@cassini.cs.kent.edu
+    RUN: ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ants@cassini.cs.kent.edu
+    COPY: scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+
+jobs:
+    cassini_deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout files...
+              uses: actions/checkout@v2
+            - name: Get ssh key...
+              uses: shimataro/ssh-key-action@v2 
+              with:
+                key: ${{ secrets.ID_ED25519 }}
+                name: id_ed25519
+                known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+            - name: See VM...
+              run: |
+                echo $ set -o xtrace ; # Log all commands without explicit echo
+                set -o xtrace 
+                
+                ls -la
+                whoami
