@@ -47,7 +47,7 @@ jobs:
 
                 $RUN git clone https://github.com/AlexTregub/softwareEngineering_teamDelta.git ;
 
-                
+                $RUN "cd ~/softwareEngineering_teamDelta/ ; git fetch ; git switch Dev ; git pull"
 
                 # $RUN "cd softwareEngineering_teamDelta/"
                 
