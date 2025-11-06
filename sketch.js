@@ -906,17 +906,26 @@ function keyPressed() {
     }
     
   }
-  // --- NPC Interaction (Press E to Talk) ---
   if (key === 'e' || key === 'E') {
+    // continue NPC dialogue if active
     if (window.currentNPC) {
       window.currentNPC.advanceDialogue();
-    } else {
-      // start dialogue if nearby
-      const antony = NPCList.find(n => n.name === "Antony");
-      if (antony && antony.isPlayerNearby) {
-        antony.startDialogue(NPCDialogues.antony);
-      }
+      return;
     }
+  
+    // talk to nearby NPC if close
+    const antony = NPCList.find(n => n.name === "Antony" && n.isPlayerNearby);
+    if (antony) {
+      antony.startDialogue(NPCDialogues.antony);
+      return;
+    }
+  
+    // interact with nearby anthill
+    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
+    if (nearbyHill) {
+    console.log("AntHill!");
+    return;
+  }
   }
 }
 
