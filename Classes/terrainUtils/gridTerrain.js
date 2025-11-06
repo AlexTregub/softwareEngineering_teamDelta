@@ -8,21 +8,18 @@ function posAdd(a,b) { // = a + b
         a[1] + b[1]
     ];
 }
-
 function posSub(a,b) { // = a - b (pairwise)
     return [
         a[0]-b[0],
         a[1]-b[1]
     ];
 }
-
 function posNeg(a) {// = -a
     return [
         -a[0],
         -a[1]
     ];
 }
-
 function posMul(a,c) { // = a*c (Scalar)
     return [
         a[0]*c,
@@ -73,8 +70,10 @@ class gridTerrain {
         
         this._gridSpanTL = [ // Chunk positions, assigned for proper y-axis
             -this._centerChunkX,
-            this._gridSizeY-this._centerChunkY
+            // this._gridSizeY-this._centerChunkY
+            -this._centerChunkY
         ];
+        console.log("Chunk TL:",this._gridSpanTL)
 
         this._chunkSize = chunkSize; // Chunk size (in tiles)
         this._tileSize = tileSize; // tile size (in pixels)
@@ -91,11 +90,18 @@ class gridTerrain {
 
         // Get span in Tiles
         this._gridTileSpan = this.chunkArray.getSpanRange();
-        this._gridTileSpan[0] = this._gridTileSpan[0]*this._chunkSize;
-        this._gridTileSpan[1] = this._gridTileSpan[1]*this._chunkSize;
+        console.log("Grid chunk span...",this._gridTileSpan)
+        // this._gridTileSpan[0] = this._gridTileSpan[0]*this._chunkSize;
+        // this._gridTileSpan[1] = this._gridTileSpan[1]*this._chunkSize;
+        this._gridTileSpan[0] = posMul(this._gridTileSpan[0],this._chunkSize)
+        this._gridTileSpan[1] = posMul(this._gridTileSpan[1],this._chunkSize)
 
         // Allocate chunks... (will allocate tiles...)
         // let len = this.chunkArray.getSize()[0]*this.chunkArray.getSize()[1];
+        let temporaryTileSpanRange = [this._gridTileSpan[1][0]-this._gridTileSpan[0][0],this._gridTileSpan[1][1]-this._gridTileSpan[0][1]]
+        console.log("Grid:",this._gridTileSpan)
+        console.log(temporaryTileSpanRange)
+
         for (let i = 0; i < this._gridChunkCount; ++i) {
             let chunkPosition = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
             
@@ -108,8 +114,9 @@ class gridTerrain {
                 this._tileSize
             );
 
-            // Apply terrain generation based on mode
-            this.chunkArray.rawArray[i].applyGenerationMode(this._generationMode, chunkPosition, this._tileSpanRange, g_seed);
+            // Apply terrain generation based on mode - var allocated AFTER called...
+            // this.chunkArray.rawArray[i].applyGenerationMode(this._generationMode, chunkPosition, this._tileSpanRange, g_seed);
+            this.chunkArray.rawArray[i].applyGenerationMode(this._generationMode, chunkPosition, temporaryTileSpanRange, g_seed);
         }
 
         this._canvasSize = canvasSize;
@@ -122,9 +129,14 @@ class gridTerrain {
 
         this._tileSpanRange = [
             this._tileSpan[1][0] - this._tileSpan[0][0],
-            // this._tileSpan[1][1] - this._tileSpan[0][1]
-            this._tileSpan[0][1] - this._tileSpan[1][1] // Updated order for flipped y-axis
+            this._tileSpan[1][1] - this._tileSpan[0][1] // Updated order for flipped y-axis
+            // this._tileSpan[0][1] - this._tileSpan[1][1] 
         ]
+
+        if (temporaryTileSpanRange[0] != this._tileSpanRange[0] | temporaryTileSpanRange[1] != this._tileSpanRange[1]) {
+            console.log("ERROR : IN INITIALIZATION OF GRID TERRAIN, PRE-CALCULATED TILE SPAN MISMATCH WITH ACTUAL.")
+            throw new Error("GRID TERRAIN ISSUE > IN INITIALIZATION OF GRID TERRAIN, PRE-CALCULATED TILE SPAN MISMATCH WITH ACTUAL.")
+        }
 
         // Canvas conversions handler
         this.renderConversion = new camRenderConverter([0,0],this._canvasSize,this._tileSize);
@@ -143,7 +155,7 @@ class gridTerrain {
      */
     setGridToCenter(){
         this.renderConversion.alignToCanvas()
-    }
+    } // tested by proxy
 
     /**
      * Calculate dynamic chunk buffer based on camera zoom level
@@ -174,7 +186,7 @@ class gridTerrain {
 
     //// Functionality
     randomize(g_seed=this._seed) {
-        noiseSeed(g_seed);
+        noiseSeed(g_seed); // Sets seed for perlin noise
 
         for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
             this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
@@ -196,16 +208,23 @@ class gridTerrain {
         // print(this.chunkArray.rawArray[this.chunkArray.getSize()[0]*this.chunkArray.getSize()[0] - 1].tileData.getSpanRange()[1]);
         print(this._tileSpan);
         print("Render center:",this.renderConversion.convPosToCanvas([0,0]));
+
+        print("ChunkArray")
+        for (let i = 0; i < this.chunkArray.length; ++i) {
+            console.log(i)
+            this.chunkArray[i].print()
+        }
     }
 
     //// Utils
     convRelToAccess(pos) { // Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
         // let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize)-1;
         let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize); // Not even I know why this works
-        let chunkY = pos[1]%this._chunkSize == 0 ? pos[1]/this._chunkSize : floor(pos[1]/this._chunkSize)+1;
+        let chunkY = pos[1]%this._chunkSize == 0 ? pos[1]/this._chunkSize : floor(pos[1]/this._chunkSize);
 
         let relX = pos[0] - chunkX*this._chunkSize;
-        let relY = chunkY*this._chunkSize - pos[1];
+        // let relY = chunkY*this._chunkSize - pos[1];
+        let relY = pos[0] - chunkY*this._chunkSize;
 
         return [
             [chunkX,chunkY],
@@ -526,8 +545,10 @@ class gridTerrain {
      * @public
      */
     setCameraPosition(newPosition) {
-        this.renderConversion._camPosition = [...newPosition];
+        // this.renderConversion._camPosition = [...newPosition]; // Fucks sake
         // Cache will be invalidated automatically on next render if position changed
+
+        this.renderConversion.setCenterPos(newPosition);
     }
 
     /**
@@ -607,20 +628,45 @@ class gridTerrain {
         let chunksRendered = 0;
 
         let viewSpan = converter.getViewSpan();
+        console.log(viewSpan)
+
+        // for (let y = ceil(viewSpan[0][1]); y < floor(viewSpan[1][1]); ++y) {
+        //     for (let x = ceil(viewSpan[0][0]); x < floor(viewSpan[1][0]); ++x) {
+        //         // console.log(x,y)
+
+        //         this.get([x,y]).render()
+        //     }
+        // }
+
+        for (let i = 0; i < this.chunkArray.rawArray.length; ++i) {
+            // console.log(i)
+            this.chunkArray.rawArray[i].render(converter) // Render ALL
+            ++chunksRendered
+        }
         
         // Use same dynamic chunk buffer as cache rendering for consistency
         const CHUNK_BUFFER = this._calculateChunkBuffer();
         
-        let chunkSpan = [
-            [ // -x,+y TL - Expand outward by buffer amount with bounds checking
-                Math.max(this._gridSpanTL[0], floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
-                Math.min(this._gridSpanTL[1], floor(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
-            ],
-            [ // +x,-y BR - Expand outward by buffer amount with bounds checking
-                Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, floor(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
-                Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
-            ]
-        ];
+        // let chunkSpan = [ // WHY DOES IT DELETE INSTEAD OF COMMENT. WHY GOD WHY
+        //     [ // -x,+y TL - Expand outward by buffer amount with bounds checking
+        //         Math.max(this._gridSpanTL[0], floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
+        //         Math.min(this._gridSpanTL[1], floor(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
+        //     ],
+        //     [ // +x,-y BR - Expand outward by buffer amount with bounds checking
+        //         Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, floor(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
+        //         Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
+        //     ]
+        // ];
+        // let chunkSpan = [
+        //     [ // -x,-y TL
+        //         (viewSpan[0][0]%this._chunkSize != 0) ? floor(viewSpan[0][0]/this._chunkSize)-1 : viewSpan[0][0]/this._chunkSize,
+        //         (viewSpan[0][1]%this._chunkSize != 0) ? floor(viewSpan[0][1]/this._chunkSize)-1 : viewSpan[0][1]/this._chunkSize
+        //     ],
+        //     [ // +x,+y BR
+        //         (viewSpan[1][0]%this._chunkSize != 0) ? floor(viewSpan[1][0]/this._chunkSize)+1 : viewSpan[1][0]/this._chunkSize,
+        //         (viewSpan[1][1]%this._chunkSize != 0) ? floor(viewSpan[1][1]/this._chunkSize)+1 : viewSpan[1][1]/this._chunkSize
+        //     ]
+        // ];
 
         // for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
         //     // Cull rendering of un-viewable chunks
@@ -638,119 +684,24 @@ class gridTerrain {
         
         // Only access chunks which need to be rendered, reduce array access at cost of position conversions
         // Verify indices, seem ok.
-        for (let y = chunkSpan[1][1]; y <= chunkSpan[0][1]; ++y) {
-            for (let x = chunkSpan[0][0]; x <= chunkSpan[1][0]; ++x) { // Potentially works with < , not necessarily correct.
-                this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
-                ++chunksRendered;
-            }
-        }
+        
+        // OPERATING ON TILES...?
+        // for (let y = chunkSpan[0][1]; y <= chunkSpan[0][1]; ++y) {
+        //     for (let x = chunkSpan[0][0]; x <= chunkSpan[1][0]; ++x) { // Potentially works with < , not necessarily correct.
+        //         this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
+                
+        //         // console.log(x,y)
+        //         // this.chunkArray.get([x,y]).render()
+        //         // this.get([x,y]).render()
+        //         ++chunksRendered;
+        //     }
+        // }
 
         // logNormal("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
         logNormal("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
-    
+        console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
+
     }
-
-    randomize(g_seed=this._seed) {
-        noiseSeed(g_seed);
-
-        for (let i = 0; i < this._gridSizeX*this._gridSizeY; ++i) {
-            this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
-        }
-        
-        // Invalidate cache when terrain data changes
-        this.invalidateCache();
-    }
-
-    // What in the hellll happened here. CEIL MIGHT BE AMAZING THO...
-    // AI temporary solution until we fix whatever is causing the
-    // buggy behavior in our current chunkArray.get() or chunk.get() functions
-    // This implemetation manually calculates everything
-    // getTileAt(tileX, tileY) {
-
-    //     // === PART 1: MANUALLY FIND THE CHUNK ===
-
-    //     // Correctly calculate the chunk's X coordinate.
-    //     const chunkX = Math.floor(tileX / this._chunkSize);
-        
-    //     // --- THIS IS THE FIX ---
-    //     // The original `Math.floor` was wrong. `Math.ceil` is the correct
-    //     // logic for this game's Y-down coordinate system.
-    //     let chunkY = Math.ceil(tileY / this._chunkSize);
-        
-    //     // This part handles the "y=0" edge case, which belongs to chunk 0.
-    //     if (tileY === 0) {
-    //         chunkY = 0;
-    //     }
-
-    //     // Get the chunkArray's top-left world coordinate (its "span").
-    //     const chunkGridTopLeft = this.chunkArray.getSpanRange()[0];
-
-    //     // Manually calculate the chunk's 2D array index within the chunkArray grid.
-    //     const chunkArrayX = chunkX - chunkGridTopLeft[0];
-    //     const chunkArrayY = chunkGridTopLeft[1] - chunkY;
-
-    //     // Manually "flatten" the 2D index to a 1D index for the rawArray.
-    //     const chunkGridWidth = this.chunkArray.getSize()[0];
-    //     const chunkFlatIndex = chunkArrayY * chunkGridWidth + chunkArrayX;
-        
-    //     // Safety check: ensure the calculated chunk index is valid.
-    //     if (chunkArrayX < 0 || chunkArrayX >= chunkGridWidth ||
-    //         chunkArrayY < 0 || chunkArrayY >= this.chunkArray.getSize()[1]) {
-    //         return null; // The requested coordinate is outside the entire map.
-    //     }
-
-    //     // Get the chunk directly from the raw array.
-    //     const chunk = this.chunkArray.rawArray[chunkFlatIndex];
-
-    //     // === PART 2: MANUALLY FIND THE TILE WITHIN THE CHUNK ===
-
-    //     if (chunk) {
-    //         // Get the chunk's own top-left world coordinate.
-    //         const tileGridTopLeft = chunk.getSpanRange()[0];
-
-    //         // Manually calculate the tile's local 2D array index within the chunk.
-    //         const tileArrayX = tileX - tileGridTopLeft[0];
-    //         const tileArrayY = tileGridTopLeft[1] - tileY;
-
-    //         // Manually "flatten" the 2D index for the tile's rawArray.
-    //         const tileGridWidth = chunk.getSize()[0];
-    //         const tileFlatIndex = tileArrayY * tileGridWidth + tileArrayX;
-
-    //         // Safety check: ensure the calculated tile index is valid.
-    //         if (tileArrayX >= 0 && tileArrayX < tileGridWidth &&
-    //             tileArrayY >= 0 && tileArrayY < chunk.getSize()[1]) {
-                
-    //             // Get the tile directly from the chunk's raw array.
-    //             return chunk.tileData.rawArray[tileFlatIndex];
-    //         }
-    //     }
-
-    //     return null; // Chunk or tile not found.
-
-
-    //     // original code that doesn't work rn because something
-    //     // buggy happens when going through layers of the terrain
-    //     // system (grid of chunk, to grid of tile, to actual tile)
-    //     // with the current functions that are supposed to that
-    //     /*
-    //     // Calculate which chunk the tile belongs to.
-    //     const chunkX = Math.floor(tileX / this._chunkSize);
-    //     const chunkY = Math.floor(tileY / this._chunkSize);
-
-    //     // Access the chunk from the chunkArray grid
-    //     const chunk = this.chunkArray.get([chunkX, chunkY]);
-
-    //     // If the chunk exists, get the tile from its internal grid.
-    //     if (chunk) {
-    //         const tile = chunk.get([tileX, tileY]);
-    //         return tile;
-    //     }
-
-    //     // If the chunk doesn't exist, there is no tile
-    //     return null;
-
-    //     */
-    // }
 };
 
 // Global functions to control and monitor terrain cache from console
@@ -1008,6 +959,7 @@ function convCanvasToPos(input){
 }
 
 
+
 function TEST_CAM_RENDER_CONVERTER() {
     console.log("=============== TEST_CRC RUN:")
     let crc = new camRenderConverter([0,0],[windowWidth,windowHeight]);
@@ -1118,5 +1070,26 @@ function TEST_CAM_RENDER_CONVERTER() {
     }
 
     console.log("TEST_CRC END ===============")
+    return 1
+}
+
+function TEST_BASIC_TERRAIN() { // Terrain - rendering pipeline bs
+    console.log("=============== TEST_TERRAIN-BASIC RUN:")
+    // let terrain = new gridTerrain(2,2,0,2,TILE_SIZE,[windowWidth,windowHeight])
+
+    // let terrain = new gridTerrain(10,10,0,10,TILE_SIZE,[windowWidth,windowHeight])
+    let terrain = new gridTerrain(5,5,0,5,TILE_SIZE,[windowWidth,windowHeight])
+    const crc = terrain.renderConversion // Get reference to camRenderConverter...
+
+    terrain.printDebug()
+
+    terrain.chunkArray.print()
+
+    clear()
+    terrain.setGridToCenter()
+    terrain.renderDirect() 
+    // terrain.alignToCanvas()
+
+    console.log("TEST_TERRAIN-BASIC END ===============")
     return 1
 }

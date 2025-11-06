@@ -70,6 +70,10 @@ function setup() {
   if (!TEST_CAM_RENDER_CONVERTER()){
     console.log("CAMERA RENDER CONVERTER MALFORMED.")
   }
+
+  if (!TEST_BASIC_TERRAIN()) {
+    console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
+  }
  
   return; // !!! REMOVE BEFORE DEV
 
