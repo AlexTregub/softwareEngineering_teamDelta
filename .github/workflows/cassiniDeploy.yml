@@ -65,9 +65,3 @@ jobs:
                 $LOGGING
 
                 $RUN "cd ~/softwareEngineering_teamDelta/ ; screen -dm python -m http.server 8029"
-                
-                
-
-
-                
-                
