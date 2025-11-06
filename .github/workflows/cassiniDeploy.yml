@@ -55,7 +55,9 @@ jobs:
               run:
                 $LOGGING
 
-                $RUN screen -S sessionname -p 0 -X quit
+                $RUN killall screen
+
+                # $RUN screen -S sessionname -p 0 -X quit
               continue-on-error: true
 
             - name: Start screen with http server...
