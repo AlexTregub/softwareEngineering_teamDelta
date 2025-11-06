@@ -62,7 +62,7 @@ jobs:
               run:
                 $LOGGING
 
-                $RUN screen -dm python -m http.server 8029
+                $RUN "cd ~/softwareEngineering_teamDelta/ ; screen -dm python -m http.server 8029"
                 
                 
 
