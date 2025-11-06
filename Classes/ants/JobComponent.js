@@ -39,7 +39,7 @@ class JobComponent {
         return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 10 };
 
       case "Spider":
-        return { strength: 80, health: 5000, gatherSpeed: 3, movementSpeed: 40 };
+        return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 40 };
 
       default:
         // Generic fallback for untyped ants
