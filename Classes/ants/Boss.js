@@ -1,14 +1,20 @@
+
 class Boss extends QueenAnt {
-    constructor() {
+    constructor(entityName,entityFaction,entitySizeX,entitySizeY) {
         let queenBase = new spawnQueen();
         super(queenBase);
-        this._type = 'Spider';
-        this._faction = 'enemy';
 
-        this.assignJob('Spider',JobImages['Spider']);
-        this.setSize(50,50);
+
+        this._type = entityName;
+        this._faction = entityFaction;
+        this.assignJob(entityName, JobImages[entityName]);
+        this.setSize(entitySizeX, entitySizeY);
+
+
         ants.splice(ants.indexOf(queenBase), 1); 
         ants.push(this);
+
+
         this.currentTarget = null;
         this.currentTargetDistance = 0;
         this._gatherState = null;
@@ -65,5 +71,11 @@ class Boss extends QueenAnt {
             this._performCombatAttack();
         }
 
+    }
+}
+
+class Spider extends Boss{
+    constructor() {
+        super("Spider", "enemy", 50, 50);
     }
 }
