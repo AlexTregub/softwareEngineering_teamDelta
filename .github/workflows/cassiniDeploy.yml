@@ -51,14 +51,18 @@ jobs:
 
                 # $RUN "cd softwareEngineering_teamDelta/"
 
-            - name: Start screen with http server...
+            - name: Stop previous screen session...
               run:
                 $LOGGING
 
                 $RUN screen -S sessionname -p 0 -X quit
+              continue-on-error: true
+
+            - name: Start screen with http server...
+              run:
+                $LOGGING
 
                 $RUN screen -dm python -m http.server 8029
-              continue-on-error: true
                 
                 
 
