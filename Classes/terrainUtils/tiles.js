@@ -10,29 +10,70 @@ let CAVE_DIRT_IMAGE;
 let WATER;
 let WATER_CAVE;
 let FARMLAND_IMAGE;
+let SAND_IMAGE;
+let SAND_DARK_IMAGE;
 
 let tileSize = 32; // Adds up to canvas dimensions
 
-let PERLIN_SCALE = 0.08;
+// let PERLIN_SCALE = 0.08;
+// let PERLIN_SCALE = 0.027
+let PERLIN_SCALE = 0.029
 
 let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y)
-    'NONE' : [[0,0], (x,y,squareSize) => image(MOSS_IMAGE,x,y,squareSize,squareSize)],
-    'cave_1' : [[0,0], (x,y,squareSize) => image(CAVE_1_IMAGE,x,y,squareSize,squareSize)],
-    'cave_2' : [[0,0], (x,y,squareSize) => image(CAVE_2_IMAGE,x,y,squareSize,squareSize)],
-    'cave_3' : [[0,0], (x,y,squareSize) => image(CAVE_3_IMAGE,x,y,squareSize,squareSize)],
-    'cave_dark' : [[0,0], (x,y,squareSize) => image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
-    'cave_dirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
-    'water' : [[0,0], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
-    'water_cave' : [[0,0], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
+    // 'NONE' : [[0,0], (x,y,squareSize) => image(MOSS_IMAGE,x,y,squareSize,squareSize)],
+    // 'cave_1' : [[0,0], (x,y,squareSize) => image(CAVE_1_IMAGE,x,y,squareSize,squareSize)],
+    // 'cave_2' : [[0,0], (x,y,squareSize) => image(CAVE_2_IMAGE,x,y,squareSize,squareSize)],
+    // 'cave_3' : [[0,0], (x,y,squareSize) => image(CAVE_3_IMAGE,x,y,squareSize,squareSize)],
+    // 'cave_dark' : [[0,0], (x,y,squareSize) => image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
+    // 'cave_dirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
+    // 'water' : [[0,0], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
+    // 'water_cave' : [[0,0], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
     // 'farmland' : [[0,1] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], // Testing... ALL IS FARM
-    'moss' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
-    'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
-    'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
-    'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
-    'grass' : [[0,1] , (x,y,squareSize) => {image(GRASS_IMAGE, x, y, squareSize,squareSize)}],
+    
+    
+    
+
+    // 'water' : [[0,0.1], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
+    // 'moss' : [[0,0.1], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    // 'dirt' : [[0.1,0.2], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+    // 'stone' : [[0.2,0.3], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
+    // 'water' : [[0.3,0.4], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
+    // 'grass' : [[0.4,0.5] , (x,y,squareSize) => {image(GRASS_IMAGE, x, y, squareSize,squareSize)}],
+    // 'moss' : [[0.5,0.6], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    // 'dirt' : [[0.6,0.7], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+    // 'stone' : [[0.7,0.8], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
+    // 'water' : [[0.8,0.9], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
+    // 'grass' : [[0.9,1] , (x,y,squareSize) => {image(GRASS_IMAGE, x, y, squareSize,squareSize)}],
+    
+    
+    // 'farmland' : [[0,1] , (x,y,squareSize) => image(FARMLAND_IMAGE, x, y, squareSize,squareSize)], 
+    
+    
+    // OLD GEN CONFIG:
+    // 'moss' : [[0,0.3], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    // 'moss_1' : [[0.375,0.4], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    // 'stone' : [[0,0.4], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], // Example of more advanced lambda.
+    // 'dirt' : [[0.4,0.525], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+    // 'grass' : [[0,1] , (x,y,squareSize) => {image(GRASS_IMAGE, x, y, squareSize,squareSize)}],
   
+    
+
+
     // Un-spawned materials, Needed for fallback rendering.
-    'farmland' : [[0,0] , (x,y,squareSize) => image(GRASS_IMAGE, x, y, squareSize,squareSize)], 
+    // 'farmland' : [[0,0] , (x,y,squareSize) => image(FARMLAND_IMAGE, x, y, squareSize,squareSize)], 
+
+    //// FINAL MATERIALS (one of each) 
+    'grass' : [[0,0] , (x,y,squareSize) => {image(GRASS_IMAGE, x, y, squareSize,squareSize)}],
+    'dirt' : [[0.566,0.6], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
+    'stone' : [[0.6,1], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], 
+    'water' : [[0.22,0.3], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
+    'moss' : [[0,0], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    'farmland' : [[0,0] , (x,y,squareSize) => image(FARMLAND_IMAGE, x, y, squareSize,squareSize)], 
+    'water_cave' : [[0,0.22], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
+    'cave_dirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
+    'cave_dark' : [[0,0], (x,y,squareSize) => image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
+    'sand' : [[0.32,0.34], (x,y,squareSize) => image(SAND_IMAGE,x,y,squareSize,squareSize)],
+    'sand_dark' : [[0.3,0.32], (x,y,squareSize) => image(SAND_DARK_IMAGE,x,y,squareSize,squareSize)],
 };
 
 /**
@@ -101,6 +142,8 @@ function terrainPreloader(){
   WATER = loadImage('Images/16x16 Tiles/water.png');
   WATER_CAVE = loadImage('Images/16x16 Tiles/water_cave.png');
   FARMLAND_IMAGE = loadImage('Images/16x16 Tiles/farmland.png');
+  SAND_IMAGE = loadImage('Images/16x16 Tiles/sand.png');
+  SAND_DARK_IMAGE = loadImage('Images/16x16 Tiles/sand_dark.png');
 }
 
 

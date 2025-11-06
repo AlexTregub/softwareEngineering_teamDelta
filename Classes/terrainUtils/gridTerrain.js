@@ -1077,8 +1077,8 @@ function TEST_BASIC_TERRAIN() { // Terrain - rendering pipeline bs
     console.log("=============== TEST_TERRAIN-BASIC RUN:")
     // let terrain = new gridTerrain(2,2,0,2,TILE_SIZE,[windowWidth,windowHeight])
 
-    // let terrain = new gridTerrain(10,10,0,10,TILE_SIZE,[windowWidth,windowHeight])
-    let terrain = new gridTerrain(5,5,0,5,TILE_SIZE,[windowWidth,windowHeight])
+    let terrain = new gridTerrain(30,20,0,10,TILE_SIZE,[windowWidth,windowHeight])
+    // let terrain = new gridTerrain(6,,0,5,TILE_SIZE,[windowWidth,windowHeight])
     const crc = terrain.renderConversion // Get reference to camRenderConverter...
 
     terrain.printDebug()
