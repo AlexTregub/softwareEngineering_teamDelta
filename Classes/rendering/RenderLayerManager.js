@@ -601,6 +601,12 @@ class RenderLayerManager {
     // Render Fireball System (projectile effects)
     this.renderFireballEffects(gameState);
     pop();
+    
+    // Render Time of Day Overlay (after zoom pop, so it covers screen in screen-space)
+    // This renders AFTER game world effects but BEFORE UI, so it affects the game but not the HUD
+    if (window.g_timeOfDayOverlay && typeof window.g_timeOfDayOverlay.render === 'function') {
+      window.g_timeOfDayOverlay.render();
+    }
   }
   
 

@@ -59,8 +59,8 @@ class DraggablePanelManager {
       return;
     }
 
-    // Create default game panels
-    this.createDefaultPanels();
+    // DISABLED FOR PRESENTATION
+    //this.createDefaultPanels();
     
     // Register with RenderLayerManager if available
     // Register with RenderLayerManager using addDrawableToLayer
@@ -596,6 +596,11 @@ class DraggablePanelManager {
             caption: '🌊 Unlock Tidal Wave',
             onClick: () => this.unlockPower('tidalWave'),
             style: { ...ButtonStyles.PRIMARY, backgroundColor: '#1E90FF', color: '#FFFFFF' }
+          },
+          {
+            caption: '🔆 Unlock Final Flash',
+            onClick: () => this.unlockPower('finalFlash'),
+            style: { ...ButtonStyles.PRIMARY, backgroundColor: '#ffff1aff', color: '#FFFFFF' }
           },
           {
             caption: '🔓 Unlock All Powers',
@@ -1438,7 +1443,7 @@ class DraggablePanelManager {
       return;
     }
 
-    const powers = ['fireball', 'lightning', 'blackhole', 'sludge', 'tidalWave'];
+    const powers = ['fireball', 'lightning', 'blackhole', 'sludge', 'tidalWave', 'finalFlash'];
     let unlocked = 0;
 
     for (const power of powers) {

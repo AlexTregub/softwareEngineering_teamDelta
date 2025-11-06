@@ -1,6 +1,7 @@
 const HUNGRY = 100;
 const STARVING = 160;
 const DEATH = 200;
+let increment = 1;
 
 /*
 To Do:
@@ -213,9 +214,13 @@ class AntBrain{
         this.internalTimer(deltaTime);
     }
 
+    changeIncrement(newIncrement){
+        increment /= newIncrement;
+    }
+
     internalTimer(deltaTime){
         this._accumulator = (this._accumulator || 0) + deltaTime;
-        if (this._accumulator >= 1) { // every second
+        if (this._accumulator >= increment) { // every second
             logVerbose(`${this.hunger}`);
             this._accumulator = 0;
             this.checkHunger();

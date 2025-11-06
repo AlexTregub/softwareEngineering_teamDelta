@@ -21,7 +21,8 @@ class QueenAnt extends ant {
       lightning: false,
       blackhole: false,
       sludge: false,
-      tidalWave: false
+      tidalWave: false,
+      finalFlash: false
     };
   }
 

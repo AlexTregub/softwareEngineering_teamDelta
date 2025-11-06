@@ -1,7 +1,7 @@
 // --- GRID SYSTEM ---
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
-const TILE_SIZE = 32; //  Default 35
+const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
 let COORDSY;
@@ -29,6 +29,7 @@ let g_recordingPath;
 let queenAnt;
 // -- Time ---
 let g_globalTime;
+let g_timeOfDayOverlay;
 
 // GameObjects list (NPC, Buildings, etc.)
 let Buildings = [];
@@ -36,6 +37,7 @@ let Buildings = [];
 // Camera system - now managed by CameraManager
 let cameraManager;
 
+let terrariaFont;
 
 function preload(){
   terrainPreloader();
@@ -44,9 +46,11 @@ function preload(){
   preloadPauseImages();
   BuildingPreloader();
   NPCPreloader();
+  QuestUIPreloader()
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
+  terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
 
@@ -76,23 +80,8 @@ function setup() {
     }
   }
   
-  // Now spawn initial resources (after spatial grid exists)
-  if (typeof spawnInitialResources === 'function') {
-    spawnInitialResources();
-  }
-  
   initializeWorld();
-
-  // Initialize Draggable Panel System (must be after initializeWorld, before any UI that uses panels)
-  if (typeof initializeDraggablePanelSystem !== 'undefined') {
-    initializeDraggablePanelSystem().then(() => {
-      logVerbose('✅ DraggablePanelSystem ready');
-    }).catch((error) => {
-      console.error('❌ Failed to initialize DraggablePanelSystem:', error);
-    });
-  } else {
-    console.warn('⚠️ initializeDraggablePanelSystem not found - draggable panels will not work');
-  }
+  initializeDraggablePanelSystem()
 
   // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
@@ -100,9 +89,7 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  logVerbose('[SETUP] About to create SelectionBoxController, g_mouseController:', g_mouseController, 'ants:', ants);
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-  logVerbose('[SETUP] Created g_selectionBoxController:', g_selectionBoxController);
   window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
 
   // Ensure selection adapter is registered with RenderManager now that controller exists
@@ -161,40 +148,13 @@ function setup() {
         return false;
       }
     });
-    
-    logVerbose('🚫 Right-click context menu disabled for brush controls');
   }
 
-  // Initialize Queen Control Panel system
-  if (typeof initializeQueenControlPanel !== 'undefined') {
-    initializeQueenControlPanel();
-    logVerbose('👑 Queen Control Panel initialized in setup');
-  }
-
-  // Initialize Fireball System
-  if (typeof window !== 'undefined' && typeof FireballManager !== 'undefined') {
-    window.g_fireballManager = new FireballManager();
-    logVerbose('🔥 Fireball System initialized in setup');
-  }
-
-  // Initialize Event Manager (singleton)
-  if (typeof EventManager !== 'undefined') {
-    window.eventManager = EventManager.getInstance();
-    logVerbose('🎯 Event Manager initialized in setup');
-  }
-
-  // Initialize Event Debug Manager
-  if (typeof EventDebugManager !== 'undefined') {
-    window.eventDebugManager = new EventDebugManager();
-    
-    // Connect EventDebugManager to EventManager
-    if (window.eventManager) {
-      window.eventManager.setEventDebugManager(window.eventDebugManager);
-      logVerbose('🔗 Event Debug Manager connected to Event Manager');
-    }
-    
-    logVerbose('🐛 Event Debug Manager initialized in setup');
-  }
+  initializeQueenControlPanel();
+  window.g_fireballManager = new FireballManager();
+  window.eventManager = EventManager.getInstance();
+  window.eventDebugManager = new EventDebugManager();
+  window.eventManager.setEventDebugManager(window.eventDebugManager);
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
@@ -215,25 +175,19 @@ function setup() {
           const terrain = new CustomTerrain(50, 50, 32, 'dirt');
           levelEditor.initialize(terrain);
         }
-        logVerbose('🎨 Level Editor activated with blank CustomTerrain');
       } else if (oldState === 'LEVEL_EDITOR') {
-        // Deactivate level editor when leaving
         levelEditor.deactivate();
-        logVerbose('🎨 Level Editor deactivated');
       }
     });
   }
-  
-  // Start automatic BGM monitoring after menu initialization
-  if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
-    soundManager.startBGMMonitoring();
-  }
-  
-  // Initialize context menu prevention for better brush control
+  soundManager.startBGMMonitoring();
   initializeContextMenuPrevention();
-  //
-
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
+  window.QuestManager.preloadAssets();
+}
+
+function addListeners() {
+  
 }
 
 /**
@@ -274,25 +228,6 @@ function initializeContextMenuPrevention() {
   }
   
   logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
-}
-
-/**
- * Global function to test context menu prevention
- */
-function testContextMenuPrevention() {
-  logVerbose('🧪 Testing context menu prevention...');
-  logVerbose('Right-click anywhere to test - context menu should NOT appear');
-  logVerbose('If context menu still appears, try: disableContextMenu()');
-  return true;
-}
-
-/**
- * Global function to force disable context menu
- */
-function disableContextMenu() {
-  initializeContextMenuPrevention();
-  logVerbose('🔒 Context menu prevention forcibly re-applied');
-  return true;
 }
 
 // Make functions globally available
@@ -338,6 +273,10 @@ function initializeWorld() {
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
   
+  // Initialize Time of Day Overlay system
+  g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
+  window.g_timeOfDayOverlay = g_timeOfDayOverlay; // Make globally available
+  
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
   queenAnt = spawnQueen();
@@ -361,115 +300,99 @@ function initializeWorld() {
 function draw() {
   // ============================================================
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
-  // Updates must happen BEFORE rendering to show current frame data
   // ============================================================
-  
-  // Track draw calls for sound manager
+
   if (typeof soundManager !== 'undefined' && soundManager.onDraw) {
     soundManager.onDraw();
   }
-  
-  // Update camera (input processing, following, bounds clamping)
-  // Enable for both in-game states AND Level Editor
+
   if (cameraManager && (GameState.isInGame() || GameState.getState() === 'LEVEL_EDITOR')) {
     cameraManager.update();
   }
 
-  // Update game systems (only if playing)
   if (GameState.getState() === 'PLAYING') {
-    // Update brush systems
-    if (window.g_enemyAntBrush) {
-      window.g_enemyAntBrush.update();
-    }
-    if (window.g_lightningAimBrush) {
-      window.g_lightningAimBrush.update();
-    }
-    if (window.g_resourceBrush) {
-      window.g_resourceBrush.update();
-    }
-    if (window.g_buildingBrush) {
-      window.g_buildingBrush.update();
-    }
+    // --- Update gameplay systems ---
+    if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
+    if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
+    if (window.g_resourceBrush) window.g_resourceBrush.update();
+    if (window.g_buildingBrush) window.g_buildingBrush.update();
 
-    // Update queen control panel
-    if (typeof updateQueenPanelVisibility !== 'undefined') {
-      updateQueenPanelVisibility();
-    }
-    if (window.g_queenControlPanel) {
-      window.g_queenControlPanel.update();
-    }
+    if (typeof updateQueenPanelVisibility !== 'undefined') updateQueenPanelVisibility();
+    if (window.g_queenControlPanel) window.g_queenControlPanel.update();
 
-    // Update Event Manager (triggers and active events)
-    if (window.eventManager) {
-      window.eventManager.update();
-    }
+    if (window.eventManager) window.eventManager.update();
+    if (window.g_fireballManager) window.g_fireballManager.update();
+    if (window.g_lightningManager) window.g_lightningManager.update();
+    if (g_globalTime) g_globalTime.update();
 
-    // Update effect systems
-    if (window.g_fireballManager) {
-      window.g_fireballManager.update();
-    }
-    if (window.g_lightningManager) {
-      window.g_lightningManager.update();
-    }
-    if (g_globalTime) {
-      g_globalTime.update();
-    }
-
-    // Update queen movement (WASD keys)
+    // --- Player Movement ---
     const playerQueen = getQueen();
     if (playerQueen) {
-      if (keyIsDown(87)) playerQueen.move("s"); // lazy flip of w and s
-      if (keyIsDown(65)) playerQueen.move("a");
-      if (keyIsDown(83)) playerQueen.move("w");
-      if (keyIsDown(68)) playerQueen.move("d");
+      if (keyIsDown(87)) playerQueen.move("s"); // W
+      if (keyIsDown(65)) playerQueen.move("a"); // A
+      if (keyIsDown(83)) playerQueen.move("w"); // S
+      if (keyIsDown(68)) playerQueen.move("d"); // D
     }
-  }
-  
-  // Update level editor (if active)
-  if (GameState.getState() === 'LEVEL_EDITOR') {
-    if (window.levelEditor) {
-      levelEditor.update();
+
+    // --- DIAManager update (typewriter effect, etc) ---
+    if (window.DIAManager && typeof DIAManager.update === 'function') {
+      DIAManager.update();
     }
   }
 
+  if (GameState.getState() === 'LEVEL_EDITOR') {
+    if (window.levelEditor) levelEditor.update();
+  }
+
   // ============================================================
-  // GAME LOOP PHASE 2: RENDER EVERYTHING ONCE
-  // RenderLayerManager handles all layered rendering
+  // GAME LOOP PHASE 2: RENDER EVERYTHING
   // ============================================================
-  
-  // Render level editor (takes over rendering when active)
+
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
-      background(40, 40, 40); // Dark background for editor
+      background(40, 40, 40);
       levelEditor.render();
     }
-    // IMPORTANT: Also call RenderManager.render() in Level Editor mode
-    // This ensures draggable panels get their interactive.update() calls
     RenderManager.render(GameState.getState());
   } else {
-    // Normal game rendering
     RenderManager.render(GameState.getState());
   }
 
-  // Debug visualization for coordinate system (toggle with visualizeCoordinateSystem())
+  const playerQueen = getQueen?.();
+  if (window.DIAManager && DIAManager.active && window.currentNPC && playerQueen) {
+    const distToNPC = dist(playerQueen.posX, playerQueen.posY, window.currentNPC._x, window.currentNPC._y);
+    if (distToNPC > 150) { 
+      DIAManager.close();
+      window.currentNPC.dialogueActive = false;
+      window.currentNPC = null;
+    }
+  }
+
+  // --- Render Quest UI (if any) ---
+  if (window.QuestManager && typeof window.QuestManager.renderUI === 'function') {
+    window.QuestManager.renderUI();
+  }
+
+  // --- Render Dialogue Box ---
+  if (window.DIAManager) {
+    window.DIAManager.update();
+    window.DIAManager.render();
+  }
+
+  // --- Debug stuff ---
   if (typeof window.drawCoordinateVisualization === 'function') {
-    try {
-      window.drawCoordinateVisualization();
-    } catch (error) {
-      console.error('❌ Error drawing coordinate visualization:', error);
-    }
+    try { window.drawCoordinateVisualization(); }
+    catch (error) { console.error('❌ Error drawing coordinate visualization:', error); }
   }
-  
-  // Debug visualization for terrain grid (toggle with toggleTerrainGrid() or Ctrl+Shift+G)
+
   if (typeof window.drawTerrainGrid === 'function') {
-    try {
-      window.drawTerrainGrid();
-    } catch (error) {
-      console.error('❌ Error drawing terrain grid:', error);
-    }
+    try { window.drawTerrainGrid(); }
+    catch (error) { console.error('❌ Error drawing terrain grid:', error); }
   }
-  
 }
+
+
+
 
  /* handleMouseEvent
  * ----------------
@@ -988,6 +911,19 @@ function keyPressed() {
       setCameraZoom(currentZoom / CAMERA_ZOOM_STEP);
     } else if (key === '=' || key === '+' || keyCode === 187 || keyCode === 107) {
       setCameraZoom(currentZoom * CAMERA_ZOOM_STEP);
+    }
+    
+  }
+  // --- NPC Interaction (Press E to Talk) ---
+  if (key === 'e' || key === 'E') {
+    if (window.currentNPC) {
+      window.currentNPC.advanceDialogue();
+    } else {
+      // start dialogue if nearby
+      const antony = NPCList.find(n => n.name === "Antony");
+      if (antony && antony.isPlayerNearby) {
+        antony.startDialogue(NPCDialogues.antony);
+      }
     }
   }
 }

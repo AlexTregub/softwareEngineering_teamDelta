@@ -471,6 +471,17 @@ const ButtonStyles = {
     cornerRadius: 3,
     fontSize: 12
   },
+
+  //2X Speed Button
+  SPEED_UP: {
+    backgroundColor: '#6496FF',
+    hovorColor: '#6496FF',
+    textColor: '#6496FF',
+    borderColor: '#6496FF',
+    borderWidth: 1,
+    cornerRadius: 3,
+    fontSize: 12
+  },
   
   // Main menu buttons
   MAIN_MENU: {
