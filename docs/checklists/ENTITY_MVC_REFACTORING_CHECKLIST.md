@@ -357,8 +357,13 @@ class BuildingModel extends EntityModel {
 - [x] Day 4: Implement ResourceModel - **DONE: 89 lines**
 - [x] Day 4: Test resource types (greenLeaf, stick, stone, sand, dirt) - **DONE: All 5 types tested**
 - [x] Day 4: Verify combined tests (EntityModel + AntModel + ResourceModel) - **DONE: 85 tests passing in 37ms**
-- [ ] Day 5: Write BuildingModel tests
-- [ ] Day 5: Implement BuildingModel
+- [x] Day 5: Write BuildingModel tests - **DONE: 27 comprehensive tests**
+- [x] Day 5: Implement BuildingModel - **DONE: 129 lines**
+- [x] Day 5: Test building types (AntHill, Cone, Hive, Tower) - **DONE: All 4 types tested**
+- [x] Day 5: Test upgrade system and health tracking - **DONE: Full upgrade/health system tested**
+- [x] Day 5: Verify ALL model tests - **DONE: 112 tests passing in 128ms**
+
+🎉 **PHASE 1.2 COMPLETE** - All Model classes implemented and fully tested!
 - [ ] Day 5: Add all models to index.html
 
 ---
@@ -633,13 +638,15 @@ class ResourceView extends EntityView {
 ```
 
 **Checklist (Week 2, Days 3-5):**
-- [ ] Day 3: Write AntView tests
-- [ ] Day 3: Implement AntView with health bar and selection
-- [ ] Day 4: Write ResourceView tests
-- [ ] Day 4: Implement ResourceView with highlight
-- [ ] Day 5: Write BuildingView tests (similar to AntView)
-- [ ] Day 5: Implement BuildingView
-- [ ] Day 5: Add all views to index.html
+- [x] Day 3: Write AntView tests
+- [x] Day 3: Implement AntView with health bar and selection
+- [x] Day 4: Write ResourceView tests
+- [x] Day 4: Implement ResourceView with highlight
+- [x] Day 5: Write BuildingView tests (similar to AntView)
+- [x] Day 5: Implement BuildingView
+- [x] Day 5: Add all views to index.html
+
+**Completed**: BuildingView.js (210 lines), 24 tests passing. All view layer complete!
 
 ---
 

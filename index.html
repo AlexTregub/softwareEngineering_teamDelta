@@ -40,9 +40,25 @@
     <script src="Classes/rendering/caches/FullBufferCache.js"></script>
     
 	<!-- MVC System - Load Before Legacy Entity System -->
+	<!-- Models (Data Layer) -->
 	<script src="Classes/mvc/models/EntityModel.js"></script>
 	<script src="Classes/mvc/models/AntModel.js"></script>
-	<script src="Classes/mvc/models/ResourceModel.js"></script>    <!-- Base Systems - Load Second -->
+	<script src="Classes/mvc/models/ResourceModel.js"></script>
+	<script src="Classes/mvc/models/BuildingModel.js"></script>
+	
+	<!-- Views (Rendering Layer) -->
+	<script src="Classes/mvc/views/EntityView.js"></script>
+	<script src="Classes/mvc/views/AntView.js"></script>
+	<script src="Classes/mvc/views/ResourceView.js"></script>
+	<script src="Classes/mvc/views/BuildingView.js"></script>
+	
+	<!-- Controllers (Business Logic Layer) -->
+	<script src="Classes/mvc/controllers/EntityController.js"></script>
+	<script src="Classes/mvc/controllers/AntController.js"></script>
+	<script src="Classes/mvc/controllers/ResourceController.js"></script>
+	<script src="Classes/mvc/controllers/BuildingController.js"></script>
+	
+    <!-- Base Systems - Load Second -->
     <script src="Classes/systems/SpatialGrid.js"></script>
     <script src="Classes/managers/SpatialGridManager.js"></script>
     <script src="Classes/containers/StatsContainer.js"></script>

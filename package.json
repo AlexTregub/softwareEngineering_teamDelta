@@ -82,7 +82,7 @@
   "author": "Software Engineering Team Delta",
   "license": "MIT",
   "devDependencies": {
-    "@cucumber/cucumber": "^9.5.0",
+    "@cucumber/cucumber": "^9.6.0",
     "chai": "^4.3.10",
     "chromedriver": "^141.0.0",
     "jsdom": "^22.1.0",
