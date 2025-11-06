@@ -50,7 +50,8 @@ const MENU_CONFIGS = {
     { x: -10, y: 70,   w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
     { x: -10, y: 150,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => logNormal("Exit!") },
     { x: -60, y: 180, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
-    { x: 0,   y: 180,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => logNormal("Debug:", GameState.getDebugInfo()) }
+    { x: 0,   y: 180,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => logNormal("Debug:", GameState.getDebugInfo()) },
+    { x: -10, y: 250,   w: 220, h: 80, text: "dev_room",  style: 'info',  action: () => startDevRoom() }
   ],
   OPTIONS: [
     { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => showAudioSettings() },
@@ -130,6 +131,11 @@ function loadButtons() {
   // Register buttons for click handling
   setActiveButtons(menuButtons);
   g_mapRendered = false;
+  
+  // Expose menuButtons globally for testing
+  if (typeof window !== 'undefined') {
+    window.menuButtons = menuButtons;
+  }
 }
 
 // Start game with fade transition
@@ -156,6 +162,35 @@ async function startGameTransition() {
     
     // Start fade out transition, do NOT switch state yet
     GameState.startFadeTransition("out");
+    soundManager.stop("bgMusic");
+}
+
+// Dev room: Load g_map2 and start playing immediately
+function startDevRoom() {
+    logNormal('[startDevRoom] Loading dev map (g_map2)');
+    
+    // Switch to g_map2 if available
+    if (typeof g_map2 !== 'undefined' && g_map2) {
+        // Set active map to g_map2
+        if (typeof window !== 'undefined') {
+            window.g_activeMap = g_map2;
+        }
+        logNormal('[startDevRoom] Switched to g_map2');
+    } else {
+        logWarning('[startDevRoom] g_map2 not available');
+    }
+    
+    // Initialize world with dev map
+    if (typeof initializeWorld === 'function') {
+        initializeWorld();
+    }
+    
+    // Change state to PLAYING
+    if (typeof GameState !== 'undefined' && GameState.setState) {
+        GameState.setState('PLAYING');
+        logNormal('[startDevRoom] Changed state to PLAYING');
+    }
+    
     soundManager.stop("bgMusic");
 }
 

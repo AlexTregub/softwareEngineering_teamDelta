@@ -35,6 +35,19 @@ let Buildings = [];
 // Camera system - now managed by CameraSystemManager (switches between CameraManager and CustomLevelCamera)
 let cameraManager; // CameraSystemManager instance
 
+// ============================================================
+// MVC SYSTEM - NEW ARCHITECTURE
+// Dual-system operation: legacy + MVC running side-by-side during migration
+// ============================================================
+let g_mvcEntities = {
+  ants: [],       // Array of {model, view, controller} triads
+  resources: [],  // Array of {model, view, controller} triads
+  buildings: []   // Array of {model, view, controller} triads
+};
+
+// Toggle to enable/disable MVC rendering (for debugging and comparison)
+let g_useMVCRendering = true;
+
 /**
  * Register entities from LevelLoader with global game arrays and systems
  * @param {Array} entities - Array of entities from LevelLoader.loadLevel()
@@ -448,6 +461,13 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
+  
+  // Register MVC rendering (NEW ARCHITECTURE - dual-system operation)
+  if (typeof renderMVCEntities === 'function' && typeof RenderManager !== 'undefined') {
+    RenderManager.addDrawableToLayer(RenderManager.layers.ENTITIES, renderMVCEntities);
+    console.log('[MVC] Registered MVC rendering with RenderManager');
+  }
+  
   queenAnt = spawnQueen();
   
   // Auto-track queen ant with camera (Phase 4.2 - Camera Following Integration)
@@ -650,6 +670,72 @@ async function loadCustomLevel(levelPath) {
   }
 }
 
+// ============================================================
+// MVC SYSTEM FUNCTIONS
+// ============================================================
+
+/**
+ * Update all MVC entities
+ * Called during game update phase
+ */
+function updateMVCEntities(deltaTime) {
+  if (!g_useMVCRendering) return;
+  
+  // Update ants
+  g_mvcEntities.ants.forEach(ant => {
+    if (ant && ant.controller && ant.model) {
+      ant.controller.update(ant.model, deltaTime);
+    }
+  });
+  
+  // Update resources
+  g_mvcEntities.resources.forEach(resource => {
+    if (resource && resource.controller && resource.model) {
+      resource.controller.update(resource.model, deltaTime);
+    }
+  });
+  
+  // Update buildings
+  g_mvcEntities.buildings.forEach(building => {
+    if (building && building.controller && building.model) {
+      building.controller.update(building.model, deltaTime);
+    }
+  });
+}
+
+/**
+ * Render all MVC entities
+ * Called via RenderManager drawable
+ */
+function renderMVCEntities() {
+  if (!g_useMVCRendering) return;
+  
+  push();
+  
+  // Render ants
+  g_mvcEntities.ants.forEach(ant => {
+    if (ant && ant.view && ant.model && ant.model.enabled) {
+      ant.view.render(ant.model, window);
+    }
+  });
+  
+  // Render resources
+  g_mvcEntities.resources.forEach(resource => {
+    if (resource && resource.view && resource.model && resource.model.enabled) {
+      resource.view.render(resource.model, window);
+    }
+  });
+  
+  // Render buildings
+  g_mvcEntities.buildings.forEach(building => {
+    if (building && building.view && building.model && building.model.enabled) {
+      building.view.render(building.model, window);
+    }
+  });
+  
+  pop();
+}
+
 /**
  * draw
  * ----
@@ -685,6 +771,11 @@ function draw() {
           ant.update();
         }
       });
+    }
+    
+    // Update MVC entities (NEW ARCHITECTURE - dual-system operation)
+    if (typeof updateMVCEntities === 'function') {
+      updateMVCEntities(deltaTime);
     }
     
     // Update brush systems
