@@ -36,7 +36,7 @@ class JobComponent {
 
       case "Queen":
         // Central unit: extremely durable but immobile and weak in combat
-        return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 10 };
+        return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 45 };
 
       case "Spider":
         return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 40 };

@@ -14,6 +14,7 @@ let JobImages = {};
 
 // Global ant manager instance - will be initialized when AntManager is available
 let antManager = null;
+let animationManager = null;
 
 // --- Preload Images and manager ---
 function antsPreloader() {
@@ -25,9 +26,9 @@ function antsPreloader() {
     Builder: loadImage('Images/Ants/gray_ant_builder.png'),
     Scout: loadImage('Images/Ants/gray_ant_scout.png'),
     Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
-    Warrior: loadImage('Images/Ants/gray_ant.png'), // We don't have a gray ant warrior
+    Warrior: loadImage('Images/Ants/gray_ant_soldier.png'), // We don't have a gray ant warrior
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
-    DeLozier: loadImage('Images/Ants/greg.jpg'),
+    // DeLozier: loadImage('Images/Ants/greg.jpg'),
     Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
     Spider: loadImage('Images/Ants/spider.png')
   };
@@ -35,7 +36,7 @@ function antsPreloader() {
 }
 
 /** Initializes the AntManager instance */
-function initializeAntManager() { antManager = new AntManager(); }
+function initializeAntManager() { antManager = new AntManager(); animationManager = new AnimationManager(); }
 
 
 
@@ -222,7 +223,7 @@ _getFallbackJobStats(jobName) {
       return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 10 };
 
     case "Spider":
-      return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 40 };
+      return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 45 };
 
     default:
       // Generic fallback for untyped ants
@@ -342,6 +343,11 @@ _getFallbackJobStats(jobName) {
     // Notify health controller of damage
     if (this._healthController && oldHealth > this._health) {
       this._healthController.onDamage();
+    }
+
+    // Attack animation
+    if(animationManager.isAnimation("Attack")){
+      animationManager.play(this._entity,"Attack");
     }
     
     if (this._health <= 0) {

@@ -50,6 +50,7 @@ function preload(){
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
+  animationPreloader();
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
@@ -284,7 +285,7 @@ function initializeWorld() {
   // npc test
   Buildings.push(createNPC(100,100));
   // Boss
-  // let spider = new Spider(); 
+  //let spider = new Spider(); 
 }
 
 /**

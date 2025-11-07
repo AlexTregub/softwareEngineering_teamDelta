@@ -158,6 +158,9 @@ class MovementController {
     
     // Handle direct movement
     if (this._isMoving && this._targetPosition) {
+      if(animationManager.isAnimation("Walking")){
+        animationManager.play(this._entity,"Walking");
+      }
       this.updateDirectMovement();
     }
     
