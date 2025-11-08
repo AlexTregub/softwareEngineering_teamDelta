@@ -95,7 +95,7 @@ global.CONTROL = 17;
 global.keyIsDown = (code) => false;
 
 // Mock resource managers
-global.g_resourceManager = {
+global.g_entityInventoryManager = {
   getResourcesByType: (type) => [],
   getResourceList: () => []
 };

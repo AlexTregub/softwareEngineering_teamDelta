@@ -14,7 +14,7 @@ describe('GatherState', function() {
 
   beforeEach(function() {
     // reset global resource manager
-    global.g_resourceManager = {
+    global.g_entityInventoryManager = {
       _list: [],
       getResourceList() { return this._list; },
       removeResource(r) { const i = this._list.indexOf(r); if (i !== -1) this._list.splice(i,1); }
@@ -51,7 +51,7 @@ describe('GatherState', function() {
 
   afterEach(function() {
     delete global.g_resource_manager;
-    delete global.g_resourceManager;
+    delete global.g_entityInventoryManager;
   });
 
   it('initializes with correct defaults', function() {
@@ -89,7 +89,7 @@ describe('GatherState', function() {
     expect(d).to.equal(5);
   });
 
-  it('getResourcesInRadius() finds resources from g_resourceManager', function() {
+  it('getResourcesInRadius() finds resources from g_entityInventoryManager', function() {
     // add resources near and far
     const near = { x: 110, y: 110, type: 'food' };
     const far = { x: 1000, y: 1000, type: 'stone' };
@@ -107,7 +107,7 @@ describe('GatherState', function() {
   it('searchForResources() sets nearest resource as targetResource', function() {
     const near = { x: 110, y: 110, type: 'food' };
     const other = { x: 105, y: 105, type: 'leaf' };
-    global.g_resourceManager._list.push(near, other);
+    global.g_entityInventoryManager._list.push(near, other);
 
     const gs = new GatherState(antMock);
     const results = gs.searchForResources();
@@ -125,7 +125,7 @@ describe('GatherState', function() {
 
   it('attemptResourceCollection adds resource and removes from system', function() {
     const resource = { x: 110, y: 110, type: 'food' };
-    global.g_resourceManager._list.push(resource);
+    global.g_entityInventoryManager._list.push(resource);
 
     const gs = new GatherState(antMock);
     // manually set targetResource shape as returned by getResourcesInRadius
@@ -135,8 +135,8 @@ describe('GatherState', function() {
 
     // resourceManagerMock should have added the resource (load becomes 1)
     expect(resourceManagerMock._load).to.equal(1);
-    // g_resourceManager should no longer contain the resource
-    expect(global.g_resourceManager._list.indexOf(resource)).to.equal(-1);
+    // g_entityInventoryManager should no longer contain the resource
+    expect(global.g_entityInventoryManager._list.indexOf(resource)).to.equal(-1);
     // targetResource cleared
     expect(gs.targetResource).to.be.null;
   });
@@ -160,7 +160,7 @@ describe('GatherState', function() {
 
   it('updateTargetMovement collects when in range', function() {
     const resource = { x: 102, y: 102, type: 'food' };
-    global.g_resourceManager._list.push(resource);
+    global.g_entityInventoryManager._list.push(resource);
 
     const gs = new GatherState(antMock);
     gs.targetResource = { resource, x: resource.x, y: resource.y, type: resource.type };

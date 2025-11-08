@@ -35,14 +35,14 @@ describe('GatherDebugRenderer', function() {
     
     // Mock global objects
     global.ants = [];
-    global.g_resourceManager = {
+    global.g_entityInventoryManager = {
       getResourceList: () => []
     };
   });
   
   afterEach(function() {
     delete global.ants;
-    delete global.g_resourceManager;
+    delete global.g_entityInventoryManager;
   });
   
   describe('Constructor', function() {
@@ -143,7 +143,7 @@ describe('GatherDebugRenderer', function() {
         state: 'GATHERING',
         getPosition: () => ({ x: 100, y: 100 })
       }];
-      global.g_resourceManager = undefined;
+      global.g_entityInventoryManager = undefined;
       
       expect(() => renderer.render()).to.not.throw();
     });

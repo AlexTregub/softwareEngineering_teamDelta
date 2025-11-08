@@ -469,7 +469,7 @@ def step_inspect_ant_properties(context):
 # Removed duplicate step definition - covered by parameterized controller step
 
 # Removed duplicate step definition - covered by parameterized controller step
-    # ResourceManager verification - implementation dependent
+    # EntityInventoryManager verification - implementation dependent
 
 @then('the ant should have an AntStateMachine')
 def step_verify_ant_state_machine(context):

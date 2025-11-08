@@ -89,7 +89,7 @@ getTestStatus()
 //      • Selection Box Regression Tests
 //      • Selection Box Node Tests
 //      • Selection Box Comprehensive Tests
-//      • ResourceManager Tests
+//      • EntityInventoryManager Tests
 //      • CollisionBox2D Tests
 //      • ButtonGroup Persistence Tests
 //      • ButtonGroup Layout Tests
@@ -116,7 +116,7 @@ The following test suites are now managed by this system:
 7. **Selection Box Regression Tests** - Tests for regression prevention
 8. **Selection Box Node Tests** - Node.js environment compatibility tests
 9. **Selection Box Comprehensive Tests** - Comprehensive selection functionality
-10. **ResourceManager Tests** - Tests resource management system
+10. **EntityInventoryManager Tests** - Tests resource management system
 11. **CollisionBox2D Tests** - Tests 2D collision detection
 12. **ButtonGroup Persistence Tests** - Tests button group state persistence
 13. **ButtonGroup Layout Tests** - Tests button positioning and layout

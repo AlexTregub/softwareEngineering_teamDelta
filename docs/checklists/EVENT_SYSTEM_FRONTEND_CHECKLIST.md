@@ -177,7 +177,7 @@ Support **ConditionalTrigger** with custom logic (already implemented in EventMa
    - **Advanced Conditions**: JavaScript code editor for complex logic
 3. **Common Patterns**:
    - Day/night progression: `() => window.dayCount >= 5`
-   - Resource thresholds: `() => window.resourceManager.getFood() < 10`
+   - Resource thresholds: `() => window.EntityInventoryManager.getFood() < 10`
    - Enemy count: `() => window.enemyCount >= 20`
    - Combat waves: `() => window.waveNumber > 0 && window.enemiesAlive === 0`
 

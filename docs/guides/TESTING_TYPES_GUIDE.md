@@ -96,14 +96,14 @@ Tests that verify **multiple components work together correctly**. Tests the "gl
 // test/integration/resourceSystemManagerIntegration.test.js (old version)
 describe('ResourceSystemManager Integration', () => {
   it('should spawn resources and add to global list', () => {
-    const initialCount = g_resourceManager.getResourceList().length;
-    g_resourceManager.forceSpawn();
-    const afterCount = g_resourceManager.getResourceList().length;
+    const initialCount = g_entityInventoryManager.getResourceList().length;
+    g_entityInventoryManager.forceSpawn();
+    const afterCount = g_entityInventoryManager.getResourceList().length;
     expect(afterCount).toBeGreaterThan(initialCount);
   });
   
   it('should integrate with selection system', () => {
-    const resource = g_resourceManager.getResourceList()[0];
+    const resource = g_entityInventoryManager.getResourceList()[0];
     g_selectionController.select(resource);
     expect(g_selectionController.getSelected()).toContain(resource);
   });
@@ -265,7 +265,7 @@ describe('Smoke Test', () => {
   it('should have core managers initialized', async () => {
     const managersExist = await page.evaluate(() => {
       return !!(window.g_antManager && 
-                window.g_resourceManager && 
+                window.g_entityInventoryManager && 
                 window.cameraManager);
     });
     expect(managersExist).toBe(true);
@@ -307,7 +307,7 @@ describe('Regression: Spawn Interaction Bug #145', () => {
     
     // This used to crash
     expect(() => {
-      g_resourceManager.forceSpawn();
+      g_entityInventoryManager.forceSpawn();
     }).not.toThrow();
   });
 });

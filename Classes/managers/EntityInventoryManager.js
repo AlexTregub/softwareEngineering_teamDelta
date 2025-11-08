@@ -1,5 +1,5 @@
 /**
- * @fileoverview ResourceManager class for handling entity resource collection and management
+ * @fileoverview EntityInventoryManager class for handling entity resource collection and management
  * Manages resource carrying, drop-off behavior, and capacity limits for any game entity.
  *
  * @author Software Engineering Team Delta - David Willman
@@ -10,11 +10,11 @@
  * Manages resource collection, carrying capacity, and drop-off behavior for any entity.
  * Handles the complete resource management lifecycle from collection to delivery.
  *
- * @class ResourceManager
+ * @class EntityInventoryManager
  */
-class ResourceManager {
+class EntityInventoryManager {
   /**
-   * Creates a new ResourceManager for an entity.
+   * Creates a new EntityInventoryManager for an entity.
    *
    * @param {Object} parentEntity - The entity this resource manager belongs to
    * @param {number} parentEntity.posX - X position of the entity
@@ -146,14 +146,14 @@ class ResourceManager {
    * Uses the global resource system to find available resources.
    */
   checkForNearbyResources() {
-    // Check if g_resourceManager (ResourceSystemManager) is available globally
+    // Check if g_entityInventoryManager (ResourceSystemManager) is available globally
     let resourceSystem = null;
     let fruits = [];
 
     // Try new ResourceSystemManager first
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getResourceList === 'function') {
-      resourceSystem = g_resourceManager;
-      fruits = g_resourceManager.getResourceList();
+    if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.getResourceList === 'function') {
+      resourceSystem = g_entityInventoryManager;
+      fruits = g_entityInventoryManager.getResourceList();
     }
     // Fallback to old g_resourceList for compatibility
     else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.getResourceList === 'function') {
@@ -252,14 +252,14 @@ class ResourceManager {
     this.selectedResourceType = resourceType;
     
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose(`ResourceManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
+      globalThis.logVerbose(`EntityInventoryManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
     } else {
-      logNormal(`ResourceManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
+      logNormal(`EntityInventoryManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
     }
     
     // Notify global resource system if available
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.setSelectedType === 'function') {
-      g_resourceManager.setSelectedType(resourceType);
+    if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.setSelectedType === 'function') {
+      g_entityInventoryManager.setSelectedType(resourceType);
     } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.setSelectedType === 'function') {
       g_resourceList.setSelectedType(resourceType);
     }
@@ -282,14 +282,14 @@ class ResourceManager {
     this.selectedResourceType = null;
     
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose(`ResourceManager: Cleared resource selection (was: ${previousSelection})`);
+      globalThis.logVerbose(`EntityInventoryManager: Cleared resource selection (was: ${previousSelection})`);
     } else {
-      logNormal(`ResourceManager: Cleared resource selection (was: ${previousSelection})`);
+      logNormal(`EntityInventoryManager: Cleared resource selection (was: ${previousSelection})`);
     }
     
     // Notify global resource system if available
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.setSelectedType === 'function') {
-      g_resourceManager.setSelectedType(null);
+    if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.setSelectedType === 'function') {
+      g_entityInventoryManager.setSelectedType(null);
     } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.setSelectedType === 'function') {
       g_resourceList.setSelectedType(null);
     }
@@ -316,8 +316,8 @@ class ResourceManager {
     }
     
     // Try new ResourceSystemManager first
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getSelectedTypeResources === 'function') {
-      return g_resourceManager.getSelectedTypeResources();
+    if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.getSelectedTypeResources === 'function') {
+      return g_entityInventoryManager.getSelectedTypeResources();
     }
     
     // Fallback to old system
@@ -347,9 +347,9 @@ class ResourceManager {
     this.focusedCollection = focusEnabled;
     
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose(`ResourceManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
+      globalThis.logVerbose(`EntityInventoryManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
     } else {
-      logNormal(`ResourceManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
+      logNormal(`EntityInventoryManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
     }
   }
 
@@ -387,14 +387,14 @@ class ResourceManager {
    */
   forceDropAll() {
     const dropped = this.dropAllResources();
-    logNormal(`ResourceManager: Force dropped ${dropped.length} resources`);
+    logNormal(`EntityInventoryManager: Force dropped ${dropped.length} resources`);
     return dropped;
   }
 }
 
 // Export for Node.js compatibility
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = ResourceManager;
+  module.exports = EntityInventoryManager;
 }
 
 // === Global resource totals helpers ===
@@ -413,8 +413,8 @@ function addGlobalResource(type, amount = 1) {
 
   // Debug: show change and current totals
   try {
-    logNormal(`[ResourceManager] addGlobalResource: ${type} +${amt} -> ${_resourceTotals[type]}`);
-    logNormal('[ResourceManager] totals:', getResourceTotals());
+    logNormal(`[EntityInventoryManager] addGlobalResource: ${type} +${amt} -> ${_resourceTotals[type]}`);
+    logNormal('[EntityInventoryManager] totals:', getResourceTotals());
     logNormal('added resource')
   } catch (e) { /* ignore logging errors */ }
 
@@ -431,7 +431,7 @@ function removeGlobalResource(type, amount = 1) {
   const amt = Number(amount) || 0;
   const have = _resourceTotals[type] || 0;
   if (have < amt) {
-    console.warn(`[ResourceManager] removeGlobalResource failed: ${type} has ${have}, tried to remove ${amt}`);
+    console.warn(`[EntityInventoryManager] removeGlobalResource failed: ${type} has ${have}, tried to remove ${amt}`);
     return false;
   }
   _resourceTotals[type] = have - amt;
@@ -439,8 +439,8 @@ function removeGlobalResource(type, amount = 1) {
 
   // Debug: show change and current totals
   try {
-    logNormal(`[ResourceManager] removeGlobalResource: ${type} -${amt} -> ${_resourceTotals[type] || 0}`);
-    logNormal('[ResourceManager] totals:', getResourceTotals());
+    logNormal(`[EntityInventoryManager] removeGlobalResource: ${type} -${amt} -> ${_resourceTotals[type] || 0}`);
+    logNormal('[EntityInventoryManager] totals:', getResourceTotals());
   } catch (e) { /* ignore logging errors */ }
 
   return true;
@@ -470,7 +470,7 @@ function getResourceCount(type) {
 function logResourceTotals() {
   try {
     logNormal('test resource totals log:');
-    logNormal('[ResourceManager] current totals:', getResourceTotals());
+    logNormal('[EntityInventoryManager] current totals:', getResourceTotals());
   } catch (e) { /* ignore */ }
 }
 

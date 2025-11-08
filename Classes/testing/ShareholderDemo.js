@@ -272,8 +272,8 @@ class ShareholderDemo {
     }
     
     // Clear resources
-    if (g_resourceManager && typeof g_resourceManager.clearAllResources === 'function') {
-      g_resourceManager.clearAllResources();
+    if (g_entityInventoryManager && typeof g_entityInventoryManager.clearAllResources === 'function') {
+      g_entityInventoryManager.clearAllResources();
     } else if (g_resourceList && g_resourceList.clear) {
       g_resourceList.clear();
     }
@@ -300,8 +300,8 @@ class ShareholderDemo {
     }
     
     // Stop resource spawning
-    if (g_resourceManager && typeof g_resourceManager.stopSpawning === 'function') {
-      g_resourceManager.stopSpawning();
+    if (g_entityInventoryManager && typeof g_entityInventoryManager.stopSpawning === 'function') {
+      g_entityInventoryManager.stopSpawning();
     }
     
     // Stop any automatic spawning timers or intervals

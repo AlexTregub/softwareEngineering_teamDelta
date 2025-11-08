@@ -179,19 +179,19 @@ def step_verify_ant_tracking(context):
         assert 'y' in ant and isinstance(ant['y'], (int, float)), f"Ant should have valid Y coordinate: {ant}"
 
 
-# Resource Manager Legacy Tests (converted from resourceManager.test.js)
+# Resource Manager Legacy Tests (converted from EntityInventoryManager.test.js)
 
-@given('I have a ResourceManager instance')
+@given('I have a EntityInventoryManager instance')
 def step_create_resource_manager(context):
-    """Create ResourceManager using real system API"""
+    """Create EntityInventoryManager using real system API"""
     if not hasattr(context, 'legacy_state'):
         context.legacy_state = LegacyTestState()
     
     if hasattr(context, 'browser'):
         result = context.browser.execute_script("""
             try {
-                if (typeof window.ResourceManager !== 'undefined') {
-                    const manager = new window.ResourceManager();
+                if (typeof window.EntityInventoryManager !== 'undefined') {
+                    const manager = new window.EntityInventoryManager();
                     window.testResourceManager = manager;
                     return {
                         success: true,
@@ -227,7 +227,7 @@ def step_create_resource_manager(context):
             }
         """)
         
-        assert result['success'], f"ResourceManager creation should succeed: {result.get('error', '')}"
+        assert result['success'], f"EntityInventoryManager creation should succeed: {result.get('error', '')}"
         context.legacy_state.resource_manager = result
     else:
         context.legacy_state.resource_manager = {
@@ -299,9 +299,9 @@ def step_add_different_resource_types(context):
         }
 
 
-@then('the ResourceManager should manage all resource types correctly')
+@then('the EntityInventoryManager should manage all resource types correctly')
 def step_verify_resource_management(context):
-    """Verify ResourceManager handles different resource types properly"""
+    """Verify EntityInventoryManager handles different resource types properly"""
     added_data = context.legacy_state.added_resources
     assert added_data['success'], "Resource addition should have succeeded"
     

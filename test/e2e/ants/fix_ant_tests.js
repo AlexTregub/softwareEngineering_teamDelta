@@ -57,7 +57,7 @@ testFiles.forEach(filename => {
   // Fix 4: Update variable references from 'ant' to 'testAnt'
   const oldAntRef = /return \{\s*exists: !!/g;
   content = content.replace(oldAntRef, (match) => {
-    return 'return {\n        exists: !!testAnt,\n        isEntity: testAnt instanceof window.Entity,\n        hasStatsContainer: !!testAnt.StatsContainer,\n        hasResourceManager: !!testAnt.resourceManager,\n        hasStateMachine: !!testAnt.stateMachine,\n        hasGatherState: !!testAnt.gatherState,\n        hasBrain: testAnt.brain !== undefined,\n        hasFaction: !!testAnt.faction,\n        hasJobName: !!testAnt.JobName,\n        hasIndex: testAnt._antIndex !== undefined,\n        jobName: testAnt.JobName,\n        faction: testAnt.faction,\n        type: testAnt.type,\n        exists: !!';
+    return 'return {\n        exists: !!testAnt,\n        isEntity: testAnt instanceof window.Entity,\n        hasStatsContainer: !!testAnt.StatsContainer,\n        hasResourceManager: !!testAnt.EntityInventoryManager,\n        hasStateMachine: !!testAnt.stateMachine,\n        hasGatherState: !!testAnt.gatherState,\n        hasBrain: testAnt.brain !== undefined,\n        hasFaction: !!testAnt.faction,\n        hasJobName: !!testAnt.JobName,\n        hasIndex: testAnt._antIndex !== undefined,\n        jobName: testAnt.JobName,\n        faction: testAnt.faction,\n        type: testAnt.type,\n        exists: !!';
   });
   
   if (changesMade > 0) {

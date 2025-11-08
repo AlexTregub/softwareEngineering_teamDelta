@@ -1744,10 +1744,10 @@ class DraggablePanelManager {
    */
   selectResource(resourceType) {
     logNormal(`📦 Selected resource: ${resourceType}`);
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.selectResource === 'function') {
-      g_resourceManager.selectResource(resourceType);
+    if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.selectResource === 'function') {
+      g_entityInventoryManager.selectResource(resourceType);
     } else {
-      console.warn('⚠️ ResourceManager not found or selectResource method not available');
+      console.warn('⚠️ EntityInventoryManager not found or selectResource method not available');
     }
   }
 
@@ -1774,7 +1774,7 @@ class DraggablePanelManager {
         const gameState = {
           timestamp: Date.now(),
           antCount: (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : 0,
-          resourceCount: (typeof g_resourceManager !== 'undefined' && g_resourceManager) ? g_resourceManager.getResourceList().length : 0
+          resourceCount: (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager) ? g_entityInventoryManager.getResourceList().length : 0
         };
         localStorage.setItem('gameState', JSON.stringify(gameState));
         logNormal('✅ Basic game state saved to localStorage');
@@ -1822,8 +1822,8 @@ class DraggablePanelManager {
     } else {
       // Fallback: Manual reset
       this.clearAnts();
-      if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.clearAllResources === 'function') {
-        g_resourceManager.clearAllResources();
+      if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.clearAllResources === 'function') {
+        g_entityInventoryManager.clearAllResources();
       }
       logNormal('✅ Basic game reset completed');
     }

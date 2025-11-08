@@ -15,7 +15,7 @@ const antTestDefinitions = [
       'Ant initializes with job type',
       'Ant has unique ant index',
       'Ant initializes StatsContainer',
-      'Ant initializes ResourceManager',
+      'Ant initializes EntityInventoryManager',
       'Ant initializes AntStateMachine',
       'Ant initializes GatherState',
       'Ant initializes AntBrain',

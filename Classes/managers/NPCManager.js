@@ -119,7 +119,7 @@ class NPC extends Building{
     }
 
     if (this.questAssigned) {
-      const collected = getResourceCount(); // from your ResourceManager globals
+      const collected = getResourceCount(); // from your EntityInventoryManager globals
       if (collected >= this.questAmount && this.dialogueStage === 1) {
         // Player has completed quest — you can increment stage or switch dialogue
         this.dialogueStage = 2;

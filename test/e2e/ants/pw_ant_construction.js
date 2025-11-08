@@ -131,7 +131,7 @@ async function test_Ant_initializes_StatsContainer(page) {
 }
 
 async function test_Ant_initializes_ResourceManager(page) {
-  const testName = 'Ant initializes ResourceManager';
+  const testName = 'Ant initializes EntityInventoryManager';
   const startTime = Date.now();
   try {
     const result = await page.evaluate(() => {
@@ -139,14 +139,14 @@ async function test_Ant_initializes_ResourceManager(page) {
       const testAnt = new window.ant(250, 250, 20, 20, 30, 0, null, 'Scout', 'player');
       return {
         exists: !!testAnt,
-        hasResourceManager: !!testAnt.resourceManager,
-        managerType: testAnt.resourceManager ? testAnt.resourceManager.constructor.name : null
+        hasResourceManager: !!testAnt.EntityInventoryManager,
+        managerType: testAnt.EntityInventoryManager ? testAnt.EntityInventoryManager.constructor.name : null
       };
     });
     if (result.error) throw new Error(result.error);
     if (!result.exists) throw new Error('Ant not created');
-    if (!result.hasResourceManager) throw new Error('ResourceManager not initialized');
-    if (result.managerType !== 'ResourceManager') throw new Error(`Expected ResourceManager, got ${result.managerType}`);
+    if (!result.hasResourceManager) throw new Error('EntityInventoryManager not initialized');
+    if (result.managerType !== 'EntityInventoryManager') throw new Error(`Expected EntityInventoryManager, got ${result.managerType}`);
     await forceRedraw(page);
     await captureEvidence(page, 'ants/antconstruction_5', 'ants', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);
@@ -222,7 +222,7 @@ async function test_Ant_initializes_AntBrain(page) {
       // Brain property declaration without assignment may not create enumerable property
       const hasBrainProperty = 'brain' in testAnt;
       const hasStateMachine = !!testAnt.stateMachine;
-      const hasResourceManager = !!testAnt.resourceManager;
+      const hasResourceManager = !!testAnt.EntityInventoryManager;
       const canSupportBrain = hasStateMachine && hasResourceManager;
       return {
         exists: !!testAnt,
@@ -236,7 +236,7 @@ async function test_Ant_initializes_AntBrain(page) {
     if (result.error) throw new Error(result.error);
     if (!result.exists) throw new Error('Ant not created');
     // Brain property may not exist as enumerable - check for supporting systems instead
-    if (!result.canSupportBrain) throw new Error('Missing systems needed for brain (StateMachine, ResourceManager)');
+    if (!result.canSupportBrain) throw new Error('Missing systems needed for brain (StateMachine, EntityInventoryManager)');
     await forceRedraw(page);
     await captureEvidence(page, 'ants/antconstruction_8', 'ants', true);
     console.log(`  ✅ PASS: ${testName} (${Date.now() - startTime}ms)`);

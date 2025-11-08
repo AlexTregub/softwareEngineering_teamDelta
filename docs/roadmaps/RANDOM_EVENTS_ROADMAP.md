@@ -254,7 +254,7 @@ When multiple triggers fire simultaneously:
 - ✅ Quick start section with first event tutorial
 - ✅ System architecture overview
 - ✅ 5 common workflow examples (time-based, tutorials, exploration, boss fights, repeating)
-- ✅ 4 integration patterns (AntManager, ResourceManager, flags, custom handlers)
+- ✅ 4 integration patterns (AntManager, EntityInventoryManager, flags, custom handlers)
 - ✅ Level Editor integration documentation
 - ✅ Troubleshooting section (6 common issues with solutions)
 - ✅ Best practices (7 guidelines with examples)

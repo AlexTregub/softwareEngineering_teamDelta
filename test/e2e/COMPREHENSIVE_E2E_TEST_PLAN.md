@@ -452,7 +452,7 @@ test('MovementController pathfinding to location', async () => {
 2. ✅ Ant initializes with job type
 3. ✅ Ant has unique ant index
 4. ✅ Ant initializes StatsContainer
-5. ✅ Ant initializes ResourceManager
+5. ✅ Ant initializes EntityInventoryManager
 6. ✅ Ant initializes AntStateMachine
 7. ✅ Ant initializes GatherState
 8. ✅ Ant initializes AntBrain
@@ -709,7 +709,7 @@ test('MovementController pathfinding to location', async () => {
 1. ✅ Resources spawn at correct positions
 2. ✅ Resource types spawn (food, wood, stone)
 3. ✅ Resources have correct sizes
-4. ✅ Resources register with ResourceManager
+4. ✅ Resources register with EntityInventoryManager
 5. ✅ Resources render correctly
 6. ✅ Resources have collision boxes
 7. ✅ Resources accessible by type
@@ -728,7 +728,7 @@ test('MovementController pathfinding to location', async () => {
 4. ✅ Resource removed from world
 5. ✅ Ant inventory increases
 6. ✅ Resource visual disappears
-7. ✅ ResourceManager tracks collection
+7. ✅ EntityInventoryManager tracks collection
 8. ✅ Multiple ants can collect different resources
 9. ✅ Resource collection shows feedback
 10. ✅ Collection respects inventory capacity

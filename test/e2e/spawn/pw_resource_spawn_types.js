@@ -24,8 +24,8 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
     // Wait for resource registration to complete (some registries initialize after a tick)
     try {
       await page.waitForFunction(() => {
-        return ((typeof g_resourceManager !== 'undefined' && g_resourceManager && g_resourceManager.registeredResourceTypes && Object.keys(g_resourceManager.registeredResourceTypes).length > 0) ||
-               (typeof window.g_resourceManager !== 'undefined' && window.g_resourceManager && window.g_resourceManager.registeredResourceTypes && Object.keys(window.g_resourceManager.registeredResourceTypes).length > 0) ||
+        return ((typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && g_entityInventoryManager.registeredResourceTypes && Object.keys(g_entityInventoryManager.registeredResourceTypes).length > 0) ||
+               (typeof window.g_entityInventoryManager !== 'undefined' && window.g_entityInventoryManager && window.g_entityInventoryManager.registeredResourceTypes && Object.keys(window.g_entityInventoryManager.registeredResourceTypes).length > 0) ||
                (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.getResourceList === 'function') ||
                (typeof window.g_resourceList !== 'undefined' && window.g_resourceList && typeof window.g_resourceList.getResourceList === 'function'));
       }, { timeout: 10000 });
@@ -33,14 +33,14 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
       console.warn('Timed out waiting for resource registration; proceeding to best-effort discovery');
     }
 
-    // Read registered resource types from ResourceSystemManager or g_resourceManager
+    // Read registered resource types from ResourceSystemManager or g_entityInventoryManager
     const types = await page.evaluate(() => {
       try {
-        if (typeof g_resourceManager !== 'undefined' && g_resourceManager && g_resourceManager.registeredResourceTypes) {
-          return Object.keys(g_resourceManager.registeredResourceTypes);
+        if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && g_entityInventoryManager.registeredResourceTypes) {
+          return Object.keys(g_entityInventoryManager.registeredResourceTypes);
         }
-        if (typeof window.g_resourceManager !== 'undefined' && window.g_resourceManager && window.g_resourceManager.registeredResourceTypes) {
-          return Object.keys(window.g_resourceManager.registeredResourceTypes);
+        if (typeof window.g_entityInventoryManager !== 'undefined' && window.g_entityInventoryManager && window.g_entityInventoryManager.registeredResourceTypes) {
+          return Object.keys(window.g_entityInventoryManager.registeredResourceTypes);
         }
         // Fallback: inspect Resource factory methods on Resource (createX)
         if (typeof Resource !== 'undefined') {
@@ -83,10 +83,10 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
           if (typeof ctor === 'function') {
             const inst = ctor(200 + Math.random()*200, 200 + Math.random()*200);
             // Add the instance to the resource manager or compatibility list
-            if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.addResource === 'function') {
-              g_resourceManager.addResource(inst);
-            } else if (typeof window.g_resourceManager !== 'undefined' && window.g_resourceManager && typeof window.g_resourceManager.addResource === 'function') {
-              window.g_resourceManager.addResource(inst);
+            if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.addResource === 'function') {
+              g_entityInventoryManager.addResource(inst);
+            } else if (typeof window.g_entityInventoryManager !== 'undefined' && window.g_entityInventoryManager && typeof window.g_entityInventoryManager.addResource === 'function') {
+              window.g_entityInventoryManager.addResource(inst);
             } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.getResourceList === 'function') {
               g_resourceList.getResourceList().push(inst);
             } else if (typeof window.g_resourceList !== 'undefined' && window.g_resourceList && typeof window.g_resourceList.getResourceList === 'function') {
@@ -112,24 +112,24 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
       await (page.waitForTimeout ? page.waitForTimeout(100) : sleep(100));
     }
 
-    // Now assert presence via g_resourceManager.getResourcesByType or g_resourceList
+    // Now assert presence via g_entityInventoryManager.getResourcesByType or g_resourceList
     const presence = await page.evaluate((types) => {
       try {
         const out = {};
         for (const type of types) {
           let list = [];
-          if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getResourcesByType === 'function') {
-            list = g_resourceManager.getResourcesByType(type) || [];
-          } else if (typeof window.g_resourceManager !== 'undefined' && window.g_resourceManager && typeof window.g_resourceManager.getResourcesByType === 'function') {
-            list = window.g_resourceManager.getResourcesByType(type) || [];
+          if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.getResourcesByType === 'function') {
+            list = g_entityInventoryManager.getResourcesByType(type) || [];
+          } else if (typeof window.g_entityInventoryManager !== 'undefined' && window.g_entityInventoryManager && typeof window.g_entityInventoryManager.getResourcesByType === 'function') {
+            list = window.g_entityInventoryManager.getResourcesByType(type) || [];
           } else if (typeof g_resourceList !== 'undefined' && g_resourceList && typeof g_resourceList.getResourceList === 'function') {
             list = (g_resourceList.getResourceList() || []).filter(r => (r.resourceType || r.type || r._type) === type);
           } else if (typeof window.g_resourceList !== 'undefined' && window.g_resourceList && typeof window.g_resourceList.getResourceList === 'function') {
             list = (window.g_resourceList.getResourceList() || []).filter(r => (r.resourceType || r.type || r._type) === type);
-          } else if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.getResourceList === 'function') {
-            list = (g_resourceManager.getResourceList() || []).filter(r => (r.resourceType || r.type || r._type) === type);
-          } else if (typeof window.g_resourceManager !== 'undefined' && window.g_resourceManager && typeof window.g_resourceManager.getResourceList === 'function') {
-            list = (window.g_resourceManager.getResourceList() || []).filter(r => (r.resourceType || r.type || r._type) === type);
+          } else if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && typeof g_entityInventoryManager.getResourceList === 'function') {
+            list = (g_entityInventoryManager.getResourceList() || []).filter(r => (r.resourceType || r.type || r._type) === type);
+          } else if (typeof window.g_entityInventoryManager !== 'undefined' && window.g_entityInventoryManager && typeof window.g_entityInventoryManager.getResourceList === 'function') {
+            list = (window.g_entityInventoryManager.getResourceList() || []).filter(r => (r.resourceType || r.type || r._type) === type);
           }
           out[type] = list.length;
         }

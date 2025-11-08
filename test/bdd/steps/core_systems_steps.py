@@ -50,7 +50,7 @@ def step_core_systems_loaded(context):
             antManager: typeof window.g_antManager !== 'undefined',
             movementController: typeof window.g_movementController !== 'undefined', 
             taskManager: typeof window.g_taskManager !== 'undefined',
-            resourceManager: typeof window.g_resourceManager !== 'undefined',
+            EntityInventoryManager: typeof window.g_entityInventoryManager !== 'undefined',
             renderController: typeof window.g_renderController !== 'undefined'
         };
     """)

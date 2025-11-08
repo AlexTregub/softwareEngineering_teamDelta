@@ -80,7 +80,7 @@ def run_dependency_analysis():
                 antBaseSprite: typeof antBaseSprite !== 'undefined',
                 createVector: typeof createVector !== 'undefined',
                 statsContainer: typeof StatsContainer !== 'undefined',
-                resourceManager: typeof ResourceManager !== 'undefined'
+                EntityInventoryManager: typeof EntityInventoryManager !== 'undefined'
             };
             
             console.log('System check result:', systemCheck);
@@ -125,7 +125,7 @@ def run_dependency_analysis():
                         dependenciesAvailable: {
                             createVector: typeof createVector !== 'undefined',
                             statsContainer: typeof StatsContainer !== 'undefined',
-                            resourceManager: typeof ResourceManager !== 'undefined'
+                            EntityInventoryManager: typeof EntityInventoryManager !== 'undefined'
                         }
                     };
                 """)

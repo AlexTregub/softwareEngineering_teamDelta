@@ -68,9 +68,9 @@ class GatherDebugRenderer {
 
     // Check if we have ants and resources
     if (typeof ants === 'undefined' || !ants || ants.length === 0) return;
-    if (typeof g_resourceManager === 'undefined' || !g_resourceManager) return;
+    if (typeof g_entityInventoryManager === 'undefined' || !g_entityInventoryManager) return;
 
-    const resources = g_resourceManager.getResourceList();
+    const resources = g_entityInventoryManager.getResourceList();
     
     push(); // Save current drawing state
     
@@ -244,8 +244,8 @@ function renderResourceInfo(resources,textColor,resourceColor) {
  * @param {number} count - Number of resources to create
  */
 function createTestResourcesNearAnt(ant, count = 3) {
-    if (typeof g_resourceManager === 'undefined' || !g_resourceManager) {
-      console.error('❌ g_resourceManager not available');
+    if (typeof g_entityInventoryManager === 'undefined' || !g_entityInventoryManager) {
+      console.error('❌ g_entityInventoryManager not available');
       return;
     }
     
@@ -276,9 +276,9 @@ function createTestResourcesNearAnt(ant, count = 3) {
           break;
       }
       
-      g_resourceManager.addResource(resource);
+      g_entityInventoryManager.addResource(resource);
       logNormal(`  ✅ Created ${resource.resourceType} at (${x.toFixed(0)}, ${y.toFixed(0)})`);
     }
     
-    logNormal(`total resources now: ${g_resourceManager.getResourceList().length}`);
+    logNormal(`total resources now: ${g_entityInventoryManager.getResourceList().length}`);
   }

@@ -651,8 +651,8 @@ class GatherState extends BaseState {
   getResourcesInRadius(x, y, radius) {
     // Implementation from existing GatherState
     const nearbyResources = [];
-    if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
-      const resourceList = g_resourceManager.getResourceList() || [];
+    if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager) {
+      const resourceList = g_entityInventoryManager.getResourceList() || [];
       for (const resource of resourceList) {
         const rx = resource.x || resource.posX;
         const ry = resource.y || resource.posY;
@@ -674,8 +674,8 @@ class GatherState extends BaseState {
   }
 
   removeResourceFromSystem(resource) {
-    if (g_resourceManager && g_resourceManager.removeResource) {
-      g_resourceManager.removeResource(resource);
+    if (g_entityInventoryManager && g_entityInventoryManager.removeResource) {
+      g_entityInventoryManager.removeResource(resource);
     }
   }
 }

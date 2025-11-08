@@ -131,7 +131,7 @@ function createAnt(config) {
 ### **Test 1: Global Variables**
 ```javascript
 // Type this in any .js file:
-g_  // ← Should show: g_antManager, g_resourceManager, g_canvasX, etc.
+g_  // ← Should show: g_antManager, g_entityInventoryManager, g_canvasX, etc.
 ```
 
 ### **Test 2: Method IntelliSense**  

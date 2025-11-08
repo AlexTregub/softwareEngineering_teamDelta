@@ -30,7 +30,7 @@ function intelliSenseDemo() {
   // These are automatically linked to class definitions:
   
   //g_antManager.   // ← Will show methods when JSDoc is added to AntManager class
-  //g_resourceManager.   // ← Will show methods when JSDoc is added to ResourceSystemManager class  
+  //g_entityInventoryManager.   // ← Will show methods when JSDoc is added to ResourceSystemManager class  
   //buttonGroupManager.   // ← Will show methods when JSDoc is added to ButtonGroupManager class
   
   // ✨ p5.js ENHANCED FUNCTIONS
@@ -88,7 +88,7 @@ function testIntelliSense() {
   
   // TEST 3: Global variables should show when you add JSDoc to their classes
   // g_antManager.
-  // g_resourceManager.
+  // g_entityInventoryManager.
   // buttonGroupManager.
   
   // TEST 4: p5.js functions should have enhanced hints

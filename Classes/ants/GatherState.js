@@ -174,10 +174,10 @@ class GatherState {
       // Try to get resources from the unified resource system
       let resourceList = [];
       
-      if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
-        resourceList = g_resourceManager.getResourceList ? g_resourceManager.getResourceList() : [];
+      if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager) {
+        resourceList = g_entityInventoryManager.getResourceList ? g_entityInventoryManager.getResourceList() : [];
         if (this.debugEnabled) {
-          logNormal(`🔍 Using g_resourceManager, found ${resourceList.length} total resources`);
+          logNormal(`🔍 Using g_entityInventoryManager, found ${resourceList.length} total resources`);
         }
       }
 
@@ -270,8 +270,8 @@ class GatherState {
   removeResourceFromSystem(resource) {
     try {
       // Try unified resource system first
-      if (typeof g_resourceManager !== 'undefined' && g_resourceManager && g_resourceManager.removeResource) {
-        g_resourceManager.removeResource(resource);
+      if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager && g_entityInventoryManager.removeResource) {
+        g_entityInventoryManager.removeResource(resource);
       }
     } catch (error) {
       console.warn('GatherState: Error removing resource from system:', error);

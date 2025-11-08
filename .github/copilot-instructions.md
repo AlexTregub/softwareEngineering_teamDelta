@@ -554,7 +554,7 @@ npm run dev  # Python server on :8000
 Classes/
   ants/          - Ant entities, state machine, job system
   controllers/   - Reusable behavior controllers
-  managers/      - System managers (AntManager, ResourceManager, MapManager, SpatialGridManager)
+  managers/      - System managers (AntManager, EntityInventoryManager, MapManager, SpatialGridManager)
   rendering/     - RenderLayerManager, EntityLayerRenderer, UILayerRenderer
   systems/       - CollisionBox2D, Button, Sprite2D
   terrainUtils/  - Terrain generation, MapManager

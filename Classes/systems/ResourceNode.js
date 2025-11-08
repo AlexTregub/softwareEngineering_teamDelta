@@ -315,15 +315,15 @@ class ResourceNode extends Entity {
    */
   spawnResource(resourceType) {
     // Check if resource manager is available
-    if (typeof g_resourceManager === 'undefined' || !g_resourceManager) {
-      console.warn('ResourceNode: g_resourceManager not available');
+    if (typeof g_entityInventoryManager === 'undefined' || !g_entityInventoryManager) {
+      console.warn('ResourceNode: g_entityInventoryManager not available');
       return null;
     }
     
     const nodePos = this.getPosition();
     
     // Spawn resource at node position (resource manager will handle exact placement)
-    const resource = g_resourceManager.spawnResource(resourceType, nodePos.x, nodePos.y);
+    const resource = g_entityInventoryManager.spawnResource(resourceType, nodePos.x, nodePos.y);
     
     return resource;
   }
@@ -355,8 +355,8 @@ class ResourceNode extends Entity {
       const resourceType = this.selectResourceType();
       
       // Spawn resource at calculated position
-      if (typeof g_resourceManager !== 'undefined' && g_resourceManager) {
-        const resource = g_resourceManager.spawnResource(resourceType, x, y);
+      if (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager) {
+        const resource = g_entityInventoryManager.spawnResource(resourceType, x, y);
         if (resource) {
           spawnedResources.push(resource);
         }

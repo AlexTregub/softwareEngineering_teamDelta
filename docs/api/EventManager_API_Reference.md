@@ -399,7 +399,7 @@ eventManager.registerTrigger({
   oneTime: false,
   condition: {
     check: () => {
-      return window.resourceManager && window.resourceManager.getFoodCount() < 10;
+      return window.EntityInventoryManager && window.EntityInventoryManager.getFoodCount() < 10;
     }
   }
 });

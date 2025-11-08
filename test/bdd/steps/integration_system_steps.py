@@ -19,7 +19,7 @@ def step_game_systems_loaded_integration(context):
             "Classes/resource.js",
             "Classes/resources.js",
             "Classes/containers/Entity.js",
-            "Classes/managers/ResourceManager.js",
+            "Classes/managers/EntityInventoryManager.js",
             "Classes/managers/GameStateManager.js",
             "Classes/ants/antStateMachine.js",
             "Classes/ants/ants.js",
@@ -47,7 +47,7 @@ def step_game_systems_loaded_integration(context):
             
         # Verify critical classes are available
         class_check_result = context.browser.execute_script("""
-            const classes = ['ant', 'Resource', 'ResourceManager', 'MovementController', 'TaskManager', 'RenderController'];
+            const classes = ['ant', 'Resource', 'EntityInventoryManager', 'MovementController', 'TaskManager', 'RenderController'];
             const results = {};
             classes.forEach(cls => {
                 results[cls] = typeof window[cls] !== 'undefined';
@@ -64,7 +64,7 @@ def step_game_systems_loaded_integration(context):
 
 @when('I test resource pickup functionality')
 def step_test_resource_pickup_functionality(context):
-    """Test resource pickup using real Resource and ResourceManager APIs"""
+    """Test resource pickup using real Resource and EntityInventoryManager APIs"""
     if not getattr(context, 'systems_loaded', False):
         context.pickup_result = {"success": False, "error": "Systems not loaded"}
         return
@@ -90,7 +90,7 @@ def step_test_resource_pickup_functionality(context):
                 g_resourceList.getResourceList().push(leafResource);
                 
                 // Set up resource manager with realistic capacity
-                testAnt._resourceManager = new ResourceManager(testAnt, 3, 50);
+                testAnt._resourceManager = new EntityInventoryManager(testAnt, 3, 50);
                 
                 // Track pickup events (real system monitoring)
                 let pickupDetected = false;
@@ -463,7 +463,7 @@ def step_test_system_integration_status(context):
                 const integrationStatus = {};
                 
                 // Test class availability
-                const coreClasses = ['ant', 'Resource', 'ResourceManager', 'MovementController', 
+                const coreClasses = ['ant', 'Resource', 'EntityInventoryManager', 'MovementController', 
                                    'TaskManager', 'RenderController', 'GameStateManager'];
                                    
                 integrationStatus.classAvailability = {};
@@ -531,7 +531,7 @@ def step_system_integration_should_be_functional(context):
     
     # Validate core class availability
     class_availability = integration.get('classAvailability', {})
-    critical_classes = ['ant', 'Resource', 'ResourceManager']
+    critical_classes = ['ant', 'Resource', 'EntityInventoryManager']
     
     available_count = sum(1 for cls in critical_classes if class_availability.get(cls))
     assert available_count > 0, "At least some critical classes should be available"

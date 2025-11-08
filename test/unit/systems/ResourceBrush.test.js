@@ -34,7 +34,7 @@ global.Resource = {
 };
 
 // Mock resource manager
-global.g_resourceManager = {
+global.g_entityInventoryManager = {
   resources: [],
   addResource: function(resource) {
     this.resources.push(resource);
@@ -54,7 +54,7 @@ describe('ResourceBrush', function() {
   
   beforeEach(function() {
     brush = new ResourceBrush();
-    global.g_resourceManager.resources = [];
+    global.g_entityInventoryManager.resources = [];
   });
   
   describe('Constructor', function() {
@@ -129,7 +129,7 @@ describe('ResourceBrush', function() {
       
       brush.performAction(100, 100);
       
-      expect(global.g_resourceManager.resources.length).to.equal(1);
+      expect(global.g_entityInventoryManager.resources.length).to.equal(1);
     });
     
     it('should respect cooldown', function() {
@@ -137,7 +137,7 @@ describe('ResourceBrush', function() {
       
       brush.performAction(100, 100);
       
-      expect(global.g_resourceManager.resources.length).to.equal(0);
+      expect(global.g_entityInventoryManager.resources.length).to.equal(0);
     });
     
     it('should create correct resource type', function() {
@@ -146,7 +146,7 @@ describe('ResourceBrush', function() {
       
       brush.performAction(100, 100);
       
-      const resource = global.g_resourceManager.resources[0];
+      const resource = global.g_entityInventoryManager.resources[0];
       expect(resource.resourceType).to.equal('stick');
     });
     
@@ -155,14 +155,14 @@ describe('ResourceBrush', function() {
       
       brush.performAction(100, 100);
       
-      const resource = global.g_resourceManager.resources[0];
+      const resource = global.g_entityInventoryManager.resources[0];
       // Position should be near 100, but with some offset
       expect(Math.abs(resource.x - 100)).to.be.lessThan(brush.brushSize);
     });
     
     it('should handle missing resource manager gracefully', function() {
-      const oldManager = global.g_resourceManager;
-      global.g_resourceManager = undefined;
+      const oldManager = global.g_entityInventoryManager;
+      global.g_entityInventoryManager = undefined;
       
       brush.lastSpawnTime = 0;
       
@@ -170,7 +170,7 @@ describe('ResourceBrush', function() {
         brush.performAction(100, 100);
       }).to.not.throw();
       
-      global.g_resourceManager = oldManager;
+      global.g_entityInventoryManager = oldManager;
     });
   });
   
@@ -205,7 +205,7 @@ describe('ResourceBrush', function() {
       
       brush.onMousePressed(150, 200, 'LEFT');
       
-      expect(global.g_resourceManager.resources.length).to.be.greaterThan(0);
+      expect(global.g_entityInventoryManager.resources.length).to.be.greaterThan(0);
     });
     
     it('should cycle type on RIGHT click', function() {

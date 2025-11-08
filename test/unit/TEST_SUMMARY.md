@@ -20,7 +20,7 @@
 - Debug information
 - Edge cases
 
-#### ResourceManager (35 tests)
+#### EntityInventoryManager (35 tests)
 - Load tracking (getCurrentLoad, isAtMaxLoad)
 - Capacity management (getRemainingCapacity)
 - Resource addition (addResource)

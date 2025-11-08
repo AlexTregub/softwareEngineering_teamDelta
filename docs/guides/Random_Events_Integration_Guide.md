@@ -72,7 +72,7 @@ That's it! Your first event is ready. The EventManager will:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Your Game Code                         │
-│  (sketch.js, AntManager, ResourceManager, etc.)            │
+│  (sketch.js, AntManager, EntityInventoryManager, etc.)            │
 └─────────────────────┬───────────────────────────────────────┘
                       │ Calls registerEvent(), setFlag()
                       ↓
@@ -527,14 +527,14 @@ if (event.type === 'spawn') {
 }
 ```
 
-#### With ResourceManager (Rewards)
+#### With EntityInventoryManager (Rewards)
 
 ```javascript
 // After dialogue with reward button
 if (button.action === 'claim_reward') {
   const reward = event.content.reward;
-  if (reward && window.resourceManager) {
-    window.resourceManager.addResource(reward.type, reward.amount);
+  if (reward && window.EntityInventoryManager) {
+    window.EntityInventoryManager.addResource(reward.type, reward.amount);
   }
   eventManager.completeEvent(event.id);
 }

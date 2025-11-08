@@ -40,7 +40,7 @@ declare var g_antManager;
  * @global
  * @type {ResourceSystemManager}
  */
-declare var g_resourceManager;
+declare var g_entityInventoryManager;
 
 /**
  * Global game state manager

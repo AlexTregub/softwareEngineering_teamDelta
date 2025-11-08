@@ -1,7 +1,7 @@
 ﻿const { expect } = require('chai');
-const ResourceManager = require('../../../Classes/managers/ResourceManager.js');
+const EntityInventoryManager = require('../../../Classes/managers/EntityInventoryManager.js');
 
-describe('ResourceManager', function() {
+describe('EntityInventoryManager', function() {
   let manager;
   let mockEntity;
   let mockResource;
@@ -23,7 +23,7 @@ describe('ResourceManager', function() {
       drop: function() {}
     };
     
-    manager = new ResourceManager(mockEntity);
+    manager = new EntityInventoryManager(mockEntity);
   });
   
   describe('Constructor', function() {
@@ -36,7 +36,7 @@ describe('ResourceManager', function() {
     });
     
     it('should initialize with custom maxCapacity', function() {
-      const customManager = new ResourceManager(mockEntity, 10);
+      const customManager = new EntityInventoryManager(mockEntity, 10);
       expect(customManager.maxCapacity).to.equal(10);
     });
     
@@ -45,7 +45,7 @@ describe('ResourceManager', function() {
     });
     
     it('should initialize with custom collectionRange', function() {
-      const customManager = new ResourceManager(mockEntity, 2, 50);
+      const customManager = new EntityInventoryManager(mockEntity, 2, 50);
       expect(customManager.collectionRange).to.equal(50);
     });
     
@@ -122,7 +122,7 @@ describe('ResourceManager', function() {
     });
     
     it('should respect custom capacity limits', function() {
-      const customManager = new ResourceManager(mockEntity, 5);
+      const customManager = new EntityInventoryManager(mockEntity, 5);
       for (let i = 0; i < 4; i++) {
         customManager.addResource({ ...mockResource });
       }
@@ -157,7 +157,7 @@ describe('ResourceManager', function() {
     });
     
     it('should handle custom capacity correctly', function() {
-      const customManager = new ResourceManager(mockEntity, 10);
+      const customManager = new EntityInventoryManager(mockEntity, 10);
       customManager.addResource(mockResource);
       expect(customManager.getRemainingCapacity()).to.equal(9);
     });
@@ -381,25 +381,25 @@ describe('ResourceManager', function() {
   
   describe('Edge Cases', function() {
     it('should handle capacity of 0', function() {
-      const zeroCapManager = new ResourceManager(mockEntity, 0);
+      const zeroCapManager = new EntityInventoryManager(mockEntity, 0);
       expect(zeroCapManager.isAtMaxLoad()).to.be.true;
       expect(zeroCapManager.addResource(mockResource)).to.be.false;
     });
     
     it('should handle capacity of 1', function() {
-      const oneCapManager = new ResourceManager(mockEntity, 1);
+      const oneCapManager = new EntityInventoryManager(mockEntity, 1);
       expect(oneCapManager.addResource(mockResource)).to.be.true;
       expect(oneCapManager.isAtMaxLoad()).to.be.true;
     });
     
     it('should handle very large capacity', function() {
-      const largeCapManager = new ResourceManager(mockEntity, 1000);
+      const largeCapManager = new EntityInventoryManager(mockEntity, 1000);
       expect(largeCapManager.maxCapacity).to.equal(1000);
       expect(largeCapManager.getRemainingCapacity()).to.equal(1000);
     });
     
     it('should handle negative collection range', function() {
-      const negRangeManager = new ResourceManager(mockEntity, 2, -10);
+      const negRangeManager = new EntityInventoryManager(mockEntity, 2, -10);
       expect(negRangeManager.collectionRange).to.equal(-10);
     });
     
@@ -420,7 +420,7 @@ describe('ResourceManager', function() {
     
     it('should handle entity with only posX', function() {
       const partialEntity = { posX: 50 };
-      const partialManager = new ResourceManager(partialEntity);
+      const partialManager = new EntityInventoryManager(partialEntity);
       expect(partialManager.parentEntity.posX).to.equal(50);
     });
     
@@ -428,7 +428,7 @@ describe('ResourceManager', function() {
       const advEntity = {
         getPosition: function() { return { x: 200, y: 300 }; }
       };
-      const advManager = new ResourceManager(advEntity);
+      const advManager = new EntityInventoryManager(advEntity);
       expect(advManager.parentEntity.getPosition()).to.deep.equal({ x: 200, y: 300 });
     });
   });

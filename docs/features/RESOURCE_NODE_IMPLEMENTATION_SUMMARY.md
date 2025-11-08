@@ -94,7 +94,7 @@ Entity (base class)
 - **Extends**: `Entity` class
 - **Integrates**: 
   - `SpatialGridManager` (spatial queries)
-  - `g_resourceManager` (resource spawning)
+  - `g_entityInventoryManager` (resource spawning)
   - Ant state machine (GATHERING state)
   - `CollisionBox2D` (collision detection)
   - `Sprite2D` (visual rendering)

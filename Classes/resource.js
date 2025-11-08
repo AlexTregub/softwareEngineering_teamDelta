@@ -1,5 +1,5 @@
 let g_resourceList;
-let g_resourceManager;
+let g_entityInventoryManager;
 let resourceIndex = 0;
 
 const RESOURCE_SPAWN_INTERVAL = 1; // seconds
@@ -7,10 +7,10 @@ const MAX_RESOURCE_CAPACITY = 300;
 
 function resourcePreLoad(){
   // Create the new unified resource system manager
-  g_resourceManager = new ResourceSystemManager(RESOURCE_SPAWN_INTERVAL, MAX_RESOURCE_CAPACITY); // (Interval, Capacity)
+  g_entityInventoryManager = new ResourceSystemManager(RESOURCE_SPAWN_INTERVAL, MAX_RESOURCE_CAPACITY); // (Interval, Capacity)
   
-  // Keep g_resourceList for backward compatibility - it will delegate to g_resourceManager
-  g_resourceList = new resourcesArrayCompat(g_resourceManager);
+  // Keep g_resourceList for backward compatibility - it will delegate to g_entityInventoryManager
+  g_resourceList = new resourcesArrayCompat(g_entityInventoryManager);
   
   // Register all resource types declaratively (but defer spawning until setup())
   registerAllResourceTypes(true); // true = defer spawning
@@ -20,8 +20,8 @@ function resourcePreLoad(){
  * Spawn initial resources after setup() when spatial grid exists
  */
 function spawnInitialResources() {
-  if (g_resourceManager && g_resourceManager.spawnDeferredResources) {
-    g_resourceManager.spawnDeferredResources();
+  if (g_entityInventoryManager && g_entityInventoryManager.spawnDeferredResources) {
+    g_entityInventoryManager.spawnDeferredResources();
   }
 }
 
@@ -32,7 +32,7 @@ function spawnInitialResources() {
  */
 function registerAllResourceTypes(deferSpawning = false) {
   // Existing leaf resources
-  g_resourceManager.registerResourceType('greenLeaf', {
+  g_entityInventoryManager.registerResourceType('greenLeaf', {
     imagePath: 'Images/Resources/leaf.png',
     weight: 0.5,
     canBePickedUp: true,
@@ -42,7 +42,7 @@ function registerAllResourceTypes(deferSpawning = false) {
     deferSpawning: deferSpawning
   });
   
-  g_resourceManager.registerResourceType('mapleLeaf', {
+  g_entityInventoryManager.registerResourceType('mapleLeaf', {
     imagePath: 'Images/Resources/mapleLeaf.png',
     weight: 0.8,
     canBePickedUp: true,
@@ -52,7 +52,7 @@ function registerAllResourceTypes(deferSpawning = false) {
     deferSpawning: deferSpawning
   });
 
-  g_resourceManager.registerResourceType('stick', {
+  g_entityInventoryManager.registerResourceType('stick', {
     imagePath: 'Images/Resources/stick.png',
     weight: 0.6,
     canBePickedUp: true,
@@ -63,7 +63,7 @@ function registerAllResourceTypes(deferSpawning = false) {
     deferSpawning: deferSpawning
   });
 
-  g_resourceManager.registerResourceType('stone', {
+  g_entityInventoryManager.registerResourceType('stone', {
     imagePath: 'Images/Resources/stone.png',
     weight: 0,  // No random spawning during gameplay
     canBePickedUp: false,  // Cannot be picked up by entities

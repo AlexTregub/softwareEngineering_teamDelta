@@ -77,7 +77,7 @@ class ant extends Entity {
     );
     
     // Initialize resource management
-    this._resourceManager = new ResourceManager(this, 8, 25);
+    this._resourceManager = new EntityInventoryManager(this, 8, 25);
     
     // Initialize state machine
     this._stateMachine = new AntStateMachine();
@@ -112,7 +112,7 @@ class ant extends Entity {
   get JobName() { return this._JobName; }
   set JobName(value) { this._JobName = value; }
   get StatsContainer() { return this._stats; }
-  get resourceManager() { return this._resourceManager; }
+  get EntityInventoryManager() { return this._resourceManager; }
   get stateMachine() { return this._stateMachine; }
   get gatherState() { return this._gatherState; }
   get faction() { return this._faction; }
@@ -399,7 +399,7 @@ class ant extends Entity {
   getMaxResources() { return this._resourceManager?.maxCapacity || 0; }
   addResource(resource) { return this._resourceManager?.addResource(resource) || false; }
   removeResource(amount = 1) { 
-    // ResourceManager doesn't have removeResource, use dropAllResources for now
+    // EntityInventoryManager doesn't have removeResource, use dropAllResources for now
     const dropped = this._resourceManager?.dropAllResources() || [];
     return dropped.length > 0;
   }

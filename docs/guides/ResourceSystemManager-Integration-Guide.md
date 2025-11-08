@@ -12,14 +12,14 @@ The resource management system has been upgraded to use a new unified `ResourceS
 
 ```javascript
 g_resourceList = new resourcesArray();
-g_resourceManager = new ResourceSpawner(1, 50, g_resourceList);
+g_entityInventoryManager = new ResourceSpawner(1, 50, g_resourceList);
 ```
 
 **After:**
 
 ```javascript
-g_resourceManager = new ResourceSystemManager(1, 50);
-g_resourceList = new resourcesArrayCompat(g_resourceManager); // Backward compatibility
+g_entityInventoryManager = new ResourceSystemManager(1, 50);
+g_resourceList = new resourcesArrayCompat(g_entityInventoryManager); // Backward compatibility
 ```
 
 ### Class Structure
@@ -110,8 +110,8 @@ if (g_resourceList && g_resourceList.getResourceList) {
 
 **New Pattern:**
 ```javascript
-if (g_resourceManager && g_resourceManager.getResourceList) {
-  const resources = g_resourceManager.getResourceList();
+if (g_entityInventoryManager && g_entityInventoryManager.getResourceList) {
+  const resources = g_entityInventoryManager.getResourceList();
   // work with resources
 }
 ```
@@ -120,7 +120,7 @@ if (g_resourceManager && g_resourceManager.getResourceList) {
 
 The following components have been updated to use the new system:
 
-1. **ResourceManager.js** - Now works with both old and new systems
+1. **EntityInventoryManager.js** - Now works with both old and new systems
 2. **DraggablePanelManager.js** - Updated selectResource method
 3. **DraggablePanelSystem.js** - Updated resource counting
 4. **RenderLayerManager.js** - Updated resource spawning
@@ -136,7 +136,7 @@ const options = {
   enableLogging: true     // Enable console logging
 };
 
-g_resourceManager = new ResourceSystemManager(1, 50, options);
+g_entityInventoryManager = new ResourceSystemManager(1, 50, options);
 ```
 
 ## Summary
@@ -160,11 +160,11 @@ Run the integration test: `globalThis.testResourceSystemManager()`
 
 ```javascript
 // Check system status
-g_resourceManager.getSystemStatus()
+g_entityInventoryManager.getSystemStatus()
 
 // Test resource selection
-g_resourceManager.selectResource('food')
+g_entityInventoryManager.selectResource('food')
 
 // Manual spawn
-g_resourceManager.forceSpawn()
+g_entityInventoryManager.forceSpawn()
 ```

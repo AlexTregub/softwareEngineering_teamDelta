@@ -334,8 +334,8 @@ describe('Ant Controller Integration Tests (JSDOM)', function() {
       update() {}
     };
 
-    // Minimal ResourceManager mock
-    global.ResourceManager = class {
+    // Minimal EntityInventoryManager mock
+    global.EntityInventoryManager = class {
       constructor(entity, capacity, maxLoad) {
         this._entity = entity;
         this.maxCapacity = capacity;

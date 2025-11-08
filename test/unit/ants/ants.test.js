@@ -7,7 +7,7 @@ if (typeof window === 'undefined') {
 
 // Minimal p5-like helpers used by ants.js
 const originalGlobals = {};
-const toMock = ['createVector','loadImage','performance','frameCount','Entity','AntManager','StatsContainer','ResourceManager','AntStateMachine','GatherState','JobComponent','AntBrain','selectables','g_tileInteractionManager','dropoffs','QueenAnt'];
+const toMock = ['createVector','loadImage','performance','frameCount','Entity','AntManager','StatsContainer','EntityInventoryManager','AntStateMachine','GatherState','JobComponent','AntBrain','selectables','g_tileInteractionManager','dropoffs','QueenAnt'];
 
 // backup any existing globals we will touch
 for (const k of toMock) { originalGlobals[k] = global[k]; }
@@ -48,7 +48,7 @@ class Entity {
 
 class AntManager { constructor(){ this._created = true; } }
 class StatsContainer { constructor(pos, size, speed, lastPos) { this.pos = pos; this.size = size; this.speed = speed; this.lastPos = lastPos; this.strength = { statValue: 0 }; this.health = { statValue: 0 }; this.gatherSpeed = { statValue: 0 }; this.movementSpeed = { statValue: 0 }; } }
-class ResourceManager {
+class EntityInventoryManager {
   constructor(owner, a = 0, max = 10) { this.owner = owner; this._load = 0; this.maxCapacity = max; }
   getCurrentLoad() { return this._load; }
   addResource(r) { this._load += 1; return true; }
@@ -75,7 +75,7 @@ class AntBrain { constructor(owner, jobName) { this.owner = owner; this.jobName 
 global.Entity = Entity;
 global.AntManager = AntManager;
 global.StatsContainer = StatsContainer;
-global.ResourceManager = ResourceManager;
+global.EntityInventoryManager = EntityInventoryManager;
 global.AntStateMachine = AntStateMachine;
 global.GatherState = GatherState;
 global.JobComponent = JobComponent;
@@ -126,7 +126,7 @@ describe('ants.js', function() {
     expect(a.getPosition().y).to.equal(60);
     expect(a.JobName).to.be.a('string');
     expect(a.StatsContainer).to.exist;
-    expect(a.resourceManager).to.exist;
+    expect(a.EntityInventoryManager).to.exist;
     expect(a.stateMachine).to.exist;
   });
 
@@ -141,7 +141,7 @@ describe('ants.js', function() {
     expect(stats).to.have.property('strength');
   });
 
-  it('resource methods add/get/drop behave via ResourceManager', function() {
+  it('resource methods add/get/drop behave via EntityInventoryManager', function() {
     const a = new antsModule.ant(0,0,10,10,1,0,null,'Scout','player');
     expect(a.getResourceCount()).to.equal(0);
     const ok = a.addResource('ore');
