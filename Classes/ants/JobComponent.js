@@ -25,7 +25,7 @@ class JobComponent {
 
       case "Warrior":
         // Heavy combat role: high strength and durability, slower speed
-        return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
+        return { strength: 45, health: 300, gatherSpeed: 5, movementSpeed: 45 };
 
       case "Spitter":
         // Ranged attacker: moderate health, good damage, slightly faster than warrior
@@ -36,10 +36,10 @@ class JobComponent {
 
       case "Queen":
         // Central unit: extremely durable but immobile and weak in combat
-        return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 45 };
+        return { strength: 25, health: 500, gatherSpeed: 1, movementSpeed: 45 };
 
       case "Spider":
-        return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 40 };
+        return { strength: 80, health: 1000, gatherSpeed: 3, movementSpeed: 40 };
 
       default:
         // Generic fallback for untyped ants

@@ -176,6 +176,10 @@ class ant extends Entity {
         combat._detectionRadius = 300;
         this._attackRange = combat._detectionRadius - 50; 
         break;
+      case "Spitter":
+        combat._detectionRadius = 250;
+        this._attackRange = 250; 
+        break;
       case "Spider":
         combat._detectionRadius = 300;
         this._attackRange = 150;
@@ -209,7 +213,7 @@ _getFallbackJobStats(jobName) {
 
     case "Warrior":
       // Heavy combat role: high strength and durability, slower speed
-      return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
+      return { strength: 45, health: 6000, gatherSpeed: 5, movementSpeed: 45 };
 
     case "Spitter":
       // Ranged attacker: moderate health, good damage, slightly faster than warrior
@@ -602,6 +606,10 @@ _getFallbackJobStats(jobName) {
       // Only attack if we're actually in combat state and have enemies
       if (this._stateMachine && this._stateMachine.isInCombat() && this._enemies.length > 0) {
         this._performCombatAttack();
+      }else{
+        if(this._combatTarget != null){
+          this.moveToLocation(this._combatTarget.posX, this._combatTarget.posY);
+        }
       }
     }
   }
@@ -684,7 +692,7 @@ _getFallbackJobStats(jobName) {
     if (shortestDistance <= this._attackRange) {
       if (isRanged) {
         if (this.jobName === "Spitter") {
-          console.log("Spitter attacks");
+            // window.draggablePanelManager.handleShootLightning(this._combatTarget);
         } else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
           window.draggablePanelManager.handleShootLightning(this._combatTarget);
         }

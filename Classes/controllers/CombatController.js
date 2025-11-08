@@ -121,10 +121,10 @@ class CombatController {
         continue;
       }
 
-      
-      
+
       // Check distance
       const distance = this.calculateDistance(this._entity, otherAnt);
+
       if (distance <= this._detectionRadius) {
         this._nearbyEnemies.push(otherAnt);
         return;
@@ -142,7 +142,6 @@ class CombatController {
       const distance = this.calculateDistance(this._entity, building);
       if (distance <= this._detectionRadius) {
         this._nearbyEnemies.push(building);
-        return;
       }
     }
   }

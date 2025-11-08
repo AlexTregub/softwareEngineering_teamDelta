@@ -285,7 +285,7 @@ function initializeWorld() {
   // npc test
   Buildings.push(createNPC(100,100));
   // Boss
-  //let spider = new Spider(); 
+  let spider = new Spider(); 
 }
 
 /**

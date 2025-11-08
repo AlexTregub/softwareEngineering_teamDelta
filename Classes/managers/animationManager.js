@@ -8,8 +8,7 @@ function animationPreloader() {
     "Scout": loadImage("Images/Animation/Scout.png"),
     "Builder": loadImage("Images/Animation/Builder.png"),
     "Farmer": loadImage("Images/Animation/Farmer.png"),
-    
-    // "Spitter": loadImage("Images/Animation/Spitter.png"),
+    "Spitter": loadImage("Images/Animation/Spitter.png"),
   };
 }
 
@@ -19,7 +18,7 @@ animationData = {
         width: 16,
         height: 16,
         totalFrames: 2,
-        frameDelay: 40,
+        frameDelay: 10,
         currentFrame: 0,
     },
     "Attack": { 
@@ -27,7 +26,7 @@ animationData = {
         width: 16,
         height: 16,
         totalFrames: 2,
-        frameDelay: 50,
+        frameDelay: 20,
         currentFrame: 0,
     },
 }
@@ -44,21 +43,24 @@ class AnimationManager {
     }
 
     play(antObj, animationName) {
+        if(!antObj || !antObj.jobName) return;
+
         let job = antObj.jobName;
         let sheet = spriteSheets[job];
         let anim = animationData[animationName];
-        if (!sheet || !anim) return;
+        if (!sheet || !anim || antObj._health <= 0) return;
 
         // update frame on delay
         if (frameCount % anim.frameDelay === 0) {
             // compute pixel coordinates
             let x = anim.currentFrame * anim.width;
             let y = anim.row * anim.height;
+            let size = antObj.getSize();
 
             // grab current frame from the sprite sheet
             let frame = sheet.get(x, y, anim.width, anim.height);
             antObj.setImage(frame);
-            antObj.setSize(55, 55);
+            antObj.setSize(size.x, size.y);
 
             // move to next frame or reset
             anim.currentFrame += 1;
@@ -66,7 +68,7 @@ class AnimationManager {
             anim.currentFrame = 0;
             if (anim.default) {
                 antObj.setImage(anim.default);
-                antObj.setSize(55, 55);
+                antObj.setSize(size.x, size.y);
             }
             }
 
