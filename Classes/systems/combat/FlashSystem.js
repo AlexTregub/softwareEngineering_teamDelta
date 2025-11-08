@@ -29,9 +29,33 @@ class FinalFlash{
     }
     startCharging(){
         //Gradually increses 
+        let pressDuration = millis() - mousePressTime;//  Power increases with press duration, capped at 3x normal power
+        chargedPower = min((pressDuration / 1000) * 0.3, 3.0);
     }
     fire(){
         //Displays beam
+    }
+    makeBeam(length, a, fadeProgress = 0) {
+        let flareLength = 100;
+        let maxWidth = a * flareLength * flareLength;
+        
+        // Apply fade to width - beam shrinks from sides
+        let widthMultiplier = 1.0 - fadeProgress;
+
+        beginShape();
+        // Top edge - from origin to tip
+        for (let x = 0; x <= length; x += 10) {
+            let w = (x < flareLength) ? maxWidth * sin((x / flareLength) * HALF_PI) : maxWidth;
+            w *= widthMultiplier; // Shrink width based on fade progress
+            vertex(x, -w);
+        }
+        // Bottom edge - from tip back to origin
+        for (let x = length; x >= 0; x -= 10) {
+            let w = (x < flareLength) ? maxWidth * sin((x / flareLength) * HALF_PI) : maxWidth;
+            w *= widthMultiplier; // Shrink width based on fade progress
+            vertex(x, w);
+        }
+        endShape();
     }
 }
 
@@ -66,8 +90,24 @@ class FinalFlashManager{
         if(!this.canFire && (millis() - this.lastFire) > this.cooldown){ //If on cooldown and cooldown over
             this.canFire = true; //Allow next attack
         }
-        this.finalFlash.update(); //Update final flash
+        if(this.finalFlash){
+            this.finalFlash.update(); //Update final flash
+        }
     }
+}
+
+function initializeFlashSystem() {
+  if (!window.g_flashManager) {
+    window.g_flashManager = new FinalFlashManager();
+    window.FlashManager = FinalFlashManager; // export class
+  }
+  soundManager.registerSound('lightningStrike', 'sounds/lightning_strike.wav', 'SoundEffects');
+  return window.g_flashManager;
+}
+
+if (typeof window !== 'undefined') {
+  window.initializeFlashSystem = initializeFlashSystem;
+  window.g_flashManager = initializeFlashSystem();
 }
 
 // let alpha = 0.005;      // Controls how wide the beam fans out

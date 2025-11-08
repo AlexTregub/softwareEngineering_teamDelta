@@ -381,6 +381,7 @@ function draw() {
     if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
     if (window.g_resourceBrush) window.g_resourceBrush.update();
     if (window.g_buildingBrush) window.g_buildingBrush.update();
+    if (window.g_flashAimBrush) window.g_flashAimBrush.update();
 
     if (typeof updateQueenPanelVisibility !== 'undefined') updateQueenPanelVisibility();
     if (window.g_queenControlPanel) window.g_queenControlPanel.update();
@@ -388,6 +389,7 @@ function draw() {
     if (window.eventManager) window.eventManager.update();
     if (window.g_fireballManager) window.g_fireballManager.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
+    if (window.g_flashManager) window.g_flashManager.update();
     if (g_globalTime) g_globalTime.update();
 
     // --- Player Movement ---
@@ -544,6 +546,17 @@ function mousePressed() {
     }
   }
 
+  // Handle Final Flash Aim Brush events
+  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_flashAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return;
+    } catch (error) {
+      console.error('❌ Error handling Flash Flash aim brush events:', error);
+    }
+  }
+
   // Handle Queen Control Panel right-click for power cycling
   if (window.g_queenControlPanel && mouseButton === RIGHT) {
     try {
@@ -670,6 +683,16 @@ function mouseReleased() {
       console.error('❌ Error handling lightning aim brush release events:', error);
     }
   }
+
+  //Handle Flash Flash Aim Brush release events
+  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling Final Flash aim brush release events:', error);
+    }
+  }
   
   // Forward to RenderManager first
   try {
@@ -758,6 +781,10 @@ function mouseWheel(event) {
       return false;
     }
     if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_flashAimBrush && tryCycleDir(window.g_flashAimBrush)) {
       event.preventDefault();
       return false;
     }
