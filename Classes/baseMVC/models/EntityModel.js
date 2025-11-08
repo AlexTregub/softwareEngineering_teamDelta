@@ -95,6 +95,22 @@ class EntityModel {
   }
 
   /**
+   * Get X coordinate
+   * @returns {number} X position
+   */
+  getX() {
+    return this._position.x;
+  }
+
+  /**
+   * Get Y coordinate
+   * @returns {number} Y position
+   */
+  getY() {
+    return this._position.y;
+  }
+
+  /**
    * Set position
    * @param {number} x - X coordinate
    * @param {number} y - Y coordinate

@@ -19,7 +19,10 @@ class AntModel extends EntityModel {
     
     // Ant Identity
     this._antIndex = globalAntIndex++;
-    this._jobName = options.jobName || 'Scout';
+    this._jobName = options.jobName || 'Worker'; // Default to Worker (most common)
+    
+    // Movement Properties
+    this._movementSpeed = options.movementSpeed !== undefined ? options.movementSpeed : 1;
     
     // System References
     this._brain = null;
@@ -80,6 +83,22 @@ class AntModel extends EntityModel {
     const oldValue = this._jobName;
     this._jobName = jobName;
     this.emit('jobNameChanged', { oldValue, newValue: jobName });
+  }
+  
+  // ===== Movement Properties =====
+  
+  getMovementSpeed() {
+    return this._movementSpeed;
+  }
+  
+  setMovementSpeed(speed) {
+    if (typeof speed !== 'number' || speed < 0) {
+      throw new Error('Movement speed must be a non-negative number');
+    }
+    
+    const oldValue = this._movementSpeed;
+    this._movementSpeed = speed;
+    this.emit('movementSpeedChanged', { oldValue, newValue: speed });
   }
   
   // ===== System References =====
@@ -160,6 +179,11 @@ class AntModel extends EntityModel {
     const oldValue = this._health;
     this._health = clampedHealth;
     this.emit('healthChanged', { oldValue, newValue: clampedHealth });
+    
+    // Auto-deactivate when health reaches 0
+    if (clampedHealth <= 0 && this.isActive()) {
+      this.setActive(false);
+    }
   }
   
   getMaxHealth() {
@@ -183,6 +207,14 @@ class AntModel extends EntityModel {
   }
   
   getDamage() {
+    return this._damage;
+  }
+  
+  /**
+   * Get attack damage (alias for getDamage for API consistency)
+   * @returns {number} Attack damage
+   */
+  getAttackDamage() {
     return this._damage;
   }
   

@@ -1090,68 +1090,38 @@ class DraggablePanelManager {
     
     let spawned = 0;
     
-    // Try multiple spawning methods until we find one that works
-    const spawnMethods = [
-      // Method 1: Try g_antManager
-      () => {
-        if (typeof g_antManager !== 'undefined' && g_antManager && typeof g_antManager.spawnAnt === 'function') {
-          for (let i = 0; i < count; i++) {
-            const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-            const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-            g_antManager.spawnAnt({ x: spawnX, y: spawnY });
-            spawned++;
-          }
-          return true;
-        }
-        return false;
-      },
-      
-      // Method 2: Try global ants array
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants) && typeof Ant !== 'undefined') {
-          for (let i = 0; i < count; i++) {
-            const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-            const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-            const newAnt = new Ant(spawnX, spawnY);
-            ants.push(newAnt);
-            spawned++;
-          }
-          return true;
-        }
-        return false;
-      },
-      
-      // Method 4: Try command line spawning system
-      () => {
-        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
-          const initialAntCount = ants.length;
-          try {
-            // Use the command line spawn system which creates proper ant objects
-            executeCommand(`spawn ${count} ant player`);
-            spawned = ants.length - initialAntCount;
-            return spawned > 0;
-          } catch (error) {
-            console.warn('⚠️ Command line spawn method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
+    // Method 1: Try AntFactory (MVC pattern - PREFERRED)
+    if (typeof AntFactory !== 'undefined' && typeof AntFactory.createAnt === 'function') {
+      for (let i = 0; i < count; i++) {
+        const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+        const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+        const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+        const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+        
+        AntFactory.createAnt(spawnX, spawnY, {
+          faction: 'player',
+          job: 'Worker'
+        });
+        spawned++;
       }
-    ];
+      logVerbose(`✅ Successfully spawned ${spawned} ant(s) using AntFactory`);
+      return;
+    }
     
-    // Try each method until one succeeds
-    for (const method of spawnMethods) {
-      if (method()) {
-        logVerbose(`✅ Successfully spawned ${spawned} ant(s)`);
+    // Method 2: Fallback to command line spawning system
+    if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
+      const initialAntCount = ants.length;
+      try {
+        executeCommand(`spawn ${count} ant player`);
+        spawned = ants.length - initialAntCount;
+        logVerbose(`✅ Successfully spawned ${spawned} ant(s) using command system`);
         return;
+      } catch (error) {
+        console.warn('⚠️ Command line spawn method failed:', error.message);
       }
     }
     
-    console.warn('⚠️ Could not spawn ants - no compatible ant system found');
+    console.warn('⚠️ Could not spawn ants - AntFactory not available');
   }
 
   /**

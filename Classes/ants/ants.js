@@ -797,38 +797,29 @@ function spawnQueen(){
     spawnY = alignedPos[1];
   }
   
-  // Create QueenAnt directly (no need for wrapper ant)
-  let newAnt = new ant(
-    spawnX, spawnY, 
-    queenSize.x + sizeR, 
-    queenSize.y + sizeR, 
+  // Create Queen using MVC factory
+  let queenMVC = createQueen(
+    spawnX, spawnY,
+    queenSize.x + sizeR,
+    queenSize.y + sizeR,
     30, 0,
     antBaseSprite,
-    'Queen',  // This makes it type "Queen"
     'player'
   );
 
-  // Wrap in QueenAnt to get Queen-specific behavior
-  // Note: This creates a NEW entity, so we need to remove the old one from spatial grid
-  if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
-    spatialGridManager.removeEntity(newAnt);
-  }
+  // Job already assigned by factory (Queen)
   
-  newAnt = new QueenAnt(newAnt);
-
-  newAnt.assignJob(JobName, JobImages[JobName]);
-  ants.push(newAnt);
+  ants.push(queenMVC); // Store full MVC object
   // also add to selectables so selection box can see it
-  if (typeof selectables !== 'undefined') selectables.push(newAnt);
-  newAnt.update();
+  if (typeof selectables !== 'undefined') selectables.push(queenMVC);
+  queenMVC.controller.update();
 
   // Register ant with TileInteractionManager for efficient mouse detection
   if (g_tileInteractionManager) {
-    g_tileInteractionManager.addObject(newAnt, 'ant');
+    g_tileInteractionManager.addObject(queenMVC, 'ant');
   }
 
-
-  return newAnt;
+  return queenMVC;
 }
 
 // --- Spawn Ants ---
@@ -859,8 +850,8 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
       py = alignedPos[1];
     }
 
-    // Create ant directly with new job system
-    let newAnt = new ant(
+    // Create ant using MVC factory (Job already assigned by factory)
+    let newAnt = createAnt(
       px, py,
       antSize.x + sizeR,
       antSize.y + sizeR,
@@ -870,11 +861,11 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
       faction
     );
     
-    newAnt.assignJob(JobName, JobImages[JobName]);
+    // Job already assigned by factory, no need to call assignJob again
     
-    ants.push(newAnt);
+    ants.push(newAnt); // Store full MVC object { model, view, controller }
     if (typeof selectables !== 'undefined') selectables.push(newAnt);
-    newAnt.update();
+    newAnt.controller.update();
     
     if (g_tileInteractionManager) {
       g_tileInteractionManager.addObject(newAnt, 'ant');
@@ -886,21 +877,21 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
 
 function antsUpdate() {
   for (let i = 0; i < ants.length; i++) {
-    if (ants[i] && typeof ants[i].update === "function") {
+    if (ants[i] && ants[i].controller && typeof ants[i].controller.update === "function") {
       // Store previous position for TileInteractionManager updates
       let prevPos = null;
       if (g_tileInteractionManager && ants[i]) {
-        const currentPos = ants[i].getPosition ? ants[i].getPosition() : (ants[i].sprite ? ants[i].sprite.pos : null);
+        const currentPos = ants[i].model.getPosition();
         if (currentPos) {
           prevPos = { x: currentPos.x, y: currentPos.y };
         }
       }
       
-      ants[i].update();
+      ants[i].controller.update();
       
       // Update TileInteractionManager with new position if ant moved
       if (g_tileInteractionManager && ants[i] && prevPos) {
-        const newPos = ants[i].getPosition ? ants[i].getPosition() : (ants[i].sprite ? ants[i].sprite.pos : null);
+        const newPos = ants[i].model.getPosition();
         if (newPos && (newPos.x !== prevPos.x || newPos.y !== prevPos.y)) {
           g_tileInteractionManager.updateObjectPosition(ants[i], newPos.x, newPos.y);
         }
@@ -926,9 +917,9 @@ function antsRender() {
   // Render all ants in a single pass for better performance
   for (let i = 0; i < ants.length; i++) {
       // Check if ant should be rendered (not culled, active, etc.)
-      if (ants[i].isActive()) {
+      if (ants[i] && ants[i].model && ants[i].model.isActive()) {
         g_performanceMonitor.startEntityRender(ants[i]);        
-        ants[i].render();
+        ants[i].controller.render();
         g_performanceMonitor.endEntityRender();
         }
     }
