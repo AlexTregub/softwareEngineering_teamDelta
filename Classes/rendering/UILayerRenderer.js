@@ -1,8 +1,5 @@
 /**
  * @fileoverview UILayerRenderer - Comprehensive UI layer rendering system
- * @module UILayerRenderer
- * @see {@link docs/api/UILayerRenderer.md} Complete API documentation
- * @see {@link docs/quick-reference.md} UI layer rendering reference
  */
 
 /**
@@ -11,7 +8,6 @@
  * **Features**: HUD elements, selection boxes, context menus, debug overlays
  * 
  * @class UILayerRenderer
- * @see {@link docs/api/UILayerRenderer.md} Full documentation and examples
  */
 class UILayerRenderer {
   constructor() {

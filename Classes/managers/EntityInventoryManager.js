@@ -2,8 +2,6 @@
  * @fileoverview EntityInventoryManager class for handling entity resource collection and management
  * Manages resource carrying, drop-off behavior, and capacity limits for any game entity.
  *
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

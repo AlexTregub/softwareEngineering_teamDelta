@@ -1,10 +1,5 @@
 /**
  * @fileoverview PerformanceMonitor - Centralized performance tracking and debug display
- * @module PerformanceMonitor
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
- * @see {@link docs/api/PerformanceMonitor.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Performance monitoring reference
  */
 
 /**
@@ -13,7 +8,6 @@
  * **Features**: FPS tracking, memory monitoring, layer timing, entity statistics
  * 
  * @class PerformanceMonitor
- * @see {@link docs/api/PerformanceMonitor.md} Full documentation and examples
  */
 
 // Default thresholds exported for reuse

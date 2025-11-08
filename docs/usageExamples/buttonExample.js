@@ -2,8 +2,6 @@
  * @fileoverview Example usage of the Button class
  * Demonstrates how to create and use interactive buttons with different styles.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 // Example usage of Button class

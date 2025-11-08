@@ -2,8 +2,6 @@
  * @fileoverview Example usage of DraggablePanel with button arrays
  * Shows how to create panels with different button layouts and functionality
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 // Example 1: Vertical button layout panel

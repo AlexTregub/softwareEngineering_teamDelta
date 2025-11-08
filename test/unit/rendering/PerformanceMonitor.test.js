@@ -1,6 +1,5 @@
 /**
  * @fileoverview Unit tests for PerformanceMonitor - Performance tracking and debug display
- * @module test/unit/rendering/PerformanceMonitor.test
  * @requires chai
  * @requires mocha
  */

@@ -3,7 +3,6 @@
  * Wraps MaterialPalette, ToolBar in DraggablePanels
  * NOTE: BrushSizeControl panel deprecated - brush size now controlled via menu bar (Enhancement 9)
  * 
- * @author Software Engineering Team Delta
  */
 
 class LevelEditorPanels {

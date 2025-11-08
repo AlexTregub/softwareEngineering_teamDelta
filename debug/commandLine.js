@@ -534,7 +534,6 @@ function drawCommandLine() {
  * 
  * @returns {boolean} True if command line was successfully opened, false if already open or dev console disabled
  * @global
- * @see executeCommand
  */
 function openCommandLine() { 
   if (devConsoleEnabled && !commandLineActive) { 

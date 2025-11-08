@@ -7,8 +7,6 @@
  * - Visual Effects: Rendered through RenderLayerManager.renderQueenControlPanel() on UI_GAME layer
  * - Targeting cursor and range indicators are rendered on the UI_GAME layer for proper layering
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

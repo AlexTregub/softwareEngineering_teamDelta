@@ -3,8 +3,6 @@
  * Implements dynamic, layer-based rendering optimization with selective redraw
  * Phase 4 implementation of the Rendering System Architecture Plan
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

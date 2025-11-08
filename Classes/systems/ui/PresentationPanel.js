@@ -2,8 +2,6 @@
  * @fileoverview Presentation Panel System
  * Creates draggable panels for presentation state management and Kanban display
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 // Global presentation variables

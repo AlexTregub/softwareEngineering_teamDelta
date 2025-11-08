@@ -3,8 +3,6 @@
  * Demonstrates how to add image/texture support to the Universal Button System
  * Shows practical implementation with existing game assets
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

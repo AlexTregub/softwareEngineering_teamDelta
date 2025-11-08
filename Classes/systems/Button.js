@@ -2,8 +2,6 @@
  * @fileoverview Button class for creating interactive UI buttons
  * Provides customizable buttons with captions, colors, and click handling.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

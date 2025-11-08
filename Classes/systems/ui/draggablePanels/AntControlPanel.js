@@ -2,8 +2,6 @@
  * @fileoverview Ant Spawning Control Panel
  * Provides a draggable UI panel with buttons for spawning ants and changing states
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

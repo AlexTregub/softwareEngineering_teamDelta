@@ -9,9 +9,6 @@
  * 3. VS Code automatically compiles all type information
  * 4. IntelliSense works immediately everywhere!
  * 
- * @see types/global.d.ts - Global variable declarations
- * @see docs/guides/automatic-intellisense.md - Complete setup guide
- * @see types/intellisense-demo.js - Test file to verify IntelliSense
  */
 
 // =============================================================================

@@ -1,8 +1,5 @@
 /**
  * @fileoverview GatherState - Autonomous resource gathering behavior for ants
- * @module GatherState
- * @author Software Engineering Team Delta - AI Assistant
- * @version 1.0.0
  */
 
 /**

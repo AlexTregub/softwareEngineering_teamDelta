@@ -1,8 +1,5 @@
 /**
  * @fileoverview UIController - Centralized UI system controller with keyboard shortcuts
- * @module UIController
- * @see {@link docs/api/UIController.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Keyboard shortcuts reference
  */
 
 /**
@@ -12,7 +9,6 @@
  * **Quick Shortcuts**: Ctrl+Shift+1-5, Backtick for debug console
  * 
  * @class UIController
- * @see {@link docs/api/UIController.md} Full documentation and examples
  */
 class UIController {
   /**
@@ -84,8 +80,7 @@ class UIController {
    * @param {string} key - The key character
    * @param {Event} [event] - Optional keyboard event
    * @returns {boolean} True if key was handled, false otherwise
-   * @see {@link docs/api/UIController.md#keyboard-shortcuts} Complete shortcut list
-   */
+     */
   handleKeyPress(keyCode, key, event = null) {
     if (!this.initialized) return false;
 
@@ -283,8 +278,7 @@ class UIController {
   /**
    * Toggle performance overlay - Shows FPS, memory usage, render stats.
    * **Shortcut**: Ctrl+Shift+1
-   * @see {@link docs/api/UIController.md#togglePerformanceOverlay} Advanced configuration
-   */
+     */
   togglePerformanceOverlay() {
     // Use existing PerformanceMonitor system
     if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
@@ -361,8 +355,7 @@ class UIController {
    * uiController.startGame(); // Manual start
    * // Or press Ctrl+Shift+5
    * 
-   * @see {@link docs/api/UIController.md#startGame} Complete documentation
-   */
+     */
   startGame() {
     if (typeof GameState !== 'undefined' && GameState && GameState.startGame) {
       console.log('UIController: Starting game (MENU -> PLAYING state)');
@@ -385,8 +378,7 @@ class UIController {
    * uiController.toggleAllUI(); // Manual toggle
    * // Or press Shift+N
    * 
-   * @see {@link docs/api/UIController.md#toggleAllUI} Complete documentation
-   */
+     */
   toggleAllUI() {
     // Toggle all draggable panels
     if (window && window.draggablePanelManager) {

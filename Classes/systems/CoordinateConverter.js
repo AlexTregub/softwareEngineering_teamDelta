@@ -4,7 +4,6 @@
  * Provides unified API for converting between screen/world/tile coordinate spaces.
  * Handles Y-axis inversion via terrain system automatically.
  * 
- * @module CoordinateConverter
  * @requires g_activeMap.renderConversion (terrain coordinate system)
  * @requires TILE_SIZE (global tile size constant)
  * 

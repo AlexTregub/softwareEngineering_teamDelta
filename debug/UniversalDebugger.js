@@ -3,8 +3,6 @@
  * Provides comprehensive debugging capabilities for any JavaScript object with
  * property extraction, method discovery, visual overlays, and interactive controls.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

@@ -2,8 +2,6 @@
  * @fileoverview Resource Paint Brush System
  * Interactive tool for painting resources on the game map
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

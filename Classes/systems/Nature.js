@@ -240,7 +240,6 @@ if (typeof window !== 'undefined') {
 
 /**
  * @fileoverview TimeOfDayOverlay - Renders semi-transparent overlay based on in-game time
- * @module TimeOfDayOverlay
  * 
  * This class creates atmospheric lighting effects that change based on the GlobalTime system.
  * It renders between the ENTITIES and UI_GAME layers so it affects the game world but not the HUD.

@@ -1,8 +1,5 @@
 /**
  * @fileoverview Sprite2D - 2D sprite rendering with position, size, and rotation
- * @module Sprite2D
- * @see {@link docs/api/Sprite2D.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Sprite rendering reference
  */
 
 /**
@@ -11,7 +8,6 @@
  * **Features**: p5.js integration, position/size vectors, opacity support
  * 
  * @class Sprite2D
- * @see {@link docs/api/Sprite2D.md} Full documentation and examples
  */
 class Sprite2D {
   constructor(img, pos, size, rotation = 0) {

@@ -1,10 +1,5 @@
 /**
  * @fileoverview UIDebugManager - Universal UI element positioning and debugging system
- * @module UIDebugManager
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
- * @see {@link docs/api/UIDebugManager.md} Complete API documentation
- * @see {@link docs/quick-reference.md} UI debugging reference
  */
 
 /**
@@ -13,7 +8,6 @@
  * **Features**: Click-drag positioning, bounding boxes, position persistence
  * 
  * @class UIDebugManager
- * @see {@link docs/api/UIDebugManager.md} Full documentation and examples
  */
 
 class UIDebugManager {

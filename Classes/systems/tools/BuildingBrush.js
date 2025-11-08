@@ -2,8 +2,6 @@
  * @fileoverview Building Brush Tool
  * Allows painting buildings onto the game world with grid snapping
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

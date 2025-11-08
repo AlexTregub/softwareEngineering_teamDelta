@@ -3,8 +3,6 @@
  * @fileoverview GatherDebugRenderer - Visualization utility for ant gathering behavior
  * Shows ant detection ranges, resource positions, and debugging information
  * 
- * @author Software Engineering Team Delta - Debug Utility
- * @version 1.0.0
  */
 
 /**

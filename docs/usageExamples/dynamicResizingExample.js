@@ -1,7 +1,5 @@
 /**
  * @fileoverview Example demonstrating dynamic panel and button resizing
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 // Example of creating a panel that automatically adjusts its size based on content

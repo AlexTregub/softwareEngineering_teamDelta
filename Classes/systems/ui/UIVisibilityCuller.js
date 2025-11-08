@@ -3,8 +3,6 @@
  * Optimizes rendering by only processing UI elements visible in the current viewport
  * Part of the Universal Button Group System performance optimizations
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

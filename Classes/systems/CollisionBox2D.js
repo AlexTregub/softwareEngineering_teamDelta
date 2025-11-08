@@ -2,8 +2,6 @@
  * @fileoverview CollisionBox2D class for geometric operations and collision detection
  * Provides bounds checking, intersection testing, and common rectangular collision box operations.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

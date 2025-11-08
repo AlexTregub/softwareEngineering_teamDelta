@@ -5,7 +5,6 @@
  * Shows only when paint tool is active
  * Automatically hides when other tools are selected
  * 
- * @author Software Engineering Team Delta
  */
 
 class BrushSizeMenuModule {

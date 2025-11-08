@@ -7,7 +7,6 @@
  * This test validates the bugfix from 2025-10-26 where eventEditor.initialize()
  * was added to LevelEditor.js constructor.
  * 
- * @author Software Engineering Team Delta
  */
 
 const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');

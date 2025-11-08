@@ -8,7 +8,6 @@
  * - Keyboard shortcuts
  * - Hover effects
  * 
- * @author Software Engineering Team Delta
  */
 
 class FileMenuBar {

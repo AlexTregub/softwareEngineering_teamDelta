@@ -1,7 +1,5 @@
 /**
  * @fileoverview Example demonstrating scaling and word wrapping in DraggablePanel and Button systems
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 // Example of using the new scaling and word wrapping features

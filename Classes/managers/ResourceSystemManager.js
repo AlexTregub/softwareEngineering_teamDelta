@@ -3,8 +3,6 @@
  * Combines resource collection (resourcesArray) and spawning (ResourceSpawner) functionality
  * with enhanced resource type selection and UI integration capabilities.
  *
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

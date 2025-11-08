@@ -2,8 +2,6 @@
  * @fileoverview Enemy Ant Brush Tool
  * Allows painting enemy ants onto the game world with visual feedback
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

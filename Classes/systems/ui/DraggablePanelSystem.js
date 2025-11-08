@@ -5,8 +5,6 @@
     if (typeof globalThis.logVerbose === 'function') {
       globalThis.logVerbose('✅ Debug info panel created');s like resource display and performance monitor
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

@@ -1,10 +1,5 @@
 /**
  * @fileoverview DraggablePanelManager - Complete draggable UI panel system
- * @module DraggablePanelManager
- * @author Software Engineering Team Delta - David Willman  
- * @version 2.0.0
- * @see {@link docs/api/DraggablePanelManager.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Panel system reference
  */
 
 /**
@@ -13,7 +8,6 @@
  * **Features**: Panel lifecycle, render integration, game state visibility, button management
  * 
  * @class DraggablePanelManager
- * @see {@link docs/api/DraggablePanelManager.md} Full documentation and examples
  */
 class DraggablePanelManager {
   /**

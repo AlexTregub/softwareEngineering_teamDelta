@@ -2,8 +2,6 @@
  * @fileoverview DraggablePanel - Reusable draggable UI panel system
  * Adapted from Universal Button System's drag functionality for UI panels
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

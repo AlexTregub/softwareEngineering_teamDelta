@@ -11,7 +11,6 @@
  * 
  * Integrates with EventManager and DraggablePanelManager
  * 
- * @author Software Engineering Team Delta
  */
 
 class EventEditorPanel {

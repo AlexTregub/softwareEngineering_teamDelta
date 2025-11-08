@@ -1,6 +1,5 @@
 /**
  * @fileoverview Unit tests for RenderController - Standardized rendering and visual effects
- * @module test/unit/rendering/RenderController.test
  * @requires chai
  * @requires mocha
  */

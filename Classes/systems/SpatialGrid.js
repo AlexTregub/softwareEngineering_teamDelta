@@ -2,8 +2,6 @@
  * @fileoverview SpatialGrid - Efficient spatial partitioning system for entity queries
  * Uses a hash grid to partition 2D space into cells for O(1) lookups
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

@@ -1,8 +1,5 @@
 /**
  * @fileoverview EffectsLayerRenderer - Advanced particle and visual effects system
- * @module EffectsLayerRenderer
- * @see {@link docs/api/EffectsLayerRenderer.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Effects rendering reference
  */
 
 /**
@@ -11,7 +8,6 @@
  * **Features**: Particle pools, audio effects, performance scaling, effect types
  * 
  * @class EffectsLayerRenderer
- * @see {@link docs/api/EffectsLayerRenderer.md} Full documentation and examples
  */
 class EffectsLayerRenderer {
   constructor() {

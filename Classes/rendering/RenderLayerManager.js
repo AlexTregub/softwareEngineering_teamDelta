@@ -1,8 +1,5 @@
 /**
  * @fileoverview RenderLayerManager - Centralized layered rendering system
- * @module RenderLayerManager
- * @see {@link docs/api/RenderLayerManager.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Layer system reference
  */
 
 
@@ -42,7 +39,6 @@
  * **Layers**: TERRAIN → ENTITIES → EFFECTS → UI_GAME → UI_DEBUG → UI_MENU
  * 
  * @class RenderLayerManager
- * @see {@link docs/api/RenderLayerManager.md} Full documentation and examples
  */
 class RenderLayerManager {
   constructor() {

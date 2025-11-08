@@ -2,8 +2,6 @@
  * @fileoverview AntManager class for handling ant selection, movement, and interaction logic
  * Provides centralized management of ant selection state and related operations.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

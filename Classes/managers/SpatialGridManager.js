@@ -2,8 +2,6 @@
  * @fileoverview SpatialGridManager - Hybrid manager for spatial entity management
  * Wraps SpatialGrid for efficient queries while maintaining backward-compatible array access
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

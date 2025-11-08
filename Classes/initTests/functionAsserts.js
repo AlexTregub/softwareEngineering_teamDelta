@@ -3,8 +3,6 @@
  * the game is going to be using exists. If any assert fails, the game should not render
  * and display an error message.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

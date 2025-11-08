@@ -1,8 +1,5 @@
 /**
  * @fileoverview EntityAccessor - Standardized entity position/size access
- * @module EntityAccessor
- * @see {@link docs/api/EntityAccessor.md} Complete API documentation
- * @see {@link docs/quick-reference.md} Entity accessor reference
  */
 
 /**
@@ -11,7 +8,6 @@
  * **Purpose**: Eliminates duplicate accessor logic across rendering systems
  * 
  * @class EntityAccessor
- * @see {@link docs/api/EntityAccessor.md} Full documentation and examples
  */
 class EntityAccessor {
   

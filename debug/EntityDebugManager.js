@@ -3,8 +3,6 @@
  * Integrates with existing backtick (`) debug toggle system to provide unified debugging
  * controls across all entities in the game world.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**

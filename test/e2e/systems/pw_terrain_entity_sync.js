@@ -10,7 +10,6 @@
  * - Tiles track entities correctly
  * - Terrain properties are accessible from entities
  * 
- * @author AI Agent
  * @date 2025-10-21
  */
 

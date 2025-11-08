@@ -1,6 +1,5 @@
 /**
  * @fileoverview Unit tests for RenderLayerManager - Centralized layered rendering system
- * @module test/unit/rendering/RenderLayerManager.test
  * @requires chai
  * @requires mocha
  */

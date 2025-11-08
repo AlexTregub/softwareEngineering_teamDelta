@@ -9,8 +9,6 @@
  * - Provides safe terrain queries
  * - Future-proof for save/load systems
  * 
- * @module MapManager
- * @author Team Delta
  * @date 2025-10-21
  */
 

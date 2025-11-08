@@ -4,8 +4,6 @@
  * Provides functions for analyzing call stacks, extracting function names,
  * and generating detailed error reports for parameter validation.
  * 
- * @author Software Engineering Team Delta - David Willman
- * @version 1.0.0
  */
 
 /**
@@ -213,7 +211,6 @@ function deprecatedWarning(replacementFunction) {
  * }
  * // Output: "useUtility: Dependency loaded out of order: UtilityClass"
  * 
- * @see {@link getFunctionName} - Used internally to identify the calling function
  * @since 1.0.0
  */
 function incorrectLoadOrderWarning(typeMissing){
@@ -313,7 +310,6 @@ function getType(variable) {
  * Module exports for Node.js compatibility.
  * All functions and constants are exported for use in testing and other modules.
  * 
- * @module TracingUtilities
  * @exports {Object} An object containing all tracing utility functions and regex patterns
  */
 if (typeof module !== 'undefined' && module.exports) {

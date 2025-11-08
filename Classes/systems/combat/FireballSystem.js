@@ -2,8 +2,6 @@
  * @fileoverview Fireball System for Queen Ant
  * Creates and manages fireball projectiles that deal damage to ants
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**

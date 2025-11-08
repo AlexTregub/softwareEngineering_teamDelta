@@ -1,8 +1,5 @@
 /**
  * @fileoverview HealthController - Manages health rendering and display for entities
- * @module HealthController
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 /**
