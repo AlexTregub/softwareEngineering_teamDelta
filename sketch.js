@@ -747,7 +747,14 @@ function keyPressed() {
     }
   }
   
+  // Handle all debug-related keys FIRST (command line, dev console, test hotkeys)
+  // This must come before coordinate debug to allow command line to work
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug console key was handled
+  }
+  
   // Coordinate Debug Overlay toggle (Tilde ~ key)
+  // Only if dev console is not enabled (so backtick can open command line)
   if (key === '`' || key === '~') {
     if (typeof toggleCoordinateDebug === 'function') {
       toggleCoordinateDebug();
@@ -766,10 +773,6 @@ function keyPressed() {
   // Handle terrain grid debug shortcuts (Ctrl+Shift+G/O/L)
   if (typeof handleTerrainGridKeys === 'function' && handleTerrainGridKeys()) {
     return; // Terrain grid shortcut was handled
-  }
-  
-  // Handle all debug-related keys (command line, dev console, test hotkeys)
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
   }
   
   if (keyCode === ESCAPE) {
