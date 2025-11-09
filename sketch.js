@@ -349,16 +349,16 @@ function draw() {
 
   if (GameState.getState() === 'PLAYING') {
     // --- Update gameplay systems ---
-    if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
-    if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
-    if (window.g_resourceBrush) window.g_resourceBrush.update();
-    if (window.g_buildingBrush) window.g_buildingBrush.update();
+    window.g_enemyAntBrush.update();
+    //window.g_lightningAimBrush.update();
+    window.g_resourceBrush.update();
+    window.g_buildingBrush.update();
 
-    if (typeof updateQueenPanelVisibility !== 'undefined') updateQueenPanelVisibility();
-    if (window.g_queenControlPanel) window.g_queenControlPanel.update();
+    updateQueenPanelVisibility();
+    window.g_queenControlPanel.update();
 
-    if (window.eventManager) window.eventManager.update();
-    if (window.g_fireballManager) window.g_fireballManager.update();
+    window.eventManager.update();
+     window.g_fireballManager.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
     if (g_globalTime) g_globalTime.update();
 
