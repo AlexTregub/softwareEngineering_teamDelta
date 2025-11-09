@@ -12,6 +12,7 @@
  *
  * @class ResourceManager
  */
+console.log('Loading ResourceManager.js');
 class ResourceManager {
   /**
    * Creates a new ResourceManager for an entity.
@@ -44,7 +45,9 @@ class ResourceManager {
    *
    * @returns {number} The current resource count
    */
+  
   getCurrentLoad() {
+    console.log('get current load');
     return this.resources.length;
   }
 
@@ -118,7 +121,7 @@ class ResourceManager {
    */
   processDropOff(globalResourceArray) {
     // Allow explicit processing of drop-off even if isDroppingOff isn't true.
-    
+    console.log('Inside processDropOff');
     if (globalResourceArray) {
       const droppedResources = this.dropAllResources();
 
