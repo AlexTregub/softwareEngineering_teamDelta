@@ -129,6 +129,17 @@ function setup() {
 
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
+    if (!key) return;
+    if (key.toUpperCase() === 'X') {
+      if (window.g_speedUpButton && typeof window.g_speedUpButton.changeGameSpeed === 'function') {
+        window.g_speedUpButton.changeGameSpeed();
+      }
+    }
+    if (key === '1'){ 
+      if(window.g_powerBrushManager && typeof window.g_speedUpButton.changeGameSpeed === 'function'){
+        window.g_powerBrushManager.selectBrush("lightning");
+      }
+    }
     // UI shortcuts are now handled directly in keyPressed() function
     // This maintains compatibility with existing game input systems
   });
@@ -344,6 +355,10 @@ function initializeWorld() {
   // Initialize Time of Day Overlay system
   g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
   window.g_timeOfDayOverlay = g_timeOfDayOverlay; // Make globally available
+
+  window.g_speedUpButton = new SpeedUpButton();
+  window.g_powerManager = new PowerManager();
+  //window.g_powerBrushManager = new powerBrushManager();
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -390,6 +405,9 @@ function draw() {
     if (window.g_fireballManager) window.g_fireballManager.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
     if (window.g_flashManager) window.g_flashManager.update();
+    if (window.g_powerManager) window.g_powerManager.update();
+    if (!window.g_powerManager) window.g_powerManager = new PowerManager();
+    if (window.g_powerBrushManager) window.g_powerBrushManager.update();
     if (g_globalTime) g_globalTime.update();
 
     // --- Player Movement ---
@@ -423,6 +441,7 @@ function draw() {
     RenderManager.render(GameState.getState());
   } else {
     RenderManager.render(GameState.getState());
+    if (window.g_powerManager) window.g_powerManager.render(); //USE THIS FOR POWERS
   }
 
   const playerQueen = getQueen?.();
