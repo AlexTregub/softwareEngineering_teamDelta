@@ -65,11 +65,11 @@ class AnimationManager {
             // move to next frame or reset
             anim.currentFrame += 1;
             if (anim.currentFrame >= anim.totalFrames) {
-            anim.currentFrame = 0;
-            if (anim.default) {
-                antObj.setImage(anim.default);
-                antObj.setSize(size.x, size.y);
-            }
+                anim.currentFrame = 0;
+                if (anim.default) {
+                    antObj.setImage(anim.default);
+                    antObj.setSize(size.x, size.y);
+                }
             }
 
         }
