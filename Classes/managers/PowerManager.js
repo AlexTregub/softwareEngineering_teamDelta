@@ -20,10 +20,10 @@ class Lightning extends Power{
     constructor(damage, x, y, name){
         super(damage, x, y, "strike", name);
         this.radius = 1 * 3; //One could be swapped with Math.random()
-        this.cooldown = 3000; // 3 second cooldown
-        this.duration = 100;   // Visual effect duration
-        this.lastStrike = 0;   // Track last strike time
-        this.isActive = false; // Track if power is currently active
+        this.cooldown = 1000; // 1 second cooldown
+        this.duration = 100;
+        this.lastStrike = 0;
+        this.isActive = false;
     }
     
     activate(){
@@ -31,8 +31,7 @@ class Lightning extends Power{
         const now = millis();
         // Check if enough time has passed since last strike
         if (now - this.lastStrike < this.cooldown) {
-            const timeLeft = ((this.cooldown - (now - this.lastStrike)) / 1000).toFixed(1);
-            console.log(`Lightning on cooldown: ${timeLeft}s remaining`);
+            const timeLeft = ((this.cooldown - (now - this.lastStrike)) / 1000);
             return false;
         }
         
@@ -92,18 +91,17 @@ class Lightning extends Power{
         line(startX, startY, midX, midY);
         line(midX, midY, screenX, screenY);
         pop();
+        console.log("Rendering lightning power");
     }
     update(){
         const now = millis();
         
-        // Check if power effect has finished
-        if (this.isActive && now - this.created >= this.duration) {
+        if (this.isActive && now - this.created >= this.duration){
             this.isActive = false;
         }
         
-        // Update visual effects if active
-        if (this.isActive) {
-            // Any additional effects can be added here
+        if (this.isActive){
+            //Update visual effects (Not added yet)
         }
     }
 }
@@ -111,9 +109,16 @@ class Lightning extends Power{
 class FinalFlash extends Power{
     constructor(damage, x, y, name){
         super(damage, x, y, "beam", name);
+        this.width = 0.01; //Width of the beam
+        this.cooldown = 1000; // 3 second cooldown
+        this.power = 1;
+        this.duration = 100;
+        this.lastStrike = 0;
+        this.isActive = false;
+        this.isMousePressedFlag = false;
     }
     activate(){
-        this.x_;
+
     }
 }
 
@@ -136,19 +141,38 @@ class PowerManager{
     addPower(name, damage, x, y){
         this.canUse = true;
         if(queenAnt.isPowerUnlocked(name)){
-            for(const power of this.runningPowers){
-                if(power.name_ === name) this.canUse = false; //Only one of each power can run at once
+            const now = millis();
+            // Don't add if another instance of the same power is active or still in cooldown
+            for (const power of this.runningPowers) {
+                if (power.name_ === name) {
+                    const inDuration = power.isActive;
+                    const inCooldown = (now - (power.lastStrike || 0)) < (power.cooldown || 0);
+                    if (inDuration || inCooldown) {
+                        this.canUse = false;
+                        // Early exit: another power of this type is active or cooling down
+                        return;
+                    }
+                }
             }
+
+            // Create and attempt to activate the power. Only keep it if activation succeeds.
+            let newPower = null;
             switch(name){
                 case "lightning":
-                    this.runningPowers.push(new Lightning(damage, x, y, name));
+                    newPower = new Lightning(damage, x, y, name);
                     break;
                 case "finalFlash":
-                    this.runningPowers.push(new FinalFlash(damage, x, y, name));
+                    newPower = new FinalFlash(damage, x, y, name);
                     break;
                 case "fireball":
-                    this.runningPowers.push(new Fireball(damage, x, y, name));
+                    newPower = new Fireball(damage, x, y, name);
                     break;
+            }
+            if (newPower) {
+                const activated = typeof newPower.activate === 'function' ? newPower.activate() : true;
+                if (activated){
+                    this.runningPowers.push(newPower);
+                }
             }
         }
     }

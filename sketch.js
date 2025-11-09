@@ -135,9 +135,9 @@ function setup() {
         window.g_speedUpButton.changeGameSpeed();
       }
     }
-    if (key === '1'){ 
-      if(window.g_powerBrushManager && typeof window.g_speedUpButton.changeGameSpeed === 'function'){
-        window.g_powerBrushManager.selectBrush("lightning");
+    if (key === '1' || key === '2' || key === '3') { 
+      if(window.g_powerBrushManager && typeof window.g_powerBrushManager.switchPower === 'function'){
+        window.g_powerBrushManager.switchPower(key);
       }
     }
     // UI shortcuts are now handled directly in keyPressed() function
@@ -358,7 +358,7 @@ function initializeWorld() {
 
   window.g_speedUpButton = new SpeedUpButton();
   window.g_powerManager = new PowerManager();
-  //window.g_powerBrushManager = new powerBrushManager();
+  window.g_powerBrushManager = new PowerBrushManager();
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -442,6 +442,7 @@ function draw() {
   } else {
     RenderManager.render(GameState.getState());
     if (window.g_powerManager) window.g_powerManager.render(); //USE THIS FOR POWERS
+    if (window.g_powerBrushManager) window.g_powerBrushManager.render(); //USE THIS FOR POWERS
   }
 
   const playerQueen = getQueen?.();
@@ -496,6 +497,14 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() { 
+  if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
+    console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);
+    try {
+      window.g_powerBrushManager.usePower(mouseX, mouseY);
+    } catch (error) {
+      console.error('❌ Error using power brush:', error);
+    }
+  }
   // Level Editor - handle clicks first if active
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -624,7 +633,6 @@ function mousePressed() {
       console.error('❌ Error handling queen control panel events:', error);
     }
   }
-
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
