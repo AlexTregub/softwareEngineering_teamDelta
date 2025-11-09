@@ -37,10 +37,10 @@ class BUIManager {
         console.log("Rendering BUI, active:", this.active);
 
         push();
-        const boxW = 400;
-        const boxH = 300;
-        const boxX = width - boxW / 2 - 50;
-        const boxY = height - boxH / 2 - 50;
+        const boxW = 700;
+        const boxH = 500;
+        const boxX = width - boxW / 2 + 150;
+        const boxY = height - boxH / 2 ;
         const padding = 20;
 
         // Background
@@ -60,12 +60,14 @@ class BUIManager {
         fill(255);
         stroke(0);
         strokeWeight(3);
-        text("Anthill Shop", boxX, boxY - 140);
+        text("SHOP", boxX, boxY - 130);
 
         // Body placeholder
         textSize(20);
+        textAlign(RIGHT, RIGHT);
         noStroke();
-        text("Placeholder content here", boxX, boxY + 20);
+        text("[1] Upgrade Hive ~ 10", boxX + 65, boxY -75);
+        text("[2] Breed Ant ~ 5", boxX + 43, boxY - 20);
 
         pop();
     }
