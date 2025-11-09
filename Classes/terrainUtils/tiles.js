@@ -62,18 +62,38 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
     // Un-spawned materials, Needed for fallback rendering.
     // 'farmland' : [[0,0] , (x,y,squareSize) => image(FARMLAND_IMAGE, x, y, squareSize,squareSize)], 
 
-    //// FINAL MATERIALS (one of each) 
-    'grass' : [[0,0] , (x,y,squareSize) => {image(GRASS_IMAGE, x, y, squareSize,squareSize)}],
-    'dirt' : [[0.566,0.6], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)],
-    'stone' : [[0.6,1], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], 
-    'water' : [[0.22,0.3], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
-    'moss' : [[0,0], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
-    'farmland' : [[0,0] , (x,y,squareSize) => image(FARMLAND_IMAGE, x, y, squareSize,squareSize)], 
+    //// FINAL MATERIALS (one of each)
+    // Grass detailing (Grass assumed from 0.34-0.52)
+    'dirt_1' : [[0.418,0.421], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)], // 0.566, 0.6 good bounds
+    'moss_1' : [[0.428,0.434], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],   
+    'stone_2' : [[0.5,0.501], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], 
+
+    //// Water-based patches 0 - 0.34
+    'stone_3' : [[0.3,0.303], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], 
+
     'water_cave' : [[0,0.22], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
+    'water' : [[0.22,0.3], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
+    'sand_dark' : [[0.3,0.32], (x,y,squareSize) => image(SAND_DARK_IMAGE,x,y,squareSize,squareSize)],
+    'sand' : [[0.32,0.34], (x,y,squareSize) => image(SAND_IMAGE,x,y,squareSize,squareSize)],
+
+    
+    //// Stone patches 0.52 - 1
+    'moss_2' : [[0.6,0.6035], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    'moss_3' : [[0.71,0.7133], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    'moss_4' : [[0.76,0.764], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+
+    'dirt' : [[0.52,0.57], (x,y,squareSize) => image(DIRT_IMAGE, x, y, squareSize, squareSize)], // 0.566, 0.6 good bounds
+    'stone' : [[0.57,0.63], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], 
+    'moss' : [[0.63,0.693], (x,y,squareSize) => image(MOSS_IMAGE, x,y,squareSize,squareSize)],
+    'stone_1' : [[0.693,1], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)],  
+    
+    // Default
+    'grass' : [[0,1] , (x,y,squareSize) => {image(GRASS_IMAGE, x, y, squareSize,squareSize)}], // Default assumed
+
+    // Other materials, not spawned
+    'farmland' : [[0,0] , (x,y,squareSize) => image(FARMLAND_IMAGE, x, y, squareSize,squareSize)],     
     'cave_dirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
     'cave_dark' : [[0,0], (x,y,squareSize) => image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
-    'sand' : [[0.32,0.34], (x,y,squareSize) => image(SAND_IMAGE,x,y,squareSize,squareSize)],
-    'sand_dark' : [[0.3,0.32], (x,y,squareSize) => image(SAND_DARK_IMAGE,x,y,squareSize,squareSize)],
 };
 
 /**
