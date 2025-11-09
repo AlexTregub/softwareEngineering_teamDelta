@@ -89,6 +89,13 @@ describe('AntView', function() {
     window.CENTER = global.CENTER;
     window.CORNER = global.CORNER;
     
+    // Mock AntSprites for all tests (required by AntView constructor)
+    const defaultMockSprite = { width: 32, height: 32, name: 'default' };
+    global.AntSprites = {
+      getSprite: sinon.stub().returns(defaultMockSprite)
+    };
+    window.AntSprites = global.AntSprites;
+    
     // Create model and view
     antModel = new AntModel(100, 100, 32, 32);
     antView = new AntView(antModel);
@@ -96,6 +103,8 @@ describe('AntView', function() {
   
   afterEach(function() {
     sinon.restore();
+    delete global.AntSprites;
+    delete window.AntSprites;
   });
   
   describe('Constructor', function() {
@@ -109,6 +118,133 @@ describe('AntView', function() {
     
     it('should initialize with default sprite', function() {
       expect(antView.sprite).to.exist;
+    });
+  });
+  
+  describe('Sprite Loading', function() {
+    let mockAntSprites;
+    let mockScoutSprite, mockFarmerSprite, mockQueenSprite;
+    
+    beforeEach(function() {
+      // Create mock sprite images
+      mockScoutSprite = { width: 32, height: 32, name: 'scout' };
+      mockFarmerSprite = { width: 32, height: 32, name: 'farmer' };
+      mockQueenSprite = { width: 60, height: 60, name: 'queen' };
+      
+      // Mock AntSprites system
+      mockAntSprites = {
+        player: {
+          Scout: mockScoutSprite,
+          Farmer: mockFarmerSprite,
+          Queen: mockQueenSprite
+        },
+        enemy: {
+          Scout: mockScoutSprite
+        },
+        getSprite: sinon.stub().callsFake((job, faction) => {
+          const factionSprites = mockAntSprites[faction] || mockAntSprites.player;
+          return factionSprites[job];
+        })
+      };
+      
+      global.AntSprites = mockAntSprites;
+      window.AntSprites = mockAntSprites;
+    });
+    
+    afterEach(function() {
+      delete global.AntSprites;
+      delete window.AntSprites;
+    });
+    
+    it('should load sprite on construction', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      expect(view.sprite).to.exist;
+      expect(view.sprite.img).to.equal(mockScoutSprite);
+    });
+    
+    it('should load correct sprite for job type', function() {
+      const farmerModel = new AntModel(100, 100, 32, 32, { jobName: 'Farmer', faction: 'player' });
+      const farmerView = new AntView(farmerModel);
+      
+      expect(farmerView.sprite.img).to.equal(mockFarmerSprite);
+    });
+    
+    it('should load correct sprite for faction', function() {
+      const enemyModel = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'enemy' });
+      const enemyView = new AntView(enemyModel);
+      
+      expect(mockAntSprites.getSprite.calledWith('Scout', 'enemy')).to.be.true;
+    });
+    
+    it('should call AntSprites.getSprite with job and faction', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Queen', faction: 'player' });
+      const view = new AntView(model);
+      
+      expect(mockAntSprites.getSprite.calledOnce).to.be.true;
+      expect(mockAntSprites.getSprite.firstCall.args[0]).to.equal('Queen');
+      expect(mockAntSprites.getSprite.firstCall.args[1]).to.equal('player');
+    });
+    
+    it('should wrap sprite image in object with img property', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      expect(view.sprite).to.be.an('object');
+      expect(view.sprite).to.have.property('img');
+      expect(view.sprite).to.have.property('width', 32);
+      expect(view.sprite).to.have.property('height', 32);
+    });
+    
+    it('should track last job name and faction', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      expect(view._lastJobName).to.equal('Scout');
+      expect(view._lastFaction).to.equal('player');
+    });
+    
+    it('should update sprite when job changes', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      // Change job
+      model.setJobName('Farmer');
+      
+      // Update sprite
+      view.updateSprite();
+      
+      expect(view.sprite.img).to.equal(mockFarmerSprite);
+      expect(view._lastJobName).to.equal('Farmer');
+    });
+    
+    it('should update sprite when faction changes', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      const initialSprite = view.sprite;
+      
+      // Change faction
+      model._faction = 'enemy';
+      
+      // Update sprite
+      view.updateSprite();
+      
+      expect(mockAntSprites.getSprite.calledWith('Scout', 'enemy')).to.be.true;
+      expect(view._lastFaction).to.equal('enemy');
+    });
+    
+    it('should not reload sprite if job and faction unchanged', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      const initialCallCount = mockAntSprites.getSprite.callCount;
+      
+      // Call updateSprite without changes
+      view.updateSprite();
+      
+      expect(mockAntSprites.getSprite.callCount).to.equal(initialCallCount);
     });
   });
   
@@ -473,6 +609,110 @@ describe('AntView', function() {
     
     it('should override render method with ant-specific logic', function() {
       expect(antView.render).to.not.equal(EntityView.prototype.render);
+    });
+  });
+  
+  describe('Render Method with Sprites', function() {
+    let mockAntSprites;
+    let mockScoutSprite;
+    
+    beforeEach(function() {
+      // Create mock sprite image
+      mockScoutSprite = { width: 32, height: 32, name: 'scout' };
+      
+      // Mock AntSprites system
+      mockAntSprites = {
+        getSprite: sinon.stub().returns(mockScoutSprite)
+      };
+      
+      global.AntSprites = mockAntSprites;
+      window.AntSprites = mockAntSprites;
+      
+      // Mock noTint for opacity tests
+      global.noTint = sinon.stub();
+      global.tint = sinon.stub();
+      window.noTint = global.noTint;
+      window.tint = global.tint;
+    });
+    
+    afterEach(function() {
+      delete global.AntSprites;
+      delete window.AntSprites;
+      delete global.noTint;
+      delete global.tint;
+      delete window.noTint;
+      delete window.tint;
+    });
+    
+    it('should call updateSprite during render', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      const updateSpriteSpy = sinon.spy(view, 'updateSprite');
+      
+      view.render();
+      
+      expect(updateSpriteSpy.calledOnce).to.be.true;
+    });
+    
+    it('should pass sprite to parent EntityView render', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      view.render();
+      
+      // Verify EntityView render was called (via push/pop and image)
+      expect(mockP5.push.called).to.be.true;
+      expect(mockP5.pop.called).to.be.true;
+    });
+    
+    it('should have sprite.img property set after construction', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      expect(view.sprite).to.exist;
+      expect(view.sprite.img).to.equal(mockScoutSprite);
+    });
+    
+    it('should render sprite image via parent EntityView', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      view.render();
+      
+      // EntityView should call image() with sprite.img
+      expect(mockP5.image.called).to.be.true;
+      expect(mockP5.image.firstCall.args[0]).to.equal(mockScoutSprite);
+    });
+    
+    it('should update sprite when job changes before render', function() {
+      const mockFarmerSprite = { width: 32, height: 32, name: 'farmer' };
+      mockAntSprites.getSprite.onSecondCall().returns(mockFarmerSprite);
+      
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      // Change job
+      model.setJobName('Farmer');
+      
+      // Render should update sprite
+      view.render();
+      
+      expect(view.sprite.img).to.equal(mockFarmerSprite);
+    });
+    
+    it('should not render if model is inactive', function() {
+      const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
+      const view = new AntView(model);
+      
+      // Deactivate model
+      model._isActive = false;
+      
+      view.render();
+      
+      // Should not call rendering functions
+      expect(mockP5.push.called).to.be.false;
+      expect(mockP5.image.called).to.be.false;
     });
   });
 });

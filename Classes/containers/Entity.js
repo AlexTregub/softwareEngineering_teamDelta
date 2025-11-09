@@ -91,7 +91,10 @@ class Entity {
         this._debugger = new UniversalDebugger(this, debugConfig);
         
         // Register this entity with the global debug manager if available
-        window.EntityDebugManager.registerEntity(this);
+        if (typeof window !== 'undefined' && window.EntityDebugManager && 
+            typeof window.EntityDebugManager.registerEntity === 'function') {
+          window.EntityDebugManager.registerEntity(this);
+        }
 
       } catch (error) {
         console.warn('Failed to initialize entity debugger:', error);

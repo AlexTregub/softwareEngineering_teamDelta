@@ -4,6 +4,8 @@
 
 **BE CONCISE**: Short, focused responses. No unnecessary explanations.
 
+**NO FALLBACKS**: Never add fallback code, safety checks, or "if undefined" guards. If something doesn't exist, it's a bug - let it fail loudly so we can fix it properly.
+
 **REUSE FIRST**: Before creating anything new:
 1. **Scan codebase** - Search for existing classes/functions that do what you need
 2. **Use existing tests** - Add to existing test files instead of creating new ones

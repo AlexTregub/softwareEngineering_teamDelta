@@ -169,10 +169,20 @@ class EntityRenderer {
     if (typeof spatialGridManager === 'undefined' || !spatialGridManager) return;
     
     const allAnts = spatialGridManager.getEntitiesByType('Ant');
+    console.log('📦 EntityLayerRenderer.collectAnts(): Found', allAnts.length, 'ants in spatial grid');
+    console.log('📦 EntityLayerRenderer.collectAnts(): Ant objects:', allAnts);
     
     for (const antMVC of allAnts) {
+      console.log('🔍 EntityLayerRenderer.collectAnts(): Inspecting ant:', antMVC);
+      console.log('🔍 EntityLayerRenderer.collectAnts(): Has model?', antMVC && antMVC.model);
+      console.log('🔍 EntityLayerRenderer.collectAnts(): Has view?', antMVC && antMVC.view);
+      console.log('🔍 EntityLayerRenderer.collectAnts(): Has controller?', antMVC && antMVC.controller);
+      
       if (antMVC && antMVC.model) {
         this.stats.totalEntities++;
+        
+        const jobName = antMVC.model.getJobName ? antMVC.model.getJobName() : 'Unknown';
+        console.log('🐜 EntityLayerRenderer.collectAnts(): Processing ant:', jobName);
         
         // Use the model for rendering data
         if (this.shouldRenderEntity(antMVC.model)) {
@@ -185,10 +195,14 @@ class EntityRenderer {
             depth: this.getEntityDepth(antMVC.model),
             position: this.getEntityPosition(antMVC.model)
           };
+          console.log('✅ EntityLayerRenderer.collectAnts(): Added', jobName, 'to ANTS render group');
           this.renderGroups.ANTS.push(entityData);
         } else {
+          console.log('🚫 EntityLayerRenderer.collectAnts(): Culled', jobName, '(not in view)');
           this.stats.culledEntities++;
         }
+      } else {
+        console.warn('⚠️ EntityLayerRenderer.collectAnts(): Invalid ant MVC object:', antMVC);
       }
     }
     
@@ -348,16 +362,23 @@ class EntityRenderer {
    * Standard rendering for entity groups (MVC-aware)
    */
   renderEntityGroupStandard(entityGroup) {
+    console.log('🎨 EntityLayerRenderer.renderEntityGroupStandard(): Rendering', entityGroup.length, 'entities');
+    
     for (const entityData of entityGroup) {
       try {
         // Handle MVC objects (ants) - render via view
         if (entityData.view && typeof entityData.view.render === 'function') {
+          const jobName = entityData.model && entityData.model.getJobName ? entityData.model.getJobName() : 'Unknown';
+          console.log('🎨 EntityLayerRenderer: Calling view.render() for', jobName);
+          
           if (g_performanceMonitor) {
             g_performanceMonitor.startEntityRender(entityData.entity);
           }
           
           entityData.view.render();
           this.stats.renderedEntities++;
+          
+          console.log('✅ EntityLayerRenderer: Finished rendering', jobName);
           
           if (g_performanceMonitor) {
             g_performanceMonitor.endEntityRender();

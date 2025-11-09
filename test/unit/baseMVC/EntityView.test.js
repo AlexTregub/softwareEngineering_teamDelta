@@ -292,12 +292,11 @@ describe('EntityView', function() {
       expect(mockP5.tint.calledWith(255, 127.5)).to.be.true; // 255 * 0.5
     });
 
-    it('should render fallback rect if no sprite', function() {
-      view.sprite = null;
+    it('should require sprite.img to render', function() {
+      view.setSprite(mockSprite);
       view.render();
 
-      expect(mockP5.fill.called).to.be.true;
-      expect(mockP5.rect.called).to.be.true;
+      expect(mockP5.image.calledWith(mockSprite.img)).to.be.true;
     });
 
     it('should not render if inactive', function() {
@@ -308,20 +307,18 @@ describe('EntityView', function() {
     });
 
     it('should use world coordinates for rendering', function() {
-      view.sprite = null;
+      view.setSprite(mockSprite);
       view.render();
 
-      // Should use model position/size (centered due to translate)
-      const rectCall = mockP5.rect.firstCall;
-      expect(rectCall.args[0]).to.equal(-16); // -size.x/2 (center-based)
-      expect(rectCall.args[1]).to.equal(-16); // -size.y/2 (center-based)
-      expect(rectCall.args[2]).to.equal(32);  // width
-      expect(rectCall.args[3]).to.equal(32);  // height
+      // Should translate to center of entity
+      const translateCall = mockP5.translate.firstCall;
+      expect(translateCall.args[0]).to.equal(116); // pos.x + size.x/2 (100 + 16)
+      expect(translateCall.args[1]).to.equal(216); // pos.y + size.y/2 (200 + 16)
     });
 
     it('should apply rotation when rendering', function() {
       model.setRotation(45);
-      view.sprite = null;
+      view.setSprite(mockSprite);
       view.render();
 
       expect(mockP5.translate.called).to.be.true;
@@ -329,25 +326,13 @@ describe('EntityView', function() {
     });
   });
 
-    it('should not render if p5.js unavailable', function() {
-      const oldPush = global.push;
-      global.push = undefined;
-
-      view.render();
-
-      // Should not call any p5 functions
-      expect(mockP5.fill.called).to.be.false;
-
-      global.push = oldPush;
-    });
-  });
-
   describe('Render Layers', function() {
     it('should render entity layer', function() {
+      view.setSprite(mockSprite);
       view.renderEntityLayer();
 
       // Should call main render
-      expect(mockP5.push.called || mockP5.fill.called).to.be.true;
+      expect(mockP5.push.called).to.be.true;
     });
 
     it('should render highlight layer', function() {
@@ -358,29 +343,29 @@ describe('EntityView', function() {
     });
 
     it('should separate entity and highlight rendering', function() {
-      // Entity render should NOT include highlights
-      view.sprite = null;
+      // Entity render should include sprite
+      view.setSprite(mockSprite);
       view.renderEntityLayer();
 
-      const entityRectCalls = mockP5.rect.callCount;
+      const entityImageCalls = mockP5.image.callCount;
 
       // Highlight render should ONLY render highlights
-      mockP5.rect.resetHistory();
+      mockP5.image.resetHistory();
       model.setSelected(true);
       view.renderHighlightLayer();
 
-      const highlightRectCalls = mockP5.rect.callCount;
+      const highlightImageCalls = mockP5.image.callCount;
 
-      // Should be separate calls
-      expect(entityRectCalls).to.be.greaterThan(0);
-      expect(highlightRectCalls).to.be.greaterThan(0);
+      // Entity should render sprite, highlight should not
+      expect(entityImageCalls).to.be.greaterThan(0);
+      expect(highlightImageCalls).to.equal(0);
     });
   });
 
   describe('Model Integration', function() {
     it('should read position from model', function() {
       model.setPosition(300, 400);
-      view.sprite = null;
+      view.setSprite(mockSprite);
       view.render();
 
       // Check translate call (uses center of entity)
@@ -391,17 +376,17 @@ describe('EntityView', function() {
 
     it('should read size from model', function() {
       model.setSize(64, 64);
-      view.sprite = null;
+      view.setSprite(mockSprite);
       view.render();
 
-      const rectCall = mockP5.rect.firstCall;
-      expect(rectCall.args[2]).to.equal(64);
-      expect(rectCall.args[3]).to.equal(64);
+      const translateCall = mockP5.translate.firstCall;
+      expect(translateCall.args[0]).to.equal(132); // 100 + 64/2
+      expect(translateCall.args[1]).to.equal(232); // 200 + 64/2
     });
 
     it('should react to model changes', function() {
       model.setPosition(100, 100);
-      view.sprite = null;
+      view.setSprite(mockSprite);
       view.render();
 
       let translateCall = mockP5.translate.firstCall;

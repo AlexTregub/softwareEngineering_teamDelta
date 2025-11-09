@@ -49,7 +49,7 @@ function preload(){
   QuestUIPreloader()
   loadPresentationAssets();
   menuPreload();
-  // antsPreloader(); // REMOVED: Old ant class preloader (MVC ants don't need separate preloader)
+  antsPreloader(); // MVC ant sprites
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
@@ -320,7 +320,7 @@ function spawnQueen() {
     size: 60
   });
   
-  logNormal('👑 Queen spawned at', queenX, queenY);
+  console.log('Queen spawned at', queenX, queenY);
   
   return queenMVC;
 }

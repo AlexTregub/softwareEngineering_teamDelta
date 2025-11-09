@@ -99,18 +99,26 @@ class CombatController {
   // --- Private Methods ---
 
   /**
-   * Detect nearby enemies within detection radius
+   * Detect nearby enemies within detection radius (uses spatialGridManager)
    */
   detectEnemies() {
     this._nearbyEnemies = [];
     
     const entityFaction = this._entity.faction || "neutral";
     
+    // Get all ants from spatial grid
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) return;
+    
+    const allAnts = spatialGridManager.getEntitiesByType('Ant');
+    
     // Check all other ants for enemies
-    for (let i = 0; i < ants.length; i++) {
-      if (!ants[i] || ants[i] === this._entity) continue;
+    for (const antMVC of allAnts) {
+      if (!antMVC || !antMVC.model) continue;
       
-      const otherAnt = ants[i];
+      // Skip self (compare models)
+      if (antMVC.model === this._entity) continue;
+      
+      const otherAnt = antMVC.model;
       
       // Skip if same faction or either is neutral
       if (otherAnt.faction === entityFaction || 
@@ -123,7 +131,7 @@ class CombatController {
       const distance = this.calculateDistance(this._entity, otherAnt);
       
       if (distance <= this._detectionRadius) {
-        this._nearbyEnemies.push(otherAnt);
+        this._nearbyEnemies.push(antMVC);  // Store full MVC object
       }
     }
   }

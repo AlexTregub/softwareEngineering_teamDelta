@@ -678,8 +678,10 @@ class RenderLayerManager {
     }
 
     // Render dev console indicator if enabled
-    if (isDevConsoleEnabled()) {
-      drawDevConsoleIndicator();
+    if (typeof isDevConsoleEnabled !== 'undefined' && isDevConsoleEnabled()) {
+      if (typeof drawDevConsoleIndicator !== 'undefined') {
+        drawDevConsoleIndicator();
+      }
     }
     
     // Render UIRenderer debug elements as fallback

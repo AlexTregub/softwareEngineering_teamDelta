@@ -38,7 +38,6 @@ class EntityView {
       return this.camera.worldToScreen(worldX, worldY);
     }
     
-    // Fallback: no conversion
     return { x: worldX, y: worldY };
   }
 
@@ -53,7 +52,6 @@ class EntityView {
       return this.camera.screenToWorld(screenX, screenY);
     }
     
-    // Fallback: no conversion
     return { x: screenX, y: screenY };
   }
 
@@ -105,12 +103,6 @@ class EntityView {
     });
   }
 
-  // --- p5.js Availability ---
-
-  /**
-   * Check if p5.js is available
-   * @returns {boolean} True if p5.js is available
-   */
   // --- Highlight Rendering ---
 
   /**
@@ -151,7 +143,13 @@ class EntityView {
    * Render entity
    */
   render() {
-    if (!this.model.isActive()) return;
+    if (!this.model.isActive()) {
+      console.log('🚫 EntityView.render(): Model not active for', this.model.type);
+      return;
+    }
+    
+    console.log('🎬 EntityView.render(): Rendering', this.model.type, 'at', this.model.getPosition());
+    console.log('🎬 EntityView.render(): Sprite:', this.sprite);
 
     push();
 
@@ -159,6 +157,8 @@ class EntityView {
     const size = this.model.getSize();
     const rotation = this.model.getRotation();
     const opacity = this.model.getOpacity();
+    
+    console.log('🎬 EntityView.render(): Position:', pos, 'Size:', size, 'Rotation:', rotation, 'Opacity:', opacity);
 
     // Apply opacity
     if (opacity < 1.0) {
@@ -172,15 +172,11 @@ class EntityView {
       rotate((rotation * Math.PI) / 180); // Convert to radians
     }
 
-    // Render sprite or fallback
-    if (this.sprite && this.sprite.img) {
-      imageMode(CENTER);
-      image(this.sprite.img, 0, 0);
-    } else {
-      // Fallback: colored rect
-      fill(200, 200, 200);
-      rect(-size.x / 2, -size.y / 2, size.x, size.y);
-    }
+    // Render sprite
+    imageMode(CENTER);
+    console.log('🎬 EntityView.render(): About to call image() with sprite.img:', this.sprite.img);
+    image(this.sprite.img, 0, 0);
+    console.log('✅ EntityView.render(): image() call completed');
 
     if (opacity < 1.0) {
       noTint();

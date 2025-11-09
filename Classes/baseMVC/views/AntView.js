@@ -18,24 +18,49 @@ if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.ex
 // Sprite cache for performance
 const spriteCache = {};
 
-// Default sprite placeholder
+// Default sprite placeholder for Node.js testing
 let defaultAntSprite = null;
 
 class AntView extends EntityView {
   constructor(model) {
     super(model);
-    this.sprite = this._loadDefaultSprite();
+    const jobName = model.getJobName();
+    const faction = model.getFaction();
+    console.log(`🎨 AntView constructor: Loading sprite for ${faction} ${jobName}`);
+    this.sprite = this._loadSpriteForJob(jobName, faction);
+    console.log(`🎨 AntView constructor: Sprite loaded:`, this.sprite);
+    this._lastJobName = jobName;
+    this._lastFaction = faction;
   }
   
   /**
-   * Load default ant sprite
+   * Load sprite based on job and faction
    * @private
    */
-  _loadDefaultSprite() {
-    if (!defaultAntSprite) {
-      defaultAntSprite = { width: 32, height: 32 }; // Placeholder in Node.js
+  _loadSpriteForJob(jobName, faction) {
+    console.log(`🔍 AntView._loadSpriteForJob: Requesting ${jobName} sprite for ${faction} faction`);
+    const spriteImage = AntSprites.getSprite(jobName, faction);
+    console.log(`🔍 AntView._loadSpriteForJob: Received sprite image:`, spriteImage);
+    // Return object with img property for EntityView compatibility
+    const spriteObject = { img: spriteImage, width: 32, height: 32 };
+    console.log(`🔍 AntView._loadSpriteForJob: Created sprite object:`, spriteObject);
+    return spriteObject;
+  }
+  
+  /**
+   * Update sprite if job or faction changed
+   */
+  updateSprite() {
+    const currentJob = this.model.getJobName();
+    const currentFaction = this.model.getFaction();
+    
+    // Only reload sprite if job or faction changed
+    if (currentJob !== this._lastJobName || currentFaction !== this._lastFaction) {
+      console.log(`🔄 AntView.updateSprite: Job/faction changed from ${this._lastFaction} ${this._lastJobName} to ${currentFaction} ${currentJob}`);
+      this.sprite = this._loadSpriteForJob(currentJob, currentFaction);
+      this._lastJobName = currentJob;
+      this._lastFaction = currentFaction;
     }
-    return defaultAntSprite;
   }
   
   /**
@@ -45,6 +70,9 @@ class AntView extends EntityView {
     if (!this.model.isActive()) {
       return;
     }
+    
+    // Update sprite if job/faction changed
+    this.updateSprite();
     
     // Isolate rendering context
     if (typeof push === 'function') push();

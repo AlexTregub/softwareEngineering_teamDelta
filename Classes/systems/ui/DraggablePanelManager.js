@@ -1779,14 +1779,6 @@ class DraggablePanelManager {
     
     console.warn('⚠️ Could not deselect ants - no compatible selection system found');
   }
-    
-  // Try each method until one succeeds
-    for (const method of deselectionMethods) {
-      if (method()) return;
-    }
-    
-    console.warn('⚠️ Could not deselect ants - no compatible selection system found');
-  }
 
   /**
    * Damage selected ants by specified amount
