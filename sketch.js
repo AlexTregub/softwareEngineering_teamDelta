@@ -184,6 +184,10 @@ function setup() {
   initializeContextMenuPrevention();
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
   window.QuestManager.preloadAssets();
+
+  // --- initialize shop manager ---
+  window.BUIManager = new BUIManager();
+  window.BUIManager.preload();
 }
 
 function addListeners() {
@@ -335,6 +339,9 @@ function draw() {
     if (window.DIAManager && typeof DIAManager.update === 'function') {
       DIAManager.update();
     }
+
+    // --- Update + Render Shop UI ---
+    
   }
 
   if (GameState.getState() === 'LEVEL_EDITOR') {
@@ -374,6 +381,11 @@ function draw() {
   if (window.DIAManager) {
     window.DIAManager.update();
     window.DIAManager.render();
+  }
+
+  if (window.BUIManager) {
+    window.BUIManager.update();
+    window.BUIManager.render();
   }
 
   // --- Debug stuff ---
@@ -738,6 +750,7 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  
   // Level Editor keyboard shortcuts (if active)
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -923,10 +936,16 @@ function keyPressed() {
     // interact with nearby anthill
     const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
     if (nearbyHill) {
-    console.log("AntHill!");
-    return;
+      console.log("Interacting with nearby anthill:", nearbyHill);
+      if (!window.BUIManager.active) {
+        window.BUIManager.open(nearbyHill);
+      } else {
+        window.BUIManager.close();
+      }
+      return;
+    }
   }
-  }
+  
 }
 
 /**
