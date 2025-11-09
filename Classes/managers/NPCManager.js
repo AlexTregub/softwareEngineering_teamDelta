@@ -257,10 +257,13 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
-function getResourceCount() {
-  if (!window._resourceTotals) return 0;
-  // Sum everything in the global totals object
-  
-
-  return Object.values(window._resourceTotals).reduce((sum, val) => sum + val, 0);
+function getResourceCount(type) {
+  //Funtionality is to return specific resource count if given
+  //If type is not given it returns all resource count
+  window.resourceManager = window.resourceManager || window.ResourceManager;
+  if (!window.resourceManager) {
+    console.warn("ResourceManager not found.");
+    return 0;
+  }
+  return window.resourceManager.getTotalResourceCount(type);
 }
