@@ -260,5 +260,7 @@ if (typeof module !== 'undefined' && module.exports) {
 function getResourceCount() {
   if (!window._resourceTotals) return 0;
   // Sum everything in the global totals object
+  
+
   return Object.values(window._resourceTotals).reduce((sum, val) => sum + val, 0);
 }
