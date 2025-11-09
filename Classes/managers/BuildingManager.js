@@ -135,14 +135,19 @@ class FarmFactory extends AbstractBuildingFactory {
       canUpgrade: false,
       upgradeCost: 0,
       isFarm: true,
-      progressions: {}
+      progressions: {
+        1: {
+          image: null,
+          canUpgrade: false,
+          upgradeCost: null,
+          progressions: {}
+        }
+      }
     };
   }
 
   createBuilding(x, y, faction) {
-    const building = new Building(x, y, 64, 64, Farm, faction, this.info);
-    building.isFarm = true;
-    return building;
+    return new Building(x, y, 60, 60, Farm, faction, this.info);
   }
 }
 
