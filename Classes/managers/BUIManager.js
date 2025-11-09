@@ -2,7 +2,7 @@ class BUIManager {
     constructor() {
         this.active = false;
         this.bgImage = null;
-        this.hill = null; // reference to the anthill being interacted with
+        this.hill = null; // anthill reference
     }
 
     preload() {
@@ -30,6 +30,48 @@ class BUIManager {
         if (range > this.hill.promptRange + 20) {
             this.close();
         }
+    }
+
+    // handle key input specifically while shop is open
+    handleKeyPress(key) {
+        if (!this.active || !this.hill) return false;
+
+        // 1 = upgrade hive
+        if (key === '1') {
+            const upgraded = this.hill.upgradeBuilding?.();
+            if (upgraded) {
+                console.log("Hive upgraded! +5 max ants");
+                if (typeof window.maxAnts !== "undefined") {
+                    window.maxAnts += 5;
+                } else {
+                    window.maxAnts = 5;
+                }
+            } else {
+                console.log("Couldn’t upgrade hive.");
+            }
+            return true;
+        }
+
+        // 2 = spawn an ant if under limit
+        if (key === '2') {
+            const currentAnts = ants?.length || 0;
+            const maxAnts = window.maxAnts || 10;
+            if (currentAnts < maxAnts) {
+                const centerX = this.hill._x + this.hill._width / 2;
+                const centerY = this.hill._y + this.hill._height / 2;
+                if (typeof antsSpawn === 'function') {
+                    antsSpawn(1, this.hill._faction || 'player', centerX, centerY);
+                    console.log("Spawned ant at hill!");
+                } else {
+                    console.warn("antsSpawn() not available");
+                }
+            } else {
+                console.log("Max ants reached!");
+            }
+            return true;
+        }
+
+        return false; // key not handled
     }
 
     render() {
@@ -73,7 +115,6 @@ class BUIManager {
     }
 }
 
-// global instance
 if (typeof window !== 'undefined') {
     window.BUIManager = new BUIManager();
 }

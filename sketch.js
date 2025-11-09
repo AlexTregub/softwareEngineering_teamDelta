@@ -946,6 +946,11 @@ function keyPressed() {
     }
   }
   
+  if (window.BUIManager?.active) {
+    const handled = window.BUIManager.handleKeyPress(key);
+    if (handled) return;
+  }
+  
 }
 
 /**
