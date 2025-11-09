@@ -172,21 +172,21 @@
      *   logNormal(`Mouse over tile [${tile.x}, ${tile.y}]`);
      * }
      */
-    screenToWorldTile: function(screenX, screenY) {
+    screenToWorldTile: function(screenX, screenY) { // Updated to round...
       try {
         // Use terrain system directly if available (most accurate)
         if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
             typeof g_activeMap.renderConversion.convCanvasToPos === 'function') {
           const tilePos = g_activeMap.renderConversion.convCanvasToPos([screenX, screenY]);
-          return { x: Math.floor(tilePos[0]), y: Math.floor(tilePos[1]) };
+          return { x: Math.round(tilePos[0]), y: Math.round(tilePos[1]) };
         }
         
         // Fallback: Convert to world pixels then divide by tile size
         const worldPos = this.screenToWorld(screenX, screenY);
         const tileSize = this.getTileSize();
         return { 
-          x: Math.floor(worldPos.x / tileSize), 
-          y: Math.floor(worldPos.y / tileSize) 
+          x: Math.round(worldPos.x / tileSize), 
+          y: Math.round(worldPos.y / tileSize) 
         };
         
       } catch (e) {
@@ -211,7 +211,7 @@
      *   rect(screenPos.x, screenPos.y, TILE_SIZE, TILE_SIZE);
      * }
      */
-    worldTileToScreen: function(tileX, tileY) {
+    worldTileToScreen: function(tileX, tileY) { // Unused...
       try {
         // Use terrain system directly if available (most accurate)
         if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
@@ -241,11 +241,14 @@
      * @example
      * const entityTile = CoordinateConverter.worldToTile(entity.posX, entity.posY);
      */
-    worldToTile: function(worldX, worldY) {
+    worldToTile: function(worldX, worldY) { // USED BLINDLY BRUUUUUH
       const tileSize = this.getTileSize();
-      return { 
-        x: Math.floor(worldX / tileSize), 
-        y: Math.floor(worldY / tileSize) 
+      return {  // Current... Suspicious.
+        // x: Math.floor(worldX / tileSize), 
+        // y: Math.floor(worldY / tileSize) 
+
+        x: Math.round(worldX/tileSize), // Seems to have fixed WorldPos alignment...
+        y: Math.round(worldY/tileSize)
       };
     },
 
@@ -261,7 +264,7 @@
      * const worldPos = CoordinateConverter.tileToWorld(10, 15);
      * entity.moveToLocation(worldPos.x, worldPos.y);
      */
-    tileToWorld: function(tileX, tileY) {
+    tileToWorld: function(tileX, tileY) { // Unused...
       const tileSize = this.getTileSize();
       return { 
         x: tileX * tileSize, 

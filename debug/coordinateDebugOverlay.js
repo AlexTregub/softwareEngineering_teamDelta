@@ -46,8 +46,8 @@ class CoordinateDebugOverlay {
   getMouseTile() {
     const worldPos = this.getMouseWorldPosition();
     return {
-      x: Math.floor(worldPos.x / (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32)),
-      y: Math.floor(worldPos.y / (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32))
+      x: Math.round(worldPos.x / (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32)),
+      y: Math.round(worldPos.y / (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32))
     };
   }
 
