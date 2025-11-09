@@ -2,7 +2,7 @@
 const sinon = require('sinon');
 
 // Mock logging functions BEFORE requiring MapManager
-global.logNormal = sinon.stub();
+global.console.log = sinon.stub();
 global.logDebug = sinon.stub();
 global.logWarning = sinon.stub();
 global.logError = sinon.stub();

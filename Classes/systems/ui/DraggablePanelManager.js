@@ -1084,161 +1084,87 @@ class DraggablePanelManager {
 
   /**
    * Spawn multiple ants at random positions or near mouse
+   * Uses AntFactory (MVC pattern) which auto-registers with spatial grid
    */
   spawnAnts(count = 1) {
     logVerbose(`🐜 Spawning ${count} ant(s)...`);
     
-    let spawned = 0;
-    
-    // Method 1: Try AntFactory (MVC pattern - PREFERRED)
-    if (typeof AntFactory !== 'undefined' && typeof AntFactory.createAnt === 'function') {
-      for (let i = 0; i < count; i++) {
-        const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-        const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-        const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-        const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-        
-        AntFactory.createAnt(spawnX, spawnY, {
-          faction: 'player',
-          job: 'Worker'
-        });
-        spawned++;
-      }
-      logVerbose(`✅ Successfully spawned ${spawned} ant(s) using AntFactory`);
+    if (typeof AntFactory === 'undefined' || typeof AntFactory.createAnt !== 'function') {
+      console.warn('⚠️ AntFactory not available - cannot spawn ants');
       return;
     }
-    
-    // Method 2: Fallback to command line spawning system
-    if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
-      const initialAntCount = ants.length;
-      try {
-        executeCommand(`spawn ${count} ant player`);
-        spawned = ants.length - initialAntCount;
-        logVerbose(`✅ Successfully spawned ${spawned} ant(s) using command system`);
-        return;
-      } catch (error) {
-        console.warn('⚠️ Command line spawn method failed:', error.message);
-      }
+
+    let spawned = 0;
+    const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+    const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+
+    for (let i = 0; i < count; i++) {
+      const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+      const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+      
+      AntFactory.createAnt(spawnX, spawnY, {
+        faction: 'player',
+        job: 'Worker'
+      });
+      spawned++;
     }
-    
-    console.warn('⚠️ Could not spawn ants - AntFactory not available');
+
+    logVerbose(`✅ Successfully spawned ${spawned} ant(s) using AntFactory`);
   }
 
   /**
    * Spawn a single enemy ant near the mouse cursor or screen center
+   * Uses AntFactory (MVC pattern) which auto-registers with spatial grid
    */
   spawnEnemyAnt() {
     logNormal('🔴 Spawning enemy ant...');
     
-    // Try multiple spawning methods until we find one that works
-    const spawnMethods = [
-      // Method 1: Try AntUtilities.spawnAnt (preferred method)
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
-          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-          const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 50;
-          const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 50;
-          
-          const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
-          if (enemyAnt) {
-            logNormal('✅ Successfully spawned enemy ant using AntUtilities');
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Try command line spawning system
-      () => {
-        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
-          const initialAntCount = ants.length;
-          try {
-            executeCommand(`spawn 1 ant enemy`);
-            const spawned = ants.length - initialAntCount;
-            if (spawned > 0) {
-              logNormal('✅ Successfully spawned enemy ant using command system');
-              return true;
-            }
-          } catch (error) {
-            console.warn('⚠️ Command line spawn method failed:', error.message);
-          }
-        }
-        return false;
-      }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of spawnMethods) {
-      if (method()) {
-        return;
-      }
+    if (typeof AntFactory === 'undefined' || typeof AntFactory.createAnt !== 'function') {
+      console.warn('⚠️ AntFactory not available - cannot spawn enemy ant');
+      return;
     }
+
+    const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+    const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
+    const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 50;
+    const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 50;
     
-    console.warn('⚠️ Could not spawn enemy ant - no compatible ant system found');
+    AntFactory.createAnt(spawnX, spawnY, {
+      faction: 'enemy',
+      job: 'Warrior'
+    });
+
+    logNormal('✅ Successfully spawned enemy ant using AntFactory');
   }
 
   /**
    * Spawn multiple enemy ants near the mouse cursor or screen center
+   * Uses AntFactory (MVC pattern) which auto-registers with spatial grid
    */
   spawnEnemyAnts(count = 1) {
     logNormal(`🔴 Spawning ${count} enemy ant(s)...`);
     
-    let spawned = 0;
-    
-    // Try multiple spawning methods until we find one that works
-    const spawnMethods = [
-      // Method 1: Try AntUtilities.spawnAnt (preferred method)
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
-          const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
-          const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
-          
-          for (let i = 0; i < count; i++) {
-            const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
-            const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
-            
-            const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
-            if (enemyAnt) {
-              spawned++;
-            }
-          }
-          
-          if (spawned > 0) {
-            logNormal(`✅ Successfully spawned ${spawned} enemy ant(s) using AntUtilities`);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Try command line spawning system
-      () => {
-        if (typeof executeCommand === 'function' && typeof ants !== 'undefined') {
-          const initialAntCount = ants.length;
-          try {
-            executeCommand(`spawn ${count} ant enemy`);
-            spawned = ants.length - initialAntCount;
-            if (spawned > 0) {
-              logNormal(`✅ Successfully spawned ${spawned} enemy ant(s) using command system`);
-              return true;
-            }
-          } catch (error) {
-            console.warn('⚠️ Command line spawn method failed:', error.message);
-          }
-        }
-        return false;
-      }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of spawnMethods) {
-      if (method()) {
-        return;
-      }
+    if (typeof AntFactory === 'undefined' || typeof AntFactory.createAnt !== 'function') {
+      console.warn('⚠️ AntFactory not available - cannot spawn enemy ants');
+      return;
     }
+
+    let spawned = 0;
+    const centerX = (typeof g_canvasX !== 'undefined') ? g_canvasX / 2 : (typeof width !== 'undefined') ? width / 2 : 400;
+    const centerY = (typeof g_canvasY !== 'undefined') ? g_canvasY / 2 : (typeof height !== 'undefined') ? height / 2 : 400;
     
-    console.warn(`⚠️ Could not spawn ${count} enemy ant(s) - no compatible ant system found`);
+    for (let i = 0; i < count; i++) {
+      const spawnX = (typeof mouseX !== 'undefined' ? mouseX : centerX) + (Math.random() - 0.5) * 100;
+      const spawnY = (typeof mouseY !== 'undefined' ? mouseY : centerY) + (Math.random() - 0.5) * 100;
+      
+      AntFactory.createAnt(spawnX, spawnY, {
+        faction: 'enemy',
+        job: 'Warrior'
+      });
+      spawned++;
+    }
+
+    logNormal(`✅ Successfully spawned ${spawned} enemy ant(s) using AntFactory`);
   }
 
   /**
@@ -1462,80 +1388,61 @@ class DraggablePanelManager {
   
   /**
    * Kill/remove multiple ants from the game
+   * Uses spatial grid as single source of truth
    */
   killAnts(count = 1) {
     logNormal(`💀 Killing ${count} ant(s)...`);
     
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) {
+      console.warn('⚠️ SpatialGridManager not available - cannot kill ants');
+      return;
+    }
+
+    // Get all ants from spatial grid
+    const allAnts = spatialGridManager.getEntitiesByType('ant');
+    
+    if (allAnts.length === 0) {
+      logNormal('⚠️ No ants found in spatial grid');
+      return;
+    }
+
+    const toRemove = Math.min(count, allAnts.length);
     let killed = 0;
-    
-    // Try multiple removal methods
-    const killMethods = [
-      // Method 1: Try g_antManager
-      () => {
-        if (typeof g_antManager !== 'undefined' && g_antManager && typeof g_antManager.removeAnts === 'function') {
-          killed = g_antManager.removeAnts(count);
-          return killed > 0;
-        }
-        return false;
-      },
-      
-      // Method 2: Try global ants array
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) {
-          const toRemove = Math.min(count, ants.length);
-          ants.splice(-toRemove, toRemove); // Remove from end
-          killed = toRemove;
-          return true;
-        }
-        return false;
-      },
-      
-      // Method 3: Try temp ants
-      () => {
-        if (typeof globalThis !== 'undefined' && globalThis.tempAnts && Array.isArray(globalThis.tempAnts)) {
-          const toRemove = Math.min(count, globalThis.tempAnts.length);
-          globalThis.tempAnts.splice(-toRemove, toRemove);
-          killed = toRemove;
-          return true;
-        }
-        return false;
-      }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of killMethods) {
-      if (method()) {
-        logNormal(`✅ Successfully killed ${killed} ant(s)`);
-        return;
+
+    // Remove from end of array
+    for (let i = allAnts.length - 1; i >= allAnts.length - toRemove && i >= 0; i--) {
+      const ant = allAnts[i];
+      if (spatialGridManager.removeEntity(ant)) {
+        killed++;
       }
     }
-    
-    console.warn('⚠️ Could not kill ants - no ants found or no compatible ant system');
+
+    logNormal(`✅ Successfully killed ${killed} ant(s)`);
   }
 
   /**
    * Clear all ants from the game
+   * Uses spatial grid as single source of truth
    */
   clearAnts() {
     logNormal('🧹 Clearing all ants...');
     
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) {
+      console.warn('⚠️ SpatialGridManager not available - cannot clear ants');
+      return;
+    }
+
+    // Get all ants from spatial grid
+    const allAnts = spatialGridManager.getEntitiesByType('ant');
     let cleared = 0;
-    
-    // Try multiple clearing methods
-    if (typeof g_antManager !== 'undefined' && g_antManager && typeof g_antManager.clearAllAnts === 'function') {
-      cleared += g_antManager.clearAllAnts();
+
+    // Remove each ant from spatial grid
+    for (const ant of allAnts) {
+      if (spatialGridManager.removeEntity(ant)) {
+        cleared++;
+      }
     }
-    
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-      cleared += ants.length;
-      ants.length = 0; // Clear the array
-    }
-    
-    if (typeof globalThis !== 'undefined' && globalThis.tempAnts && Array.isArray(globalThis.tempAnts)) {
-      cleared += globalThis.tempAnts.length;
-      globalThis.tempAnts.length = 0;
-    }
-    
+
     logNormal(`✅ Cleared ${cleared} ant(s)`);
   }
 

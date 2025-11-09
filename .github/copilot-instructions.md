@@ -579,9 +579,8 @@ docs/
 ## Global State
 
 **Critical globals** (defined in sketch.js):
-- `ants[]` - Global ant array (NOT antManager.ants)
 - `selectables[]` - Selection entities
-- `g_map2` - Active terrain map (MapManager)
+- `g_activeMap` - Active terrain map (MapManager)
 - `spatialGridManager` - Spatial queries
 - `draggablePanelManager` - UI panels
 - `cameraManager` - Camera transforms

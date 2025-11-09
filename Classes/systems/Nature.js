@@ -321,6 +321,9 @@ class TimeOfDayOverlay {
     const transitionAlpha = this.globalTime.transitionAlpha;
     const isTransitioning = this.globalTime.transitioning;
     
+    // Save the old time of day before updating
+    const oldTimeOfDay = this.previousTimeOfDay;
+    
     // Detect state changes to trigger smooth settling
     if (timeOfDay !== this.previousTimeOfDay) {
       this.previousTimeOfDay = timeOfDay;
@@ -371,22 +374,22 @@ class TimeOfDayOverlay {
       // Reset state change progress during active transitions
       this.stateChangeProgress = 1.0;
     } else {
-      // Not actively transitioning - but still need smooth settling for state changes
-      // This only handles sunset->night transition now (sunrise handles its own full transition)
-      
-      // Gradually approach target state
+      // Not actively transitioning - stable state
+      // Gradually settle into stable states to avoid jarring jumps
       if (this.stateChangeProgress < 1.0) {
         this.stateChangeProgress = Math.min(1.0, this.stateChangeProgress + this.stateChangeSpeed);
         const settleT = this.easeInOutCubic(this.stateChangeProgress);
         
-        // Get the previous config to interpolate from
+        // Get the previous config to interpolate from (use the OLD time of day)
         let sourceConfig;
-        if (timeOfDay === 'night') {
+        if (timeOfDay === 'night' && oldTimeOfDay === 'sunset') {
           // Coming from sunset - smooth transition to night
           sourceConfig = this.config.sunset;
+        } else if (timeOfDay === 'day' && oldTimeOfDay === 'sunrise') {
+          // Coming from sunrise - smooth transition to day
+          sourceConfig = this.config.sunrise;
         } else {
-          // For day/sunset/sunrise stable states, just use target
-          // (sunrise already handled its full transition, so day should be instant)
+          // Already at stable state or first initialization
           sourceConfig = targetConfig;
         }
         
@@ -529,11 +532,12 @@ class TimeOfDayOverlay {
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = TimeOfDayOverlay;
+  module.exports = { GlobalTime, TimeOfDayOverlay };
 }
 
 // Make available globally
 if (typeof window !== 'undefined') {
+  window.GlobalTime = GlobalTime;
   window.TimeOfDayOverlay = TimeOfDayOverlay;
   
   // Add console commands for easy testing

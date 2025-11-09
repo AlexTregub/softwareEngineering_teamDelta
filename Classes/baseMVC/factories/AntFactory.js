@@ -7,21 +7,69 @@
  * @class AntFactory
  */
 
-if (typeof require !== 'undefined') {
-  var AntModel = require('../models/AntModel');
-  var AntView = require('../views/AntView');
-  var AntController = require('../controllers/AntController');
-  var QueenController = require('../controllers/QueenController');
+// Node.js: Load dependencies
+if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.exports) {
+  const AntModel = require('../models/AntModel');
+  const AntView = require('../views/AntView');
+  const AntController = require('../controllers/AntController');
+  const QueenController = require('../controllers/QueenController');
+  global.AntModel = AntModel;
+  global.AntView = AntView;
+  global.AntController = AntController;
+  global.QueenController = QueenController;
+}
+
+
+// Helper to get class from window or require context
+function getClass(name) {
+  if (typeof window !== 'undefined' && window[name]) {
+    return window[name];
+  }
+  // In Node, use the loaded variables
+  switch (name) {
+    case 'AntModel': return AntModel;
+    case 'AntView': return AntView;
+    case 'AntController': return AntController;
+    case 'QueenController': return QueenController;
+    default: throw new Error(`Unknown class: ${name}`);
+  }
 }
 
 class AntFactory {
   /**
+   * Register an ant MVC instance with all game systems.
+   * Uses SpatialGridManager as single source of truth for entity tracking.
+   * 
+   * @param {Object} antMVC - Ant MVC object {model, view, controller}
+   * @private
+   */
+  static _registerWithSystems(antMVC) {
+    // Register MODEL with spatial grid (single source of truth for entity tracking)
+    // Spatial grid provides O(1) queries and type filtering
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager && antMVC.model) {
+      spatialGridManager.addEntity(antMVC.model);
+    }
+    
+    // Register with selectables array (for selection system)
+    if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+      selectables.push(antMVC);
+    }
+    
+    // Register with tile interaction manager if available
+    if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager && 
+        typeof g_tileInteractionManager.addObject === 'function') {
+      g_tileInteractionManager.addObject(antMVC, 'ant');
+    }
+  }
+
+  /**
    * Creates an ant MVC instance with flexible parameters.
    * Supports both legacy positional parameters and modern options object.
+   * AUTOMATICALLY REGISTERS with all game systems (spatialGridManager, etc.)
    * 
    * @param {number} posX - X position
    * @param {number} posY - Y position
-   * @param {number|object} sizex - Width OR options object {faction, job, size, etc.}
+   * @param {number|object} sizex - Width OR options object {faction, job, size, autoRegister, etc.}
    * @param {number} sizey - Height (if sizex is number)
    * @param {number} movementSpeed - Movement speed (legacy, unused in MVC)
    * @param {number} rotation - Initial rotation
@@ -34,12 +82,17 @@ class AntFactory {
    * // Legacy style (positional parameters)
    * AntFactory.createAnt(100, 100, 32, 32, 1, 0, null, "Scout", "player");
    * 
-   * // Modern style (options object)
+   * // Modern style (options object) - auto-registers with systems
    * AntFactory.createAnt(100, 100, { faction: "enemy", job: "Warrior" });
+   * 
+   * // Disable auto-registration if needed
+   * AntFactory.createAnt(100, 100, { faction: "player", autoRegister: false });
    */
   static createAnt(posX = 0, posY = 0, sizex = 50, sizey = 50, movementSpeed = 1, rotation = 0, img = null, JobName = "Worker", faction = "player") {
     // Support options object as 3rd parameter
     let options = {};
+    let autoRegister = true; // Default: automatically register with systems
+    
     if (typeof sizex === 'object' && sizex !== null) {
       options = sizex;
       sizex = options.size || options.width || 32;
@@ -48,23 +101,36 @@ class AntFactory {
       faction = options.faction || "player";
       movementSpeed = options.movementSpeed || 1;
       rotation = options.rotation || 0;
+      autoRegister = options.autoRegister !== false; // Allow opt-out
     }
     
+    // Get classes from appropriate context (window for browser, require for Node)
+    const AntModelClass = getClass('AntModel');
+    const AntViewClass = getClass('AntView');
+    const AntControllerClass = getClass('AntController');
+    
     // Create MVC components
-    const model = new AntModel(posX, posY, sizex, sizey, { 
+    const model = new AntModelClass(posX, posY, sizex, sizey, { 
       jobName: JobName,
       faction: faction,
       rotation: rotation,
       movementSpeed: movementSpeed
     });
     
-    const view = new AntView(model);
-    const controller = new AntController(model, view);
+    const view = new AntViewClass(model);
+    const controller = new AntControllerClass(model, view);
     
     // Initialize job (applies stats, sets up systems)
     controller.assignJob(JobName);
     
-    return { model, view, controller };
+    const antMVC = { model, view, controller };
+    
+    // Automatically register with game systems
+    if (autoRegister) {
+      this._registerWithSystems(antMVC);
+    }
+    
+    return antMVC;
   }
   
   /**
@@ -83,10 +149,11 @@ class AntFactory {
   /**
    * Creates a Queen ant with queen-specific controller.
    * Supports both legacy positional parameters and modern options object.
+   * AUTOMATICALLY REGISTERS with all game systems (spatialGridManager, etc.)
    * 
    * @param {number} posX - X position
    * @param {number} posY - Y position
-   * @param {number|object} sizex - Width (default: 60) OR options object
+   * @param {number|object} sizex - Width (default: 60) OR options object {faction, autoRegister, etc.}
    * @param {number} sizey - Height (default: 60)
    * @param {number} movementSpeed - Movement speed (default: 30)
    * @param {number} rotation - Initial rotation (default: 0)
@@ -95,12 +162,17 @@ class AntFactory {
    * @returns {{model: AntModel, view: AntView, controller: QueenController}} Queen MVC components
    * 
    * @example
-   * // Modern style (options object)
+   * // Modern style (options object) - auto-registers with systems
    * AntFactory.createQueen(100, 100, { faction: "player" });
+   * 
+   * // Disable auto-registration if needed
+   * AntFactory.createQueen(100, 100, { faction: "player", autoRegister: false });
    */
   static createQueen(posX = 0, posY = 0, sizex = 60, sizey = 60, movementSpeed = 30, rotation = 0, img = null, faction = "player") {
     // Support options object as 3rd parameter
     let options = {};
+    let autoRegister = true; // Default: automatically register with systems
+    
     if (typeof sizex === 'object' && sizex !== null) {
       options = sizex;
       sizex = options.size || options.width || 60;
@@ -108,18 +180,24 @@ class AntFactory {
       faction = options.faction || "player";
       movementSpeed = options.movementSpeed || 30;
       rotation = options.rotation || 0;
+      autoRegister = options.autoRegister !== false; // Allow opt-out
     }
     
+    // Get classes from appropriate context (window for browser, require for Node)
+    const AntModelClass = getClass('AntModel');
+    const AntViewClass = getClass('AntView');
+    const QueenControllerClass = getClass('QueenController');
+    
     // Create MVC components
-    const model = new AntModel(posX, posY, sizex, sizey, { 
+    const model = new AntModelClass(posX, posY, sizex, sizey, { 
       jobName: "Queen",
       faction: faction,
       rotation: rotation,
       movementSpeed: movementSpeed
     });
     
-    const view = new AntView(model);
-    const controller = new QueenController(model, view); // Use QueenController instead of AntController
+    const view = new AntViewClass(model);
+    const controller = new QueenControllerClass(model, view); // Use QueenController instead of AntController
     
     // Initialize queen job
     controller.assignJob("Queen");
@@ -128,7 +206,28 @@ class AntFactory {
     model._idleTimer = 0;
     model._idleTimerTimeout = Infinity; // Disable skitter
     
-    return { model, view, controller };
+    const queenMVC = { model, view, controller };
+    
+    // Automatically register with game systems
+    if (autoRegister) {
+      this._registerWithSystems(queenMVC);
+    }
+    
+    return queenMVC;
+  }
+  
+  /**
+   * Manually register an ant with all game systems.
+   * Use this if you created an ant with autoRegister: false
+   * 
+   * @param {Object} antMVC - Ant MVC object {model, view, controller}
+   * @example
+   * const ant = AntFactory.createAnt(100, 100, { autoRegister: false });
+   * // ... do custom setup ...
+   * AntFactory.registerWithSystems(ant);
+   */
+  static registerWithSystems(antMVC) {
+    this._registerWithSystems(antMVC);
   }
 }
 

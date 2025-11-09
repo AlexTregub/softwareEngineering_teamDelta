@@ -6,10 +6,14 @@
  * state machine, dropoff, commands, update loop, debug.
  * 
  * TDD Implementation: Phase 2 - Ant MVC Conversion
- * Test Coverage: 80+ tests ensuring complete functional parity with ant class
+ * Test Coverage: 60+ tests ensuring complete controller behavior
  */
 
-const EntityController = require('./EntityController');
+// Node.js: Load EntityController
+if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.exports) {
+  const EntityController = require('./EntityController');
+  global.EntityController = EntityController;
+}
 
 class AntController extends EntityController {
   constructor(model, view) {

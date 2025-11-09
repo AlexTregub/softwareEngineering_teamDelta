@@ -7,8 +7,10 @@
  * @extends AntController
  */
 
-if (typeof require !== 'undefined') {
-  var AntController = require('./AntController');
+// Node.js: Load AntController
+if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.exports) {
+  const AntController = require('./AntController');
+  global.AntController = AntController;
 }
 
 class QueenController extends AntController {

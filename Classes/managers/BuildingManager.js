@@ -133,7 +133,11 @@ class Building extends Entity {
   }
 
   getAnts(faction){
-    return ants.filter(ant => (ant.faction === faction || ant.faction === 'neutral'));
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      const allAnts = spatialGridManager.getEntitiesByType('ant');
+      return allAnts.filter(ant => (ant.faction === faction || ant.faction === 'neutral'));
+    }
+    return [];
   }
 
   statsBuff(){
@@ -187,8 +191,6 @@ class Building extends Entity {
     return true;
   }
 
-
-
   get _renderController() { return this.getController('render'); }
   get _healthController() { return this.getController('health'); }
   get _selectionController() { return this.getController('selection'); }
@@ -204,20 +206,24 @@ class Building extends Entity {
     this.statsBuff();
     this._updateHealthController();
 
-    // Spawn ants if enabled — uses global antsSpawn(num, faction, x, y)
-    if (this._spawnEnabled && typeof antsSpawn === 'function') {
-      try {
-        this._spawnTimer += deltaTime;
-        while (this._spawnTimer >= this._spawnInterval) {
-          this._spawnTimer -= this._spawnInterval;
-          // compute building center
-          const p = this.getPosition ? this.getPosition() : (this._pos || { x: 0, y: 0 });
-          const s = this.getSize ? this.getSize() : (this._size || { x: width || 32, y: height || 32 });
-          const centerX = p.x + (s.x / 2);
-          const centerY = p.y + (s.y / 2);
-          antsSpawn(this._spawnCount, this._faction || 'player', centerX , centerY);
+    this._spawnTimer += deltaTime;
+    while (this._spawnTimer >= this._spawnInterval) {
+      this._spawnTimer -= this._spawnInterval;
+      // compute building center
+      const p = this.getPosition ? this.getPosition() : (this._pos || { x: 0, y: 0 });
+      const s = this.getSize ? this.getSize() : (this._size || { x: width || 32, y: height || 32 });
+      const centerX = p.x + (s.x / 2);
+      const centerY = p.y + (s.y / 2);
+      
+      // Spawn ants using AntFactory
+      if (typeof AntFactory !== 'undefined' && AntFactory) {
+        for (let i = 0; i < this._spawnCount; i++) {
+          AntFactory.createAnt(centerX, centerY, {
+            faction: this._faction || 'player',
+            job: 'Worker'
+          });
         }
-      } catch (e) { console.warn('Building spawn error', e); }
+      }
     }
   }
 

@@ -329,22 +329,6 @@ describe('EntityView', function() {
     });
   });
 
-  describe('p5.js Availability', function() {
-    it('should check if p5.js is available', function() {
-      const available = view.isP5Available();
-      expect(available).to.be.true;
-    });
-
-    it('should return false if p5.js missing', function() {
-      const oldPush = global.push;
-      global.push = undefined;
-
-      const available = view.isP5Available();
-      expect(available).to.be.false;
-
-      global.push = oldPush;
-    });
-
     it('should not render if p5.js unavailable', function() {
       const oldPush = global.push;
       global.push = undefined;

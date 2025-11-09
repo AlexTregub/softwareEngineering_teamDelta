@@ -8,7 +8,12 @@
  * Test Coverage: 60+ tests ensuring complete functional parity with ant class
  */
 
-const EntityModel = require('./EntityModel');
+// Node.js: Load EntityModel
+if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.exports) {
+  const EntityModel = require('./EntityModel');
+  // Make it available in this module's scope
+  global.EntityModel = EntityModel;
+}
 
 // Global ant index counter for unique ant IDs
 let globalAntIndex = 0;
@@ -121,6 +126,19 @@ class AntModel extends EntityModel {
     const oldValue = this._stateMachine;
     this._stateMachine = stateMachine;
     this.emit('stateMachineChanged', { oldValue, newValue: stateMachine });
+  }
+  
+  // State machine delegation methods
+  getCurrentState() {
+    return this._stateMachine?.getCurrentState() || 'IDLE';
+  }
+  
+  setState(newState) {
+    if (!this._stateMachine) {
+      console.warn('Cannot set state: state machine not initialized');
+      return false;
+    }
+    return this._stateMachine.setState(newState);
   }
   
   getGatherState() {

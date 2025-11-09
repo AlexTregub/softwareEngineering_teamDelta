@@ -66,7 +66,8 @@ describe('Level Editor + RenderLayerManager + Game State Integration', function(
 
     // Load RenderLayerManager
     delete require.cache[require.resolve('../../../Classes/rendering/RenderLayerManager.js')];
-    RenderLayerManager = require('../../../Classes/rendering/RenderLayerManager.js');
+    const renderModule = require('../../../Classes/rendering/RenderLayerManager.js');
+    RenderLayerManager = renderModule.RenderLayerManager;
 
     // Create instances
     gameState = new GameStateManager();

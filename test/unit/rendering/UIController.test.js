@@ -24,7 +24,7 @@ describe('UIController', () => {
     delete global.toggleDevConsole;
     delete global.showDevConsole;
     delete global.hideDevConsole;
-    delete global.logNormal;
+    delete global.console.log;
   });
   
   describe('Constructor', () => {
@@ -685,7 +685,7 @@ describe('UIController', () => {
   });
   
   describe('Edge Cases', () => {
-    it('should handle initialize when logNormal not available', () => {
+    it('should handle initialize when console.log not available', () => {
       global.window.UIRenderer = {
         debugUI: { performanceOverlay: { enabled: false } }
       };

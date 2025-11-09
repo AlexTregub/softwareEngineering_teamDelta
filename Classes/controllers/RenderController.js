@@ -124,30 +124,12 @@ class RenderController {
     if (this._spinOffset > Math.PI * 4) this._spinOffset -= Math.PI * 4;
   }
 
-  // --- Helper Methods ---
-
-  /**
-   * Check if p5.js rendering functions are available
-   * @returns {boolean} True if p5.js functions are accessible
-   */
-  _isP5Available() {
-    return typeof stroke === 'function' && 
-           typeof fill === 'function' && 
-           typeof rect === 'function' &&
-           typeof strokeWeight === 'function' &&
-           typeof noFill === 'function' &&
-           typeof noStroke === 'function';
-  }
 
   /**
    * Safe wrapper for p5.js function calls
    * @param {function} renderFunction - Function containing p5.js calls
    */
   _safeRender(renderFunction) {
-    if (!this._isP5Available()) {
-      console.warn('RenderController: p5.js functions not available, skipping render');
-      return;
-    }
     try {
       renderFunction();
     } catch (error) {

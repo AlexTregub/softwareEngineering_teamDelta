@@ -215,14 +215,27 @@ class UIController {
    * Get entity at mouse position (simplified)
    */
   getEntityAtPosition(x, y) {
-    if (typeof ants !== 'undefined') {
-      for (let ant of ants) {
-        if (ant && ant.x !== undefined && ant.y !== undefined) {
-          const distance = Math.sqrt((ant.x - x) ** 2 + (ant.y - y) ** 2);
-          if (distance < 20) { // 20 pixel hover radius
-            return ant;
+    // Use spatial grid for efficient proximity queries
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      const nearbyEntities = spatialGridManager.getNearbyEntities(x, y, 20); // 20 pixel hover radius
+      
+      // Return the closest entity
+      if (nearbyEntities.length > 0) {
+        let closest = nearbyEntities[0];
+        let minDist = Math.sqrt((closest.x - x) ** 2 + (closest.y - y) ** 2);
+        
+        for (let i = 1; i < nearbyEntities.length; i++) {
+          const entity = nearbyEntities[i];
+          if (entity && entity.x !== undefined && entity.y !== undefined) {
+            const distance = Math.sqrt((entity.x - x) ** 2 + (entity.y - y) ** 2);
+            if (distance < minDist) {
+              minDist = distance;
+              closest = entity;
+            }
           }
         }
+        
+        return closest;
       }
     }
     return null;

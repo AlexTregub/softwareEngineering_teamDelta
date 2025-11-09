@@ -22,7 +22,7 @@ global.console = {
 // Mock globalThis
 global.globalThis = {
   logVerbose: () => {},
-  logNormal: () => {}
+  console.log: () => {}
 };
 
 // Mock g_renderLayerManager for debug info panel

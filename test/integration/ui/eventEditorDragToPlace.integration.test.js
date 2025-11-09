@@ -24,12 +24,12 @@ describe('EventEditorPanel Drag-to-Place Integration', function() {
     setupUITestEnvironment();
     
     // Mock logging functions
-    global.logNormal = sinon.stub();
+    global.console.log = sinon.stub();
     global.logVerbose = sinon.stub();
     global.logError = sinon.stub();
     
     // Sync to window
-    window.logNormal = global.logNormal;
+    window.console.log = global.console.log;
     window.logVerbose = global.logVerbose;
     window.logError = global.logError;
     
@@ -79,7 +79,7 @@ describe('EventEditorPanel Drag-to-Place Integration', function() {
     }
     
     cleanupUITestEnvironment();
-    delete global.logNormal;
+    delete global.console.log;
     delete global.logVerbose;
     delete global.logError;
     delete global.cameraManager;

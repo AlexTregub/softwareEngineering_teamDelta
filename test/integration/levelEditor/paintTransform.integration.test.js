@@ -22,7 +22,7 @@ global.mouseY = 300;
 global.constrain = (val, min, max) => Math.max(min, Math.min(max, val));
 global.logVerbose = () => {};
 global.verboseLog = () => {};
-global.logNormal = () => {};
+global.console.log = () => {};
 global.window = global;
 global.console = { log: () => {}, warn: () => {} };
 

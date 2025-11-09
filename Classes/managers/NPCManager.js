@@ -100,7 +100,26 @@ class NPC extends Building{
   
     const playerQueen = getQueen?.();
     if (playerQueen) {
-      const range = dist(this._x, this._y, playerQueen.posX, playerQueen.posY);
+      // Handle both MVC queen ({ model, view, controller }) and old Entity queen
+      let queenX, queenY;
+      
+      if (playerQueen.model && playerQueen.model.getPosition) {
+        // MVC queen
+        const pos = playerQueen.model.getPosition();
+        queenX = pos.x;
+        queenY = pos.y;
+      } else if (playerQueen.getPosition) {
+        // Old Entity queen
+        const pos = playerQueen.getPosition();
+        queenX = pos.x;
+        queenY = pos.y;
+      } else {
+        // Legacy queen with direct posX/posY
+        queenX = playerQueen.posX || 0;
+        queenY = playerQueen.posY || 0;
+      }
+      
+      const range = dist(this._x, this._y, queenX, queenY);
   
       // Log distance if dialogue is active (helps debug)
       if (this.dialogueActive) {

@@ -3,7 +3,7 @@
 // Mock logging functions on globalThis
 globalThis.logDebug = globalThis.logDebug || function() {};
 globalThis.logVerbose = globalThis.logVerbose || function() {};
-globalThis.logNormal = globalThis.logNormal || function() {};
+globalThis.console.log = globalThis.console.log || function() {};
 
 // Mock SpatialGrid before requiring SpatialGridManager
 global.SpatialGrid = require('../../../Classes/systems/SpatialGrid.js');

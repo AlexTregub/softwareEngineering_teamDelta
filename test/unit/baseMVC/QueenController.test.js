@@ -20,8 +20,8 @@ global.cameraManager = {
   worldToScreen: (x, y) => ({ x, y })
 };
 
-// Mock logNormal
-global.logNormal = sinon.stub();
+// Mock console.log
+global.console.log = sinon.stub();
 
 // Load MVC components
 const AntModel = require('../../../Classes/baseMVC/models/AntModel');
@@ -43,7 +43,7 @@ describe('QueenController', function() {
     
     // Reset sinon stubs
     sinon.reset();
-    if (global.logNormal.reset) global.logNormal.reset();
+    if (global.console.log.reset) global.console.log.reset();
   });
 
   afterEach(function() {
@@ -306,8 +306,8 @@ describe('QueenController', function() {
       it('should log when power is unlocked', function() {
         controller.unlockPower('lightning');
         
-        expect(global.logNormal.calledOnce).to.be.true;
-        expect(global.logNormal.args[0][0]).to.include('lightning');
+        expect(global.console.log.calledOnce).to.be.true;
+        expect(global.console.log.args[0][0]).to.include('lightning');
       });
 
       it('should reject invalid power', function() {

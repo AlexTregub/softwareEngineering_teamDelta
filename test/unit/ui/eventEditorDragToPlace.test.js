@@ -33,7 +33,7 @@ describe('EventEditorPanel Drag-to-Place', function() {
     };
     
     // Mock logging functions
-    global.logNormal = sandbox.stub();
+    global.console.log = sandbox.stub();
     global.logVerbose = sandbox.stub();
     global.logError = sandbox.stub();
     
@@ -66,7 +66,7 @@ describe('EventEditorPanel Drag-to-Place', function() {
     sandbox.restore();
     delete global.EventManager;
     delete global.console;
-    delete global.logNormal;
+    delete global.console.log;
     delete global.logVerbose;
     delete global.logError;
   });

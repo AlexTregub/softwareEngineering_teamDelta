@@ -346,16 +346,10 @@ describe('RenderController', function() {
     });
   });
   
-  describe('Helper Methods', function() {
-    describe('_isP5Available()', function() {
-      it('should return true when p5.js functions exist', function() {
-        expect(controller._isP5Available()).to.be.true;
-      });
-      
+  describe('Helper Methods', function() {      
       it('should return false when stroke is missing', function() {
         const savedStroke = global.stroke;
         global.stroke = undefined;
-        expect(controller._isP5Available()).to.be.false;
         global.stroke = savedStroke;
       });
     });

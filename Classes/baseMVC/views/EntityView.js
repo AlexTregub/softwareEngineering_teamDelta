@@ -111,18 +111,12 @@ class EntityView {
    * Check if p5.js is available
    * @returns {boolean} True if p5.js is available
    */
-  isP5Available() {
-    return typeof push === 'function';
-  }
-
   // --- Highlight Rendering ---
 
   /**
    * Render selection/hover highlights
    */
   renderHighlight() {
-    if (!this.isP5Available()) return;
-
     const isSelected = this.model.isSelected();
     const isHovered = this.model.isHovered();
     const isBoxHovered = this.model.isBoxHovered();
@@ -157,7 +151,6 @@ class EntityView {
    * Render entity
    */
   render() {
-    if (!this.isP5Available()) return;
     if (!this.model.isActive()) return;
 
     push();

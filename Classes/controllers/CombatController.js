@@ -104,9 +104,6 @@ class CombatController {
   detectEnemies() {
     this._nearbyEnemies = [];
     
-    // Access global ants array (this could be improved with dependency injection)
-    if (typeof ants === 'undefined' || typeof antIndex === 'undefined') return;
-    
     const entityFaction = this._entity.faction || "neutral";
     
     // Check all other ants for enemies
@@ -133,13 +130,35 @@ class CombatController {
 
   /**
    * Calculate distance between two entities
-   * @param {Object} entity1 - First entity
-   * @param {Object} entity2 - Second entity
+   * @param {Object} entity1 - First entity (can be Entity or MVC object)
+   * @param {Object} entity2 - Second entity (can be Entity or MVC object)
    * @returns {number} Distance in pixels
    */
   calculateDistance(entity1, entity2) {
-    const pos1 = entity1.getPosition();
-    const pos2 = entity2.getPosition();
+    // Helper: Get position from Entity or MVC object
+    const getPos = (entity) => {
+      if (!entity) return { x: 0, y: 0 };
+      
+      // MVC object structure: { model, view, controller }
+      if (entity.model && entity.model.getPosition) {
+        return entity.model.getPosition();
+      }
+      
+      // Entity with getPosition method
+      if (entity.getPosition) {
+        return entity.getPosition();
+      }
+      
+      // Fallback: direct position properties
+      if (entity.posX !== undefined && entity.posY !== undefined) {
+        return { x: entity.posX, y: entity.posY };
+      }
+      
+      return { x: 0, y: 0 };
+    };
+    
+    const pos1 = getPos(entity1);
+    const pos2 = getPos(entity2);
     const dx = pos1.x - pos2.x;
     const dy = pos1.y - pos2.y;
     return Math.sqrt(dx * dx + dy * dy);

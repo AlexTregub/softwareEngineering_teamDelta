@@ -9,7 +9,11 @@
  * Test Coverage: 40+ tests ensuring complete visual parity with ant class
  */
 
-const EntityView = require('./EntityView');
+// Node.js: Load EntityView
+if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.exports) {
+  const EntityView = require('./EntityView');
+  global.EntityView = EntityView;
+}
 
 // Sprite cache for performance
 const spriteCache = {};

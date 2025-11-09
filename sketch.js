@@ -49,7 +49,7 @@ function preload(){
   QuestUIPreloader()
   loadPresentationAssets();
   menuPreload();
-  antsPreloader();
+  // antsPreloader(); // REMOVED: Old ant class preloader (MVC ants don't need separate preloader)
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
@@ -230,6 +230,24 @@ function initializeContextMenuPrevention() {
   logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
 }
 
+/**
+ * Test context menu prevention (debug utility)
+ */
+function testContextMenuPrevention() {
+  console.log('🧪 Testing context menu prevention...');
+  console.log('Try right-clicking on the canvas - context menu should be blocked');
+}
+
+/**
+ * Disable context menu (utility function)
+ */
+function disableContextMenu(event) {
+  if (event) {
+    event.preventDefault();
+  }
+  return false;
+}
+
 // Make functions globally available
 if (typeof window !== 'undefined') {
   window.testContextMenuPrevention = testContextMenuPrevention;
@@ -279,10 +297,32 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
+  
+  // Spawn queen using MVC factory
   queenAnt = spawnQueen();
 
   // npc test
   Buildings.push(createNPC(100,100));
+}
+
+/**
+ * Spawn queen ant using MVC factory pattern
+ * Factory automatically registers with all game systems (spatialGridManager, selectables[], etc.)
+ * @returns {Object} Queen MVC components {model, view, controller}
+ */
+function spawnQueen() {
+  const queenX = g_canvasX / 2;
+  const queenY = g_canvasY / 2;
+  
+  // Create queen using AntFactory (auto-registers with all systems)
+  const queenMVC = AntFactory.createQueen(queenX, queenY, {
+    faction: 'player',
+    size: 60
+  });
+  
+  logNormal('👑 Queen spawned at', queenX, queenY);
+  
+  return queenMVC;
 }
 
 /**
@@ -325,10 +365,21 @@ function draw() {
     // --- Player Movement ---
     const playerQueen = getQueen();
     if (playerQueen) {
-      if (keyIsDown(87)) playerQueen.move("s"); // W
-      if (keyIsDown(65)) playerQueen.move("a"); // A
-      if (keyIsDown(83)) playerQueen.move("w"); // S
-      if (keyIsDown(68)) playerQueen.move("d"); // D
+      // Handle both MVC queen ({ model, view, controller }) and old Entity queen
+      const moveQueen = (direction) => {
+        if (playerQueen.controller && typeof playerQueen.controller.move === 'function') {
+          // MVC queen
+          playerQueen.controller.move(direction);
+        } else if (typeof playerQueen.move === 'function') {
+          // Old Entity queen
+          playerQueen.move(direction);
+        }
+      };
+      
+      if (keyIsDown(87)) moveQueen("s"); // W
+      if (keyIsDown(65)) moveQueen("a"); // A
+      if (keyIsDown(83)) moveQueen("w"); // S
+      if (keyIsDown(68)) moveQueen("d"); // D
     }
 
     // --- DIAManager update (typewriter effect, etc) ---

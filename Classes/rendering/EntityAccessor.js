@@ -19,6 +19,11 @@ class EntityAccessor {
   static getPosition(entity) {
     if (!entity) return { x: 0, y: 0 };
     
+    // MVC structure: { model, view, controller }
+    if (entity.model && entity.model.getPosition) {
+      return entity.model.getPosition();
+    }
+    
     // Standard getPosition() method (preferred)
     if (entity.getPosition) {
       return entity.getPosition();
@@ -56,6 +61,11 @@ class EntityAccessor {
    */
   static getSize(entity) {
     if (!entity) return { x: 20, y: 20 };
+    
+    // MVC structure: { model, view, controller }
+    if (entity.model && entity.model.getSize) {
+      return entity.model.getSize();
+    }
     
     // Standard getSize() method (preferred)
     if (entity.getSize) {
@@ -176,4 +186,9 @@ class EntityAccessor {
 // Export for Node.js testing
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = EntityAccessor;
+}
+
+// Export for browser
+if (typeof window !== 'undefined') {
+  window.EntityAccessor = EntityAccessor;
 }

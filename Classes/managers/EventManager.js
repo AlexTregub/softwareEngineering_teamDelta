@@ -11,9 +11,7 @@
  */
 
 class EventManager {
-  constructor() {
-    logNormal('EventManager initialized');
-    
+  constructor() {    
     // Event storage
     this.events = new Map(); // id => eventConfig
     this.triggers = new Map(); // triggerId => triggerConfig

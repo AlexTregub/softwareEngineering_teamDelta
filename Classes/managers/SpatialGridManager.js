@@ -356,6 +356,79 @@ class SpatialGridManager {
   getGrid() {
     return this._grid;
   }
+
+  /**
+   * Get all entities currently tracked by the spatial grid
+   * @returns {Array} Array of all entities
+   */
+  getAllEntities() {
+    return [...this._allEntities];
+  }
+
+  /**
+   * Get count of all entities
+   * @returns {number} Total entity count
+   */
+  getEntityCount() {
+    return this._allEntities.length;
+  }
+
+  /**
+   * Get count of entities by type
+   * @param {string} type - Entity type to count
+   * @returns {number} Count of entities of that type
+   */
+  getEntityCountByType(type) {
+    const typeSet = this._entitiesByType.get(type);
+    return typeSet ? typeSet.size : 0;
+  }
+
+  /**
+   * Remove entity from spatial grid and tracking
+   * @param {Object} entity - Entity to remove (must have id)
+   * @returns {boolean} True if entity was found and removed
+   */
+  removeEntity(entity) {
+    if (!entity || !entity.id) {
+      console.warn('SpatialGridManager: Cannot remove entity without id');
+      return false;
+    }
+
+    // Remove from spatial grid
+    this._grid.remove(entity);
+
+    // Remove from all entities array
+    const index = this._allEntities.findIndex(e => e.id === entity.id);
+    if (index !== -1) {
+      this._allEntities.splice(index, 1);
+    }
+
+    // Remove from type tracking
+    if (entity.type) {
+      const typeSet = this._entitiesByType.get(entity.type);
+      if (typeSet) {
+        typeSet.delete(entity);
+        if (typeSet.size === 0) {
+          this._entitiesByType.delete(entity.type);
+        }
+      }
+    }
+
+    this._stats.removeCount++;
+    return index !== -1;
+  }
+
+  /**
+   * Clear all entities from the spatial grid
+   * @returns {number} Number of entities cleared
+   */
+  clearAll() {
+    const count = this._allEntities.length;
+    this._grid.clear();
+    this._allEntities.length = 0;
+    this._entitiesByType.clear();
+    return count;
+  }
 }
 
 // Console helpers for testing
@@ -379,7 +452,7 @@ if (typeof window !== 'undefined') {
       })));
       return results;
     } else {
-      logNormal('SpatialGridManager not available');
+      console.warn('SpatialGridManager not available');
       return [];
     }
   };
@@ -402,7 +475,7 @@ if (typeof window !== 'undefined') {
       })));
       return results;
     } else {
-      logNormal('SpatialGridManager not available');
+      console.warn('SpatialGridManager not available');
       return [];
     }
   };
@@ -423,11 +496,11 @@ if (typeof window !== 'undefined') {
           distance: dist(mouseX, mouseY, nearest.getX(), nearest.getY()).toFixed(1)
         });
       } else {
-        logNormal(`No entities within ${maxRadius}px of mouse`);
+        console.warn(`No entities within ${maxRadius}px of mouse`);
       }
       return nearest;
     } else {
-      logNormal('SpatialGridManager or mouse position not available');
+      console.warn('SpatialGridManager or mouse position not available');
       return null;
     }
   };

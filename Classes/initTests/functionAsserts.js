@@ -208,30 +208,6 @@ class FunctionAsserts {
     }
 
     /**
-     * Display assertion results to console
-     */
-    displayResults() {
-        logNormal('\n📊 Function Assertion Results:');
-        logNormal(`p5.js Functions: ${this.assertionResults.p5js ? '✅' : '❌'}`);
-        logNormal(`Global Dependencies: ${this.assertionResults.globalDependencies ? '✅' : '❌'}`);
-        logNormal(`Rendering Functions: ${this.assertionResults.renderingFunctions ? '✅' : '❌'}`);
-        logNormal(`Game Systems: ${this.assertionResults.gameSystems ? '✅' : '❌'}`);
-        
-        if (this.warnings.length > 0) {
-            logNormal('\n⚠️ Warnings:');
-            this.warnings.forEach(warning => logNormal(warning));
-        }
-
-        if (this.errors.length > 0) {
-            logNormal('\n❌ Critical Errors:');
-            this.errors.forEach(error => logNormal(error));
-            logNormal('\n🚫 Rendering system cannot start safely!');
-        } else {
-            logNormal('\n🎉 All critical assertions passed - rendering system ready!');
-        }
-    }
-
-    /**
      * Get assertion results for other systems
      * @returns {Object} Assertion results object
      */
@@ -240,28 +216,11 @@ class FunctionAsserts {
     }
 
     /**
-     * Check if p5.js functions are available (for legacy compatibility)
-     * @returns {boolean} True if p5.js functions are available
-     */
-    static isP5Available() {
-        return typeof stroke === 'function' && 
-               typeof fill === 'function' && 
-               typeof rect === 'function' &&
-               typeof strokeWeight === 'function' &&
-               typeof noFill === 'function' &&
-               typeof noStroke === 'function';
-    }
-
-    /**
      * Safe wrapper for p5.js function calls (for legacy compatibility)
      * @param {function} renderFunction - Function containing p5.js calls
      * @param {string} context - Context for error reporting
      */
     static safeRender(renderFunction, context = 'Unknown') {
-        if (!FunctionAsserts.isP5Available()) {
-            console.warn(`${context}: p5.js functions not available, skipping render`);
-            return;
-        }
         try {
             renderFunction();
         } catch (error) {

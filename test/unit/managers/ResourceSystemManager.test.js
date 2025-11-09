@@ -31,7 +31,7 @@ describe('ResourceSystemManager', function() {
     
     // Mock logging functions
     global.globalThis = {
-      logNormal: function() {},
+      console.log: function() {},
       logVerbose: function() {},
       logDebug: function() {}
     };

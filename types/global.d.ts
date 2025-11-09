@@ -89,13 +89,6 @@ declare var g_canvasX;
 declare var g_canvasY;
 
 /**
- * Game arrays
- * @global
- * @type {Array<any>}
- */
-declare var ants;
-
-/**
  * @global
  * @type {Array<any>}
  */
