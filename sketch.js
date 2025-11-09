@@ -185,7 +185,7 @@ function setup() {
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
   window.QuestManager.preloadAssets();
 
-  window.draggablePanelManager.createDefaultPanels();
+  //window.draggablePanelManager.createDefaultPanels();
 }
 
 function addListeners() {
