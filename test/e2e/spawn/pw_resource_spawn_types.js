@@ -16,7 +16,7 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
     await (async () => {
       try {
         await page.evaluate(() => { try { const gs = window.GameState || window.g_gameState || null; if (gs && typeof gs.getState === 'function' && gs.getState() !== 'PLAYING') { if (typeof gs.startGame === 'function') gs.startGame(); } if (typeof startGame === 'function') startGame(); } catch(e){} });
-        try { await page.waitForFunction(() => (typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) || (window.g_gameState && typeof window.g_gameState.getState === 'function' && window.g_gameState.getState() === 'PLAYING'), { timeout: 3000 }); } catch(e) {}
+        try { await page.waitForFunction(() => (typeof spatialGridManager !== 'undefined' && spatialGridManager && spatialGridManager.getEntityCountByType('Ant') > 0) || (window.g_gameState && typeof window.g_gameState.getState === 'function' && window.g_gameState.getState() === 'PLAYING'), { timeout: 3000 }); } catch(e) {}
       } catch (e) {}
     })();
     await page.waitForSelector('canvas', { timeout: 20000 });

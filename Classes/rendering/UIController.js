@@ -41,7 +41,9 @@ class UIController {
       this.setupKeyboardControls();
       
       // Enable performance overlay by default in development
-      this.uiRenderer.debugUI.performanceOverlay.enabled = true;
+      if (this.uiRenderer.debugUI && this.uiRenderer.debugUI.performanceOverlay) {
+        this.uiRenderer.debugUI.performanceOverlay.enabled = true;
+      }
       
       const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
       if (globalObj && typeof globalObj.console === 'object') {
@@ -330,12 +332,9 @@ class UIController {
    */
   toggleDebugConsole() {
     // Use existing debug console system from debug/testing.js
-    /*if (typeof toggleDevConsole === 'function') {
+    if (typeof toggleDevConsole === 'function') {
       toggleDevConsole();
-      console.log('UIController: Using existing debug console system');
-    } else if (this.uiRenderer && typeof this.uiRenderer.toggleDebugConsole === 'function') { */
-      this.uiRenderer.toggleDebugConsole();
-    //}
+    } 
   }
 
   /**

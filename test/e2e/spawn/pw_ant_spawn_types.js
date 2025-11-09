@@ -16,7 +16,7 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
     await (async () => {
       try {
         await page.evaluate(() => { try { const gs = window.GameState || window.g_gameState || null; if (gs && typeof gs.getState === 'function' && gs.getState() !== 'PLAYING') { if (typeof gs.startGame === 'function') gs.startGame(); } if (typeof startGame === 'function') startGame(); } catch(e){} });
-        try { await page.waitForFunction(() => (typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) || (window.g_gameState && typeof window.g_gameState.getState === 'function' && window.g_gameState.getState() === 'PLAYING'), { timeout: 3000 }); } catch(e) {}
+        try { await page.waitForFunction(() => (typeof spatialGridManager !== 'undefined' && spatialGridManager && spatialGridManager.getEntityCountByType('Ant') > 0) || (window.g_gameState && typeof window.g_gameState.getState === 'function' && window.g_gameState.getState() === 'PLAYING'), { timeout: 3000 }); } catch(e) {}
       } catch (e) {}
     })();
     await page.waitForSelector('canvas', { timeout: 20000 });
@@ -32,8 +32,10 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
             if (k.startsWith('create') || k.toLowerCase().includes('worker') || k.toLowerCase().includes('soldier') ) types.push(k);
           }
         }
-        // Check for documented ants list in globals (ants may be declared as let ants = [])
-        const antArray = (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants : (typeof window.ants !== 'undefined' && Array.isArray(window.ants) ? window.ants : []);
+        // Check for documented ants list in globals
+        const antArray = (typeof spatialGridManager !== 'undefined' && spatialGridManager) 
+          ? spatialGridManager.getEntitiesByType('Ant') 
+          : [];
         if (antArray && antArray.length) {
           antArray.forEach(a => { if (a && (a.type || a._type || a.role)) types.push(a.type || a._type || a.role); });
         }
@@ -80,18 +82,20 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
     });
 
     console.log('Requested spawnCount result:', spawnCount);
-    // wait for ants array to be populated after spawn attempts
+    // wait for spatial grid to have ants after spawn attempts
     try {
-      await page.waitForFunction(() => Array.isArray(window.ants) && window.ants.length > 0, { timeout: 5000 });
+      await page.waitForFunction(() => typeof spatialGridManager !== 'undefined' && spatialGridManager && spatialGridManager.getEntityCountByType('Ant') > 0, { timeout: 5000 });
     } catch (e) {
-      console.warn('ants array not populated after spawn attempts; continuing to collect whatever exists');
+      console.warn('spatial grid not populated with ants after spawn attempts; continuing to collect whatever exists');
     }
     await (page.waitForTimeout ? page.waitForTimeout(400) : sleep(400));
 
     // Collect ants and attempt to categorize their types
     const antsInfo = await page.evaluate(() => {
       try {
-        const antArray = (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants : (typeof window.ants !== 'undefined' && Array.isArray(window.ants) ? window.ants : []);
+        const antArray = (typeof spatialGridManager !== 'undefined' && spatialGridManager) 
+          ? spatialGridManager.getEntitiesByType('Ant') 
+          : [];
         if (!antArray || !antArray.length) return [];
         return antArray.map(a => ({ idx: a._antIndex || a.antIndex || null, type: a.type || a._type || a.role || null, isQueen: !!a.isQueen || !!a._isQueen || (a.constructor && a.constructor.name && a.constructor.name.toLowerCase().includes('queen')) }));
       } catch (e) { return { error: '' + e }; }

@@ -76,7 +76,7 @@ const cameraHelper = require('./camera_helper');
         return testResults;
       }
       
-      const initialAntCount = spatialGridManager.getEntityCountByType('Ant'); // Capital 'Ant' to match model.type
+      const initialAntCount = spatialGridManager.getEntityCountByType('Ant') || 0;
       testResults.details.initialAntCount = initialAntCount;
       
       // Create a test ant using factory (auto-registers by default)
@@ -86,68 +86,13 @@ const cameraHelper = require('./camera_helper');
         autoRegister: true
       });
       
-      // Debug: Check what was returned
-      testResults.details.antStructure = {
-        hasModel: !!testAnt.model,
-        hasView: !!testAnt.view,
-        hasController: !!testAnt.controller,
-        modelType: testAnt.model ? testAnt.model.type : 'none',
-        modelTypeCapitalized: testAnt.model ? testAnt.model.type : 'none',
-        modelHasGetX: testAnt.model && typeof testAnt.model.getX === 'function',
-        modelHasGetY: testAnt.model && typeof testAnt.model.getY === 'function',
-        modelHasGetPosition: testAnt.model && typeof testAnt.model.getPosition === 'function',
-        modelPosX: testAnt.model ? testAnt.model.posX : 'none',
-        modelPosY: testAnt.model ? testAnt.model.posY : 'none'
-      };
-      
-      // Try manually calling addEntity and checking result
-      if (testAnt.model) {
-        try {
-          // Check type BEFORE adding
-          testResults.details.modelTypeBeforeAdd = testAnt.model.type;
-          testResults.details.modelTypeViaGetter = typeof testAnt.model.type;
-          testResults.details.modelTypeProperty = Object.prototype.hasOwnProperty.call(testAnt.model, 'type');
-          testResults.details.modelPrivateType = testAnt.model._type;
-          
-          const addResult = spatialGridManager.addEntity(testAnt.model);
-          testResults.details.manualAddResult = addResult;
-          testResults.details.countAfterManualAdd = spatialGridManager.getEntityCountByType('Ant');
-          
-          // Check all entities
-          testResults.details.totalEntitiesInGrid = spatialGridManager.getEntityCount();
-          testResults.details.allEntities = spatialGridManager.getAllEntities().map(e => ({
-            type: e.type,
-            _type: e._type,
-            hasType: Object.prototype.hasOwnProperty.call(e, 'type'),
-            has_Type: Object.prototype.hasOwnProperty.call(e, '_type')
-          }));
-          
-          // Check the type map
-          testResults.details.typeMapKeys = Array.from(spatialGridManager._entitiesByType.keys());
-        } catch (e) {
-          testResults.details.manualAddError = e.message + ' | ' + e.stack;
-        }
-      }
-      
-      // Try getting position to verify model works
-      if (testAnt.model && typeof testAnt.model.getPosition === 'function') {
-        try {
-          const pos = testAnt.model.getPosition();
-          testResults.details.modelPosition = { x: pos.x, y: pos.y };
-        } catch (e) {
-          testResults.details.modelPositionError = e.message;
-        }
-      }
-      
-      // Check if spatialGridManager has the methods we need
-      testResults.details.spatialGridMethods = {
-        hasAddEntity: typeof spatialGridManager.addEntity === 'function',
-        hasGetEntityCountByType: typeof spatialGridManager.getEntityCountByType === 'function',
-        hasGetNearbyEntities: typeof spatialGridManager.getNearbyEntities === 'function'
-      };
+      // Verify MVC structure
+      testResults.details.hasModel = !!testAnt.model;
+      testResults.details.hasView = !!testAnt.view;
+      testResults.details.hasController = !!testAnt.controller;
       
       // Verify ant model was added to spatial grid (single source of truth)
-      const afterFactoryAntCount = spatialGridManager.getEntityCountByType('Ant'); // Capital 'Ant'
+      const afterFactoryAntCount = spatialGridManager.getEntityCountByType('Ant');
       testResults.details.afterFactoryAntCount = afterFactoryAntCount;
       
       if (afterFactoryAntCount !== initialAntCount + 1) {
@@ -157,9 +102,10 @@ const cameraHelper = require('./camera_helper');
       
       // Verify ant model is findable in spatial grid by position
       const nearbyEntities = spatialGridManager.getNearbyEntities(200, 200, 50);
-      const foundInSpatialGrid = nearbyEntities.some(e => 
-        Math.abs(e.posX - 200) < 5 && Math.abs(e.posY - 200) < 5 && e.type === 'Ant' // Capital 'Ant'
-      );
+      const foundInSpatialGrid = nearbyEntities.some(e => {
+        const pos = e.getPosition ? e.getPosition() : { x: e.getX ? e.getX() : 0, y: e.getY ? e.getY() : 0 };
+        return Math.abs(pos.x - 200) < 5 && Math.abs(pos.y - 200) < 5 && e.type === 'Ant';
+      });
       
       testResults.details.foundInSpatialGrid = foundInSpatialGrid;
       

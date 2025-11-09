@@ -162,20 +162,28 @@ class EntityRenderer {
   }
   
   /**
-   * Collect ant entities
+   * Collect ant entities from spatial grid (MVC architecture)
    */
   collectAnts(gameState) {
-    for (let i = 0; i < ants.length; i++) {
-      if (ants[i]) {
-        const ant = ants[i];
+    // Get all ants from spatial grid
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) return;
+    
+    const allAnts = spatialGridManager.getEntitiesByType('Ant');
+    
+    for (const antMVC of allAnts) {
+      if (antMVC && antMVC.model) {
         this.stats.totalEntities++;
         
-        if (this.shouldRenderEntity(ant)) {
+        // Use the model for rendering data
+        if (this.shouldRenderEntity(antMVC.model)) {
           const entityData = {
-            entity: ant,
+            entity: antMVC,  // Store full MVC object
+            model: antMVC.model,
+            view: antMVC.view,
+            controller: antMVC.controller,
             type: 'ant',
-            depth: this.getEntityDepth(ant),
-            position: this.getEntityPosition(ant)
+            depth: this.getEntityDepth(antMVC.model),
+            position: this.getEntityPosition(antMVC.model)
           };
           this.renderGroups.ANTS.push(entityData);
         } else {
@@ -184,45 +192,65 @@ class EntityRenderer {
       }
     }
     
-    // Update ants if in playing state  
-    if (gameState === 'PLAYING' && antsUpdate) {
-      antsUpdate();
+    // Update ants if in playing state
+    if (gameState === 'PLAYING') {
+      // MVC ants update through their controllers in the main game loop
+      // No separate antsUpdate() call needed
     }
   }
   
   /**
-   * Collect other entities (expandable for future entity types)
+   * Collect other entities from spatial grid (buildings, NPCs, etc.)
    */
   collectOtherEntities(gameState) {
-    // Collect buildings
-    if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
-      for (const building of Buildings) {
-        if (building) {
-          this.stats.totalEntities++;
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) return;
+    
+    // Collect buildings from spatial grid
+    const allBuildings = spatialGridManager.getEntitiesByType('Building');
+    for (const building of allBuildings) {
+      if (building) {
+        this.stats.totalEntities++;
+        
+        if (this.shouldRenderEntity(building)) {
+          this.renderGroups.BACKGROUND.push({
+            entity: building,
+            type: 'building',
+            depth: this.getEntityDepth(building),
+            position: this.getEntityPosition(building)
+          });
           
-          if (this.shouldRenderEntity(building)) {
-            this.renderGroups.BACKGROUND.push({
-              entity: building,
-              type: 'building',
-              depth: this.getEntityDepth(building),
-              position: this.getEntityPosition(building)
-            });
-            
-            // Update building if in playing state
-            if (gameState === 'PLAYING' && building.update) {
-              building.update();
-            }
-          } else {
-            this.stats.culledEntities++;
+          // Update building if in playing state
+          if (gameState === 'PLAYING' && typeof building.update === 'function') {
+            building.update();
           }
+        } else {
+          this.stats.culledEntities++;
         }
       }
     }
     
-    // Placeholder for additional entity types like:
-    // - Projectiles
-    // - Environmental objects
-    // - Particle effects
+    // Collect NPCs from spatial grid if they exist
+    const allNPCs = spatialGridManager.getEntitiesByType('NPC');
+    for (const npc of allNPCs) {
+      if (npc) {
+        this.stats.totalEntities++;
+        
+        if (this.shouldRenderEntity(npc)) {
+          this.renderGroups.BACKGROUND.push({
+            entity: npc,
+            type: 'npc',
+            depth: this.getEntityDepth(npc),
+            position: this.getEntityPosition(npc)
+          });
+          
+          if (gameState === 'PLAYING' && typeof npc.update === 'function') {
+            npc.update();
+          }
+        } else {
+          this.stats.culledEntities++;
+        }
+      }
+    }
   }
   
   /**
@@ -317,13 +345,26 @@ class EntityRenderer {
   }
   
   /**
-   * Standard rendering for entity groups
+   * Standard rendering for entity groups (MVC-aware)
    */
   renderEntityGroupStandard(entityGroup) {
     for (const entityData of entityGroup) {
       try {
-        if (entityData.entity && entityData.entity.render) {
-          // Start entity performance tracking
+        // Handle MVC objects (ants) - render via view
+        if (entityData.view && typeof entityData.view.render === 'function') {
+          if (g_performanceMonitor) {
+            g_performanceMonitor.startEntityRender(entityData.entity);
+          }
+          
+          entityData.view.render();
+          this.stats.renderedEntities++;
+          
+          if (g_performanceMonitor) {
+            g_performanceMonitor.endEntityRender();
+          }
+        }
+        // Handle legacy entities (resources, buildings) - render directly
+        else if (entityData.entity && typeof entityData.entity.render === 'function') {
           if (g_performanceMonitor) {
             g_performanceMonitor.startEntityRender(entityData.entity);
           }
@@ -331,7 +372,6 @@ class EntityRenderer {
           entityData.entity.render();
           this.stats.renderedEntities++;
           
-          // End entity performance tracking
           if (g_performanceMonitor) {
             g_performanceMonitor.endEntityRender();
           }
@@ -339,7 +379,6 @@ class EntityRenderer {
       } catch (error) {
         console.warn('EntityRenderer: Error rendering entity:', error);
         
-        // End tracking even on error
         if (g_performanceMonitor) {
           g_performanceMonitor.endEntityRender();
         }

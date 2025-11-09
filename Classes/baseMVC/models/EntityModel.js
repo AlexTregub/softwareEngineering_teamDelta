@@ -67,6 +67,14 @@ class EntityModel {
   }
 
   /**
+   * Get entity type (property accessor for SpatialGridManager)
+   * @returns {string} Entity type
+   */
+  get type() {
+    return this._type;
+  }
+
+  /**
    * Check if entity is active
    * @returns {boolean} Active state
    */

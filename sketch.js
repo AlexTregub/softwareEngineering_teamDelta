@@ -89,7 +89,7 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
+  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, selectables);
   window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
 
   // Ensure selection adapter is registered with RenderManager now that controller exists
@@ -888,13 +888,17 @@ function keyPressed() {
 
     // --- Queen Commands ---
   let playerQueen = getQueen();
-  if (typeof playerQueen !== "undefined" && playerQueen instanceof QueenAnt) {
+  if (playerQueen && playerQueen.controller) {
     if (key.toLowerCase() === 'r') {
-      playerQueen.emergencyRally();
+      if (typeof playerQueen.controller.emergencyRally === 'function') {
+        playerQueen.controller.emergencyRally();
+      }
       return;
     } 
     if (key.toLowerCase() === 'm') {
-      playerQueen.gatherAntsAt(mouseX, mouseY);
+      if (typeof playerQueen.controller.gatherAntsAt === 'function') {
+        playerQueen.controller.gatherAntsAt(mouseX, mouseY);
+      }
       return;
     }
   }
@@ -994,6 +998,38 @@ function getPrimarySelectedEntity() {
     return selectedAnt;
   }
 
+  return null;
+}
+
+/**
+ * getQueen
+ * --------
+ * Retrieves the player queen from the global queenAnt variable or finds it
+ * in the spatial grid. Returns the MVC object for the queen.
+ *
+ * @returns {Object|null} - The queen MVC object {model, view, controller}, or null if not found.
+ */
+function getQueen() {
+  // First check global queenAnt variable (set during initialization)
+  if (typeof queenAnt !== 'undefined' && queenAnt) {
+    return queenAnt;
+  }
+  
+  // Fallback: search spatial grid for queen ant
+  if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+    const allAnts = spatialGridManager.getEntitiesByType('Ant');
+    for (const ant of allAnts) {
+      // Check if this is a queen - look for QueenController
+      if (ant.controller && ant.controller.constructor && ant.controller.constructor.name === 'QueenController') {
+        return ant;
+      }
+      // Fallback: check for isQueen property on model
+      if (ant.model && (ant.model.isQueen || ant.model._isQueen)) {
+        return ant;
+      }
+    }
+  }
+  
   return null;
 }
 

@@ -36,7 +36,7 @@ const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
       hasMap: typeof g_map2 !== 'undefined',
       hasTerrain: window.g_map2 ? true : false,
       canvasExists: !!document.querySelector('canvas'),
-      hasAnts: typeof ants !== 'undefined',
+      hasAnts: typeof spatialGridManager !== 'undefined' && spatialGridManager && spatialGridManager.getEntityCountByType('Ant') > 0,
       hasP5: typeof p5 !== 'undefined',
       hasSetup: typeof setup !== 'undefined',
       hasDraw: typeof draw !== 'undefined'

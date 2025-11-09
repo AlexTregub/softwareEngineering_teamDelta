@@ -372,7 +372,7 @@ class SpatialGridManager {
    */
   getEntityCountByType(type) {
     const typeSet = this._entitiesByType.get(type);
-    return typeSet ? typeSet.size : 0;
+    return typeSet ? typeSet.length : 0;
   }
 
   /**
@@ -397,10 +397,13 @@ class SpatialGridManager {
 
     // Remove from type tracking
     if (entity.type) {
-      const typeSet = this._entitiesByType.get(entity.type);
-      if (typeSet) {
-        typeSet.delete(entity);
-        if (typeSet.size === 0) {
+      const typeArray = this._entitiesByType.get(entity.type);
+      if (typeArray) {
+        const typeIndex = typeArray.indexOf(entity);
+        if (typeIndex !== -1) {
+          typeArray.splice(typeIndex, 1);
+        }
+        if (typeArray.length === 0) {
           this._entitiesByType.delete(entity.type);
         }
       }
