@@ -217,19 +217,27 @@ class gridTerrain {
     }
 
     //// Utils
-    convRelToAccess(pos) { // Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
+    // Now converts grid position -> chunk (0,0 indexed) + relative (0,0 indexed), 2d format.
+    convRelToAccess(pos) { // DISCONTINUED: Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
+        return this.convArrToAccess(
+            [
+                pos[0] - this._tileSpan[0][0],
+                pos[1] - this._tileSpan[0][1]
+            ]
+        )
+        
         // let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize)-1;
-        let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize); // Not even I know why this works
-        let chunkY = pos[1]%this._chunkSize == 0 ? pos[1]/this._chunkSize : floor(pos[1]/this._chunkSize);
+        // let chunkX = pos[0]%this._chunkSize == 0 ? pos[0]/this._chunkSize : floor(pos[0]/this._chunkSize); // Not even I know why this works
+        // let chunkY = pos[1]%this._chunkSize == 0 ? pos[1]/this._chunkSize : floor(pos[1]/this._chunkSize);
 
-        let relX = pos[0] - chunkX*this._chunkSize;
-        // let relY = chunkY*this._chunkSize - pos[1];
-        let relY = pos[0] - chunkY*this._chunkSize;
+        // let relX = pos[0] - chunkX*this._chunkSize;
+        // // let relY = chunkY*this._chunkSize - pos[1];
+        // let relY = pos[0] - chunkY*this._chunkSize;
 
-        return [
-            [chunkX,chunkY],
-            [relX,relY]
-        ]
+        // return [
+        //     [chunkX,chunkY],
+        //     [relX,relY]
+        // ]
     }
 
     convArrToAccess(pos) { // Converts legacy array position -> chunk (0,0 indexed) + relative, 2d format.
@@ -265,21 +273,33 @@ class gridTerrain {
     // Assumes indexed from TL position (_tileSpan[0])
     get(relPos) {
         let access = this.convRelToAccess(relPos);
-        let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
+        let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
+
+        console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
+
+        return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
         // CONVERSIONS HAVE FAILED?
         // logNormal(access)
         // logNormal(this.chunkArray.convRelToArrPos(access[0]))
         // logNormal(chunkRawAccess)
-        return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
+        // return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
     }
 
     set(relPos,obj) {
         let access = this.convRelToAccess(relPos);
-        let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
+        let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
+        // let chunkRawAccess = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos(access[0]));
 
         return this.chunkArray.rawArray[chunkRawAccess].setArrPos(access[1],obj);
+        // return this.chunkArray.rawArray[chunkRawAccess].setArrPos(access[1],obj);
     }
+
+    // Material config
+    setMat(relPos,type) { // SET BY REFERENCE
+        return this.get(relPos).setMaterial(type);
+    }
+
 
 
     //// Rendering (+ pipeline)
@@ -638,14 +658,40 @@ class gridTerrain {
         //     }
         // }
 
-        for (let i = 0; i < this.chunkArray.rawArray.length; ++i) {
-            // console.log(i)
-            this.chunkArray.rawArray[i].render(converter) // Render ALL
-            ++chunksRendered
+        // Render all tiles    
+        // for (let i = 0; i < this.chunkArray.rawArray.length; ++i) {
+        //     // console.log(i)
+        //     this.chunkArray.rawArray[i].render(converter) // Render ALL
+        //     ++chunksRendered
+        // }
+
+        // let viewSpan = converter.getViewSpan()
+        // Chunk accesses...
+        let tl = this.convRelToAccess(viewSpan[0])[0]
+        let br = this.convRelToAccess(viewSpan[1])[0]
+        // console.log(tl,br)
+
+        for (let y = tl[1]; y <= br[1]; ++y) {
+            for (let x = tl[0]; x <= br[0]; ++x) {
+                // console.log(this.chunkArray.convToFlat([x,y]))
+                // console.log(this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])])
+                // this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+
+                this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+                ++chunksRendered
+            }
         }
+
+        // for (let y = floor(tl[]); y < ceil(viewSpan[1][1]); ++y) {
+        //     for (let x = floor(viewSpan[0][0]); x < ceil(viewSpan[1][0]); ++x) {
+        //         // this.get([x,y]).render(converter)
+        //         // ++chunksRendered
+        //     }
+        // }
+
         
         // Use same dynamic chunk buffer as cache rendering for consistency
-        const CHUNK_BUFFER = this._calculateChunkBuffer();
+        // const CHUNK_BUFFER = this._calculateChunkBuffer();
         
         // let chunkSpan = [ // WHY DOES IT DELETE INSTEAD OF COMMENT. WHY GOD WHY
         //     [ // -x,+y TL - Expand outward by buffer amount with bounds checking
@@ -1073,7 +1119,7 @@ function TEST_CAM_RENDER_CONVERTER() {
     return 1
 }
 
-function TEST_BASIC_TERRAIN() { // Terrain - rendering pipeline bs
+function TEST_BASIC_TERRAIN() { // Terrain - rendering pipeline bs (UNFINISHED)
     console.log("=============== TEST_TERRAIN-BASIC RUN:")
     // let terrain = new gridTerrain(2,2,0,2,TILE_SIZE,[windowWidth,windowHeight])
 
@@ -1089,6 +1135,27 @@ function TEST_BASIC_TERRAIN() { // Terrain - rendering pipeline bs
     terrain.setGridToCenter()
     terrain.renderDirect() 
     // terrain.alignToCanvas()
+
+    // Set (0,0) to farmland. (Should be centered on screen)
+    
+    terrain.get([0,0]).materialSet = 'farmland'
+
+    const temp = terrain.get([0,0])
+    // temp.materialSet = 'sand'
+    temp.setMaterial('farmland')
+
+    // Set by reference, Im too lazy to copy tiles... Yup. New functions being made...
+    terrain.get([0,0]).setMaterial('sand')
+
+    // terrain.set([0,0],(new Tile(-0.5,-0.5,TILE_SIZE)).materialSet='stone')
+
+    terrain.setMat([0,0],'farmland') // Working...
+
+    const temp1 = terrain.get([0,0])
+
+    terrain.renderDirect()   
+    terrain.renderConversion.setCenterPos([20,5])
+    terrain.renderDirect()
 
     console.log("TEST_TERRAIN-BASIC END ===============")
     return 1
