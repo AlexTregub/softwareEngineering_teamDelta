@@ -4,7 +4,6 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
-let COORDSY;
 
 const NONE = '\0'; 
 
@@ -40,7 +39,11 @@ let cameraManager;
 let terrariaFont;
 
 function preload(){
+  // return; // !!! REMOVE BEFORE DEV
+
   terrainPreloader();
+
+  // return
   soundManagerPreload();
   resourcePreLoad();
   preloadPauseImages();
@@ -55,6 +58,32 @@ function preload(){
 
 
 function setup() {
+  createCanvas(windowWidth,windowHeight) 
+
+  if (!TEST_GRID()) {
+    console.log("GRID MALFORMED.")
+    return
+  } 
+
+  // square(0,0,100)
+  // image(GRASS_IMAGE,0,0,32,32)
+  // square(10,10,100)
+
+  if (!TEST_CHUNK()) {
+    console.log("CHUNK MALFORMED.")
+    // TEST_CHUNK()
+  }
+
+  if (!TEST_CAM_RENDER_CONVERTER()){
+    console.log("CAMERA RENDER CONVERTER MALFORMED.")
+  }
+
+  if (!TEST_BASIC_TERRAIN()) {
+    console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
+  }
+ 
+  // return; // !!! REMOVE BEFORE DEV
+
   // Initialize TaskLibrary before other systems that depend on it
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
   logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
@@ -259,19 +288,20 @@ function initializeWorld() {
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
+
+  // g_map2.setMat([0,0],'farmland')
   
   // IMPORTANT: Set g_activeMap immediately after g_map2 creation
   g_activeMap = g_map2;
+
+  g_activeMap.setMat([0,0],'farmland')
   
   // Register with MapManager (which will also update g_activeMap)
   if (typeof mapManager !== 'undefined') {
     mapManager.registerMap('level1', g_map2, true);
     logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
-  
-  // COORDSY = new CoordinateSystem();
-  // COORDSY.setViewCornerBC(0,0);
-  
+     
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
   
@@ -297,6 +327,8 @@ function initializeWorld() {
  */
 
 function draw() {
+  // TEST_CHUNK()
+  // return
   // ============================================================
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
   // ============================================================

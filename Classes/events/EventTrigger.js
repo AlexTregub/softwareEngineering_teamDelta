@@ -443,13 +443,13 @@ class ViewportSpawnTrigger extends EventTrigger {
     
     if (mapManager && mapManager.renderConversion && mapManager.renderConversion.getViewSpan) {
       const viewSpan = mapManager.renderConversion.getViewSpan();
-      // viewSpan returns [[minX, maxY], [maxX, minY]]
-      // viewSpan[0] = [minX, maxY], viewSpan[1] = [maxX, minY]
+      // viewSpan returns [[minX, minY], [maxX, maxY]]
+      // viewSpan[0] = [minX, minY], viewSpan[1] = [maxX, maxY]
       return {
         minX: viewSpan[0][0],
         maxX: viewSpan[1][0],
-        minY: viewSpan[1][1],
-        maxY: viewSpan[0][1]
+        minY: viewSpan[0][1], // Flipped axis, now back...
+        maxY: viewSpan[1][1]
       };
     }
     
