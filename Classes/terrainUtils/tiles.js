@@ -107,42 +107,109 @@ function renderMaterialToContext(materialName, x, y, size, context) {
   
   // Known material mappings (based on TERRAIN_MATERIALS_RANGED above)
   switch (materialName) {
+    case 'dirt':
+    case 'dirt_1':
+      if (DIRT_IMAGE) {
+        ctx.image(DIRT_IMAGE,x,y,size,size)
+      }
+      break;
     case 'moss':
     case 'moss_1':
+    case 'moss_2':
+    case 'moss_3':
+    case 'moss_4':
       if (MOSS_IMAGE) {
-        ctx.image(MOSS_IMAGE, x, y, size, size);
+        ctx.image(MOSS_IMAGE,x,y,size,size)
       }
-      break;
-      
+      break
     case 'stone':
+    case 'stone_1':
+    case 'stone_2':
+    case 'stone_3':
       if (STONE_IMAGE) {
-        ctx.image(STONE_IMAGE, x, y, size, size);
+        ctx.image(STONE_IMAGE,x,y,size,size)
       }
-      break;
-      
-    case 'dirt':
-      if (DIRT_IMAGE) {
-        ctx.image(DIRT_IMAGE, x, y, size, size);
+      break
+    case 'water_cave':
+      if (WATER_CAVE) {
+        ctx.image(WATER_CAVE,x,y,size,size)
       }
-      break;
-      
-    case 'grass':
-      if (GRASS_IMAGE) {
-        ctx.image(GRASS_IMAGE, x, y, size, size);
+      break
+    case 'water':
+      if (WATER) {
+        ctx.image(WATER,x,y,size,size)
       }
-      break;
-
+      break
+    case 'sand_dark':
+      if (SAND_DARK_IMAGE) {
+        ctx.image(SAND_DARK_IMAGE,x,y,size,size)
+      }
+      break
+    case 'sand':
+      if (SAND_IMAGE) {
+        ctx.image(SAND_IMAGE,x,y,size,size)
+      }
+      break
     case 'farmland':
       if (FARMLAND_IMAGE) {
-        ctx.image(FARMLAND_IMAGE,x,y,size,size);
+        ctx.image(FARMLAND_IMAGE,x,y,size,size)
       }
-      break;
-      
+      break
+    case 'cave_dirt':
+      if (CAVE_DIRT_IMAGE) {
+        ctx.image(CAVE_DIRT_IMAGE,x,y,size,size)
+      }
+      break
+    case 'cave_dark':
+      if (CAVE_EXDARK_IMAGE) {
+        ctx.image(CAVE_EXDARK_IMAGE,x,y,size,size)
+      }
+      break
+    
     default:
       // Unknown material - use default grass appearance
       if (GRASS_IMAGE) {
         ctx.image(GRASS_IMAGE, x, y, size, size);
       }
+      break
+    
+    // LEGACY
+    // case 'moss':
+    // case 'moss_1':
+    //   if (MOSS_IMAGE) {
+    //     ctx.image(MOSS_IMAGE, x, y, size, size);
+    //   }
+    //   break;
+      
+    // case 'stone':
+    //   if (STONE_IMAGE) {
+    //     ctx.image(STONE_IMAGE, x, y, size, size);
+    //   }
+    //   break;
+      
+    // case 'dirt':
+    //   if (DIRT_IMAGE) {
+    //     ctx.image(DIRT_IMAGE, x, y, size, size);
+    //   }
+    //   break;
+      
+    // case 'grass':
+    //   if (GRASS_IMAGE) {
+    //     ctx.image(GRASS_IMAGE, x, y, size, size);
+    //   }
+    //   break;
+
+    // case 'farmland':
+    //   if (FARMLAND_IMAGE) {
+    //     ctx.image(FARMLAND_IMAGE,x,y,size,size);
+    //   }
+    //   break;
+      
+    // default:
+    //   // Unknown material - use default grass appearance
+    //   if (GRASS_IMAGE) {
+    //     ctx.image(GRASS_IMAGE, x, y, size, size);
+    //   }
   }
 }
 

@@ -296,6 +296,10 @@ class gridTerrain {
     }
 
     // Material config
+    getMat(relPos) {
+        return  this.get(relPos).getMaterial();
+    }
+    
     setMat(relPos,type) { // SET BY REFERENCE
         return this.get(relPos).setMaterial(type);
     }
@@ -452,24 +456,27 @@ class gridTerrain {
         
         // Dynamic chunk buffer - render more chunks when zoomed out for smoother scrolling
         // Add +1 to ensure we cover edges when using imageMode(CENTER)
-        const CHUNK_BUFFER = this._calculateChunkBuffer() + 1;
+        // const CHUNK_BUFFER = this._calculateChunkBuffer() + 1;
         
         // Use ceil for TL to ensure we capture partial chunks on the edges
         // Use floor for BR to ensure we capture partial chunks on the edges
-        let chunkSpan = [
-            [ // -x,+y TL - Expand outward by buffer amount with bounds checking
-                Math.max(this._gridSpanTL[0], Math.floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
-                Math.min(this._gridSpanTL[1], Math.ceil(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
-            ],
-            [ // +x,-y BR - Expand outward by buffer amount with bounds checking
-                Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, Math.ceil(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
-                Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, Math.floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
-            ]
-        ];
+        // let chunkSpan = [
+        //     [ // -x,+y TL - Expand outward by buffer amount with bounds checking
+        //         Math.max(this._gridSpanTL[0], Math.floor(viewSpan[0][0]/this._chunkSize) - CHUNK_BUFFER),
+        //         Math.min(this._gridSpanTL[1], Math.ceil(viewSpan[0][1]/this._chunkSize) + CHUNK_BUFFER)
+        //     ],
+        //     [ // +x,-y BR - Expand outward by buffer amount with bounds checking
+        //         Math.min(this._gridSpanTL[0] + this._gridSizeX - 1, Math.ceil(viewSpan[1][0]/this._chunkSize) + CHUNK_BUFFER),
+        //         Math.max(this._gridSpanTL[1] - this._gridSizeY + 1, Math.floor(viewSpan[1][1]/this._chunkSize) - CHUNK_BUFFER)
+        //     ]
+        // ];
+
+        let tl = this.convRelToAccess(viewSpan[0])[0]
+        let br = this.convRelToAccess(viewSpan[1])[0]
 
         // Copied from renderDirect().
-        for (let y = chunkSpan[1][1]; y <= chunkSpan[0][1]; ++y) {
-            for (let x = chunkSpan[0][0]; x <= chunkSpan[1][0]; ++x) { // Potentially works with < , not necessarily correct.
+        for (let y = tl[1]; y <= br[1]; ++y) {
+            for (let x = tl[0]; x <= br[0]; ++x) { // Potentially works with < , not necessarily correct.
                 // this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
                 
                 let chunkAccessPos = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]));
