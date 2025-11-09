@@ -299,18 +299,10 @@ class SpatialGridManager {
    */
   rebuildGrid() {
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.logNormal === 'function') {
-      globalObj.logNormal('SpatialGridManager: Rebuilding spatial grid...');
-    }
-
     this._grid.clear();
     
     for (const entity of this._allEntities) {
       this._grid.addEntity(entity);
-    }
-
-    if (globalObj && typeof globalObj.logNormal === 'function') {
-      globalObj.logNormal(`SpatialGridManager: Rebuilt grid with ${this._allEntities.length} entities`);
     }
   }
 

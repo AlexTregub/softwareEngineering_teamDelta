@@ -223,8 +223,11 @@ function renderPerformanceMonitorContent(contentArea, style) {
     text(`Frame Time: ${frameTime}ms`, contentArea.x, contentArea.y + yOffset);
     yOffset += lineHeight;
     
-    // Entity counts
-    const entityCount = (typeof ants !== 'undefined') ? ants.length : 0;
+    // Entity counts (from spatial grid)
+    let entityCount = 0;
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      entityCount = spatialGridManager.getEntityCountByType('ant');
+    }
     text(`Entities: ${entityCount} total`, contentArea.x, contentArea.y + yOffset);
     yOffset += lineHeight;
     

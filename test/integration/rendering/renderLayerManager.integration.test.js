@@ -290,12 +290,6 @@ describe('RenderLayerManager Integration Tests', function() {
                 renderCallOrder.push('crosshair');
             }
         };
-
-        window.g_coordinateDebugOverlay = {
-            render: () => {
-                renderCallOrder.push('coordDebug');
-            }
-        };
     }
 
     /**

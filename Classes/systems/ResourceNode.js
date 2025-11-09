@@ -213,7 +213,7 @@ class ResourceNode extends Entity {
     const TILE_SIZE = typeof window !== 'undefined' && window.TILE_SIZE ? window.TILE_SIZE : 32;
     const spawnRadiusPixels = this.spawnRadius * TILE_SIZE;
     
-    // Check if spatial grid manager is available
+    // Use spatial grid manager for efficient proximity queries
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
       const entities = spatialGridManager.getNearbyEntities(
         this.getPosition().x,
@@ -227,16 +227,8 @@ class ResourceNode extends Entity {
       return this._filterGatheringAnts(entities);
     }
     
-    // Fallback to global ants array if spatial grid not available
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-      const nearbyAnts = ants.filter(ant => {
-        if (!ant || !ant.isActive) return false;
-        return this.isAntInRange(ant);
-      });
-      
-      return this._filterGatheringAnts(nearbyAnts);
-    }
-    
+    // No spatial grid available - return empty array
+    console.warn('ResourceNode: spatialGridManager not available for ant detection');
     return [];
   }
 

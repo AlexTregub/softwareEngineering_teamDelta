@@ -203,11 +203,14 @@ function renderAntControlPanelContent(panel, x, y, width, height) {
   }
 
   // Show selected ants count
-  if (ants && AntUtilities) {
-    const selectedCount = AntUtilities.getSelectedAnts(ants).length;
-    fill(...COLOR_SELECTED_ANTS);
-    text(`Selected: ${selectedCount}`, x, currentY + buttonHeight + 10);
+  let selectedCount = 0;
+  if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController && 
+      typeof g_selectionBoxController.getSelectedEntities === 'function') {
+    const selected = g_selectionBoxController.getSelectedEntities() || [];
+    selectedCount = selected.length;
   }
+  fill(...COLOR_SELECTED_ANTS);
+  text(`Selected: ${selectedCount}`, x, currentY + buttonHeight + 10);
 }
 
 /**
@@ -242,13 +245,16 @@ function renderJobSpawnButton(jobName, x, y, w, h) {
   textAlign(CENTER, CENTER);
   text(jobName, x + w/2, y + h/2);
 
-  // Handle click
-  if (isHovered && mouseIsPressed && typeof AntUtilities !== 'undefined') {
+  // Handle click - spawn using AntFactory
+  if (isHovered && mouseIsPressed && typeof AntFactory !== 'undefined') {
     const spawnX = mouseX + 50; // Spawn near cursor
     const spawnY = mouseY + 50;
     const currentFaction = getSelectedFaction();
     
-    AntUtilities.spawnAnt(spawnX, spawnY, jobName, currentFaction);
+    AntFactory.createAnt(spawnX, spawnY, {
+      faction: currentFaction,
+      job: jobName
+    });
     logNormal(`Spawned ${jobName} ant with faction ${currentFaction}`);
   }
 }
@@ -285,19 +291,15 @@ function renderEnemySpawnButton(buttonText, x, y, w, h) {
   textAlign(CENTER, CENTER);
   text(buttonText, x + w/2, y + h/2);
 
-  // Handle click - spawn enemy ant with red ant image if available
-  if (isHovered && mouseIsPressed && typeof AntUtilities !== 'undefined') {
+  // Handle click - spawn enemy ant using AntFactory
+  if (isHovered && mouseIsPressed && typeof AntFactory !== 'undefined') {
     const spawnX = mouseX + 50; // Spawn near cursor
     const spawnY = mouseY + 50;
     
-    // Try to use brown ant image for enemies (available from the preloader)
-    let enemyImage = null;
-    if (typeof JobImages !== 'undefined') {
-      // Check for brown ant or blue ant images that are loaded
-      enemyImage = JobImages['Farmer'] || JobImages['Builder'] || JobImages['Warrior']; // Farmer uses brown, Builder uses blue
-    }
-    
-    AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy", enemyImage);
+    AntFactory.createAnt(spawnX, spawnY, {
+      faction: 'enemy',
+      job: 'Warrior'
+    });
     logNormal(`Spawned Enemy Warrior ant at (${spawnX}, ${spawnY})`);
   }
 }
@@ -381,25 +383,44 @@ function renderStateButton(stateName, x, y, w, h) {
   textAlign(CENTER, CENTER);
   text(stateName, x + w/2, y + h/2);
 
-  // Handle click
-  if (isHovered && mouseIsPressed && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
-    switch(stateName) {
-      case 'IDLE':
-        AntUtilities.setSelectedAntsIdle(ants);
-        break;
-      case 'GATHER':
-        AntUtilities.setSelectedAntsGathering(ants);
-        break;
-      case 'PATROL':
-        AntUtilities.setSelectedAntsPatrol(ants);
-        break;
-      case 'COMBAT':
-        AntUtilities.setSelectedAntsCombat(ants);
-        break;
-      case 'BUILD':
-        AntUtilities.setSelectedAntsBuilding(ants);
-        break;
+  // Handle click - change state of selected ants
+  if (isHovered && mouseIsPressed) {
+    // Get selected entities from SelectionBoxController
+    let selected = [];
+    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController && 
+        typeof g_selectionBoxController.getSelectedEntities === 'function') {
+      selected = g_selectionBoxController.getSelectedEntities() || [];
     }
+    
+    if (selected.length === 0) {
+      console.warn('⚠️ No entities selected for state change');
+      return;
+    }
+    
+    // Apply state change to each selected entity
+    selected.forEach(entity => {
+      if (!entity || !entity.stateMachine) return;
+      
+      switch(stateName) {
+        case 'IDLE':
+          entity.stateMachine.setState('IDLE');
+          break;
+        case 'GATHER':
+          entity.stateMachine.setState('GATHERING');
+          break;
+        case 'PATROL':
+          entity.stateMachine.setState('PATROLLING');
+          break;
+        case 'COMBAT':
+          entity.stateMachine.setState('COMBAT');
+          break;
+        case 'BUILD':
+          entity.stateMachine.setState('BUILDING');
+          break;
+      }
+    });
+    
+    logNormal(`Set ${selected.length} entity(ies) to ${stateName}`);
   }
 }
 

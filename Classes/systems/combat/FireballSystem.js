@@ -113,18 +113,24 @@ class Fireball {
    * Check for collisions with ants
    */
   checkAntCollisions() {
-    if (typeof ants === 'undefined' || !Array.isArray(ants)) return;
+    // Use spatial grid for efficient collision detection
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) return;
 
-    for (const ant of ants) {
-      if (!ant || !ant.isActive || ant.health <= 0) continue;
+    // Get nearby entities within collision radius
+    const nearbyEntities = spatialGridManager.getNearbyEntities(this.x, this.y, this.collisionRadius);
+    
+    for (const entity of nearbyEntities) {
+      // Check if entity is an ant
+      if (!entity || entity.type !== 'Ant') continue;
+      if (!entity.isActive || entity.health <= 0) continue;
 
-      const antPos = ant.getPosition();
+      const entityPos = entity.getPosition();
       const distance = Math.sqrt(
-        (this.x - antPos.x) ** 2 + (this.y - antPos.y) ** 2
+        (this.x - entityPos.x) ** 2 + (this.y - entityPos.y) ** 2
       );
 
       if (distance <= this.collisionRadius) {
-        this.hitAnt(ant);
+        this.hitAnt(entity);
         return;
       }
     }

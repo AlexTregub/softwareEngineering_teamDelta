@@ -75,9 +75,91 @@ class LightningManager {
     logNormal('⚡ Lightning system initialized');
   }
 
+  /**
+   * Get all ants within a radius of a point (using spatial grid)
+   * @private
+   * @param {number} x - Center X position
+   * @param {number} y - Center Y position
+   * @param {number} radius - Radius in pixels
+   * @returns {Array} Array of ant entities within radius
+   */
+  _getAntsInRadius(x, y, radius) {
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) {
+      console.warn('⚠️ spatialGridManager not available for lightning AoE');
+      return [];
+    }
+
+    const nearbyEntities = spatialGridManager.getNearbyEntities(x, y, radius);
+    const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
+
+    return nearbyEntities.filter(entity => {
+      // Check if entity is an ant
+      if (!entity || entity.type !== 'Ant') return false;
+      if (!entity.isActive) return false;
+
+      // Skip the player queen (no friendly fire)
+      if (entity === playerQueen || entity.jobName === 'Queen' || entity.job === 'Queen') return false;
+
+      // Check actual distance (spatial grid returns approximate)
+      const pos = (typeof entity.getPosition === 'function') ? entity.getPosition() : { x: entity.x || 0, y: entity.y || 0 };
+      const distance = Math.hypot(pos.x - x, pos.y - y);
+      
+      return distance <= radius;
+    });
+  }
+
+  /**
+   * Apply area damage to all ants within radius
+   * @private
+   * @param {number} x - Center X position
+   * @param {number} y - Center Y position
+   * @param {number} damage - Damage amount
+   * @param {number} radiusTiles - Radius in tiles
+   * @param {Object} excludeAnt - Optional ant to exclude from damage
+   */
+  _applyAreaDamage(x, y, damage, radiusTiles, excludeAnt = null) {
+    try {
+      const aoeRadius = TILE_SIZE * radiusTiles;
+      const antsInRange = this._getAntsInRadius(x, y, aoeRadius);
+
+      logNormal(`⚡ AOE radius: ${aoeRadius}px, found ${antsInRange.length} ants in range`);
+
+      let hitCount = 0;
+      for (const ant of antsInRange) {
+        // Skip the main target if specified (already handled)
+        if (ant === excludeAnt) continue;
+
+        const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
+        const distance = Math.hypot(pos.x - x, pos.y - y);
+
+        // Apply damage
+        if (typeof ant.takeDamage === 'function') {
+          try {
+            ant.takeDamage(damage);
+            hitCount++;
+            logNormal(`  ⚡ AoE damaged ant at ${distance.toFixed(1)}px for ${damage} damage`);
+          } catch (e) {
+            console.warn(`  ⚠️ Failed to damage ant:`, e.message);
+          }
+        }
+
+        // Apply knockback
+        try {
+          this.applyKnockback(ant, x, y, this.knockbackPx);
+        } catch (e) {
+          // Ignore knockback errors
+        }
+      }
+
+      logNormal(`⚡ Total ants hit: ${hitCount}`);
+    } catch (e) {
+      console.error('❌ Error applying AoE damage:', e);
+    }
+  }
+
   strikeAtAnt(ant, damage = 50, radius = 3) {
     try {
-      if (!ant) {  return;  }
+      if (!ant) return;
 
       // Determine position
       const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
@@ -86,52 +168,21 @@ class LightningManager {
       const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
       const isPlayerQueen = (ant === playerQueen || ant.jobName === 'Queen' || ant.job === 'Queen');
 
-      // Visual flash / instantaneous strike effect - can be expanded
+      // Visual flash / instantaneous strike effect
       this.createFlash(pos.x, pos.y);
 
       // Deal damage to ant (skip if it's the player queen)
       if (!isPlayerQueen && typeof ant.takeDamage === 'function') {
         ant.takeDamage(damage);
-        logNormal(`⚡ Lightning struck ant ${ant._antIndex || ''} for ${damage} damage`);
-      } else if (isPlayerQueen) {
-        logNormal(`👑 Lightning skipped player queen (no friendly fire)`);
       } else {
         console.warn(`⚠️ Ant doesn't have takeDamage() method, skipping damage`);
       }
 
-      // Create explosion visuals (optional particle spawn)
+      // Create explosion visuals
       this.createExplosion(pos.x, pos.y);
 
-      // Damage nearby ants as well (area effect)
-      try {
-        const aoeRadius = TILE_SIZE * radius; // radius in tiles
-        const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          for (const other of ants) {
-            if (!other || !other.isActive) continue;
-            if (other === ant) continue; // already handled
-            // Skip the player queen
-            if (other === playerQueen || other.jobName === 'Queen' || other.job === 'Queen') continue;
-            const p = (typeof other.getPosition === 'function') ? other.getPosition() : { x: other.x || 0, y: other.y || 0 };
-            const d = Math.hypot(p.x - pos.x, p.y - pos.y);
-            if (d <= aoeRadius) {
-              // Apply damage to nearby ants
-              if (typeof other.takeDamage === 'function') {
-                try { 
-                  other.takeDamage(damage); 
-                  logNormal(`  ⚡ AoE damaged ant at ${d.toFixed(1)}px for ${damage} damage`);
-                } catch (e) { 
-                  console.warn(`  ⚠️ Failed to damage ant:`, e.message);
-                }
-              }
-              // apply a small knockback to nearby ants (visual feedback)
-              try { this.applyKnockback(other, pos.x, pos.y, this.knockbackPx); } catch (e) { /* ignore */ }
-            }
-          }
-        }
-      } catch (e) {
-        console.error('❌ Error applying AoE damage in strikeAtAnt:', e);
-      }
+      // Apply area damage (excluding the main target ant)
+      this._applyAreaDamage(pos.x, pos.y, damage, radius, ant);
 
       // Create a soot stain that fades
       const stain = new SootStain(pos.x, pos.y, 18 + Math.random() * 12, 6000 + Math.random() * 4000);
@@ -215,15 +266,62 @@ class LightningManager {
   }
 
   /**
-   * Request a strike while respecting cooldown. Returns true if strike executed.
+   * Find the best target for a lightning strike
+   * Priority: selected ant > nearest ant under mouse > null
+   * @returns {Object|null} Target ant entity or null
    */
-  requestStrike(targetAnt) {
+  findBestTarget() {
+    // 1. Try selected ant
+    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController && 
+        typeof g_selectionBoxController.getSelectedEntities === 'function') {
+      const selected = g_selectionBoxController.getSelectedEntities();
+      if (Array.isArray(selected) && selected.length > 0) {
+        // Prefer first ant entity
+        const targetAnt = selected.find(e => e && e.type === 'Ant') || selected[0];
+        if (targetAnt) return targetAnt;
+      }
+    }
+
+    // 2. Try nearest ant under mouse (spatial grid)
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      const radius = 80;
+      const nearbyEntities = spatialGridManager.getNearbyEntities(mouseX, mouseY, radius);
+      
+      // Find nearest active ant
+      let bestAnt = null;
+      let bestDist = Infinity;
+      for (const entity of nearbyEntities) {
+        if (!entity || entity.type !== 'Ant' || !entity.isActive) continue;
+        const pos = entity.getPosition();
+        const d = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+        if (d < bestDist) {
+          bestDist = d;
+          bestAnt = entity;
+        }
+      }
+      if (bestAnt) return bestAnt;
+    }
+
+    // 3. No valid target
+    return null;
+  }
+
+  /**
+   * Request a strike with automatic target selection. Returns true if strike executed.
+   * If no explicit target provided, uses findBestTarget() to select intelligently.
+   */
+  requestStrike(targetAnt = null) {
     const now = millis();
     if (now - this.lastStrikeTime < this.cooldown) {
       // On cooldown
       return false;
     }
     this.lastStrikeTime = now;
+
+    // Auto-select target if not provided
+    if (!targetAnt) {
+      targetAnt = this.findBestTarget();
+    }
 
     // Create a bolt animation (sky -> target) and schedule the actual strike at the impact moment
     const pos = (targetAnt && typeof targetAnt.getPosition === 'function') ? targetAnt.getPosition() : (targetAnt || { x: mouseX, y: mouseY });
@@ -273,48 +371,22 @@ class LightningManager {
   strikeAtPosition(x, y, damage = 50, radius = 3) {
     try {
       logNormal(`⚡ strikeAtPosition called at (${x.toFixed(1)}, ${y.toFixed(1)}) with radius ${radius} tiles, damage ${damage}`);
+      
       this.createFlash(x, y);
       this.createExplosion(x, y);
-      // Damage nearby ants (area effect)
-      try {
-        const aoeRadius = TILE_SIZE*radius;
-        const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
-        logNormal(`⚡ AOE radius: ${aoeRadius}px, checking ${typeof ants !== 'undefined' && Array.isArray(ants) ? ants.length : 0} ants`);
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let hitCount = 0;
-          for (const ant of ants) {
-            if (!ant || !ant.isActive) continue;
-            // Skip the player queen
-            if (ant === playerQueen || ant.jobName === 'Queen' || ant.job === 'Queen') continue;
-            const p = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
-            const d = Math.hypot(p.x - x, p.y - y);
-            if (d <= aoeRadius) {
-              hitCount++;
-              logNormal(`  ⚡ Hit ant at distance ${d.toFixed(1)}px (ant pos: ${p.x.toFixed(1)}, ${p.y.toFixed(1)})`);
-              try {
-                if (typeof ant.takeDamage === 'function') {
-                  ant.takeDamage(damage);
-                  logNormal(`    ✓ Dealt ${damage} damage to ant`);
-                } else {
-                  logNormal(`    ⚠️ Ant has no takeDamage() method, skipping`);
-                }
-              } catch (e) {
-                logNormal(`    ⚠️ Exception damaging ant: ${e.message}`);
-              }
-              // Apply knockback tween for AoE victims
-              try { this.applyKnockback(ant, x, y, this.knockbackPx); } catch (e) { /* ignore */ }
-            }
-          }
-          logNormal(`⚡ Total ants hit: ${hitCount}`);
-        }
-      } catch (e) {
-        console.error('❌ Error applying AoE damage in strikeAtPosition:', e);
-      }
+
+      // Apply area damage using shared helper
+      this._applyAreaDamage(x, y, damage, radius);
 
       // Play sounds
       if (this.sound && typeof this.sound.play === 'function') {
-        // Use the class property for volume
-        try { if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume; this.sound.currentTime = 0; this.sound.play(); } catch (e) {}
+        try {
+          if (typeof this.sound.volume !== 'undefined') this.sound.volume = this.volume;
+          this.sound.currentTime = 0;
+          this.sound.play();
+        } catch (e) {
+          // Ignore sound errors
+        }
       }
 
       // Soot stain

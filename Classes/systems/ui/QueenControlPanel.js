@@ -621,8 +621,10 @@ function updateQueenPanelVisibility() {
   // Check if any queen is selected
   let selectedQueen = null;
   
-  if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-    selectedQueen = ants.find(ant => 
+  // Check spatial grid for selected queen
+  if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+    const allAnts = spatialGridManager.getEntitiesByType('ant');
+    selectedQueen = allAnts.find(ant => 
       ant && 
       ant.isSelected && 
       (ant.jobName === 'Queen' || ant.job === 'Queen' || (ant.constructor && ant.constructor.name === 'QueenAnt')) &&
@@ -664,10 +666,11 @@ if (typeof window !== 'undefined') {
       return false;
     }
     
-    // Find any queen ant to test with
+    // Find any queen ant to test with (from spatial grid)
     let testQueen = null;
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-      testQueen = ants.find(ant => ant && ant.jobName === 'Queen');
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      const allAnts = spatialGridManager.getEntitiesByType('ant');
+      testQueen = allAnts.find(ant => ant && ant.jobName === 'Queen');
     }
     
     if (!testQueen) {

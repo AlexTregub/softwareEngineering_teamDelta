@@ -1463,6 +1463,7 @@ class DraggablePanelManager {
 
   /**
    * Handle the Shoot Lightning button from the combat panel
+   * Target selection logic is handled by LightningSystem.findBestTarget()
    */
   handleShootLightning() {
     // Ensure LightningSystem exists
@@ -1475,71 +1476,43 @@ class DraggablePanelManager {
       }
     }
 
-    // Determine target: prefer selected ant, otherwise nearest ant under mouse or nearest overall
-    let targetAnt = null;
-    try {
-      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
-        const selected = g_selectionBoxController.getSelectedEntities();
-        if (Array.isArray(selected) && selected.length > 0) {
-          // Prefer first selected ant entity
-          targetAnt = selected.find(e => e && e.isAnt) || selected[0];
-        }
-      }
-
-      // If none selected, try nearest ant under mouse
-      if (!targetAnt && typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) {
-        // Find nearest to mouse position within reasonable radius
-        const radius = 80;
-        let best = null;
-        let bestDist = Infinity;
-        for (const ant of ants) {
-          if (!ant || !ant.isActive) continue;
-          const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
-          const d = Math.hypot(pos.x - mouseX, pos.y - mouseY);
-          if (d < bestDist && d <= radius) {
-            bestDist = d;
-            best = ant;
-          }
-        }
-        targetAnt = best || ants[0]; // fallback to first ant
-      }
-
-      // Ask lightning manager to strike (respects cooldown)
-      if (g_lightningManager && typeof g_lightningManager.requestStrike === 'function') {
-        const executed = g_lightningManager.requestStrike(targetAnt);
-        const button = this.findButtonByCaption('Shoot Lightning');
-        if (executed) {
-          logNormal('⚡ Lightning strike executed', targetAnt && (targetAnt._antIndex || targetAnt.id || 'ant'));
-          // Show cooldown on the button if available
-          if (button) {
-            const cooldownMs = g_lightningManager.cooldown || 3000;
-            const seconds = Math.ceil(cooldownMs / 1000);
-            const originalCaption = button._originalCaption || button.caption;
-            button._originalCaption = originalCaption;
-            button.caption = `Cooldown (${seconds}s)`;
-            button.style.backgroundColor = '#999999';
-            // Restore after cooldown
-            setTimeout(() => {
-              try {
-                button.caption = originalCaption;
-                button.style.backgroundColor = '#4DA6FF';
-              } catch (e) {}
-            }, cooldownMs + 50);
-          }
-        } else {
-          logNormal('⏳ Lightning on cooldown');
-          if (button) {
-            // Briefly flash the button to indicate cooldown
-            const prevColor = button.style.backgroundColor;
-            button.style.backgroundColor = '#555';
-            setTimeout(() => { button.style.backgroundColor = prevColor; }, 200);
-          }
+    // Request strike (auto-targets via LightningSystem.findBestTarget())
+    if (g_lightningManager && typeof g_lightningManager.requestStrike === 'function') {
+      const executed = g_lightningManager.requestStrike(); // No target = auto-select
+      const button = this.findButtonByCaption('Shoot Lightning');
+      
+      if (executed) {
+        logNormal('⚡ Lightning strike executed');
+        
+        // Show cooldown on button
+        if (button) {
+          const cooldownMs = g_lightningManager.cooldown || 3000;
+          const seconds = Math.ceil(cooldownMs / 1000);
+          const originalCaption = button._originalCaption || button.caption;
+          button._originalCaption = originalCaption;
+          button.caption = `Cooldown (${seconds}s)`;
+          button.style.backgroundColor = '#999999';
+          
+          // Restore after cooldown
+          setTimeout(() => {
+            try {
+              button.caption = originalCaption;
+              button.style.backgroundColor = '#4DA6FF';
+            } catch (e) {}
+          }, cooldownMs + 50);
         }
       } else {
-        console.warn('⚠️ Lightning manager not initialized or missing requestStrike()');
+        logNormal('⏳ Lightning on cooldown');
+        
+        // Flash button to indicate cooldown
+        if (button) {
+          const prevColor = button.style.backgroundColor;
+          button.style.backgroundColor = '#555';
+          setTimeout(() => { button.style.backgroundColor = prevColor; }, 200);
+        }
       }
-    } catch (err) {
-      console.error('❌ Error in handleShootLightning():', err);
+    } else {
+      console.warn('⚠️ Lightning manager not initialized or missing requestStrike()');
     }
   }
 
@@ -1642,9 +1615,12 @@ class DraggablePanelManager {
     } else {
       // Fallback: Save basic game state to localStorage
       try {
+        const antCount = (typeof spatialGridManager !== 'undefined' && spatialGridManager) 
+          ? spatialGridManager.getEntityCountByType('ant') 
+          : 0;
         const gameState = {
           timestamp: Date.now(),
-          antCount: (typeof ants !== 'undefined' && Array.isArray(ants)) ? ants.length : 0,
+          antCount: antCount,
           resourceCount: (typeof g_entityInventoryManager !== 'undefined' && g_entityInventoryManager) ? g_entityInventoryManager.getResourceList().length : 0
         };
         localStorage.setItem('gameState', JSON.stringify(gameState));
@@ -1742,63 +1718,29 @@ class DraggablePanelManager {
   selectAllAnts() {
     logNormal('🎯 Selecting all ants...');
     
-    // Try multiple selection methods
-    const selectionMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand('select all');
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command selection method failed:', error.message);
-            return false;
-          }
-        }
-        return false;
-      },
-      
-      // Method 2: Use AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          if (typeof AntUtilities.selectAllAnts === 'function') {
-            AntUtilities.selectAllAnts(ants);
-            return true;
-          } else if (typeof AntUtilities.getSelectedAnts === 'function') {
-            // Manually select all ants
-            ants.forEach(ant => {
-              if (ant && typeof ant.isSelected !== 'undefined') {
-                ant.isSelected = true;
-              }
-            });
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array manipulation
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let selected = 0;
-          ants.forEach(ant => {
-            if (ant && typeof ant.isSelected !== 'undefined') {
-              ant.isSelected = true;
-              selected++;
-            }
-          });
-          if (selected > 0) {
-            logNormal(`✅ Selected ${selected} ants directly`);
-            return true;
-          }
-        }
-        return false;
+    // Method 1: Use selection box controller (preferred)
+    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+      if (typeof g_selectionBoxController.selectAllEntities === 'function') {
+        g_selectionBoxController.selectAllEntities();
+        logNormal('✅ Selected all ants via SelectionBoxController');
+        return;
       }
-    ];
-    
-    // Try each method until one succeeds
-    for (const method of selectionMethods) {
-      if (method()) return;
+    }
+
+    // Method 2: Get all ants from spatial grid and set isSelected
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      const allAnts = spatialGridManager.getEntitiesByType('ant');
+      let selected = 0;
+      allAnts.forEach(ant => {
+        if (ant && typeof ant.isSelected !== 'undefined') {
+          ant.isSelected = true;
+          selected++;
+        }
+      });
+      if (selected > 0) {
+        logNormal(`✅ Selected ${selected} ants via spatial grid`);
+        return;
+      }
     }
     
     console.warn('⚠️ Could not select ants - no compatible selection system found');
@@ -1810,44 +1752,33 @@ class DraggablePanelManager {
   deselectAllAnts() {
     logNormal('🎯 Deselecting all ants...');
     
-    // Try multiple deselection methods
-    const deselectionMethods = [
-      // Method 1: Use executeCommand (debug console system)
-      () => {
-        if (typeof executeCommand === 'function') {
-          try {
-            executeCommand('select none');
-            return true;
-          } catch (error) {
-            console.warn('⚠️ Command deselection method failed:', error.message);
-            return false;
-          }
+    // Method 1: Use selection box controller (preferred)
+    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+      if (typeof g_selectionBoxController.deselectAll === 'function') {
+        g_selectionBoxController.deselectAll();
+        logNormal('✅ Deselected all ants via SelectionBoxController');
+        return;
+      }
+    }
+
+    // Method 2: Get all ants from spatial grid and clear isSelected
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      const allAnts = spatialGridManager.getEntitiesByType('ant');
+      let deselected = 0;
+      allAnts.forEach(ant => {
+        if (ant && typeof ant.isSelected !== 'undefined') {
+          ant.isSelected = false;
+          deselected++;
         }
-        return false;
-      },
-      
-      // Method 2: Use AntUtilities
-      () => {
-        if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-          if (typeof AntUtilities.deselectAllAnts === 'function') {
-            AntUtilities.deselectAllAnts(ants);
-            return true;
-          }
-        }
-        return false;
-      },
-      
-      // Method 3: Direct ant array manipulation
-      () => {
-        if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-          let deselected = 0;
-          ants.forEach(ant => {
-            if (ant && typeof ant.isSelected !== 'undefined') {
-              ant.isSelected = false;
-              deselected++;
-            }
-          });
-          if (deselected > 0) {
+      });
+      if (deselected > 0) {
+        logNormal(`✅ Deselected ${deselected} ants via spatial grid`);
+        return;
+      }
+    }
+    
+    console.warn('⚠️ Could not deselect ants - no compatible selection system found');
+  }
             logNormal(`✅ Deselected ${deselected} ants directly`);
             return true;
           }
@@ -1870,21 +1801,18 @@ class DraggablePanelManager {
   damageSelectedAnts(amount) {
     logNormal(`💥 Damaging selected entities by ${amount} HP...`);
 
-    // Preferred: use selection controller to get selected entities (ants/buildings)
+    // Use selection controller to get selected entities (ants/buildings)
     let selected = [];
     try {
       if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
         selected = g_selectionBoxController.getSelectedEntities() || [];
       }
-    } catch (e) { selected = []; }
-
-    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
-    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
-      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
-      else selected = ants.filter(a => a && a.isSelected);
+    } catch (e) { 
+      console.warn('⚠️ SelectionBoxController not available');
+      selected = []; 
     }
 
-    // If still nothing selected, warn and return
+    // If nothing selected, warn and return
     if (!selected || selected.length === 0) {
       console.warn('⚠️ No selected entities found to damage');
       return;
@@ -1903,23 +1831,49 @@ class DraggablePanelManager {
   }
 
   /**
+   * Damage selected ants by specified amount
+   */
+  damageSelectedAnts(amount) {
+    logNormal(`� Damaging selected entities by ${amount} HP...`);
+    
+    // Use selection controller to get selected entities
+    let selected = [];
+    if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+      selected = g_selectionBoxController.getSelectedEntities() || [];
+    }
+
+    if (!selected || selected.length === 0) {
+      console.warn('⚠️ No selected entities found to damage');
+      return;
+    }
+
+    // Apply takeDamage() to any selected entity that supports it
+    let damagedCount = 0;
+    selected.forEach(entity => {
+      if (entity && typeof entity.takeDamage === 'function') {
+        try {
+          entity.takeDamage(amount);
+          damagedCount++;
+        } catch (e) {
+          console.warn('takeDamage call failed', e);
+        }
+      }
+    });
+
+    if (damagedCount > 0) logNormal(`✅ Damaged ${damagedCount} selected entities by ${amount} HP`);
+    else console.warn('⚠️ No selected entities supported takeDamage()');
+  }
+
+  /**
    * Heal selected ants by specified amount
    */
   healSelectedAnts(amount) {
     logNormal(`💚 Healing selected entities by ${amount} HP...`);
     
-    // Preferred: use selection controller to get selected entities (ants/buildings)
+    // Use selection controller to get selected entities
     let selected = [];
-    try {
-      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
-        selected = g_selectionBoxController.getSelectedEntities() || [];
-      }
-    } catch (e) { selected = []; }
-
-    // Fallback: AntUtilities.getSelectedAnts or direct ants selected flags
-    if ((!selected || selected.length === 0) && typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined') {
-      if (typeof AntUtilities.getSelectedAnts === 'function') selected = AntUtilities.getSelectedAnts(ants);
-      else selected = ants.filter(a => a && a.isSelected);
+    if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+      selected = g_selectionBoxController.getSelectedEntities() || [];
     }
 
     if (!selected || selected.length === 0) {
@@ -1931,7 +1885,12 @@ class DraggablePanelManager {
     let healedCount = 0;
     selected.forEach(entity => {
       if (entity && typeof entity.heal === 'function') {
-        try { entity.heal(amount); healedCount++; } catch (e) { console.warn('Heal call failed', e); }
+        try {
+          entity.heal(amount);
+          healedCount++;
+        } catch (e) {
+          console.warn('Heal call failed', e);
+        }
       }
     });
 
@@ -1977,108 +1936,48 @@ class DraggablePanelManager {
    * Set selected ants to GATHERING state for autonomous resource collection
    */
   setSelectedAntsGathering() {
-    logNormal('🔍 Setting selected ants to GATHERING state (7-grid radius)...');
-    if (typeof AntUtilities !== 'undefined' && AntUtilities.setSelectedAntsGathering && typeof ants !== 'undefined' && Array.isArray(ants)) {
-      const count = AntUtilities.setSelectedAntsGathering(ants);
-      logNormal(`✅ Set ${count} ants to autonomous gathering mode`);
-    } else {
-      console.warn('AntUtilities.setSelectedAntsGathering not available - using fallback');
-      // Fallback to basic state setting
-      this._setSelectedAntsState('GATHERING', 'OUT_OF_COMBAT', 'DEFAULT');
-    }
+    logNormal('🔍 Setting selected ants to GATHERING state...');
+    this._setSelectedAntsState('GATHERING', 'OUT_OF_COMBAT', 'DEFAULT');
   }
 
   /**
-   * Internal method to set ant states using multiple fallback approaches
+   * Internal method to set ant states
    * @param {string} primaryState - Primary state to set
    * @param {string} combatModifier - Combat modifier to set
    * @param {string} terrainModifier - Terrain modifier to set
    */
   _setSelectedAntsState(primaryState, combatModifier, terrainModifier) {
-    // Method 1: Use AntUtilities if available
-    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-      if (typeof AntUtilities.changeSelectedAntsState === 'function') {
-        AntUtilities.changeSelectedAntsState(ants, primaryState, combatModifier, terrainModifier);
-        
-        // Synchronize selection systems after successful state change
-        if (typeof AntUtilities.synchronizeSelections === 'function') {
-          AntUtilities.synchronizeSelections(ants);
-        }
-        return;
-      }
-      
-      // Method 2: Use specific AntUtilities method based on state
-      const stateMethodMap = {
-        'IDLE': 'setSelectedAntsIdle',
-        'GATHERING': 'setSelectedAntsGathering', 
-        'PATROL': 'setSelectedAntsPatrol',
-        'BUILDING': 'setSelectedAntsBuilding'
-      };
-      
-      const methodName = stateMethodMap[primaryState];
-      if (methodName && typeof AntUtilities[methodName] === 'function') {
-        AntUtilities[methodName](ants);
-        
-        // Synchronize selection systems after successful state change
-        if (typeof AntUtilities.synchronizeSelections === 'function') {
-          AntUtilities.synchronizeSelections(ants);
-        }
-        return;
-      }
-      
-      // Method 3: Manual state change using AntUtilities.getSelectedAnts
-      if (typeof AntUtilities.getSelectedAnts === 'function') {
-        const selectedAnts = AntUtilities.getSelectedAnts(ants);
-        let changedCount = 0;
-        
-        selectedAnts.forEach(ant => {
-          if (ant && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
-            const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
+    // Get selected entities from selection controller
+    let selected = [];
+    if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+      selected = g_selectionBoxController.getSelectedEntities() || [];
+    }
+
+    if (!selected || selected.length === 0) {
+      console.warn(`⚠️ No selected ants found to change state to ${primaryState}`);
+      return;
+    }
+
+    // Change state for each selected ant
+    let changedCount = 0;
+    selected.forEach(entity => {
+      // Check if entity is an ant with a state machine
+      if (entity && entity.type === 'Ant' && entity.stateMachine) {
+        try {
+          if (typeof entity.stateMachine.setState === 'function') {
+            const success = entity.stateMachine.setState(primaryState, combatModifier, terrainModifier);
             if (success) changedCount++;
           }
-        });
-        
-        if (changedCount > 0) {
-          logNormal(`✅ Changed state of ${changedCount} ants to ${primaryState}`);
-          return;
+        } catch (e) {
+          console.warn('setState call failed', e);
         }
       }
-    }
-    
-    // Method 4: Direct ant array manipulation (fallback)
-    if (typeof ants !== 'undefined' && Array.isArray(ants)) {
-      let changedCount = 0;
-      
-      ants.forEach(ant => {
-        // Check if ant is selected
-        const isSelected = ant._selectionController ? 
-          ant._selectionController.isSelected() : 
-          (ant.isSelected || false);
-          
-        if (isSelected && ant._stateMachine && typeof ant._stateMachine.setState === 'function') {
-          const success = ant._stateMachine.setState(primaryState, combatModifier, terrainModifier);
-          if (success) changedCount++;
-        }
-      });
-      
-      if (changedCount > 0) {
-        logNormal(`✅ Changed state of ${changedCount} ants to ${primaryState} (direct manipulation)`);
-        
-        // Synchronize selection systems after successful state change
-        if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.synchronizeSelections === 'function') {
-          AntUtilities.synchronizeSelections(ants);
-        }
-        return;
-      }
-    }
-    
-    console.warn(`⚠️ Could not change ant states - no selected ants found or compatible state system unavailable`);
-    
-    // After any state change attempt, synchronize the selection systems
-    if (typeof AntUtilities !== 'undefined' && typeof ants !== 'undefined' && Array.isArray(ants)) {
-      if (typeof AntUtilities.synchronizeSelections === 'function') {
-        AntUtilities.synchronizeSelections(ants);
-      }
+    });
+
+    if (changedCount > 0) {
+      logNormal(`✅ Changed state of ${changedCount} ants to ${primaryState}`);
+    } else {
+      console.warn(`⚠️ Could not change ant states - no compatible state machines found`);
     }
   }
 

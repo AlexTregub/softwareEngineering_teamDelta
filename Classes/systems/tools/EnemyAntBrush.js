@@ -37,7 +37,6 @@ class EnemyAntBrush extends BrushBase {
    */
   activate() {
     this.isActive = true;
-    logNormal('🎨 Enemy Ant Brush activated');
   }
 
   /**
@@ -45,7 +44,6 @@ class EnemyAntBrush extends BrushBase {
    */
   deactivate() {
     this.isActive = false;
-    logNormal('🎨 Enemy Ant Brush deactivated');
   }
 
   /**
@@ -159,34 +157,22 @@ class EnemyAntBrush extends BrushBase {
     const spawnX = x + (Math.random() - 0.5) * randomOffset;
     const spawnY = y + (Math.random() - 0.5) * randomOffset;
 
-    // Try to spawn ant using AntUtilities
+    // Spawn enemy ant using AntFactory
     let spawned = false;
-    if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.spawnAnt === 'function') {
-      const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
-      if (enemyAnt) {
-        spawned = true;
-        logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)})`);
-      }
-    }
-
-    // Fallback to command system
-    if (!spawned && typeof executeCommand === 'function') {
+    if (typeof AntFactory !== 'undefined' && AntFactory) {
       try {
-        const initialAntCount = typeof ants !== 'undefined' ? ants.length : 0;
-        executeCommand(`spawn 1 ant enemy`);
-        const newAntCount = typeof ants !== 'undefined' ? ants.length : 0;
-        if (newAntCount > initialAntCount) {
-          // Move the newly spawned ant to the brush position
-          const newAnt = ants[ants.length - 1];
-          if (newAnt && newAnt.setPosition) {
-            newAnt.setPosition(spawnX, spawnY);
-          }
-          spawned = true;
-          logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)}) via command`);
-        }
+        const enemyAnt = AntFactory.createAnt(spawnX, spawnY, {
+          faction: 'enemy',
+          job: 'Warrior'
+        });
+        
+        if (enemyAnt) {
+          spawned = true; }
       } catch (error) {
-        console.warn('⚠️ Brush spawn via command failed:', error.message);
+        console.warn('⚠️ Brush spawn failed:', error.message);
       }
+    } else {
+      console.warn('⚠️ AntFactory not available for enemy ant brush');
     }
 
     if (spawned) {

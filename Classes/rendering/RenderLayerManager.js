@@ -710,10 +710,6 @@ class RenderLayerManager {
       g_mouseCrosshair.render();
     }
 
-    // Render coordinate debug overlay
-    if (typeof g_coordinateDebugOverlay !== 'undefined' && g_coordinateDebugOverlay) {
-      g_coordinateDebugOverlay.render();
-    }
   }
   
   /**

@@ -64,16 +64,20 @@ class GatherDebugRenderer {
   render() {
     if (!this.enabled) return;
 
-    // Check if we have ants and resources
-    if (typeof ants === 'undefined' || !ants || ants.length === 0) return;
+    // Check if we have spatial grid and resources
+    if (typeof spatialGridManager === 'undefined' || !spatialGridManager) return;
     if (typeof g_entityInventoryManager === 'undefined' || !g_entityInventoryManager) return;
+
+    // Get all ants from spatial grid
+    const allAnts = spatialGridManager.getEntitiesByType('ant');
+    if (allAnts.length === 0) return;
 
     const resources = g_entityInventoryManager.getResourceList();
     
     push(); // Save current drawing state
     
-    // Render for each ant
-    ants.forEach((ant, antIndex) => {
+    // Render for each ant (note: allAnts contains models, not MVC objects)
+    allAnts.forEach((ant, antIndex) => {
       if (ant.state === 'GATHERING' || ant._gatherState) {
         this.renderAntGatherInfo(ant, antIndex, resources);
       }
@@ -81,7 +85,7 @@ class GatherDebugRenderer {
     
     // Render resource information
     if (this.showResourceInfo) {
-      renderResourceInfo(resources,this.textColor,this.resourceColor);
+      renderResourceInfo(resources, this.textColor, this.resourceColor, allAnts);
     }
     
     pop(); // Restore drawing state
@@ -199,8 +203,9 @@ function drawLineBetweenEntities(obj1Pos, obj2Pos, lineColor, lineWeight) {
    * @param {Array} resources - Array of resource objects that implement getPosition() and resourceType
    * @param {Array} [textColor=this.textColor] - Optional text color array [r,g,b] or [r,g,b,a]
    * @param {Array} [resourceColor=this.resourceColor] - Optional resource dot color array
+   * @param {Array} [allAnts] - Optional array of ant entities from spatial grid
    */
-function renderResourceInfo(resources,textColor,resourceColor) {
+function renderResourceInfo(resources, textColor, resourceColor, allAnts = null) {
     if(typeof resources === "undefined" || typeof textColor === "undefined" || typeof resourceColor === "undefined"){
         if (typeof resources === "undefined") { IncorrectParamPassed([],resources )};
         if (typeof textColor === "undefined") { IncorrectParamPassed([],textColor )};
@@ -229,9 +234,14 @@ function renderResourceInfo(resources,textColor,resourceColor) {
     textSize(14);
     text(`📦 Resources: ${resources.length}`, 10, 10);
 
-    if (typeof ants !== 'undefined' && ants.length > 0) {
-        const gatheringAnts = ants.filter(ant => ant.state === 'GATHERING');
-        text(`🐜 Gathering Ants: ${gatheringAnts.length}/${ants.length}`, 10, 30);
+    // Use provided allAnts or get from spatial grid
+    if (!allAnts && typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+        allAnts = spatialGridManager.getEntitiesByType('ant');
+    }
+    
+    if (allAnts && allAnts.length > 0) {
+        const gatheringAnts = allAnts.filter(ant => ant.state === 'GATHERING');
+        text(`🐜 Gathering Ants: ${gatheringAnts.length}/${allAnts.length}`, 10, 30);
     }
 }
 

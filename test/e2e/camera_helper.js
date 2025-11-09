@@ -65,9 +65,12 @@ async function ensureGameStarted(page) {
         const gs2 = window.GameState || window.g_gameState || null;
         if (gs2 && typeof gs2.getState === 'function' && gs2.getState && gs2.getState() === 'PLAYING') return { started: true, diagnostics: diag };
 
-        // As a last resort, if ants array appears, consider the game started
-        if ((typeof ants !== 'undefined' && Array.isArray(ants) && ants.length) || (window.ants && Array.isArray(window.ants) && window.ants.length)) {
-          return { started: true, diagnostics: diag };
+        // As a last resort, if spatial grid has entities, consider the game started
+        if (window.spatialGridManager && typeof window.spatialGridManager.getEntityCountByType === 'function') {
+          const entityCount = window.spatialGridManager.getEntityCountByType('ant');
+          if (entityCount > 0) {
+            return { started: true, diagnostics: diag };
+          }
         }
 
         return { started: false, diagnostics: diag };
