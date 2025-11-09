@@ -480,6 +480,7 @@ function logResourceTotals() {
   } catch (e) { /* ignore */ }
 }
 
+
 // expose to global for UI / Task systems
 if (typeof window !== 'undefined') {
   window.addGlobalResource = window.addGlobalResource || addGlobalResource;
@@ -487,4 +488,5 @@ if (typeof window !== 'undefined') {
   window.getResourceTotals = window.getResourceTotals || getResourceTotals;
   window.getResourceCount = window.getResourceCount || getResourceCount;
   window.logResourceTotals = window.logResourceTotals || logResourceTotals;
+  window.getResourceCount = window.getResourceCount || getResourceCount;
 }
