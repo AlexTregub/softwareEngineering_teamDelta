@@ -184,6 +184,8 @@ function setup() {
   initializeContextMenuPrevention();
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
   window.QuestManager.preloadAssets();
+
+  window.draggablePanelManager.createDefaultPanels();
 }
 
 function addListeners() {
