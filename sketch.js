@@ -39,7 +39,7 @@ function preload(){
 
   terrainPreloader();
 
-  return
+  // return
   soundManagerPreload();
   resourcePreLoad();
   preloadPauseImages();
@@ -75,7 +75,7 @@ function setup() {
     console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
   }
  
-  return; // !!! REMOVE BEFORE DEV
+  // return; // !!! REMOVE BEFORE DEV
 
   // Initialize TaskLibrary before other systems that depend on it
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
@@ -348,9 +348,13 @@ function initializeWorld() {
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
+
+  // g_map2.setMat([0,0],'farmland')
   
   // IMPORTANT: Set g_activeMap immediately after g_map2 creation
   g_activeMap = g_map2;
+
+  g_activeMap.setMat([0,0],'farmland')
   
   // Register with MapManager (which will also update g_activeMap)
   if (typeof mapManager !== 'undefined') {
@@ -377,7 +381,7 @@ function initializeWorld() {
 
 function draw() {
   // TEST_CHUNK()
-  return
+  // return
   // ============================================================
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
   // Updates must happen BEFORE rendering to show current frame data

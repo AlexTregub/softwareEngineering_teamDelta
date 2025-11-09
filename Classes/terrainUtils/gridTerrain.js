@@ -475,14 +475,16 @@ class gridTerrain {
         let br = this.convRelToAccess(viewSpan[1])[0]
 
         // Copied from renderDirect().
-        for (let y = tl[1]; y <= br[1]; ++y) {
-            for (let x = tl[0]; x <= br[0]; ++x) { // Potentially works with < , not necessarily correct.
+        for (let y = tl[1]; y <= br[1]+1; ++y) {
+            for (let x = tl[0]; x <= br[0]+1; ++x) { // Potentially works with < , not necessarily correct.
                 // this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
                 
-                let chunkAccessPos = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]));
+                // let chunkAccessPos = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]));
+                let chunkAccessPos = this.chunkArray.convToFlat([x,y])
                 let accessLen = this._chunkSize*this._chunkSize;
 
                 for (let i = 0; i < accessLen; ++i) { // Potentially inefficient, using for caching only.
+                    // console.log(this.chunkArray.rawArray[chunkAccessPos])
                     this._renderTileToCache(this.chunkArray.rawArray[chunkAccessPos].tileData.rawArray[i])
                 }
             }
@@ -678,8 +680,8 @@ class gridTerrain {
         let br = this.convRelToAccess(viewSpan[1])[0]
         // console.log(tl,br)
 
-        for (let y = tl[1]; y <= br[1]; ++y) {
-            for (let x = tl[0]; x <= br[0]; ++x) {
+        for (let y = tl[1]; y <= br[1]+1; ++y) {
+            for (let x = tl[0]; x <= br[0]+1; ++x) {
                 // console.log(this.chunkArray.convToFlat([x,y]))
                 // console.log(this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])])
                 // this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
