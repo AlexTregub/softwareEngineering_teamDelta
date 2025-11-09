@@ -787,7 +787,7 @@ function spawnQueen(){
   let spawnX = random(0, 500);
   let spawnY = random(0, 500);
   
-  // Convert to terrain-aligned coordinates (applies Y-axis inversion)
+  // Convert to terrain-aligned coordinates 
   if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
       typeof g_activeMap.renderConversion.convCanvasToPos === 'function' &&
       typeof g_activeMap.renderConversion.convPosToCanvas === 'function') {
