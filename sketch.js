@@ -214,6 +214,9 @@ function setup() {
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
   window.QuestManager.preloadAssets();
 
+  // --- initialize shop manager ---
+  window.BUIManager = new BUIManager();
+  window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
 }
 
@@ -369,6 +372,9 @@ function draw() {
     if (window.DIAManager && typeof DIAManager.update === 'function') {
       DIAManager.update();
     }
+
+    // --- Update + Render Shop UI ---
+    
   }
 
   if (GameState.getState() === 'LEVEL_EDITOR') {
@@ -408,6 +414,11 @@ function draw() {
   if (window.DIAManager) {
     window.DIAManager.update();
     window.DIAManager.render();
+  }
+
+  if (window.BUIManager) {
+    window.BUIManager.update();
+    window.BUIManager.render();
   }
 
   // --- Debug stuff ---
@@ -772,6 +783,7 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  
   // Level Editor keyboard shortcuts (if active)
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -943,18 +955,38 @@ function keyPressed() {
     }
     
   }
-  // --- NPC Interaction (Press E to Talk) ---
   if (key === 'e' || key === 'E') {
+    // continue NPC dialogue if active
     if (window.currentNPC) {
       window.currentNPC.advanceDialogue();
-    } else {
-      // start dialogue if nearby
-      const antony = NPCList.find(n => n.name === "Antony");
-      if (antony && antony.isPlayerNearby) {
-        antony.startDialogue(NPCDialogues.antony);
+      return;
+    }
+  
+    // talk to nearby NPC if close
+    const antony = NPCList.find(n => n.name === "Antony" && n.isPlayerNearby);
+    if (antony) {
+      antony.startDialogue(NPCDialogues.antony);
+      return;
+    }
+  
+    // interact with nearby anthill
+    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
+    if (nearbyHill) {
+      console.log("Interacting with nearby anthill:", nearbyHill);
+      if (!window.BUIManager.active) {
+        window.BUIManager.open(nearbyHill);
+      } else {
+        window.BUIManager.close();
       }
+      return;
     }
   }
+  
+  if (window.BUIManager?.active) {
+    const handled = window.BUIManager.handleKeyPress(key);
+    if (handled) return;
+  }
+  
 }
 
 /**

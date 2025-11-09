@@ -9,6 +9,7 @@ function BuildingPreloader() {
   Cone = loadImage('Images/Buildings/Cone/Cone1.png');
   Hill = loadImage('Images/Buildings/Hill/Hill1.png');
   Hive = loadImage('Images/Buildings/Hive/Hive1.png');
+  UI   = loadImage('Images/Buildings/UI/building_box.png');
 }
 
 
@@ -41,6 +42,7 @@ class AntCone extends AbstractBuildingFactory {
   createBuilding(x, y, faction) {
     return new Building(x, y, 91, 97, Cone, faction, this.info);
   }
+
 }
 
 class AntHill extends AbstractBuildingFactory {
@@ -58,12 +60,48 @@ class AntHill extends AbstractBuildingFactory {
         }
       }
     };
+    this.isPlayerNearby = false;
+    this.menuActive = false;
+    this.promptRange = 100; 
   }
 
   createBuilding(x, y, faction) {
-    return new Building(x, y, 160, 100, Hill, faction,this.info);
+    const hill = new Building(x, y, 160, 100, Hill, faction, this.info);
+
+    hill.buildingType = "anthill";
+    
+    // attach player detection + prompt behavior
+    hill.promptRange = this.promptRange;
+    hill.isPlayerNearby = false;
+
+    hill.update = function() {
+      Building.prototype.update.call(this);
+      const queen = getQueen?.();
+      if (!queen) return;
+
+      const range = dist(this._x + 50, this._y, queen.posX, queen.posY);
+      this.isPlayerNearby = range < this.promptRange;
+    };
+
+    hill.render = function() {
+      Building.prototype.render.call(this);
+
+      // draw prompt if player close
+      if (this.isPlayerNearby) {
+        push();
+        textAlign(CENTER);
+        textSize(16);
+        fill(255);
+        textFont(terrariaFont);
+        text("[E] Open Hill Menu", this._x + this._width / 2 + 10, this._y + this._height + 30);
+        pop();
+      }
+    };
+
+    return hill;
   }
 }
+
 
 class HiveSource extends AbstractBuildingFactory {
   constructor() {
@@ -113,6 +151,7 @@ class Building extends Entity {
     this.lastFrameTime = performance.now();
     this.isBoxHovered = false;
     this.info = info
+    
 
     // -- Stats Buff --
     this.effectRange = 250;
@@ -165,6 +204,8 @@ class Building extends Entity {
     })
   }
 
+
+  // UPGRADE BUILDING \\
   upgradeBuilding() {
     if (!this.info || !this.info.progressions) return false;
     const next = this.info.progressions[1];
