@@ -151,6 +151,17 @@ function setup() {
 
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
+    if (!key) return;
+    if (key.toUpperCase() === 'X') {
+      if (window.g_speedUpButton && typeof window.g_speedUpButton.changeGameSpeed === 'function') {
+        window.g_speedUpButton.changeGameSpeed();
+      }
+    }
+    if (key === '1' || key === '2' || key === '3') { 
+      if(window.g_powerBrushManager && typeof window.g_powerBrushManager.switchPower === 'function'){
+        window.g_powerBrushManager.switchPower(key);
+      }
+    }
     // UI shortcuts are now handled directly in keyPressed() function
     // This maintains compatibility with existing game input systems
   });
@@ -189,7 +200,7 @@ function setup() {
   }
 
   initializeQueenControlPanel();
-  window.g_fireballManager = new FireballManager();
+  // window.g_fireballManager = new FireballManager();
   window.eventManager = EventManager.getInstance();
   window.eventDebugManager = new EventDebugManager();
   window.eventManager.setEventDebugManager(window.eventDebugManager);
@@ -320,6 +331,11 @@ function initializeWorld() {
   // Initialize Time of Day Overlay system
   g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
   window.g_timeOfDayOverlay = g_timeOfDayOverlay; // Make globally available
+
+  window.g_speedUpButton = new SpeedUpButton();
+  window.g_powerManager = new PowerManager();
+  window.g_powerBrushManager = new PowerBrushManager();
+  window.g_naturePower = new PowerManager(true);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -359,6 +375,7 @@ function draw() {
     if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
     if (window.g_resourceBrush) window.g_resourceBrush.update();
     if (window.g_buildingBrush) window.g_buildingBrush.update();
+    if (window.g_flashAimBrush) window.g_flashAimBrush.update();
 
     if (typeof updateQueenPanelVisibility !== 'undefined') updateQueenPanelVisibility();
     if (window.g_queenControlPanel) window.g_queenControlPanel.update();
@@ -366,6 +383,10 @@ function draw() {
     if (window.eventManager) window.eventManager.update();
     if (window.g_fireballManager) window.g_fireballManager.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
+    if (window.g_flashManager) window.g_flashManager.update();
+    if (window.g_powerManager) window.g_powerManager.update();
+    if (!window.g_powerManager) window.g_powerManager = new PowerManager();
+    if (window.g_powerBrushManager) window.g_powerBrushManager.update();
     if (g_globalTime) g_globalTime.update();
 
     // --- Player Movement ---
@@ -402,6 +423,9 @@ function draw() {
     RenderManager.render(GameState.getState());
   } else {
     RenderManager.render(GameState.getState());
+    if (window.g_powerManager) window.g_powerManager.render(); //USE THIS FOR POWERS
+    if (window.g_powerBrushManager) window.g_powerBrushManager.render(); //USE THIS FOR POWERS
+    if (window.g_naturePower) window.g_naturePower.render();
   }
 
   const playerQueen = getQueen?.();
@@ -466,6 +490,14 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() { 
+  if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
+    console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);
+    try {
+      window.g_powerBrushManager.usePower(mouseX, mouseY);
+    } catch (error) {
+      console.error('❌ Error using power brush:', error);
+    }
+  }
   // Level Editor - handle clicks first if active
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -535,6 +567,17 @@ function mousePressed() {
     }
   }
 
+  // Handle Final Flash Aim Brush events
+  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_flashAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return;
+    } catch (error) {
+      console.error('❌ Error handling Flash Flash aim brush events:', error);
+    }
+  }
+
   // Handle Queen Control Panel right-click for power cycling
   if (window.g_queenControlPanel && mouseButton === RIGHT) {
     try {
@@ -583,7 +626,6 @@ function mousePressed() {
       console.error('❌ Error handling queen control panel events:', error);
     }
   }
-
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
@@ -659,6 +701,16 @@ function mouseReleased() {
       window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
     } catch (error) {
       console.error('❌ Error handling lightning aim brush release events:', error);
+    }
+  }
+
+  //Handle Flash Flash Aim Brush release events
+  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling Final Flash aim brush release events:', error);
     }
   }
   
@@ -749,6 +801,10 @@ function mouseWheel(event) {
       return false;
     }
     if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_flashAimBrush && tryCycleDir(window.g_flashAimBrush)) {
       event.preventDefault();
       return false;
     }

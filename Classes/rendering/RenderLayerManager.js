@@ -243,6 +243,12 @@ class RenderLayerManager {
         RenderManager._registeredDrawables.lightningAimBrush = true;
       }
     }
+    if (window.g_flashAimBrush && !RenderManager._registeredDrawables.flashAimBrush) {
+      if (typeof window.g_flashAimBrush.render === 'function') {
+        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.g_flashAimBrush.render.bind(window.g_flashAimBrush));
+        RenderManager._registeredDrawables.flashAimBrush = true;
+      }
+    }
   } catch (err) {
     console.error('❌ Error registering drawables with RenderManager:', err);
   }
@@ -889,6 +895,13 @@ class RenderLayerManager {
         window.g_lightningManager.render();
       } catch (error) {
         console.error('❌ Error rendering lightning system in effects layer:', error);
+      }
+    }
+    if (window.g_flashManager && typeof window.g_flashManager.render === 'function') {
+      try {
+        window.g_flashManager.render();
+      } catch (error) {
+        console.error('❌ Error rendering flash system in effects layer:', error);
       }
     }
   }

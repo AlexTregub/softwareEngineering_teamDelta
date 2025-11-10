@@ -16,12 +16,12 @@ class QueenAnt extends ant {
 
     // Power unlock flags (false by default - unlock via cheats or progression)
     this.unlockedPowers = {
-      fireball: false,
-      lightning: false,
+      fireball: true,
+      lightning: true,
       blackhole: false,
       sludge: false,
       tidalWave: false,
-      finalFlash: false
+      finalFlash: true
     };
   }
 
