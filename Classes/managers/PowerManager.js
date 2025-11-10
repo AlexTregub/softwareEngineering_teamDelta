@@ -131,6 +131,7 @@ class FinalFlash extends Power{
         
         this.targetX = x;
         this.targetY = y;
+        this.buildupPlayed = false;
     }
 
     activate(){
@@ -148,6 +149,7 @@ class FinalFlash extends Power{
             if(this.isCharging){
             this.isCharging = false; //Resets charge
             this.isDelaying = true; //Starts delay
+            soundManager.stop("finalFlashCharge");
             soundManager.play("finalFlash"); //Absolute Cinema
             
             setTimeout(()=>{
@@ -157,6 +159,7 @@ class FinalFlash extends Power{
                 this.isBeamFading = false;
                 this.startTime = millis();
                 this.lastStrike = millis();
+                this.buildupPlayed = false;
             }, 57000); //Set to 57000 to match sound (57 sec)
             return true;
         }
@@ -192,6 +195,10 @@ class FinalFlash extends Power{
         const L = this.isActive ? min(this.beamSpeed * t, this.maxLength) : 0; //Gets current beam length
 
         if(this.isCharging){
+            if(!this.buildupPlayed){
+                soundManager.play("finalFlashCharge");
+                this.buildupPlayed = true;
+            }
             //Gets time the mouse was held down
             const pressDuration = now - this.mousePressTime;
             this.chargedPower = min((pressDuration / 1000) * 0.1, 3.0); //Max 3x strength, slow buildup

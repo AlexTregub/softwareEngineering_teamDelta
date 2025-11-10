@@ -58,6 +58,7 @@ class SoundManager {
       click: "sounds/clickSound.mp3",
       bgMusic: "sounds/bgMusic.mp3",
       finalFlash: "sounds/finalFlash.mp3",
+      finalFlashCharge: "sounds/finalFlashCharge.mp3"
     };
 
     // Map game states to their background music
@@ -82,6 +83,7 @@ class SoundManager {
     this.registerSound('bgMusic', this.soundList.bgMusic, 'Music');
     this.registerSound('click', this.soundList.click, 'SystemSounds');
     this.registerSound('finalFlash', this.soundList.finalFlash, 'SoundEffects');
+    this.registerSound('finalFlashCharge', this.soundList.finalFlashCharge, 'SoundEffects');
     this.loaded = true;
   }
 
