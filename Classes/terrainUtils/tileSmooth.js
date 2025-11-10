@@ -1,5 +1,13 @@
 ///// WILL CONTAIN ALL RESOURCES FOR HOLDING + HANDLING TILE MODIFIERS.
 
+const MATERIAL_OVERRIDE_HANDLING = { // Higher weight == override. Not included tiles assumed -1
+    "dirt" : 12,
+    "grass" : 25,
+    "moss" : 37,
+    "stone" : 6,
+    "water" : 50
+}
+
 class frillsChunk {
     constructor(chunkPos,spanTLPos,size=CHUNK_SIZE,tileSize=TILE_SIZE) {
         this._chunkPos = chunkPos;
