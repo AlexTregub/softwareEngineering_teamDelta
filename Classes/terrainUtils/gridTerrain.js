@@ -564,7 +564,7 @@ class gridTerrain {
      * @param {Object} tile - The tile object to render
      * @private
      */
-    _renderTileToCache(tile,converter=this.renderConversion) {
+    _renderTileToCache(tile,converter=this.renderConversion) { // NOW UNUSED
         if (!tile || !this._terrainCache) return;
         
         try {
