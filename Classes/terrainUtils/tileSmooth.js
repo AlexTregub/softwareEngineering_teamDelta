@@ -316,7 +316,7 @@ class frillsChunk {
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_R)
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_R)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_R)
                             break
                         default:
                             temp = NONE
@@ -355,7 +355,7 @@ class frillsChunk {
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BL)
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BL)
                             break
                         default:
                             temp = NONE
@@ -394,7 +394,7 @@ class frillsChunk {
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_B)
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_B)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_B)
                             break
                         default:
                             temp = NONE
@@ -433,7 +433,7 @@ class frillsChunk {
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BR)
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BR)
                             break
                         default:
                             temp = NONE

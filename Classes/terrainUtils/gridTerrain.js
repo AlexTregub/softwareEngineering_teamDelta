@@ -721,6 +721,14 @@ class gridTerrain {
                 // this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
 
                 this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+                // this.frillArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+                ++chunksRendered
+            }
+        }
+
+        // Render frills after chunks...
+        for (let y = tl[1]; y <= br[1]+1; ++y) {
+            for (let x = tl[0]; x <= br[0]+1; ++x) {
                 this.frillArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
                 ++chunksRendered
             }
