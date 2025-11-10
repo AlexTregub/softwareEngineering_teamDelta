@@ -133,7 +133,15 @@ class frillsChunk {
             if (targetOverlap != -1) { // Assuming we need to calculate...
                 // TL
                 let tempPos = [targetPos[0]-1,targetPos[1]-1]
-                let tempMat = externalTerrain.get(tempPos).getMaterial()
+                let boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                let tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
                 tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
 
@@ -142,17 +150,24 @@ class frillsChunk {
                     switch(targetMaterial) {
                         case 'dirt':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TL)
+                            break
                         case 'grass':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_TL)
+                            break
                         case 'moss':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_TL)
+                            break
                         case 'stone':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TL)
+                            break
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TL)
+                            break
+                        default:
+                            temp = NONE
                     }
                     
-                    this.tileData.append(temp)
+                    this.tileData.rawArray[i].append(temp)
                 }
 
                 // T
@@ -263,7 +278,7 @@ class pseudoTile {
         }
 
         noSmooth()
-        image(this.texture,this._x,this._y,this._squareSize,this._squareSize)
+        image(this.texture,this._coordSysPos[0],this._coordSysPos[1],this._squareSize,this._squareSize)
         smooth()
     }
 }
