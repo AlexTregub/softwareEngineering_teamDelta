@@ -143,7 +143,7 @@ class frillsChunk {
                 ]
                 let tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
-                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+                let tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
 
                 if (tempOverlap < targetOverlap) {
                     let temp
@@ -161,7 +161,7 @@ class frillsChunk {
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TL)
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TL)
                             break
                         default:
                             temp = NONE
@@ -171,7 +171,277 @@ class frillsChunk {
                 }
 
                 // T
-                // ...
+                tempPos = [targetPos[0],targetPos[1]-1]
+                boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                tempMat = externalTerrain.get(boundPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_T)
+                            break
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_T)
+                            break
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_T)
+                            break
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_T)
+                            break
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_T)
+                            break
+                        default:
+                            temp = NONE
+                    }
+                    
+                    this.tileData.rawArray[i].append(temp)
+                }
+
+                // TR
+                tempPos = [targetPos[0]+1,targetPos[1]-1]
+                boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                tempMat = externalTerrain.get(boundPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TR)
+                            break
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_TR)
+                            break
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_TR)
+                            break
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TR)
+                            break
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TR)
+                            break
+                        default:
+                            temp = NONE
+                    }
+                    
+                    this.tileData.rawArray[i].append(temp)
+                }
+
+                // L
+                tempPos = [targetPos[0]-1,targetPos[1]]
+                boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                tempMat = externalTerrain.get(boundPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_L)
+                            break
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_L)
+                            break
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_L)
+                            break
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_L)
+                            break
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_L)
+                            break
+                        default:
+                            temp = NONE
+                    }
+                    
+                    this.tileData.rawArray[i].append(temp)
+                }
+
+                // R
+                tempPos = [targetPos[0]+1,targetPos[1]]
+                boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                tempMat = externalTerrain.get(boundPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_R)
+                            break
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_R)
+                            break
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_R)
+                            break
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_R)
+                            break
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_R)
+                            break
+                        default:
+                            temp = NONE
+                    }
+                    
+                    this.tileData.rawArray[i].append(temp)
+                }
+
+                // BL
+                tempPos = [targetPos[0]-1,targetPos[1]+1]
+                boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                tempMat = externalTerrain.get(boundPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BL)
+                            break
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_BL)
+                            break
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_BL)
+                            break
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BL)
+                            break
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BL)
+                            break
+                        default:
+                            temp = NONE
+                    }
+                    
+                    this.tileData.rawArray[i].append(temp)
+                }
+
+                // B
+                tempPos = [targetPos[0],targetPos[1]+1]
+                boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                tempMat = externalTerrain.get(boundPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_B)
+                            break
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_B)
+                            break
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_B)
+                            break
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_B)
+                            break
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_B)
+                            break
+                        default:
+                            temp = NONE
+                    }
+                    
+                    this.tileData.rawArray[i].append(temp)
+                }
+
+                // BR
+                tempPos = [targetPos[0]+1,targetPos[1]+1]
+                boundPos = [
+                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                ]
+                boundPos = [
+                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                ]
+                tempMat = externalTerrain.get(boundPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BR)
+                            break
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_BR)
+                            break
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_BR)
+                            break
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BR)
+                            break
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BR)
+                            break
+                        default:
+                            temp = NONE
+                    }
+                    
+                    this.tileData.rawArray[i].append(temp)
+                }
             }
         }
     }
