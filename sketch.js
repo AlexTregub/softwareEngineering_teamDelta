@@ -41,6 +41,7 @@ let terrariaFont;
 function preload(){
   // return; // !!! REMOVE BEFORE DEV
 
+  smoothingPreload();
   terrainPreloader();
 
   // return

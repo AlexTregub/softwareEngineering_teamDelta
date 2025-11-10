@@ -1,4 +1,94 @@
 ///// WILL CONTAIN ALL RESOURCES FOR HOLDING + HANDLING TILE MODIFIERS.
+///// INEFFICIENT COMPARED TO A PROPER TILEMAP. TEMPORARY.
+let DIRT_B
+let DIRT_BL
+let DIRT_BR
+let DIRT_L
+let DIRT_R
+let DIRT_T
+let DIRT_TL
+let DIRT_TR
+let GRASS_B
+let GRASS_BL
+let GRASS_BR
+let GRASS_L
+let GRASS_R
+let GRASS_T
+let GRASS_TL
+let GRASS_TR
+let MOSS_B
+let MOSS_BL
+let MOSS_BR
+let MOSS_L
+let MOSS_R
+let MOSS_T
+let MOSS_TL
+let MOSS_TR
+let STONE_B
+let STONE_BL
+let STONE_BR
+let STONE_L
+let STONE_R
+let STONE_T
+let STONE_TL
+let STONE_TR
+let WATER_B
+let WATER_BL
+let WATER_BR
+let WATER_L
+let WATER_R
+let WATER_T
+let WATER_TL
+let WATER_TR
+
+function smoothingPreload() {
+    DIRT_B=loadImage('Images/tileEdges_16x16/dirt/dirt_b.png')
+    DIRT_BL=loadImage('Images/tileEdges_16x16/dirt/dirt_bl.png')
+    DIRT_BR=loadImage('Images/tileEdges_16x16/dirt/dirt_br.png')
+    DIRT_L=loadImage('Images/tileEdges_16x16/dirt/dirt_l.png')
+    DIRT_R=loadImage('Images/tileEdges_16x16/dirt/dirt_r.png')
+    DIRT_T=loadImage('Images/tileEdges_16x16/dirt/dirt_t.png')
+    DIRT_TL=loadImage('Images/tileEdges_16x16/dirt/dirt_tl.png')
+    DIRT_TR=loadImage('Images/tileEdges_16x16/dirt/dirt_tr.png')
+    // console.log("LOADED DIRT")
+
+    GRASS_B=loadImage('Images/tileEdges_16x16/grass/grass_b.png')
+    GRASS_BL=loadImage('Images/tileEdges_16x16/grass/grass_bl.png')
+    GRASS_BR=loadImage('Images/tileEdges_16x16/grass/grass_br.png')
+    GRASS_L=loadImage('Images/tileEdges_16x16/grass/grass_l.png')
+    GRASS_R=loadImage('Images/tileEdges_16x16/grass/grass_r.png')
+    GRASS_T=loadImage('Images/tileEdges_16x16/grass/grass_t.png')
+    GRASS_TL=loadImage('Images/tileEdges_16x16/grass/grass_tl.png')
+    GRASS_TR=loadImage('Images/tileEdges_16x16/grass/grass_tr.png')
+
+    MOSS_B=loadImage('Images/tileEdges_16x16/moss/moss_b.png')
+    MOSS_BL=loadImage('Images/tileEdges_16x16/moss/moss_bl.png')
+    MOSS_BR=loadImage('Images/tileEdges_16x16/moss/moss_br.png')
+    MOSS_L=loadImage('Images/tileEdges_16x16/moss/moss_l.png')
+    MOSS_R=loadImage('Images/tileEdges_16x16/moss/moss_r.png')
+    MOSS_T=loadImage('Images/tileEdges_16x16/moss/moss_t.png')
+    MOSS_TL=loadImage('Images/tileEdges_16x16/moss/moss_tl.png')
+    MOSS_TR=loadImage('Images/tileEdges_16x16/moss/moss_tr.png')
+
+    STONE_B=loadImage('Images/tileEdges_16x16/stone/stone_b.png')
+    STONE_BL=loadImage('Images/tileEdges_16x16/stone/stone_bl.png')
+    STONE_BR=loadImage('Images/tileEdges_16x16/stone/stone_br.png')
+    STONE_L=loadImage('Images/tileEdges_16x16/stone/stone_l.png')
+    STONE_R=loadImage('Images/tileEdges_16x16/stone/stone_r.png')
+    STONE_T=loadImage('Images/tileEdges_16x16/stone/stone_t.png')
+    STONE_TL=loadImage('Images/tileEdges_16x16/stone/stone_tl.png')
+    STONE_TR=loadImage('Images/tileEdges_16x16/stone/stone_tr.png')
+
+    WATER_B=loadImage('Images/tileEdges_16x16/water/water_b.png')
+    WATER_BL=loadImage('Images/tileEdges_16x16/water/water_bl.png')
+    WATER_BR=loadImage('Images/tileEdges_16x16/water/water_br.png')
+    WATER_L=loadImage('Images/tileEdges_16x16/water/water_l.png')
+    WATER_R=loadImage('Images/tileEdges_16x16/water/water_r.png')
+    WATER_T=loadImage('Images/tileEdges_16x16/water/water_t.png')
+    WATER_TL=loadImage('Images/tileEdges_16x16/water/water_tl.png')
+    WATER_TR=loadImage('Images/tileEdges_16x16/water/water_tr.png')
+    // console.log("LOADED SMOOTHING")
+}
 
 const MATERIAL_OVERRIDE_HANDLING = { // Higher weight == override. Not included tiles assumed -1
     "dirt" : 12,
