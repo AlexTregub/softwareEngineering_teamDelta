@@ -359,6 +359,7 @@ function initializeWorld() {
   window.g_speedUpButton = new SpeedUpButton();
   window.g_powerManager = new PowerManager();
   window.g_powerBrushManager = new PowerBrushManager();
+  window.g_naturePower = new PowerManager(true);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -443,6 +444,7 @@ function draw() {
     RenderManager.render(GameState.getState());
     if (window.g_powerManager) window.g_powerManager.render(); //USE THIS FOR POWERS
     if (window.g_powerBrushManager) window.g_powerBrushManager.render(); //USE THIS FOR POWERS
+    if (window.g_naturePower) window.g_naturePower.render();
   }
 
   const playerQueen = getQueen?.();

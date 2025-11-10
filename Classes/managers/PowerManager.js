@@ -1,4 +1,6 @@
 //All the powers in one nice place
+//Make final flash do damage.
+//Fix lightning position problems
 
 class Power{
     constructor(damage = 0, x, y, type = "strike", name){
@@ -20,7 +22,7 @@ class Lightning extends Power{
     constructor(damage, x, y, name){
         super(damage, x, y, "strike", name);
         this.radius = 1 * 3; //One could be swapped with Math.random()
-        this.cooldown = 1000; // 1 second cooldown
+        this.cooldown = 1000; //1 second cooldown
         this.duration = 100;
         this.lastStrike = 0;
         this.isActive = false;
@@ -79,6 +81,7 @@ class Lightning extends Power{
             screenX = screenPos[0];
             screenY = screenPos[1];
         }
+        console.log(`ScreenX: ${screenX}`);
         
         push();
         stroke(200, 230, 255, 255 * (1-t));
@@ -184,6 +187,7 @@ class FinalFlash extends Power{
                 screenX = queenPos.x;
                 screenY = queenPos.y;
             }
+            console.log(`ScreenX: ${screenX}`);
         }
         else{
             screenX = this.x_;
@@ -204,8 +208,20 @@ class FinalFlash extends Power{
             this.chargedPower = min((pressDuration / 1000) * 0.1, 3.0); //Max 3x strength, slow buildup
         }
 
-        //Angle between queen and target
-        this.angle = atan2(this.targetY - screenY, this.targetX - screenX);
+        //Angle between queen and target (convert target to screen coords first)
+        let targetScreenX = this.targetX;
+        let targetScreenY = this.targetY;
+        
+        // Convert target world coordinates to screen coordinates
+        if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+            const targetTileX = this.targetX / TILE_SIZE;
+            const targetTileY = this.targetY / TILE_SIZE;
+            const targetScreenPos = g_activeMap.renderConversion.convPosToCanvas([targetTileX, targetTileY]);
+            targetScreenX = targetScreenPos[0];
+            targetScreenY = targetScreenPos[1];
+        }
+        
+        this.angle = atan2(targetScreenY - screenY, targetScreenX - screenX);
 
         //Draw beam if active and not completely faded
         if(this.isActive && !(this.isBeamFading && now - this.beamFadeStartTime >= this.fadeDuration)){
@@ -352,8 +368,9 @@ class Fireball extends Power{
 }
 
 class PowerManager{
-    constructor(){
+    constructor(forWeather = false){
         this.runningPowers = [];
+        this.forWeather_ = forWeather;
     }
     addPower(name, damage, x, y){
         this.canUse = true;
@@ -374,14 +391,16 @@ class PowerManager{
 
             const now = millis();
             // Don't add if another instance of the same power is active or still in cooldown
-            for (const power of this.runningPowers) {
-                if (power.name_ === name) {
-                    const inDuration = power.isActive;
-                    const inCooldown = (now - (power.lastStrike || 0)) < (power.cooldown || 0);
-                    if (inDuration || inCooldown) {
-                        this.canUse = false;
-                        // Early exit: another power of this type is active or cooling down
-                        return;
+            if(!this.forWeather_){
+                for (const power of this.runningPowers) {
+                    if (power.name_ === name) {
+                        const inDuration = power.isActive;
+                        const inCooldown = (now - (power.lastStrike || 0)) < (power.cooldown || 0);
+                        if (inDuration || inCooldown) {
+                            this.canUse = false;
+                            // Early exit: another power of this type is active or cooling down
+                            return;
+                        }
                     }
                 }
             }

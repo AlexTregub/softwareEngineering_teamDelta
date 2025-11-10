@@ -7,6 +7,7 @@ class GlobalTime{
         this.timeOfDay = "day";
         this.transitioning = false;
         this.weather = false;
+        this.weatherName = null;
         this.lastFrameTime = performance.now();
         this._accumulator = 0;
         this.timeSpeed = 1.0; // Time multiplier (1.0 = normal speed, 2.0 = 2x speed, etc.)
@@ -32,6 +33,9 @@ class GlobalTime{
             }
             this.transitionAlpha = Math.min(255, Math.max(0, this.transitionAlpha));
         }
+        if(this.weather){
+          this.runWeather();
+        }
     }
 
     internalTimer(deltaTime){
@@ -50,6 +54,8 @@ class GlobalTime{
         if(this.weatherChance < 0.01){ //1% chance of weather change every second
             if(this.weather === true){
                 this.weather = false;
+                this.weatherName = null;
+                window.g_naturePower = null;
                 this.weatherSeconds = 0;
                 console.log(`Weather ended`);
             }
@@ -69,7 +75,10 @@ class GlobalTime{
             }
         }
         if(this.weatherSeconds >= 120){ //Weather automatically ends after 2 minutes
-            this.weather = false;
+            this.weather = false
+            this.weatherName = null;
+            window.g_naturePower = null;
+            //Literally makes entire new power manager for every weather change. Absolutely horrible...but it works
             this.weatherSeconds = 0;
             console.log(`Weather ended`);
         }
@@ -112,6 +121,28 @@ class GlobalTime{
     runNewDay(){
         this.inGameDays += 1; //Increments day counter
         this.inGameSeconds = 0;
+    }
+    runWeather(){
+      if(this.weatherName == null){
+        this.chance = Math.random();
+        if(this.chance <= 1){
+          this.weatherName = "lightning";
+          window.g_naturePower = new PowerManager(true);
+        }
+      }
+      else{
+        switch(this.weatherName){
+          case "lightning":
+            this.strikeChance = Math.random();
+            if(this.strikeChance > 0.99){
+              window.g_naturePower.addPower(this.weatherName, 10, getQueen().getScreenPosition().x, getQueen().getScreenPosition().y);
+            }
+            break;
+        }
+        if(window.g_naturePower.runningPowers != null){
+          window.g_naturePower.update();
+        }
+      }
     }
     
     /**
@@ -271,6 +302,10 @@ class TimeOfDayOverlay {
       sunrise: {
         color: [255, 180, 80],  // Warm sunrise tone
         alpha: 0.4  // 40% opacity when fully transitioned
+      },
+      lightningStorm: {
+        color: [103, 104, 130], //Grey. If it's dynamic by current ToD, just set R and G to ~ 100 to R and G
+        alpha: 0.5 // 50% opacity
       }
     };
     
@@ -316,31 +351,81 @@ class TimeOfDayOverlay {
    * Called automatically by RenderLayerManager
    */
   update() {
-    if (!this.globalTime) return;
-    
-    const timeOfDay = this.globalTime.timeOfDay;
-    const transitionAlpha = this.globalTime.transitionAlpha;
-    const isTransitioning = this.globalTime.transitioning;
-    
-    // Detect state changes to trigger smooth settling
-    if (timeOfDay !== this.previousTimeOfDay) {
-      this.previousTimeOfDay = timeOfDay;
-      this.stateChangeProgress = 0; // Reset progress for new state
-    }
-    
-    // Get target configuration for current time
-    const targetConfig = this.config[timeOfDay];
-    
-    if (!targetConfig) {
-      console.warn(`Unknown time of day: ${timeOfDay}`);
-      return;
-    }
-    
-    // Normalize transition alpha to 0-1 range and apply easing
-    const rawT = transitionAlpha / 255.0;
-    const easedT = this.easeInOutCubic(rawT);
+  if (!this.globalTime) return;
+  
+  const timeOfDay = this.globalTime.timeOfDay;
+  const isWeather = this.globalTime.weather;
+  const transitionAlpha = this.globalTime.transitionAlpha;
+  const isTransitioning = this.globalTime.transitioning;
+  
+  // Detect state changes to trigger smooth settling
+  if (timeOfDay !== this.previousTimeOfDay) {
+    this.previousTimeOfDay = timeOfDay;
+    this.stateChangeProgress = 0;
+  }
+  
+  // Get target configuration for current time
+  const targetConfig = this.config[timeOfDay];
+  
+  if (!targetConfig) {
+    console.warn(`Unknown time of day: ${timeOfDay}`);
+    return;
+  }
+  
+  // Normalize transition alpha to 0-1 range and apply easing
+  const rawT = transitionAlpha / 255.0;
+  const easedT = this.easeInOutCubic(rawT);
+  
+  // Handle weather overlay - this should take precedence
+  if(isWeather){
+    const lightningConfig = this.config.lightningStorm;
     
     if (isTransitioning) {
+      // If transitioning between times, blend the weather effect with the transition
+      let baseColor, baseAlpha;
+      
+      // Calculate what the base color/alpha would be without weather
+      if (timeOfDay === 'sunset') {
+        const dayConfig = this.config.day;
+        baseColor = this.lerpColor(dayConfig.color, targetConfig.color, easedT);
+        baseAlpha = this.lerp(dayConfig.alpha, targetConfig.alpha, easedT);
+      }
+      else if (timeOfDay === 'sunrise') {
+        const nightConfig = this.config.night;
+        const dayConfig = this.config.day;
+        const invertedT = 1.0 - easedT;
+        
+        if (invertedT < 0.5) {
+          const halfT = invertedT * 2.0;
+          baseColor = this.lerpColor(nightConfig.color, targetConfig.color, halfT);
+          baseAlpha = this.lerp(nightConfig.alpha, targetConfig.alpha, halfT);
+        } else {
+          const halfT = (invertedT - 0.5) * 2.0;
+          baseColor = this.lerpColor(targetConfig.color, dayConfig.color, halfT);
+          baseAlpha = this.lerp(targetConfig.alpha, dayConfig.alpha, halfT);
+        }
+      }
+      else {
+        // For stable times (day/night), just use target config
+        baseColor = targetConfig.color;
+        baseAlpha = targetConfig.alpha;
+      }
+      
+      // Blend between base time-of-day and weather overlay
+      this.currentColor = this.lerpColor(baseColor, lightningConfig.color, 0.7); // 70% weather influence
+      this.currentAlpha = this.lerp(baseAlpha, lightningConfig.alpha, 0.7);
+      
+    } else {
+      // Not transitioning - apply weather overlay directly
+      // You might want to blend with the current time of day instead of replacing it
+      this.currentColor = this.lerpColor(targetConfig.color, lightningConfig.color, 0.5); // 50/50 blend
+      this.currentAlpha = Math.max(targetConfig.alpha, lightningConfig.alpha); // Use the stronger alpha
+    }
+    
+    // Reset state change progress since weather overrides normal transitions
+    this.stateChangeProgress = 1.0;
+  } 
+    else if (isTransitioning) {
       // During active transitions (sunset entering, sunrise leaving)
       if (timeOfDay === 'sunset') {
         // Fading from day (no overlay) to sunset overlay
@@ -348,7 +433,8 @@ class TimeOfDayOverlay {
         const dayConfig = this.config.day;
         this.currentColor = this.lerpColor(dayConfig.color, targetConfig.color, easedT);
         this.currentAlpha = this.lerp(dayConfig.alpha, targetConfig.alpha, easedT);
-      } else if (timeOfDay === 'sunrise') {
+      }
+      else if (timeOfDay === 'sunrise') {
         // Fading from night → sunrise → day
         // transitionAlpha goes 255→0, so we need to INVERT easedT
         const nightConfig = this.config.night;
