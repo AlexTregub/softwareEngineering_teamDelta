@@ -191,7 +191,7 @@ function setup() {
   }
 
   initializeQueenControlPanel();
-  window.g_fireballManager = new FireballManager();
+  // window.g_fireballManager = new FireballManager();
   window.eventManager = EventManager.getInstance();
   window.eventDebugManager = new EventDebugManager();
   window.eventManager.setEventDebugManager(window.eventDebugManager);

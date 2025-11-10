@@ -58,7 +58,7 @@ class SoundManager {
       click: "sounds/clickSound.mp3",
       bgMusic: "sounds/bgMusic.mp3",
       finalFlash: "sounds/finalFlash.mp3",
-      finalFlashCharge: "sounds/finalFlashCharge.mp3"
+      finalFlashCharge: "sounds/finalFlashCharge.mp3",
       prisonMusic: "sounds/prison.mp3",
       tonyMusic: "sounds/TonyTheme.mp3",
     };
@@ -476,6 +476,7 @@ class SoundManager {
 
 // Create global instance immediately after class definition
 // This ensures soundManager is available when sketch.js uses it
+console.log("bigglywiggly")
 let soundManager = new SoundManager();
 
 // Wrapper function for p5.js preload() compatibility
