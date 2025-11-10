@@ -183,13 +183,13 @@ class Chunk {
         }
     } // tested
 
-    render(coordSys) { // Render through coordinate system
+    render(coordSys,ctx=window) { // Render through coordinate system
         // let temp = coordSys;
         // coordSys.setViewCornerBC([0,0]);
         let len = this.tileData.getSize()[0]*this.tileData.getSize()[1];
         
         for (let i = 0; i < len; ++i) {
-            this.tileData.rawArray[i].render(coordSys);
+            this.tileData.rawArray[i].render(coordSys,ctx);
         }
     } // tested
 
