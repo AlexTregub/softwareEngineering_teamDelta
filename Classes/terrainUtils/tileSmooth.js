@@ -116,6 +116,7 @@ class frillsChunk {
     }
 
     updateFrills(externalTerrain=g_activeMap) {
+        // console.log(this.getSpanRange())
         let len = this._size*this._size;
 
         for (let i = 0; i < len; ++i) { // Updating local frill arrays...
@@ -133,12 +134,12 @@ class frillsChunk {
                 // TL
                 let tempPos = [targetPos[0]-1,targetPos[1]-1]
                 let boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 let tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
@@ -172,12 +173,12 @@ class frillsChunk {
                 // T
                 tempPos = [targetPos[0],targetPos[1]-1]
                 boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
@@ -211,12 +212,12 @@ class frillsChunk {
                 // TR
                 tempPos = [targetPos[0]+1,targetPos[1]-1]
                 boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
@@ -250,12 +251,12 @@ class frillsChunk {
                 // L
                 tempPos = [targetPos[0]-1,targetPos[1]]
                 boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
@@ -289,12 +290,12 @@ class frillsChunk {
                 // R
                 tempPos = [targetPos[0]+1,targetPos[1]]
                 boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
@@ -328,12 +329,12 @@ class frillsChunk {
                 // BL
                 tempPos = [targetPos[0]-1,targetPos[1]+1]
                 boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
@@ -367,12 +368,12 @@ class frillsChunk {
                 // B
                 tempPos = [targetPos[0],targetPos[1]+1]
                 boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]
@@ -406,12 +407,12 @@ class frillsChunk {
                 // BR
                 tempPos = [targetPos[0]+1,targetPos[1]+1]
                 boundPos = [
-                    (tempPos[0] < this.getSpanRange()[0][0]) ? this.getSpanRange()[0][0] : tempPos[0],
-                    (tempPos[1] < this.getSpanRange()[0][1]) ? this.getSpanRange()[0][1] : tempPos[1],
+                    (tempPos[0] < externalTerrain.getSpanRange()[0][0]) ? externalTerrain.getSpanRange()[0][0] : tempPos[0],
+                    (tempPos[1] < externalTerrain.getSpanRange()[0][1]) ? externalTerrain.getSpanRange()[0][1] : tempPos[1],
                 ]
                 boundPos = [
-                    (boundPos[0] >= this.getSpanRange()[1][0]) ? this.getSpanRange()[1][0]-1 : boundPos[0],
-                    (boundPos[1] >= this.getSpanRange()[1][1]) ? this.getSpanRange()[1][1]-1 : boundPos[1],
+                    (boundPos[0] >= externalTerrain.getSpanRange()[1][0]) ? externalTerrain.getSpanRange()[1][0]-1 : boundPos[0],
+                    (boundPos[1] >= externalTerrain.getSpanRange()[1][1]) ? externalTerrain.getSpanRange()[1][1]-1 : boundPos[1],
                 ]
                 tempMat = externalTerrain.get(boundPos).getMaterial()
                 tempMat = tempMat.split('_',1)[0]

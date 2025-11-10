@@ -289,7 +289,7 @@ function TEST_CHUNK() {
     console.log("=============== TEST_CHUNK RUN:")
     // terrainPreloader()
 
-    let chunk = new Chunk(NONE,[0,0]); // IGNORING 'official' chunk position, coordinate system defined
+    let chunk = new Chunk(NONE,[0,0],8); // IGNORING 'official' chunk position, coordinate system defined
     let renderConverter = new camRenderConverter([0,0],[windowWidth,windowHeight])    
     // renderConverter.forceTileUpdate()
 
