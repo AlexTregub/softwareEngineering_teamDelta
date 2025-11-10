@@ -58,6 +58,9 @@ function preload(){
 
 
 function setup() {
+  // TEMPORARY
+  disableTerrainCache()
+
   createCanvas(windowWidth,windowHeight) 
 
   if (!TEST_GRID()) {
