@@ -44,7 +44,7 @@ class BUIManager {
                 if (typeof window.maxAnts !== "undefined") {
                     window.maxAnts += 5;
                 } else {
-                    window.maxAnts = 5;
+                    window.maxAnts = 6;
                 }
             } else {
                 console.log("Couldn’t upgrade hive.");
