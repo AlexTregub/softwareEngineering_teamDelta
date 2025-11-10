@@ -125,11 +125,10 @@ class frillsChunk {
             // Get current stats:
             let targetMaterial = externalTerrain.get(targetPos).getMaterial()
             targetMaterial = targetMaterial.split('_',1)[0] // drop terrain type modifier.
-            targetOverlap = MATERIAL_OVERRIDE_HANDLING[targetMaterial] ? MATERIAL_OVERRIDE_HANDLING[targetMaterial] : -1
+            let targetOverlap = MATERIAL_OVERRIDE_HANDLING[targetMaterial] ? MATERIAL_OVERRIDE_HANDLING[targetMaterial] : -1
 
             // CALCULATE + ADD OVERWRITES: (Moore neighborhood)
             // WILL ONLY CONSIDER OVERWRITES TO EXTERNAL, NOT TO TARGET. (sim to diffusion)
-            // ... (likely manual)
             if (targetOverlap != -1) { // Assuming we need to calculate...
                 // TL
                 let tempPos = [targetPos[0]-1,targetPos[1]-1]
@@ -167,7 +166,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
 
                 // T
@@ -206,7 +205,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
 
                 // TR
@@ -245,7 +244,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
 
                 // L
@@ -284,7 +283,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
 
                 // R
@@ -323,7 +322,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
 
                 // BL
@@ -362,7 +361,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
 
                 // B
@@ -401,7 +400,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
 
                 // BR
@@ -440,7 +439,7 @@ class frillsChunk {
                             temp = NONE
                     }
                     
-                    this.tileData.rawArray[i].append(temp)
+                    this.tileData.rawArray[i].push(temp)
                 }
             }
         }
@@ -548,7 +547,7 @@ class pseudoTile {
         }
 
         noSmooth()
-        image(this.texture,this._coordSysPos[0],this._coordSysPos[1],this._squareSize,this._squareSize)
+        image(this._texture,this._coordSysPos[0],this._coordSysPos[1],this._squareSize,this._squareSize)
         smooth()
     }
 }

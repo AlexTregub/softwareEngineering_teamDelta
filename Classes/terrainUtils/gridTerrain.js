@@ -153,9 +153,47 @@ class gridTerrain {
                 this._gridSpanTL[0]*this._chunkSize,
                 this._gridSpanTL[1]*this._chunkSize
             ]
-        ); // WILL NOT CONTAIN TILES. WILL CONTAIN TileEdges - Seperate from Tile. WILL NOT CONTAIN CHUNKS. Will be simpler grids to allow for multiple tile modifier renderings on a single tile.
+        ); // WILL NOT CONTAIN TILES. WILL CONTAIN TileEdges? - Seperate from Tile. WILL NOT CONTAIN CHUNKS. Will be simpler grids to allow for multiple tile modifier renderings on a single tile.
         
-        // ... (Init frillChunks...)
+        for (let i = 0; i < this._gridChunkCount; ++i) {
+            let chunkPosition = this.frillArray.convArrToRelPos(this.frillArray.convToSquare(i));
+            
+            this.frillArray.rawArray[i] = new frillsChunk(chunkPosition,
+                [
+                    chunkPosition[0]*this._chunkSize,
+                    chunkPosition[1]*this._chunkSize
+                ],
+                this._chunkSize,
+                this._tileSize
+            );
+        }
+    }
+
+    updateTileSmooth() { // Needs to regenerate entire grid...
+        this.frillArray = new Grid(this._gridSizeX,this._gridSizeY, 
+            this._gridSpanTL,[
+                this._gridSpanTL[0]*this._chunkSize,
+                this._gridSpanTL[1]*this._chunkSize
+            ]
+        ); // WILL NOT CONTAIN TILES. WILL CONTAIN TileEdges? - Seperate from Tile. WILL NOT CONTAIN CHUNKS. Will be simpler grids to allow for multiple tile modifier renderings on a single tile.
+        
+        for (let i = 0; i < this._gridChunkCount; ++i) {
+            let chunkPosition = this.frillArray.convArrToRelPos(this.frillArray.convToSquare(i));
+            
+            this.frillArray.rawArray[i] = new frillsChunk(chunkPosition,
+                [
+                    chunkPosition[0]*this._chunkSize,
+                    chunkPosition[1]*this._chunkSize
+                ],
+                this._chunkSize,
+                this._tileSize
+            );
+        }
+        
+        // Apply smoothing chunk by chunk...
+        for (let i = 0; i < this._gridChunkCount; ++i) {
+            this.frillArray.rawArray[i].updateFrills(this)
+        }
     }
 
     /**
@@ -201,6 +239,8 @@ class gridTerrain {
             this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
         }
         
+        this.updateTileSmooth()
+
         // Invalidate cache when terrain data changes
         this.invalidateCache();
     }
@@ -284,7 +324,7 @@ class gridTerrain {
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
 
-        console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
+        // console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
 
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
@@ -681,6 +721,7 @@ class gridTerrain {
                 // this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
 
                 this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+                this.frillArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
                 ++chunksRendered
             }
         }
