@@ -542,6 +542,14 @@ class gridTerrain {
                 }
             }
         }
+
+        // Render frills after chunks...
+        for (let y = tl[1]; y <= br[1]+1; ++y) {
+            for (let x = tl[0]; x <= br[0]+1; ++x) {
+                this.frillArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter,this._terrainCache)
+                // ++chunksRendered
+            }
+        }
         
         this._terrainCache.pop();
     }

@@ -525,12 +525,12 @@ class frillsChunk {
         }
     }
 
-    render(coordSys) { // Will render calculated frills
+    render(coordSys,ctx=window) { // Will render calculated frills
         let len = this.tileData.getSize()[0]*this.tileData.getSize()[1];
         
         for (let i = 0; i < len; ++i) {
             for (let j = 0; j < this.tileData.rawArray[i].length; ++j) {
-                this.tileData.rawArray[i][j].render(coordSys)
+                this.tileData.rawArray[i][j].render(coordSys,ctx)
             }
         }
     }
@@ -621,14 +621,14 @@ class pseudoTile {
         this._coordSysPos = NONE;
     }
 
-    render(coordSys) {
+    render(coordSys,ctx=window) {
         if (this._texture === NONE) { return }
         if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
             this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
         }
 
         // noSmooth()
-        image(this._texture,this._coordSysPos[0],this._coordSysPos[1],this._squareSize,this._squareSize)
+        ctx.image(this._texture,this._coordSysPos[0],this._coordSysPos[1],this._squareSize,this._squareSize)
         // smooth()
     }
 }
