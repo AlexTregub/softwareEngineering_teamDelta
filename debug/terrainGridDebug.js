@@ -184,11 +184,11 @@ function drawTerrainGrid() {
   if (map.renderConversion) {
     const viewSpan = map.renderConversion.getViewSpan();
     if (viewSpan && viewSpan.length === 2) {
-      // ViewSpan format: [[minX, maxY], [maxX, minY]]
+      // ViewSpan format: [[minX, minY], [maxX, maxY]]
       visibleTiles.minX = Math.floor(viewSpan[0][0]) - 1;
       visibleTiles.maxX = Math.ceil(viewSpan[1][0]) + 1;
-      visibleTiles.minY = Math.floor(viewSpan[1][1]) - 1;
-      visibleTiles.maxY = Math.ceil(viewSpan[0][1]) + 1;
+      visibleTiles.minY = Math.floor(viewSpan[0][1]) - 1;
+      visibleTiles.maxY = Math.ceil(viewSpan[1][1]) + 1;
     }
   }
   

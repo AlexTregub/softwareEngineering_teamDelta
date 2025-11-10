@@ -62,20 +62,11 @@ class DraggablePanelManager {
     // DISABLED FOR PRESENTATION
     this.createDefaultPanels();
     
-    // Register with RenderLayerManager if available
     // Register with RenderLayerManager using addDrawableToLayer
     if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addDrawableToLayer === 'function') {
-      // Bind the renderPanels method to this instance
+      // Bind the renderPanels method to this instance and add to UI_GAME layer (panels should render after base game UI)
       this._renderPanelsBound = this.renderPanels.bind(this);
-      
-      // Add to UI_GAME layer (panels should render after base game UI)
       RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, this._renderPanelsBound);
-      
-      if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ DraggablePanelManager registered with RenderLayerManager');
-      } else {
-        logNormal('✅ DraggablePanelManager registered with RenderLayerManager');
-      }
     } else {
       console.warn('⚠️ RenderLayerManager not found - panels will need manual rendering');
     }

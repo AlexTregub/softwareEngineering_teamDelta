@@ -4,7 +4,6 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
-let COORDSY;
 
 const NONE = '\0'; 
 
@@ -40,12 +39,17 @@ let cameraManager;
 let terrariaFont;
 
 function preload(){
+  // return; // !!! REMOVE BEFORE DEV
+
   terrainPreloader();
+
+  // return
   soundManagerPreload();
   resourcePreLoad();
   preloadPauseImages();
   BuildingPreloader();
   NPCPreloader();
+  QuestUIPreloader()
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
@@ -54,6 +58,32 @@ function preload(){
 
 
 function setup() {
+  createCanvas(windowWidth,windowHeight) 
+
+  if (!TEST_GRID()) {
+    console.log("GRID MALFORMED.")
+    return
+  } 
+
+  // square(0,0,100)
+  // image(GRASS_IMAGE,0,0,32,32)
+  // square(10,10,100)
+
+  if (!TEST_CHUNK()) {
+    console.log("CHUNK MALFORMED.")
+    // TEST_CHUNK()
+  }
+
+  if (!TEST_CAM_RENDER_CONVERTER()){
+    console.log("CAMERA RENDER CONVERTER MALFORMED.")
+  }
+
+  if (!TEST_BASIC_TERRAIN()) {
+    console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
+  }
+ 
+  // return; // !!! REMOVE BEFORE DEV
+
   // Initialize TaskLibrary before other systems that depend on it
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
   logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
@@ -79,23 +109,8 @@ function setup() {
     }
   }
   
-  // Now spawn initial resources (after spatial grid exists)
-  if (typeof spawnInitialResources === 'function') {
-    spawnInitialResources();
-  }
-  
   initializeWorld();
-
-  // Initialize Draggable Panel System (must be after initializeWorld, before any UI that uses panels)
-  if (typeof initializeDraggablePanelSystem !== 'undefined') {
-    initializeDraggablePanelSystem().then(() => {
-      logVerbose('✅ DraggablePanelSystem ready');
-    }).catch((error) => {
-      console.error('❌ Failed to initialize DraggablePanelSystem:', error);
-    });
-  } else {
-    console.warn('⚠️ initializeDraggablePanelSystem not found - draggable panels will not work');
-  }
+  initializeDraggablePanelSystem()
 
   // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
@@ -103,9 +118,7 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  logVerbose('[SETUP] About to create SelectionBoxController, g_mouseController:', g_mouseController, 'ants:', ants);
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-  logVerbose('[SETUP] Created g_selectionBoxController:', g_selectionBoxController);
   window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
 
   // Ensure selection adapter is registered with RenderManager now that controller exists
@@ -175,40 +188,13 @@ function setup() {
         return false;
       }
     });
-    
-    logVerbose('🚫 Right-click context menu disabled for brush controls');
   }
 
-  // Initialize Queen Control Panel system
-  if (typeof initializeQueenControlPanel !== 'undefined') {
-    initializeQueenControlPanel();
-    logVerbose('👑 Queen Control Panel initialized in setup');
-  }
-
-  // Initialize Fireball System
-  if (typeof window !== 'undefined' && typeof FireballManager !== 'undefined') {
-    window.g_fireballManager = new FireballManager();
-    logVerbose('🔥 Fireball System initialized in setup');
-  }
-
-  // Initialize Event Manager (singleton)
-  if (typeof EventManager !== 'undefined') {
-    window.eventManager = EventManager.getInstance();
-    logVerbose('🎯 Event Manager initialized in setup');
-  }
-
-  // Initialize Event Debug Manager
-  if (typeof EventDebugManager !== 'undefined') {
-    window.eventDebugManager = new EventDebugManager();
-    
-    // Connect EventDebugManager to EventManager
-    if (window.eventManager) {
-      window.eventManager.setEventDebugManager(window.eventDebugManager);
-      logVerbose('🔗 Event Debug Manager connected to Event Manager');
-    }
-    
-    logVerbose('🐛 Event Debug Manager initialized in setup');
-  }
+  initializeQueenControlPanel();
+  window.g_fireballManager = new FireballManager();
+  window.eventManager = EventManager.getInstance();
+  window.eventDebugManager = new EventDebugManager();
+  window.eventManager.setEventDebugManager(window.eventDebugManager);
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
@@ -229,25 +215,24 @@ function setup() {
           const terrain = new CustomTerrain(50, 50, 32, 'dirt');
           levelEditor.initialize(terrain);
         }
-        logVerbose('🎨 Level Editor activated with blank CustomTerrain');
       } else if (oldState === 'LEVEL_EDITOR') {
-        // Deactivate level editor when leaving
         levelEditor.deactivate();
-        logVerbose('🎨 Level Editor deactivated');
       }
     });
   }
-  
-  // Start automatic BGM monitoring after menu initialization
-  if (soundManager && typeof soundManager.startBGMMonitoring === 'function') {
-    soundManager.startBGMMonitoring();
-  }
-  
-  // Initialize context menu prevention for better brush control
+  soundManager.startBGMMonitoring();
   initializeContextMenuPrevention();
-  //
-
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
+  window.QuestManager.preloadAssets();
+
+  // --- initialize shop manager ---
+  window.BUIManager = new BUIManager();
+  window.BUIManager.preload();
+  //window.draggablePanelManager.createDefaultPanels();
+}
+
+function addListeners() {
+  
 }
 
 /**
@@ -290,25 +275,6 @@ function initializeContextMenuPrevention() {
   logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
 }
 
-/**
- * Global function to test context menu prevention
- */
-function testContextMenuPrevention() {
-  logVerbose('🧪 Testing context menu prevention...');
-  logVerbose('Right-click anywhere to test - context menu should NOT appear');
-  logVerbose('If context menu still appears, try: disableContextMenu()');
-  return true;
-}
-
-/**
- * Global function to force disable context menu
- */
-function disableContextMenu() {
-  initializeContextMenuPrevention();
-  logVerbose('🔒 Context menu prevention forcibly re-applied');
-  return true;
-}
-
 // Make functions globally available
 if (typeof window !== 'undefined') {
   window.testContextMenuPrevention = testContextMenuPrevention;
@@ -336,19 +302,20 @@ function initializeWorld() {
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
+
+  // g_map2.setMat([0,0],'farmland')
   
   // IMPORTANT: Set g_activeMap immediately after g_map2 creation
   g_activeMap = g_map2;
+
+  g_activeMap.setMat([0,0],'farmland')
   
   // Register with MapManager (which will also update g_activeMap)
   if (typeof mapManager !== 'undefined') {
     mapManager.registerMap('level1', g_map2, true);
     logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
-  
-  // COORDSY = new CoordinateSystem();
-  // COORDSY.setViewCornerBC(0,0);
-  
+     
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
   
@@ -379,6 +346,8 @@ function initializeWorld() {
  */
 
 function draw() {
+  // TEST_CHUNK()
+  // return
   // ============================================================
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
   // ============================================================
@@ -424,6 +393,9 @@ function draw() {
     if (window.DIAManager && typeof DIAManager.update === 'function') {
       DIAManager.update();
     }
+
+    // --- Update + Render Shop UI ---
+    
   }
 
   if (GameState.getState() === 'LEVEL_EDITOR') {
@@ -457,10 +429,20 @@ function draw() {
     }
   }
 
+  // --- Render Quest UI (if any) ---
+  if (window.QuestManager && typeof window.QuestManager.renderUI === 'function') {
+    window.QuestManager.renderUI();
+  }
+
   // --- Render Dialogue Box ---
   if (window.DIAManager) {
     window.DIAManager.update();
     window.DIAManager.render();
+  }
+
+  if (window.BUIManager) {
+    window.BUIManager.update();
+    window.BUIManager.render();
   }
 
   // --- Debug stuff ---
@@ -857,6 +839,7 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  
   // Level Editor keyboard shortcuts (if active)
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -864,7 +847,14 @@ function keyPressed() {
     }
   }
   
+  // Handle all debug-related keys FIRST (command line, dev console, test hotkeys)
+  // This must come before coordinate debug to allow command line to work
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug console key was handled
+  }
+  
   // Coordinate Debug Overlay toggle (Tilde ~ key)
+  // Only if dev console is not enabled (so backtick can open command line)
   if (key === '`' || key === '~') {
     if (typeof toggleCoordinateDebug === 'function') {
       toggleCoordinateDebug();
@@ -883,10 +873,6 @@ function keyPressed() {
   // Handle terrain grid debug shortcuts (Ctrl+Shift+G/O/L)
   if (typeof handleTerrainGridKeys === 'function' && handleTerrainGridKeys()) {
     return; // Terrain grid shortcut was handled
-  }
-  
-  // Handle all debug-related keys (command line, dev console, test hotkeys)
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
   }
   
   if (keyCode === ESCAPE) {
@@ -1025,18 +1011,38 @@ function keyPressed() {
     }
     
   }
-  // --- NPC Interaction (Press E to Talk) ---
   if (key === 'e' || key === 'E') {
+    // continue NPC dialogue if active
     if (window.currentNPC) {
       window.currentNPC.advanceDialogue();
-    } else {
-      // start dialogue if nearby
-      const antony = NPCList.find(n => n.name === "Antony");
-      if (antony && antony.isPlayerNearby) {
-        antony.startDialogue(NPCDialogues.antony);
+      return;
+    }
+  
+    // talk to nearby NPC if close
+    const antony = NPCList.find(n => n.name === "Antony" && n.isPlayerNearby);
+    if (antony) {
+      antony.startDialogue(NPCDialogues.antony);
+      return;
+    }
+  
+    // interact with nearby anthill
+    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
+    if (nearbyHill) {
+      console.log("Interacting with nearby anthill:", nearbyHill);
+      if (!window.BUIManager.active) {
+        window.BUIManager.open(nearbyHill);
+      } else {
+        window.BUIManager.close();
       }
+      return;
     }
   }
+  
+  if (window.BUIManager?.active) {
+    const handled = window.BUIManager.handleKeyPress(key);
+    if (handled) return;
+  }
+  
 }
 
 /**
