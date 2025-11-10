@@ -313,7 +313,7 @@ class Grid {
         this._sizeArr = this._sizeX * this._sizeY;
     } // tested
 
-    // Grid-span range - NOT INCLUSIZE
+    // Grid-span range - NOT INCLUSIVE
     getSpanRange() { // Returns pair of coordinates, one top left, one top right.
         return [this._spanTopLeft,this._spanBotRight];
     } // tested

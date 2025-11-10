@@ -183,13 +183,13 @@ class Chunk {
         }
     } // tested
 
-    render(coordSys) { // Render through coordinate system
+    render(coordSys,ctx=window) { // Render through coordinate system
         // let temp = coordSys;
         // coordSys.setViewCornerBC([0,0]);
         let len = this.tileData.getSize()[0]*this.tileData.getSize()[1];
         
         for (let i = 0; i < len; ++i) {
-            this.tileData.rawArray[i].render(coordSys);
+            this.tileData.rawArray[i].render(coordSys,ctx);
         }
     } // tested
 
@@ -289,7 +289,7 @@ function TEST_CHUNK() {
     console.log("=============== TEST_CHUNK RUN:")
     // terrainPreloader()
 
-    let chunk = new Chunk(NONE,[0,0]); // IGNORING 'official' chunk position, coordinate system defined
+    let chunk = new Chunk(NONE,[0,0],8); // IGNORING 'official' chunk position, coordinate system defined
     let renderConverter = new camRenderConverter([0,0],[windowWidth,windowHeight])    
     // renderConverter.forceTileUpdate()
 

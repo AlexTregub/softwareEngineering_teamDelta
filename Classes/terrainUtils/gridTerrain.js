@@ -147,6 +147,57 @@ class gridTerrain {
         this._cacheViewport = null;             // Cached viewport state for invalidation
         this._lastCameraPosition = [0, 0];     // Track camera movement
 
+        // Tile 'smoothing' 'chunks' (Pain) 
+        this.frillArray = new Grid(this._gridSizeX,this._gridSizeY, 
+            this._gridSpanTL,[
+                this._gridSpanTL[0]*this._chunkSize,
+                this._gridSpanTL[1]*this._chunkSize
+            ]
+        ); // WILL NOT CONTAIN TILES. WILL CONTAIN TileEdges? - Seperate from Tile. WILL NOT CONTAIN CHUNKS. Will be simpler grids to allow for multiple tile modifier renderings on a single tile.
+        
+        for (let i = 0; i < this._gridChunkCount; ++i) {
+            let chunkPosition = this.frillArray.convArrToRelPos(this.frillArray.convToSquare(i));
+            
+            this.frillArray.rawArray[i] = new frillsChunk(chunkPosition,
+                [
+                    chunkPosition[0]*this._chunkSize,
+                    chunkPosition[1]*this._chunkSize
+                ],
+                this._chunkSize,
+                this._tileSize
+            );
+        }
+    }
+
+    updateTileSmooth() { // Needs to regenerate entire grid...
+        this.frillArray = new Grid(this._gridSizeX,this._gridSizeY, 
+            this._gridSpanTL,[
+                this._gridSpanTL[0]*this._chunkSize,
+                this._gridSpanTL[1]*this._chunkSize
+            ]
+        ); // WILL NOT CONTAIN TILES. WILL CONTAIN TileEdges? - Seperate from Tile. WILL NOT CONTAIN CHUNKS. Will be simpler grids to allow for multiple tile modifier renderings on a single tile.
+        
+        for (let i = 0; i < this._gridChunkCount; ++i) {
+            let chunkPosition = this.frillArray.convArrToRelPos(this.frillArray.convToSquare(i));
+            
+            this.frillArray.rawArray[i] = new frillsChunk(chunkPosition,
+                [
+                    chunkPosition[0]*this._chunkSize,
+                    chunkPosition[1]*this._chunkSize
+                ],
+                this._chunkSize,
+                this._tileSize
+            );
+        }
+        
+        // Apply smoothing chunk by chunk...
+        for (let i = 0; i < this._gridChunkCount; ++i) {
+            this.frillArray.rawArray[i].updateFrills(this)
+        }
+    }
+
+    getSpanRange() { // External from chunks. Used to mimic chunks get-span-range...
+        return this._tileSpan
     }
 
     /**
@@ -192,6 +243,8 @@ class gridTerrain {
             this.chunkArray.rawArray[i].randomize(this._tileSpanRange);
         }
         
+        this.updateTileSmooth()
+
         // Invalidate cache when terrain data changes
         this.invalidateCache();
     }
@@ -275,7 +328,7 @@ class gridTerrain {
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
 
-        console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
+        // console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
 
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
@@ -475,18 +528,31 @@ class gridTerrain {
         let br = this.convRelToAccess(viewSpan[1])[0]
 
         // Copied from renderDirect().
-        for (let y = tl[1]; y <= br[1]+1; ++y) {
-            for (let x = tl[0]; x <= br[0]+1; ++x) { // Potentially works with < , not necessarily correct.
-                // this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
+        // for (let y = tl[1]; y <= br[1]+1; ++y) {
+        //     for (let x = tl[0]; x <= br[0]+1; ++x) { // Potentially works with < , not necessarily correct.
+        //         // this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
                 
-                // let chunkAccessPos = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]));
-                let chunkAccessPos = this.chunkArray.convToFlat([x,y])
-                let accessLen = this._chunkSize*this._chunkSize;
+        //         // let chunkAccessPos = this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]));
+        //         let chunkAccessPos = this.chunkArray.convToFlat([x,y])
+        //         let accessLen = this._chunkSize*this._chunkSize;
 
-                for (let i = 0; i < accessLen; ++i) { // Potentially inefficient, using for caching only.
-                    // console.log(this.chunkArray.rawArray[chunkAccessPos])
-                    this._renderTileToCache(this.chunkArray.rawArray[chunkAccessPos].tileData.rawArray[i])
-                }
+        //         for (let i = 0; i < accessLen; ++i) { // Potentially inefficient, using for caching only.
+        //             // console.log(this.chunkArray.rawArray[chunkAccessPos])
+        //             this._renderTileToCache(this.chunkArray.rawArray[chunkAccessPos].tileData.rawArray[i])
+        //         }
+        //     }
+        // }
+        for (let y = tl[1]; y <= br[1]+1; ++y) {
+            for (let x = tl[0]; x <= br[0]+1; ++x) {
+                this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter,this._terrainCache)
+            }
+        }
+
+        // Render frills after chunks...
+        for (let y = tl[1]; y <= br[1]+1; ++y) {
+            for (let x = tl[0]; x <= br[0]+1; ++x) {
+                this.frillArray.rawArray[this.frillArray.convToFlat([x,y])].render(converter,this._terrainCache)
+                // ++chunksRendered
             }
         }
         
@@ -498,7 +564,7 @@ class gridTerrain {
      * @param {Object} tile - The tile object to render
      * @private
      */
-    _renderTileToCache(tile,converter=this.renderConversion) {
+    _renderTileToCache(tile,converter=this.renderConversion) { // NOW UNUSED
         if (!tile || !this._terrainCache) return;
         
         try {
@@ -654,25 +720,11 @@ class gridTerrain {
      * @public
      */
     renderDirect(converter=this.renderConversion) {
+        noSmooth()
         let chunksRendered = 0;
 
         let viewSpan = converter.getViewSpan();
-        console.log(viewSpan)
-
-        // for (let y = ceil(viewSpan[0][1]); y < floor(viewSpan[1][1]); ++y) {
-        //     for (let x = ceil(viewSpan[0][0]); x < floor(viewSpan[1][0]); ++x) {
-        //         // console.log(x,y)
-
-        //         this.get([x,y]).render()
-        //     }
-        // }
-
-        // Render all tiles    
-        // for (let i = 0; i < this.chunkArray.rawArray.length; ++i) {
-        //     // console.log(i)
-        //     this.chunkArray.rawArray[i].render(converter) // Render ALL
-        //     ++chunksRendered
-        // }
+        // console.log(viewSpan)
 
         // let viewSpan = converter.getViewSpan()
         // Chunk accesses...
@@ -687,18 +739,19 @@ class gridTerrain {
                 // this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
 
                 this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+                // this.frillArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
                 ++chunksRendered
             }
         }
 
-        // for (let y = floor(tl[]); y < ceil(viewSpan[1][1]); ++y) {
-        //     for (let x = floor(viewSpan[0][0]); x < ceil(viewSpan[1][0]); ++x) {
-        //         // this.get([x,y]).render(converter)
-        //         // ++chunksRendered
-        //     }
-        // }
-
-        
+        // Render frills after chunks...
+        for (let y = tl[1]; y <= br[1]+1; ++y) {
+            for (let x = tl[0]; x <= br[0]+1; ++x) {
+                this.frillArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+                // ++chunksRendered
+            }
+        }
+       
         // Use same dynamic chunk buffer as cache rendering for consistency
         // const CHUNK_BUFFER = this._calculateChunkBuffer();
         
@@ -739,23 +792,12 @@ class gridTerrain {
         
         // Only access chunks which need to be rendered, reduce array access at cost of position conversions
         // Verify indices, seem ok.
-        
-        // OPERATING ON TILES...?
-        // for (let y = chunkSpan[0][1]; y <= chunkSpan[0][1]; ++y) {
-        //     for (let x = chunkSpan[0][0]; x <= chunkSpan[1][0]; ++x) { // Potentially works with < , not necessarily correct.
-        //         this.chunkArray.rawArray[this.chunkArray.convToFlat(this.chunkArray.convRelToArrPos([x,y]))].render(converter);
-                
-        //         // console.log(x,y)
-        //         // this.chunkArray.get([x,y]).render()
-        //         // this.get([x,y]).render()
-        //         ++chunksRendered;
-        //     }
-        // }
 
         // logNormal("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
         logNormal("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
-        console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
+        // console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
 
+        smooth()
     }
 };
 

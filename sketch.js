@@ -41,6 +41,7 @@ let terrariaFont;
 function preload(){
   // return; // !!! REMOVE BEFORE DEV
 
+  smoothingPreload();
   terrainPreloader();
 
   // return
@@ -58,6 +59,9 @@ function preload(){
 
 
 function setup() {
+  // TEMPORARY
+  // disableTerrainCache()
+
   createCanvas(windowWidth,windowHeight) 
 
   if (!TEST_GRID()) {
