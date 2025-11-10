@@ -119,7 +119,7 @@ class NPC extends Building{
     }
 
     if (this.questAssigned) {
-      const collected = getResourceCount(); // from your ResourceManager globals
+      const collected = getResourceCount("stick"); // from your ResourceManager globals
       if (collected >= this.questAmount && this.dialogueStage === 1) {
         // Player has completed quest — you can increment stage or switch dialogue
         this.dialogueStage = 2;
@@ -258,11 +258,10 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
-
+/*
 function getResourceCount(type) {
   //Funtionality is to return specific resource count if given
   //If type is not given it returns all resource count
-  //console.log('NPC')
   window.resourceManager = window.resourceManager || window.ResourceManager;
   if (!window.resourceManager) {
     console.warn("ResourceManager not found.");
@@ -270,3 +269,4 @@ function getResourceCount(type) {
   }
   return window.resourceManager.getTotalResourceCount(type);
 }
+*/

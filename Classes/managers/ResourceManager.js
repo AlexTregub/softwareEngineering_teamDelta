@@ -138,6 +138,7 @@ class ResourceManager {
           if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
             window.addGlobalResource(rtype, ramt);
             console.log(`Added to global totals: ${rtype} +${ramt}`);
+            //console.log(_resourceTotals[stick])
           }
         } catch (e) {
           console.log('Error updating resource totals:', e);
@@ -400,6 +401,9 @@ class ResourceManager {
     logNormal(`ResourceManager: Force dropped ${dropped.length} resources`);
     return dropped;
   }
+
+
+
 }
 
 // Export for Node.js compatibility
@@ -471,9 +475,11 @@ function getResourceTotals() {
  */
 function getResourceCount(type) {
   if (!type) {
+    console.log('Type is not given, returning total resources');
     return Object.values(_resourceTotals).reduce((s, v) => s + v, 0);
   }
-  return _resourceTotals[String(type)] || 0;
+  console.log(`Type given, returning `+ type + ' count');
+  return _resourceTotals[type] || 0;
 }
 
 // Debug helper you can call from console or UI
