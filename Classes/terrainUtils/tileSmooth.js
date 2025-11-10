@@ -40,6 +40,14 @@ let WATER_R
 let WATER_T
 let WATER_TL
 let WATER_TR
+let SAND_B
+let SAND_BL
+let SAND_BR
+let SAND_L
+let SAND_R
+let SAND_T
+let SAND_TL
+let SAND_TR
 
 function smoothingPreload() {
     DIRT_B=loadImage('Images/tileEdges_16x16/dirt/dirt_b.png')
@@ -88,6 +96,15 @@ function smoothingPreload() {
     WATER_TL=loadImage('Images/tileEdges_16x16/water/water_tl.png')
     WATER_TR=loadImage('Images/tileEdges_16x16/water/water_tr.png')
     // console.log("LOADED SMOOTHING")
+
+    SAND_B=loadImage('Images/tileEdges_16x16/sand/sand_b.png')
+    SAND_BL=loadImage('Images/tileEdges_16x16/sand/sand_bl.png')
+    SAND_BR=loadImage('Images/tileEdges_16x16/sand/sand_br.png')
+    SAND_L=loadImage('Images/tileEdges_16x16/sand/sand_l.png')
+    SAND_R=loadImage('Images/tileEdges_16x16/sand/sand_r.png')
+    SAND_T=loadImage('Images/tileEdges_16x16/sand/sand_t.png')
+    SAND_TL=loadImage('Images/tileEdges_16x16/sand/sand_tl.png')
+    SAND_TR=loadImage('Images/tileEdges_16x16/sand/sand_tr.png')
 }
 
 const MATERIAL_OVERRIDE_HANDLING = { // Higher weight == override. Not included tiles assumed -1
@@ -95,7 +112,8 @@ const MATERIAL_OVERRIDE_HANDLING = { // Higher weight == override. Not included 
     "grass" : 25,
     "moss" : 37,
     "stone" : 6, 
-    "water" : 50
+    "water" : 50,
+    "sand" : 44
     // Note, sand should override stone,grass,moss but not water. Sand almost never near dirt, but allowed to override as is 'runnier'
 }
 
@@ -163,6 +181,9 @@ class frillsChunk {
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TL)
                             break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_TL)
+                            break
                         default:
                             temp = NONE
                     }
@@ -201,6 +222,9 @@ class frillsChunk {
                             break
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_T)
+                            break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_T)
                             break
                         default:
                             temp = NONE
@@ -241,6 +265,10 @@ class frillsChunk {
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TR)
                             break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_TR)
+                            break
+                    
                         default:
                             temp = NONE
                     }
@@ -279,6 +307,9 @@ class frillsChunk {
                             break
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_L)
+                            break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_L)
                             break
                         default:
                             temp = NONE
@@ -319,6 +350,9 @@ class frillsChunk {
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_R)
                             break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_R)
+                            break
                         default:
                             temp = NONE
                     }
@@ -357,6 +391,9 @@ class frillsChunk {
                             break
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BL)
+                            break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_BL)
                             break
                         default:
                             temp = NONE
@@ -397,6 +434,9 @@ class frillsChunk {
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_B)
                             break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_B)
+                            break
                         default:
                             temp = NONE
                     }
@@ -435,6 +475,9 @@ class frillsChunk {
                             break
                         case 'water':
                             temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BR)
+                            break
+                        case 'sand':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_BR)
                             break
                         default:
                             temp = NONE
@@ -542,7 +585,7 @@ class pseudoTile {
     }
 
     render(coordSys) {
-        if (this._texture == NONE) { return }
+        if (this._texture === NONE) { return }
         if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
             this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
         }

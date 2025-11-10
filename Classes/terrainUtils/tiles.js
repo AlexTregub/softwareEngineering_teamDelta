@@ -71,9 +71,9 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
     //// Water-based patches 0 - 0.34
     'stone_3' : [[0.3,0.303], (x,y,squareSize) => image(STONE_IMAGE, x,y,squareSize,squareSize)], 
 
-    'water_cave' : [[0,0.22], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
+    'waterCave' : [[0,0.22], (x,y,squareSize) => image(WATER_CAVE,x,y,squareSize,squareSize)],
     'water' : [[0.22,0.3], (x,y,squareSize) => image(WATER,x,y,squareSize,squareSize)],
-    'sand_dark' : [[0.3,0.32], (x,y,squareSize) => image(SAND_DARK_IMAGE,x,y,squareSize,squareSize)],
+    'sandDark' : [[0.3,0.32], (x,y,squareSize) => image(SAND_DARK_IMAGE,x,y,squareSize,squareSize)],
     'sand' : [[0.32,0.34], (x,y,squareSize) => image(SAND_IMAGE,x,y,squareSize,squareSize)],
 
     
@@ -92,8 +92,8 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
 
     // Other materials, not spawned
     'farmland' : [[0,0] , (x,y,squareSize) => image(FARMLAND_IMAGE, x, y, squareSize,squareSize)],     
-    'cave_dirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
-    'cave_dark' : [[0,0], (x,y,squareSize) => image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
+    'caveDirt' : [[0,0], (x,y,squareSize) => image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
+    'caveDark' : [[0,0], (x,y,squareSize) => image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
 };
 
 /**
@@ -130,7 +130,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
         ctx.image(STONE_IMAGE,x,y,size,size)
       }
       break
-    case 'water_cave':
+    case 'waterCave':
       if (WATER_CAVE) {
         ctx.image(WATER_CAVE,x,y,size,size)
       }
@@ -140,7 +140,7 @@ function renderMaterialToContext(materialName, x, y, size, context) {
         ctx.image(WATER,x,y,size,size)
       }
       break
-    case 'sand_dark':
+    case 'sandDark':
       if (SAND_DARK_IMAGE) {
         ctx.image(SAND_DARK_IMAGE,x,y,size,size)
       }
@@ -155,12 +155,12 @@ function renderMaterialToContext(materialName, x, y, size, context) {
         ctx.image(FARMLAND_IMAGE,x,y,size,size)
       }
       break
-    case 'cave_dirt':
+    case 'caveDirt':
       if (CAVE_DIRT_IMAGE) {
         ctx.image(CAVE_DIRT_IMAGE,x,y,size,size)
       }
       break
-    case 'cave_dark':
+    case 'caveDark':
       if (CAVE_EXDARK_IMAGE) {
         ctx.image(CAVE_EXDARK_IMAGE,x,y,size,size)
       }
