@@ -113,9 +113,15 @@ const MATERIAL_OVERRIDE_HANDLING = { // Higher weight == override. Not included 
     "moss" : 37,
     "stone" : 6, 
     "water" : 50,
-    "sand" : 44
+    "sand" : 44,
     // Note, sand should override stone,grass,moss but not water. Sand almost never near dirt, but allowed to override as is 'runnier'
 }
+// Conv to values-only + sorted.
+let MATERIAL_INVERSE_HANDLING = []
+for (key in MATERIAL_OVERRIDE_HANDLING) {
+    MATERIAL_INVERSE_HANDLING.push(MATERIAL_OVERRIDE_HANDLING[key])
+}
+MATERIAL_INVERSE_HANDLING.sort(function(a,b) {return a-b}) // Bruh
 
 class frillsChunk {
     constructor(chunkPos,spanTLPos,size=CHUNK_SIZE,tileSize=TILE_SIZE) {
@@ -167,22 +173,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TL,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_TL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_TL,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_TL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_TL,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TL,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TL,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_TL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_TL,'sand')
                             break
                         default:
                             temp = NONE
@@ -209,22 +215,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_T)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_T,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_T)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_T,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_T)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_T,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_T)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_T,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_T)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_T,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_T)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_T,'sand')
                             break
                         default:
                             temp = NONE
@@ -251,22 +257,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TR,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_TR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_TR,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_TR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_TR,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TR,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_TR,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_TR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_TR,'sand')
                             break
                     
                         default:
@@ -294,22 +300,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_L)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_L,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_L)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_L,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_L)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_L,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_L)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_L,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_L)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_L,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_L)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_L,'sand')
                             break
                         default:
                             temp = NONE
@@ -336,22 +342,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_R)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_R,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_R)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_R,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_R)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_R,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_R)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_R,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_R)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_R,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_R)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_R,'sand')
                             break
                         default:
                             temp = NONE
@@ -378,22 +384,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BL,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_BL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_BL,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_BL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_BL,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BL,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BL,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_BL)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_BL,'sand')
                             break
                         default:
                             temp = NONE
@@ -420,22 +426,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_B)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_B,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_B)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_B,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_B)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_B,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_B)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_B,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_B)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_B,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_B)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_B,'sand')
                             break
                         default:
                             temp = NONE
@@ -462,22 +468,22 @@ class frillsChunk {
                     let temp
                     switch(targetMaterial) {
                         case 'dirt':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_BR,'dirt')
                             break
                         case 'grass':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_BR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_BR,'grass')
                             break
                         case 'moss':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_BR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_BR,'moss')
                             break
                         case 'stone':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_BR,'stone')
                             break
                         case 'water':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,WATER_BR,'water')
                             break
                         case 'sand':
-                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_BR)
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,SAND_BR,'sand')
                             break
                         default:
                             temp = NONE
@@ -485,6 +491,36 @@ class frillsChunk {
                     
                     this.tileData.rawArray[i].push(temp)
                 }
+            }
+
+            // Order as needed...
+            if (targetOverlap != -1) {
+                let oldArr = this.tileData.rawArray[i] // Array with vals to be copied
+                let newArr = []
+
+                // console.log(oldArr)
+
+                // console.log(MATERIAL_INVERSE_HANDLING)
+                for (let order in MATERIAL_INVERSE_HANDLING) {
+                    // console.log("Order",order)
+                    
+                    // console.log("Len",oldArr.length)
+                    // console.log(MATERIAL_OVERRIDE_HANDLING[oldArr[k]._material])
+                    for (let k = 0; k < oldArr.length; ++k) {
+                        // console.log(MATERIAL_OVERRIDE_HANDLING[oldArr[k]._material])
+                        // console.log(MATERIAL_INVERSE_HANDLING[order],MATERIAL_OVERRIDE_HANDLING[oldArr[k]._material])
+
+                        if (MATERIAL_OVERRIDE_HANDLING[oldArr[k]._material] == MATERIAL_INVERSE_HANDLING[order]) {
+                            newArr.push(oldArr[k])
+                        }
+                    }
+                }
+
+                // console.log("NEW",newArr)
+                // if (oldArr.length != 0) {
+                //     return
+                // }
+                this.tileData.rawArray[i] = newArr
             }
         }
     }
@@ -570,13 +606,14 @@ class frillsChunk {
 }
 
 class pseudoTile {
-    constructor(renderX,renderY,tileSize,texture) {
+    constructor(renderX,renderY,tileSize,texture,material) {
         // Internal coords
         this._x = renderX;
         this._y = renderY;
 
         this._squareSize = tileSize;
 
+        this._material = material
         this._texture = texture
         
         // Caching position calc
