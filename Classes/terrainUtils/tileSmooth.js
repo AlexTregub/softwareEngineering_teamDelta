@@ -130,6 +130,34 @@ class frillsChunk {
             // CALCULATE + ADD OVERWRITES: (Moore neighborhood)
             // WILL ONLY CONSIDER OVERWRITES TO EXTERNAL, NOT TO TARGET. (sim to diffusion)
             // ... (likely manual)
+            if (targetOverlap != -1) { // Assuming we need to calculate...
+                // TL
+                let tempPos = [targetPos[0]-1,targetPos[1]-1]
+                let tempMat = externalTerrain.get(tempPos).getMaterial()
+                tempMat = tempMat.split('_',1)[0]
+                tempOverlap =  MATERIAL_OVERRIDE_HANDLING[tempMat] ? MATERIAL_OVERRIDE_HANDLING[tempMat] : -1
+
+                if (tempOverlap < targetOverlap) {
+                    let temp
+                    switch(targetMaterial) {
+                        case 'dirt':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TL)
+                        case 'grass':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,GRASS_TL)
+                        case 'moss':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,MOSS_TL)
+                        case 'stone':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,STONE_TL)
+                        case 'water':
+                            temp = new pseudoTile(tempPos[0]-0.5,tempPos[1]-0.5,this._tileSize,DIRT_TL)
+                    }
+                    
+                    this.tileData.append(temp)
+                }
+
+                // T
+                // ...
+            }
         }
     }
 
@@ -214,14 +242,14 @@ class frillsChunk {
 }
 
 class pseudoTile {
-    constructor(renderX,renderY,tileSize) {
+    constructor(renderX,renderY,tileSize,texture) {
         // Internal coords
         this._x = renderX;
         this._y = renderY;
 
         this._squareSize = tileSize;
 
-        this._texture = NONE // If NONE, unrendered.
+        this._texture = texture
         
         // Caching position calc
         this._coordSysUpdateId = -1; // Used for render conversion optimizations
@@ -229,12 +257,13 @@ class pseudoTile {
     }
 
     render(coordSys) {
+        if (this._texture == NONE) { return }
         if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
             this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
         }
 
         noSmooth()
-        // ...
+        image(this.texture,this._x,this._y,this._squareSize,this._squareSize)
         smooth()
     }
 }
