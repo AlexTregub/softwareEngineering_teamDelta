@@ -50,7 +50,6 @@ class frillsChunk {
             for (let j = 0; j < this.tileData.rawArray[i].length; ++j) {
                 this.tileData.rawArray[i][j].render(coordSys)
             }
-            // this.tileData.rawArray[i].render(coordSys);
         }
     }
 
@@ -121,5 +120,31 @@ class frillsChunk {
     }
     getGridId() {
         return this.tileData.getGridId();
+    }
+}
+
+class pseudoTile {
+    constructor(renderX,renderY,tileSize) {
+        // Internal coords
+        this._x = renderX;
+        this._y = renderY;
+
+        this._squareSize = tileSize;
+
+        this._texture = NONE // If NONE, unrendered.
+        
+        // Caching position calc
+        this._coordSysUpdateId = -1; // Used for render conversion optimizations
+        this._coordSysPos = NONE;
+    }
+
+    render(coordSys) {
+        if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
+            this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
+        }
+
+        noSmooth()
+        // ...
+        smooth()
     }
 }
