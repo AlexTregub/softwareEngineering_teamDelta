@@ -123,6 +123,7 @@ class NPC extends Building{
       if (collected >= this.questAmount && this.dialogueStage === 1) {
         // Player has completed quest — you can increment stage or switch dialogue
         this.dialogueStage = 2;
+        console.log(`${collected} sticks`);
         console.log(`${this.name}: Quest complete! Ready for new dialogue.`);
       }
     }
@@ -149,7 +150,7 @@ class NPC extends Building{
         case 2:
           this.questAssigned = true;
           // Check if player has 8 sticks
-          const collected = getResourceCount(); // total of all resources
+          const collected = getResourceCount(stick); // total of all resources
           console.log(`${this.name}: Player has collected ${collected} sticks.`);
           if (collected >= this.questAmount) {
             this.dialogueLines = ["Good job! You collected all 8 sticks!"];
@@ -257,9 +258,11 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
+
 function getResourceCount(type) {
   //Funtionality is to return specific resource count if given
   //If type is not given it returns all resource count
+  //console.log('NPC')
   window.resourceManager = window.resourceManager || window.ResourceManager;
   if (!window.resourceManager) {
     console.warn("ResourceManager not found.");

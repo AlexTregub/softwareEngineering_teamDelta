@@ -47,7 +47,6 @@ class ResourceManager {
    */
   
   getCurrentLoad() {
-    console.log('get current load');
     return this.resources.length;
   }
 
@@ -121,7 +120,6 @@ class ResourceManager {
    */
   processDropOff(globalResourceArray) {
     // Allow explicit processing of drop-off even if isDroppingOff isn't true.
-    console.log('Inside processDropOff');
     if (globalResourceArray) {
       const droppedResources = this.dropAllResources();
 
@@ -209,7 +207,8 @@ class ResourceManager {
             }
           }
 
-          if (this.isAtMaxLoad() && this.parentEntity.jobName != 'Queen') {
+          if (this.isAtMaxLoad()) {
+                              //&& this.parentEntity.jobName != 'Queen'
             const dropPointX = 0; // Default drop-off coordinates
             const dropPointY = 0;
             this.startDropOff(dropPointX, dropPointY);
@@ -240,7 +239,8 @@ class ResourceManager {
             delete fruits[key];
           }
 
-          if (this.isAtMaxLoad() && this.parentEntity.jobName != 'Queen') {
+          if (this.isAtMaxLoad() ) {
+                                //&& this.parentEntity.jobName != 'Queen'
             const dropPointX = 0; // Default drop-off coordinates
             const dropPointY = 0;
             this.startDropOff(dropPointX, dropPointY);
