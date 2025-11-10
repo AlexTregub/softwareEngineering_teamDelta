@@ -8,9 +8,10 @@ class PowerBrush{
     }
     attemptStrike(mouseX, mouseY){}
     checkInRange(mouseX, mouseY){
-        const dx = (mouseX - this.queenScreenX);
-        const dy = (mouseY - this.queenScreenY);
+        const dx = (mouseX - getQueen().getScreenPosition().x);
+        const dy = (mouseY - getQueen().getScreenPosition().y);
         const dist = Math.hypot(dx, dy);
+        console.log(`Distance from queen: ${dist}, allowed range: ${this.pixelRange_}`);
         return dist <= this.pixelRange_;
     }
     render(queenScreenX, queenScreenY){}
@@ -22,9 +23,7 @@ class LightningBrush extends PowerBrush{
         this.damage = 30;
     }
     attemptStrike(mouseX, mouseY){
-        if(this.checkInRange(mouseX, mouseY)){
-            this.powers.addPower("lightning", this.damage, mouseX, mouseY);
-        }
+        return(super.checkInRange(mouseX, mouseY));
     }
     render(queenScreenX, queenScreenY){
         push();
@@ -46,9 +45,7 @@ class FinalFlashBrush extends PowerBrush{
         this.damage = 500;
     }
     attemptStrike(mouseX, mouseY){
-        if(this.checkInRange(mouseX, mouseY)){
-            this.powers.addPower("finalFlash", this.damage, mouseX, mouseY);
-        }
+        return super.checkInRange(mouseX, mouseY);
     }
     render(queenScreenX, queenScreenY){
         push();
@@ -58,6 +55,9 @@ class FinalFlashBrush extends PowerBrush{
         ellipse(queenScreenX, queenScreenY, this.pixelRange_ * 2, this.pixelRange_ * 2);
         pop();
     }
+    update(){
+        this.render(getQueen().getScreenPosition().x, getQueen().getScreenPosition().y);
+    }
 }
 class FireballBrush extends PowerBrush{
     constructor(){
@@ -66,6 +66,7 @@ class FireballBrush extends PowerBrush{
     }
     attemptStrike(mouseX, mouseY){
         if(this.checkInRange(mouseX, mouseY)){
+            console.log(`in range`);
             this.powers.addPower("fireball", this.damage, mouseX, mouseY);
         }
     }
@@ -136,8 +137,9 @@ class PowerBrushManager{
     }
     usePower(mouseX, mouseY){
         console.log("Using power brush: " + this.currentBrush.name_);
-        this.powers.addPower(this.currentBrush.name_, this.currentBrush.damage, mouseX, mouseY);
-        this.currentBrush.attemptStrike(mouseX, mouseY);
+        if(this.currentBrush.attemptStrike(mouseX, mouseY)){
+            this.powers.addPower(this.currentBrush.name_, this.currentBrush.damage, mouseX, mouseY);
+        }
     }
     update(){
         this.powers.update();
