@@ -627,8 +627,8 @@ class pseudoTile {
             this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
         }
 
-        noSmooth()
+        // noSmooth()
         image(this._texture,this._coordSysPos[0],this._coordSysPos[1],this._squareSize,this._squareSize)
-        smooth()
+        // smooth()
     }
 }

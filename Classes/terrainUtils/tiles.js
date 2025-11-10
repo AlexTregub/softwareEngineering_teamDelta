@@ -365,12 +365,12 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
         logNormal("updating tile...");
       }
       
-      noSmooth();
+      // noSmooth();
       // console.log(this._coordSysPos)
       // console.log(this._squareSize)
       // console.log(TERRAIN_MATERIALS_RANGED[this._materialSet][1])
       TERRAIN_MATERIALS_RANGED[this._materialSet][1](this._coordSysPos[0],this._coordSysPos[1],this._squareSize);
-      smooth();
+      // smooth();
     }
   
     toString() {

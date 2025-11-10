@@ -707,6 +707,7 @@ class gridTerrain {
      * @public
      */
     renderDirect(converter=this.renderConversion) {
+        noSmooth()
         let chunksRendered = 0;
 
         let viewSpan = converter.getViewSpan();
@@ -783,6 +784,7 @@ class gridTerrain {
         logNormal("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
         // console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
 
+        smooth()
     }
 };
 
