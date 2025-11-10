@@ -4,8 +4,9 @@ const MATERIAL_OVERRIDE_HANDLING = { // Higher weight == override. Not included 
     "dirt" : 12,
     "grass" : 25,
     "moss" : 37,
-    "stone" : 6,
+    "stone" : 6, 
     "water" : 50
+    // Note, sand should override stone,grass,moss but not water. Sand almost never near dirt, but allowed to override as is 'runnier'
 }
 
 class frillsChunk {
@@ -25,7 +26,21 @@ class frillsChunk {
     }
 
     updateFrills(externalTerrain=g_activeMap) {
-        // ...
+        let len = this._size*this._size;
+
+        for (let i = 0; i < len; ++i) { // Updating local frill arrays...
+            // let arrPos = this.convToSquare(i)
+            let targetPos = this.convArrToRelPos(this.convToSquare(i)) // Position being 'frilled'
+
+            // Get current stats:
+            let targetMaterial = externalTerrain.get(targetPos).getMaterial()
+            targetMaterial = targetMaterial.split('_',1)[0] // drop terrain type modifier.
+            targetOverlap = MATERIAL_OVERRIDE_HANDLING[targetMaterial] ? MATERIAL_OVERRIDE_HANDLING[targetMaterial] : -1
+
+            // CALCULATE + ADD OVERWRITES: (Moore neighborhood)
+            // WILL ONLY CONSIDER OVERWRITES TO EXTERNAL, NOT TO TARGET. (sim to diffusion)
+            // ... (likely manual)
+        }
     }
 
     render(coordSys) { // Will render calculated frills
