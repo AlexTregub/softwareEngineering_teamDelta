@@ -22,6 +22,28 @@ describe('AntController', function() {
       global.window = {};
     }
     
+    // Mock p5.js rendering functions
+    global.push = sinon.stub();
+    global.pop = sinon.stub();
+    global.fill = sinon.stub();
+    global.stroke = sinon.stub();
+    global.noFill = sinon.stub();
+    global.noStroke = sinon.stub();
+    global.rect = sinon.stub();
+    global.translate = sinon.stub();
+    global.rotate = sinon.stub();
+    global.scale = sinon.stub();
+    global.image = sinon.stub();
+    global.imageMode = sinon.stub();
+    global.text = sinon.stub();
+    global.textAlign = sinon.stub();
+    global.CENTER = 'CENTER';
+    
+    // Mock AntSprites for AntView
+    global.AntSprites = {
+      getSprite: sinon.stub().returns({ width: 32, height: 32 })
+    };
+    
     // Load dependencies
     EntityController = require('../../../Classes/baseMVC/controllers/EntityController');
     AntModel = require('../../../Classes/baseMVC/models/AntModel');
@@ -54,13 +76,13 @@ describe('AntController', function() {
     });
     
     it('should initialize job system', function() {
-      expect(antController.getJobName()).to.equal('Scout');
+      expect(antController.getJobName()).to.equal('Worker');
     });
   });
   
   describe('Job System', function() {
     it('should get current job name', function() {
-      expect(antController.getJobName()).to.equal('Scout');
+      expect(antController.getJobName()).to.equal('Worker');
     });
     
     it('should assign new job', function() {
@@ -182,6 +204,26 @@ describe('AntController', function() {
       antController.startGathering();
       expect(antController.isGathering()).to.be.true;
     });
+
+    it('should throw error if ResourceManager missing when getting count', function() {
+      antModel.setResourceManager(null);
+      expect(() => antController.getResourceCount()).to.throw('ResourceManager not initialized');
+    });
+
+    it('should throw error if ResourceManager missing when adding resource', function() {
+      antModel.setResourceManager(null);
+      expect(() => antController.addResource({ type: 'food' })).to.throw('ResourceManager not initialized');
+    });
+
+    it('should throw error if ResourceManager missing when removing resource', function() {
+      antModel.setResourceManager(null);
+      expect(() => antController.removeResource(1)).to.throw('ResourceManager not initialized');
+    });
+
+    it('should throw error if ResourceManager missing when dropping resources', function() {
+      antModel.setResourceManager(null);
+      expect(() => antController.dropAllResources()).to.throw('ResourceManager not initialized');
+    });
   });
   
   describe('Combat System', function() {
@@ -258,14 +300,16 @@ describe('AntController', function() {
       const enemy1 = { faction: 'enemy', getPosition: () => ({ x: 105, y: 105 }) };
       const enemy2 = { faction: 'enemy', getPosition: () => ({ x: 1000, y: 1000 }) };
       
-      global.entities = [enemy1, enemy2];
+      // Create controller with entity manager mock
+      const entityManager = {
+        getAllEntities: () => [enemy1, enemy2]
+      };
+      const controllerWithManager = new AntController(antModel, antView, { entityManager });
       
-      antController._updateEnemyDetection();
+      controllerWithManager._updateEnemyDetection();
       
       const enemies = antModel.getEnemies();
       expect(enemies.length).to.be.greaterThan(0);
-      
-      delete global.entities;
     });
     
     it('should add enemy', function() {
@@ -349,6 +393,26 @@ describe('AntController', function() {
       
       expect(mockStateMachine.update.called).to.be.true;
     });
+
+    it('should throw error if StateMachine missing when getting state', function() {
+      antModel.setStateMachine(null);
+      expect(() => antController.getCurrentState()).to.throw('StateMachine not initialized');
+    });
+
+    it('should throw error if StateMachine missing when setting state', function() {
+      antModel.setStateMachine(null);
+      expect(() => antController.setState('combat')).to.throw('StateMachine not initialized');
+    });
+
+    it('should throw error if StateMachine missing when getting preferred state', function() {
+      antModel.setStateMachine(null);
+      expect(() => antController.getPreferredState()).to.throw('StateMachine not initialized');
+    });
+
+    it('should throw error if StateMachine missing when setting preferred state', function() {
+      antModel.setStateMachine(null);
+      expect(() => antController.setPreferredState('combat')).to.throw('StateMachine not initialized');
+    });
   });
   
   describe('Dropoff System', function() {
@@ -368,19 +432,21 @@ describe('AntController', function() {
     });
     
     it('should find nearest dropoff', function() {
-      global.buildings = [
-        { 
-          type: 'anthill', 
-          getPosition: () => ({ x: 150, y: 150 }), 
-          isActive: true 
-        }
-      ];
+      const building = { 
+        type: 'anthill', 
+        getPosition: () => ({ x: 150, y: 150 }), 
+        isActive: true 
+      };
       
-      antController._goToNearestDropoff();
+      // Create controller with building manager mock
+      const buildingManager = {
+        getAllBuildings: () => [building]
+      };
+      const controllerWithManager = new AntController(antModel, antView, { buildingManager });
+      
+      controllerWithManager._goToNearestDropoff();
       
       expect(antModel.getTargetDropoff()).to.not.be.null;
-      
-      delete global.buildings;
     });
     
     it('should check dropoff arrival', function() {
@@ -399,45 +465,60 @@ describe('AntController', function() {
       };
       antModel.setResourceManager(mockResourceManager);
       
-      global.buildings = [
-        { 
-          type: 'anthill', 
-          getPosition: () => ({ x: 150, y: 150 }), 
-          isActive: true 
-        }
-      ];
+      const building = { 
+        type: 'anthill', 
+        getPosition: () => ({ x: 150, y: 150 }), 
+        isActive: true 
+      };
       
-      antController._goToNearestDropoff();
+      // Create controller with building manager mock
+      const buildingManager = {
+        getAllBuildings: () => [building]
+      };
+      const controllerWithManager = new AntController(antModel, antView, { buildingManager });
+      
+      controllerWithManager._goToNearestDropoff();
       
       expect(antModel.getTargetDropoff()).to.not.be.null;
-      
-      delete global.buildings;
     });
   });
   
   describe('Movement Commands', function() {
     it('should move to location', function() {
-      const moveToSpy = sinon.spy();
-      antModel._movementController = { moveToLocation: moveToSpy };
+      const setTargetSpy = sinon.spy(antModel, 'setTargetPosition');
+      const setMovingSpy = sinon.spy(antModel, 'setMoving');
       
       antController.moveToLocation(200, 200);
       
-      expect(moveToSpy.calledWith(200, 200)).to.be.true;
+      expect(setTargetSpy.calledWith(200, 200)).to.be.true;
+      expect(setMovingSpy.calledWith(true)).to.be.true;
+      
+      setTargetSpy.restore();
+      setMovingSpy.restore();
     });
     
     it('should check if moving', function() {
-      antModel._movementController = { isMoving: () => false };
+      sinon.stub(antModel, 'isMoving').returns(true);
       
-      expect(antController.isMoving()).to.be.false;
+      expect(antController.isMoving()).to.be.true;
+      
+      antModel.isMoving.restore();
     });
     
     it('should stop movement', function() {
-      const stopSpy = sinon.spy();
-      antModel._movementController = { stop: stopSpy };
+      const setMovingSpy = sinon.spy(antModel, 'setMoving');
+      const setTargetSpy = sinon.spy(antModel, 'setTargetPosition');
+      const setPathSpy = sinon.spy(antModel, 'setPath');
       
       antController.stopMovement();
       
-      expect(stopSpy.called).to.be.true;
+      expect(setMovingSpy.calledWith(false)).to.be.true;
+      expect(setTargetSpy.calledWith(null, null)).to.be.true;
+      expect(setPathSpy.calledWith(null)).to.be.true;
+      
+      setMovingSpy.restore();
+      setTargetSpy.restore();
+      setPathSpy.restore();
     });
   });
   
@@ -555,6 +636,17 @@ describe('AntController', function() {
   
   describe('Debug Methods', function() {
     it('should get debug info', function() {
+      // Add required managers to prevent errors
+      const mockStateMachine = {
+        getCurrentState: sinon.stub().returns('idle')
+      };
+      const mockResourceManager = {
+        getResourceCount: sinon.stub().returns(0),
+        getMaxResources: sinon.stub().returns(10)
+      };
+      antModel.setStateMachine(mockStateMachine);
+      antModel.setResourceManager(mockResourceManager);
+      
       const debugInfo = antController.getDebugInfo();
       
       expect(debugInfo).to.be.an('object');
@@ -567,7 +659,12 @@ describe('AntController', function() {
       const mockStateMachine = {
         getCurrentState: sinon.stub().returns('gathering')
       };
+      const mockResourceManager = {
+        getResourceCount: sinon.stub().returns(0),
+        getMaxResources: sinon.stub().returns(10)
+      };
       antModel.setStateMachine(mockStateMachine);
+      antModel.setResourceManager(mockResourceManager);
       
       const debugInfo = antController.getDebugInfo();
       
@@ -575,10 +672,14 @@ describe('AntController', function() {
     });
     
     it('should include resource count in debug info', function() {
+      const mockStateMachine = {
+        getCurrentState: sinon.stub().returns('idle')
+      };
       const mockResourceManager = {
         getResourceCount: sinon.stub().returns(5),
         getMaxResources: sinon.stub().returns(10)
       };
+      antModel.setStateMachine(mockStateMachine);
       antModel.setResourceManager(mockResourceManager);
       
       const debugInfo = antController.getDebugInfo();
@@ -588,14 +689,14 @@ describe('AntController', function() {
   });
   
   describe('Cleanup', function() {
-    it('should remove from game arrays', function() {
-      global.ants = [antController, { id: 'other' }];
+    it('should emit removeRequested event when removing from game', function() {
+      const callback = sinon.spy();
+      antModel.on('removeRequested', callback);
       
       antController._removeFromGame();
       
-      expect(global.ants).to.not.include(antController);
-      
-      delete global.ants;
+      expect(callback.calledOnce).to.be.true;
+      expect(callback.firstCall.args[0]).to.have.property('ant', antModel);
     });
     
     it('should deactivate model', function() {
@@ -646,7 +747,7 @@ describe('AntController', function() {
     });
     
     it('should support JobName getter', function() {
-      expect(antController.JobName).to.equal('Scout');
+      expect(antController.JobName).to.equal('Worker');
     });
     
     it('should support health getter', function() {

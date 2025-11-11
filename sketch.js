@@ -234,8 +234,6 @@ function initializeContextMenuPrevention() {
  * Test context menu prevention (debug utility)
  */
 function testContextMenuPrevention() {
-  console.log('🧪 Testing context menu prevention...');
-  console.log('Try right-clicking on the canvas - context menu should be blocked');
 }
 
 /**

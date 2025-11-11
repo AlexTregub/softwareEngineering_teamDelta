@@ -256,12 +256,7 @@ describe('EntityController', function() {
       expect(mockSpatialGrid.update.called).to.be.true;
     });
 
-    it('should sync view with model on update', function() {
-      const sprite = { update: sinon.stub() };
-      view.setSprite(sprite);
-      controller.update(16);
-      expect(sprite.update.called).to.be.true;
-    });
+    // NOTE: sprite sync test removed - EntityView no longer manages sprites (Phase 2 refactor)
   });
 
   describe('Hover Logic', function() {
@@ -363,9 +358,13 @@ describe('EntityController', function() {
   });
 
   describe('Rendering Coordination', function() {
-    it('should render entity through view', function() {
+    it('should call view render method', function() {
+      // NOTE: EntityView.render() is now a stub in base class (Phase 2 refactor)
+      // Actual rendering happens in subclasses like AntView
+      const renderSpy = sinon.spy(view, 'render');
       controller.render();
-      expect(global.push.called).to.be.true;
+      expect(renderSpy.called).to.be.true;
+      renderSpy.restore();
     });
 
     it('should render highlights through view', function() {

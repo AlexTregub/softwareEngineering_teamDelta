@@ -15,6 +15,14 @@ global.tint = sinon.stub();
 global.image = sinon.stub();
 global.rect = sinon.stub();
 
+// Mock AntSprites (required by AntView)
+global.AntSprites = {
+  getSprite: sinon.stub().returns({ img: {} })
+};
+if (typeof window !== 'undefined') {
+  window.AntSprites = global.AntSprites;
+}
+
 // Mock cameraManager
 global.cameraManager = {
   worldToScreen: (x, y) => ({ x, y })
@@ -33,6 +41,18 @@ describe('QueenController', function() {
   let model, view, controller;
 
   beforeEach(function() {
+    // Reset sinon stubs FIRST (before creating components)
+    sinon.reset();
+    if (global.console.log.reset) global.console.log.reset();
+    
+    // Recreate AntSprites mock after reset
+    global.AntSprites = {
+      getSprite: sinon.stub().returns({ img: {} })
+    };
+    if (typeof window !== 'undefined') {
+      window.AntSprites = global.AntSprites;
+    }
+    
     // Create queen MVC components
     model = new AntModel(400, 300, 60, 60, { 
       jobName: 'Queen',
@@ -40,10 +60,6 @@ describe('QueenController', function() {
     });
     view = new AntView(model);
     controller = new QueenController(model, view);
-    
-    // Reset sinon stubs
-    sinon.reset();
-    if (global.console.log.reset) global.console.log.reset();
   });
 
   afterEach(function() {

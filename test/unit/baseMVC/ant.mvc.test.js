@@ -19,6 +19,14 @@ describe('Ant MVC - Core Functionality', function() {
   beforeEach(function() {
     sandbox = sinon.createSandbox();
     
+    // Mock AntSprites (required by AntView)
+    global.AntSprites = {
+      getSprite: sandbox.stub().returns({ img: {} })
+    };
+    if (typeof window !== 'undefined') {
+      window.AntSprites = global.AntSprites;
+    }
+    
     // Mock p5.js globals
     global.createVector = sandbox.stub().callsFake((x, y) => ({ 
       x, y, 

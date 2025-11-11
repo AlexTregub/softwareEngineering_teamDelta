@@ -22,13 +22,11 @@ const spriteCache = {};
 let defaultAntSprite = null;
 
 class AntView extends EntityView {
-  constructor(model) {
-    super(model);
+  constructor(model, options = {}) {
+    super(model, options);  // Pass options to EntityView (includes camera)
     const jobName = model.getJobName();
     const faction = model.getFaction();
-    console.log(`🎨 AntView constructor: Loading sprite for ${faction} ${jobName}`);
     this.sprite = this._loadSpriteForJob(jobName, faction);
-    console.log(`🎨 AntView constructor: Sprite loaded:`, this.sprite);
     this._lastJobName = jobName;
     this._lastFaction = faction;
   }
@@ -38,12 +36,9 @@ class AntView extends EntityView {
    * @private
    */
   _loadSpriteForJob(jobName, faction) {
-    console.log(`🔍 AntView._loadSpriteForJob: Requesting ${jobName} sprite for ${faction} faction`);
     const spriteImage = AntSprites.getSprite(jobName, faction);
-    console.log(`🔍 AntView._loadSpriteForJob: Received sprite image:`, spriteImage);
     // Return object with img property for EntityView compatibility
     const spriteObject = { img: spriteImage, width: 32, height: 32 };
-    console.log(`🔍 AntView._loadSpriteForJob: Created sprite object:`, spriteObject);
     return spriteObject;
   }
   
@@ -56,7 +51,6 @@ class AntView extends EntityView {
     
     // Only reload sprite if job or faction changed
     if (currentJob !== this._lastJobName || currentFaction !== this._lastFaction) {
-      console.log(`🔄 AntView.updateSprite: Job/faction changed from ${this._lastFaction} ${this._lastJobName} to ${currentFaction} ${currentJob}`);
       this.sprite = this._loadSpriteForJob(currentJob, currentFaction);
       this._lastJobName = currentJob;
       this._lastFaction = currentFaction;
@@ -75,7 +69,7 @@ class AntView extends EntityView {
     this.updateSprite();
     
     // Isolate rendering context
-    if (typeof push === 'function') push();
+    push();
     
     // Base entity rendering (sprite, selection highlight)
     super.render();
@@ -88,11 +82,12 @@ class AntView extends EntityView {
       this.renderBoxHover();
     }
     
-    if (typeof pop === 'function') pop();
+    pop();
   }
   
   /**
    * Render resource count indicator above ant
+   * Uses camera for coordinate conversion (NO FALLBACK)
    */
   renderResourceIndicator() {
     const resourceManager = this.model.getResourceManager();
@@ -104,19 +99,20 @@ class AntView extends EntityView {
     const pos = this.model.getPosition();
     const size = this.model.getSize();
     
-    // Calculate screen position
-    let screenX = pos.x + size.x / 2;
-    let screenY = pos.y - 12;
+    // Calculate world position
+    const worldX = pos.x + size.x / 2;
+    const worldY = pos.y - 12;
     
-    // Use terrain coordinate conversion if available
-    if (typeof g_activeMap !== 'undefined' && g_activeMap && 
-        g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      const tileX = pos.x / TILE_SIZE;
-      const tileY = pos.y / TILE_SIZE;
-      
-      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
-      screenX = screenPos[0] + size.x / 2;
-      screenY = screenPos[1] - 12;
+    // Convert to screen position using camera
+    let screenX = worldX;
+    let screenY = worldY;
+    
+    if (this.camera && typeof this.camera.worldToScreen === 'function') {
+      const screenPos = this.camera.worldToScreen(worldX, worldY);
+      screenX = screenPos.x;
+      screenY = screenPos.y;
+    } else {
+      console.warn('Camera not available for resource indicator positioning');
     }
     
     // Render yellow text
@@ -129,45 +125,19 @@ class AntView extends EntityView {
    * Render health bar
    */
   renderHealthBar() {
-    // Delegate to health controller if available
-    const healthController = this.model._healthController;
-    if (healthController && typeof healthController.render === 'function') {
-      healthController.render();
+    const healthController = this.model.getHealthController();
+    
+    if (!healthController) {
+      console.error('HealthController missing for ant', this.model.getId(), '- This is a BUG, not a fallback scenario');
       return;
     }
     
-    // Fallback rendering
-    const health = this.model.getHealth();
-    const maxHealth = this.model.getMaxHealth();
-    if (health >= maxHealth) return; // Don't show bar at full health
-    
-    const pos = this.model.getPosition();
-    const size = this.model.getSize();
-    
-    const barWidth = size.x;
-    const barHeight = 4;
-    const barX = pos.x;
-    const barY = pos.y - 8;
-    
-    // Background (black)
-    fill(0);
-    noStroke();
-    rect(barX, barY, barWidth, barHeight);
-    
-    // Foreground (health percentage)
-    const healthPercent = health / maxHealth;
-    const foregroundWidth = barWidth * healthPercent;
-    
-    // Color based on health percentage
-    if (healthPercent > 0.6) {
-      fill(0, 255, 0); // Green
-    } else if (healthPercent > 0.3) {
-      fill(255, 255, 0); // Yellow
-    } else {
-      fill(255, 0, 0); // Red
+    if (typeof healthController.render !== 'function') {
+      console.error('HealthController.render() not a function for ant', this.model.getId());
+      return;
     }
     
-    rect(barX, barY, foregroundWidth, barHeight);
+    healthController.render();
   }
   
   /**
@@ -232,44 +202,34 @@ class AntView extends EntityView {
   
   /**
    * Convert world coordinates to screen coordinates
+   * Uses camera from EntityView
    * @param {number} worldX - World X coordinate
    * @param {number} worldY - World Y coordinate
    * @returns {Object} Screen coordinates {x, y}
    */
   worldToScreen(worldX, worldY) {
-    // Use terrain coordinate system if available
-    if (typeof g_activeMap !== 'undefined' && g_activeMap && 
-        g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      const tileX = worldX / TILE_SIZE;
-      const tileY = worldY / TILE_SIZE;
-      
-      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
-      return { x: screenPos[0], y: screenPos[1] };
+    // Use camera from parent EntityView
+    if (this.camera && typeof this.camera.worldToScreen === 'function') {
+      return this.camera.worldToScreen(worldX, worldY);
     }
-    
-    // Fallback: no conversion
-    return { x: worldX, y: worldY };
+    console.error('Camera not available for worldToScreen conversion - This is a BUG');
+    throw new Error('Camera required for coordinate conversion');
   }
   
   /**
    * Convert screen coordinates to world coordinates
+   * Uses camera from EntityView
    * @param {number} screenX - Screen X coordinate
    * @param {number} screenY - Screen Y coordinate
    * @returns {Object} World coordinates {x, y}
    */
   screenToWorld(screenX, screenY) {
-    // Use terrain coordinate system if available
-    if (typeof g_activeMap !== 'undefined' && g_activeMap && 
-        g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      const tilePos = g_activeMap.renderConversion.convCanvasToPos([screenX, screenY]);
-      return { 
-        x: tilePos[0] * TILE_SIZE, 
-        y: tilePos[1] * TILE_SIZE 
-      };
+    // Use camera from parent EntityView
+    if (this.camera && typeof this.camera.screenToWorld === 'function') {
+      return this.camera.screenToWorld(screenX, screenY);
     }
-    
-    // Fallback: no conversion
-    return { x: screenX, y: screenY };
+    console.error('Camera not available for screenToWorld conversion - This is a BUG');
+    throw new Error('Camera required for coordinate conversion');
   }
 }
 

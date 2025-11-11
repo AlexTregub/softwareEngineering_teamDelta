@@ -30,6 +30,8 @@ class EntityModel {
     // Visual data
     this._imagePath = options.imagePath || null;
     this._opacity = 1.0;
+    this._flipX = false;
+    this._flipY = false;
 
     // Faction
     this._faction = options.faction || 'neutral';
@@ -274,6 +276,60 @@ class EntityModel {
     this.emit('opacityChanged', {
       oldOpacity,
       newOpacity: opacity
+    });
+  }
+
+  // --- Flip State ---
+
+  /**
+   * Get flipX state
+   * @returns {boolean} FlipX state
+   */
+  getFlipX() {
+    return this._flipX;
+  }
+
+  /**
+   * Set flipX state
+   * @param {boolean} flipX - FlipX state
+   */
+  setFlipX(flipX) {
+    if (typeof flipX !== 'boolean') {
+      throw new Error('FlipX must be a boolean');
+    }
+
+    const oldFlipX = this._flipX;
+    this._flipX = flipX;
+
+    this.emit('flipXChanged', {
+      oldFlipX,
+      newFlipX: flipX
+    });
+  }
+
+  /**
+   * Get flipY state
+   * @returns {boolean} FlipY state
+   */
+  getFlipY() {
+    return this._flipY;
+  }
+
+  /**
+   * Set flipY state
+   * @param {boolean} flipY - FlipY state
+   */
+  setFlipY(flipY) {
+    if (typeof flipY !== 'boolean') {
+      throw new Error('FlipY must be a boolean');
+    }
+
+    const oldFlipY = this._flipY;
+    this._flipY = flipY;
+
+    this.emit('flipYChanged', {
+      oldFlipY,
+      newFlipY: flipY
     });
   }
 

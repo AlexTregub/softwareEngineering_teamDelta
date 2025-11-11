@@ -189,8 +189,7 @@ class EntityController {
       this.spatialGrid.update(this, pos.x, pos.y, size.x, size.y);
     }
 
-    // Sync view with model
-    this.view.syncSprite();
+    // View automatically reads from model during render - no sync needed
   }
 
   // --- Hover Logic ---

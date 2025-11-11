@@ -87,9 +87,9 @@ describe('AntModel', function() {
       expect(ant1.getAntIndex()).to.not.equal(ant2.getAntIndex());
     });
 
-    it('should default jobName to Scout', function() {
+    it('should default jobName to Worker', function() {
       const ant = new AntModel(0, 0, 32, 32);
-      expect(ant.getJobName()).to.equal('Scout');
+      expect(ant.getJobName()).to.equal('Worker');
     });
 
     it('should initialize combat properties', function() {
@@ -183,6 +183,22 @@ describe('AntModel', function() {
     it('should allow null system references', function() {
       antModel.setBrain(null);
       expect(antModel.getBrain()).to.be.null;
+    });
+
+    it('should get health controller', function() {
+      const healthController = antModel.getHealthController();
+      expect(healthController).to.exist;
+      expect(healthController).to.be.an('object');
+    });
+
+    it('should have health controller with render method', function() {
+      const healthController = antModel.getHealthController();
+      expect(healthController.render).to.be.a('function');
+    });
+
+    it('should have health controller with update method', function() {
+      const healthController = antModel.getHealthController();
+      expect(healthController.update).to.be.a('function');
     });
   });
 
@@ -535,6 +551,42 @@ describe('AntModel', function() {
     });
   });
 
+  describe('Gathering State', function() {
+    it('should initialize gathering state to false', function() {
+      expect(antModel.isGathering()).to.equal(false);
+    });
+
+    it('should set gathering state to true', function() {
+      antModel.setGathering(true);
+      expect(antModel.isGathering()).to.equal(true);
+    });
+
+    it('should set gathering state to false', function() {
+      antModel.setGathering(true);
+      antModel.setGathering(false);
+      expect(antModel.isGathering()).to.equal(false);
+    });
+
+    it('should emit gatheringChanged event when gathering state changes', function() {
+      const callback = sinon.spy();
+      antModel.on('gatheringChanged', callback);
+      
+      antModel.setGathering(true);
+      
+      expect(callback.calledOnce).to.be.true;
+      expect(callback.firstCall.args[0]).to.deep.equal({
+        oldValue: false,
+        newValue: true
+      });
+    });
+
+    it('should throw error if gathering state is not boolean', function() {
+      expect(() => antModel.setGathering('yes')).to.throw('Gathering state must be a boolean');
+      expect(() => antModel.setGathering(1)).to.throw('Gathering state must be a boolean');
+      expect(() => antModel.setGathering(null)).to.throw('Gathering state must be a boolean');
+    });
+  });
+
   describe('Complete Data Access', function() {
     it('should provide all ant-specific properties', function() {
       // Verify all required getters exist
@@ -557,6 +609,7 @@ describe('AntModel', function() {
       expect(antModel.getPathType).to.be.a('function');
       expect(antModel.isBoxHovered).to.be.a('function');
       expect(antModel.getJobStats).to.be.a('function');
+      expect(antModel.isGathering).to.be.a('function');
     });
 
     it('should provide all ant-specific setters', function() {
@@ -578,6 +631,7 @@ describe('AntModel', function() {
       expect(antModel.setPathType).to.be.a('function');
       expect(antModel.setBoxHovered).to.be.a('function');
       expect(antModel.setJobStats).to.be.a('function');
+      expect(antModel.setGathering).to.be.a('function');
     });
   });
 });

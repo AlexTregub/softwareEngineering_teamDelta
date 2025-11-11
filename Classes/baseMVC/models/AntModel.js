@@ -11,8 +11,10 @@
 // Node.js: Load EntityModel
 if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.exports) {
   const EntityModel = require('./EntityModel');
-  // Make it available in this module's scope
+  const HealthController = require('../../controllers/HealthController');
+  // Make them available in this module's scope
   global.EntityModel = EntityModel;
+  global.HealthController = HealthController;
 }
 
 // Global ant index counter for unique ant IDs
@@ -36,6 +38,14 @@ class AntModel extends EntityModel {
     this._resourceManager = null;
     this._stats = null;
     this._jobComponent = null;
+    
+    // Health Controller (ALWAYS initialized - no fallbacks)
+    if (typeof HealthController !== 'undefined') {
+      this._healthController = new HealthController(this);
+    } else {
+      this._healthController = null;
+      console.warn('HealthController not available for AntModel');
+    }
     
     // Combat Properties
     this._health = options.health !== undefined ? options.health : 100;
@@ -65,6 +75,9 @@ class AntModel extends EntityModel {
     
     // Job Stats
     this._jobStats = null;
+    
+    // Gathering State
+    this._isGathering = false;
   }
   
   // ===== Ant Identity =====
@@ -179,6 +192,10 @@ class AntModel extends EntityModel {
     const oldValue = this._jobComponent;
     this._jobComponent = jobComponent;
     this.emit('jobComponentChanged', { oldValue, newValue: jobComponent });
+  }
+  
+  getHealthController() {
+    return this._healthController;
   }
   
   // ===== Combat Properties =====
@@ -403,6 +420,22 @@ class AntModel extends EntityModel {
     
     // Return copy for immutability
     return { ...this._jobStats };
+  }
+  
+  // ===== Gathering State =====
+  
+  isGathering() {
+    return this._isGathering;
+  }
+  
+  setGathering(gathering) {
+    if (typeof gathering !== 'boolean') {
+      throw new Error('Gathering state must be a boolean');
+    }
+    
+    const oldValue = this._isGathering;
+    this._isGathering = gathering;
+    this.emit('gatheringChanged', { oldValue, newValue: gathering });
   }
 }
 

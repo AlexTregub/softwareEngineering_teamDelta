@@ -46,7 +46,11 @@ describe('AntView', function() {
       textSize: sinon.stub(),
       translate: sinon.stub(),
       rotate: sinon.stub(),
-      imageMode: sinon.stub()
+      imageMode: sinon.stub(),
+      noSmooth: sinon.stub(),
+      noTint: sinon.stub(),
+      tint: sinon.stub(),
+      scale: sinon.stub()
     };
     
     // Global p5 functions
@@ -65,6 +69,10 @@ describe('AntView', function() {
     global.translate = mockP5.translate;
     global.rotate = mockP5.rotate;
     global.imageMode = mockP5.imageMode;
+    global.noSmooth = mockP5.noSmooth;
+    global.noTint = mockP5.noTint;
+    global.tint = mockP5.tint;
+    global.scale = mockP5.scale;
     
     // Constants
     global.CENTER = 'CENTER';
@@ -86,6 +94,10 @@ describe('AntView', function() {
     window.translate = global.translate;
     window.rotate = global.rotate;
     window.imageMode = global.imageMode;
+    window.noSmooth = global.noSmooth;
+    window.noTint = global.noTint;
+    window.tint = global.tint;
+    window.scale = global.scale;
     window.CENTER = global.CENTER;
     window.CORNER = global.CORNER;
     
@@ -96,9 +108,16 @@ describe('AntView', function() {
     };
     window.AntSprites = global.AntSprites;
     
-    // Create model and view
+    // Mock camera for coordinate conversion
+    const mockCamera = {
+      worldToScreen: sinon.stub().callsFake((wx, wy) => ({ x: wx + 10, y: wy + 10 })),
+      screenToWorld: sinon.stub().callsFake((sx, sy) => ({ x: sx - 10, y: sy - 10 })),
+      getZoom: sinon.stub().returns(1.0)
+    };
+    
+    // Create model and view with camera
     antModel = new AntModel(100, 100, 32, 32);
-    antView = new AntView(antModel);
+    antView = new AntView(antModel, { camera: mockCamera });
   });
   
   afterEach(function() {
@@ -354,44 +373,53 @@ describe('AntView', function() {
       expect(() => antView.renderHealthBar()).to.not.throw();
     });
     
-    it('should render health bar at correct position', function() {
+    it('should delegate health bar rendering to HealthController', function() {
+      const mockHealthController = {
+        render: sinon.stub()
+      };
+      antModel._healthController = mockHealthController;
+      
+      antView.renderHealthBar();
+      
+      // Should delegate to HealthController.render()
+      expect(mockHealthController.render.called).to.be.true;
+    });
+    
+    it('should pass model context to HealthController render', function() {
       antModel.setHealth(50);
       antModel.setMaxHealth(100);
       
+      const mockHealthController = {
+        render: sinon.stub()
+      };
+      antModel._healthController = mockHealthController;
+      
       antView.renderHealthBar();
       
-      // Health bar should render (rect calls for background and foreground)
-      expect(mockP5.rect.called).to.be.true;
+      // HealthController render should be called
+      expect(mockHealthController.render.called).to.be.true;
     });
     
-    it('should show health percentage visually', function() {
-      antModel.setHealth(75);
-      antModel.setMaxHealth(100);
+    it('should work with different health values', function() {
+      const testCases = [
+        { health: 90, maxHealth: 100 },
+        { health: 50, maxHealth: 100 },
+        { health: 20, maxHealth: 100 }
+      ];
       
-      antView.renderHealthBar();
-      
-      // Should render two rects: background (black/gray) and foreground (green/red)
-      expect(mockP5.rect.callCount).to.be.at.least(2);
-    });
-    
-    it('should use green color for high health', function() {
-      antModel.setHealth(90);
-      antModel.setMaxHealth(100);
-      
-      antView.renderHealthBar();
-      
-      // Should have green fill call
-      expect(mockP5.fill.called).to.be.true;
-    });
-    
-    it('should use red color for low health', function() {
-      antModel.setHealth(20);
-      antModel.setMaxHealth(100);
-      
-      antView.renderHealthBar();
-      
-      // Should have red fill call
-      expect(mockP5.fill.called).to.be.true;
+      testCases.forEach(({ health, maxHealth }) => {
+        antModel.setHealth(health);
+        antModel.setMaxHealth(maxHealth);
+        
+        const mockHealthController = {
+          render: sinon.stub()
+        };
+        antModel._healthController = mockHealthController;
+        
+        antView.renderHealthBar();
+        
+        expect(mockHealthController.render.called).to.be.true;
+      });
     });
   });
   
@@ -674,15 +702,14 @@ describe('AntView', function() {
       expect(view.sprite.img).to.equal(mockScoutSprite);
     });
     
-    it('should render sprite image via parent EntityView', function() {
+    it('should store sprite for rendering (subclass responsibility)', function() {
+      // NOTE: EntityView.render() is now a stub - AntView manages its own sprite rendering
       const model = new AntModel(100, 100, 32, 32, { jobName: 'Scout', faction: 'player' });
       const view = new AntView(model);
       
-      view.render();
-      
-      // EntityView should call image() with sprite.img
-      expect(mockP5.image.called).to.be.true;
-      expect(mockP5.image.firstCall.args[0]).to.equal(mockScoutSprite);
+      // AntView should have sprite reference for its own rendering logic
+      expect(view.sprite).to.exist;
+      expect(view.sprite.img).to.equal(mockScoutSprite);
     });
     
     it('should update sprite when job changes before render', function() {

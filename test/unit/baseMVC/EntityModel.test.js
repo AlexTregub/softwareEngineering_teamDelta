@@ -359,4 +359,58 @@ describe('EntityModel', function() {
       expect(model.getOpacity()).to.equal(0.0);
     });
   });
+
+  describe('Flip State Management', function() {
+    it('should default flipX to false', function() {
+      expect(model.getFlipX()).to.be.false;
+    });
+
+    it('should default flipY to false', function() {
+      expect(model.getFlipY()).to.be.false;
+    });
+
+    it('should set flipX', function() {
+      model.setFlipX(true);
+      expect(model.getFlipX()).to.be.true;
+    });
+
+    it('should set flipY', function() {
+      model.setFlipY(true);
+      expect(model.getFlipY()).to.be.true;
+    });
+
+    it('should emit flipXChanged event', function() {
+      const callback = sinon.spy();
+      model.on('flipXChanged', callback);
+      
+      model.setFlipX(true);
+      
+      expect(callback.calledOnce).to.be.true;
+      expect(callback.firstCall.args[0]).to.deep.include({
+        oldFlipX: false,
+        newFlipX: true
+      });
+    });
+
+    it('should emit flipYChanged event', function() {
+      const callback = sinon.spy();
+      model.on('flipYChanged', callback);
+      
+      model.setFlipY(true);
+      
+      expect(callback.calledOnce).to.be.true;
+      expect(callback.firstCall.args[0]).to.deep.include({
+        oldFlipY: false,
+        newFlipY: true
+      });
+    });
+
+    it('should validate flipX is boolean', function() {
+      expect(() => model.setFlipX('true')).to.throw('FlipX must be a boolean');
+    });
+
+    it('should validate flipY is boolean', function() {
+      expect(() => model.setFlipY('true')).to.throw('FlipY must be a boolean');
+    });
+  });
 });

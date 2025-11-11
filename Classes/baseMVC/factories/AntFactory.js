@@ -44,10 +44,11 @@ class AntFactory {
    * @private
    */
   static _registerWithSystems(antMVC) {
-    // Register MODEL with spatial grid (single source of truth for entity tracking)
+    // Register FULL MVC OBJECT with spatial grid (not just model)
+    // EntityLayerRenderer expects MVC objects with .model, .view, .controller
     // Spatial grid provides O(1) queries and type filtering
-    if (typeof spatialGridManager !== 'undefined' && spatialGridManager && antMVC.model) {
-      spatialGridManager.addEntity(antMVC.model);
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager && antMVC) {
+      spatialGridManager.addEntity(antMVC);
     }
     
     // Register with selectables array (for selection system)
@@ -123,7 +124,18 @@ class AntFactory {
     // Initialize job (applies stats, sets up systems)
     controller.assignJob(JobName);
     
-    const antMVC = { model, view, controller };
+    // Create MVC wrapper object with delegation methods for SpatialGrid compatibility
+    const antMVC = { 
+      model, 
+      view, 
+      controller,
+      // Delegate spatial methods to model (required by SpatialGrid)
+      getPosition: () => model.getPosition(),
+      getX: () => model.getPosition().x,
+      getY: () => model.getPosition().y,
+      // Delegate type property (required by SpatialGridManager)
+      get type() { return model.getType(); }
+    };
     
     // Automatically register with game systems
     if (autoRegister) {
@@ -206,7 +218,18 @@ class AntFactory {
     model._idleTimer = 0;
     model._idleTimerTimeout = Infinity; // Disable skitter
     
-    const queenMVC = { model, view, controller };
+    // Create MVC wrapper object with delegation methods for SpatialGrid compatibility
+    const queenMVC = { 
+      model, 
+      view, 
+      controller,
+      // Delegate spatial methods to model (required by SpatialGrid)
+      getPosition: () => model.getPosition(),
+      getX: () => model.getPosition().x,
+      getY: () => model.getPosition().y,
+      // Delegate type property (required by SpatialGridManager)
+      get type() { return model.getType(); }
+    };
     
     // Automatically register with game systems
     if (autoRegister) {

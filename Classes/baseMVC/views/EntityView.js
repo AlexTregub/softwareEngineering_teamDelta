@@ -2,12 +2,11 @@
  * EntityView - Pure rendering for entities
  * 
  * Responsibilities:
- * - Read data from EntityModel
+ * - Read ALL data from EntityModel (NO state of its own)
  * - Render entity visuals using p5.js
- * - Handle coordinate conversion (world ↔ screen)
+ * - Handle coordinate conversion (world ↔ screen) via camera
  * - Render highlights (selection, hover, box)
- * - Manage sprite synchronization
- * - NO business logic, NO state management
+ * - NO business logic, NO state management, NO sprite storage
  */
 class EntityView {
   /**
@@ -22,7 +21,7 @@ class EntityView {
 
     this.model = model;
     this.camera = options.camera || null;
-    this.sprite = null;
+    // REMOVED: this.sprite = null; - All visual data now in Model
   }
 
   // --- Coordinate Conversion ---
@@ -67,42 +66,6 @@ class EntityView {
     return 1.0;
   }
 
-  // --- Sprite Management ---
-
-  /**
-   * Set sprite for rendering
-   * @param {Object} sprite - Sprite object
-   */
-  setSprite(sprite) {
-    this.sprite = sprite;
-  }
-
-  /**
-   * Get current sprite
-   * @returns {Object|null} Sprite object or null
-   */
-  getSprite() {
-    return this.sprite;
-  }
-
-  /**
-   * Sync sprite with model data
-   */
-  syncSprite() {
-    if (!this.sprite || typeof this.sprite.update !== 'function') {
-      return;
-    }
-
-    const pos = this.model.getPosition();
-    const rotation = this.model.getRotation();
-
-    this.sprite.update({
-      x: pos.x,
-      y: pos.y,
-      rotation: rotation
-    });
-  }
-
   // --- Highlight Rendering ---
 
   /**
@@ -140,25 +103,23 @@ class EntityView {
   // --- Main Rendering ---
 
   /**
-   * Render entity
+   * Render entity (reads ALL data from Model)
+   * Subclasses (like AntView) should set this.sprite before calling super.render()
    */
   render() {
     if (!this.model.isActive()) {
-      console.log('🚫 EntityView.render(): Model not active for', this.model.type);
       return;
     }
-    
-    console.log('🎬 EntityView.render(): Rendering', this.model.type, 'at', this.model.getPosition());
-    console.log('🎬 EntityView.render(): Sprite:', this.sprite);
 
     push();
 
+    // Read ALL visual data from Model
     const pos = this.model.getPosition();
     const size = this.model.getSize();
     const rotation = this.model.getRotation();
     const opacity = this.model.getOpacity();
-    
-    console.log('🎬 EntityView.render(): Position:', pos, 'Size:', size, 'Rotation:', rotation, 'Opacity:', opacity);
+    const flipX = this.model.getFlipX();
+    const flipY = this.model.getFlipY();
 
     // Apply opacity
     if (opacity < 1.0) {
@@ -168,15 +129,21 @@ class EntityView {
     // Apply transform
     translate(pos.x + size.x / 2, pos.y + size.y / 2);
     
+    // Apply flip
+    if (flipX || flipY) {
+      scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    }
+    
     if (rotation !== 0) {
       rotate((rotation * Math.PI) / 180); // Convert to radians
     }
 
-    // Render sprite
-    imageMode(CENTER);
-    console.log('🎬 EntityView.render(): About to call image() with sprite.img:', this.sprite.img);
-    image(this.sprite.img, 0, 0);
-    console.log('✅ EntityView.render(): image() call completed');
+    // Render sprite if available (set by subclasses like AntView)
+    if (this.sprite && this.sprite.img) {
+      noSmooth();
+      imageMode(CENTER);
+      image(this.sprite.img, 0, 0, size.x, size.y);
+    }
 
     if (opacity < 1.0) {
       noTint();

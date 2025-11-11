@@ -12,15 +12,28 @@
 // Node.js: Load EntityController
 if (typeof require !== 'undefined' && typeof module !== 'undefined' && module.exports) {
   const EntityController = require('./EntityController');
+  const MovementController = require('./MovementController');
   global.EntityController = EntityController;
+  global.MovementController = MovementController;
 }
 
 class AntController extends EntityController {
-  constructor(model, view) {
+  constructor(model, view, options = {}) {
     super(model, view);
     
-    // Internal state flags
-    this._isGathering = false;
+    // Dependency injection (NO GLOBAL STATE)
+    this._entityManager = options.entityManager || null;
+    this._buildingManager = options.buildingManager || null;
+    this._spatialGrid = options.spatialGrid || null;
+    
+    if (typeof MovementController === 'undefined') {
+      throw new Error('MovementController not available');
+    }
+    
+    this._movementController = new MovementController(this.model, {
+      pathfindingSystem: options.pathfindingSystem || null,
+      terrainSystem: options.terrainSystem || null
+    });
   }
   
   // ===== Job System =====
@@ -71,41 +84,54 @@ class AntController extends EntityController {
   
   getResourceCount() {
     const resourceManager = this.model.getResourceManager();
-    return resourceManager ? resourceManager.getResourceCount() : 0;
+    if (!resourceManager) {
+      throw new Error('ResourceManager not initialized - This is a BUG');
+    }
+    return resourceManager.getResourceCount();
   }
   
   getMaxResources() {
     const resourceManager = this.model.getResourceManager();
-    return resourceManager ? resourceManager.getMaxResources() : 0;
+    if (!resourceManager) {
+      throw new Error('ResourceManager not initialized - This is a BUG');
+    }
+    return resourceManager.getMaxResources();
   }
   
   addResource(resource) {
     const resourceManager = this.model.getResourceManager();
-    return resourceManager ? resourceManager.addResource(resource) : false;
+    if (!resourceManager) {
+      throw new Error('ResourceManager not initialized - This is a BUG');
+    }
+    return resourceManager.addResource(resource);
   }
   
   removeResource(amount) {
     const resourceManager = this.model.getResourceManager();
-    return resourceManager ? resourceManager.removeResource(amount) : false;
+    if (!resourceManager) {
+      throw new Error('ResourceManager not initialized - This is a BUG');
+    }
+    return resourceManager.removeResource(amount);
   }
   
   dropAllResources() {
     const resourceManager = this.model.getResourceManager();
-    if (resourceManager) {
-      resourceManager.dropAllResources();
+    if (!resourceManager) {
+      throw new Error('ResourceManager not initialized - This is a BUG');
     }
+    resourceManager.dropAllResources();
   }
   
   startGathering() {
-    this._isGathering = true;
+    this.model.setGathering(true);
   }
   
   stopGathering() {
-    this._isGathering = false;
+    this.model.setGathering(false);
   }
   
   isGathering() {
-    return this._isGathering;
+    return this.model.isGathering();
   }
   
   // ===== Combat System =====
@@ -152,12 +178,12 @@ class AntController extends EntityController {
   }
   
   _removeFromGame() {
-    if (typeof global.ants !== 'undefined' && Array.isArray(global.ants)) {
-      const index = global.ants.indexOf(this);
-      if (index !== -1) {
-        global.ants.splice(index, 1);
-      }
-    }
+    // Use event system instead of direct array manipulation (NO GLOBAL STATE)
+    // The model should emit an event that AntManager listens to
+    this.model.emit('removeRequested', { ant: this.model });
+    
+    // Mark as inactive in model
+    this.model.setActive(false);
   }
   
   setCombatTarget(target) {
@@ -177,13 +203,17 @@ class AntController extends EntityController {
   }
   
   _updateEnemyDetection() {
-    // Check for nearby enemies
-    if (typeof global.entities === 'undefined') return;
+    // Require entity manager (NO GLOBAL STATE)
+    if (!this._entityManager) {
+      console.warn('EntityManager not provided to AntController - skipping enemy detection');
+      return;
+    }
     
     const myPos = this.model.getPosition();
     const detectionRange = this.model.getAttackRange() * 2;
     
-    global.entities.forEach(entity => {
+    const entities = this._entityManager.getAllEntities();
+    entities.forEach(entity => {
       if (entity.faction !== this.model.getFaction()) {
         const distance = this._calculateDistance(this.model, entity);
         if (distance < detectionRange) {
@@ -194,8 +224,12 @@ class AntController extends EntityController {
   }
   
   _calculateDistance(entity1, entity2) {
-    const pos1 = entity1.getPosition ? entity1.getPosition() : { x: 0, y: 0 };
-    const pos2 = entity2.getPosition ? entity2.getPosition() : { x: 0, y: 0 };
+    if (!entity1.getPosition || !entity2.getPosition) {
+      throw new Error('Entity missing getPosition() method - This is a BUG');
+    }
+    
+    const pos1 = entity1.getPosition();
+    const pos2 = entity2.getPosition();
     
     const dx = pos2.x - pos1.x;
     const dy = pos2.y - pos1.y;
@@ -207,26 +241,34 @@ class AntController extends EntityController {
   
   getCurrentState() {
     const stateMachine = this.model.getStateMachine();
-    return stateMachine ? stateMachine.getCurrentState() : 'idle';
+    if (!stateMachine) {
+      throw new Error('StateMachine not initialized - This is a BUG');
+    }
+    return stateMachine.getCurrentState();
   }
   
   setState(state) {
     const stateMachine = this.model.getStateMachine();
-    if (stateMachine) {
-      stateMachine.setState(state);
+    if (!stateMachine) {
+      throw new Error('StateMachine not initialized - This is a BUG');
     }
+    stateMachine.setState(state);
   }
   
   getPreferredState() {
     const stateMachine = this.model.getStateMachine();
-    return stateMachine ? stateMachine.getPreferredState() : 'idle';
+    if (!stateMachine) {
+      throw new Error('StateMachine not initialized - This is a BUG');
+    }
+    return stateMachine.getPreferredState();
   }
   
   setPreferredState(state) {
     const stateMachine = this.model.getStateMachine();
-    if (stateMachine) {
-      stateMachine.setPreferredState(state);
+    if (!stateMachine) {
+      throw new Error('StateMachine not initialized - This is a BUG');
     }
+    stateMachine.setPreferredState(state);
   }
   
   _onStateChange(oldState, newState) {
@@ -240,24 +282,42 @@ class AntController extends EntityController {
   }
   
   _goToNearestDropoff() {
-    if (typeof global.buildings === 'undefined') return;
+    // Require building manager (NO GLOBAL STATE)
+    if (!this._buildingManager) {
+      throw new Error('BuildingManager not provided to AntController - This is a BUG');
+    }
     
     const myPos = this.model.getPosition();
-    let nearestDropoff = null;
-    let nearestDistance = Infinity;
     
-    global.buildings.forEach(building => {
-      if (building.type === 'anthill' && building.isActive) {
-        const distance = this._calculateDistance(this.model, building);
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearestDropoff = building;
-        }
-      }
-    });
+    // Use spatial grid if available for better performance
+    let buildings;
+    if (this._spatialGrid) {
+      // Search within large radius (1000 pixels) for dropoff buildings
+      buildings = this._spatialGrid.getNearbyEntities(myPos.x, myPos.y, 1000)
+        .filter(entity => entity.getType && entity.getType() === 'Building');
+    } else {
+      // Fallback to building manager
+      buildings = this._buildingManager.getAllBuildings();
+    }
     
-    if (nearestDropoff) {
-      this.setTargetDropoff(nearestDropoff.getPosition());
+    // Filter for active anthill buildings
+    const dropoffBuildings = buildings.filter(building => 
+      building.isActive && 
+      (building.getBuildingType ? building.getBuildingType() === 'anthill' : building.type === 'anthill')
+    );
+    
+    if (dropoffBuildings.length === 0) {
+      return; // No dropoff buildings available
+    }
+    
+    // Find nearest using reduce
+    const nearest = dropoffBuildings.reduce((closest, building) => {
+      const distance = this._calculateDistance(this.model, building);
+      return distance < closest.distance ? { building, distance } : closest;
+    }, { building: null, distance: Infinity });
+    
+    if (nearest.building) {
+      this.setTargetDropoff(nearest.building.getPosition());
     }
   }
   
@@ -275,23 +335,23 @@ class AntController extends EntityController {
   
   // ===== Movement Commands =====
   
+  /**
+   * Move ant to specified location
+   * Uses MovementController for proper pathfinding and state management
+   * @param {number} x - Target X coordinate
+   * @param {number} y - Target Y coordinate
+   * @returns {boolean} - True if movement started successfully
+   */
   moveToLocation(x, y) {
-    if (this.model._movementController) {
-      this.model._movementController.moveToLocation(x, y);
-    }
+    return this._movementController.moveToLocation(x, y);
   }
   
   isMoving() {
-    if (this.model._movementController) {
-      return this.model._movementController.isMoving();
-    }
-    return false;
+    return this._movementController.isMoving();
   }
   
   stopMovement() {
-    if (this.model._movementController) {
-      this.model._movementController.stop();
-    }
+    this._movementController.stop();
   }
   
   // ===== Command/Task System =====
@@ -333,7 +393,11 @@ class AntController extends EntityController {
     
     // Update frame time
     const currentTime = Date.now();
+    const deltaTime = this.model.getLastFrameTime() ? currentTime - this.model.getLastFrameTime() : 16.67;
     this.model.setLastFrameTime(currentTime);
+    
+    // Update movement (ALWAYS uses MovementController)
+    this._movementController.update(deltaTime);
     
     // Update subsystems
     const stateMachine = this.model.getStateMachine();
@@ -416,42 +480,81 @@ class AntController extends EntityController {
   }
   
   // ===== Legacy Compatibility - Property Accessors =====
+  // These accessors provide backward compatibility during MVC migration.
+  // They will be removed in a future version.
+  // Please use the getter/setter methods instead.
   
+  /**
+   * @deprecated Use getPosition().x instead
+   */
   get posX() {
+    console.warn("AntController.PosX is deprecated: Use getPosition().x instead")
     return this.model.getPosition().x;
   }
   
+  /**
+   * @deprecated Use setPosition(x, y) or moveTo(x, y) instead
+   */
   set posX(value) {
+    console.warn("AntController.posX setter is deprecated: Use setPosition(x, y) or moveTo(x, y) instead");
     const pos = this.model.getPosition();
     this.model.setPosition(value, pos.y);
   }
   
+  /**
+   * @deprecated Use getPosition().y instead
+   */
   get posY() {
+    console.warn("AntController.posY is deprecated: Use getPosition().y instead");
     return this.model.getPosition().y;
   }
   
+  /**
+   * @deprecated Use setPosition(x, y) or moveTo(x, y) instead
+   */
   set posY(value) {
+    console.warn("AntController.posY setter is deprecated: Use setPosition(x, y) or moveTo(x, y) instead");
     const pos = this.model.getPosition();
     this.model.setPosition(pos.x, value);
   }
   
+  /**
+   * @deprecated Use isSelected() method instead
+   */
   get isSelected() {
+    console.warn("AntController.isSelected property is deprecated: Use isSelected() method instead");
     return this.model.isSelected();
   }
   
+  /**
+   * @deprecated Use getFaction() method instead
+   */
   get faction() {
+    console.warn("AntController.faction is deprecated: Use getFaction() method instead");
     return this.model.getFaction();
   }
   
+  /**
+   * @deprecated Use getAntIndex() method instead
+   */
   get antIndex() {
+    console.warn("AntController.antIndex is deprecated: Use getAntIndex() method instead");
     return this.model.getAntIndex();
   }
   
+  /**
+   * @deprecated Use getJobName() method instead
+   */
   get JobName() {
+    console.warn("AntController.JobName is deprecated: Use getJobName() method instead");
     return this.model.getJobName();
   }
   
+  /**
+   * @deprecated Use getHealth() method instead
+   */
   get health() {
+    console.warn("AntController.health is deprecated: Use getHealth() method instead");
     return this.model.getHealth();
   }
   

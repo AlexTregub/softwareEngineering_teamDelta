@@ -6,6 +6,8 @@
 
 **NO FALLBACKS**: Never add fallback code, safety checks, or "if undefined" guards. If something doesn't exist, it's a bug - let it fail loudly so we can fix it properly.
 
+**NO TYPE CHECKING IN PRODUCTION CODE**: Never add `typeof` checks like `if (typeof myFunction === 'function')` in production code. If a function doesn't exist, it should throw an error. Fix the root cause, don't mask it.
+
 **REUSE FIRST**: Before creating anything new:
 1. **Scan codebase** - Search for existing classes/functions that do what you need
 2. **Use existing tests** - Add to existing test files instead of creating new ones
@@ -30,11 +32,12 @@
 
 **Unit Tests** (862+ tests, write FIRST):
 - ✅ Test individual functions in isolation
-- ✅ Mock all external dependencies (p5.js, managers)
+- ✅ Mock all external dependencies (p5.js, managers) **in test setup**, NOT in production code
 - ✅ Fast (<10ms per test)
 - ✅ Target 100% coverage for new code
 - ❌ NEVER test loop counters or internal mechanics
 - ❌ NEVER test mocks (test real behavior)
+- ❌ NEVER add `typeof` checks in production code to fix test failures - mock p5.js functions in test setup instead
 
 **Integration Tests**:
 - ✅ Test component interactions with real dependencies

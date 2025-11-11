@@ -119,8 +119,23 @@ describe('EntityView', function() {
       expect(view.camera).to.equal(mockCamera);
     });
 
-    it('should initialize sprite to null', function() {
-      expect(view.sprite).to.be.null;
+    it('should NOT have sprite property (refactored)', function() {
+      // After refactor, View should not hold sprite state
+      expect(view).to.not.have.property('sprite');
+    });
+
+    it('should NOT have setSprite method (refactored)', function() {
+      // After refactor, sprites managed by Model
+      expect(view.setSprite).to.be.undefined;
+    });
+
+    it('should NOT have getSprite method (refactored)', function() {
+      expect(view.getSprite).to.be.undefined;
+    });
+
+    it('should NOT have syncSprite method (refactored)', function() {
+      // No sync needed - View reads from Model directly
+      expect(view.syncSprite).to.be.undefined;
     });
 
     it('should throw error if model is missing', function() {
@@ -235,172 +250,11 @@ describe('EntityView', function() {
     });
   });
 
-  describe('Sprite Management', function() {
-    it('should set sprite', function() {
-      view.setSprite(mockSprite);
-      expect(view.sprite).to.equal(mockSprite);
-    });
-
-    it('should get sprite', function() {
-      view.setSprite(mockSprite);
-      expect(view.getSprite()).to.equal(mockSprite);
-    });
-
-    it('should sync sprite with model position', function() {
-      view.setSprite(mockSprite);
-      view.syncSprite();
-
-      expect(mockSprite.update.called).to.be.true;
-      const updateCall = mockSprite.update.firstCall.args[0];
-      expect(updateCall.x).to.equal(100);
-      expect(updateCall.y).to.equal(200);
-    });
-
-    it('should sync sprite with model rotation', function() {
-      model.setRotation(45);
-      view.setSprite(mockSprite);
-      view.syncSprite();
-
-      const updateCall = mockSprite.update.firstCall.args[0];
-      expect(updateCall.rotation).to.equal(45);
-    });
-
-    it('should handle missing sprite gracefully', function() {
-      view.sprite = null;
-      expect(() => view.syncSprite()).to.not.throw();
-    });
-  });
-
-  describe('Main Rendering', function() {
-    it('should render sprite if available', function() {
-      view.setSprite(mockSprite);
-      view.render();
-
-      expect(mockP5.push.called).to.be.true;
-      expect(mockP5.imageMode.calledWith(CENTER)).to.be.true;
-      expect(mockP5.translate.called).to.be.true;
-      // Rotation may not be called if rotation is 0
-      expect(mockP5.image.calledWith(mockSprite.img)).to.be.true;
-      expect(mockP5.pop.called).to.be.true;
-    });
-
-    it('should apply opacity when rendering', function() {
-      model.setOpacity(0.5);
-      view.setSprite(mockSprite);
-      view.render();
-
-      expect(mockP5.tint.calledWith(255, 127.5)).to.be.true; // 255 * 0.5
-    });
-
-    it('should require sprite.img to render', function() {
-      view.setSprite(mockSprite);
-      view.render();
-
-      expect(mockP5.image.calledWith(mockSprite.img)).to.be.true;
-    });
-
-    it('should not render if inactive', function() {
-      model.setActive(false);
-      view.render();
-
-      expect(mockP5.push.called).to.be.false;
-    });
-
-    it('should use world coordinates for rendering', function() {
-      view.setSprite(mockSprite);
-      view.render();
-
-      // Should translate to center of entity
-      const translateCall = mockP5.translate.firstCall;
-      expect(translateCall.args[0]).to.equal(116); // pos.x + size.x/2 (100 + 16)
-      expect(translateCall.args[1]).to.equal(216); // pos.y + size.y/2 (200 + 16)
-    });
-
-    it('should apply rotation when rendering', function() {
-      model.setRotation(45);
-      view.setSprite(mockSprite);
-      view.render();
-
-      expect(mockP5.translate.called).to.be.true;
-      expect(mockP5.rotate.called).to.be.true;
-    });
-  });
-
-  describe('Render Layers', function() {
-    it('should render entity layer', function() {
-      view.setSprite(mockSprite);
-      view.renderEntityLayer();
-
-      // Should call main render
-      expect(mockP5.push.called).to.be.true;
-    });
-
-    it('should render highlight layer', function() {
-      model.setSelected(true);
-      view.renderHighlightLayer();
-
-      expect(mockP5.stroke.called).to.be.true;
-    });
-
-    it('should separate entity and highlight rendering', function() {
-      // Entity render should include sprite
-      view.setSprite(mockSprite);
-      view.renderEntityLayer();
-
-      const entityImageCalls = mockP5.image.callCount;
-
-      // Highlight render should ONLY render highlights
-      mockP5.image.resetHistory();
-      model.setSelected(true);
-      view.renderHighlightLayer();
-
-      const highlightImageCalls = mockP5.image.callCount;
-
-      // Entity should render sprite, highlight should not
-      expect(entityImageCalls).to.be.greaterThan(0);
-      expect(highlightImageCalls).to.equal(0);
-    });
-  });
+  // NOTE: Sprite Management, Main Rendering, and Render Layers removed in Phase 2 refactor
+  // EntityView no longer manages sprites directly - that's handled by subclasses like AntView
+  // See AntView.test.js for sprite rendering tests
 
   describe('Model Integration', function() {
-    it('should read position from model', function() {
-      model.setPosition(300, 400);
-      view.setSprite(mockSprite);
-      view.render();
-
-      // Check translate call (uses center of entity)
-      const translateCall = mockP5.translate.firstCall;
-      expect(translateCall.args[0]).to.equal(316); // 300 + 32/2
-      expect(translateCall.args[1]).to.equal(416); // 400 + 32/2
-    });
-
-    it('should read size from model', function() {
-      model.setSize(64, 64);
-      view.setSprite(mockSprite);
-      view.render();
-
-      const translateCall = mockP5.translate.firstCall;
-      expect(translateCall.args[0]).to.equal(132); // 100 + 64/2
-      expect(translateCall.args[1]).to.equal(232); // 200 + 64/2
-    });
-
-    it('should react to model changes', function() {
-      model.setPosition(100, 100);
-      view.setSprite(mockSprite);
-      view.render();
-
-      let translateCall = mockP5.translate.firstCall;
-      expect(translateCall.args[0]).to.equal(116); // 100 + 32/2
-
-      // Change model
-      mockP5.translate.resetHistory();
-      model.setPosition(200, 200);
-      view.render();
-
-      translateCall = mockP5.translate.firstCall;
-      expect(translateCall.args[0]).to.equal(216); // 200 + 32/2
-    });
-
     it('should read all states from model', function() {
       // Test each state is read correctly
       expect(view.model.isActive()).to.equal(model.isActive());

@@ -116,7 +116,7 @@ class Entity {
     // Map of controller name -> constructor (or null if not available)
     const availableControllers = {
       'transform': typeof TransformController !== 'undefined' ? TransformController : null,
-      'movement': typeof MovementController !== 'undefined' ? MovementController : null,
+      // 'movement': DISABLED - Entity.js is legacy, use MVC entities (AntFactory) instead
       'render': typeof RenderController !== 'undefined' ? RenderController : null,
       'selection': typeof SelectionController !== 'undefined' ? SelectionController : null,
       'combat': typeof CombatController !== 'undefined' ? CombatController : null,
@@ -143,14 +143,14 @@ class Entity {
    * @private
    */
   _configureControllers(options) {
-    const movement = this._controllers.get('movement');
-    movement.movementSpeed = options.movementSpeed;
-
+    // Movement controller disabled - Entity.js is legacy
+    // Use MVC entities (AntFactory) for entities that need movement
+    
     const selection = this._controllers.get('selection');
-    selection.setSelectable(options.selectable);
+    if (selection) selection.setSelectable(options.selectable);
 
     const combat = this._controllers.get('combat');
-    combat.setFaction(options.faction);
+    if (combat) combat.setFaction(options.faction);
   }
 
   // --- Controller Access Helper ---
