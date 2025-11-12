@@ -2,8 +2,8 @@
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
-const CHUNKS_X = 20;
-const CHUNKS_Y = 20;
+const CHUNKS_X = 50;
+const CHUNKS_Y = 50;
 
 const NONE = '\0'; 
 
