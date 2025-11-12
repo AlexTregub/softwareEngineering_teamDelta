@@ -19,6 +19,7 @@ let dropoffUI = {
 };
 
 function initDropoffUI() {
+  console.log("Initializing Dropoff Placement UI");
   // create button centered at bottom (will update position each frame to follow canvas size)
   dropoffUI.button = createMenuButton(0, 0, 140, 34, "Place Dropoff", 'default', () => {
     // toggle placing mode when clicked

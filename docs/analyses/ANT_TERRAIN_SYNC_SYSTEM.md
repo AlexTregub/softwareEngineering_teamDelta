@@ -361,10 +361,11 @@ g_map2.renderConversion   // camRenderConverter for coordinate transforms
 // Legacy Terrain System
 MAP                       // Terrain instance (old system)
 GRIDMAP                   // PathMap instance for pathfinding
-COORDSY                   // CoordinateSystem instance (old converter)
+COORDSY                   // CoordinateSystem instance (DEPRECATED converter)
 
 // Configuration
 TILE_SIZE                 // Tile size in pixels (default: 32)
+CHUNK_SIZE                // Chunk size in tiles
 g_canvasX                 // Canvas width
 g_canvasY                 // Canvas height
 ```

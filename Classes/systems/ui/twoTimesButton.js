@@ -29,6 +29,11 @@ class SpeedUpButton{
             
             if (window.g_timeOfDayOverlay && window.g_timeOfDayOverlay.globalTime) {
                 window.g_timeOfDayOverlay.globalTime.setTimeSpeed(this.speed); //Changes Day/Night Speed
+            for (let i = 0; i < ants.length; i++) {
+                this.ant = ants[i];
+                this.ant.movementSpeed *= this.speed; //Changes movement speed
+                this.ant.brain.changeIncrement(this.speed); //Changes speed of hunger
+                window.g_timeOfDayOverlay.globalTime.setTimeSpeed(this.speed); //Changes Day/Night Speed (Change for return)
             }
         }
         else{
@@ -50,8 +55,14 @@ class SpeedUpButton{
             
             if (window.g_timeOfDayOverlay && window.g_timeOfDayOverlay.globalTime) {
                 window.g_timeOfDayOverlay.globalTime.setTimeSpeed(this.speed); //Changes Day/Night Speed
+            for (let i = 0; i < ants.length; i++) {
+                this.ant = ants[i];
+                this.ant.movementSpeed *= 0.5; //Changes movement speed
+                this.ant.brain.changeIncrement(0.5); //Changes speed of hunger
+                window.g_timeOfDayOverlay.globalTime.setTimeSpeed(this.speed); //Changes Day/Night Speed (Change for return)
             }
         }
+        console.log(`Changing game speed to ${this.speed}!`); 
         //Crap ton of updates
     }
-};
+        }}}

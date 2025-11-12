@@ -72,11 +72,14 @@
     <script src="Classes/managers/QuestManager.js"></script>
     <script src="Classes/managers/DIAManager.js"></script>
     <script src="Classes/managers/NPCManager.js"></script>
+    <script src="Classes/managers/BUIManager.js"></script>
+    <script src="Classes/managers/PowerManager.js"></script>
     <script src="Classes/resource.js"></script>
     <script src="Classes/resources.js"></script>
     <script src="Classes/managers/EntityInventoryManager.js"></script>
     <script src="Classes/systems/CollisionBox2D.js"></script>
     <script src="Classes/systems/Button.js"></script>
+    <script src="Classes/systems/combat/FireballSystem.js"></script>
     
     <!-- Universal Button Group System -->
     <script src="Classes/systems/ui/UIVisibilityCuller.js"></script>
@@ -90,10 +93,12 @@
     <!-- Queen Control Panel -->
     <script src="Classes/systems/ui/QueenControlPanel.js"></script>
     
+    
     <!-- Combat Systems -->
-    <script src="Classes/systems/combat/FireballSystem.js"></script>
-  <script src="Classes/systems/combat/LightningSystem.js"></script>
-    <script src="Classes/systems/combat/FlashSystem.js"></script>
+    <!--<script src="Classes/systems/combat/FireballSystem.js"></script>-->
+    <script src="Classes/systems/combat/LightningSystem.js"></script>
+    <!--<script src="Classes/systems/combat/FlashSystem.js"></script>-->
+    <!-- <script src="Classes/managers/powerManager.js"></script> -->
     
     <!-- Brush Tools -->
   <script src="Classes/systems/tools/BrushBase.js"></script>
@@ -101,6 +106,8 @@
     <script src="Classes/systems/tools/ResourceBrush.js"></script>
     <script src="Classes/systems/tools/BuildingBrush.js"></script>
     <script src="Classes/systems/tools/LightningAimBrush.js"></script>
+    <script src="Classes/managers/PowerBrushManager.js"></script>
+    <!--<script src="Classes/systems/tools/FlashAimBrush.js"></script>-->
     
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
@@ -158,17 +165,20 @@
     <script src="debug/EventDebugManager.js"></script>
     <script src="debug/globalTestRunner.js"></script>
     <script src="Classes/systems/Nature.js"></script>
+    <script src="Classes/systems/ui/twoTimesButton.js"></script>
 
     <!-- Testing suites, comment these out for final build -->
     <script src="debug/tracing.js"></script>
 
     <script src="Classes/terrainUtils/chunk.js"></script>
-    <script src="Classes/terrainUtils/coordinateSystem.js"></script>
+    <!-- <script src="Classes/terrainUtils/coordinateSystem.js"></script> -->
+    <script src="Classes/terrainUtils/tileSmooth.js"></script>
     <script src="Classes/terrainUtils/grid.js"></script>
     <script src="Classes/terrainUtils/gridTerrain.js"></script>
     <script src="Classes/terrainUtils/CustomTerrain.js"></script>
     <script src="Classes/terrainUtils/terrianGen.js"></script>
     <script src="Classes/terrainUtils/customLevels.js"></script>
+    <script src="Classes/terrainUtils/tiles.js"></script>
     
     <!-- Map Management -->
     <script src="Classes/managers/MapManager.js"></script>
@@ -204,6 +214,9 @@
     <script src="debug/terrainDetectionTest.js"></script>
     <script src="debug/terrainSpeedTest.js"></script>
     <script src="debug/terrainIndicatorTest.js"></script>
+    <!-- <script src="debug/coordinateSystemTest.js"></script> -->
+    <script src="debug/terrainGridDebug.js"></script>
+    <script src="debug/test_getOrCreatePanel.js"></script>
   </head>
 
   <body>

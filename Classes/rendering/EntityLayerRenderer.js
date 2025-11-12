@@ -23,7 +23,7 @@ class EntityRenderer {
     // Rendering configuration
     this.config = {
       enableDepthSorting: true,
-      enableFrustumCulling: true,
+      enableFrustumCulling: false,
       enableBatching: true,
       maxBatchSize: 100,
       cullMargin: 50 // Extra pixels outside view for culling

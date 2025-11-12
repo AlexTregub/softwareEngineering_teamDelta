@@ -4,7 +4,6 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 20;
 const CHUNKS_Y = 20;
-let COORDSY;
 
 const NONE = '\0'; 
 
@@ -40,7 +39,12 @@ let cameraManager;
 let terrariaFont;
 
 function preload(){
+  // return; // !!! REMOVE BEFORE DEV
+
+  smoothingPreload();
   terrainPreloader();
+
+  // return
   soundManagerPreload();
   resourcePreLoad();
   preloadPauseImages();
@@ -55,6 +59,35 @@ function preload(){
 
 
 function setup() {
+  // TEMPORARY
+  // disableTerrainCache()
+
+  createCanvas(windowWidth,windowHeight) 
+
+  if (!TEST_GRID()) {
+    console.log("GRID MALFORMED.")
+    return
+  } 
+
+  // square(0,0,100)
+  // image(GRASS_IMAGE,0,0,32,32)
+  // square(10,10,100)
+
+  if (!TEST_CHUNK()) {
+    console.log("CHUNK MALFORMED.")
+    // TEST_CHUNK()
+  }
+
+  if (!TEST_CAM_RENDER_CONVERTER()){
+    console.log("CAMERA RENDER CONVERTER MALFORMED.")
+  }
+
+  if (!TEST_BASIC_TERRAIN()) {
+    console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
+  }
+ 
+  // return; // !!! REMOVE BEFORE DEV
+
   // Initialize TaskLibrary before other systems that depend on it
   /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
   logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
@@ -78,6 +111,11 @@ function setup() {
         }
       });
     }
+  }
+
+  // Now spawn initial resources (after spatial grid exists)
+  if (typeof spawnInitialResources === 'function') {
+    spawnInitialResources();
   }
   
   initializeWorld();
@@ -113,6 +151,17 @@ function setup() {
 
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
+    if (!key) return;
+    if (key.toUpperCase() === 'X') {
+      if (window.g_speedUpButton && typeof window.g_speedUpButton.changeGameSpeed === 'function') {
+        window.g_speedUpButton.changeGameSpeed();
+      }
+    }
+    if (key === '1' || key === '2' || key === '3') { 
+      if(window.g_powerBrushManager && typeof window.g_powerBrushManager.switchPower === 'function'){
+        window.g_powerBrushManager.switchPower(key);
+      }
+    }
     // UI shortcuts are now handled directly in keyPressed() function
     // This maintains compatibility with existing game input systems
   });
@@ -151,7 +200,7 @@ function setup() {
   }
 
   initializeQueenControlPanel();
-  window.g_fireballManager = new FireballManager();
+  // window.g_fireballManager = new FireballManager();
   window.eventManager = EventManager.getInstance();
   window.eventDebugManager = new EventDebugManager();
   window.eventManager.setEventDebugManager(window.eventDebugManager);
@@ -184,6 +233,11 @@ function setup() {
   initializeContextMenuPrevention();
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
   window.QuestManager.preloadAssets();
+
+  // --- initialize shop manager ---
+  window.BUIManager = new BUIManager();
+  window.BUIManager.preload();
+  //window.draggablePanelManager.createDefaultPanels();
 }
 
 function addListeners() {
@@ -273,25 +327,31 @@ function initializeWorld() {
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
+
+  // g_map2.setMat([0,0],'farmland')
   
   // IMPORTANT: Set g_activeMap immediately after g_map2 creation
   g_activeMap = g_map2;
+
+  g_activeMap.setMat([0,0],'farmland')
   
   // Register with MapManager (which will also update g_activeMap)
   if (typeof mapManager !== 'undefined') {
     mapManager.registerMap('level1', g_map2, true);
     logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
-  
-  // COORDSY = new CoordinateSystem();
-  // COORDSY.setViewCornerBC(0,0);
-  
+     
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
   
   // Initialize Time of Day Overlay system
   g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
   window.g_timeOfDayOverlay = g_timeOfDayOverlay; // Make globally available
+
+  window.g_speedUpButton = new SpeedUpButton();
+  window.g_powerManager = new PowerManager();
+  window.g_powerBrushManager = new PowerBrushManager();
+  window.g_naturePower = new PowerManager(true);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -333,6 +393,8 @@ function spawnQueen() {
  */
 
 function draw() {
+  // TEST_CHUNK()
+  // return
   // ============================================================
   // GAME LOOP PHASE 1: UPDATE ALL SYSTEMS
   // ============================================================
@@ -347,10 +409,11 @@ function draw() {
 
   if (GameState.getState() === 'PLAYING') {
     // --- Update gameplay systems ---
-    window.g_enemyAntBrush.update();
-    //window.g_lightningAimBrush.update();
-    window.g_resourceBrush.update();
-    window.g_buildingBrush.update();
+    if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
+    if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
+    if (window.g_resourceBrush) window.g_resourceBrush.update();
+    if (window.g_buildingBrush) window.g_buildingBrush.update();
+    if (window.g_flashAimBrush) window.g_flashAimBrush.update();
 
     updateQueenPanelVisibility();
     window.g_queenControlPanel.update();
@@ -358,6 +421,10 @@ function draw() {
     window.eventManager.update();
      window.g_fireballManager.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
+    if (window.g_flashManager) window.g_flashManager.update();
+    if (window.g_powerManager) window.g_powerManager.update();
+    if (!window.g_powerManager) window.g_powerManager = new PowerManager();
+    if (window.g_powerBrushManager) window.g_powerBrushManager.update();
     if (g_globalTime) g_globalTime.update();
 
     // --- Player Movement ---
@@ -384,6 +451,9 @@ function draw() {
     if (window.DIAManager && typeof DIAManager.update === 'function') {
       DIAManager.update();
     }
+
+    // --- Update + Render Shop UI ---
+    
   }
 
   if (GameState.getState() === 'LEVEL_EDITOR') {
@@ -402,6 +472,9 @@ function draw() {
     RenderManager.render(GameState.getState());
   } else {
     RenderManager.render(GameState.getState());
+    if (window.g_powerManager) window.g_powerManager.render(); //USE THIS FOR POWERS
+    if (window.g_powerBrushManager) window.g_powerBrushManager.render(); //USE THIS FOR POWERS
+    if (window.g_naturePower) window.g_naturePower.render();
   }
 
   const playerQueen = getQueen?.();
@@ -423,6 +496,11 @@ function draw() {
   if (window.DIAManager) {
     window.DIAManager.update();
     window.DIAManager.render();
+  }
+
+  if (window.BUIManager) {
+    window.BUIManager.update();
+    window.BUIManager.render();
   }
 
   // --- Debug stuff ---
@@ -461,6 +539,14 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() { 
+  if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
+    console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);
+    try {
+      window.g_powerBrushManager.usePower(mouseX, mouseY);
+    } catch (error) {
+      console.error('❌ Error using power brush:', error);
+    }
+  }
   // Level Editor - handle clicks first if active
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -530,6 +616,17 @@ function mousePressed() {
     }
   }
 
+  // Handle Final Flash Aim Brush events
+  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_flashAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return;
+    } catch (error) {
+      console.error('❌ Error handling Flash Flash aim brush events:', error);
+    }
+  }
+
   // Handle Queen Control Panel right-click for power cycling
   if (window.g_queenControlPanel && mouseButton === RIGHT) {
     try {
@@ -578,7 +675,6 @@ function mousePressed() {
       console.error('❌ Error handling queen control panel events:', error);
     }
   }
-
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
@@ -654,6 +750,16 @@ function mouseReleased() {
       window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
     } catch (error) {
       console.error('❌ Error handling lightning aim brush release events:', error);
+    }
+  }
+
+  //Handle Flash Flash Aim Brush release events
+  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling Final Flash aim brush release events:', error);
     }
   }
   
@@ -747,6 +853,10 @@ function mouseWheel(event) {
       event.preventDefault();
       return false;
     }
+    if (window.g_flashAimBrush && tryCycleDir(window.g_flashAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
     
     // Queen power cycling with mouse wheel
     if (window.g_queenControlPanel && window.g_queenControlPanel.handleMouseWheel(delta)) {
@@ -787,6 +897,7 @@ function handleKeyEvent(type, ...args) {
  * Handles key press events, prioritizing debug keys and ESC for selection clearing.
  */
 function keyPressed() {
+  
   // Level Editor keyboard shortcuts (if active)
   if (GameState.getState() === 'LEVEL_EDITOR') {
     if (window.levelEditor && levelEditor.isActive()) {
@@ -794,7 +905,14 @@ function keyPressed() {
     }
   }
   
+  // Handle all debug-related keys FIRST (command line, dev console, test hotkeys)
+  // This must come before coordinate debug to allow command line to work
+  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
+    return; // Debug console key was handled
+  }
+  
   // Coordinate Debug Overlay toggle (Tilde ~ key)
+  // Only if dev console is not enabled (so backtick can open command line)
   if (key === '`' || key === '~') {
     if (typeof toggleCoordinateDebug === 'function') {
       toggleCoordinateDebug();
@@ -813,10 +931,6 @@ function keyPressed() {
   // Handle terrain grid debug shortcuts (Ctrl+Shift+G/O/L)
   if (typeof handleTerrainGridKeys === 'function' && handleTerrainGridKeys()) {
     return; // Terrain grid shortcut was handled
-  }
-  
-  // Handle all debug-related keys (command line, dev console, test hotkeys)
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
   }
   
   if (keyCode === ESCAPE) {
@@ -959,18 +1073,38 @@ function keyPressed() {
     }
     
   }
-  // --- NPC Interaction (Press E to Talk) ---
   if (key === 'e' || key === 'E') {
+    // continue NPC dialogue if active
     if (window.currentNPC) {
       window.currentNPC.advanceDialogue();
-    } else {
-      // start dialogue if nearby
-      const antony = NPCList.find(n => n.name === "Antony");
-      if (antony && antony.isPlayerNearby) {
-        antony.startDialogue(NPCDialogues.antony);
+      return;
+    }
+  
+    // talk to nearby NPC if close
+    const antony = NPCList.find(n => n.name === "Antony" && n.isPlayerNearby);
+    if (antony) {
+      antony.startDialogue(NPCDialogues.antony);
+      return;
+    }
+  
+    // interact with nearby anthill
+    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
+    if (nearbyHill) {
+      console.log("Interacting with nearby anthill:", nearbyHill);
+      if (!window.BUIManager.active) {
+        window.BUIManager.open(nearbyHill);
+      } else {
+        window.BUIManager.close();
       }
+      return;
     }
   }
+  
+  if (window.BUIManager?.active) {
+    const handled = window.BUIManager.handleKeyPress(key);
+    if (handled) return;
+  }
+  
 }
 
 /**

@@ -137,12 +137,12 @@ class QuestManager {
 
             // quest icon
             if (icon) image(icon, boxX + padding - 110, y - 90, 60, 60);
-
+            const collected = getResourceCount("stick");
             // quest text
             fill(255);
             text(q.name, boxX + padding - 95 , y - 100);
             fill(200);
-            text(`Progress: ${q.progress}/${q.objective.amount}`, boxX + padding -60, y - 80);
+            text(`Progress: ${collected}/${q.objective.amount}`, boxX + padding -60, y - 80);
 
             y += 60;
         });

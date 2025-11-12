@@ -42,6 +42,7 @@ class EntityInventoryManager {
    *
    * @returns {number} The current resource count
    */
+  
   getCurrentLoad() {
     return this.resources.length;
   }
@@ -126,12 +127,19 @@ class EntityInventoryManager {
         }
         globalResourceArray.push(resource);
 
-        // --- update aggregated totals so tasks/UI can read progress ---
+        // Update resource totals (simpler type detection)
         try {
-          const rtype = resource.type || resource.resourceType || resource._type || 'misc';
-          const ramt = (typeof resource.amount === 'number') ? resource.amount : 1;
-          addGlobalResource(rtype, ramt);
-        } catch (e) { /* ignore totals update errors */ }
+          const rtype = resource._resourceType || resource.type || resource.resourceType || 'misc';
+          const ramt = resource.amount || 1;
+          
+          if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
+            window.addGlobalResource(rtype, ramt);
+            console.log(`Added to global totals: ${rtype} +${ramt}`);
+            //console.log(_resourceTotals[stick])
+          }
+        } catch (e) {
+          console.log('Error updating resource totals:', e);
+        }
       }
 
       return droppedResources;
@@ -197,7 +205,8 @@ class EntityInventoryManager {
             }
           }
 
-          if (this.isAtMaxLoad() && this.parentEntity.jobName != 'Queen') {
+          if (this.isAtMaxLoad()) {
+                              //&& this.parentEntity.jobName != 'Queen'
             const dropPointX = 0; // Default drop-off coordinates
             const dropPointY = 0;
             this.startDropOff(dropPointX, dropPointY);
@@ -228,7 +237,8 @@ class EntityInventoryManager {
             delete fruits[key];
           }
 
-          if (this.isAtMaxLoad() && this.parentEntity.jobName != 'Queen') {
+          if (this.isAtMaxLoad() ) {
+                                //&& this.parentEntity.jobName != 'Queen'
             const dropPointX = 0; // Default drop-off coordinates
             const dropPointY = 0;
             this.startDropOff(dropPointX, dropPointY);
@@ -388,6 +398,9 @@ class EntityInventoryManager {
     logNormal(`EntityInventoryManager: Force dropped ${dropped.length} resources`);
     return dropped;
   }
+
+
+
 }
 
 // Export for Node.js compatibility
@@ -459,9 +472,11 @@ function getResourceTotals() {
  */
 function getResourceCount(type) {
   if (!type) {
+    console.log('Type is not given, returning total resources');
     return Object.values(_resourceTotals).reduce((s, v) => s + v, 0);
   }
-  return _resourceTotals[String(type)] || 0;
+  console.log(`Type given, returning `+ type + ' count');
+  return _resourceTotals[type] || 0;
 }
 
 // Debug helper you can call from console or UI

@@ -4,9 +4,9 @@
  * 
  */
 
-/**
- * Fireball - Projectile that travels and deals damage on impact
- */
+// /**
+//  * Fireball - Projectile that travels and deals damage on impact
+//  */
 class Fireball {
   constructor(startX, startY, targetX, targetY, damage = 25) {
     this.x = startX;
@@ -371,7 +371,7 @@ function initializeFireballSystem() {
 // Auto-initialize if in browser environment
 if (typeof window !== 'undefined') {
   // Make classes available globally
-  window.Fireball = Fireball;
+  window.Fireball = new Fireball;
   window.FireballManager = FireballManager;
   window.initializeFireballSystem = initializeFireballSystem;
   window.g_fireballManager = initializeFireballSystem();
