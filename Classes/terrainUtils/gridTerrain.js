@@ -727,13 +727,42 @@ class gridTerrain {
         // console.log(viewSpan)
 
         // let viewSpan = converter.getViewSpan()
-        // Chunk accesses...
+        // Chunk accesses... (Gets chunk access (x,y) of position on viewspan.)
         let tl = this.convRelToAccess(viewSpan[0])[0]
         let br = this.convRelToAccess(viewSpan[1])[0]
+
+        br = [
+            br[0]+1,
+            br[1]+1
+        ] // Pad BR to avoid clipping near edge of chunks in BR of screen
+
+        let chunkBounds = this.chunkArray.getSpanRange()
+        chunkBounds[0] = this.chunkArray.convRelToArrPos(chunkBounds[0])
+        chunkBounds[1] = this.chunkArray.convRelToArrPos(chunkBounds[1])
+
+        tl = [ // Lower bound enforcement (x,y)
+            tl[0] < chunkBounds[0][0] ? chunkBounds[0][0] : tl[0],
+            tl[1] < chunkBounds[0][1] ? chunkBounds[0][1] : tl[1]
+        ]
+        br = [
+            br[0] < chunkBounds[0][0] ? chunkBounds[0][0] : br[0],
+            br[1] < chunkBounds[0][1] ? chunkBounds[0][1] : br[1]
+        ]
+
+        tl = [ // Upper bound enforcement (x,y) 
+            tl[0] >= chunkBounds[1][0] ? chunkBounds[1][0]-1 : tl[0],
+            tl[1] >= chunkBounds[1][1] ? chunkBounds[1][1]-1 : tl[1]
+        ]
+        br = [ // Upper bound enforcement (x,y) 
+            br[0] >= chunkBounds[1][0] ? chunkBounds[1][0]-1  : br[0],
+            br[1] >= chunkBounds[1][1] ? chunkBounds[1][1]-1 : br[1]
+        ]
+
+        // console.log(chunkBounds)
         // console.log(tl,br)
 
-        for (let y = tl[1]; y <= br[1]+1; ++y) {
-            for (let x = tl[0]; x <= br[0]+1; ++x) {
+        for (let y = tl[1]; y <= br[1]; ++y) {
+            for (let x = tl[0]; x <= br[0]; ++x) {
                 // console.log(this.chunkArray.convToFlat([x,y]))
                 // console.log(this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])])
                 // this.chunkArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
@@ -745,9 +774,9 @@ class gridTerrain {
         }
 
         // Render frills after chunks...
-        for (let y = tl[1]; y <= br[1]+1; ++y) {
-            for (let x = tl[0]; x <= br[0]+1; ++x) {
-                this.frillArray.rawArray[this.chunkArray.convToFlat([x,y])].render(converter)
+        for (let y = tl[1]; y <= br[1]; ++y) {
+            for (let x = tl[0]; x <= br[0]; ++x) {
+                this.frillArray.rawArray[this.frillArray.convToFlat([x,y])].render(converter)
                 // ++chunksRendered
             }
         }

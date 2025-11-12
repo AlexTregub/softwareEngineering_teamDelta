@@ -60,7 +60,7 @@ function preload(){
 
 function setup() {
   // TEMPORARY
-  // disableTerrainCache()
+  disableTerrainCache()
 
   createCanvas(windowWidth,windowHeight) 
 
