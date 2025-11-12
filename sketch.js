@@ -408,22 +408,20 @@ function draw() {
   }
 
   if (GameState.getState() === 'PLAYING') {
+    if (typeof updateQueenPanelVisibility === "function") updateQueenPanelVisibility();
+    if (!window.g_powerManager) window.g_powerManager = new PowerManager();
+
     // --- Update gameplay systems ---
+    if (window.eventManager) window.eventManager.update();
     if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
     if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
     if (window.g_resourceBrush) window.g_resourceBrush.update();
     if (window.g_buildingBrush) window.g_buildingBrush.update();
     if (window.g_flashAimBrush) window.g_flashAimBrush.update();
-
-    updateQueenPanelVisibility();
-    window.g_queenControlPanel.update();
-
-    window.eventManager.update();
-     window.g_fireballManager.update();
+    if (window.g_queenControlPanel) window.g_queenControlPanel.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
     if (window.g_flashManager) window.g_flashManager.update();
     if (window.g_powerManager) window.g_powerManager.update();
-    if (!window.g_powerManager) window.g_powerManager = new PowerManager();
     if (window.g_powerBrushManager) window.g_powerBrushManager.update();
     if (g_globalTime) g_globalTime.update();
 
@@ -448,9 +446,7 @@ function draw() {
     }
 
     // --- DIAManager update (typewriter effect, etc) ---
-    if (window.DIAManager && typeof DIAManager.update === 'function') {
-      DIAManager.update();
-    }
+    if (typeof DIAManager.update === 'function') { DIAManager.update(); }
 
     // --- Update + Render Shop UI ---
     
@@ -515,46 +511,67 @@ function draw() {
   }
 }
 
-
-
-
- /* handleMouseEvent
- * ----------------
- * Delegates mouse events to the mouse controller if the game is in an active state.
- * @param {string} type - The mouse event type (e.g., 'handleMousePressed').
- * @param {...any} args - Arguments to pass to the controller handler.
- */
-function handleMouseEvent(type, ...args) {
-  if (GameState.isInGame()) {
-    g_mouseController[type](...args);
-    if (g_activeMap && g_activeMap.renderConversion) {
-      logVerbose(g_activeMap.renderConversion.convCanvasToPos([mouseX,mouseY]));
-    }
-  }
-}
-
 /**
  * mousePressed
  * ------------
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() { 
-  if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
-    console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);
-    try {
-      window.g_powerBrushManager.usePower(mouseX, mouseY);
-    } catch (error) {
-      console.error('❌ Error using power brush:', error);
+
+    switch(GameState.getState()){
+    case 'MENU':
+      break;
+    case 'PLAYING':
+      g_mouseController[type](...args);
+      break;
+    case 'OPTIONS':
+      break;
+    case 'DEBUG_MENU':
+      break;
+    case 'PAUSED':
+      break;
+    case 'GAME_OVER':
+      break;
+    case 'KANBAN':
+      break;
+    case 'LEVEL_EDITOR':
+      if (window.levelEditor && levelEditor.isActive()) { levelEditor.handleClick(mouseX, mouseY); }
+      break;
+
+    default:
+      console.warn("Sketch.MousePressed: Invalid state")
+      break;
     }
-  }
-  // Level Editor - handle clicks first if active
-  if (GameState.getState() === 'LEVEL_EDITOR') {
-    if (window.levelEditor && levelEditor.isActive()) {
-      levelEditor.handleClick(mouseX, mouseY);
-      return; // Don't process other mouse events
+  return;
+
+
+  function brushPresses(){
+    switch(mouseButton){
+      case LEFT:
+        if (window.g_powerBrushManager.currentBrush != null) { window.g_powerBrushManager.usePower(mouseX, mouseY);}
+        break;
+      case CENTER:
+        break;
+      case RIGHT:
+        break;
     }
+   
   }
   
+    // PRIORITY 1: Check active brushes FIRST (before UI elements)
+  // This ensures brush clicks work even if panels are visible
+  
+  // Handle Enemy Ant Brush events
+  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
+      if (handled) return; // Brush consumed the event, don't process other mouse events
+    } catch (error) {
+      console.error('❌ Error handling enemy ant brush events:', error);
+    }
+  }
+
   // Tile Inspector - check first
   if (typeof tileInspectorEnabled !== 'undefined' && tileInspectorEnabled) {
     if (typeof inspectTileAtMouse === 'function') {
@@ -569,19 +586,7 @@ function mousePressed() {
     if (handled) return;
   }
 
-  // PRIORITY 1: Check active brushes FIRST (before UI elements)
-  // This ensures brush clicks work even if panels are visible
-  
-  // Handle Enemy Ant Brush events
-  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling enemy ant brush events:', error);
-    }
-  }
+
 
   // Handle Resource Brush events
   if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
@@ -642,18 +647,14 @@ function mousePressed() {
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
     if (consumed) {
-      logVerbose('🖱️ Mouse click consumed by RenderManager');
       return; // consumed by an interactive (buttons/panels/etc.)
     }
-    logVerbose('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
     // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
   } catch (e) {
     console.error('Error dispatching pointerdown to RenderManager:', e);
     // best-effort: still notify legacy controller if present to avoid breaking older flows
     try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
   }
-
-  // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
   
   // Handle DraggablePanel mouse events
   if (window.draggablePanelManager && 
@@ -689,20 +690,17 @@ function mouseDragged() {
   if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager !== null && g_uiDebugManager.isActive) {
     g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
   }
-  // Forward move to RenderManager
+  
+  // Forward to RenderManager for UI/panel drag handling
   try {
-    const consumed = RenderManager.dispatchPointerEvent('pointermove', { x: mouseX, y: mouseY, isPressed: true });
-    // If not consumed, attempt best-effort legacy notification but prefer RenderManager adapters
-    if (!consumed) {
-      try { handleMouseEvent('handleMouseDragged', mouseX, mouseY); } catch (e) {}
-    }
+    RenderManager.dispatchPointerEvent('pointermove', { x: mouseX, y: mouseY, isPressed: true });
   } catch (e) {
-    console.error('Error dispatching pointermove to RenderManager:', e);
-    try { handleMouseEvent('handleMouseDragged', mouseX, mouseY); } catch (er) {}
+    console.error('❌ Error dispatching pointermove to RenderManager:', e);
   }
 }
 
 function mouseReleased() {
+
   // Handle level editor release events FIRST
   if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
     levelEditor.handleMouseRelease(mouseX, mouseY);
@@ -763,15 +761,11 @@ function mouseReleased() {
     }
   }
   
-  // Forward to RenderManager first
+  // Forward to RenderManager for UI/panel event handling
   try {
-    const consumed = RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
-    if (!consumed) {
-      try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (e) {}
-    }
+    RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
   } catch (e) {
-    console.error('Error dispatching pointerup to RenderManager:', e);
-    try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (er) {}
+    console.error('❌ Error dispatching pointerup to RenderManager:', e);
   }
 }
 

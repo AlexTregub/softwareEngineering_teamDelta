@@ -134,3 +134,13 @@ declare function openCommandLine(): boolean;
  * @type {() => void}
  */
 declare function closeCommandLine(): void;
+
+/**
+ * GameStateManager - Centralized game state management
+ * 
+ * Manages game state transitions, fade effects, and state change callbacks.
+ * Provides a single source of truth for the current game state.
+ * @global
+ * @type {GameStateManager}
+ */
+declare var GameState: GameStateManager;
