@@ -55,7 +55,7 @@ class DraggablePanel {
       }
     };
 
-    // Drag state (copied from ButtonGroup.js)
+    // Drag state
     this.isDragging = false;
     this.dragOffset = { x: 0, y: 0 };
     
@@ -249,7 +249,6 @@ class DraggablePanel {
 
   /**
    * Update method for handling mouse interaction and dragging
-   * Based on ButtonGroup.js drag handling
    * 
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position  
@@ -318,11 +317,8 @@ class DraggablePanel {
     if (mouseOverPanel) {
       return true;
     }
-
-    // Fallback: consume if any specific interaction occurred (should not reach here if mouseOverPanel=true)
-    return buttonConsumedEvent || dragConsumedEvent || minimizeButtonClicked;
   }  /**
-   * Handle dragging behavior (adapted from ButtonGroup.js)
+   * Handle dragging behavior
    * 
    * @param {number} mouseX - Current mouse X position
    * @param {number} mouseY - Current mouse Y position
@@ -363,7 +359,7 @@ class DraggablePanel {
   }
 
   /**
-   * Apply constraints to drag position (adapted from ButtonGroup.js)
+   * Apply constraints to drag position
    * 
    * @param {number} x - Proposed X position
    * @param {number} y - Proposed Y position

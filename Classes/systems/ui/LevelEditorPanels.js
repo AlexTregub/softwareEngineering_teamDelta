@@ -3,6 +3,7 @@
  * Wraps MaterialPalette, ToolBar in DraggablePanels
  * NOTE: BrushSizeControl panel deprecated - brush size now controlled via menu bar (Enhancement 9)
  * 
+ * @author Software Engineering Team Delta
  */
 
 class LevelEditorPanels {
@@ -12,9 +13,14 @@ class LevelEditorPanels {
       materials: null,
       tools: null,
       brush: null,
-      events: null,      // Event editor panel
-      properties: null   // NEW: Properties panel
+      events: null,        // Event editor panel
+      properties: null,    // Properties panel
+      sidebar: null,       // Scrollable sidebar menu
+      entityPalette: null  // Entity Painter palette
     };
+    
+    // Sidebar instance (composition pattern)
+    this.sidebar = null;
   }
 
   /**
@@ -116,6 +122,7 @@ class LevelEditorPanels {
       title: 'Events',
       position: { x: window.width - 270, y: 80 }, // Right side of screen
       size: { width: 260, height: 310 },
+      visible: false, // Hidden by default - toggled via Events button
       buttons: {
         layout: 'vertical',
         spacing: 0,
@@ -141,6 +148,7 @@ class LevelEditorPanels {
       title: 'Properties',
       position: { x: window.width - 270, y: 405 }, // Right side, below events
       size: { width: 200, height: 380 },
+      visible: false, // Hidden by default - toggled via View menu
       buttons: {
         layout: 'vertical',
         spacing: 0,
@@ -160,27 +168,127 @@ class LevelEditorPanels {
       }
     });
 
+    // Scrollable Sidebar Menu (Phase 4 integration)
+    // Create LevelEditorSidebar instance
+    this.sidebar = new LevelEditorSidebar({
+      width: 300,
+      height: 600,
+      title: 'Level Editor Tools'
+    });
+    
+    // Add sample content to demonstrate scrolling
+    this.sidebar.addText('header-terrain', 'Terrain', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-grass', 'Grass', () => console.log('Grass selected'));
+    this.sidebar.addButton('btn-stone', 'Stone', () => console.log('Stone selected'));
+    this.sidebar.addButton('btn-dirt', 'Dirt', () => console.log('Dirt selected'));
+    this.sidebar.addButton('btn-sand', 'Sand', () => console.log('Sand selected'));
+    this.sidebar.addButton('btn-water', 'Water', () => console.log('Water selected'));
+    
+    this.sidebar.addText('header-tools', 'Tools', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-paint', 'Paint Brush', () => console.log('Paint selected'));
+    this.sidebar.addButton('btn-fill', 'Fill Tool', () => console.log('Fill selected'));
+    this.sidebar.addButton('btn-eyedropper', 'Eyedropper', () => console.log('Eyedropper selected'));
+    this.sidebar.addButton('btn-eraser', 'Eraser', () => console.log('Eraser selected'));
+    this.sidebar.addButton('btn-select', 'Select', () => console.log('Select selected'));
+    
+    this.sidebar.addText('header-entities', 'Entities', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-ant', 'Place Ant', () => console.log('Ant placed'));
+    this.sidebar.addButton('btn-food', 'Place Food', () => console.log('Food placed'));
+    this.sidebar.addButton('btn-nest', 'Place Nest', () => console.log('Nest placed'));
+    this.sidebar.addButton('btn-enemy', 'Place Enemy', () => console.log('Enemy placed'));
+    
+    this.sidebar.addText('header-view', 'View Options', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-grid', 'Toggle Grid', () => console.log('Grid toggled'));
+    this.sidebar.addButton('btn-minimap', 'Toggle Minimap', () => console.log('Minimap toggled'));
+    this.sidebar.addButton('btn-debug', 'Toggle Debug', () => console.log('Debug toggled'));
+    
+    this.sidebar.addText('header-actions', 'Actions', { fontSize: 16, height: 40 });
+    this.sidebar.addButton('btn-undo', 'Undo', () => console.log('Undo'));
+    this.sidebar.addButton('btn-redo', 'Redo', () => console.log('Redo'));
+    this.sidebar.addButton('btn-clear', 'Clear All', () => console.log('Clear all'));
+    this.sidebar.addButton('btn-save', 'Save Map', () => console.log('Save map'));
+    this.sidebar.addButton('btn-load', 'Load Map', () => console.log('Load map'));
+    
+    // Create DraggablePanel wrapper for sidebar (NO title - sidebar has its own menu bar)
+    this.panels.sidebar = new DraggablePanel({
+      id: 'level-editor-sidebar',
+      title: '', // Empty title - LevelEditorSidebar has its own menu bar
+      position: { x: window.width - 320, y: 80 }, // Right side of screen
+      size: { width: 300, height: 600 },
+      visible: false, // Hidden by default - toggled via View menu
+      buttons: {
+        layout: 'vertical',
+        spacing: 0,
+        items: [],
+        autoSizeToContent: false, // Fixed size
+        verticalPadding: 0, // No padding (sidebar handles its own)
+        horizontalPadding: 0
+      },
+      behavior: {
+        draggable: true,
+        persistent: true,
+        constrainToScreen: true,
+        managedExternally: true
+      }
+    });
+
+    // Entity Palette Panel (Entity Painter tool)
+    // Size: Dynamic based on EntityPalette content (categories + templates)
+    this.panels.entityPalette = new DraggablePanel({
+      id: 'level-editor-entity-palette',
+      title: 'Entity Palette',
+      position: { x: 150, y: 80 },
+      size: { width: 220, height: 300 }, // Wider for entity templates
+      visible: false, // Hidden by default - toggled via View menu or tool button
+      buttons: {
+        layout: 'vertical',
+        spacing: 0,
+        items: [], // We'll render EntityPalette directly in content
+        autoSizeToContent: true,
+        verticalPadding: 10,
+        horizontalPadding: 10,
+        contentSizeCallback: () => {
+          // Get size from EntityPalette instance
+          return this.levelEditor?.entityPalette ? 
+            this.levelEditor.entityPalette.getContentSize() : 
+            { width: 200, height: 280 };
+        }
+      },
+      behavior: {
+        draggable: true,
+        persistent: true,
+        constrainToScreen: true,
+        managedExternally: true // Don't auto-render, LevelEditorPanels handles it
+      }
+    });
+
     // Add panels to the manager
     manager.panels.set('level-editor-materials', this.panels.materials);
     manager.panels.set('level-editor-tools', this.panels.tools);
     manager.panels.set('level-editor-brush', this.panels.brush);
     manager.panels.set('level-editor-events', this.panels.events);
     manager.panels.set('level-editor-properties', this.panels.properties);
+    manager.panels.set('level-editor-sidebar', this.panels.sidebar);
+    manager.panels.set('level-editor-entity-palette', this.panels.entityPalette);
 
     // Add to LEVEL_EDITOR state visibility
-    // NOTE: Properties, Events, and Brush panels are NOT added here - they're hidden by default
+    // NOTE: Properties, Events, Sidebar, Entity Palette, and Brush panels are NOT added here - they're hidden by default
     // Properties: Toggle via View menu (Feature 7)
     // Events: Toggle via Tools panel button (Feature 8)
+    // Sidebar: Toggle via View menu (Phase 4)
+    // Entity Palette: Toggle via View menu or Entity Painter tool (Feature: Entity Painter)
     // Brush: Redundant - brush size controlled via menu bar inline controls (Enhancement 9)
     if (!manager.stateVisibility.LEVEL_EDITOR) {
       manager.stateVisibility.LEVEL_EDITOR = [];
     }
     manager.stateVisibility.LEVEL_EDITOR.push(
       'level-editor-materials',
-      'level-editor-tools'
+      'level-editor-tools',
+      'level-editor-entity-palette' // FIXED: Must be visible for scrolling to work
       // 'level-editor-brush' - Hidden by default, menu bar controls used instead (Enhancement 9)
       // 'level-editor-events' - Hidden by default (Feature 8)
       // 'level-editor-properties' - Hidden by default (Feature 7)
+      // 'level-editor-sidebar' - Hidden by default (Phase 4)
     );
 
     logNormal('✅ Level Editor panels initialized and added to DraggablePanelManager');
@@ -211,8 +319,10 @@ class LevelEditorPanels {
    * Delegates to the appropriate component (MaterialPalette, ToolBar, BrushSizeControl)
    */
   handleClick(mouseX, mouseY) {
+    console.log('[LevelEditorPanels.handleClick] Called with:', { mouseX, mouseY });
+    
     // Materials Panel
-    if (this.panels.materials && this.panels.materials.state.visible) {
+    if (this.panels.materials && this.panels.materials.state.visible && !this.panels.materials.isMinimized()) {
       const matPanel = this.panels.materials;
       const matPos = matPanel.getPosition();
       const titleBarHeight = matPanel.calculateTitleBarHeight();
@@ -229,15 +339,18 @@ class LevelEditorPanels {
       }
     }
 
-    // Tools Panel
-    if (this.panels.tools && this.panels.tools.state.visible) {
+    // Tools Panel - CRITICAL: Check toolbar FIRST before checking panel visibility
+    // The main Level Editor toolbar (with Events button) is rendered in the Tools panel
+    // We need to check toolbar clicks even if the Tools panel is hidden, because
+    // the toolbar buttons (like Events) might toggle panels on/off
+    if (this.panels.tools) {
       const toolPanel = this.panels.tools;
       const toolPos = toolPanel.getPosition();
       const titleBarHeight = toolPanel.calculateTitleBarHeight();
       const contentX = toolPos.x + toolPanel.config.style.padding;
       const contentY = toolPos.y + titleBarHeight + toolPanel.config.style.padding;
       
-      // Check if click is in the content area of tools panel
+      // Check if click is in the toolbar area (regardless of panel visibility)
       if (this.levelEditor.toolbar && this.levelEditor.toolbar.containsPoint(mouseX, mouseY, contentX, contentY)) {
         const tool = this.levelEditor.toolbar.handleClick(mouseX, mouseY, contentX, contentY);
         if (tool) {
@@ -247,13 +360,13 @@ class LevelEditorPanels {
           this.levelEditor.toolbar.setEnabled('undo', this.levelEditor.editor.canUndo());
           this.levelEditor.toolbar.setEnabled('redo', this.levelEditor.editor.canRedo());
           
-          return true;
+          return true; // Consume the click so draggablePanelManager doesn't see it
         }
       }
     }
 
     // Brush Size Panel
-    if (this.panels.brush && this.panels.brush.state.visible) {
+    if (this.panels.brush && this.panels.brush.state.visible && !this.panels.brush.isMinimized()) {
       const brushPanel = this.panels.brush;
       const brushPos = brushPanel.getPosition();
       const titleBarHeight = brushPanel.calculateTitleBarHeight();
@@ -273,7 +386,7 @@ class LevelEditorPanels {
     }
 
     // Events Panel
-    if (this.panels.events && this.panels.events.state.visible) {
+    if (this.panels.events && this.panels.events.state.visible && !this.panels.events.isMinimized()) {
       const eventPanel = this.panels.events;
       const eventPos = eventPanel.getPosition();
       const titleBarHeight = eventPanel.calculateTitleBarHeight();
@@ -297,6 +410,158 @@ class LevelEditorPanels {
       }
     }
 
+    // Entity Palette Panel
+    if (this.panels.entityPalette && this.panels.entityPalette.state.visible && !this.panels.entityPalette.isMinimized()) {
+      console.log('[LevelEditorPanels.handleClick] Checking Entity Palette panel');
+      const palettePanel = this.panels.entityPalette;
+      const palettePos = palettePanel.getPosition();
+      const titleBarHeight = palettePanel.calculateTitleBarHeight();
+      const contentX = palettePos.x + palettePanel.config.style.padding;
+      const contentY = palettePos.y + titleBarHeight + palettePanel.config.style.padding;
+      
+      console.log('[LevelEditorPanels.handleClick] Entity Palette bounds:', { mouseX, mouseY, contentX, contentY });
+      
+      // Check if click is in the content area of entity palette panel
+      if (this.levelEditor.entityPalette && this.levelEditor.entityPalette.containsPoint) {
+        // EntityPalette needs panel width for proper bounds checking
+        console.log('[LevelEditorPanels.handleClick] Panel dimensions:', {
+          stateWidth: palettePanel.state.width,
+          panelWidth: palettePanel.width,
+          padding: palettePanel.config.style.padding
+        });
+        
+        // CRITICAL FIX: Use panel.width instead of panel.state.width (state.width may not exist)
+        const panelWidth = (palettePanel.width || palettePanel.state.width || 220) - (palettePanel.config.style.padding * 2);
+        console.log('[LevelEditorPanels.handleClick] Calculated panelWidth:', panelWidth);
+        
+        const contains = this.levelEditor.entityPalette.containsPoint(mouseX, mouseY, contentX, contentY);
+        console.log('[LevelEditorPanels.handleClick] containsPoint result:', contains);
+        
+        if (contains) {
+          console.log('[LevelEditorPanels.handleClick] Calling entityPalette.handleClick...');
+          const action = this.levelEditor.entityPalette.handleClick(mouseX, mouseY, contentX, contentY, panelWidth);
+          console.log('[LevelEditorPanels.handleClick] Action result:', action);
+          
+          if (action) {
+            // Handle different palette actions
+            if (action.type === 'category') {
+              this.levelEditor.notifications.show(`Category: ${action.category}`);
+            } else if (action.type === 'template') {
+              this.levelEditor.notifications.show(`Selected: ${action.template.name}`);
+            } else if (action.type === 'addCustomEntity') {
+              this.levelEditor.notifications.show('Add custom entity...');
+            } else if (action.type === 'rename') {
+              this.levelEditor.notifications.show(`Rename: ${action.entity.customName}`);
+            } else if (action.type === 'delete') {
+              this.levelEditor.notifications.show(`Deleted: ${action.entity.customName}`);
+            }
+            return true; // Consume click
+          }
+        }
+      }
+    }
+
+    // Sidebar Panel (Phase 4 integration)
+    if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar & !this.panels.sidebar.isMinimized()) {
+      const sidebarPanel = this.panels.sidebar;
+      const sidebarPos = sidebarPanel.getPosition();
+      const titleBarHeight = sidebarPanel.calculateTitleBarHeight();
+      const contentX = sidebarPos.x;
+      const contentY = sidebarPos.y + titleBarHeight;
+      
+      // Check if click is in sidebar area
+      const sidebarWidth = this.sidebar.getWidth();
+      const sidebarHeight = this.sidebar.getHeight();
+      
+      if (mouseX >= contentX && mouseX <= contentX + sidebarWidth &&
+          mouseY >= contentY && mouseY <= contentY + sidebarHeight) {
+        const clicked = this.sidebar.handleClick(mouseX, mouseY, contentX, contentY);
+        if (clicked) {
+          // Handle sidebar actions
+          if (clicked.type === 'minimize') {
+            this.panels.sidebar.toggleMinimize();
+          }
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Handle double-click events on the panels
+   * Delegates to panel content (e.g., EventEditorPanel for placement mode)
+   */
+  handleDoubleClick(mouseX, mouseY) {
+    // Events Panel - Check if double-clicking panel content
+    if (this.panels.events && this.panels.events.state.visible && !this.panels.events.state.minimized) {
+      const eventPanel = this.panels.events;
+      const eventPos = eventPanel.getPosition();
+      const titleBarHeight = eventPanel.calculateTitleBarHeight();
+      const contentX = eventPos.x + eventPanel.config.style.padding;
+      const contentY = eventPos.y + titleBarHeight + eventPanel.config.style.padding;
+      
+      // Check if double-click is in the content area of events panel
+      if (this.levelEditor.eventEditor && this.levelEditor.eventEditor.handleDoubleClick) {
+        const handled = this.levelEditor.eventEditor.handleDoubleClick(mouseX, mouseY, contentX, contentY);
+        if (handled) {
+          return true; // EventEditor consumed the double-click
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Handle mouse wheel events on the panels
+   * Delegates to scrollable panels (e.g., sidebar)
+   * @param {number} delta - Mouse wheel delta
+   * @param {number} mouseX - Mouse X position
+   * @param {number} mouseY - Mouse Y position
+   * @returns {boolean} True if event was handled
+   */
+  handleMouseWheel(delta, mouseX, mouseY) {
+    // Entity Palette Panel
+    if (this.panels.entityPalette && this.panels.entityPalette.state.visible) {
+      const palettePanel = this.panels.entityPalette;
+      const palettePos = palettePanel.getPosition();
+      const titleBarHeight = palettePanel.calculateTitleBarHeight();
+      const contentX = palettePos.x + palettePanel.config.style.padding;
+      const contentY = palettePos.y + titleBarHeight + palettePanel.config.style.padding;
+      
+      if (this.levelEditor.entityPalette && this.levelEditor.entityPalette.handleMouseWheel) {
+        const panelWidth = palettePanel.state.width - (palettePanel.config.style.padding * 2);
+        const handled = this.levelEditor.entityPalette.handleMouseWheel(delta, mouseX, mouseY, contentX, contentY, panelWidth);
+        if (handled) {
+          return true; // Consumed
+        }
+      }
+    }
+    
+    // Sidebar Panel (Phase 4 integration)
+    if (this.panels.sidebar && this.panels.sidebar.state.visible && this.sidebar) {
+      const sidebarPanel = this.panels.sidebar;
+      const sidebarPos = sidebarPanel.getPosition();
+      const titleBarHeight = sidebarPanel.calculateTitleBarHeight();
+      const contentX = sidebarPos.x;
+      const contentY = sidebarPos.y + titleBarHeight;
+      
+      // Check if mouse is over sidebar
+      const sidebarWidth = this.sidebar.getWidth();
+      const sidebarHeight = this.sidebar.getHeight();
+      
+      if (mouseX >= contentX && mouseX <= contentX + sidebarWidth &&
+          mouseY >= contentY && mouseY <= contentY + sidebarHeight) {
+        // Delegate to sidebar
+        const handled = this.sidebar.handleMouseWheel(delta, mouseX, mouseY);
+        if (handled) {
+          return true; // Consumed
+        }
+      }
+    }
+    
     return false;
   }
 
@@ -309,9 +574,9 @@ class LevelEditorPanels {
     if (this.panels.materials && this.panels.materials.state.visible && !this.panels.materials.state.minimized) {
       this.panels.materials.render((contentArea, style) => {
         if (this.levelEditor.palette) {
-          // Pass absolute coordinates directly (no translate)
-          // This fixes coordinate offset bug with TERRAIN_MATERIALS_RANGED image() calls
-          this.levelEditor.palette.render(contentArea.x, contentArea.y);
+          // Pass absolute coordinates AND dimensions for proper categorization, scrolling, responsive layout
+          // MaterialPalette.render(x, y, width, height) requires all parameters
+          this.levelEditor.palette.render(contentArea.x, contentArea.y, contentArea.width, contentArea.height);
         }
       });
     } else if (this.panels.materials && this.panels.materials.state.visible) {
@@ -347,8 +612,8 @@ class LevelEditorPanels {
     if (this.panels.events && this.panels.events.state.visible && !this.panels.events.state.minimized) {
       this.panels.events.render((contentArea, style) => {
         if (this.levelEditor.eventEditor) {
-          // Pass absolute coordinates directly (no translate)
-          this.levelEditor.eventEditor.render(contentArea.x, contentArea.y);
+          // Pass absolute coordinates AND dimensions for proper layout
+          this.levelEditor.eventEditor.render(contentArea.x, contentArea.y, contentArea.width, contentArea.height);
         }
       });
     } else if (this.panels.events && this.panels.events.state.visible) {
@@ -368,14 +633,92 @@ class LevelEditorPanels {
     } else if (this.panels.properties && this.panels.properties.state.visible) {
       this.panels.properties.render();
     }
+
+    // Sidebar Panel (Phase 4 integration)
+    if (this.panels.sidebar && this.panels.sidebar.state.visible && !this.panels.sidebar.state.minimized) {
+      this.panels.sidebar.render((contentArea, style) => {
+        if (this.sidebar) {
+          // Delegate rendering to LevelEditorSidebar instance
+          this.sidebar.render(contentArea.x, contentArea.y);
+        }
+      });
+    } else if (this.panels.sidebar && this.panels.sidebar.state.visible) {
+      this.panels.sidebar.render();
+    }
+
+    // Entity Palette Panel
+    if (this.panels.entityPalette && this.panels.entityPalette.state.visible && !this.panels.entityPalette.state.minimized) {
+      this.panels.entityPalette.render((contentArea, style) => {
+        if (this.levelEditor.entityPalette) {
+          // Pass absolute coordinates AND dimensions for EntityPalette rendering
+          this.levelEditor.entityPalette.render(contentArea.x, contentArea.y, contentArea.width, contentArea.height);
+        }
+      });
+    } else if (this.panels.entityPalette && this.panels.entityPalette.state.visible) {
+      // Just render the minimized title bar
+      this.panels.entityPalette.render();
+    }
+  }
+
+  /**
+   * Toggle Events panel visibility
+   * Called by Events button in Tools panel
+   * CRITICAL: Must update stateVisibility to prevent renderPanels() from hiding it
+   */
+  toggleEventsPanel() {
+    const manager = (typeof window !== 'undefined') ? window.draggablePanelManager : global.draggablePanelManager;
+    if (manager) {
+      const panelId = 'level-editor-events';
+      const panel = manager.panels.get(panelId);
+      
+      if (!panel) {
+        console.warn('[LevelEditorPanels] Events panel not found');
+        return;
+      }
+      
+      // Check if panel is currently visible (handle both method and property)
+      const isVisible = typeof panel.isVisible === 'function' ? panel.isVisible() : panel.visible;
+      
+      if (isVisible) {
+        // Hide panel and remove from stateVisibility
+        panel.hide();
+        const index = manager.stateVisibility.LEVEL_EDITOR.indexOf(panelId);
+        if (index > -1) {
+          manager.stateVisibility.LEVEL_EDITOR.splice(index, 1);
+        }
+      } else {
+        // Show panel and add to stateVisibility
+        panel.show();
+        if (!manager.stateVisibility.LEVEL_EDITOR.includes(panelId)) {
+          manager.stateVisibility.LEVEL_EDITOR.push(panelId);
+        }
+      }
+    }
   }
 
   /**
    * Show all level editor panels
+   * Only shows panels that are in LEVEL_EDITOR state visibility
+   * (Events panel should remain hidden until user clicks Events button)
    */
   show() {
-    Object.values(this.panels).forEach(panel => {
-      if (panel) panel.show();
+    const manager = (typeof window !== 'undefined') ? window.draggablePanelManager : global.draggablePanelManager;
+    
+    if (!manager) {
+      // Fallback to showing all panels if manager not available
+      Object.values(this.panels).forEach(panel => {
+        if (panel) panel.show();
+      });
+      return;
+    }
+    
+    // Only show panels that are in LEVEL_EDITOR state visibility
+    const visiblePanelIds = manager.stateVisibility.LEVEL_EDITOR || [];
+    
+    Object.entries(this.panels).forEach(([key, panel]) => {
+      if (panel && visiblePanelIds.includes(panel.config.id)) {
+        panel.show();
+      }
     });
   }
 

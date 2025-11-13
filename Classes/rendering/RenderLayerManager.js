@@ -630,8 +630,6 @@ class RenderLayerManager {
       // Render state-specific overlays
       if (gameState === 'PAUSED') { this.renderPauseOverlay(); } 
       if (gameState === 'GAME_OVER') { this.renderGameOverOverlay();  }
-          // Render Universal Button Group System (always on top of other UI)
-      this.renderButtonGroups(gameState);
     
     // Render Queen Control Panel (part of UI_GAME layer)
     this.renderQueenControlPanel(gameState);
@@ -825,20 +823,7 @@ class RenderLayerManager {
       layerTimes: {}
     };
   }
-  
-  /**
-   * Render Universal Button Group System
-   * Integrated into the UI rendering pipeline
-   * @private
-   */
-  renderButtonGroups(gameState) {
-    // Only render buttons in appropriate game states (including MENU for testing)
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'MENU', 'DEBUG_MENU'].includes(gameState)) {
-      return;
-    }
-    
-    // ButtonGroupManager has been removed from the codebase
-  }
+
   
   /**
    * Render Queen Control Panel on UI_GAME layer

@@ -116,7 +116,6 @@
     <script src="Classes/managers/TileInteractionManager.js"></script>
     <script src="Classes/managers/GameStateManager.js"></script>
     <script src="Classes/managers/animationManager.js"></script>
-    <script src="Classes/managers/AntManager.js"></script>
     <script src="Classes/systems/shapes/circle.js"></script>
     <script src="Classes/pathfinding.js"></script>
 
@@ -143,27 +142,17 @@
     <script src="Classes/containers/DropoffLocation.js"></script>
     <script src="Classes/systems/ui/dropoffButton.js"></script>
     <script src="Classes/systems/ui/verticalButtonList.js"></script>
-    <script src="Classes/systems/ui/pauseMenu.js"></script>
-    
-    <!-- Universal Button System Integration -->
-    <script src="Classes/systems/ui/dropoffButton_universal.js"></script>
-    
-    <!-- Legacy fallbacks (commented out - kept for reference) -->
-    <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
-    <!-- <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script> -->
-    <!-- <script src="Classes/systems/ui/spawnControlsUI.js"></script> -->
-    
+    <script src="Classes/systems/ui/pauseMenu.js"></script>    
     <script src="Classes/systems/ui/menu.js"></script>
 
    <!-- Entity Debugging System -->
-   <script src="debug/UniversalDebugger.js"></script>
+    <script src="Classes/ui/UIComponents/windowComponents.js"></script>
     <script src="debug/selectionStateMachine.js"></script>
     <script src="Classes/ants/JobComponent.js"></script>
     <script src="Classes/ants/GatherState.js"></script>
     <script src="Classes/systems/GatherDebugRenderer.js"></script>
     <script src="Classes/ants/antBrain.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
-    <script src="Classes/ants/Queen.js"></script>
     <script src="Classes/ants/Boss.js"></script>
 
     <script src="Classes/managers/EventManager.js"></script>
@@ -175,6 +164,60 @@
     <script src="debug/globalTestRunner.js"></script>
     <script src="Classes/systems/Nature.js"></script>
     <script src="Classes/systems/ui/twoTimesButton.js"></script>
+
+    <script src="Classes/managers/SettingsManager.js"></script>
+    <!-- UI Components (reusable) -->
+    <script src="Classes/ui/UIComponents/Toggle.js"></script>
+    <script src="Classes/ui/UIComponents/Slider.js"></script>
+    <script src="Classes/controllers/CustomLevelCamera.js"></script>
+    <script src="Classes/managers/CameraSystemManager.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialCategory.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialSearchBar.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialFavorites.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialPreviewTooltip.js"></script>
+    <script src="Classes/ui/painter/terrain/MaterialPalette.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/toolBar/ToolBar.js"></script>
+    <script src="Classes/ui/_baseObjects/brushes/BrushSizeControl.js"></script>
+    <script src="Classes/ui/_baseObjects/minimap/MiniMap.js"></script>
+    <script src="Classes/ui/_baseObjects/minimap/DynamicMinimap.js"></script>
+    <script src="Classes/ui/_baseObjects/grids/DynamicGridOverlay.js"></script>
+    <script src="Classes/ui/levelEditor/panels/PropertiesPanel.js"></script>
+    <script src="Classes/ui/_baseObjects/grids/GridOverlay.js"></script>
+    <script src="Classes/ui/_baseObjects/grids/MapBoundaryOverlay.js"></script>
+     <script src="Classes/ui/levelEditor/toastNotifications/NotificationManager.js"></script>
+    <script src="Classes/ui/_baseObjects/boxes/inputbox.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/Dialog.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/ConfirmationDialog.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/ModalDialog.js"></script>
+    <script src="Classes/ui/_baseObjects/modalWindow/NewMapDialog.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/SaveDialog.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/LoadDialog.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/LocalStorageManager.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/AutoSave.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/ServerIntegration.js"></script>
+    <script src="Classes/ui/levelEditor/fileIO/FormatConverter.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/toolBar/ToolModeToggle.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/menuBar/FileMenuBar.js"></script>
+    <script src="Classes/ui/_baseObjects/bar/menuBar/BrushSizeMenuModule.js"></script>
+    <script src="Classes/ui/UIComponents/scroll/ScrollableContentArea.js"></script>
+    <script src="Classes/ui/levelEditor/panels/LevelEditorSidebar.js"></script>
+    <script src="Classes/ui/painter/entity/EntityPalette.js"></script>
+    <script src="Classes/ui/UIComponents/radioButton/CategoryRadioButtons.js"></script>
+    <script src="Classes/ui/painter/entity/EntityPropertyEditor.js"></script>
+    <script src="Classes/ui/painter/entity/EntityPainter.js"></script>
+    <script src="Classes/ui/painter/entity/EntitySelectionTool.js"></script>
+    <script src="Classes/ui/painter/entity/SelectionManager.js"></script>
+    <script src="Classes/ui/_baseObjects/brushes/HoverPreviewManager.js"></script>
+    <script src="Classes/levelEditor/GroupPlacer.js"></script>
+    <script src="Classes/ui/eventTemplates/EventTemplates.js"></script>
+    <script src="Classes/rendering/EventFlagRenderer.js"></script>
+    <script src="Classes/ui/eventTemplates/DialogueCreationPanel.js"></script>
+    <script src="Classes/systems/ui/EventEditorPanel.js"></script>
+    <script src="Classes/ui/eventTemplates/EventPropertyWindow.js"></script>
+    <script src="Classes/systems/ui/LevelEditor.js"></script>
+    <script src="Classes/systems/ui/LevelEditorPanels.js"></script>
+
+
 
     <!-- Testing suites, comment these out for final build -->
     <script src="debug/tracing.js"></script>
@@ -218,13 +261,11 @@
     <script src="Classes/systems/ui/LevelEditorPanels.js"></script>
     
     <script src="debug/terrainSystemTests.js"></script>
-    <script src="debug/tileInspector.js"></script>
     <script src="debug/terrainDetectionTest.js"></script>
     <script src="debug/terrainSpeedTest.js"></script>
     <script src="debug/terrainIndicatorTest.js"></script>
     <!-- <script src="debug/coordinateSystemTest.js"></script> -->
     <script src="debug/terrainGridDebug.js"></script>
-    <script src="debug/test_getOrCreatePanel.js"></script>
   </head>
 
   <body>
