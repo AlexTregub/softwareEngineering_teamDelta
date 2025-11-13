@@ -1572,6 +1572,7 @@ class DraggablePanelManager {
       console.error('❌ Error in handleShootLightning():', err);
     }
   }
+}
 
   /**
    * Toggle the lightning aim brush (LEGACY - replaced by power cycling)
