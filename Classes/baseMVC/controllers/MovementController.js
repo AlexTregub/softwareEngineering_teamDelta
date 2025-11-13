@@ -167,21 +167,31 @@ class MovementController {
    * @param {number} deltaTime - Time since last frame (ms)
    */
   update(deltaTime = 16.67) {
-    if (!this.model.isActive()) return;
+    if (!this.model.isActive()) {
+      console.log('[MovementController.update] Model is not active, skipping update');
+      return;
+    }
+    
+    const isMoving = this.model.isMoving();
+    const hasTarget = this.model.getTargetPosition();
+    const path = this.model.getPath();
+    
+    console.log(`[MovementController.update] isMoving: ${isMoving}, hasTarget: ${!!hasTarget}, hasPath: ${!!path}`);
     
     // Handle path following
-    const path = this.model.getPath();
-    if (this.model.isMoving() && path && path.length > 0) {
+    if (isMoving && path && path.length > 0) {
+      console.log('[MovementController.update] Following path...');
       this._followPath();
     }
     
     // Handle direct movement
-    if (this.model.isMoving() && this.model.getTargetPosition()) {
+    if (isMoving && hasTarget) {
+      console.log('[MovementController.update] Direct movement...');
       this._updateDirectMovement(deltaTime);
     }
     
     // Handle idle skitter behavior
-    if (!this.model.isMoving() && this._shouldSkitter()) {
+    if (!isMoving && this._shouldSkitter()) {
       this._performSkitter();
     }
 
@@ -284,12 +294,15 @@ class MovementController {
     if (!target) return;
 
     const currentPos = this.model.getPosition();
+    console.log(`[MovementController._updateDirectMovement] Current: (${currentPos.x.toFixed(1)}, ${currentPos.y.toFixed(1)}), Target: (${target.x.toFixed(1)}, ${target.y.toFixed(1)})`);
+    
     const direction = {
       x: target.x - currentPos.x,
       y: target.y - currentPos.y
     };
 
     const distance = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+    console.log(`[MovementController._updateDirectMovement] Distance: ${distance.toFixed(2)}`);
 
     if (distance > 1) {
       // Normalize direction
@@ -300,6 +313,8 @@ class MovementController {
       const effectiveSpeed = this._getEffectiveMovementSpeed();
       const speedPerMs = effectiveSpeed / 1000;
       const step = Math.min(speedPerMs * deltaTime, distance);
+      
+      console.log(`[MovementController._updateDirectMovement] EffectiveSpeed: ${effectiveSpeed}, Step: ${step.toFixed(3)}`);
 
       if (effectiveSpeed > 0) {
         const newPos = {
@@ -307,11 +322,17 @@ class MovementController {
           y: currentPos.y + direction.y * step
         };
         
+        console.log(`[MovementController._updateDirectMovement] Setting new position: (${newPos.x.toFixed(1)}, ${newPos.y.toFixed(1)})`);
+        
         // Update Model position
         this.model.setPosition(newPos.x, newPos.y);
+        
+        const verifyPos = this.model.getPosition();
+        console.log(`[MovementController._updateDirectMovement] Verified position: (${verifyPos.x.toFixed(1)}, ${verifyPos.y.toFixed(1)})`);
       }
     } else {
       // Target reached
+      console.log('[MovementController._updateDirectMovement] Target reached, stopping');
       this.model.setPosition(target.x, target.y);
       this.stop();
     }

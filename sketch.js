@@ -451,6 +451,16 @@ function draw() {
       if (keyIsDown(68)) moveQueen("d"); // D
     }
 
+    // --- Update All Ants (MVC) ---
+    if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
+      const allAnts = spatialGridManager.getEntitiesByType('Ant');
+      for (const antMVC of allAnts) {
+        if (antMVC && antMVC.controller && typeof antMVC.controller.update === 'function') {
+          antMVC.controller.update();
+        }
+      }
+    }
+
     // --- DIAManager update (typewriter effect, etc) ---
     if (typeof DIAManager.update === 'function') { DIAManager.update(); }
 

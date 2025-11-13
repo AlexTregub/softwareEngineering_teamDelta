@@ -343,7 +343,23 @@ class AntController extends EntityController {
    * @returns {boolean} - True if movement started successfully
    */
   moveToLocation(x, y) {
-    return this._movementController.moveToLocation(x, y);
+    console.log(`[AntController.moveToLocation] Called with: (${x.toFixed(1)}, ${y.toFixed(1)})`);
+    
+    // Temporarily boost movement speed for faster pathfinding resolution
+    // (Regular ants get 10x boost, less than queen's 50x)
+    const originalSpeed = this.model.getMovementSpeed();
+    const speedMultiplier = 10;
+    this.model.setMovementSpeed(originalSpeed * speedMultiplier);
+    
+    const result = this._movementController.moveToLocation(x, y);
+    console.log(`[AntController.moveToLocation] MovementController returned: ${result}, Speed boosted to: ${this.model.getMovementSpeed()}`);
+    
+    // Reset speed after movement completes (longer delay than queen for gradual movement)
+    setTimeout(() => {
+      this.model.setMovementSpeed(originalSpeed);
+    }, 500);
+    
+    return result;
   }
   
   isMoving() {

@@ -141,9 +141,6 @@ class QueenController extends AntController {
   lockPower(powerName) {
     if (this.unlockedPowers.hasOwnProperty(powerName)) {
       this.unlockedPowers[powerName] = false;
-      if (typeof logNormal === 'function') {
-        logNormal(`👑 Queen locked power: ${powerName}`);
-      }
       return true;
     }
     return false;
@@ -167,27 +164,41 @@ class QueenController extends AntController {
 
   move(direction) {
     const pos = this.model.getPosition();
-    const speed = 0.1; // queen moves slower (simplified, no access to movementSpeed in MVC)
+    const baseSpeed = this.model.getMovementSpeed();
+    const moveDistance = 5; // Small distance per keypress
+    const speedMultiplier = 50; // Fast movement speed to reach target quickly
+
+    console.log(`[QueenController.move] Direction: ${direction}, Current Pos: (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}), BaseSpeed: ${baseSpeed}`);
 
     let targetX = pos.x;
     let targetY = pos.y;
 
     switch (direction) {
       case "w":
-        targetY += speed;
+        targetY += moveDistance;
         break;
       case "a":
-        targetX -= speed;
+        targetX -= moveDistance;
         break;
       case "s":
-        targetY -= speed;
+        targetY -= moveDistance;
         break;
       case "d":
-        targetX += speed;
+        targetX += moveDistance;
         break;
     }
 
+    // Temporarily boost movement speed for responsive WASD control
+    const originalSpeed = this.model.getMovementSpeed();
+    this.model.setMovementSpeed(originalSpeed * speedMultiplier);
+    
+    console.log(`[QueenController.move] Target: (${targetX.toFixed(1)}, ${targetY.toFixed(1)}), Speed boosted to: ${this.model.getMovementSpeed()}`);
     this.moveToLocation(targetX, targetY);
+    
+    // Reset speed after a short delay (will reach target quickly with boosted speed)
+    setTimeout(() => {
+      this.model.setMovementSpeed(originalSpeed);
+    }, 100);
   }
 
   // ========================================
