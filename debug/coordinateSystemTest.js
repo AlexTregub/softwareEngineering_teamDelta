@@ -45,7 +45,8 @@ function testCoordinateAlignment() {
       logNormal(`🌍 Mouse World: (${worldMouse.x}, ${worldMouse.y})`);
       
       const mouseTile = CoordinateConverter.screenToWorldTile(mouseX, mouseY);
-      logNormal(`🗺️ Mouse Tile: (${mouseTile.x}, ${mouseTile.y})`);
+      logNormal(`🗺️ Mouse Pos: (${mouseTile.x}, ${mouseTile.y})`);
+      logNormal(`🗺️ Mouse Tile: (${round(mouseTile.x)}, ${round(mouseTile.y)})`);
     }
   } else {
     logNormal('❌ No ants available for testing');

@@ -62,20 +62,11 @@ class DraggablePanelManager {
     // DISABLED FOR PRESENTATION
     this.createDefaultPanels();
     
-    // Register with RenderLayerManager if available
     // Register with RenderLayerManager using addDrawableToLayer
     if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addDrawableToLayer === 'function') {
-      // Bind the renderPanels method to this instance
+      // Bind the renderPanels method to this instance and add to UI_GAME layer (panels should render after base game UI)
       this._renderPanelsBound = this.renderPanels.bind(this);
-      
-      // Add to UI_GAME layer (panels should render after base game UI)
       RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, this._renderPanelsBound);
-      
-      if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ DraggablePanelManager registered with RenderLayerManager');
-      } else {
-        logNormal('✅ DraggablePanelManager registered with RenderLayerManager');
-      }
     } else {
       console.warn('⚠️ RenderLayerManager not found - panels will need manual rendering');
     }
@@ -1694,6 +1685,104 @@ class DraggablePanelManager {
     }
   }
 
+  /**
+   * Toggle the final flash aim brush (LEGACY - replaced by power cycling)
+   */
+  toggleFlashAimBrush() {
+    if (typeof g_flashAimBrush === 'undefined' || !g_flashAimBrush) {
+      if (typeof initializeflashAimBrush === 'function') {
+        window.g_flashAimBrush = initializeFlashAimBrush();
+      } else {
+        console.warn('⚠️ Final Flash Aim Brush system not available');
+        return;
+      }
+    }
+
+    const active = g_flashAimBrush.toggle();
+    const button = this.findButtonByCaption('Aim Final Flash');
+    if (button) {
+      button.caption = active ? 'Aim: ON' : 'Aim Final Flash';
+      button.style.backgroundColor = active ? '#1E90FF' : '#2E9AFE';
+    }
+  }
+  handleShootFlash() {
+    // Ensure FlashSystem exists
+    if (typeof window.FlashManager === 'undefined' || !window.FlashManager) {
+      if (typeof initializeFlashSystem === 'function') {
+        window.g_flashManager = initializeFlashSystem();
+      } else {
+        console.warn('⚠️ Final Flash system not available');
+        return;
+      }
+    }
+
+    // Determine target: prefer selected ant, otherwise nearest ant under mouse or nearest overall
+    let targetAnt = null;
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        const selected = g_selectionBoxController.getSelectedEntities();
+        if (Array.isArray(selected) && selected.length > 0) {
+          // Prefer first selected ant entity
+          targetAnt = selected.find(e => e && e.isAnt) || selected[0];
+        }
+      }
+
+      // If none selected, try nearest ant under mouse
+      if (!targetAnt && typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) {
+        // Find nearest to mouse position within reasonable radius
+        const radius = 80;
+        let best = null;
+        let bestDist = Infinity;
+        for (const ant of ants) {
+          if (!ant || !ant.isActive) continue;
+          const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
+          const d = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+          if (d < bestDist && d <= radius) {
+            bestDist = d;
+            best = ant;
+          }
+        }
+        targetAnt = best || ants[0]; // fallback to first ant
+      }
+
+      // Ask flash manager to strike (respects cooldown)
+      if (g_flashManager && typeof g_flashManager.requestStrike === 'function') {
+        const executed = g_flashManager.requestStrike(targetAnt);
+        const button = this.findButtonByCaption('Shoot Final Flash');
+        if (executed) {
+          logNormal('⚡ Final Flash strike executed', targetAnt && (targetAnt._antIndex || targetAnt.id || 'ant'));
+          // Show cooldown on the button if available
+          if (button) {
+            const cooldownMs = g_flashManager.cooldown || 3000;
+            const seconds = Math.ceil(cooldownMs / 1000);
+            const originalCaption = button._originalCaption || button.caption;
+            button._originalCaption = originalCaption;
+            button.caption = `Cooldown (${seconds}s)`;
+            button.style.backgroundColor = '#999999';
+            // Restore after cooldown
+            setTimeout(() => {
+              try {
+                button.caption = originalCaption;
+                button.style.backgroundColor = '#4DA6FF';
+              } catch (e) {}
+            }, cooldownMs + 50);
+          }
+        } else {
+          logNormal('⏳ Final Flash on cooldown');
+          if (button) {
+            // Briefly flash the button to indicate cooldown
+            const prevColor = button.style.backgroundColor;
+            button.style.backgroundColor = '#555';
+            setTimeout(() => { button.style.backgroundColor = prevColor; }, 200);
+          }
+        }
+      } else {
+        console.warn('⚠️ Final Flash manager not initialized or missing requestStrike()');
+      }
+    } catch (err) {
+      console.error('❌ Error in handleShootFlash():', err);
+    }
+  }
   // NOTE: handlePlaceDropoff, updatePowerButtonState, and cyclePower methods 
   // have been moved to QueenControlPanel.js (Classes/systems/ui/QueenControlPanel.js)
   // These methods are now part of the queen-specific panel that only shows when queen is selected

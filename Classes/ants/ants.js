@@ -20,6 +20,7 @@ let animationManager = null;
 function antsPreloader() {
   antSize = createVector(20, 20);
   queenSize = createVector(30, 30);
+  console.log("queenSize",queenSize)
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   JobImages = {
@@ -949,7 +950,7 @@ function spawnQueen(){
   let spawnX = random(0, 500);
   let spawnY = random(0, 500);
   
-  // Convert to terrain-aligned coordinates (applies Y-axis inversion)
+  // Convert to terrain-aligned coordinates 
   if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && 
       typeof g_activeMap.renderConversion.convCanvasToPos === 'function' &&
       typeof g_activeMap.renderConversion.convPosToCanvas === 'function') {
@@ -960,6 +961,7 @@ function spawnQueen(){
   }
   
   // Create QueenAnt directly (no need for wrapper ant)
+  console.log(queenSize)
   let newAnt = new ant(
     spawnX, spawnY, 
     queenSize.x + sizeR, 

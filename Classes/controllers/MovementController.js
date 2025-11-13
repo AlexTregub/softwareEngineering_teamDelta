@@ -31,10 +31,14 @@ class MovementController {
    * @param {number} y - Target Y coordinate
    * @returns {boolean} - True if movement started successfully
    */
-  moveToLocation(x, y) {
+  moveToLocation(x, y) {        
     // Check if entity's state machine allows movement
     if (this._entity._stateMachine && !this._entity._stateMachine.canPerformAction("move")) {
       return false;
+    }
+
+    if (window.currentNPC && window.currentNPC.dialogueActive === true) {
+      return false; // stop movement while dialogue is active
     }
 
     //Flip ants when moving Left or Right

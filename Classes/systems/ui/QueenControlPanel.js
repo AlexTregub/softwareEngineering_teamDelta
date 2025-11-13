@@ -117,7 +117,46 @@ class QueenControlPanel {
         name: 'Final Flash',
         key: 'finalFlash',
         activate: () => {
-          console.log('🔆 Final Flash power - not yet implemented');
+          logNormal('⚡ Flash activated!');
+          // Initialize lightning brush if needed
+          if (typeof window.g_flashAimBrush === 'undefined' || !window.g_flashAimBrush) {
+            if (typeof window.initializeFlashAimBrush === 'function') {
+              window.g_flashAimBrush = window.initializeFlashAimBrush();
+              logNormal('✅ final flash brush initialized');
+              
+              // Register the render function with RenderLayerManager
+              if (typeof RenderManager !== 'undefined' && RenderManager && 
+                  typeof RenderManager.addDrawableToLayer === 'function' &&
+                  typeof window.g_flashAimBrush.render === 'function') {
+                RenderManager.addDrawableToLayer(
+                  RenderManager.layers.UI_GAME, 
+                  window.g_flashAimBrush.render.bind(window.g_flashAimBrush)
+                );
+                logNormal('✅ final flash brush render registered');
+              }
+            } else {
+              console.warn('⚠️ final flash Aim Brush system not available');
+              return;
+            }
+          }
+          
+          // Activate lightning aim brush
+          if (window.g_flashAimBrush) {
+            logNormal('⚡ Final flash brush state before activation:', {
+              isActive: window.g_flashAimBrush.isActive,
+              hasRender: typeof window.g_flashAimBrush.render === 'function'
+            });
+            
+            // If already active, don't toggle off - just ensure it's on
+            if (!window.g_flashAimBrush.isActive) {
+              window.g_flashAimBrush.toggle();
+            }
+            
+            logNormal('⚡ final flash targeting mode activated - click to strike!');
+            logNormal('⚡ final flash brush state after activation:', {
+              isActive: window.g_flashAimBrush.isActive
+            });
+          }
         }
       }
     ];

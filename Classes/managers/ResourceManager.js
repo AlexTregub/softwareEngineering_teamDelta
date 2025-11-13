@@ -12,6 +12,7 @@
  *
  * @class ResourceManager
  */
+console.log('Loading ResourceManager.js');
 class ResourceManager {
   /**
    * Creates a new ResourceManager for an entity.
@@ -44,6 +45,7 @@ class ResourceManager {
    *
    * @returns {number} The current resource count
    */
+  
   getCurrentLoad() {
     return this.resources.length;
   }
@@ -128,12 +130,19 @@ class ResourceManager {
         }
         globalResourceArray.push(resource);
 
-        // --- update aggregated totals so tasks/UI can read progress ---
+        // Update resource totals (simpler type detection)
         try {
-          const rtype = resource.type || resource.resourceType || resource._type || 'misc';
-          const ramt = (typeof resource.amount === 'number') ? resource.amount : 1;
-          addGlobalResource(rtype, ramt);
-        } catch (e) { /* ignore totals update errors */ }
+          const rtype = resource._resourceType || resource.type || resource.resourceType || 'misc';
+          const ramt = resource.amount || 1;
+          
+          if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
+            window.addGlobalResource(rtype, ramt);
+            console.log(`Added to global totals: ${rtype} +${ramt}`);
+            //console.log(_resourceTotals[stick])
+          }
+        } catch (e) {
+          console.log('Error updating resource totals:', e);
+        }
       }
 
       return droppedResources;
@@ -390,6 +399,9 @@ class ResourceManager {
     logNormal(`ResourceManager: Force dropped ${dropped.length} resources`);
     return dropped;
   }
+
+
+
 }
 
 // Export for Node.js compatibility
@@ -461,9 +473,11 @@ function getResourceTotals() {
  */
 function getResourceCount(type) {
   if (!type) {
+    console.log('Type is not given, returning total resources');
     return Object.values(_resourceTotals).reduce((s, v) => s + v, 0);
   }
-  return _resourceTotals[String(type)] || 0;
+  console.log(`Type given, returning `+ type + ' count');
+  return _resourceTotals[type] || 0;
 }
 
 // Debug helper you can call from console or UI

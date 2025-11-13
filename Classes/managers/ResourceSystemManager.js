@@ -193,6 +193,7 @@ class ResourceSystemManager {
    */
   drawAll() {
     for (const r of this.resources) {
+      console.log(r);
       // Prefer modern Entity/Controller render path; fallback to legacy draw if encountered
       try {
         if (r && typeof r.render === 'function') r.render();

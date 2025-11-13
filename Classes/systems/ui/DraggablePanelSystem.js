@@ -15,16 +15,6 @@
  */
 async function initializeDraggablePanelSystem() {
   try {
-
-    // Idempotency guard: avoid initializing twice (setup() and initializeWorld() both
-    // called this previously). If a manager already exists and is initialized, just
-    // reuse it to prevent duplicate panel creation and double rendering.
-    if (typeof window !== 'undefined' && window.draggablePanelManager && window.draggablePanelManager.isInitialized) {
-      logVerbose('ℹ️ DraggablePanelSystem already initialized — skipping duplicate init');
-      return true;
-    }
-
-    
     // Check if DraggablePanelManager is available
     if (typeof DraggablePanelManager === 'undefined') {
       console.error('❌ DraggablePanelManager not loaded. Check index.html script tags.');
@@ -34,270 +24,18 @@ async function initializeDraggablePanelSystem() {
     
     // Create panel manager instance
     window.draggablePanelManager = new DraggablePanelManager();
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ DraggablePanelManager instance created');
-    } else {
-      logNormal('✅ DraggablePanelManager instance created');
-    }
-    
-    // Initialize the manager
     window.draggablePanelManager.initialize();
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ DraggablePanelManager initialized');
-    } else {
-      logNormal('✅ DraggablePanelManager initialized');
-    }
-    
-    // Create the resource display panel
-    const resourceDisplayPanel = window.draggablePanelManager.addPanel({
-      id: 'resource-display',
-      title: 'Resources',
-      position: { x: window.innerWidth - 200, y: window.innerHeight - 120 }, // Bottom right
-      size: { width: 180, height: 100 },
-      style: {
-        backgroundColor: [0, 0, 0, 150],
-        titleColor: [255, 255, 255],
-        textColor: [255, 255, 255],
-        borderColor: [100, 100, 100],
-        titleBarHeight: 25,
-        padding: 10,
-        fontSize: 14
-      },
-      behavior: {
-        draggable: true,
-        persistent: true,
-        constrainToScreen: true,
-        snapToEdges: true
-      }
-    });
-    
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ Resource display panel created');
-    } else {
-      logNormal('✅ Resource display panel created');
-    }
-    
-    // Create the performance monitor panel
-    const performancePanel = window.draggablePanelManager.addPanel({
-      id: 'performance-monitor',
-      title: 'Performance Monitor',
-      position: { x: window.innerWidth - 440, y: window.innerHeight - 200 }, // Bottom right, left of resources
-      size: { width: 220, height: 180 },
-      style: {
-        backgroundColor: [0, 0, 0, 180],
-        titleColor: [0, 255, 0],
-        textColor: [0, 255, 0],
-        borderColor: [0, 150, 0],
-        titleBarHeight: 25,
-        padding: 10,
-        fontSize: 12
-      },
-      behavior: {
-        draggable: true,
-        persistent: true,
-        constrainToScreen: true,
-        snapToEdges: true
-      },
-      visible: true // Start visible, can be toggled with Ctrl+Shift+1
-    });
-    
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ Performance monitor panel created');
-    } else {
-      logNormal('✅ Performance monitor panel created');
-    }
-    
-    // Create the debug info panel
-    const debugInfoPanel = window.draggablePanelManager.addPanel({
-      id: 'debug-info',
-      title: 'Debug Info',
-      position: { x: window.innerWidth - 700, y: window.innerHeight - 200 }, // Bottom right, left of performance
-      size: { width: 240, height: 180 },
-      style: {
-        backgroundColor: [0, 0, 0, 180],
-        titleColor: [255, 255, 0],
-        textColor: [255, 255, 0],
-        borderColor: [200, 200, 0],
-        titleBarHeight: 25,
-        padding: 10,
-        fontSize: 12
-      },
-      behavior: {
-        draggable: true,
-        persistent: true,
-        constrainToScreen: true,
-        snapToEdges: true
-      },
-      visible: true // Start visible, can be toggled with Ctrl+Shift+3
-    });
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ Debug info panel created');
-    } else {
-      logNormal('✅ Debug info panel created');
-    }
-    
-    // Set up content renderers
-    window.draggablePanelContentRenderers = {
-      'resource-display': renderResourceDisplayContent,
-      'performance-monitor': renderPerformanceMonitorContent,
-      'debug-info': renderDebugInfoContent
-    };
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ Panel content renderers configured');
-    } else {
-      logNormal('✅ Panel content renderers configured');
-    }
-    
+
     // Add keyboard shortcuts for toggling panels
     setupPanelKeyboardShortcuts();
-    if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ Panel keyboard shortcuts configured');
-    } else {
-      logNormal('✅ Panel keyboard shortcuts configured');
-    }
     
     // Coordinate with UILayerRenderer to avoid double rendering
     coordinateWithUIRenderer();
-    
-    if (typeof globalThis.logNormal === 'function') {
-      globalThis.logNormal('🎉 Draggable Panel System initialization complete!');
-    } else {
-      logNormal('🎉 Draggable Panel System initialization complete!');
-    }
     return true;
     
   } catch (error) {
     console.error('❌ Failed to initialize Draggable Panel System:', error);
     return false;
-  }
-}
-
-/**
- * Content renderer for the resource display panel
- */
-function renderResourceDisplayContent(contentArea, style) {
-  // Get current resource values from the new resource system
-  let wood = 0, food = 0;
-  
-  if (g_resourceManager && typeof g_resourceManager.getResourcesByType === 'function') {
-    wood = g_resourceManager.getResourcesByType('wood').length;
-    food = g_resourceManager.getResourcesByType('food').length + 
-           g_resourceManager.getResourcesByType('greenLeaf').length + 
-           g_resourceManager.getResourcesByType('mapleLeaf').length;
-  } else if (g_resourceList && g_resourceList.wood) {
-    // Fallback to old system
-    wood = g_resourceList.wood.length;
-    food = g_resourceList.food.length;
-  }
-  
-  const population = ants ? ants.length : 0;
-  
-  // Render resource text
-  if (typeof text === 'function') {
-    let yOffset = 0;
-    const lineHeight = 18;
-    
-    text(`Wood: ${wood}`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    text(`Food: ${food}`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    text(`Population: ${population}`, contentArea.x, contentArea.y + yOffset);
-  }
-}
-
-/**
- * Content renderer for the performance monitor panel
- */
-function renderPerformanceMonitorContent(contentArea, style) {
-  if (typeof text === 'function') {
-    let yOffset = 0;
-    const lineHeight = 16;
-    
-    // FPS
-    const fps = (typeof frameRate === 'function' ? frameRate() : 60).toFixed(1);
-    text(`FPS: ${fps}`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    // Frame time
-    const frameTime = (1000 / (typeof frameRate === 'function' ? frameRate() : 60)).toFixed(1);
-    text(`Frame Time: ${frameTime}ms`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    // Entity counts
-    const entityCount = (typeof ants !== 'undefined') ? ants.length : 0;
-    text(`Entities: ${entityCount} total`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    // UI elements (estimated)
-    const uiElements = (window.draggablePanelManager ? window.draggablePanelManager.getVisiblePanelCount() : 0);
-    text(`UI Elements: ${uiElements}`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    // Memory usage (if available)
-    if (performance && performance.memory) {
-      const memoryMB = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1);
-      text(`Memory: ${memoryMB}MB`, contentArea.x, contentArea.y + yOffset);
-      yOffset += lineHeight;
-    }
-    
-    // Panel system status
-    if (window.draggablePanelManager) {
-      const panelCount = window.draggablePanelManager.getPanelCount();
-      text(`Panels: ${panelCount} registered`, contentArea.x, contentArea.y + yOffset);
-    }
-  }
-}
-
-/**
- * Content renderer for the debug info panel
- */
-function renderDebugInfoContent(contentArea, style) {
-  if (typeof text === 'function') {
-    let yOffset = 0;
-    const lineHeight = 16;
-    
-    // Game State
-    text(`Game State: ${GameState ? GameState.getState() : 'Unknown'}`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    // Canvas info
-    text(`Canvas: ${g_canvasX}x${g_canvasY}`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    // Tile size
-    text(`Tile Size: ${TILE_SIZE}`, contentArea.x, contentArea.y + yOffset);
-    yOffset += lineHeight;
-    
-    // Entity counts
-    if (ants) {
-      text(`Ants: ${ants.length || 0}`, contentArea.x, contentArea.y + yOffset);
-      yOffset += lineHeight;
-    }
-    
-    // Resources count from new system
-    if (g_resourceManager && typeof g_resourceManager.getResourceList === 'function') {
-      text(`Resources: ${g_resourceManager.getResourceList().length || 0}`, contentArea.x, contentArea.y + yOffset);
-      yOffset += lineHeight;
-    } else if (g_resourceList && g_resourceList.resources) {
-      text(`Resources: ${g_resourceList.resources.length || 0}`, contentArea.x, contentArea.y + yOffset);
-      yOffset += lineHeight;
-    }
-    
-    // Layer toggles info (compact version)
-    if (g_renderLayerManager) {
-      yOffset += 5; // Extra spacing
-      text('Layer Toggles (Shift+Key):', contentArea.x, contentArea.y + yOffset);
-      yOffset += lineHeight;
-      
-      const layerStates = g_renderLayerManager.getLayerStates();
-      text(`C=Terrain:${layerStates.TERRAIN ? 'ON' : 'OFF'}`, contentArea.x, contentArea.y + yOffset);
-      yOffset += lineHeight;
-      text(`V=Entities:${layerStates.ENTITIES ? 'ON' : 'OFF'}`, contentArea.x, contentArea.y + yOffset);
-      yOffset += lineHeight;
-      text(`B=Effects:${layerStates.EFFECTS ? 'ON' : 'OFF'}`, contentArea.x, contentArea.y + yOffset);
-    }
   }
 }
 
@@ -322,22 +60,6 @@ function setupPanelKeyboardShortcuts() {
         if (keyCode === 78 && keyIsDown(SHIFT) && !keyIsDown(CONTROL)) { // 'N' key
           // Let UIController handle this via g_keyboardController
           return;
-        }
-        
-        // Keep individual toggles for legacy (Ctrl+Shift+1-3)
-        if (keyCode === 49 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '1' key
-          const visible = window.draggablePanelManager.togglePanel('performance-monitor');
-          logNormal(`Performance Monitor ${visible ? 'ENABLED' : 'DISABLED'}`);
-        }
-        
-        if (keyCode === 50 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '2' key
-          const visible = window.draggablePanelManager.togglePanel('resource-display');
-          logNormal(`Resource Display ${visible ? 'ENABLED' : 'DISABLED'}`);
-        }
-        
-        if (keyCode === 51 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // '3' key
-          const visible = window.draggablePanelManager.togglePanel('debug-info');
-          logNormal(`Debug Info ${visible ? 'ENABLED' : 'DISABLED'}`);
         }
         
         // Ctrl+Shift+R: Reset all panels to default positions
