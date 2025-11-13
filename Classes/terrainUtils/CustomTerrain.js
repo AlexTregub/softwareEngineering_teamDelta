@@ -385,8 +385,8 @@ class CustomTerrain {
                 if (typeof TERRAIN_MATERIALS_RANGED !== 'undefined' && 
                     TERRAIN_MATERIALS_RANGED[tile.material] &&
                     typeof TERRAIN_MATERIALS_RANGED[tile.material][1] === 'function') {
-                    // Call the render function with screen position and tile size
-                    TERRAIN_MATERIALS_RANGED[tile.material][1](screenPos.x, screenPos.y, this.tileSize);
+                    // Call the render function with screen position, tile size, and context
+                    TERRAIN_MATERIALS_RANGED[tile.material][1](screenPos.x, screenPos.y, this.tileSize, window);
                 } else {
                     // Fallback to solid color if texture not available
                     const color = this._getMaterialColor(tile.material);
