@@ -138,6 +138,7 @@ class DraggablePanelManager {
    * Create the default example panels
    */
   createDefaultPanels() {
+    console.log("create panel")
     // Ant Spawn Panel (vertical layout with ant spawning options)
     this.panels.set('ant_spawn', new DraggablePanel({
       id: 'ant-Spawn-panel',
@@ -1584,7 +1585,7 @@ class DraggablePanelManager {
   /**
    * Handle the Shoot Lightning button from the combat panel
    */
-  handleShootLightning() {
+  handleShootLightning(target = null) {
     // Ensure LightningSystem exists
     if (typeof window.LightningManager === 'undefined' || !window.LightningManager) {
       if (typeof initializeLightningSystem === 'function') {
@@ -1596,7 +1597,7 @@ class DraggablePanelManager {
     }
 
     // Determine target: prefer selected ant, otherwise nearest ant under mouse or nearest overall
-    let targetAnt = null;
+    let targetAnt = target;
     try {
       if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
         const selected = g_selectionBoxController.getSelectedEntities();

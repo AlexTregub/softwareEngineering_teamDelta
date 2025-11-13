@@ -14,6 +14,7 @@ let JobImages = {};
 
 // Global ant manager instance - will be initialized when AntManager is available
 let antManager = null;
+let animationManager = null;
 
 // --- Preload Images and manager ---
 function antsPreloader() {
@@ -26,16 +27,17 @@ function antsPreloader() {
     Builder: loadImage('Images/Ants/gray_ant_builder.png'),
     Scout: loadImage('Images/Ants/gray_ant_scout.png'),
     Farmer: loadImage('Images/Ants/gray_ant_farmer.png'),
-    Warrior: loadImage('Images/Ants/gray_ant.png'), // We don't have a gray ant warrior
+    Warrior: loadImage('Images/Ants/gray_ant_soldier.png'), // We don't have a gray ant warrior
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
-    DeLozier: loadImage('Images/Ants/greg.jpg'),
+    // DeLozier: loadImage('Images/Ants/greg.jpg'),
     Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
+    Spider: loadImage('Images/Ants/spider.png')
   };
   initializeAntManager();
 }
 
 /** Initializes the AntManager instance */
-function initializeAntManager() { antManager = new AntManager(); }
+function initializeAntManager() { antManager = new AntManager(); animationManager = new AnimationManager(); }
 
 
 
@@ -93,15 +95,17 @@ class ant extends Entity {
     this._faction = faction;
     this._enemies = [];
     this._lastEnemyCheck = 0;
-    this._enemyCheckInterval = 30; // frames
+    this._enemyCheckInterval = 50; // frames
     
     // Combat properties
     this._health = 100;
     this._maxHealth = 100;
-    this._damage = 10;
-    this._attackRange = 50;
+    this._damage = 0;
+    this._attackRange = 20;
     this._combatTarget = null; // Current target this ant is attacking
-    
+    this._attackCooldown = 1; // seconds
+    this._lastAttackTime = 0; // Timestamp of the last attack
+
     // Set initial image if provided
     if (img && typeof img !== 'string') {
       this.setImage(img);
@@ -166,22 +170,72 @@ class ant extends Entity {
     if (movementController) {
       movementController.movementSpeed = stats.movementSpeed;
     }
-  }
-  
-  _getFallbackJobStats(jobName) {
-    // Fallback job stats when JobComponent isn't available
-    switch (jobName) {
-      case "Builder": return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 60 };
-      case "Scout": return { strength: 10, health: 80, gatherSpeed: 10, movementSpeed: 80 };
-      case "Farmer": return { strength: 15, health: 100, gatherSpeed: 30, movementSpeed: 60 };
-      case "Warrior": return { strength: 40, health: 150, gatherSpeed: 5, movementSpeed: 60 };
-      case "Spitter": return { strength: 30, health: 90, gatherSpeed: 8, movementSpeed: 60 };
-      case "DeLozier": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
-      case "Queen": return { strength: 1000, health: 10000, gatherSpeed: 1, movementSpeed: 10000 };
-      default: return { strength: 10, health: 100, gatherSpeed: 10, movementSpeed: 60 };
+
+    const combat = this.getController('combat');
+    switch(this.jobName){
+      case "Queen":
+        combat._detectionRadius = 300;
+        this._attackRange = combat._detectionRadius - 50; 
+        break;
+      case "Spitter":
+        combat._detectionRadius = 250;
+        this._attackRange = 250; 
+        break;
+      case "Spider":
+        combat._detectionRadius = 300;
+        this._attackRange = 150;
+        break;
+      case "Farmer" :
+        combat._detectionRadius = 250;
+        break;
+      case "Builder" :
+        combat._detectionRadius = 250;
+        break;
+      case "Scout" :
+        combat._detectionRadius = 500; 
+        break;
     }
   }
   
+_getFallbackJobStats(jobName) {
+  // Balanced fallback stats when JobComponent isn't available
+  switch (jobName) {
+    case "Builder":
+      // Strong enough to build and carry, average mobility
+      return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 55 };
+
+    case "Scout":
+      // Fast and agile, but fragile
+      return { strength: 10, health: 70, gatherSpeed: 8, movementSpeed: 85 };
+
+    case "Farmer":
+      // Focused on gathering efficiency
+      return { strength: 15, health: 100, gatherSpeed: 35, movementSpeed: 50 };
+
+    case "Warrior":
+      // Heavy combat role: high strength and durability, slower speed
+      return { strength: 45, health: 6000, gatherSpeed: 5, movementSpeed: 45 };
+
+    case "Spitter":
+      // Ranged attacker: moderate health, good damage, slightly faster than warrior
+      return { strength: 35, health: 110, gatherSpeed: 5, movementSpeed: 55 };
+
+    case "DeLozier":
+      return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
+
+    case "Queen":
+      // Central unit: extremely durable but immobile and weak in combat
+      return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 10 };
+
+    case "Spider":
+      return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 45 };
+
+    default:
+      // Generic fallback for untyped ants
+      return { strength: 15, health: 100, gatherSpeed: 10, movementSpeed: 60 };
+  }
+}
+
   getJobStats() {
     return this.job ? this.job.stats : this._getFallbackJobStats(this.jobName);
   }
@@ -295,6 +349,11 @@ class ant extends Entity {
     if (this._healthController && oldHealth > this._health) {
       this._healthController.onDamage();
     }
+
+    // Attack animation
+    if(animationManager.isAnimation("Attack")){
+      animationManager.play(this._entity,"Attack");
+    }
     
     if (this._health <= 0) {
       this.die();
@@ -316,11 +375,15 @@ class ant extends Entity {
   
   die() {
     this.isActive = false;
-    this.setState("DEAD");
+    // this.setState("DEAD");
     this._combatTarget = null; // Clear target when dying
-    
     // Remove this ant from all game systems
     this._removeFromGame();
+  }
+
+  // Used for entering buildings during raids
+  onEnterHive(){
+    this.die();
   }
   
   /**
@@ -328,6 +391,13 @@ class ant extends Entity {
    */
   _removeFromGame() {
     logNormal(`💀 Removing dead ant ${this._antIndex} from game systems`);
+
+    // Clear entity from faction attack tracking
+    for(let obj in factionList){
+      if(factionList[obj].isUnderAttack == this){
+        factionList[obj].isUnderAttack = null;
+      }
+    }
     
     // 1. Remove from global ants array
     if (typeof ants !== 'undefined' && Array.isArray(ants)) {
@@ -338,7 +408,7 @@ class ant extends Entity {
       }
     }
     
-    // 2. Remove from TileInteractionManager
+    // // 2. Remove from TileInteractionManager
     if (typeof g_tileInteractionManager !== 'undefined' && g_tileInteractionManager) {
       const pos = this.getPosition();
       if (pos && typeof g_tileInteractionManager.removeObjectFromTile === 'function') {
@@ -349,7 +419,7 @@ class ant extends Entity {
       }
     }
     
-    // 3. Clear from selection systems
+    // // 3. Clear from selection systems
     if (this.isSelected) {
       this.isSelected = false;
       
@@ -368,7 +438,7 @@ class ant extends Entity {
       logNormal(`   ✅ Cleared from selection systems`);
     }
     
-    // 4. Clear combat targets pointing to this dead ant
+    // // 4. Clear combat targets pointing to this dead ant
     if (typeof ants !== 'undefined' && Array.isArray(ants)) {
       ants.forEach(otherAnt => {
         if (otherAnt._combatTarget === this) {
@@ -378,21 +448,24 @@ class ant extends Entity {
       });
     }
     
-    // 5. Update UI selection entities if function exists
+    // // 5. Update UI selection entities if function exists
     if (typeof updateUISelectionEntities === 'function') {
       updateUISelectionEntities();
       logNormal(`   ✅ Updated UI selection entities`);
     }
+
     
     // Remove from selectables so selection system stops referencing it
     if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
       const sidx = selectables.indexOf(this);
       if (sidx !== -1) selectables.splice(sidx, 1);
     }
+
+    //
     // Also update selection controller's entities if it stores a snapshot
-    if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
-      if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
-    }
+    // if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+    //   if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+    // }
   }
   
   // --- Resource Methods ---
@@ -531,77 +604,164 @@ class ant extends Entity {
       }
       
       this._lastEnemyCheck = frameCount;
-      
       // Only attack if we're actually in combat state and have enemies
       if (this._stateMachine && this._stateMachine.isInCombat() && this._enemies.length > 0) {
         this._performCombatAttack();
+      }else{
+        if(this._combatTarget != null){
+          this.moveToLocation(this._combatTarget.posX, this._combatTarget.posY);
+        }
       }
     }
   }
-  
-  _performCombatAttack() {
-    // Safety check: Only attack if we're actually in combat state
-    if (!this._stateMachine || !this._stateMachine.isInCombat()) {
-      return; // Cannot attack if not in combat state
+
+  // Find nearest enemy entity from given array
+  nearestEntity(array){
+    let nearest = null;
+    let minDist = Infinity;
+    for (let obj of array) {
+    if (obj._faction === this._faction || obj === this || obj._faction == "neutral") {
+        continue;
     }
-    
-    // Check if current target is still valid and in range
-    if (this._combatTarget) {
-      // Verify target is still alive and in enemy list
-      const targetStillValid = this._enemies.includes(this._combatTarget) && 
-                              this._combatTarget.health > 0 && 
-                              this._combatTarget.isActive !== false;
-      
-      if (targetStillValid) {
-        const distance = this._calculateDistance(this, this._combatTarget);
-        if (distance <= this._attackRange) {
-          // Attack current target
-          this._attackTarget(this._combatTarget);
-          return;
-        }
+    let d = dist(this.posX, this.posY, obj.posX, obj.posY);
+    if (d < minDist) {
+        minDist = d;
+        nearest = obj;
+    }
+    }
+    return [nearest,minDist];
+  }
+
+  nearestFriendlyBuilding(array) {
+    let nearest = null;
+    let minDist = Infinity;
+    for (let obj of array) {
+      if ( (obj._faction !== this._faction && obj._faction !== 'neutral') || obj.type !== "Building") continue;
+      let d = dist(this.posX, this.posY, obj.posX, obj.posY);
+      if (d < minDist) {
+        minDist = d;
+        nearest = obj;
       }
+    }
+    return [nearest, minDist];
+  }
+
+
+
+  _soundAlarm(target){
+    let factionObj = factionList[this._faction];
+    if(factionObj){
+      if(factionObj.isUnderAttack != null){return;}
+      factionObj.isUnderAttack = target;
+      let [d, distance] = this.nearestEntity([target]);
+      ants.forEach(ant => {
+        ant._calculateAction([d, distance]);
+        if(ant.jobName === "Queen"){
+          console.log("Queen alerted!");
+        }
+      })
+    }
+  }
+
+  _calculateAction(targetData) {
+    let [nearestEnemy, shortestDistance] = targetData;
+    if (!nearestEnemy) return;
+
+    let [closestHive, hiveDistance] = this.nearestFriendlyBuilding(
+      Buildings.filter(b => b.type === "Building" && b._faction === this._faction)
+    );
+
+    const detectionRange = this.getController('combat')._detectionRadius;
+
+  
+    let goToHive = () => {
+      if (!closestHive) return this.moveToLocation(nearestEnemy.posX, nearestEnemy.posY);
+      if (hiveDistance > 100) {
+        this.moveToLocation(closestHive.posX, closestHive.posY);
+      } else {
+        closestHive.enter(this);
+        if (this.jobName !== "Scout") this._soundAlarm(nearestEnemy);
+      }
+    };
+
+    let isRanged = ["Spitter", "Queen"].includes(this.jobName);
+    let isMelee = ["Spider", "Warrior"].includes(this.jobName);
+    let isWorker = ["Scout", "DeLozier", "Builder", "Farmer"].includes(this.jobName);
+
+    // Combat logic
+    this._combatTarget = nearestEnemy;
+    if (shortestDistance <= this._attackRange) {
+      if (isRanged) {
+        if (this.jobName === "Spitter") {
+            // window.draggablePanelManager.handleShootLightning(this._combatTarget);
+        } else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
+          window.draggablePanelManager.handleShootLightning(this._combatTarget);
+        }
+      } 
       
+      else if (isMelee) {
+        this._attackTarget(this._combatTarget);
+      } 
+      
+      else if (isWorker) {
+        if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
+        closestHive ? goToHive() : this._attackTarget(this._combatTarget);
+      }
+    }
+
+    //  Detection logic
+    else if (shortestDistance <= detectionRange) {
+      if (isRanged || isMelee) {
+        this.moveToLocation(this._combatTarget.posX, this._combatTarget.posY);
+      } 
+      
+      else if (isWorker) {
+        if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
+        goToHive()
+      }
+    }
+  }
+
+
+  _performCombatAttack() {
+    // Make sure the ant is ready for combat
+    if (!this._stateMachine || !this._stateMachine.isInCombat()) return;
+
+    if (this._combatTarget) {
+      let targetStillValid = this._enemies.includes(this._combatTarget) && this._combatTarget.health > 0 && this._combatTarget.isActive !== false;
+      let target = this.nearestEntity(this._enemies);
+      if (targetStillValid) {
+        this._calculateAction(target);
+      }
       // Target is no longer valid, clear it
       this._combatTarget = null;
     }
-    
-    // Find a new target if we don't have one
+
+    // Acquire a new target if none
     if (!this._combatTarget) {
-      let nearestEnemy = null;
-      let shortestDistance = Infinity;
-      
-      for (const enemy of this._enemies) {
-        // Only target enemies that are alive and active
-        if (enemy.health > 0 && enemy.isActive !== false) {
-          const distance = this._calculateDistance(this, enemy);
-          if (distance < shortestDistance && distance <= this._attackRange) {
-            shortestDistance = distance;
-            nearestEnemy = enemy;
-          }
-        }
-      }
-      
-      // Set new target
-      if (nearestEnemy) {
-        this._combatTarget = nearestEnemy;
-        this._attackTarget(this._combatTarget);
-      }
+      this._calculateAction(this.nearestEntity(this._enemies)); // Get nearest enemy and decide action
+      return;
     }
+    return false;
   }
+
   
   _attackTarget(target) {
-    if (target && typeof target.takeDamage === 'function') {
-      // Use strength stat from StatsContainer, fallback to basic damage
-      const attackPower = this._stats?.strength?.statValue || this._damage;
-      target.takeDamage(attackPower);
-      
-      // Show damage effect if available
-      if (this._renderController && typeof this._renderController.showDamageNumber === 'function') {
-        const enemyPos = target.getPosition();
-        this._renderController.showDamageNumber(attackPower, [255, 100, 100]);
-      }
-      
-      logNormal(`🗡️ Ant ${this._antIndex} (${this._faction}) attacked enemy ${target._antIndex || 'unknown'} for ${attackPower} damage`);
+    if (target && typeof target.takeDamage === 'function' && target.health > 0) {
+      let now = this.lastFrameTime/ 1000; // seconds
+      if (now - this._lastAttackTime < this._attackCooldown) return;
+
+    // Use strength stat from StatsContainer, fallback to basic damage
+        const attackPower = this._stats?.strength?.statValue || this._damage;
+        target.takeDamage(attackPower);
+        
+        // Show damage effect if available
+        if (this._renderController && typeof this._renderController.showDamageNumber === 'function') {
+          const enemyPos = target.getPosition();
+          this._renderController.showDamageNumber(attackPower, [255, 100, 100]);
+        }
+        this._lastAttackTime = now;
+        logNormal(`🗡️ Ant ${this._antIndex} (${this._faction}) attacked enemy ${target._antIndex || 'unknown'} for ${attackPower} damage`);
     }
   }
   
@@ -780,6 +940,8 @@ function assignJob() {
   return chosenJob;
 }
 
+
+
 function spawnQueen(){
   let JobName = 'Queen'
   let sizeR = random(0, 15);
@@ -822,6 +984,7 @@ function spawnQueen(){
   ants.push(newAnt);
   // also add to selectables so selection box can see it
   if (typeof selectables !== 'undefined') selectables.push(newAnt);
+
   newAnt.update();
 
   // Register ant with TileInteractionManager for efficient mouse detection
@@ -829,6 +992,54 @@ function spawnQueen(){
     g_tileInteractionManager.addObject(newAnt, 'ant');
   }
 
+
+  return newAnt;
+}
+
+
+// Spawn specific ants
+function spawnAntByType(antObj){
+  let movementController = antObj.getController('movement');
+  let jitter = 12;
+  const sizeX = antObj.getSize().x + (Math.random() * jitter - jitter / 2);
+  const sizeY = antObj.getSize().y + (Math.random() * jitter - jitter / 2);
+  const movementSpeed = movementController && typeof movementController.movementSpeed === 'number'
+    ? movementController.movementSpeed
+    : (antObj.movementSpeed || 30);
+  const img = (typeof antObj.getImage === 'function' && antObj.getImage()) || JobImages[antObj.jobName] || antBaseSprite;
+
+  // Correct argument order: posX, posY, sizex, sizey, movementSpeed, rotation, img, JobName, faction
+  let newAnt = new ant(
+    antObj.posX,
+    antObj.posY,
+    sizeX,
+    sizeY,
+    movementSpeed,
+    0,
+    img,
+    antObj.jobName,
+    antObj.faction
+  );
+
+
+  newAnt.assignJob(antObj.jobName, JobImages[antObj.jobName]);
+  if (ants && Array.isArray(ants)) {
+    ants.push(newAnt);
+  }
+
+    // Register with TileInteractionManager if available
+  if (g_tileInteractionManager) {
+    g_tileInteractionManager.addObject(newAnt, 'ant');
+  }
+
+
+  if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+  if (!selectables.includes(newAnt)) selectables.push(newAnt);
+  }
+  // Ensure selection controller uses selectables reference (some controllers snapshot list)
+  if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+    if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+  }
 
   return newAnt;
 }
@@ -841,7 +1052,7 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
 
     let px, py;
     if (x !== null && y !== null) {
-      const jitter = 12;
+      const jitter = 20;
       px = x + (Math.random() * jitter - jitter / 2);
       py = y + (Math.random() * jitter - jitter / 2);
     } else {
@@ -876,6 +1087,7 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     
     ants.push(newAnt);
     if (typeof selectables !== 'undefined') selectables.push(newAnt);
+
     newAnt.update();
     
     if (g_tileInteractionManager) {

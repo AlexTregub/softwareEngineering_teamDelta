@@ -4,7 +4,7 @@ class QueenAnt extends ant {
     // console.log('queen',baseAnt.posX, baseAnt.posY, baseAnt.getSize().x, baseAnt.getSize().y, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(), baseAnt._faction);
 
     // Call parent ant constructor
-    super(baseAnt.posX, baseAnt.posY, baseAnt.getSize().x, baseAnt.getSize().y, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    super(baseAnt.posX, baseAnt.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
     
     // Queen-specific properties
     this.commandRadius = 250;
@@ -12,7 +12,8 @@ class QueenAnt extends ant {
     this.coolDown = false;
     this.showCommandRadius = false;
     // Queen should not perform idle random skitter movements
-    this.disableSkitter = true;
+    this.getController('movement').disableSkitter = true;
+    this._attackCooldown = .25; // seconds
 
     // Power unlock flags (false by default - unlock via cheats or progression)
     this.unlockedPowers = {
@@ -129,7 +130,7 @@ class QueenAnt extends ant {
 
   move(direction) {
     const pos = this.getPosition();
-    const speed = this.movementSpeed * 0.1; // queen moves slower
+    const speed = this.movementSpeed ; // queen moves slower
 
     switch (direction) {
       case "w":
@@ -147,9 +148,17 @@ class QueenAnt extends ant {
     }
   }
 
+  // State Override -- 
+  startGathering(){return;}
+
 
   update() {
     super.update();
+    let isIdle = this._stateMachine.isPrimaryState("IDLE");
+    if(!isIdle){
+      this._stateMachine.setPrimaryState("IDLE");
+    }
+
     // Example AI logic placeholder
     // this.broadcastCommand({ type: "GATHER" });
   }

@@ -54,6 +54,7 @@ function preload(){
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
+  animationPreloader();
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
@@ -89,9 +90,9 @@ function setup() {
   // return; // !!! REMOVE BEFORE DEV
 
   // Initialize TaskLibrary before other systems that depend on it
-  /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
-  logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
-*/
+  // window.taskLibrary = window.taskLibrary || new TaskLibrary();
+  // logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
+
   
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
@@ -343,6 +344,8 @@ function initializeWorld() {
 
   // npc test
   Buildings.push(createNPC(100,100));
+  // Boss
+  let spider = new Spider(); 
 }
 
 /**
@@ -962,6 +965,11 @@ function keyPressed() {
     }
   }
 
+  if (key === 'u' || key === 'U') {
+    Buildings.forEach(building => {
+      building._releaseAnts();
+    });
+  }
 
   if (keyCode === ESCAPE) {
     if (deactivateActiveBrushes()) {

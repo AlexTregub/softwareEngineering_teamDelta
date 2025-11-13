@@ -17,6 +17,8 @@ class MovementController {
     this._lastPosition = null;
     this._stuckCounter = 0;
     this._maxStuckFrames = 60; // 1 second at 60fps
+    this.disableSkitter = false;
+    this._skitterRange = 25;
     
     this.resetSkitterTimer();
   }
@@ -160,6 +162,9 @@ class MovementController {
     
     // Handle direct movement
     if (this._isMoving && this._targetPosition) {
+      if(animationManager.isAnimation("Walking")){
+        animationManager.play(this._entity,"Walking");
+      }
       this.updateDirectMovement();
     }
     
@@ -332,7 +337,7 @@ class MovementController {
     }
 
     // Allow entities to opt out (e.g., Queen)
-    if (this._entity && this._entity.disableSkitter) {
+    if (this._entity && this._disableSkitter) {
       return false;
     }
 
@@ -341,7 +346,7 @@ class MovementController {
       const canMove = this._entity._stateMachine.canPerformAction("move");
       const isIdle = this._entity._stateMachine.isPrimaryState("IDLE");
       const outOfCombat = this._entity._stateMachine.isOutOfCombat();
-      
+
       if (!canMove || !isIdle || !outOfCombat) {
         return false;
       }
@@ -359,10 +364,9 @@ class MovementController {
     this.resetSkitterTimer();
     
     const currentPos = this.getCurrentPosition();
-    const skitterRange = 25;
-    const newX = currentPos.x + (Math.random() - 0.5) * 2 * skitterRange;
-    const newY = currentPos.y + (Math.random() - 0.5) * 2 * skitterRange;
-    
+    const newX = currentPos.x + (Math.random() - 0.5) * 2 * this._skitterRange;
+    const newY = currentPos.y + (Math.random() - 0.5) * 2 * this._skitterRange;
+
     this.moveToLocation(newX, newY);
   }
 

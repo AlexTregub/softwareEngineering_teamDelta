@@ -23,7 +23,9 @@ class Sprite2D {
     this.flipY = false;
   }
 
-  setImage(img) { this.img = img; }
+  setImage(img) {
+    this.img = img;
+  }
   setPosition(pos) { this.pos = pos.copy ? pos.copy() : createVector(pos.x, pos.y); }
   setSize(size) { this.size = size.copy ? size.copy() : createVector(size.x, size.y); }
   setRotation(rotation) { this.rotation = rotation; }
