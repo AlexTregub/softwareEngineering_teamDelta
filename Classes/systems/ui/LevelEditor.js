@@ -10,23 +10,23 @@ class LevelEditor {
     this.editor = null;
     this.palette = null;
     this.toolbar = null;
-    // this.brushControl = null; // REMOVED: Brush size now controlled via menu bar (Enhancement 9)
-    this.eventEditor = null; // NEW: Event editor panel
-    this.eventFlagLayer = null; // NEW: EventFlag collection manager
+    // this.brushControl = null; // Brush size now controlled via menu bar (Enhancement 9)
+    this.eventEditor = null; // Event editor panel
+    this.eventFlagLayer = null; // EventFlag collection manager
     this.minimap = null;
     this.propertiesPanel = null;
     this.gridOverlay = null;
     this.saveDialog = null;
     this.loadDialog = null;
-    this.newMapDialog = null; // NEW: New map dimensions dialog
+    this.newMapDialog = null; // New map dimensions dialog
     this.notifications = null;
-    this.levelEditorPanels = null; // NEW: Draggable panel integration
-    this.fileMenuBar = null; // NEW: File menu bar for save/load/export
-    this.selectionManager = null; // NEW: Rectangle selection for select tool
-    this.hoverPreviewManager = null; // NEW: Hover preview for all tools
-    this.sidebar = null; // NEW: Sidebar menu (wired from levelEditorPanels)
-    this.entityPainter = null; // NEW: Entity Painter tool for placing ants/buildings/resources
-    this.eventPropertyWindow = null; // NEW: Event property editor window
+    this.levelEditorPanels = null; // Draggable panel integration
+    this.fileMenuBar = null; // File menu bar for save/load/export
+    this.selectionManager = null; // Rectangle selection for select tool
+    this.hoverPreviewManager = null; // Hover preview for all tools
+    this.sidebar = null; // Sidebar menu (wired from levelEditorPanels)
+    this.entityPainter = null; // Entity Painter tool for placing ants/buildings/resources
+    this.eventPropertyWindow = null; // Event property editor window
     
     // File management
     this.currentFilename = 'Untitled'; // Current filename (no extension)
@@ -254,13 +254,13 @@ class LevelEditor {
       this.fileMenuBar.updateBrushSizeVisibility('paint');
     }
     
-    // NEW: Initialize selection manager for select tool
+    // Initialize selection manager for select tool
     this.selectionManager = new SelectionManager();
     
-    // NEW: Initialize hover preview manager for all tools
+    // Initialize hover preview manager for all tools
     this.hoverPreviewManager = new HoverPreviewManager();
     
-    // NEW: Setup shortcut context for ShortcutManager
+    // Setup shortcut context for ShortcutManager
     this._setupShortcutContext();
     this._registerShortcuts();
     
