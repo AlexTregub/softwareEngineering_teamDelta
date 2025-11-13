@@ -207,6 +207,10 @@ function setup() {
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
+  
+  // Initialize keyboard command system
+  window.g_keyBindingManager = new KeyBindingManager();
+  initializeKeyBindings(window.g_keyBindingManager);
 
   // Farmland working...
   // g_tileInteractionManager.turnToFarmland(-60,-60,0,0); // NOTE: current Y is flipped...
@@ -522,7 +526,7 @@ function mousePressed() {
     case 'MENU':
       break;
     case 'PLAYING':
-      g_mouseController[type](...args);
+      //g_mouseController[type](...args);
       brushInGameMousePresses();
       UIInGameMousePresses();
       break;
@@ -556,7 +560,7 @@ function mousePressed() {
         if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         break;
       case CENTER:
@@ -565,13 +569,12 @@ function mousePressed() {
         if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         break;
       default:
         return;
     }
-   
   }
 
   function brushCheckIfExists() {
@@ -610,18 +613,40 @@ function mousePressed() {
 
 
 function mouseDragged() {
-  // Handle level editor drag events FIRST (before UI debug or RenderManager)
-  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
-    levelEditor.handleDrag(mouseX, mouseY);
-    return; // Don't process other drag events when level editor is active
+  switch(GameState.getState()) {
+    case 'MENU':
+      break;
+    case 'PLAYING':
+      brushInGameMouseDrags();
+      UIInGameMouseDrags();
+      break;
+    case 'OPTIONS':
+      break;
+    case 'DEBUG_MENU':
+      break;
+    case 'PAUSED':
+      break;
+    case 'GAME_OVER':
+      break;
+    case 'KANBAN':
+      break;
+    case 'LEVEL_EDITOR':
+      levelEditor.handleDrag(mouseX, mouseY);
+      break;
+    default:
+      console.warn("Sketch.mouseDragged: Invalid state");
+      break;
   }
+  return;
+}
+
+function brushInGameMouseDrags() {
+  // Brushes don't typically need drag events, but keeping for extensibility
+}
+
+function UIInGameMouseDrags() {
+  if (g_uiDebugManager.isActive) { g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY }); }
   
-  // Handle UI Debug Manager drag events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager !== null && g_uiDebugManager.isActive) {
-    g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
-  }
-  
-  // Forward to RenderManager for UI/panel drag handling
   try {
     RenderManager.dispatchPointerEvent('pointermove', { x: mouseX, y: mouseY, isPressed: true });
   } catch (e) {
@@ -630,68 +655,59 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+  switch(GameState.getState()) {
+    case 'MENU':
+      break;
+    case 'PLAYING':
+      brushInGameMouseReleases();
+      UIInGameMouseReleases();
+      break;
+    case 'OPTIONS':
+      break;
+    case 'DEBUG_MENU':
+      break;
+    case 'PAUSED':
+      break;
+    case 'GAME_OVER':
+      break;
+    case 'KANBAN':
+      break;
+    case 'LEVEL_EDITOR':
+      levelEditor.handleMouseRelease(mouseX, mouseY);
+      break;
+    default:
+      console.warn("Sketch.mouseReleased: Invalid state");
+      break;
+  }
+  return;
+}
 
-  // Handle level editor release events FIRST
-  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
-    levelEditor.handleMouseRelease(mouseX, mouseY);
+function brushInGameMouseReleases() {
+  switch(mouseButton){
+    case LEFT:
+      if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      break;
+    case CENTER:
+      break;
+    case RIGHT:
+      if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      break;
+    default:
+      return;
   }
-  
-  // Handle UI Debug Manager release events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
-    g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
-  }
-  
-  // Handle Enemy Ant Brush release events
-  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling enemy ant brush release events:', error);
-    }
-  }
-  
-  // Handle Resource Brush release events
-  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_resourceBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling resource brush release events:', error);
-    }
-  }
+}
 
-  // Handle Building Brush release events
-  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_buildingBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling building brush release events:', error);
-    }
-  }
-
-  // Handle Lightning Aim Brush release events
-  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling lightning aim brush release events:', error);
-    }
-  }
-
-  //Handle Flash Flash Aim Brush release events
-  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling Final Flash aim brush release events:', error);
-    }
-  }
+function UIInGameMouseReleases() {
+  if (g_uiDebugManager.isActive) { g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY }); }
   
-  // Forward to RenderManager for UI/panel event handling
   try {
     RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
   } catch (e) {
@@ -703,10 +719,7 @@ function mouseReleased() {
  * mouseMoved - Handle hover events for Level Editor
  */
 function mouseMoved() {
-  // Handle level editor hover for preview highlighting
-  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
-    levelEditor.handleHover(mouseX, mouseY);
-  }
+  if (levelEditor.isActive()) { levelEditor.handleHover(mouseX, mouseY);  }
 }
 
 /**
@@ -716,88 +729,109 @@ function mouseMoved() {
  * with the scroll wheel. Prevents default page scrolling while in-game.
  */
 function mouseWheel(event) {
-  try {
-    // Level Editor - Shift+scroll for brush size, normal scroll for zoom
-    if (GameState.getState() === 'LEVEL_EDITOR') {
-      if (window.levelEditor && levelEditor.isActive()) {
-        const delta = event.deltaY || 0;
-        const shiftPressed = event.shiftKey || keyIsDown(SHIFT);
-        
-        // Try brush size adjustment first (if Shift is pressed)
-        if (shiftPressed && levelEditor.handleMouseWheel) {
-          const handled = levelEditor.handleMouseWheel(event, shiftPressed);
-          if (handled) {
-            event.preventDefault();
-            return false;
-          }
-        }
-        
-        // Otherwise, handle zoom
-        levelEditor.handleZoom(delta);
-        event.preventDefault();
-        return false;
-      }
-    }
+  switch(GameState.getState()) {
+    case 'MENU':
+      break;
+    case 'PLAYING':
+      if (brushInGameMouseWheel(event)) return false;
+      if (UIInGameMouseWheel(event)) return false;
+      break;
+    case 'OPTIONS':
+      break;
+    case 'DEBUG_MENU':
+      break;
+    case 'PAUSED':
+      break;
+    case 'GAME_OVER':
+      break;
+    case 'KANBAN':
+      break;
+    case 'LEVEL_EDITOR':
+      if (levelEditorMouseWheel(event)) return false;
+      break;
+    default:
+      console.warn("Sketch.mouseWheel: Invalid state");
+      break;
+  }
+  return true;
+}
 
-    if (!GameState.isInGame()) return false;
-
-    // Determine scroll direction (positive = down, negative = up)
+function levelEditorMouseWheel(event) {
+  if (window.levelEditor && levelEditor.isActive()) {
     const delta = event.deltaY || 0;
-    const step = (delta > 0) ? 1 : (delta < 0) ? -1 : 0;
-
-    // Helper to call directional cycling on a brush if available
-    const tryCycleDir = (brush) => {
-      if (!brush || !brush.isActive || step === 0) return false;
-      // Preferred: BrushBase-style directional API
-      if (typeof brush.cycleTypeStep === 'function') { brush.cycleTypeStep(step); return true; }
-      if (typeof brush.cycleType === 'function') { brush.cycleType(step); return true; }
-      // Legacy resource brush method
-      if (typeof brush.cycleResourceType === 'function') { if (step > 0) brush.cycleResourceType(); else { /* no backward legacy */ } return true; }
-      // Fallback: adjust availableTypes index if exposed
-      if (Array.isArray(brush.availableTypes) && typeof brush.currentIndex === 'number') {
-        const len = brush.availableTypes.length;
-        brush.currentIndex = ((brush.currentIndex + step) % len + len) % len;
-        brush.currentType = brush.availableTypes[brush.currentIndex];
-        if (typeof brush.onTypeChanged === 'function') { try { brush.onTypeChanged(brush.currentType); } catch(e){} }
+    const shiftPressed = event.shiftKey || keyIsDown(SHIFT);
+    
+    // Try brush size adjustment first (if Shift is pressed)
+    if (shiftPressed && levelEditor.handleMouseWheel) {
+      const handled = levelEditor.handleMouseWheel(event, shiftPressed);
+      if (handled) {
+        event.preventDefault();
         return true;
       }
-      return false;
-    };
+    }
+    
+    // Otherwise, handle zoom
+    levelEditor.handleZoom(delta);
+    event.preventDefault();
+    return true;
+  }
+  return false;
+}
 
-    // Priority order: Enemy brush, Resource brush, Lightning aim brush, Queen powers
+function brushInGameMouseWheel(event) {
+  const delta = event.deltaY || 0;
+  const step = (delta > 0) ? 1 : (delta < 0) ? -1 : 0;
+  
+  // Helper to call directional cycling on a brush if available
+  const tryCycleDir = (brush) => {
+    if (!brush || !brush.isActive || step === 0) return false;
+    if (typeof brush.cycleTypeStep === 'function') { brush.cycleTypeStep(step); return true; }
+    if (typeof brush.cycleType === 'function') { brush.cycleType(step); return true; }
+    if (typeof brush.cycleResourceType === 'function') { if (step > 0) brush.cycleResourceType(); else { /* no backward legacy */ } return true; }
+
+    return false;
+  };
+  
+  try {
+    // Priority order: Enemy brush, Resource brush, Lightning aim brush, Flash aim brush
     if (window.g_enemyAntBrush && tryCycleDir(window.g_enemyAntBrush)) {
       event.preventDefault();
-      return false;
+      return true;
     }
     if (window.g_resourceBrush && tryCycleDir(window.g_resourceBrush)) {
       event.preventDefault();
-      return false;
+      return true;
     }
     if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
       event.preventDefault();
-      return false;
+      return true;
     }
     if (window.g_flashAimBrush && tryCycleDir(window.g_flashAimBrush)) {
       event.preventDefault();
-      return false;
+      return true;
     }
-    
-    // Queen power cycling with mouse wheel
-    if (window.g_queenControlPanel && window.g_queenControlPanel.handleMouseWheel(delta)) {
-      event.preventDefault();
-      return false;
-    }
-    
-    // If no brush consumed the event, delegate to CameraManager for zoom (PLAYING state)
-    if (cameraManager && typeof cameraManager.handleMouseWheel === 'function') {
-      return cameraManager.handleMouseWheel(event);
-    }
-
   } catch (e) {
     console.error('❌ Error handling mouseWheel for brushes:', e);
   }
-  // Let other handlers/processes receive the event if no brush consumed it
-  return true;
+  
+  return false;
+}
+
+function UIInGameMouseWheel(event) {
+  const delta = event.deltaY || 0;
+  
+  // Queen power cycling with mouse wheel
+  if (window.g_queenControlPanel && window.g_queenControlPanel.handleMouseWheel(delta)) {
+    event.preventDefault();
+    return true;
+  }
+  
+  // If no brush consumed the event, delegate to CameraManager for zoom
+  if (cameraManager && typeof cameraManager.handleMouseWheel === 'function') {
+    return cameraManager.handleMouseWheel(event);
+  }
+  
+  return false;
 }
 
 // KEYBOARD INTERACTIONS
@@ -818,217 +852,55 @@ function handleKeyEvent(type, ...args) {
 /**
  * keyPressed
  * ----------
- * Handles key press events, prioritizing debug keys and ESC for selection clearing.
+ * Handles key press events using the Command Pattern.
+ * Delegates to KeyBindingManager for clean, configurable input handling.
  */
 function keyPressed() {
-  
-  // Level Editor keyboard shortcuts (if active)
-  if (GameState.getState() === 'LEVEL_EDITOR') {
-    if (window.levelEditor && levelEditor.isActive()) {
+  // Handle debug console keys first 
+
+
+    switch(GameState.getState()) {
+    case 'MENU':
+      break;
+    case 'PLAYING':
+      if (handleDebugConsoleKeys(keyCode, key)) { return; }
+      if (handleTerrainGridKeys()) { return; }
+      if (window.UIManager.handleKeyPress(keyCode, key, window.event) === true) { return true; }
+      if (window.BUIManager?.active) { if (window.BUIManager.handleKeyPress(key) === true) { return true; } }
+      break;
+    case 'OPTIONS':
+      break;
+    case 'DEBUG_MENU':
+      if (handleDebugConsoleKeys(keyCode, key)) { return; }
+      if (handleTerrainGridKeys()) { return; }
+      break;
+    case 'PAUSED':
+      break;
+    case 'GAME_OVER':
+      break;
+    case 'KANBAN':
+      break;
+    case 'LEVEL_EDITOR':
       levelEditor.handleKeyPress(key);
-    }
+      break;
+    default:
+      console.warn("Sketch.keyPressed: Invalid state");
+      break;
   }
+  return true;
   
-  // Handle all debug-related keys FIRST (command line, dev console, test hotkeys)
-  // This must come before coordinate debug to allow command line to work
-  if (typeof handleDebugConsoleKeys === 'function' && handleDebugConsoleKeys(keyCode, key)) {
-    return; // Debug console key was handled
-  }
-  
-  // Coordinate Debug Overlay toggle (Tilde ~ key)
-  // Only if dev console is not enabled (so backtick can open command line)
-  if (key === '`' || key === '~') {
-    if (typeof toggleCoordinateDebug === 'function') {
-      toggleCoordinateDebug();
-      return;
-    }
-  }
-  
-  // Tile Inspector toggle (T key)
-  if (key === 't' || key === 'T') {
-    if (typeof toggleTileInspector === 'function') {
-      toggleTileInspector();
-      return;
-    }
-  }
-  
-  // Handle terrain grid debug shortcuts (Ctrl+Shift+G/O/L)
-  if (typeof handleTerrainGridKeys === 'function' && handleTerrainGridKeys()) {
-    return; // Terrain grid shortcut was handled
-  }
-  
-  if (keyCode === ESCAPE) {
-    if (typeof deselectAllEntities === 'function') {
-      deselectAllEntities();
-    }
-  }
-
-  // Handle UI shortcuts first (Ctrl+Shift combinations)
-  if (window.UIManager && window.UIManager.handleKeyPress) {
-    const handled = window.UIManager.handleKeyPress(keyCode, key, window.event);
-    if (handled) {
-      return; // UI shortcut was handled, don't process further
-    }
-  }
-  
-  // Handle render layer toggles (Shift + C/V/B/N/M)
-  if (keyIsDown(SHIFT) && RenderManager && RenderManager.isInitialized) {
-    let handled = false;
+  // Use KeyBindingManager for all standard key commands
+  if (window.g_keyBindingManager) {
+    const modifiers = {
+      shift: keyIsDown(SHIFT),
+      ctrl: keyIsDown(CONTROL),
+      alt: keyIsDown(ALT)
+    };
     
-    switch (key.toLowerCase()) {
-      case 'c': // Shift+C - Toggle TERRAIN layer
-        RenderManager.toggleLayer('terrain');
-        handled = true;
-        break;
-      case 'v': // Shift+V - Toggle ENTITIES layer
-        RenderManager.toggleLayer('entities');
-        handled = true;
-        break;
-      case 'b': // Shift+B - Toggle EFFECTS layer
-        RenderManager.toggleLayer('effects');
-        handled = true;
-        break;
-      case 'n': // Shift+N - Toggle UI_GAME layer
-        RenderManager.toggleLayer('ui_game');
-        handled = true;
-        break;
-      case 'm': // Shift+M - Toggle UI_DEBUG layer
-        RenderManager.toggleLayer('ui_debug');
-        handled = true;
-        break;
-      case ',': // Shift+, - Toggle UI_MENU layer (comma key)
-        RenderManager.toggleLayer('ui_menu');
-        handled = true;
-        break;
-      case '.': // Shift+. - Enable all layers (period key)
-        RenderManager.enableAllLayers();
-        handled = true;
-        break;
-      case 'z': // Shift+1 - Toggle Sprint 5 image in menu
-        if (typeof toggleSprintImageInMenu !== 'undefined') {
-          toggleSprintImageInMenu();
-        } else {
-          console.warn('toggleSprintImageInMenu function not available');
-        }
-        handled = true;
-        break;
-        break;        
-    }
-    
-    if (handled) {
-      // Display current layer states
-      logVerbose('🔧 Layer States:', RenderManager.getLayerStates());
-      return; // Layer toggle was handled, don't process further
-    }
+    window.g_keyBindingManager.handleKey(GameState.getState(), key, modifiers);
+    return;
   }
 
-    // --- Queen Commands ---
-  let playerQueen = getQueen();
-  if (playerQueen && playerQueen.controller) {
-    if (key.toLowerCase() === 'r') {
-      if (typeof playerQueen.controller.emergencyRally === 'function') {
-        playerQueen.controller.emergencyRally();
-      }
-      return;
-    } 
-    if (key.toLowerCase() === 'm') {
-      if (typeof playerQueen.controller.gatherAntsAt === 'function') {
-        playerQueen.controller.gatherAntsAt(mouseX, mouseY);
-      }
-      return;
-    }
-  }
-
-
-  if (keyCode === ESCAPE) {
-    if (deactivateActiveBrushes()) {
-      return;
-    }
-    // Then handle selection box clearing
-    if (g_selectionBoxController) {
-      g_selectionBoxController.deselectAll();
-      return;
-    }
-  }
-  handleKeyEvent('handleKeyPressed', keyCode, key);
-
-  if ((key === 'f' || key === 'F') && GameState.isInGame()) {
-    cameraManager.toggleFollow();
-  }
-
-  if(key === 'U' || key === 'u'){
-    let selectedEntity = getPrimarySelectedEntity();
-    if(selectedEntity){
-      for(let i = 0; i < 10; i++){
-        selectedEntity.upgradeBuilding();
-      }
-    }
-  }
-
-  
-  // Camera navigation shortcuts
-  if (GameState.isInGame() && cameraManager) {
-    if (key === 'h' || key === 'H') {
-      // 'H' for Home - Center camera on map center
-      const mapCenterX = (CHUNKS_X * 8 * TILE_SIZE) / 2;
-      const mapCenterY = (CHUNKS_Y * 8 * TILE_SIZE) / 2;
-      cameraManager.centerOn(mapCenterX, mapCenterY);
-    }
-    
-    if (key === 'o' || key === 'O') {
-      // 'O' for Overview - Zoom out to see more of the map
-      cameraManager.setZoom(0.2);
-    }
-    
-    if (key === 'r' || key === 'R') {
-      // 'R' for Reset zoom
-      cameraManager.setZoom(1.0);
-    }
-  }
-
-  if (GameState.isInGame() && cameraManager) {
-    const currentZoom = cameraManager.getZoom();
-    const CAMERA_ZOOM_STEP = 1.1; // Moved constant here since it's no longer global
-    
-    if (key === '-' || key === '_' || keyCode === 189 || keyCode === 109) {
-      setCameraZoom(currentZoom / CAMERA_ZOOM_STEP);
-    } else if (key === '=' || key === '+' || keyCode === 187 || keyCode === 107) {
-      setCameraZoom(currentZoom * CAMERA_ZOOM_STEP);
-    }
-    
-  }
-  if (key === 'e' || key === 'E') {
-    // continue NPC dialogue if active
-    if (window.currentNPC) {
-      window.currentNPC.advanceDialogue();
-      return;
-    }
-  
-    // talk to nearby NPC if close
-    const antony = NPCList.find(n => n.name === "Antony" && n.isPlayerNearby);
-    if (antony) {
-      antony.startDialogue(NPCDialogues.antony);
-      return;
-    }
-  
-    // interact with nearby anthill
-    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
-    if (nearbyHill) {
-      console.log("Interacting with nearby anthill:", nearbyHill);
-      if (!window.BUIManager.active) {
-        window.BUIManager.open(nearbyHill);
-      } else {
-        window.BUIManager.close();
-      }
-      return;
-    }
-  }
-  
-  if (window.BUIManager?.active) {
-    const handled = window.BUIManager.handleKeyPress(key);
-    if (handled) return;
-  }
-  
 }
 
 /**
@@ -1155,12 +1027,10 @@ function deactivateActiveBrushes() {
   let deactivated = false;
   if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
     g_resourceBrush.toggle();
-    logNormal('🎨 Resource brush deactivated via ESC key');
     deactivated = true;
   }
   if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
     g_enemyAntBrush.toggle();
-    logNormal('🎨 Enemy brush deactivated via ESC key');
     deactivated = true;
   }
   return deactivated;
@@ -1245,78 +1115,6 @@ function getActiveMap() {
     return mapManager.getActiveMap();
   }
   return g_activeMap || null;
-}
-
-/**
- * loadMossStoneLevel
- * ------------------
- * Creates and loads the moss & stone column level as the active map.
- * This level features alternating columns of moss and stone for testing
- * terrain speed modifiers (moss = IN_MUD, stone = ON_ROUGH).
- * 
- * @returns {boolean} True if successful, false otherwise
- */
-function loadMossStoneLevel() {
-  logNormal("🏛️ Loading Moss & Stone Column Level");
-  
-  try {
-    // Create the moss/stone column level
-    const mossStoneLevel = createMossStoneColumnLevel(
-      CHUNKS_X,
-      CHUNKS_Y,
-      g_seed,
-      CHUNK_SIZE,
-      TILE_SIZE,
-      [windowWidth, windowHeight]
-    );
-    
-    // Register with MapManager
-    if (typeof mapManager !== 'undefined') {
-      mapManager.registerMap('mossStone', mossStoneLevel, true);
-      logNormal("✅ Moss & Stone level registered and set as active");
-      return true;
-    } else {
-      console.error("❌ MapManager not available");
-      return false;
-    }
-  } catch (error) {
-    console.error("❌ Failed to load Moss & Stone level:", error);
-    return false;
-  }
-}
-
-/**
- * switchToLevel
- * -------------
- * Switches to a specific level by ID and starts the game.
- * Convenience function for menu buttons.
- * 
- * @param {string} levelId - The ID of the level to switch to
- */
-function switchToLevel(levelId) {
-  logNormal(`🔄 Switching to level: ${levelId}`);
-  
-  // If the level is 'mossStone' and doesn't exist yet, create it
-  if (levelId === 'mossStone') {
-    const existingMap = mapManager.getMap('mossStone');
-    if (!existingMap) {
-      loadMossStoneLevel();
-    } else {
-      mapManager.setActiveMap('mossStone');
-    }
-  } else {
-    // Switch to existing level
-    setActiveMap(levelId);
-  }
-  
-  // CRITICAL: Invalidate terrain cache to force re-render with new terrain
-  if (g_activeMap && typeof g_activeMap.invalidateCache === 'function') {
-    g_activeMap.invalidateCache();
-    logNormal("✅ Terrain cache invalidated - new terrain will render");
-  }
-  
-  // Start the game
-  startGameTransition();
 }
 
 // Dynamic window resizing:

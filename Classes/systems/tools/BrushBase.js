@@ -25,6 +25,10 @@ class BrushBase {
     this.onTypeChanged = null;
   }
 
+  get active() {
+    return this.isActive;
+  }
+
   toggle() {
     this.isActive = !this.isActive;
     return this.isActive;
