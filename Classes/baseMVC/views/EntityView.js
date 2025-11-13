@@ -92,10 +92,11 @@ class EntityView {
       stroke(0, 255, 255); // Cyan
     }
 
-    const pos = this.model.getPosition();
+    // IMPORTANT: Use getScreenPosition() to respect grid positioning
+    const screenPos = this.model.getScreenPosition ? this.model.getScreenPosition() : this.model.getPosition();
     const size = this.model.getSize();
 
-    rect(pos.x, pos.y, size.x, size.y);
+    rect(screenPos.x, screenPos.y, size.x, size.y);
 
     pop();
   }
@@ -114,7 +115,8 @@ class EntityView {
     push();
 
     // Read ALL visual data from Model
-    const pos = this.model.getPosition();
+    // IMPORTANT: Use getScreenPosition() instead of getPosition() to respect grid positioning
+    const screenPos = this.model.getScreenPosition ? this.model.getScreenPosition() : this.model.getPosition();
     const size = this.model.getSize();
     const rotation = this.model.getRotation();
     const opacity = this.model.getOpacity();
@@ -126,8 +128,8 @@ class EntityView {
       tint(255, opacity * 255);
     }
 
-    // Apply transform
-    translate(pos.x + size.x / 2, pos.y + size.y / 2);
+    // Apply transform using screen position (already converted from grid coordinates)
+    translate(screenPos.x + size.x / 2, screenPos.y + size.y / 2);
     
     // Apply flip
     if (flipX || flipY) {

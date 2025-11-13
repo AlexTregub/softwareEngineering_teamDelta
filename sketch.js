@@ -558,21 +558,21 @@ function mousePressed() {
     brushCheckIfExists()
     switch(mouseButton){
       case LEFT:
-        if (window.g_powerBrushManager.currentBrush != null) { window.g_powerBrushManager.usePower(mouseX, mouseY); return true;}
-        if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) { window.g_powerBrushManager.usePower(mouseX, mouseY); return true;}
+        if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_resourceBrush && window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_buildingBrush && window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         break;
       case CENTER:
         break;
       case RIGHT:
-        if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_enemyAntBrush &&window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_resourceBrush && window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_buildingBrush && window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
-        if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         break;
       default:
         return;
@@ -687,20 +687,20 @@ function mouseReleased() {
 function brushInGameMouseReleases() {
   switch(mouseButton){
     case LEFT:
-      if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_resourceBrush && window.g_resourceBrush.isActive) { window.g_resourceBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_buildingBrush && window.g_buildingBrush.isActive) { window.g_buildingBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
       break;
     case CENTER:
       break;
     case RIGHT:
-      if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
-      if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_resourceBrush && window.g_resourceBrush.isActive) { window.g_resourceBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_buildingBrush && window.g_buildingBrush.isActive) { window.g_buildingBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
+      if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, mouseButton); return true }
       break;
     default:
       return;
@@ -865,7 +865,7 @@ function keyPressed() {
     case 'MENU':
       break;
     case 'PLAYING':
-      if (handleDebugConsoleKeys(keyCode, key)) { return; }
+      //if (handleDebugConsoleKeys(keyCode, key)) { return; }
       if (handleTerrainGridKeys()) { return; }
       if (window.UIManager.handleKeyPress(keyCode, key, window.event) === true) { return true; }
       if (window.BUIManager?.active) { if (window.BUIManager.handleKeyPress(key) === true) { return true; } }
@@ -873,7 +873,7 @@ function keyPressed() {
     case 'OPTIONS':
       break;
     case 'DEBUG_MENU':
-      if (handleDebugConsoleKeys(keyCode, key)) { return; }
+      //if (handleDebugConsoleKeys(keyCode, key)) { return; }
       if (handleTerrainGridKeys()) { return; }
       break;
     case 'PAUSED':

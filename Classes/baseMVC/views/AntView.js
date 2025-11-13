@@ -87,7 +87,7 @@ class AntView extends EntityView {
   
   /**
    * Render resource count indicator above ant
-   * Uses camera for coordinate conversion (NO FALLBACK)
+   * Uses model's getScreenPosition() for proper grid alignment
    */
   renderResourceIndicator() {
     const resourceManager = this.model.getResourceManager();
@@ -96,29 +96,18 @@ class AntView extends EntityView {
     const resourceCount = resourceManager.getResourceCount();
     if (resourceCount <= 0) return;
     
-    const pos = this.model.getPosition();
+    // Use screen position (already converted from grid coordinates)
+    const screenPos = this.model.getScreenPosition ? this.model.getScreenPosition() : this.model.getPosition();
     const size = this.model.getSize();
     
-    // Calculate world position
-    const worldX = pos.x + size.x / 2;
-    const worldY = pos.y - 12;
-    
-    // Convert to screen position using camera
-    let screenX = worldX;
-    let screenY = worldY;
-    
-    if (this.camera && typeof this.camera.worldToScreen === 'function') {
-      const screenPos = this.camera.worldToScreen(worldX, worldY);
-      screenX = screenPos.x;
-      screenY = screenPos.y;
-    } else {
-      console.warn('Camera not available for resource indicator positioning');
-    }
+    // Position text above the ant
+    const textX = screenPos.x + size.x / 2;
+    const textY = screenPos.y - 12;
     
     // Render yellow text
     fill(255, 255, 0);
     textAlign(CENTER);
-    text(resourceCount, screenX, screenY);
+    text(resourceCount, textX, textY);
   }
   
   /**
@@ -146,13 +135,14 @@ class AntView extends EntityView {
   renderBoxHover() {
     if (!this.model.isBoxHovered()) return;
     
-    const pos = this.model.getPosition();
+    // Use screen position (already converted from grid coordinates)
+    const screenPos = this.model.getScreenPosition ? this.model.getScreenPosition() : this.model.getPosition();
     const size = this.model.getSize();
     
     // Highlight border
     stroke(100, 200, 255); // Light blue
     noFill();
-    rect(pos.x, pos.y, size.x, size.y);
+    rect(screenPos.x, screenPos.y, size.x, size.y);
   }
   
   /**

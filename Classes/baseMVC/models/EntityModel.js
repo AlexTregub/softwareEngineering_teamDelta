@@ -140,6 +140,35 @@ class EntityModel {
     });
   }
 
+  /**
+   * Get screen position (world position converted to screen coordinates)
+   * This matches the coordinate transformation used by Entity.js and Sprite2D rendering:
+   * 1. First converts world position to grid/tile coordinates
+   * 2. Then applies grid-to-screen conversion (handles Y-axis inversion)
+   * 3. Camera transforms are applied during rendering (not here)
+   * @returns {Object} Screen position {x, y}
+   */
+  getScreenPosition() {
+    const worldPos = { x: this._position.x, y: this._position.y };
+    let screenX = worldPos.x;
+    let screenY = worldPos.y;
+    
+    // Use terrain's coordinate system if available (syncs with sprite rendering)
+    // This is critical for proper grid alignment when camera moves
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      // Convert world pixels to tile coordinates
+      const tileX = worldPos.x / TILE_SIZE;
+      const tileY = worldPos.y / TILE_SIZE;
+      
+      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      screenX = screenPos[0];
+      screenY = screenPos[1];
+    }
+    
+    return { x: screenX, y: screenY };
+  }
+
   // --- Size Management ---
 
   /**

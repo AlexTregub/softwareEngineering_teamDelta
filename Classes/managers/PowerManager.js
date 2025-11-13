@@ -374,7 +374,12 @@ class PowerManager{
     }
     addPower(name, damage, x, y){
         this.canUse = true;
-        if(queenAnt.isPowerUnlocked(name)){
+        const queen = queenAnt;
+        const isPowerUnlocked = queen && queen.controller && typeof queen.controller.isPowerUnlocked === 'function' 
+            ? queen.controller.isPowerUnlocked(name) 
+            : true; // Fallback for weather powers or if queen not available
+        
+        if(isPowerUnlocked){
             // For Final Flash, check if we have an existing charging instance
             if (name === "finalFlash"){
                 for (const power of this.runningPowers) {
