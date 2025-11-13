@@ -523,6 +523,7 @@ function mousePressed() {
       break;
     case 'PLAYING':
       g_mouseController[type](...args);
+      brushInGameMousePresses()
       break;
     case 'OPTIONS':
       break;
@@ -543,141 +544,68 @@ function mousePressed() {
       break;
     }
   return;
+}
 
-
-  function brushPresses(){
+  // PRIORITY 1: Check active brushes FIRST (before UI elements)
+  function brushInGameMousePresses(){
+    brushCheckIfExists()
     switch(mouseButton){
       case LEFT:
-        if (window.g_powerBrushManager.currentBrush != null) { window.g_powerBrushManager.usePower(mouseX, mouseY);}
+        if (window.g_powerBrushManager.currentBrush != null) { window.g_powerBrushManager.usePower(mouseX, mouseY); return true;}
+        if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         break;
       case CENTER:
         break;
       case RIGHT:
+        if (window.g_enemyAntBrush.isActive) { window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_resourceBrush.isActive) { window.g_resourceBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_buildingBrush.isActive) { window.g_buildingBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_lightningAimBrush.isActive) { window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
+        if (window.g_flashAimBrush.isActive) { window.g_flashAimBrush.onMousePressed(mouseX, mouseY, mouseButton); return true }
         break;
+      default:
+        return;
     }
    
   }
-  
-    // PRIORITY 1: Check active brushes FIRST (before UI elements)
-  // This ensures brush clicks work even if panels are visible
-  
-  // Handle Enemy Ant Brush events
-  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling enemy ant brush events:', error);
-    }
-  }
 
-  // Tile Inspector - check first
-  if (typeof tileInspectorEnabled !== 'undefined' && tileInspectorEnabled) {
-    if (typeof inspectTileAtMouse === 'function') {
-      inspectTileAtMouse(mouseX, mouseY);
-      return; // Don't process other mouse events
-    }
-  }
-  
-  // Handle UI Debug Manager mouse events first
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
-    const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
-    if (handled) return;
-  }
-
-
-
-  // Handle Resource Brush events
-  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling resource brush events:', error);
-    }
-  }
-
-  // Handle Building Brush events
-  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling building brush events:', error);
-    }
-  }
-
-  // Handle Lightning Aim Brush events
-  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return;
-    } catch (error) {
-      console.error('❌ Error handling lightning aim brush events:', error);
-    }
-  }
-
-  // Handle Final Flash Aim Brush events
-  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_flashAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return;
-    } catch (error) {
-      console.error('❌ Error handling Flash Flash aim brush events:', error);
-    }
-  }
-
-  // Handle Queen Control Panel right-click for power cycling
-  if (window.g_queenControlPanel && mouseButton === RIGHT) {
-    try {
-      const handled = window.g_queenControlPanel.handleRightClick();
-      if (handled) return; // Queen panel consumed the right-click
-    } catch (error) {
-      console.error('❌ Error handling queen control panel right-click:', error);
-    }
+  function brushCheckIfExists() {
+    if (typeof window.g_enemyAntBrush === "undefined") {console.warn("g_enemyAntBrush is undefined")}
+    if (typeof window.g_resourceBrush === "undefined") {console.warn("g_resourceBrush is undefined")}
+    if (typeof window.g_buildingBrush === "undefined") {console.warn("g_buildingBrush is undefined")}
+    if (typeof window.g_lightningAimBrush === "undefined") {console.warn("g_lightningAimBrush is undefined")}
+    if (typeof window.g_flashAimBrush === "undefined") {console.warn("g_flashAimBrush is undefined")}
   }
 
   // PRIORITY 2: RenderManager UI elements (buttons, panels, etc.)
-  // Forward to RenderManager interactive dispatch (gives adapters priority)
-  try {
-    const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
-    if (consumed) {
-      return; // consumed by an interactive (buttons/panels/etc.)
-    }
-    // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
-  } catch (e) {
-    console.error('Error dispatching pointerdown to RenderManager:', e);
-    // best-effort: still notify legacy controller if present to avoid breaking older flows
-    try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
-  }
-  
-  // Handle DraggablePanel mouse events
-  if (window.draggablePanelManager && 
-      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
-    try {
-      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
-      if (handled) return; // Panel consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling draggable panel mouse events:', error);
+  function UIMousePresses() {
+    switch(mouseButton){
+      case LEFT:
+        if (window.g_uiDebugManager.isActive) { window.g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY }); return true; }
+        if (window.g_queenControlPanel.isQueenSelected()) { window.g_queenControlPanel.handleMouseClick(window.getWorldMouseX(), window.getWorldMouseY()); return true; }
+        if (window.g_renderLayerManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true })) { return true; }
+        if (window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true)) { return true; }
+        break;
+      case CENTER:
+        break;
+      case RIGHT:
+        if (window.g_queenControlPanel.isActive) { window.g_queenControlPanel.handleRightClick(); return true }
+        break;
+      default:
+        return;
     }
   }
 
-  // Handle Queen Control Panel events
-  if (window.g_queenControlPanel && window.g_queenControlPanel.isQueenSelected()) {
-    try {
-      const handled = window.g_queenControlPanel.handleMouseClick(mouseX, mouseY);
-      if (handled) return; // Queen panel consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling queen control panel events:', error);
-    }
+  function UICheckIfExists(){
+    if (typeof window.g_uiDebugManager === "undefined") {console.warn("g_uiDebugManager is undefined")}
+    if (typeof window.g_queenControlPanel === "undefined") {console.warn("g_queenControlPanel is undefined")}
+    if (typeof window.g_renderLayerManager === "undefined") {console.warn("RenderManager is undefined")}
   }
-  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
-}
+
 
 function mouseDragged() {
   // Handle level editor drag events FIRST (before UI debug or RenderManager)
