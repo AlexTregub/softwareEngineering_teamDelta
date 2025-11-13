@@ -523,7 +523,8 @@ function mousePressed() {
       break;
     case 'PLAYING':
       g_mouseController[type](...args);
-      brushInGameMousePresses()
+      brushInGameMousePresses();
+      UIInGameMousePresses();
       break;
     case 'OPTIONS':
       break;
@@ -536,7 +537,7 @@ function mousePressed() {
     case 'KANBAN':
       break;
     case 'LEVEL_EDITOR':
-      if (window.levelEditor && levelEditor.isActive()) { levelEditor.handleClick(mouseX, mouseY); }
+      levelEditor.handleClick(mouseX, mouseY);
       break;
 
     default:
@@ -582,7 +583,8 @@ function mousePressed() {
   }
 
   // PRIORITY 2: RenderManager UI elements (buttons, panels, etc.)
-  function UIMousePresses() {
+  function UIInGameMousePresses() {
+    UICheckIfExists();
     switch(mouseButton){
       case LEFT:
         if (window.g_uiDebugManager.isActive) { window.g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY }); return true; }
