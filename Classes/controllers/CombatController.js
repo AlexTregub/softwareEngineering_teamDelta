@@ -11,7 +11,7 @@ class CombatController {
   constructor(entity) {
     this._entity = entity;
     this._nearbyEnemies = [];
-    this._detectionRadius = 60; // pixels
+    this._detectionRadius = 200; // pixels
     this._combatState = CombatController._states.OUT;
     this._combatActionState = CombatController._actionStates.NONE;
     this._lastEnemyCheck = 0;
@@ -126,10 +126,11 @@ class CombatController {
           otherAnt.faction === "neutral") {
         continue;
       }
-      
+
+
       // Check distance
       const distance = this.calculateDistance(this._entity, otherAnt);
-      
+
       if (distance <= this._detectionRadius) {
         this._nearbyEnemies.push(antMVC);  // Store full MVC object
       }

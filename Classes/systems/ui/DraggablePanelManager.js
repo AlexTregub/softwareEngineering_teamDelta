@@ -132,6 +132,7 @@ class DraggablePanelManager {
    * Create the default example panels
    */
   createDefaultPanels() {
+    console.log("create panel")
     // Ant Spawn Panel (vertical layout with ant spawning options)
     this.panels.set('ant_spawn', new DraggablePanel({
       id: 'ant-Spawn-panel',
@@ -1456,7 +1457,7 @@ class DraggablePanelManager {
    * Handle the Shoot Lightning button from the combat panel
    * Target selection logic is handled by LightningSystem.findBestTarget()
    */
-  handleShootLightning() {
+  handleShootLightning(target = null) {
     // Ensure LightningSystem exists
     if (typeof window.LightningManager === 'undefined' || !window.LightningManager) {
       if (typeof initializeLightningSystem === 'function') {
@@ -1504,6 +1505,71 @@ class DraggablePanelManager {
       }
     } else {
       console.warn('⚠️ Lightning manager not initialized or missing requestStrike()');
+    // Determine target: prefer selected ant, otherwise nearest ant under mouse or nearest overall
+    let targetAnt = target;
+    try {
+      if (g_selectionBoxController && typeof g_selectionBoxController.getSelectedEntities === 'function') {
+        const selected = g_selectionBoxController.getSelectedEntities();
+        if (Array.isArray(selected) && selected.length > 0) {
+          // Prefer first selected ant entity
+          targetAnt = selected.find(e => e && e.isAnt) || selected[0];
+        }
+      }
+
+      // If none selected, try nearest ant under mouse
+      if (!targetAnt && typeof ants !== 'undefined' && Array.isArray(ants) && ants.length > 0) {
+        // Find nearest to mouse position within reasonable radius
+        const radius = 80;
+        let best = null;
+        let bestDist = Infinity;
+        for (const ant of ants) {
+          if (!ant || !ant.isActive) continue;
+          const pos = (typeof ant.getPosition === 'function') ? ant.getPosition() : { x: ant.x || 0, y: ant.y || 0 };
+          const d = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+          if (d < bestDist && d <= radius) {
+            bestDist = d;
+            best = ant;
+          }
+        }
+        targetAnt = best || ants[0]; // fallback to first ant
+      }
+
+      // Ask lightning manager to strike (respects cooldown)
+      if (g_lightningManager && typeof g_lightningManager.requestStrike === 'function') {
+        const executed = g_lightningManager.requestStrike(targetAnt);
+        const button = this.findButtonByCaption('Shoot Lightning');
+        if (executed) {
+          logNormal('⚡ Lightning strike executed', targetAnt && (targetAnt._antIndex || targetAnt.id || 'ant'));
+          // Show cooldown on the button if available
+          if (button) {
+            const cooldownMs = g_lightningManager.cooldown || 3000;
+            const seconds = Math.ceil(cooldownMs / 1000);
+            const originalCaption = button._originalCaption || button.caption;
+            button._originalCaption = originalCaption;
+            button.caption = `Cooldown (${seconds}s)`;
+            button.style.backgroundColor = '#999999';
+            // Restore after cooldown
+            setTimeout(() => {
+              try {
+                button.caption = originalCaption;
+                button.style.backgroundColor = '#4DA6FF';
+              } catch (e) {}
+            }, cooldownMs + 50);
+          }
+        } else {
+          logNormal('⏳ Lightning on cooldown');
+          if (button) {
+            // Briefly flash the button to indicate cooldown
+            const prevColor = button.style.backgroundColor;
+            button.style.backgroundColor = '#555';
+            setTimeout(() => { button.style.backgroundColor = prevColor; }, 200);
+          }
+        }
+      } else {
+        console.warn('⚠️ Lightning manager not initialized or missing requestStrike()');
+      }
+    } catch (err) {
+      console.error('❌ Error in handleShootLightning():', err);
     }
   }
 

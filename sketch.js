@@ -2,8 +2,8 @@
 let g_canvasX = 800; // Default 800
 let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
-const CHUNKS_X = 20;
-const CHUNKS_Y = 20;
+const CHUNKS_X = 50;
+const CHUNKS_Y = 50;
 
 const NONE = '\0'; 
 
@@ -54,6 +54,7 @@ function preload(){
   loadPresentationAssets();
   menuPreload();
   antsPreloader(); // MVC ant sprites
+  animationPreloader();
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
@@ -89,9 +90,9 @@ function setup() {
   // return; // !!! REMOVE BEFORE DEV
 
   // Initialize TaskLibrary before other systems that depend on it
-  /*window.taskLibrary = window.taskLibrary || new TaskLibrary();//abe
-  logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
-*/
+  // window.taskLibrary = window.taskLibrary || new TaskLibrary();
+  // logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
+
   
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
@@ -365,6 +366,7 @@ function initializeWorld() {
 
   // npc test
   Buildings.push(createNPC(100,100));
+  //let spider = new Spider(); 
 }
 
 /**

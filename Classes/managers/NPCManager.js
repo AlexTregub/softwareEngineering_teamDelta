@@ -54,7 +54,7 @@ class NPC extends Building{
     super(x, y, 40, 40, Character, 'NPC', null);
     this._x = x;
     this._y = y;
-    this._faction = 'player';
+    this._faction = 'neutral';
     this.isBoxHovered = false;
     this.dialogueRange = 100;
 
@@ -261,6 +261,7 @@ function createNPC(x, y) {
   if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
     if (g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
   }
+
   
 
   return npc;

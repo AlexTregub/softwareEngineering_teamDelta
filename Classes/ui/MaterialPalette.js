@@ -286,7 +286,7 @@ class MaterialPalette {
                         const cornerMode = typeof CORNER !== 'undefined' ? CORNER : 'corner';
                         imageMode(cornerMode);
                     }
-                    renderFunction(swatchX, swatchY, swatchSize);
+                    renderFunction(swatchX, swatchY, swatchSize, window);
                     pop();
                     textureRendered = true;
                 }

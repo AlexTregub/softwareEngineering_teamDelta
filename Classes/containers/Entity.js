@@ -11,6 +11,9 @@
  *  - Provide convenience methods that delegate to controllers.
  *  - Provide update/render entry points used by the game loop.
  */
+
+//Faction setup
+const factionList = {};
 class Entity {
   /**
    * Construct an Entity.
@@ -52,6 +55,14 @@ class Entity {
     // Ensure transform state propagated to collision box and sprite (use centered position)
     this.setPosition(centeredX, centeredY);
     this.setSize(width, height);
+    
+
+    // Faction registration
+    if(!(this._faction in factionList)){
+      factionList[this._faction] = {
+        'isUnderAttack' : null,
+      };
+    }
 
     // Register with spatial grid manager (if available and not disabled)
     if (options.useSpatialGrid !== false && typeof spatialGridManager !== 'undefined') {

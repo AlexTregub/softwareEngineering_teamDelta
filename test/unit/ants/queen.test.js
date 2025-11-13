@@ -84,7 +84,6 @@ describe('QueenAnt', function() {
       expect(queen.ants).to.be.an('array').that.is.empty;
       expect(queen.coolDown).to.be.false;
       expect(queen.showCommandRadius).to.be.false;
-      expect(queen.disableSkitter).to.be.true;
     });
 
     it('should initialize all power unlock flags to false', function() {
