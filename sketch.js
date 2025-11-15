@@ -38,6 +38,8 @@ let cameraManager;
 
 let terrariaFont;
 
+let gameEventManager;
+
 function preload(){
   // return; // !!! REMOVE BEFORE DEV
 
@@ -239,6 +241,11 @@ function setup() {
   window.BUIManager = new BUIManager();
   window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
+
+  // Game Event
+  gameEventManager = new GameEventManager();
+  // gameEventManager.startEvent('Raid');
+
 }
 
 function addListeners() {
@@ -345,7 +352,8 @@ function initializeWorld() {
   // npc test
   Buildings.push(createNPC(100,100));
   // Boss
-  let spider = new Spider(); 
+  // let spider = new Spider();
+  // Event
 }
 
 /**
@@ -467,6 +475,8 @@ function draw() {
     try { window.drawTerrainGrid(); }
     catch (error) { console.error('❌ Error drawing terrain grid:', error); }
   }
+
+gameEventManager.update()
 }
 
 

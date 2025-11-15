@@ -61,8 +61,6 @@ class Boss extends QueenAnt {
         }
     }
 
-
-
     update() {
         super.update();
         if(this._stateMachine && !this._stateMachine.isInCombat()){
@@ -75,7 +73,7 @@ class Boss extends QueenAnt {
 }
 
 class Spider extends Boss{
-    constructor() {
-        super("Spider", "enemy", 50, 50);
+    constructor(type = "Spider", faction = "enemy", x = 50, y = 50) {
+        super(type, faction, x, y);
     }
 }

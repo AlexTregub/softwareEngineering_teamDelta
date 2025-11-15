@@ -127,9 +127,11 @@ class CombatController {
 
       if (distance <= this._detectionRadius) {
         this._nearbyEnemies.push(otherAnt);
-        return;
       }
     }
+
+    // Focus on attacking ants before buildings
+    if( this._nearbyEnemies.length > 0){return;}
 
     // Detect buildings
     for (let i = 0; i < Buildings.length; i++) {

@@ -101,7 +101,7 @@ class ant extends Entity {
     this._health = 100;
     this._maxHealth = 100;
     this._damage = 0;
-    this._attackRange = 20;
+    this._attackRange = 30;
     this._combatTarget = null; // Current target this ant is attacking
     this._attackCooldown = 1; // seconds
     this._lastAttackTime = 0; // Timestamp of the last attack
@@ -183,7 +183,6 @@ class ant extends Entity {
         break;
       case "Spider":
         combat._detectionRadius = 300;
-        this._attackRange = 150;
         break;
       case "Farmer" :
         combat._detectionRadius = 250;
@@ -663,6 +662,15 @@ _getFallbackJobStats(jobName) {
     }
   }
 
+  overlaps(a, b) {
+    return (
+        a.posX < b.posX + b.getSize().x &&
+        a.posX + a.getSize().x > b.posX &&
+        a.posY < b.posY + b.getSize().y &&
+        a.posY + a.getSize().y > b.posY
+    );
+  }
+
   _calculateAction(targetData) {
     let [nearestEnemy, shortestDistance] = targetData;
     if (!nearestEnemy) return;
@@ -688,9 +696,10 @@ _getFallbackJobStats(jobName) {
     let isMelee = ["Spider", "Warrior"].includes(this.jobName);
     let isWorker = ["Scout", "DeLozier", "Builder", "Farmer"].includes(this.jobName);
 
+    let isOverlapping = this.overlaps(this, nearestEnemy);
     // Combat logic
     this._combatTarget = nearestEnemy;
-    if (shortestDistance <= this._attackRange) {
+    if (isOverlapping || shortestDistance <= this._attackRange) {
       if (isRanged) {
         if (this.jobName === "Spitter") {
             // window.draggablePanelManager.handleShootLightning(this._combatTarget);
@@ -710,7 +719,7 @@ _getFallbackJobStats(jobName) {
     }
 
     //  Detection logic
-    else if (shortestDistance <= detectionRange) {
+    else if (!isOverlapping || shortestDistance <= detectionRange) {
       if (isRanged || isMelee) {
         this.moveToLocation(this._combatTarget.posX, this._combatTarget.posY);
       } 
@@ -751,6 +760,9 @@ _getFallbackJobStats(jobName) {
       let now = this.lastFrameTime/ 1000; // seconds
       if (now - this._lastAttackTime < this._attackCooldown) return;
 
+      let randomX = this.posX + random(-10, 10);
+      let randomY = this.posY + random(-10, 10);
+      this.moveToLocation(randomX, randomY);
     // Use strength stat from StatsContainer, fallback to basic damage
         const attackPower = this._stats?.strength?.statValue || this._damage;
         target.takeDamage(attackPower);
