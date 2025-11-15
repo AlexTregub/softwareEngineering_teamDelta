@@ -1,0 +1,144 @@
+class AbstractEvent{
+    _init(){throw new Error();}
+
+    isFinished(){throw new Error();}
+    
+    update(){throw new Error();}
+}
+
+class BossEvent extends AbstractEvent {
+    constructor(){
+        super();
+        this.boss = null;
+        this.finished = false;
+    }
+
+    _init(){
+        let player  = getQueen();
+        if(!player){return;}
+        // let posX = Math.floor(random(0,player.posX));
+        // let posY = Math.floor(random(0,player.posY));
+        this.boss = new Spider("Spider","waveEnemy");
+        this.boss.moveToLocation(player.posX,player.posY)
+    }
+
+    isFinished(){
+        return this.finished;
+    }
+
+    update(){
+        if(ants.filter(ant => ant.faction == "waveEnemy").length == 0){
+            this.finished = true;
+        }
+    }
+
+}
+        
+
+class AntWave extends AbstractEvent {
+    constructor(radius = 1000,amountOfAnts = 20){
+        super();
+        this.raidus = radius;
+        this.amountOfAnts = amountOfAnts;
+        this.finished = false;
+    }
+
+    _init(){
+        let player;
+        for(let x = 0; x < this.amountOfAnts; ++x){
+            player  = getQueen();
+            if(!player){return;}
+            let degree = (x/this.amountOfAnts) * 2 * 3.14
+            let px = player.posX + this.raidus * cos(degree);
+            let py = player.posY + this.raidus * sin(degree);
+            antsSpawn(1,'waveEnemy',px,py);
+        }
+        ants.forEach(ant=>{
+            if(ant.faction != 'waveEnemy'){return;}
+            ant.moveToLocation(player.posX,player.posY)
+            ant.getController('combat')._detectionRadius = this.raidus + 100;
+        })
+    }
+
+    isFinished(){
+        return this.finished;
+    }
+    
+    update(){
+        if(ants.filter(ant => ant.faction == 'waveEnemy').length == 0){
+            this.finished = true;
+        }
+    }
+}
+
+class Raid extends AbstractEvent {
+    constructor(radius = 1000,amountOfAnts = 20){
+        super();
+        this.raidus = radius;
+        this.amountOfAnts = amountOfAnts;
+        this.finished = false;
+    }
+
+    _init(){
+        let wave = new AntWave(this.raidus,this.amountOfAnts);
+        let boss = new BossEvent();
+        wave._init();
+        boss._init();
+    }
+
+    isFinished(){
+        return this.finished;
+    }
+    
+    update(){
+        if(ants.filter(ant => ant.faction == 'waveEnemy').length == 0){
+            this.finished = true;
+        }
+    }
+}
+
+
+
+class EventFactory {
+    constructor(){
+        this.eventRegistery = {
+            'Wave' : AntWave,
+            'Boss' : BossEvent,
+            'Raid' : Raid,
+        }
+    }
+
+    create(type = null){
+        let eventType = this.eventRegistery[type];
+        if(!eventType){return new Error("Invalid Event Type" ,type)};
+        return new eventType();
+    }
+
+    chosenRandom(){
+        let keys = Object.keys(this.eventRegistery)
+        let choice = keys[Math.floor(random() * keys.length)];
+        return this.create(choice)
+    }
+}
+
+class GameEventManager{
+    constructor(){
+        this.factory = new EventFactory();
+        this.activeEvent = null;
+    }
+
+    startEvent(type = null){
+        this.activeEvent = type? this.factory.create(type): this.factory.chosenRandom();
+        console.log('startEvent:', this.activeEvent);
+        this.activeEvent._init();
+    }
+
+    update(){
+        if(!this.activeEvent){return}
+        this.activeEvent.update();
+        if(this.activeEvent.isFinished()){
+            console.log("Reward");
+            this.activeEvent = null;
+        }
+    }
+}
