@@ -36,6 +36,15 @@ class StateDisplay{
     let y = height - displayHeight/2;
 
     image(img, displayWidth/2, y, displayWidth, displayHeight);
+
+    textAlign(LEFT, TOP);
+    textFont(terrariaFont || 'sans-serif');
+    textSize(28);
+    textStyle(BOLD);
+    fill(255);
+    stroke(0);
+    strokeWeight(3);
+    text(`Day: ${g_globalTime.inGameDays}`, displayWidth/2, y);
 }
 }
 if (typeof window !== "undefined") {
