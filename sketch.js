@@ -51,12 +51,12 @@ function preload(){
   BuildingPreloader();
   NPCPreloader();
   QuestUIPreloader();
-  StateDisplayPreloader();
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
   animationPreloader();
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
+  StateDisplayPreloader();
 }
 
 
@@ -431,7 +431,6 @@ function draw() {
     if (window.g_powerManager) window.g_powerManager.render(); //USE THIS FOR POWERS
     if (window.g_powerBrushManager) window.g_powerBrushManager.render(); //USE THIS FOR POWERS
     if (window.g_naturePower) window.g_naturePower.render();
-    if (window.stateDisplay) window.g_stateDisplay.render();
   }
 
   const playerQueen = getQueen?.();
@@ -447,6 +446,12 @@ function draw() {
   // --- Render Quest UI (if any) ---
   if (window.QuestManager && typeof window.QuestManager.renderUI === 'function') {
     window.QuestManager.renderUI();
+  }
+  if (GameState.getState() === 'PLAYING') {
+    if (window.stateDisplay && typeof window.stateDisplay.renderMenu === 'function') {
+      console.log(`goodness`);
+      window.stateDisplay.renderMenu();
+    }
   }
 
   // --- Render Dialogue Box ---
