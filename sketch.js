@@ -50,7 +50,8 @@ function preload(){
   preloadPauseImages();
   BuildingPreloader();
   NPCPreloader();
-  QuestUIPreloader()
+  QuestUIPreloader();
+  StateDisplayPreloader();
   loadPresentationAssets();
   menuPreload();
   antsPreloader();
@@ -234,6 +235,7 @@ function setup() {
   initializeContextMenuPrevention();
   Buildings.push(createBuilding('anthill', 400, 400, 'player'));
   window.QuestManager.preloadAssets();
+  window.stateDisplay.preloadAssets();
 
   // --- initialize shop manager ---
   window.BUIManager = new BUIManager();
@@ -429,6 +431,7 @@ function draw() {
     if (window.g_powerManager) window.g_powerManager.render(); //USE THIS FOR POWERS
     if (window.g_powerBrushManager) window.g_powerBrushManager.render(); //USE THIS FOR POWERS
     if (window.g_naturePower) window.g_naturePower.render();
+    if (window.stateDisplay) window.g_stateDisplay.render();
   }
 
   const playerQueen = getQueen?.();
