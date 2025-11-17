@@ -242,10 +242,10 @@ function setup() {
 
 
   console.log("SAMPLING EXAMPLE")
-  console.log("Grass @",g_activeMap.sampleTiles("grass",10))
-  console.log("Stone peaks @",g_activeMap.sampleTiles("stone_1",10))
-  console.log("Beaches @",g_activeMap.sampleTiles("sand",10))
-  console.log("Deep water @",g_activeMap.sampleTiles("waterCave",10))
+  // console.log("Grass @",g_activeMap.sampleTiles("grass",10))
+  // console.log("Stone peaks @",g_activeMap.sampleTiles("stone_1",10))
+  // console.log("Beaches @",g_activeMap.sampleTiles("sand",10))
+  // console.log("Deep water @",g_activeMap.sampleTiles("waterCave",10))
 }
 
 function addListeners() {
