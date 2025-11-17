@@ -4,6 +4,7 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 50;
 const CHUNKS_Y = 50;
+let frameCount = 0;
 
 const NONE = '\0'; 
 
@@ -38,6 +39,8 @@ let cameraManager;
 
 let terrariaFont;
 
+let IMPORTED_JSON_TERRAIN = NONE
+
 function preload(){
   // return; // !!! REMOVE BEFORE DEV
 
@@ -62,6 +65,10 @@ function preload(){
 function setup() {
   // TEMPORARY
   // disableTerrainCache()
+  // let importButton = createButton('Import json map')
+  // importButton.mousePressed(importTerrain)
+
+  // return
 
   createCanvas(windowWidth,windowHeight) 
 
@@ -239,6 +246,10 @@ function setup() {
   window.BUIManager = new BUIManager();
   window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
+
+  // console.log("SETUPRESULT:",window)
+
+  // drop(importTerrain)
 }
 
 function addListeners() {
@@ -358,6 +369,24 @@ function initializeWorld() {
  */
 
 function draw() {
+  ++frameCount;
+
+  // EXAMPLE OF LOADING JSON FILE...
+  // if (frameCount == 300) {
+  //   importTerrainLP("/src/levels/tutorialCave_Start.json")
+  // }
+
+  if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap
+    g_activeMap = IMPORTED_JSON_TERRAIN
+
+    g_activeMap.invalidateCache()
+    g_activeMap.renderConversion.forceTileUpdate()
+
+    g_activeMap.render() // Potential clipping...
+
+    console.log("SWAPPED")
+    IMPORTED_JSON_TERRAIN = NONE
+  }
   // TEST_CHUNK()
   // return
   // ============================================================
@@ -1325,6 +1354,8 @@ function windowResized() {
   }
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
+
+  g_activeMap.invalidateCache()
 
   resizeCanvas(g_canvasX,g_canvasY);
 }
