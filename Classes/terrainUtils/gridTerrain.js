@@ -273,7 +273,7 @@ class gridTerrain {
     //// Utils
     // Now converts grid position -> chunk (0,0 indexed) + relative (0,0 indexed), 2d format.
     convRelToAccess(pos) { // DISCONTINUED: Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
-        console.log(this._tileSpan)
+        // console.log(this._tileSpan)
         return this.convArrToAccess(
             [
                 pos[0] - this._tileSpan[0][0],
@@ -327,16 +327,16 @@ class gridTerrain {
 
     // Assumes indexed from TL position (_tileSpan[0])
     get(relPos) {
-        console.log(relPos)
+        // console.log(relPos)
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
 
-        console.log(access)
-        console.log(chunkRawAccess)
+        // console.log(access)
+        // console.log(chunkRawAccess)
 
         // console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
 
-        console.log(chunkRawAccess)
+        // console.log(chunkRawAccess)
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
         // CONVERSIONS HAVE FAILED?
@@ -1154,7 +1154,7 @@ function importTerrainLP(path) { // Uses p5js's native function with path as inp
             let x = i % rawXMod
             let y = floor(i/rawXMod)
             
-            console.log(g_activeMap)
+            // console.log(g_activeMap)
             g_activeMap.setMat([x,y],material)
 
             ++i
