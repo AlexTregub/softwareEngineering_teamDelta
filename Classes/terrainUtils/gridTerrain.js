@@ -1,6 +1,7 @@
 ///// TERRAIN is GRID of CHUNK is GRID of TILE 
 ///// TODO: Define functionality + update coordinate system
 
+
 //// Position utilities
 function posAdd(a,b) { // = a + b
     return [
@@ -169,6 +170,56 @@ class gridTerrain {
         }
     }
 
+    /**
+     * 
+     * @param {string/Array} targetMat Material to be searched for (randomly) -- see tiles.js for definitions
+     * @param {int} requested Number of entries to produce
+     * @returns {Array[requested]} Returns pairs of coordinates of tiles for placement...
+     */
+    sampleTiles(targetMat,requested) { 
+        // console.log(typeof(targetMat))
+        // console.log(typeof(["grass","sand"]))
+        let tilesAvail = (this._tileSpanRange[0] * this._tileSpanRange[1])/4 // Reduce max runtime if requested not found...
+        let posArray = []
+
+        for (let i = 0; i < tilesAvail; ++i) {
+            let pos = [floor(random(this._tileSpan[0][0],this._tileSpan[1][0])),floor(random(this._tileSpan[0][1],this._tileSpan[1][1]))]
+
+            if (typeof(targetMat) == typeof(["grass","sand"])) {
+                // console.log(this.getMat(pos))
+                for (let temp in targetMat) {
+                    // console.log(this.getMat(pos),targetMat)
+                    // console.log(targetMat[temp] === this.getMat(pos))
+                    // console.log(temp)
+                    if (targetMat[temp] == this.getMat(pos)) {
+                        posArray.push(pos)
+
+                        if (posArray.length == requested) {
+                            break
+                        }
+                    }
+                }
+            } else {
+                if (this.getMat(pos) == targetMat) {
+                    posArray.push(pos)
+
+                    if (posArray.length == requested) {
+                        break
+                    }
+                }
+            }
+
+            if (posArray.length == requested) {
+                break
+            }            
+        }
+        if (posArray.length != requested) {
+            console.log("IN RANDOMIZATION LOOKING FOR "+targetMat+" WAS NOT ABLE TO FIND ALL VALUES")
+        }
+
+        return posArray
+    }
+
     updateTileSmooth() { // Needs to regenerate entire grid...
         this.frillArray = new Grid(this._gridSizeX,this._gridSizeY, 
             this._gridSpanTL,[
@@ -272,6 +323,7 @@ class gridTerrain {
     //// Utils
     // Now converts grid position -> chunk (0,0 indexed) + relative (0,0 indexed), 2d format.
     convRelToAccess(pos) { // DISCONTINUED: Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
+        // console.log(this._tileSpan)
         return this.convArrToAccess(
             [
                 pos[0] - this._tileSpan[0][0],
@@ -325,11 +377,16 @@ class gridTerrain {
 
     // Assumes indexed from TL position (_tileSpan[0])
     get(relPos) {
+        // console.log(relPos)
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
 
+        // console.log(access)
+        // console.log(chunkRawAccess)
+
         // console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
 
+        // console.log(chunkRawAccess)
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
         // CONVERSIONS HAVE FAILED?
@@ -1111,6 +1168,57 @@ function convPosToCanvas(input){
 function convCanvasToPos(input){
     if (typeof g_activeMap === "undefined") {return}
     return g_activeMap.renderConversion.convCanvasToPos(input)
+}
+
+
+
+//// Terrain file loading handler function:
+// let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
+function importTerrain() { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
+    console.log("FILE CAUGHT...")
+    
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept='json'
+
+    input.onchange = (event) => {
+        importTerrainLP(URL.createObjectURL(event.target.files[0]))
+    }
+
+    input.click()
+}
+
+function importTerrainLP(path) { // Uses p5js's native function with path as input. 
+    // var IMPORTED_JSON_TERRAIN = NONE
+    loadJSON(path, (jsonObj) => {
+        let gridX = jsonObj.metadata.gridSizeX
+        let gridY = jsonObj.metadata.gridSizeY
+        let chunkSize = jsonObj.metadata.chunkSize
+        let tileSize = jsonObj.metadata.tileSize
+        
+        // For now, skipping chunking...
+
+        let rawXMod = gridX*chunkSize // Offset for y-axis...
+        let i = 0
+
+        // Loading on global target
+        IMPORTED_JSON_TERRAIN = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
+        // g_activeMap = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
+
+        for (let material of jsonObj.tiles) {
+            let x = i % rawXMod
+            let y = floor(i/rawXMod)
+            
+            IMPORTED_JSON_TERRAIN.setMat([x,y],material)
+
+            ++i
+        }
+
+        IMPORTED_JSON_TERRAIN.setMat([0,0],"farmland") // Debug (0,0)
+
+        console.log("IMPORTED.")
+    })
+    return
 }
 
 

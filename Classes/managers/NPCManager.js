@@ -54,7 +54,7 @@ class NPC extends Building{
     super(x, y, 40, 40, Character, 'NPC', null);
     this._x = x;
     this._y = y;
-    this._faction = 'neutral';
+    this._faction = 'player';
     this.isBoxHovered = false;
     this.dialogueRange = 100;
 
