@@ -170,6 +170,56 @@ class gridTerrain {
         }
     }
 
+    /**
+     * 
+     * @param {string/Array} targetMat Material to be searched for (randomly) -- see tiles.js for definitions
+     * @param {int} requested Number of entries to produce
+     * @returns {Array[requested]} Returns pairs of coordinates of tiles for placement...
+     */
+    sampleTiles(targetMat,requested) { 
+        // console.log(typeof(targetMat))
+        // console.log(typeof(["grass","sand"]))
+        let tilesAvail = (this._tileSpanRange[0] * this._tileSpanRange[1])/4 // Reduce max runtime if requested not found...
+        let posArray = []
+
+        for (let i = 0; i < tilesAvail; ++i) {
+            let pos = [floor(random(this._tileSpan[0][0],this._tileSpan[1][0])),floor(random(this._tileSpan[0][1],this._tileSpan[1][1]))]
+
+            if (typeof(targetMat) == typeof(["grass","sand"])) {
+                // console.log(this.getMat(pos))
+                for (let temp in targetMat) {
+                    // console.log(this.getMat(pos),targetMat)
+                    // console.log(targetMat[temp] === this.getMat(pos))
+                    // console.log(temp)
+                    if (targetMat[temp] == this.getMat(pos)) {
+                        posArray.push(pos)
+
+                        if (posArray.length == requested) {
+                            break
+                        }
+                    }
+                }
+            } else {
+                if (this.getMat(pos) == targetMat) {
+                    posArray.push(pos)
+
+                    if (posArray.length == requested) {
+                        break
+                    }
+                }
+            }
+
+            if (posArray.length == requested) {
+                break
+            }            
+        }
+        if (posArray.length != requested) {
+            console.log("IN RANDOMIZATION LOOKING FOR "+targetMat+" WAS NOT ABLE TO FIND ALL VALUES")
+        }
+
+        return posArray
+    }
+
     updateTileSmooth() { // Needs to regenerate entire grid...
         this.frillArray = new Grid(this._gridSizeX,this._gridSizeY, 
             this._gridSpanTL,[
