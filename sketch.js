@@ -356,7 +356,7 @@ function initializeWorld() {
   // npc test
   Buildings.push(createNPC(100,100));
   // Boss
-  let spider = new Spider(); 
+  // let spider = new Spider(); 
 }
 
 /**
@@ -369,12 +369,16 @@ function initializeWorld() {
  */
 
 function draw() {
-  ++frameCount;
+  
 
   // EXAMPLE OF LOADING JSON FILE...
   // if (frameCount == 300) {
   //   importTerrainLP("/src/levels/tutorialCave_Start.json")
   // }
+
+  if (frameCount == 1200) {
+    let spider = new Spider()
+  }
 
   if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap
     g_activeMap = IMPORTED_JSON_TERRAIN
@@ -402,6 +406,8 @@ function draw() {
   }
 
   if (GameState.getState() === 'PLAYING') {
+    ++frameCount; // Frames in game
+
     // --- Update gameplay systems ---
     if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
     if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
