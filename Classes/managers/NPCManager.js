@@ -8,22 +8,23 @@ const NPCDialogues = {
     "I guess that's enough to put you in the slammer now adays...",
     "But hey, the hat is cool, right?",
     "Hows about we break out of here",
-    "Can you collect 8 of those sticks for me?",
+    "Can you collect 4 of those sticks for me?",
     "Use the WASD keys to move around and find them.",
+    "Once you find a resource, walk over it to collect it.",
     "Once you have them, come back and talk to me again.",
   ],
   antony2: [
     "Yknow, I really hate to be that guy...",
-    "But that isn't 8 sticks...",
+    "But that isn't 4 sticks...",
     "It's okay, I get it, the education system is broken and all that.",
-    "Now go...8 sticks...that's one more than 7 if you were wondering...",
+    "Now go...4 sticks...that's one more than 7 if you were wondering...",
     "You do know what 7 is right?"
   ],
   antony3: [
     "This is a horrible rage bait"
   ],
   antony4: [
-    "Look at you, eight whole sticks",
+    "Look at you, 4 whole sticks",
     "I was worried about you for a second there",
     "Now gimme one second",
     // ... wait like 1.5 seconds ... he pulls out a bomb
@@ -36,8 +37,52 @@ const NPCDialogues = {
     // ... bomb blows up and flashes white, once it clears, enemies are in the room ->
   ],
   antony5: [
-    "Uhhhhhh",
-    "Do combat (idk what the controls are yet)",
+    "Just as I thought! Those dummies left a hive unnatended!",
+    "Quick, go ahead and take over that hive before they come back!",
+    "To interact with a hive, walk over to it and press 'E'",
+  ],
+  antony6: [
+    "These hives have levels to them.",
+    "The higher the level, the more ants you can produce!",
+    "To upgrade a hive, interact with it and press '1'",
+    "Upgrading gives you +5 max ants!",
+    "Upgrading costs resources, so make sure you have enough before upgrading...",
+    "But with more upgrades, comes more powers too",
+    "so stay tuned for those..."
+  ],
+  antony7: [
+    "Make sure you purchace ants often too!",
+    "These ants will not only fight for you",
+    "But they each have unique jobs that help your colony grow.",
+    "Some ants gather resources, some ants build structures,",
+    "and some ants defend your colony from invaders.",
+    "The ants you command follow your queenly pharamones, so make sure to keep them safe!",
+    "If they die, they're dead forever...",
+    "Just like my dreams",
+    "Or these developers if they don't finish this game soon...",
+    "Now get over here for your first actual quest errand boy!"
+
+  ],
+  antony8: [
+    "Remember When I was just talking about powers?",
+    "Well, I happen to know where one of those power hives are...",
+    "Just east of here, there's an enemy hive",
+    "If we can take it over, we can steal their gem of lightning!",
+    "I love stealing, so GO!",
+    "Talk to me again if you don't know how to fight",
+    "But don't ask me for weapons",
+    "That's why I'm banned in iceland..."
+  ],
+  antony9: [
+    "You really don't know how to fight?",
+    "Okay...",
+    "Depending on your ant's job, they all have different stats",
+    "If you want your ants to fight with you",
+    "Get close to enemies",
+    "They devote their lives to protecting the queen after all",
+    "So they will automatically attack nearby enemies",
+    "Just make sure to keep an eye on their health bars",
+    "Yknow, the whole death thing and all...",
   ],
 };
 
@@ -64,7 +109,7 @@ class NPC extends Building{
     this.dialogueStage = 0;   // which dialogue we're on for each NPC
     this.dialogueLines = [];  // current vector of lines
     this.dialogueIndex = 0;   // which line we're on
-    this.questAmount = 8;          // required amount of items to collect
+    this.questAmount = 4;          // required amount of items to collect
     this.questAssigned = false;
     this.dontContTree = false;
   }
@@ -82,17 +127,20 @@ class NPC extends Building{
 
   initDialogues() {
     const nearbyAnts = this.getAnts(this.faction);
-    this.isPlayerNearby = false; // reset each frame
+
+    // Default: reset each frame
+    this.isPlayerNearby = false;
 
     nearbyAnts.forEach(ant => {
-      if (ant.jobName === 'Queen') {
-        const range = dist(this._x, this._y, ant.posX, ant.posY);
-        if (range < this.dialogueRange) {
-          this.isPlayerNearby = true;
+        if (ant.jobName === 'Queen') {
+            const range = dist(this._x, this._y, ant.posX, ant.posY);
+            if (range < this.dialogueRange) {
+                this.isPlayerNearby = true;
+            }
         }
-      }
     });
-  }
+}
+
 
   update() {
     super.update();
@@ -131,36 +179,73 @@ class NPC extends Building{
 
   
   startDialogue() {
-    // Pick dialogue set based on stage
-    if (this.name === "Antony") {
-      switch (this.dialogueStage) {
+    if (this.name !== "Antony") return;
+
+    switch (this.dialogueStage) {
         case 0:
-          this.dialogueLines = NPCDialogues.antony1;
-          // EXAMPLE OF HOW TO START A QUEST
-          window.QuestManager.startQuest("antony_sticks", {
-            name: "Get Some Sticks",
-            description: "Collect 8 sticks for Antony.",
-            objective: { type: "collect", item: "stick", amount: 8 },
-          });
-          this.questAssigned = true;
-          break;
+            this.dialogueLines = NPCDialogues.antony1;
+            window.QuestManager.startQuest("antony_sticks", {
+                name: "Get Some Sticks",
+                description: "Collect 4 sticks for Antony.",
+                objective: { type: "collect", item: "stick", amount: 4 },
+            });
+            this.questAssigned = true;
+            break;
+
         case 1:
-          this.dialogueLines = NPCDialogues.antony2;
-          break;
+            this.dialogueLines = NPCDialogues.antony2;
+            break;
+
         case 2:
-          this.questAssigned = true;
-          // Check if player has 8 sticks
-          const collected = getResourceCount(stick); // total of all resources
-          console.log(`${this.name}: Player has collected ${collected} sticks.`);
-          if (collected >= this.questAmount) {
-            this.dialogueLines = ["Good job! You collected all 8 sticks!"];
-          } else {
-            this.dialogueLines = NPCDialogues.antony3;
-            this.dontContTree = true;
-          }
-          break;
-      }
+            const collected = getResourceCount("stick");
+            console.log(`${this.name}: Player has collected ${collected} sticks.`);
+            if (collected >= this.questAmount) {
+                this.dialogueLines = NPCDialogues.antony4;
+                this.questAssigned = false;
+            } else {
+                this.dialogueLines = NPCDialogues.antony3;
+                this.dontContTree = true;
+            }
+            break;
+
+        case 3:
+        case 4:
+            this.dialogueLines = NPCDialogues.antony5;
+            window.QuestManager.startQuest("antony_hive", {
+                name: "Inspect the Hive",
+                description: "Walk up to the hive and press E to interact with it.",
+                objective: { type: "interact", target: "hive" },
+            });
+            this.questAssigned = true;
+
+            // Teleport Antony **only after stage 4 is incremented**
+            break;
+
+        case 5:
+            this.dialogueLines = NPCDialogues.antony6;
+            break;
+
+        case 6:
+            this.dialogueLines = NPCDialogues.antony7;
+              console.log(`${this.name} teleported to original local!`);
+            break;
+
+        case 7:
+            this.dialogueLines = NPCDialogues.antony8;
+            window.QuestManager.startQuest("antony_fight", {
+                name: "Go east to the enemy hive",
+                description: "Go east and take over the enemy hive.",
+                objective: { type: "combat", item: "enemy", amount: 4 },
+            });
+            this.questAssigned = true;
+            break;
+        case 8:
+            this.dialogueLines = NPCDialogues.antony9;
+            break;
     }
+
+    // Force dialogue for stages >= 4 even if player is far
+    if (this.dialogueStage >= 4) this.isPlayerNearby = true;
 
     this.dialogueIndex = 0;
     this.dialogueActive = true;
@@ -169,35 +254,40 @@ class NPC extends Building{
     window.currentNPC = this;
   }
 
+
+
   advanceDialogue() {
     if (!this.dialogueActive) return;
-  
+
     this.dialogueIndex++;
-  
+
     if (this.dialogueIndex < this.dialogueLines.length) {
-      window.DIAManager.open(
-        this.dialogueLines[this.dialogueIndex],
-        window.DIAManager.bgImage,
-        this._image,
-        this.name
-      );
+        window.DIAManager.open(
+            this.dialogueLines[this.dialogueIndex],
+            window.DIAManager.bgImage,
+            this._image,
+            this.name
+        );
     } else {
-      // Finished current dialogue sequence
-      this.dialogueActive = false;
-      window.currentNPC = null;
-      if (window.DIAManager) window.DIAManager.close();
-  
-      // Only increment stage if dontContTree is false
-      const collected = getResourceCount();
-  
-      if (!this.dontContTree) {
-        this.dialogueStage++;
-        console.log(`${this.name} dialogue stage incremented to ${this.dialogueStage}`);
-      } else {
-        console.log(`${this.name} dialogue stage NOT incremented, dontContTree is true`);
-      }
+        // Finished current dialogue sequence
+        this.dialogueActive = false;
+        window.currentNPC = null;
+        if (window.DIAManager) window.DIAManager.close();
+
+        // Only increment stage if dontContTree is false
+        if (!this.dontContTree) {
+            this.dialogueStage++;
+            console.log(`${this.name} dialogue stage incremented to ${this.dialogueStage}`);
+        } else {
+            console.log(`${this.name} dialogue stage NOT incremented, dontContTree is true`);
+        }
+
+        // Shop available flag (if needed)
+        this.shopAvailable = true;
     }
-  }
+}
+
+
 
   render() {
     if (!this.isActive) return;

@@ -10,10 +10,30 @@ class BUIManager {
     }
 
     open(hill) {
+        // check if this open action is actually for a quest
+        if (window.QuestManager?.isQuestActive("antony_hive")) {
+    
+            // complete quest
+            window.QuestManager.completeQuest("antony_hive");
+    
+            // trigger Antony's next dialogue stage
+            const npc = window.NPCList?.find(n => n.name === "Antony");
+            if (npc) {
+                npc.dialogueStage++;
+                npc.startDialogue();
+                this.dialogueLines = NPCDialogues.antony6;
+                console.log("Antony's dialogue stage advanced to:", npc.dialogueStage);
+            }
+    
+            // DO NOT open shop UI during quest
+            return;
+        }
+    
+        // normal shop behavior
         this.hill = hill;
         this.active = true;
         console.log("Opening shop for hill:", hill);
-    }
+    }    
 
     close() {
         this.active = false;

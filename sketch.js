@@ -343,9 +343,9 @@ function initializeWorld() {
   queenAnt = spawnQueen();
 
   // npc test
-  Buildings.push(createNPC(100,100));
+  Buildings.push(createNPC(350,500));
   // Boss
-  let spider = new Spider(); 
+  //let spider = new Spider(); 
 }
 
 /**
