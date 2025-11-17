@@ -1124,13 +1124,51 @@ function convCanvasToPos(input){
 
 //// Terrain file loading handler function:
 // let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
-function importTerrain(file) { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
+function importTerrain() { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
     console.log("FILE CAUGHT...")
     
-    if (!(file.type === 'json')) { 
-        print("ERROR: WRONG FILE TYPE WHEN IMPORTING TERRAIN.")
-        return
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept='json'
+
+    input.onchange = (event) => {
+        console.log(event)
+        console.log(event.target.value)
+        const filelist = event.target.files
+        console.log(filelist)
+
+        // importTerrainLP(event.target.value)
+
+        console.log(filelist.length)
+        console.log(filelist[0])
+
+        console.log(event.target.files[0])
+
+        const url = URL.createObjectURL(event.target.files[0])
+        // importTerrainLP(url)
+
+        importTerrainLP(URL.createObjectURL(event.target.files[0]))
+
+        // importTerrainLP(filelist[0])
+
+        // let obj = JSON.parse(filelist[0])
+        // console.log(obj)
+
+        // fetch(filelist[0])
+        //     .then(conso)
+
     }
+
+    input.click()
+
+    
+
+
+
+    // if (!(file.type === 'json')) { 
+    //     print("ERROR: WRONG FILE TYPE WHEN IMPORTING TERRAIN.")
+    //     return
+    // }
 
     // ...
 }
