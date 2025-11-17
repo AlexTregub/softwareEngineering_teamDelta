@@ -1125,6 +1125,8 @@ function convCanvasToPos(input){
 //// Terrain file loading handler function:
 // let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
 function importTerrain(file) { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
+    console.log("FILE CAUGHT...")
+    
     if (!(file.type === 'json')) { 
         print("ERROR: WRONG FILE TYPE WHEN IMPORTING TERRAIN.")
         return

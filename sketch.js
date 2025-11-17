@@ -65,6 +65,10 @@ function preload(){
 function setup() {
   // TEMPORARY
   // disableTerrainCache()
+  let importButton = createButton('Import json map')
+  importButton.mousePressed(importTerrain)
+
+  return
 
   createCanvas(windowWidth,windowHeight) 
 
@@ -242,6 +246,10 @@ function setup() {
   window.BUIManager = new BUIManager();
   window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
+
+  // console.log("SETUPRESULT:",window)
+
+  // drop(importTerrain)
 }
 
 function addListeners() {
