@@ -708,7 +708,7 @@ _getFallbackJobStats(jobName) {
         }
       } 
       
-      else if (isMelee) {
+      else if (isMelee || this._faction != "player") {
         this._attackTarget(this._combatTarget);
       } 
       
@@ -720,7 +720,7 @@ _getFallbackJobStats(jobName) {
 
     //  Detection logic
     else if (!isOverlapping || shortestDistance <= detectionRange) {
-      if (isRanged || isMelee) {
+      if (isRanged || isMelee || this._faction != "player") {
         this.moveToLocation(this._combatTarget.posX, this._combatTarget.posY);
       } 
       

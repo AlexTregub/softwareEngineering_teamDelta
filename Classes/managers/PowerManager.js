@@ -81,7 +81,7 @@ class Lightning extends Power{
             screenX = screenPos[0];
             screenY = screenPos[1];
         }
-        console.log(`ScreenX: ${screenX}`);
+        // console.log(`ScreenX: ${screenX}`);
         
         push();
         stroke(200, 230, 255, 255 * (1-t));
@@ -94,7 +94,7 @@ class Lightning extends Power{
         line(startX, startY, midX, midY);
         line(midX, midY, screenX, screenY);
         pop();
-        console.log("Rendering lightning power");
+        // console.log("Rendering lightning power");
     }
     update(){
         const now = millis();

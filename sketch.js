@@ -244,7 +244,7 @@ function setup() {
 
   // Game Event
   gameEventManager = new GameEventManager();
-  // gameEventManager.startEvent('Raid');
+  gameEventManager.startEvent('Wave');
 
 }
 
@@ -1053,7 +1053,7 @@ function keyPressed() {
     }
   
     // interact with nearby anthill
-    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
+    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill" && b._faction == "player");
     if (nearbyHill) {
       console.log("Interacting with nearby anthill:", nearbyHill);
       if (!window.BUIManager.active) {
@@ -1061,6 +1061,13 @@ function keyPressed() {
       } else {
         window.BUIManager.close();
       }
+      return;
+    }
+
+
+    let deadBuildings = Buildings.find(b => b.isPlayerNearby && b._faction != "player" && b._isDead);
+    if (deadBuildings) {
+      window.BUIManager.rebuild(deadBuildings);
       return;
     }
   }

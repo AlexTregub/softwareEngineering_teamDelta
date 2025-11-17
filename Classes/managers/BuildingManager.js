@@ -85,17 +85,29 @@ class AntHill extends AbstractBuildingFactory {
 
     hill.render = function() {
       Building.prototype.render.call(this);
+      const queen = getQueen?.();
 
       // draw prompt if player close
-      if (this.isPlayerNearby) {
+      if(this.isPlayerNearby && !this._isDead && this._faction == "player"){
         push();
         textAlign(CENTER);
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Open Hill Menu", this._x + this._width / 2 + 10, this._y + this._height + 30);
+        text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
         pop();
       }
+
+      if(this.isPlayerNearby && this._isDead){
+        push();
+        textAlign(CENTER);
+        textSize(16);
+        fill(255);
+        textFont(terrariaFont);
+        text("[E] Rebuild", queen.posX , queen.posY - 10);
+        pop();
+      }
+      
     };
 
     return hill;
@@ -174,6 +186,7 @@ class Building extends Entity {
     this._controllers.set('movement', null);
 
     // --- Image ---
+    this.image = img;
     if (img) this.setImage(img);
   }
 
@@ -222,32 +235,60 @@ class Building extends Entity {
     })
   }
 
+  downgradeBuilding() {
+    if (!this.previousStage) {
+      console.log("No downgrade available");
+      return false;
+    }
+
+
+    this.setImage(this.previousStage.image);
+    this._maxHealth = this.previousStage.maxHealth;
+    this._spawnInterval = this.previousStage.spawnInterval;
+    this._spawnCount = this.previousStage.spawnCount;
+    this.info = this.previousStage.info;
+
+    // Reset current health
+    this._health = this._maxHealth;
+
+    // clear the saved stage so you don't double-downgrade
+    this.previousStage = null;
+    this._spawnEnabled = false;
+
+    return true;
+  }
+
 
   // UPGRADE BUILDING \\
   upgradeBuilding() {
     if (!this.info || !this.info.progressions) return false;
+
     const next = this.info.progressions[1];
-    if(this.info.upgradeCost > globalResource.length){ console.log('Not enough resources to upgrade'); return false; }
-    if (!next) { console.log('No further upgrades'); return false; }
+    if (!next) return false;
 
     const nextImage = typeof next.image === "function" ? next.image() : next.image;
-    if (!nextImage) { console.log('Image not loaded yet'); return false; }
 
-    try {
-      // Improve Building Stats on Upgrade
-      this.setImage(nextImage);
-      this._spawnInterval = Math.max(1, this._spawnInterval - 1);
-      this._spawnCount += 1;
-      this._maxHealth = Math.round(this._maxHealth * 1.25);
-      this._health = this._maxHealth;
+    console.log("image", this.image);
+    this.previousStage = {
+      image: this.image,        // current image
+      maxHealth: this._maxHealth,
+      spawnInterval: this._spawnInterval,
+      spawnCount: this._spawnCount,
+      info: this.info           // current progression info
+    };
 
-      this.info = next;
-    } catch (e) {
-      console.warn("Upgrade failed:", e);
-      return false;
-    }
+
+    // --- APPLY UPGRADE ---
+    this.setImage(nextImage);
+    this._spawnInterval = Math.max(1, this._spawnInterval - 1);
+    this._spawnCount += 1;
+    this._maxHealth = Math.round(this._maxHealth * 1.25);
+    this._health = this._maxHealth;
+
+    this.info = next;
     return true;
   }
+
 
 
 
@@ -277,7 +318,7 @@ class Building extends Entity {
           const s = this.getSize ? this.getSize() : (this._size || { x: width || 32, y: height || 32 });
           const centerX = p.x + (s.x / 2);
           const centerY = p.y + (s.y / 2);
-          antsSpawn(this._spawnCount, this._faction || 'player', centerX , centerY);
+          antsSpawn(this._spawnCount, this._faction, centerX , centerY);
         }
       } catch (e) { console.warn('Building spawn error', e); }
     }
@@ -332,6 +373,13 @@ class Building extends Entity {
     return;
   }
 
+  rebuildBuilding(){
+    this._isDead = false;
+    this._faction = 'player';
+    this._spawnEnabled = true;
+    this.upgradeBuilding();
+  }
+
   _renderBoxHover() {
     this._renderController.highlightBoxHover();
   }
@@ -344,7 +392,6 @@ class Building extends Entity {
     }
 
 
-    if (!this.isActive) return;
     super.render();
 
     if (this._healthController) {
@@ -354,27 +401,34 @@ class Building extends Entity {
     if (this.isBoxHovered) {
       this._renderBoxHover();
     }
+
+
+
   }
 
   die() {
     this._releaseAnts();
-    this.isActive = false;
     this._isDead = true;
-    // remove from render lists
-    const idx = Buildings.indexOf(this);
-    if (idx !== -1) Buildings.splice(idx, 1);
-    if (typeof window !== 'undefined' && Array.isArray(window.buildings)) {
-      const wi = window.buildings.indexOf(this);
-      if (wi !== -1) window.buildings.splice(wi, 1);
-    }
-    // remove from selectables
-    if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
-      const sidx = selectables.indexOf(this);
-      if (sidx !== -1) selectables.splice(sidx, 1);
+    this.downgradeBuilding();
 
-    }
-    if (g_selectionBoxController && g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+
+    // remove from render lists
+    // const idx = Buildings.indexOf(this);
+    // if (idx !== -1) Buildings.splice(idx, 1);
+    // if (typeof window !== 'undefined' && Array.isArray(window.buildings)) {
+    //   const wi = window.buildings.indexOf(this);
+    //   if (wi !== -1) window.buildings.splice(wi, 1);
+    // }
+    // // remove from selectables
+    // if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+    //   const sidx = selectables.indexOf(this);
+    //   if (sidx !== -1) selectables.splice(sidx, 1);
+
+    // }
+    // if (g_selectionBoxController && g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
     // other cleanup...
+
+
   }
 }
 

@@ -36,28 +36,27 @@ class BossEvent extends AbstractEvent {
         
 
 class AntWave extends AbstractEvent {
-    constructor(radius = 1000,amountOfAnts = 20){
+    constructor(radius = 500,amountOfBuilding = 2){
         super();
         this.raidus = radius;
-        this.amountOfAnts = amountOfAnts;
+        this.amountOfBuilding = amountOfBuilding;
         this.finished = false;
     }
 
     _init(){
         let player;
-        for(let x = 0; x < this.amountOfAnts; ++x){
+        for(let x = 0; x < this.amountOfBuilding; ++x){
             player  = getQueen();
             if(!player){return;}
-            let degree = (x/this.amountOfAnts) * 2 * 3.14
+            let degree = (x/this.amountOfBuilding) * 2 * 3.14
             let px = player.posX + this.raidus * cos(degree);
             let py = player.posY + this.raidus * sin(degree);
-            antsSpawn(1,'waveEnemy',px,py);
+            let building = createBuilding('anthill', px, py, 'waveEnemy');
+            building.upgradeBuilding();
+            building._spawnEnabled = true;
+            building._spawnCount = 3;
+            Buildings.push(building);
         }
-        ants.forEach(ant=>{
-            if(ant.faction != 'waveEnemy'){return;}
-            ant.moveToLocation(player.posX,player.posY)
-            ant.getController('combat')._detectionRadius = this.raidus + 100;
-        })
     }
 
     isFinished(){
@@ -137,7 +136,6 @@ class GameEventManager{
         if(!this.activeEvent){return}
         this.activeEvent.update();
         if(this.activeEvent.isFinished()){
-            console.log("Reward");
             this.activeEvent = null;
         }
     }

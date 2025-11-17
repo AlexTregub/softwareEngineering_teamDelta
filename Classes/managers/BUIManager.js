@@ -3,6 +3,7 @@ class BUIManager {
         this.active = false;
         this.bgImage = null;
         this.hill = null; // anthill reference
+        this.deadHill = null;
     }
 
     preload() {
@@ -15,9 +16,16 @@ class BUIManager {
         console.log("Opening shop for hill:", hill);
     }
 
+    rebuild(deadHill){
+        this.deadHill = deadHill;
+        deadHill.rebuildBuilding();
+        console.log("Rebuilding hill!");
+    }
+
     close() {
         this.active = false;
         this.hill = null;
+        this.deadHill = null;
     }
 
     update() {
