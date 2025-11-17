@@ -364,21 +364,21 @@ function draw() {
   ++frameCount;
 
   // EXAMPLE OF LOADING JSON FILE...
-  if (frameCount == 300) {
-    importTerrainLP("/src/levels/tutorialCave_Start.json")
-  }
+  // if (frameCount == 300) {
+  //   importTerrainLP("/src/levels/tutorialCave_Start.json")
+  // }
 
-  if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap
-    g_activeMap = IMPORTED_JSON_TERRAIN
+  // if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap
+  //   g_activeMap = IMPORTED_JSON_TERRAIN
 
-    g_activeMap.invalidateCache()
-    g_activeMap.renderConversion.forceTileUpdate()
+  //   g_activeMap.invalidateCache()
+  //   g_activeMap.renderConversion.forceTileUpdate()
 
-    g_activeMap.render() // Potential clipping...
+  //   g_activeMap.render() // Potential clipping...
 
-    console.log("SWAPPED")
-    IMPORTED_JSON_TERRAIN = NONE
-  }
+  //   console.log("SWAPPED")
+  //   IMPORTED_JSON_TERRAIN = NONE
+  // }
   // TEST_CHUNK()
   // return
   // ============================================================
