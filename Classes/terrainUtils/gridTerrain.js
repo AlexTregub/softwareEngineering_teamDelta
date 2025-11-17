@@ -1,6 +1,46 @@
 ///// TERRAIN is GRID of CHUNK is GRID of TILE 
 ///// TODO: Define functionality + update coordinate system
 
+
+//// Terrain file loading handler function:
+let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
+function importTerrain(file) { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
+    if (!(file.type === 'json')) { 
+        print("ERROR: WRONG FILE TYPE WHEN IMPORTING TERRAIN.")
+        return
+    }
+
+    // ...
+}
+
+function importTerrainLP(path) { // Uses p5js's native function with path as input. 
+    jsonObj = loadJSON(path)
+
+    if (!jsonObj.metadata) {
+        logNormal("Incorrect format file loaded...")
+        return NONE
+    }
+    if (jsonObj.metadata.version != "1.0") {
+        logNormal("VERSION UNMATCHED. PROCEED WITH CAUTION")
+    }
+    logNormal("Loading obj..."+String(jsonObj.metadata.exportDate))
+
+    let gridX = jsonObj.metadata.gridSizeX
+    let gridY = jsonObj.metadata.gridSizeY
+    let chunkSize = jsonObj.metadata.chunkSize
+    let tileSize = jsonObj.metadata.tileSize
+    
+    // For now, skipping chunking...
+
+    let rawXMod = gridX*chunkSize // Offset for y-axis...
+    let i = 0
+
+    for (let material of jsonObj.tiles) {
+        // ...
+    }
+}
+
+
 //// Position utilities
 function posAdd(a,b) { // = a + b
     return [
