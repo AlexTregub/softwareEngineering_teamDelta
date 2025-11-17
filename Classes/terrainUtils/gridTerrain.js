@@ -35,9 +35,20 @@ function importTerrainLP(path) { // Uses p5js's native function with path as inp
     let rawXMod = gridX*chunkSize // Offset for y-axis...
     let i = 0
 
+    g_activeMap = new gridTerrain(gridX,gridY,0,chunkSize,tileSize)
+
     for (let material of jsonObj.tiles) {
-        // ...
+        let x = i % rawXMod
+        let y = floor(i/rawXMod)
+        
+        g_activeMap.setMat(material)
+
+        ++i
     }
+
+    // Attempt to force update...
+    g_activeMap.invalidateCache()
+    g_activeMap.renderConversion.forceTileUpdate()
 }
 
 

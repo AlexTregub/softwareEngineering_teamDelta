@@ -105,6 +105,7 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
  * This respects existing material definitions while enabling cache rendering
  * without global function overrides
  */
+// NOW UNUSED...
 function renderMaterialToContext(materialName, x, y, size, context) { // NOW UNUSED
   // Handle the context parameter - default to global if not provided
   const ctx = context || window;
