@@ -65,10 +65,10 @@ function preload(){
 function setup() {
   // TEMPORARY
   // disableTerrainCache()
-  let importButton = createButton('Import json map')
-  importButton.mousePressed(importTerrain)
+  // let importButton = createButton('Import json map')
+  // importButton.mousePressed(importTerrain)
 
-  return
+  // return
 
   createCanvas(windowWidth,windowHeight) 
 
@@ -1354,6 +1354,8 @@ function windowResized() {
   }
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
+
+  g_activeMap.invalidateCache()
 
   resizeCanvas(g_canvasX,g_canvasY);
 }
