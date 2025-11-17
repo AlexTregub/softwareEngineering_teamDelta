@@ -95,9 +95,9 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
     'caveDirt' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
     'caveDark' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
 
-    'cave1' : [[0,0], (x,y,squareSize) => image(CAVE_1_IMAGE,x,y,squareSize,squareSize)],
-    'cave2' : [[0,0], (x,y,squareSize) => image(CAVE_2_IMAGE,x,y,squareSize,squareSize)],
-    'cave3' : [[0,0], (x,y,squareSize) => image(CAVE_3_IMAGE,x,y,squareSize,squareSize)],
+    'cave1' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_1_IMAGE,x,y,squareSize,squareSize)],
+    'cave2' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_2_IMAGE,x,y,squareSize,squareSize)],
+    'cave3' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_3_IMAGE,x,y,squareSize,squareSize)],
  };
 
 /**
