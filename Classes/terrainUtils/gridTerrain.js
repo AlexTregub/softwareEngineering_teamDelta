@@ -273,6 +273,7 @@ class gridTerrain {
     //// Utils
     // Now converts grid position -> chunk (0,0 indexed) + relative (0,0 indexed), 2d format.
     convRelToAccess(pos) { // DISCONTINUED: Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
+        console.log(this._tileSpan)
         return this.convArrToAccess(
             [
                 pos[0] - this._tileSpan[0][0],
@@ -326,11 +327,16 @@ class gridTerrain {
 
     // Assumes indexed from TL position (_tileSpan[0])
     get(relPos) {
+        console.log(relPos)
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
 
+        console.log(access)
+        console.log(chunkRawAccess)
+
         // console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
 
+        console.log(chunkRawAccess)
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
         // CONVERSIONS HAVE FAILED?
@@ -1128,41 +1134,94 @@ function importTerrain(file) { // See https://p5js.org/reference/p5/p5.File/ , h
 }
 
 function importTerrainLP(path) { // Uses p5js's native function with path as input. 
-    jsonObj = loadJSON(path)
-
-    if (!jsonObj.metadata) {
-        logNormal("Incorrect format file loaded...")
-        return NONE
-    }
-    if (jsonObj.metadata.version != "1.0") {
-        logNormal("VERSION UNMATCHED. PROCEED WITH CAUTION")
-    }
-    logNormal("Loading obj..."+String(jsonObj.metadata.exportDate))
-
-    let gridX = jsonObj.metadata.gridSizeX
-    let gridY = jsonObj.metadata.gridSizeY
-    let chunkSize = jsonObj.metadata.chunkSize
-    let tileSize = jsonObj.metadata.tileSize
-    
-    // For now, skipping chunking...
-
-    let rawXMod = gridX*chunkSize // Offset for y-axis...
-    let i = 0
-
-    g_activeMap = new gridTerrain(gridX,gridY,0,chunkSize,tileSize)
-
-    for (let material of jsonObj.tiles) {
-        let x = i % rawXMod
-        let y = floor(i/rawXMod)
+    loadJSON(path, (jsonObj) => {
+        let gridX = jsonObj.metadata.gridSizeX
+        let gridY = jsonObj.metadata.gridSizeY
+        let chunkSize = jsonObj.metadata.chunkSize
+        let tileSize = jsonObj.metadata.tileSize
         
-        g_activeMap.setMat(material)
+        // For now, skipping chunking...
 
-        ++i
-    }
+        let rawXMod = gridX*chunkSize // Offset for y-axis...
+        let i = 0
 
-    // Attempt to force update...
-    g_activeMap.invalidateCache()
-    g_activeMap.renderConversion.forceTileUpdate()
+        g_activeMap = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
+
+        for (let material of jsonObj.tiles) {
+            // console.log(material)
+            // console.log("chunkArray:", g_activeMap.chunkArray);
+            // console.log("rawArray:", g_activeMap.chunkArray?.rawArray);
+            let x = i % rawXMod
+            let y = floor(i/rawXMod)
+            
+            console.log(g_activeMap)
+            g_activeMap.setMat([x,y],material)
+
+            ++i
+        }
+
+        g_activeMap.setMat([0,0],"farmland")
+
+        // Attempt to force update...
+        g_activeMap.invalidateCache()
+        g_activeMap.renderConversion.forceTileUpdate()
+
+        g_activeMap.render()
+        console.log("IMPORTED. CHANGES SHOULD BE VIS.")
+    })
+
+    return
+    // // jsonObj = loadJSON(path)
+
+    // // if (!jsonObj.metadata) {
+    // //     logNormal("Incorrect format file loaded...")
+    // //     console.log("Incorrect format file loaded...")
+    // //     return NONE
+    // // }
+    // // I HATE ASYNC AWAIT SHIT
+    // console.log(jsonObj)
+    // console.log(typeof(jsonObj))
+    // console.log(Object.keys(jsonObj))
+    // console.log(jsonObj.keys)
+    // console.log(jsonObj['metadata']) // Not working...
+
+    // const attempt = jsonObj["metadata"]
+    // console.log(attempt)
+    
+    // // if (jsonObj.metadata.version != "1.0") {
+    // //     logNormal("VERSION UNMATCHED. PROCEED WITH CAUTION")
+    // //     console.log("VERSION UNMATCHED. PROCEED WITH CAUTION")
+    // // }
+    // logNormal("Loading obj..."+String(jsonObj.metadata.exportDate))
+    // console.log("Loading obj..."+String(jsonObj.metadata.exportDate))
+
+    // let gridX = jsonObj.metadata.gridSizeX
+    // let gridY = jsonObj.metadata.gridSizeY
+    // let chunkSize = jsonObj.metadata.chunkSize
+    // let tileSize = jsonObj.metadata.tileSize
+    
+    // // For now, skipping chunking...
+
+    // let rawXMod = gridX*chunkSize // Offset for y-axis...
+    // let i = 0
+
+    // g_activeMap = new gridTerrain(gridX,gridY,0,chunkSize,tileSize)
+
+    // for (let material of jsonObj.tiles) {
+    //     let x = i % rawXMod
+    //     let y = floor(i/rawXMod)
+        
+    //     g_activeMap.setMat(material)
+
+    //     ++i
+    // }
+
+    // // Attempt to force update...
+    // g_activeMap.invalidateCache()
+    // g_activeMap.renderConversion.forceTileUpdate()
+
+    // g_activeMap.render()
+    // console.log("IMPORTED. CHANGES SHOULD BE VIS.")
 }
 
 

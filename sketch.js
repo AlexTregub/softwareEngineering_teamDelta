@@ -4,6 +4,7 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 50;
 const CHUNKS_Y = 50;
+let frameCount = 0;
 
 const NONE = '\0'; 
 
@@ -358,6 +359,12 @@ function initializeWorld() {
  */
 
 function draw() {
+  ++frameCount;
+
+
+  if (frameCount == 300) {
+    importTerrainLP("/src/levels/tutorialCave_Start.json")
+  }
   // TEST_CHUNK()
   // return
   // ============================================================
