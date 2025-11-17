@@ -1123,7 +1123,7 @@ function convCanvasToPos(input){
 
 
 //// Terrain file loading handler function:
-let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
+// let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
 function importTerrain(file) { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
     if (!(file.type === 'json')) { 
         print("ERROR: WRONG FILE TYPE WHEN IMPORTING TERRAIN.")
@@ -1134,6 +1134,7 @@ function importTerrain(file) { // See https://p5js.org/reference/p5/p5.File/ , h
 }
 
 function importTerrainLP(path) { // Uses p5js's native function with path as input. 
+    // var IMPORTED_JSON_TERRAIN = NONE
     loadJSON(path, (jsonObj) => {
         let gridX = jsonObj.metadata.gridSizeX
         let gridY = jsonObj.metadata.gridSizeY
@@ -1145,7 +1146,8 @@ function importTerrainLP(path) { // Uses p5js's native function with path as inp
         let rawXMod = gridX*chunkSize // Offset for y-axis...
         let i = 0
 
-        g_activeMap = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
+        IMPORTED_JSON_TERRAIN = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
+        // g_activeMap = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
 
         for (let material of jsonObj.tiles) {
             // console.log(material)
@@ -1155,22 +1157,25 @@ function importTerrainLP(path) { // Uses p5js's native function with path as inp
             let y = floor(i/rawXMod)
             
             // console.log(g_activeMap)
-            g_activeMap.setMat([x,y],material)
+            IMPORTED_JSON_TERRAIN.setMat([x,y],material)
 
             ++i
         }
 
-        g_activeMap.setMat([0,0],"farmland")
+        IMPORTED_JSON_TERRAIN.setMat([0,0],"farmland") // Debug (0,0)
 
         // Attempt to force update...
-        g_activeMap.invalidateCache()
-        g_activeMap.renderConversion.forceTileUpdate()
+        // tempMap.invalidateCache()
+        // tempMap.renderConversion.forceTileUpdate()
 
-        g_activeMap.render()
-        console.log("IMPORTED. CHANGES SHOULD BE VIS.")
+        // tempMap.render()
+        console.log("IMPORTED.")
+        // return tempMap
     })
 
+    // console.log(temp)
     return
+    // return IMPORTED_JSON_TERRAIN
     // // jsonObj = loadJSON(path)
 
     // // if (!jsonObj.metadata) {
