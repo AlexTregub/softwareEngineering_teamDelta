@@ -1124,13 +1124,18 @@ function convCanvasToPos(input){
 
 //// Terrain file loading handler function:
 // let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
-function importTerrain(file) { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
-    if (!(file.type === 'json')) { 
-        print("ERROR: WRONG FILE TYPE WHEN IMPORTING TERRAIN.")
-        return
+function importTerrain() { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
+    console.log("FILE CAUGHT...")
+    
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept='json'
+
+    input.onchange = (event) => {
+        importTerrainLP(URL.createObjectURL(event.target.files[0]))
     }
 
-    // ...
+    input.click()
 }
 
 function importTerrainLP(path) { // Uses p5js's native function with path as input. 
@@ -1146,17 +1151,14 @@ function importTerrainLP(path) { // Uses p5js's native function with path as inp
         let rawXMod = gridX*chunkSize // Offset for y-axis...
         let i = 0
 
+        // Loading on global target
         IMPORTED_JSON_TERRAIN = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
         // g_activeMap = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
 
         for (let material of jsonObj.tiles) {
-            // console.log(material)
-            // console.log("chunkArray:", g_activeMap.chunkArray);
-            // console.log("rawArray:", g_activeMap.chunkArray?.rawArray);
             let x = i % rawXMod
             let y = floor(i/rawXMod)
             
-            // console.log(g_activeMap)
             IMPORTED_JSON_TERRAIN.setMat([x,y],material)
 
             ++i
@@ -1164,69 +1166,9 @@ function importTerrainLP(path) { // Uses p5js's native function with path as inp
 
         IMPORTED_JSON_TERRAIN.setMat([0,0],"farmland") // Debug (0,0)
 
-        // Attempt to force update...
-        // tempMap.invalidateCache()
-        // tempMap.renderConversion.forceTileUpdate()
-
-        // tempMap.render()
         console.log("IMPORTED.")
-        // return tempMap
     })
-
-    // console.log(temp)
     return
-    // return IMPORTED_JSON_TERRAIN
-    // // jsonObj = loadJSON(path)
-
-    // // if (!jsonObj.metadata) {
-    // //     logNormal("Incorrect format file loaded...")
-    // //     console.log("Incorrect format file loaded...")
-    // //     return NONE
-    // // }
-    // // I HATE ASYNC AWAIT SHIT
-    // console.log(jsonObj)
-    // console.log(typeof(jsonObj))
-    // console.log(Object.keys(jsonObj))
-    // console.log(jsonObj.keys)
-    // console.log(jsonObj['metadata']) // Not working...
-
-    // const attempt = jsonObj["metadata"]
-    // console.log(attempt)
-    
-    // // if (jsonObj.metadata.version != "1.0") {
-    // //     logNormal("VERSION UNMATCHED. PROCEED WITH CAUTION")
-    // //     console.log("VERSION UNMATCHED. PROCEED WITH CAUTION")
-    // // }
-    // logNormal("Loading obj..."+String(jsonObj.metadata.exportDate))
-    // console.log("Loading obj..."+String(jsonObj.metadata.exportDate))
-
-    // let gridX = jsonObj.metadata.gridSizeX
-    // let gridY = jsonObj.metadata.gridSizeY
-    // let chunkSize = jsonObj.metadata.chunkSize
-    // let tileSize = jsonObj.metadata.tileSize
-    
-    // // For now, skipping chunking...
-
-    // let rawXMod = gridX*chunkSize // Offset for y-axis...
-    // let i = 0
-
-    // g_activeMap = new gridTerrain(gridX,gridY,0,chunkSize,tileSize)
-
-    // for (let material of jsonObj.tiles) {
-    //     let x = i % rawXMod
-    //     let y = floor(i/rawXMod)
-        
-    //     g_activeMap.setMat(material)
-
-    //     ++i
-    // }
-
-    // // Attempt to force update...
-    // g_activeMap.invalidateCache()
-    // g_activeMap.renderConversion.forceTileUpdate()
-
-    // g_activeMap.render()
-    // console.log("IMPORTED. CHANGES SHOULD BE VIS.")
 }
 
 

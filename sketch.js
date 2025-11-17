@@ -65,6 +65,10 @@ function preload(){
 function setup() {
   // TEMPORARY
   // disableTerrainCache()
+  // let importButton = createButton('Import json map')
+  // importButton.mousePressed(importTerrain)
+
+  // return
 
   createCanvas(windowWidth,windowHeight) 
 
@@ -242,6 +246,10 @@ function setup() {
   window.BUIManager = new BUIManager();
   window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
+
+  // console.log("SETUPRESULT:",window)
+
+  // drop(importTerrain)
 }
 
 function addListeners() {
@@ -368,17 +376,17 @@ function draw() {
   //   importTerrainLP("/src/levels/tutorialCave_Start.json")
   // }
 
-  // if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap
-  //   g_activeMap = IMPORTED_JSON_TERRAIN
+  if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap
+    g_activeMap = IMPORTED_JSON_TERRAIN
 
-  //   g_activeMap.invalidateCache()
-  //   g_activeMap.renderConversion.forceTileUpdate()
+    g_activeMap.invalidateCache()
+    g_activeMap.renderConversion.forceTileUpdate()
 
-  //   g_activeMap.render() // Potential clipping...
+    g_activeMap.render() // Potential clipping...
 
-  //   console.log("SWAPPED")
-  //   IMPORTED_JSON_TERRAIN = NONE
-  // }
+    console.log("SWAPPED")
+    IMPORTED_JSON_TERRAIN = NONE
+  }
   // TEST_CHUNK()
   // return
   // ============================================================
@@ -1346,6 +1354,8 @@ function windowResized() {
   }
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
+
+  g_activeMap.invalidateCache()
 
   resizeCanvas(g_canvasX,g_canvasY);
 }
