@@ -528,7 +528,9 @@ _getFallbackJobStats(jobName) {
     if (this._stateMachine && typeof this._stateMachine.isDroppingOff === 'function' && this._stateMachine.isDroppingOff()) {
       this._checkDropoffArrival();
     }
-   }
+  }
+
+
  
   _updateStats() {
     if (this._stats) {
@@ -702,7 +704,7 @@ _getFallbackJobStats(jobName) {
     if (isOverlapping || shortestDistance <= this._attackRange) {
       if (isRanged) {
         if (this.jobName === "Spitter") {
-            // window.draggablePanelManager.handleShootLightning(this._combatTarget);
+            window.draggablePanelManager.handleShootLightning(this._combatTarget);
         } else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
           window.draggablePanelManager.handleShootLightning(this._combatTarget);
         }

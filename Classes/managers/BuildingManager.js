@@ -37,10 +37,45 @@ class AntCone extends AbstractBuildingFactory {
         }
       }
     };
+    this.isPlayerNearby = false;
+    this.menuActive = false;
+    this.promptRange = 100; 
   }
 
   createBuilding(x, y, faction) {
-    return new Building(x, y, 91, 97, Cone, faction, this.info);
+    let cone = new Building(x, y, 160, 100, Cone, faction, this.info);
+    
+    // attach player detection + prompt behavior
+    cone.promptRange = this.promptRange;
+    cone.isPlayerNearby = false;
+
+    cone.update = function() {
+      Building.prototype.update.call(this);
+      const queen = getQueen?.();
+      if (!queen) return;
+
+      const range = dist(this._x + 50, this._y, queen.posX, queen.posY);
+      this.isPlayerNearby = range < this.promptRange;
+    };
+
+    cone.render = function() {
+      Building.prototype.render.call(this);
+      const queen = getQueen?.();
+
+      // draw prompt if player close
+      if(this.isPlayerNearby && this._isDead){
+        push();
+        textAlign(CENTER);
+        textSize(16);
+        fill(255);
+        textFont(terrariaFont);
+        text("[E] Rebuild", queen.posX , queen.posY - 10);
+        pop();
+      }
+      
+    };
+
+    return cone;
   }
 
 }
@@ -161,8 +196,8 @@ class Building extends Entity {
     this._width = width;
     this._height = height;
     this._faction = faction;
-    this._health = 1000;
-    this._maxHealth = 1000;
+    this._health = 100;
+    this._maxHealth = 100;
     this._damage = 0;
     this._isDead = false;
     this.lastFrameTime = performance.now();
@@ -171,7 +206,7 @@ class Building extends Entity {
     
 
     // -- Stats Buff --
-    this.effectRange = 250;
+    this.effectRange = 100;
     this._buffedAnts = new Set();
 
     // Ants Inside Building
@@ -181,7 +216,7 @@ class Building extends Entity {
     this._spawnEnabled = false;
     this._spawnInterval = 10; // seconds
     this._spawnTimer = 0.0;
-    this._spawnCount = 1; // number of ants per interval
+    this._spawnCount = 2; // number of ants per interval
     // --- Controllers ---
     this._controllers.set('movement', null);
 
@@ -215,10 +250,10 @@ class Building extends Entity {
       const range = dist(this._x, this._y, ant.posX, ant.posY);
       const defaultStats = ant.job.stats;
       const buff = {
-        health: defaultStats.health * 1.1,           // +10% max health
-        movementSpeed: defaultStats.movementSpeed * 1.15, // +15% movement
-        strength: defaultStats.strength * .05,       // +5% strength
-        gatherSpeed: defaultStats.gatherSpeed * 1.1  // +10% gather efficiency
+        health: defaultStats.health,           // +0% max health
+        movementSpeed: defaultStats.movementSpeed , // +0% movement
+        strength: defaultStats.strength  ,       // +5% strength
+        gatherSpeed: defaultStats.gatherSpeed   // +10% gather efficiency
       };
 
 

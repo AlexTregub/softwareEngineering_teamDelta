@@ -51,10 +51,9 @@ class AntWave extends AbstractEvent {
             let degree = (x/this.amountOfBuilding) * 2 * 3.14
             let px = player.posX + this.raidus * cos(degree);
             let py = player.posY + this.raidus * sin(degree);
-            let building = createBuilding('anthill', px, py, 'waveEnemy');
+            let building = createBuilding('AntCone', px, py, 'waveEnemy');
             building.upgradeBuilding();
             building._spawnEnabled = true;
-            building._spawnCount = 3;
             Buildings.push(building);
         }
     }
