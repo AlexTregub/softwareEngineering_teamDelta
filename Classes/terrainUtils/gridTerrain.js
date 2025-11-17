@@ -1132,45 +1132,10 @@ function importTerrain() { // See https://p5js.org/reference/p5/p5.File/ , https
     input.accept='json'
 
     input.onchange = (event) => {
-        console.log(event)
-        console.log(event.target.value)
-        const filelist = event.target.files
-        console.log(filelist)
-
-        // importTerrainLP(event.target.value)
-
-        console.log(filelist.length)
-        console.log(filelist[0])
-
-        console.log(event.target.files[0])
-
-        const url = URL.createObjectURL(event.target.files[0])
-        // importTerrainLP(url)
-
         importTerrainLP(URL.createObjectURL(event.target.files[0]))
-
-        // importTerrainLP(filelist[0])
-
-        // let obj = JSON.parse(filelist[0])
-        // console.log(obj)
-
-        // fetch(filelist[0])
-        //     .then(conso)
-
     }
 
     input.click()
-
-    
-
-
-
-    // if (!(file.type === 'json')) { 
-    //     print("ERROR: WRONG FILE TYPE WHEN IMPORTING TERRAIN.")
-    //     return
-    // }
-
-    // ...
 }
 
 function importTerrainLP(path) { // Uses p5js's native function with path as input. 
