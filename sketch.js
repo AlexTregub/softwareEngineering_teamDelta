@@ -361,10 +361,10 @@ function initializeWorld() {
 function draw() {
   ++frameCount;
 
-
-  if (frameCount == 300) {
-    importTerrainLP("/src/levels/tutorialCave_Start.json")
-  }
+  // EXAMPLE OF LOADING JSON FILE...
+  // if (frameCount == 300) {
+  //   importTerrainLP("/src/levels/tutorialCave_Start.json")
+  // }
   // TEST_CHUNK()
   // return
   // ============================================================
