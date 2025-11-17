@@ -239,6 +239,11 @@ function setup() {
   window.BUIManager = new BUIManager();
   window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
+
+
+  console.log("Grass @",g_activeMap.sampleTiles("grass",10))
+  console.log("Stone peaks @",g_activeMap.sampleTiles("stone_1",2))
+  console.log("Beaches @",g_activeMap.sampleTiles("sand",2))
 }
 
 function addListeners() {
