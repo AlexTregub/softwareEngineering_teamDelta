@@ -1,6 +1,7 @@
 ///// TERRAIN is GRID of CHUNK is GRID of TILE 
 ///// TODO: Define functionality + update coordinate system
 
+
 //// Position utilities
 function posAdd(a,b) { // = a + b
     return [
@@ -322,6 +323,7 @@ class gridTerrain {
     //// Utils
     // Now converts grid position -> chunk (0,0 indexed) + relative (0,0 indexed), 2d format.
     convRelToAccess(pos) { // DISCONTINUED: Converts grid position -> chunk (TL indexed) + relative (0,0 indexed), 2d format.
+        // console.log(this._tileSpan)
         return this.convArrToAccess(
             [
                 pos[0] - this._tileSpan[0][0],
@@ -375,11 +377,16 @@ class gridTerrain {
 
     // Assumes indexed from TL position (_tileSpan[0])
     get(relPos) {
+        // console.log(relPos)
         let access = this.convRelToAccess(relPos);
         let chunkRawAccess = this.chunkArray.convToFlat(access[0]);
 
+        // console.log(access)
+        // console.log(chunkRawAccess)
+
         // console.log(access,chunkRawAccess,this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]))
 
+        // console.log(chunkRawAccess)
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
         // CONVERSIONS HAVE FAILED?
@@ -1161,6 +1168,57 @@ function convPosToCanvas(input){
 function convCanvasToPos(input){
     if (typeof g_activeMap === "undefined") {return}
     return g_activeMap.renderConversion.convCanvasToPos(input)
+}
+
+
+
+//// Terrain file loading handler function:
+// let IMPORTED_JSON_TERRAIN = NONE // WILL HOLD TERRAIN FOR ON BUTTON IMPORT
+function importTerrain() { // See https://p5js.org/reference/p5/p5.File/ , https://p5js.org/reference/p5.Element/drop/
+    console.log("FILE CAUGHT...")
+    
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept='json'
+
+    input.onchange = (event) => {
+        importTerrainLP(URL.createObjectURL(event.target.files[0]))
+    }
+
+    input.click()
+}
+
+function importTerrainLP(path) { // Uses p5js's native function with path as input. 
+    // var IMPORTED_JSON_TERRAIN = NONE
+    loadJSON(path, (jsonObj) => {
+        let gridX = jsonObj.metadata.gridSizeX
+        let gridY = jsonObj.metadata.gridSizeY
+        let chunkSize = jsonObj.metadata.chunkSize
+        let tileSize = jsonObj.metadata.tileSize
+        
+        // For now, skipping chunking...
+
+        let rawXMod = gridX*chunkSize // Offset for y-axis...
+        let i = 0
+
+        // Loading on global target
+        IMPORTED_JSON_TERRAIN = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
+        // g_activeMap = new gridTerrain(gridX,gridY,g_activeMap._seed,chunkSize,tileSize)
+
+        for (let material of jsonObj.tiles) {
+            let x = i % rawXMod
+            let y = floor(i/rawXMod)
+            
+            IMPORTED_JSON_TERRAIN.setMat([x,y],material)
+
+            ++i
+        }
+
+        IMPORTED_JSON_TERRAIN.setMat([0,0],"farmland") // Debug (0,0)
+
+        console.log("IMPORTED.")
+    })
+    return
 }
 
 

@@ -94,13 +94,18 @@ let TERRAIN_MATERIALS_RANGED = { // All-in-one configuration object. Range: [x,y
     'farmland' : [[0,0] , (x,y,squareSize,ctx) => ctx.image(FARMLAND_IMAGE, x, y, squareSize,squareSize)],     
     'caveDirt' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_DIRT_IMAGE,x,y,squareSize,squareSize)],
     'caveDark' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_EXDARK_IMAGE,x,y,squareSize,squareSize)],
-};
+
+    'cave1' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_1_IMAGE,x,y,squareSize,squareSize)],
+    'cave2' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_2_IMAGE,x,y,squareSize,squareSize)],
+    'cave3' : [[0,0], (x,y,squareSize,ctx) => ctx.image(CAVE_3_IMAGE,x,y,squareSize,squareSize)],
+ };
 
 /**
  * Context-aware material renderer - renders materials to any p5.js context
  * This respects existing material definitions while enabling cache rendering
  * without global function overrides
  */
+// NOW UNUSED...
 function renderMaterialToContext(materialName, x, y, size, context) { // NOW UNUSED
   // Handle the context parameter - default to global if not provided
   const ctx = context || window;
