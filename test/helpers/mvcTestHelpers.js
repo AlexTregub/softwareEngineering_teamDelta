@@ -12,8 +12,6 @@
  *     loadMVCClasses(); // Load EntityModel, EntityView, EntityController
  *   });
  * 
- * @author Software Engineering Team Delta
- * @version 1.0.0
  */
 
 const sinon = require('sinon');
@@ -142,10 +140,18 @@ class MockSelectionController {
   update() {}
   
   setSelected(val) { 
-    this._isSelected = val; 
+    this._isSelected = val;
+    // Sync to model
+    if (this.entity && this.entity.model && this.entity.model.setSelected) {
+      this.entity.model.setSelected(val);
+    }
   }
   
   isSelected() { 
+    // Read from model if available
+    if (this.entity && this.entity.model && this.entity.model.getSelected) {
+      return this.entity.model.getSelected();
+    }
     return this._isSelected; 
   }
   
@@ -232,27 +238,49 @@ function setupMVCTest() {
 }
 
 /**
- * Load MVC classes (EntityModel, EntityView, EntityController, EntityFactory)
- * Call this in beforeEach() to ensure classes are loaded
+ * Load EntityModel class
+ * @returns {class} EntityModel class
  */
-function loadMVCClasses() {
-  // Load EntityModel
+function loadEntityModel() {
   if (typeof global.EntityModel === 'undefined') {
     global.EntityModel = require('../../Classes/mvc/models/EntityModel.js');
     global.window.EntityModel = global.EntityModel;
   }
-  
-  // Load EntityView
+  return global.EntityModel;
+}
+
+/**
+ * Load EntityView class
+ * @returns {class} EntityView class
+ */
+function loadEntityView() {
   if (typeof global.EntityView === 'undefined') {
     global.EntityView = require('../../Classes/mvc/views/EntityView.js');
     global.window.EntityView = global.EntityView;
   }
-  
-  // Load EntityController
+  return global.EntityView;
+}
+
+/**
+ * Load EntityController class
+ * @returns {class} EntityController class
+ */
+function loadEntityController() {
   if (typeof global.EntityController === 'undefined') {
     global.EntityController = require('../../Classes/mvc/controllers/EntityController.js');
     global.window.EntityController = global.EntityController;
   }
+  return global.EntityController;
+}
+
+/**
+ * Load MVC classes (EntityModel, EntityView, EntityController, EntityFactory)
+ * Call this in beforeEach() to ensure classes are loaded
+ */
+function loadMVCClasses() {
+  loadEntityModel();
+  loadEntityView();
+  loadEntityController();
   
   // Load EntityFactory
   if (typeof global.EntityFactory === 'undefined') {
@@ -270,6 +298,48 @@ function loadAntModel() {
     global.AntModel = require('../../Classes/mvc/models/AntModel.js');
     global.window.AntModel = global.AntModel;
   }
+  return global.AntModel;
+}
+
+/**
+ * Load AntView class
+ * Depends on EntityView being loaded first (call loadMVCClasses() first)
+ * @returns {class} AntView class
+ */
+function loadAntView() {
+  // Ensure EntityView is loaded first
+  if (typeof global.EntityView === 'undefined') {
+    loadMVCClasses();
+  }
+  
+  if (typeof global.AntView === 'undefined') {
+    global.AntView = require('../../Classes/mvc/views/AntView.js');
+    global.window.AntView = global.AntView;
+  }
+  return global.AntView;
+}
+
+/**
+ * Load AntController class (when created)
+ * Depends on EntityController being loaded first (call loadMVCClasses() first)
+ * @returns {class} AntController class or null if not yet created
+ */
+function loadAntController() {
+  // Ensure EntityController is loaded first
+  if (typeof global.EntityController === 'undefined') {
+    loadMVCClasses();
+  }
+  
+  if (typeof global.AntController === 'undefined') {
+    try {
+      global.AntController = require('../../Classes/mvc/controllers/AntController.js');
+      global.window.AntController = global.AntController;
+    } catch (error) {
+      // File doesn't exist yet (TDD)
+      return null;
+    }
+  }
+  return global.AntController;
 }
 
 /**
@@ -332,7 +402,12 @@ module.exports = {
   // Setup functions
   setupMVCTest,
   loadMVCClasses,
+  loadEntityModel,
+  loadEntityView,
+  loadEntityController,
   loadAntModel,
+  loadAntView,
+  loadAntController,
   resetMVCMocks,
   
   // Helper functions

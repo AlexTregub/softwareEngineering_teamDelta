@@ -180,6 +180,10 @@ class AntModel extends EntityModel {
 
   getCapacity() { return this._capacity; }
   setCapacity(value) { this._capacity = value; }
+  
+  // Aliases for clarity
+  getResourceCapacity() { return this._capacity; }
+  setResourceCapacity(value) { this._capacity = value; }
 
   getResourceCount() { return this._resourceCount; }
   setResourceCount(value) { this._resourceCount = value; }
@@ -208,12 +212,34 @@ class AntModel extends EntityModel {
     };
   }
 
+  // Get job stats (includes all stats)
+  getJobStats() {
+    return {
+      strength: this._strength,
+      health: this._maxHealth,
+      gatherSpeed: this._gatherSpeed,
+      movementSpeed: this._movementSpeed
+    };
+  }
+
+  // Set job stats (for controller to update after job change)
+  setJobStats(stats) {
+    if (stats.strength !== undefined) this._strength = stats.strength;
+    if (stats.health !== undefined) this._maxHealth = stats.health;
+    if (stats.gatherSpeed !== undefined) this._gatherSpeed = stats.gatherSpeed;
+    if (stats.movementSpeed !== undefined) this._movementSpeed = stats.movementSpeed;
+  }
+
   // ============================================================================
   // State Getters/Setters
   // ============================================================================
 
   getPrimaryState() { return this._primaryState; }
   setPrimaryState(value) { this._primaryState = value; }
+
+  // Alias for state (for controller compatibility)
+  getState() { return this._primaryState; }
+  setState(value) { this._primaryState = value; }
 
   getCombatModifier() { return this._combatModifier; }
   setCombatModifier(value) { this._combatModifier = value; }
@@ -252,7 +278,13 @@ class AntModel extends EntityModel {
   // ============================================================================
 
   isBoxHovered() { return this._isBoxHovered; }
-  setBoxHovered(value) { this._isBoxHovered = value; }
+  getIsBoxHovered() { return this._isBoxHovered; } // Alias for consistency
+  setIsBoxHovered(value) { this._isBoxHovered = value; }
+  setBoxHovered(value) { this._isBoxHovered = value; } // Keep both
+
+  // Selection (from EntityModel base, but add aliases for clarity)
+  getSelected() { return this.selected; }
+  setSelected(value) { this.selected = value; }
 
   // ============================================================================
   // Component Reference Getters/Setters

@@ -362,7 +362,9 @@ describe('MVC Integration Tests', function() {
       
       // Sprite position should be synced if sprite exists
       if (entity.model.sprite && entity.model.sprite.pos) {
-        expect(spritePos).to.deep.equal({ x: 200, y: 300 });
+        // Compare only x,y (ignore z property from MockP5Vector)
+        expect(spritePos.x).to.equal(200);
+        expect(spritePos.y).to.equal(300);
       }
     });
   });

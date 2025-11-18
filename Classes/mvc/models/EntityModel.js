@@ -50,6 +50,7 @@ class EntityModel {
     this.faction = options.faction || 'neutral';
     this.jobName = null;
     this.movementSpeed = options.movementSpeed || 1;
+    this.selected = false; // Selection state
 
     // ===== COMPONENT REFERENCES =====
     // These are set by the controller, not created here

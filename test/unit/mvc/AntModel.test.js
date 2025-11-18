@@ -20,22 +20,22 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupMVCTest, loadMVCClasses, loadAntModel } = require('../../helpers/mvcTestHelpers');
 
-// Mock global dependencies
-global.window = global.window || {};
-global.p5 = global.p5 || {};
+// Setup all MVC test mocks
+setupMVCTest();
 
 describe('AntModel', function() {
-  let EntityModel;
-  let AntModel;
+  let EntityModel, AntModel;
 
   before(function() {
-    // Load EntityModel
-    EntityModel = require('../../../Classes/mvc/models/EntityModel.js');
+    // Load EntityModel for instanceof checks
+    loadMVCClasses();
+    EntityModel = global.EntityModel;
     
     // Load AntModel (will be created)
     try {
-      AntModel = require('../../../Classes/mvc/models/AntModel.js');
+      AntModel = loadAntModel();
     } catch (error) {
       // File doesn't exist yet (TDD)
       AntModel = null;

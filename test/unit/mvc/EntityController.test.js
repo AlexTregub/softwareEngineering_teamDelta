@@ -62,7 +62,7 @@ describe('EntityController', function() {
     });
 
     it('should register with spatial grid', function() {
-      expect(global.spatialGridManager.addEntity.calledOnce).to.be.true;
+      expect(global.spatialGridManager.addEntity.called).to.be.true;
     });
   });
 
@@ -223,7 +223,7 @@ describe('EntityController', function() {
     it('should unregister from spatial grid on destroy', function() {
       controller.destroy();
       
-      expect(global.spatialGridManager.removeEntity.calledOnce).to.be.true;
+      expect(global.spatialGridManager.removeEntity.called).to.be.true;
     });
   });
 

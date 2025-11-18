@@ -5,6 +5,7 @@
  */
 
 const { expect } = require('chai');
+const sinon = require('sinon');
 const { setupMVCTest, loadMVCClasses } = require('../../helpers/mvcTestHelpers');
 
 // Setup all MVC test mocks
