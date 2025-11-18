@@ -90,7 +90,11 @@ class AntCone extends AbstractBuildingFactory {
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Rebuild", queen.posX , queen.posY - 10);
+
+        const hillPos = this.getPosition()
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+
+        text("[E] Rebuild", renderPos.x , renderPos.y - 10);
         pop();
       }
       
@@ -174,15 +178,22 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
         textFont(terrariaFont);
 
         // console.log(queen.getPosition())
-        const queenPos = queen.getPosition()
+        // const queenPos = queen.getPosition()
         // console.log(queenPos)
 
         // console.log(Building.prototype.getPosition())
         // console.log(this.getPosition())
         const hillPos = this.getPosition()
 
+        // console.log(this.getCurrentPosition())
+
+        // console.log(this._controllers.get("movement"))
+        // console.log(this._controllers.get("render").worldToScreenPosition(hillPos))
+
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+
         // text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
-        text("[E] Open Hill Menu", hillPos.x , hillPos.y - 10);
+        text("[E] Open Hill Menu", renderPos.x , renderPos.y - 10);
         pop();
       }
 
@@ -192,7 +203,13 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Rebuild", queen.posX , queen.posY - 10);
+
+        const hillPos = this.getPosition()
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+        // console.log(hillPos,renderPos)
+
+        // text("[E] Rebuild", queen.posX , queen.posY - 10);
+        text("[E] Rebuild", renderPos.x , renderPos.y-10);
         pop();
       }
       
