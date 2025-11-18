@@ -169,7 +169,7 @@ class HiveSource extends AbstractBuildingFactory {
   }
 
   createBuilding(x, y, faction) {
-    return new Building(x, y, 160, 160, Hive, faction, this.info);
+    return new Building(x, y, 160, 160, Hive, faction, this.info, tileType = "stone");
   }
 }
 
