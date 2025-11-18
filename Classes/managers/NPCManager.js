@@ -96,9 +96,18 @@ function NPCPreloader() {
  
 class NPC extends Building{
   constructor(x, y) {
-    super(x, y, 40, 40, Character, 'NPC', null);
-    this._x = x;
-    this._y = y;
+    let targetHive = Buildings[0] // Target position
+    // console.log("TARGETHIVEPOSITION",targetHive,Buildings)
+    console.log("TARGETHIVEPOSITION",Buildings[0]._x,Buildings[0]._y)
+
+    let newX = Buildings[0]._x - 50
+    let newY = Buildings[0]._y - 50
+    
+    // super(x, y, 40, 40, Character, 'NPC', null);
+    super(newX, newY, 40, 40, Character, 'NPC', null);
+
+    this._x = newX;
+    this._y = newY;
     this._faction = 'player';
     this.isBoxHovered = false;
     this.dialogueRange = 100;

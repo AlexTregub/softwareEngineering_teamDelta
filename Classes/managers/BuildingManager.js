@@ -80,7 +80,7 @@ class AntCone extends AbstractBuildingFactory {
 
 }
 
-class AntHill extends AbstractBuildingFactory {
+class AntHill extends AbstractBuildingFactory { // Main anthill 
   constructor() {
     super();
     this.info = {
@@ -101,7 +101,7 @@ class AntHill extends AbstractBuildingFactory {
   }
 
   createBuilding(x, y, faction) {
-    const hill = new Building(x, y, 160, 100, Hill, faction, this.info);
+    const hill = new Building(x, y, 160, 100, Hill, faction, this.info); // AntHill = Building<-Entity(canvasCoords) + buildingType
 
     hill.buildingType = "anthill";
     
@@ -177,21 +177,21 @@ class HiveSource extends AbstractBuildingFactory {
 
 class Building extends Entity {
   constructor(x, y, width, height, img, faction, info,tileType=['grass','moss','moss_2','moss_3']) {
-    let a = g_activeMap.sampleTiles(tileType,10000);
+    let a = g_activeMap.sampleTiles(tileType,10000); // 
 
-    let tilex = a[0][0];
-    let tiley = a[0][1];
+    let tilex = a[0][0]; // Picks initial random position
+    let tiley = a[0][1]; // ...
 
-    for (let pos in a) {
+    for (let pos in a) { // pos is an index in a
       // let pos = a[pos]
 
       let temp = a[pos]
       // console.log(temp)
-      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) {
+      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
         tilex = temp[0]
-        tiley = temp[1]
+        tiley = temp[1] // tile positions (grid) 
 
-        console.log("DONE DID IT ")
+        // console.log("DONE DID IT ")
         break
       }
     }

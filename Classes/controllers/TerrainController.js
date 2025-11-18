@@ -108,8 +108,8 @@ class TerrainController {
       // Fallback to direct g_activeMap access
       try {
         const tileSize = window.TILE_SIZE || 32;
-        const tileX = Math.floor(pos.x / tileSize);
-        const tileY = Math.floor(pos.y / tileSize);
+        const tileX = Math.round(pos.x / tileSize); // Should be round to align with grid
+        const tileY = Math.round(pos.y / tileSize);
         
         const chunkX = Math.floor(tileX / g_activeMap._chunkSize);
         const chunkY = Math.floor(tileY / g_activeMap._chunkSize);

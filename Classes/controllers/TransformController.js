@@ -41,18 +41,22 @@ class TransformController {
    * @param {number} y - Y coordinate in world space (pixels)
    */
   setPosition(x, y) {
-    // Update StatsContainer if available
+    // Update StatsContainer if available -- NEVER AVAILABLE
     if (this._entity._stats && 
         this._entity._stats.position && 
         this._entity._stats.position.statValue) {
       this._entity._stats.position.statValue.x = x;
       this._entity._stats.position.statValue.y = y;
+
+      // console.log("QWERTYUI")
     }
     
     // Update cache for dirty flag tracking
     this._lastPosition.x = x;
     this._lastPosition.y = y;
     this._isDirty = true;
+
+    // console.log("QWERTYUI")
   }
 
   /**
