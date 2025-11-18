@@ -396,7 +396,7 @@ function draw() {
   //   importTerrainLP("/src/levels/tutorialCave_Start.json")
   // }
 
-  if (frameCount == 1200) {
+  if (frameCount == 300) {
     let spider = new Spider()
   }
 

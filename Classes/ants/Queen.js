@@ -1,5 +1,5 @@
 class QueenAnt extends ant {
-  constructor(baseAnt) {
+  constructor(baseAnt,target=NONE) {
     // If a base ant is passed, use its properties; otherwise create a default queen ant
     // console.log('queen',baseAnt.posX, baseAnt.posY, baseAnt.getSize().x, baseAnt.getSize().y, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(), baseAnt._faction);
 
@@ -11,7 +11,12 @@ class QueenAnt extends ant {
 
 
     // super(baseAnt.posX, baseAnt.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
-    super(Buildings[0]._x, Buildings[0]._y, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    if (target == NONE) {
+      super(Buildings[0]._x, Buildings[0]._y, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    } else {
+      super(target[0], target[1], 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction)
+    }
+    
     // super(closestHive.posX, closestHive.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
     
     // let closestHive = this.nearestFriendlyBuilding(
