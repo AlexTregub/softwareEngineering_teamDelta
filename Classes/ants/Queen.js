@@ -182,6 +182,21 @@ class QueenAnt extends ant {
   }
 
   render() {
+    
+    if (this._type == "Queen") {
+      let temp = this.getPosition()
+      // let temp1 = this._controllers.get("render").worldToScreenPos(temp)
+      let temp1 = this._controllers.get("render").worldToScreenPosition(temp)
+
+      let temp2 = g_activeMap.renderConversion.convCanvasToPos([temp1.x,temp1.y])
+
+      // console.log(temp,temp1,temp2)
+      console.log("QUEEN POSITION @ ",temp2)
+      // console.log("QueenPos:",this.getPosition(),g_activeMap.renderConversion.convCanvasToPos([this.getPosition().x,this.getPosition().y]))
+    }
+    
+
+
     super.render();
 
     // Draw command radius if visible
