@@ -1,0 +1,261 @@
+/**
+ * EntityView Unit Tests
+ * =====================
+ * Tests for presentation layer - handles rendering, no state mutations
+ */
+
+const { expect } = require('chai');
+const sinon = require('sinon');
+
+// Mock window for Node.js environment
+if (typeof window === 'undefined') {
+  global.window = {};
+}
+
+// Mock p5.js functions
+global.push = sinon.stub();
+global.pop = sinon.stub();
+global.noSmooth = sinon.stub();
+global.smooth = sinon.stub();
+global.fill = sinon.stub();
+global.noFill = sinon.stub();
+global.stroke = sinon.stub();
+global.strokeWeight = sinon.stub();
+global.ellipse = sinon.stub();
+global.rect = sinon.stub();
+global.tint = sinon.stub();
+global.noTint = sinon.stub();
+
+// Mock createVector
+global.createVector = sinon.stub().callsFake((x, y) => ({ x: x || 0, y: y || 0 }));
+window.createVector = global.createVector;
+
+// Mock CoordinateConverter
+global.CoordinateConverter = {
+  worldToScreen: sinon.stub().callsFake((x, y) => ({ x, y })),
+  screenToWorld: sinon.stub().callsFake((x, y) => ({ x, y }))
+};
+window.CoordinateConverter = global.CoordinateConverter;
+
+describe('EntityView', function() {
+  let view, model;
+
+  beforeEach(function() {
+    // Load classes
+    if (typeof EntityModel === 'undefined') {
+      global.EntityModel = require('../../../Classes/mvc/models/EntityModel.js');
+      window.EntityModel = global.EntityModel;
+    }
+    if (typeof EntityView === 'undefined') {
+      global.EntityView = require('../../../Classes/mvc/views/EntityView.js');
+      window.EntityView = global.EntityView;
+    }
+
+    // Create model
+    model = new EntityModel({ x: 100, y: 200, width: 32, height: 32 });
+    
+    // Create view
+    view = new EntityView(model);
+
+    // Reset mocks
+    sinon.reset();
+  });
+
+  afterEach(function() {
+    sinon.restore();
+  });
+
+  describe('Construction', function() {
+    it('should create with model reference', function() {
+      expect(view.model).to.equal(model);
+    });
+
+    it('should initialize with null debug renderer', function() {
+      expect(view.debugRenderer).to.be.null;
+    });
+  });
+
+  describe('Rendering', function() {
+    it('should not render if model is inactive', function() {
+      model.isActive = false;
+      const spriteMock = { render: sinon.spy() };
+      model.sprite = spriteMock;
+
+      view.render();
+
+      expect(spriteMock.render.called).to.be.false;
+    });
+
+    it('should not render if model is invisible', function() {
+      model.visible = false;
+      const spriteMock = { render: sinon.spy() };
+      model.sprite = spriteMock;
+
+      view.render();
+
+      expect(spriteMock.render.called).to.be.false;
+    });
+
+    it('should render sprite when active and visible', function() {
+      model.isActive = true;
+      model.visible = true;
+      const spriteMock = { render: sinon.spy() };
+      model.sprite = spriteMock;
+
+      view.render();
+
+      expect(spriteMock.render.calledOnce).to.be.true;
+    });
+
+    it('should handle missing sprite gracefully', function() {
+      model.sprite = null;
+
+      expect(() => view.render()).to.not.throw();
+    });
+  });
+
+  describe('Debug Rendering', function() {
+    it('should not render debug if debugRenderer is null', function() {
+      view.debugRenderer = null;
+
+      expect(() => view.renderDebug()).to.not.throw();
+    });
+
+    it('should not render debug if debugRenderer is inactive', function() {
+      const debugMock = { isActive: false, render: sinon.spy() };
+      view.debugRenderer = debugMock;
+
+      view.renderDebug();
+
+      expect(debugMock.render.called).to.be.false;
+    });
+
+    it('should render debug if debugRenderer is active', function() {
+      const debugMock = { isActive: true, render: sinon.spy() };
+      view.debugRenderer = debugMock;
+
+      view.renderDebug();
+
+      expect(debugMock.render.calledOnce).to.be.true;
+    });
+  });
+
+  describe('Highlight Effects', function() {
+    beforeEach(function() {
+      model.sprite = { render: sinon.stub() };
+    });
+
+    it('should have highlightSelected method', function() {
+      expect(view.highlightSelected).to.be.a('function');
+    });
+
+    it('should have highlightHover method', function() {
+      expect(view.highlightHover).to.be.a('function');
+    });
+
+    it('should have highlightCombat method', function() {
+      expect(view.highlightCombat).to.be.a('function');
+    });
+
+    it('should call p5.js drawing functions for highlight', function() {
+      view.highlightSelected();
+
+      expect(global.push.called).to.be.true;
+      expect(global.pop.called).to.be.true;
+    });
+  });
+
+  describe('Screen Position Conversion', function() {
+    it('should convert world position to screen coordinates', function() {
+      const screenPos = view.getScreenPosition();
+
+      expect(screenPos).to.exist;
+      expect(screenPos.x).to.equal(100);
+      expect(screenPos.y).to.equal(200);
+    });
+
+    it('should use CoordinateConverter when available', function() {
+      global.CoordinateConverter.worldToScreen.resetHistory();
+
+      view.getScreenPosition();
+
+      expect(global.CoordinateConverter.worldToScreen.called).to.be.true;
+    });
+
+    it('should handle missing CoordinateConverter', function() {
+      const originalConverter = global.CoordinateConverter;
+      global.CoordinateConverter = undefined;
+
+      const screenPos = view.getScreenPosition();
+
+      expect(screenPos).to.exist;
+
+      global.CoordinateConverter = originalConverter;
+    });
+  });
+
+  describe('Opacity Management', function() {
+    it('should apply opacity to sprite rendering', function() {
+      model.opacity = 128;
+      model.sprite = { render: sinon.stub(), alpha: 255 };
+
+      view.applyOpacity();
+
+      expect(model.sprite.alpha).to.equal(128);
+    });
+
+    it('should handle missing sprite when applying opacity', function() {
+      model.sprite = null;
+
+      expect(() => view.applyOpacity()).to.not.throw();
+    });
+  });
+
+  describe('NO State Mutations (View Purity)', function() {
+    it('should NOT modify model position', function() {
+      const originalPos = model.getPosition();
+      
+      view.render();
+      
+      expect(model.getPosition()).to.deep.equal(originalPos);
+    });
+
+    it('should NOT modify model size', function() {
+      const originalSize = model.getSize();
+      
+      view.render();
+      
+      expect(model.getSize()).to.deep.equal(originalSize);
+    });
+
+    it('should NOT have update methods', function() {
+      expect(view.update).to.be.undefined;
+    });
+
+    it('should NOT have movement methods', function() {
+      expect(view.moveToLocation).to.be.undefined;
+    });
+
+    it('should NOT have controller methods', function() {
+      expect(view.getController).to.be.undefined;
+      expect(view._initializeControllers).to.be.undefined;
+    });
+  });
+
+  describe('Read-Only Model Access', function() {
+    it('should read from model without modifying it', function() {
+      const originalData = model.getValidationData();
+      
+      view.getScreenPosition();
+      view.render();
+      
+      const newData = model.getValidationData();
+      
+      // Compare fields excluding timestamp (which changes)
+      expect(newData.id).to.equal(originalData.id);
+      expect(newData.position).to.deep.equal(originalData.position);
+      expect(newData.size).to.deep.equal(originalData.size);
+      expect(newData.isActive).to.equal(originalData.isActive);
+    });
+  });
+});
