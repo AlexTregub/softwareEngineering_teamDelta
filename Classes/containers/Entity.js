@@ -32,8 +32,8 @@ class Entity {
     // Apply +0.5 tile offset for tile-centered positioning
     // This moves entities to the visual center of their tile, so rendering doesn't need offset
     const TILE_SIZE = typeof window !== 'undefined' && window.TILE_SIZE ? window.TILE_SIZE : 32;
-    const centeredX = x - (TILE_SIZE * 0.5); // Canvas cordinates
-    const centeredY = y - (TILE_SIZE * 0.5); // Tiles offset by -0.5,-0.5 -- matching that
+    const centeredX = x + (TILE_SIZE * 0.5); // Canvas cordinates
+    const centeredY = y + (TILE_SIZE * 0.5); // Tiles offset by -0.5,-0.5 -- matching that
 
     // Initialize collision box first (required by some controllers)
     this._collisionBox = new CollisionBox2D(centeredX, centeredY, width, height);
