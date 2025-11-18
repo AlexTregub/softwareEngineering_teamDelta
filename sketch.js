@@ -241,7 +241,7 @@ function setup() {
   }
   soundManager.startBGMMonitoring();
   initializeContextMenuPrevention();
-  Buildings.push(createBuilding('anthill', 400, 400, 'player'));
+  // Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
   window.QuestManager.preloadAssets();
 
   // --- initialize shop manager ---
@@ -251,7 +251,7 @@ function setup() {
 
   // Game Event
   gameEventManager = new GameEventManager();
-  gameEventManager.startEvent('Wave');
+  gameEventManager.startEvent('Wave'); // Waves / Additional hives...
 
 
 
@@ -366,7 +366,12 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
-  queenAnt = spawnQueen();
+  
+
+  // Main hive, initial, anthill
+  Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
+
+  queenAnt = spawnQueen(); // Queen spawn post anthill
 
   // npc test
   Buildings.push(createNPC(350,500));
@@ -391,7 +396,7 @@ function draw() {
   //   importTerrainLP("/src/levels/tutorialCave_Start.json")
   // }
 
-  if (frameCount == 1200) {
+  if (frameCount == 300) {
     let spider = new Spider()
   }
 

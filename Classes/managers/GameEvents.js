@@ -36,7 +36,7 @@ class BossEvent extends AbstractEvent {
         
 
 class AntWave extends AbstractEvent {
-    constructor(radius = 500,amountOfBuilding = 4){
+    constructor(radius = 500,amountOfBuilding = 100){
         super();
         this.raidus = radius;
         this.amountOfBuilding = amountOfBuilding;

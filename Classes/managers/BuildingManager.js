@@ -42,8 +42,29 @@ class AntCone extends AbstractBuildingFactory {
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction) {
-    let cone = new Building(x, y, 160, 100, Cone, faction, this.info);
+  createBuilding(x, y, faction,tileType=['grass']) {
+    let a = g_activeMap.sampleTiles(tileType,1); // 
+
+    let tilex = a[0][0]; // Picks initial random position
+    let tiley = a[0][1]; // ...
+
+    // for (let pos in a) { // pos is an index in a
+    //   // let pos = a[pos]
+
+    //   let temp = a[pos]
+    //   // console.log(temp)
+    //   // if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+    //   //   tilex = temp[0]
+    //   //   tiley = temp[1] // tile positions (grid) 
+
+    //   //   // console.log("DONE DID IT ")
+    //   //   break
+    //   // }
+    // }
+
+    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+
+    let cone = new Building(convPos[0], convPos[1], 160, 100, Cone, faction, this.info);
     
     // attach player detection + prompt behavior
     cone.promptRange = this.promptRange;
@@ -69,7 +90,11 @@ class AntCone extends AbstractBuildingFactory {
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Rebuild", queen.posX , queen.posY - 10);
+
+        const hillPos = this.getPosition()
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+
+        text("[E] Rebuild", renderPos.x , renderPos.y - 10);
         pop();
       }
       
@@ -80,7 +105,7 @@ class AntCone extends AbstractBuildingFactory {
 
 }
 
-class AntHill extends AbstractBuildingFactory {
+class AntHill extends AbstractBuildingFactory { // Main anthill 
   constructor() {
     super();
     this.info = {
@@ -100,8 +125,36 @@ class AntHill extends AbstractBuildingFactory {
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction) {
-    const hill = new Building(x, y, 160, 100, Hill, faction, this.info);
+  createBuilding(x, y, faction,tileType=['grass']) {
+    let a = g_activeMap.sampleTiles(tileType,10000); // 
+
+    let tilex = a[0][0]; // Picks initial random position
+    let tiley = a[0][1]; // ...
+
+    for (let pos in a) { // pos is an index in a
+      // let pos = a[pos]
+
+      let temp = a[pos]
+      // console.log(temp)
+      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+        tilex = temp[0]
+        tiley = temp[1] // tile positions (grid) 
+
+        // console.log("DONE DID IT ")
+        break
+      }
+    }
+
+    if (tilex > 30 | tilex < -30 | tiley > 30 | tiley < -30) {
+      tilex = 0
+      tiley = 0
+      console.log("WARNING: DEFAULT SPAWN POS FOR ANTHILL")
+    } 
+
+    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+
+
+    const hill = new Building(convPos[0], convPos[1], 160, 100, Hill, faction, this.info); // AntHill = Building<-Entity(canvasCoords) + buildingType
 
     hill.buildingType = "anthill";
     
@@ -129,7 +182,24 @@ class AntHill extends AbstractBuildingFactory {
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
+
+        // console.log(queen.getPosition())
+        // const queenPos = queen.getPosition()
+        // console.log(queenPos)
+
+        // console.log(Building.prototype.getPosition())
+        // console.log(this.getPosition())
+        const hillPos = this.getPosition()
+
+        // console.log(this.getCurrentPosition())
+
+        // console.log(this._controllers.get("movement"))
+        // console.log(this._controllers.get("render").worldToScreenPosition(hillPos))
+
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+
+        // text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
+        text("[E] Open Hill Menu", renderPos.x , renderPos.y - 10);
         pop();
       }
 
@@ -139,7 +209,13 @@ class AntHill extends AbstractBuildingFactory {
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Rebuild", queen.posX , queen.posY - 10);
+
+        const hillPos = this.getPosition()
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+        // console.log(hillPos,renderPos)
+
+        // text("[E] Rebuild", queen.posX , queen.posY - 10);
+        text("[E] Rebuild", renderPos.x , renderPos.y-10);
         pop();
       }
       
@@ -177,28 +253,28 @@ class HiveSource extends AbstractBuildingFactory {
 
 class Building extends Entity {
   constructor(x, y, width, height, img, faction, info,tileType=['grass','moss','moss_2','moss_3']) {
-    let a = g_activeMap.sampleTiles(tileType,10000);
+    // let a = g_activeMap.sampleTiles(tileType,10000); // 
 
-    let tilex = a[0][0];
-    let tiley = a[0][1];
+    // let tilex = a[0][0]; // Picks initial random position
+    // let tiley = a[0][1]; // ...
 
-    for (let pos in a) {
-      // let pos = a[pos]
+    // for (let pos in a) { // pos is an index in a
+    //   // let pos = a[pos]
 
-      let temp = a[pos]
-      // console.log(temp)
-      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) {
-        tilex = temp[0]
-        tiley = temp[1]
+    //   let temp = a[pos]
+    //   // console.log(temp)
+    //   if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+    //     tilex = temp[0]
+    //     tiley = temp[1] // tile positions (grid) 
 
-        console.log("DONE DID IT ")
-        break
-      }
-    }
+    //     // console.log("DONE DID IT ")
+    //     break
+    //   }
+    // }
 
-    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+    // let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
-    super(convPos[0], convPos[1], width, height, {
+    super(x, y, width, height, {
       type: "Building",
       imagePath: img,
       selectable: true,
@@ -206,13 +282,15 @@ class Building extends Entity {
     });
 
 
-    // --- Basic properties ---
-    this._x = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[0];
-    this._y = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[1];
+    // // --- Basic properties ---
+    // this._x = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[0];
+    // this._y = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[1];
+    this._x = x;
+    this._y = y;
 
     // Included for legacy compatibility
-    this.posX = tilex;
-    this.posY = tiley;
+    this.posX = x;
+    this.posY = y;
 
     this._width = width;
     this._height = height;
@@ -235,9 +313,9 @@ class Building extends Entity {
 
     // --- Spawning (ants) ---
     this._spawnEnabled = false;
-    this._spawnInterval = 10; // seconds
+    this._spawnInterval = 60; // seconds
     this._spawnTimer = 0.0;
-    this._spawnCount = 2; // number of ants per interval
+    this._spawnCount = 1; // number of ants per interval
     // --- Controllers ---
     this._controllers.set('movement', null);
 
