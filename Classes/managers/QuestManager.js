@@ -74,6 +74,8 @@ class QuestManager {
             this.activeQuests.splice(index, 1);
             // For testing lol
             this.showCompletionMessage(quest);
+            //delete this.activeQuests[id];
+
         }
     }
 
@@ -81,6 +83,10 @@ class QuestManager {
     // Simple console log for now
     showCompletionMessage(quest) {
         console.log(`Quest Completed: ${quest.name}`);
+    }
+
+    isQuestActive(id) {
+        return this.activeQuests.some(q => q.id === id);
     }
 
     // SHOW UI \\
