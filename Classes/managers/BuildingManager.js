@@ -176,8 +176,11 @@ class HiveSource extends AbstractBuildingFactory {
 
 
 class Building extends Entity {
-  constructor(x, y, width, height, img, faction, info) {
-    super(x, y, width, height, {
+  constructor(x, y, width, height, img, faction, info,tileType='grass') {
+    let a = g_activeMap.sampleTiles(tileType,1);
+    let tilex = a[0][0];
+    let tiley = a[0][1];
+    super(tilex, tiley, width, height, {
       type: "Building",
       imagePath: img,
       selectable: true,
