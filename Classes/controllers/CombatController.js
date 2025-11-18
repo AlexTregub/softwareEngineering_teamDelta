@@ -108,6 +108,7 @@ class CombatController {
     if (typeof ants === 'undefined' || typeof antIndex === 'undefined') return;
 
     const entityFaction = this._entity.faction || "neutral";
+
     // Check all other ants for enemies
     for (let i = 0; i < ants.length; i++) {
       if (!ants[i] || ants[i] === this._entity) continue;
@@ -127,15 +128,17 @@ class CombatController {
 
       if (distance <= this._detectionRadius) {
         this._nearbyEnemies.push(otherAnt);
-        return;
       }
     }
+
+    // Focus on attacking ants before buildings
+    if( this._nearbyEnemies.length > 0){return;}
 
     // Detect buildings
     for (let i = 0; i < Buildings.length; i++) {
       const building = Buildings[i];
       if (!building) continue;
-      if (building.faction === entityFaction || entityFaction === "neutral" || building.faction === "neutral") {
+      if (building.faction === entityFaction || entityFaction === "neutral" || building.faction === "neutral" || building._isDead) {
         continue;
       }
 

@@ -41,6 +41,8 @@ let terrariaFont;
 
 let IMPORTED_JSON_TERRAIN = NONE
 
+let gameEventManager;
+
 function preload(){
   // return; // !!! REMOVE BEFORE DEV
 
@@ -246,6 +248,11 @@ function setup() {
   window.BUIManager = new BUIManager();
   window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
+
+  // Game Event
+  gameEventManager = new GameEventManager();
+  gameEventManager.startEvent('Wave');
+
 
 
   console.log("SAMPLING EXAMPLE")
@@ -510,6 +517,8 @@ function draw() {
     try { window.drawTerrainGrid(); }
     catch (error) { console.error('❌ Error drawing terrain grid:', error); }
   }
+
+gameEventManager.update()
 }
 
 
@@ -1086,7 +1095,7 @@ function keyPressed() {
     }
   
     // interact with nearby anthill
-    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill");
+    const nearbyHill = Buildings.find(b => b.isPlayerNearby && b.buildingType === "anthill" && b._faction == "player");
     if (nearbyHill) {
       console.log("Interacting with nearby anthill:", nearbyHill);
       if (!window.BUIManager.active) {
@@ -1094,6 +1103,13 @@ function keyPressed() {
       } else {
         window.BUIManager.close();
       }
+      return;
+    }
+
+
+    let deadBuildings = Buildings.find(b => b.isPlayerNearby && b._faction != "player" && b._isDead);
+    if (deadBuildings) {
+      window.BUIManager.rebuild(deadBuildings);
       return;
     }
   }

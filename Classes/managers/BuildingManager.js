@@ -37,10 +37,45 @@ class AntCone extends AbstractBuildingFactory {
         }
       }
     };
+    this.isPlayerNearby = false;
+    this.menuActive = false;
+    this.promptRange = 100; 
   }
 
   createBuilding(x, y, faction) {
-    return new Building(x, y, 91, 97, Cone, faction, this.info);
+    let cone = new Building(x, y, 160, 100, Cone, faction, this.info);
+    
+    // attach player detection + prompt behavior
+    cone.promptRange = this.promptRange;
+    cone.isPlayerNearby = false;
+
+    cone.update = function() {
+      Building.prototype.update.call(this);
+      const queen = getQueen?.();
+      if (!queen) return;
+
+      const range = dist(this._x + 50, this._y, queen.posX, queen.posY);
+      this.isPlayerNearby = range < this.promptRange;
+    };
+
+    cone.render = function() {
+      Building.prototype.render.call(this);
+      const queen = getQueen?.();
+
+      // draw prompt if player close
+      if(this.isPlayerNearby && this._isDead){
+        push();
+        textAlign(CENTER);
+        textSize(16);
+        fill(255);
+        textFont(terrariaFont);
+        text("[E] Rebuild", queen.posX , queen.posY - 10);
+        pop();
+      }
+      
+    };
+
+    return cone;
   }
 
 }
@@ -85,17 +120,29 @@ class AntHill extends AbstractBuildingFactory {
 
     hill.render = function() {
       Building.prototype.render.call(this);
+      const queen = getQueen?.();
 
       // draw prompt if player close
-      if (this.isPlayerNearby) {
+      if(this.isPlayerNearby && !this._isDead && this._faction == "player"){
         push();
         textAlign(CENTER);
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Open Hill Menu", this._x + this._width / 2 + 10, this._y + this._height + 30);
+        text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
         pop();
       }
+
+      if(this.isPlayerNearby && this._isDead){
+        push();
+        textAlign(CENTER);
+        textSize(16);
+        fill(255);
+        textFont(terrariaFont);
+        text("[E] Rebuild", queen.posX , queen.posY - 10);
+        pop();
+      }
+      
     };
 
     return hill;
@@ -129,8 +176,29 @@ class HiveSource extends AbstractBuildingFactory {
 
 
 class Building extends Entity {
-  constructor(x, y, width, height, img, faction, info) {
-    super(x, y, width, height, {
+  constructor(x, y, width, height, img, faction, info,tileType=['grass','moss','moss_2','moss_3']) {
+    let a = g_activeMap.sampleTiles(tileType,10000);
+
+    let tilex = a[0][0];
+    let tiley = a[0][1];
+
+    for (let pos in a) {
+      // let pos = a[pos]
+
+      let temp = a[pos]
+      // console.log(temp)
+      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) {
+        tilex = temp[0]
+        tiley = temp[1]
+
+        console.log("DONE DID IT ")
+        break
+      }
+    }
+
+    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+
+    super(convPos[0], convPos[1], width, height, {
       type: "Building",
       imagePath: img,
       selectable: true,
@@ -139,18 +207,18 @@ class Building extends Entity {
 
 
     // --- Basic properties ---
-    this._x = x;
-    this._y = y;
+    this._x = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[0];
+    this._y = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[1];
 
     // Included for legacy compatibility
-    this.posX = x;
-    this.posY = y;
+    this.posX = tilex;
+    this.posY = tiley;
 
     this._width = width;
     this._height = height;
     this._faction = faction;
-    this._health = 1000;
-    this._maxHealth = 1000;
+    this._health = 100;
+    this._maxHealth = 100;
     this._damage = 0;
     this._isDead = false;
     this.lastFrameTime = performance.now();
@@ -159,7 +227,7 @@ class Building extends Entity {
     
 
     // -- Stats Buff --
-    this.effectRange = 250;
+    this.effectRange = 100;
     this._buffedAnts = new Set();
 
     // Ants Inside Building
@@ -169,11 +237,12 @@ class Building extends Entity {
     this._spawnEnabled = false;
     this._spawnInterval = 10; // seconds
     this._spawnTimer = 0.0;
-    this._spawnCount = 1; // number of ants per interval
+    this._spawnCount = 2; // number of ants per interval
     // --- Controllers ---
     this._controllers.set('movement', null);
 
     // --- Image ---
+    this.image = img;
     if (img) this.setImage(img);
   }
 
@@ -202,10 +271,10 @@ class Building extends Entity {
       const range = dist(this._x, this._y, ant.posX, ant.posY);
       const defaultStats = ant.job.stats;
       const buff = {
-        health: defaultStats.health * 1.1,           // +10% max health
-        movementSpeed: defaultStats.movementSpeed * 1.15, // +15% movement
-        strength: defaultStats.strength * .05,       // +5% strength
-        gatherSpeed: defaultStats.gatherSpeed * 1.1  // +10% gather efficiency
+        health: defaultStats.health,           // +0% max health
+        movementSpeed: defaultStats.movementSpeed , // +0% movement
+        strength: defaultStats.strength  ,       // +5% strength
+        gatherSpeed: defaultStats.gatherSpeed   // +10% gather efficiency
       };
 
 
@@ -222,32 +291,60 @@ class Building extends Entity {
     })
   }
 
+  downgradeBuilding() {
+    if (!this.previousStage) {
+      console.log("No downgrade available");
+      return false;
+    }
+
+
+    this.setImage(this.previousStage.image);
+    this._maxHealth = this.previousStage.maxHealth;
+    this._spawnInterval = this.previousStage.spawnInterval;
+    this._spawnCount = this.previousStage.spawnCount;
+    this.info = this.previousStage.info;
+
+    // Reset current health
+    this._health = this._maxHealth;
+
+    // clear the saved stage so you don't double-downgrade
+    this.previousStage = null;
+    this._spawnEnabled = false;
+
+    return true;
+  }
+
 
   // UPGRADE BUILDING \\
   upgradeBuilding() {
     if (!this.info || !this.info.progressions) return false;
+
     const next = this.info.progressions[1];
-    if(this.info.upgradeCost > globalResource.length){ console.log('Not enough resources to upgrade'); return false; }
-    if (!next) { console.log('No further upgrades'); return false; }
+    if (!next) return false;
 
     const nextImage = typeof next.image === "function" ? next.image() : next.image;
-    if (!nextImage) { console.log('Image not loaded yet'); return false; }
 
-    try {
-      // Improve Building Stats on Upgrade
-      this.setImage(nextImage);
-      this._spawnInterval = Math.max(1, this._spawnInterval - 1);
-      this._spawnCount += 1;
-      this._maxHealth = Math.round(this._maxHealth * 1.25);
-      this._health = this._maxHealth;
+    console.log("image", this.image);
+    this.previousStage = {
+      image: this.image,        // current image
+      maxHealth: this._maxHealth,
+      spawnInterval: this._spawnInterval,
+      spawnCount: this._spawnCount,
+      info: this.info           // current progression info
+    };
 
-      this.info = next;
-    } catch (e) {
-      console.warn("Upgrade failed:", e);
-      return false;
-    }
+
+    // --- APPLY UPGRADE ---
+    this.setImage(nextImage);
+    this._spawnInterval = Math.max(1, this._spawnInterval - 1);
+    this._spawnCount += 1;
+    this._maxHealth = Math.round(this._maxHealth * 1.25);
+    this._health = this._maxHealth;
+
+    this.info = next;
     return true;
   }
+
 
 
 
@@ -277,7 +374,7 @@ class Building extends Entity {
           const s = this.getSize ? this.getSize() : (this._size || { x: width || 32, y: height || 32 });
           const centerX = p.x + (s.x / 2);
           const centerY = p.y + (s.y / 2);
-          antsSpawn(this._spawnCount, this._faction || 'player', centerX , centerY);
+          antsSpawn(this._spawnCount, this._faction, centerX , centerY);
         }
       } catch (e) { console.warn('Building spawn error', e); }
     }
@@ -332,6 +429,13 @@ class Building extends Entity {
     return;
   }
 
+  rebuildBuilding(){
+    this._isDead = false;
+    this._faction = 'player';
+    this._spawnEnabled = true;
+    this.upgradeBuilding();
+  }
+
   _renderBoxHover() {
     this._renderController.highlightBoxHover();
   }
@@ -344,7 +448,6 @@ class Building extends Entity {
     }
 
 
-    if (!this.isActive) return;
     super.render();
 
     if (this._healthController) {
@@ -354,27 +457,34 @@ class Building extends Entity {
     if (this.isBoxHovered) {
       this._renderBoxHover();
     }
+
+
+
   }
 
   die() {
     this._releaseAnts();
-    this.isActive = false;
     this._isDead = true;
-    // remove from render lists
-    const idx = Buildings.indexOf(this);
-    if (idx !== -1) Buildings.splice(idx, 1);
-    if (typeof window !== 'undefined' && Array.isArray(window.buildings)) {
-      const wi = window.buildings.indexOf(this);
-      if (wi !== -1) window.buildings.splice(wi, 1);
-    }
-    // remove from selectables
-    if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
-      const sidx = selectables.indexOf(this);
-      if (sidx !== -1) selectables.splice(sidx, 1);
+    this.downgradeBuilding();
 
-    }
-    if (g_selectionBoxController && g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
+
+    // remove from render lists
+    // const idx = Buildings.indexOf(this);
+    // if (idx !== -1) Buildings.splice(idx, 1);
+    // if (typeof window !== 'undefined' && Array.isArray(window.buildings)) {
+    //   const wi = window.buildings.indexOf(this);
+    //   if (wi !== -1) window.buildings.splice(wi, 1);
+    // }
+    // // remove from selectables
+    // if (typeof selectables !== 'undefined' && Array.isArray(selectables)) {
+    //   const sidx = selectables.indexOf(this);
+    //   if (sidx !== -1) selectables.splice(sidx, 1);
+
+    // }
+    // if (g_selectionBoxController && g_selectionBoxController.entities) g_selectionBoxController.entities = selectables;
     // other cleanup...
+
+
   }
 }
 
