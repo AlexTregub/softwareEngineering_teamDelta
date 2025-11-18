@@ -100,8 +100,30 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction) {
-    const hill = new Building(x, y, 160, 100, Hill, faction, this.info); // AntHill = Building<-Entity(canvasCoords) + buildingType
+  createBuilding(x, y, faction,tileType=['grass','moss','moss_2','moss_3']) {
+    let a = g_activeMap.sampleTiles(tileType,10000); // 
+
+    let tilex = a[0][0]; // Picks initial random position
+    let tiley = a[0][1]; // ...
+
+    for (let pos in a) { // pos is an index in a
+      // let pos = a[pos]
+
+      let temp = a[pos]
+      // console.log(temp)
+      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+        tilex = temp[0]
+        tiley = temp[1] // tile positions (grid) 
+
+        // console.log("DONE DID IT ")
+        break
+      }
+    }
+
+    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+
+
+    const hill = new Building(convPos[0], convPos[1], 160, 100, Hill, faction, this.info); // AntHill = Building<-Entity(canvasCoords) + buildingType
 
     hill.buildingType = "anthill";
     
@@ -177,28 +199,28 @@ class HiveSource extends AbstractBuildingFactory {
 
 class Building extends Entity {
   constructor(x, y, width, height, img, faction, info,tileType=['grass','moss','moss_2','moss_3']) {
-    let a = g_activeMap.sampleTiles(tileType,10000); // 
+    // let a = g_activeMap.sampleTiles(tileType,10000); // 
 
-    let tilex = a[0][0]; // Picks initial random position
-    let tiley = a[0][1]; // ...
+    // let tilex = a[0][0]; // Picks initial random position
+    // let tiley = a[0][1]; // ...
 
-    for (let pos in a) { // pos is an index in a
-      // let pos = a[pos]
+    // for (let pos in a) { // pos is an index in a
+    //   // let pos = a[pos]
 
-      let temp = a[pos]
-      // console.log(temp)
-      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
-        tilex = temp[0]
-        tiley = temp[1] // tile positions (grid) 
+    //   let temp = a[pos]
+    //   // console.log(temp)
+    //   if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+    //     tilex = temp[0]
+    //     tiley = temp[1] // tile positions (grid) 
 
-        // console.log("DONE DID IT ")
-        break
-      }
-    }
+    //     // console.log("DONE DID IT ")
+    //     break
+    //   }
+    // }
 
-    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+    // let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
-    super(convPos[0], convPos[1], width, height, {
+    super(x, y, width, height, {
       type: "Building",
       imagePath: img,
       selectable: true,
@@ -206,13 +228,15 @@ class Building extends Entity {
     });
 
 
-    // --- Basic properties ---
-    this._x = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[0];
-    this._y = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[1];
+    // // --- Basic properties ---
+    // this._x = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[0];
+    // this._y = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[1];
+    this._x = x;
+    this._y = y;
 
     // Included for legacy compatibility
-    this.posX = tilex;
-    this.posY = tiley;
+    this.posX = x;
+    this.posY = y;
 
     this._width = width;
     this._height = height;
