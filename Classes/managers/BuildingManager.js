@@ -145,6 +145,12 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
       }
     }
 
+    if (tilex > 30 | tilex < -30 | tiley > 30 | tiley < -30) {
+      tilex = 0
+      tiley = 0
+      console.log("WARNING: DEFAULT SPAWN POS FOR ANTHILL")
+    } 
+
     let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
 

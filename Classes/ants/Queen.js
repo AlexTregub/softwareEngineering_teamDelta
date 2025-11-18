@@ -191,7 +191,7 @@ class QueenAnt extends ant {
       let temp2 = g_activeMap.renderConversion.convCanvasToPos([temp1.x,temp1.y])
 
       // console.log(temp,temp1,temp2)
-      console.log("QUEEN POSITION @ ",temp2)
+      // console.log("QUEEN POSITION @ ",temp2)
       // console.log("QueenPos:",this.getPosition(),g_activeMap.renderConversion.convCanvasToPos([this.getPosition().x,this.getPosition().y]))
     }
     
