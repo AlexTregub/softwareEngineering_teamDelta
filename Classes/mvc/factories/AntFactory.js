@@ -81,7 +81,7 @@ class AntFactory {
       y: options.y !== undefined ? options.y : 0,
       width: options.width || 32,
       height: options.height || 32,
-      jobName: options.jobName || 'builder',
+      jobName: options.jobName || 'Builder',
       faction: options.faction || 'player',
       health: options.health !== undefined ? options.health : 100,
       maxHealth: options.maxHealth !== undefined ? options.maxHealth : 100,
