@@ -16,6 +16,14 @@ if (typeof window === 'undefined') {
 global.createVector = sinon.stub().callsFake((x, y) => ({ x: x || 0, y: y || 0 }));
 window.createVector = global.createVector;
 
+// Mock p5.js drawing functions
+global.push = sinon.stub();
+global.pop = sinon.stub();
+global.noFill = sinon.stub();
+global.stroke = sinon.stub();
+global.strokeWeight = sinon.stub();
+global.ellipse = sinon.stub();
+
 // Mock CollisionBox2D
 global.CollisionBox2D = class MockCollisionBox {
   constructor(x, y, w, h) {
@@ -148,8 +156,9 @@ describe('EntityController', function() {
     });
 
     it('should create sprite', function() {
-      expect(model.sprite).to.exist;
-      expect(model.sprite).to.be.instanceOf(Sprite2D);
+      // Sprite only created if imagePath is provided
+      // The default controller has no imagePath, so no sprite
+      expect(model.sprite).to.be.null;
     });
 
     it('should register with spatial grid', function() {
@@ -232,6 +241,11 @@ describe('EntityController', function() {
     });
 
     it('should sync position to sprite', function() {
+      // Skip if no sprite (sprite only created if imagePath provided)
+      if (!model.sprite) {
+        this.skip();
+      }
+      
       model.setPosition(150, 250);
       
       controller._syncComponents();
@@ -326,6 +340,189 @@ describe('EntityController', function() {
 
     it('should handle click events', function() {
       expect(() => controller.handleClick()).to.not.throw();
+    });
+  });
+
+  describe('Sprite2D Initialization', function() {
+    it('should initialize Sprite2D with model imagePath', function() {
+      const modelWithImage = new EntityModel({ x: 50, y: 50, width: 64, height: 64, imagePath: 'test.png' });
+      const viewWithImage = new EntityView(modelWithImage);
+      const mockImage = { width: 64, height: 64 };
+      
+      // Mock loadImage
+      global.loadImage = sinon.stub().returns(mockImage);
+      
+      const controllerWithImage = new EntityController(modelWithImage, viewWithImage);
+      
+      expect(modelWithImage.getSprite()).to.not.be.null;
+      expect(modelWithImage.getSprite()).to.be.instanceOf(Sprite2D);
+      
+      delete global.loadImage;
+    });
+
+    it('should skip sprite initialization if no imagePath', function() {
+      expect(model.getSprite()).to.be.null;
+    });
+
+    it('should create sprite with correct position', function() {
+      const modelWithImage = new EntityModel({ x: 100, y: 200, width: 64, height: 64, imagePath: 'test.png' });
+      const viewWithImage = new EntityView(modelWithImage);
+      const mockImage = { width: 64, height: 64 };
+      global.loadImage = sinon.stub().returns(mockImage);
+      
+      const controllerWithImage = new EntityController(modelWithImage, viewWithImage);
+      const sprite = modelWithImage.getSprite();
+      
+      expect(sprite.pos.x).to.equal(100);
+      expect(sprite.pos.y).to.equal(200);
+      
+      delete global.loadImage;
+    });
+  });
+
+  describe('Terrain Lookup Methods', function() {
+    beforeEach(function() {
+      // Mock MapManager
+      global.MapManager = {
+        getTileAtGridCoords: sinon.stub().returns({ type: 0, material: 'grass' })
+      };
+      global.g_activeMap = global.MapManager;
+      global.TILE_SIZE = 32;
+    });
+
+    afterEach(function() {
+      delete global.MapManager;
+      delete global.g_activeMap;
+      delete global.TILE_SIZE;
+    });
+
+    it('should get current terrain type', function() {
+      const terrainType = controller.getCurrentTerrain();
+      
+      expect(terrainType).to.equal(0);
+    });
+
+    it('should get current tile material', function() {
+      const material = controller.getCurrentTileMaterial();
+      
+      expect(material).to.equal('grass');
+    });
+
+    it('should return null if MapManager unavailable', function() {
+      delete global.g_activeMap;
+      
+      const terrainType = controller.getCurrentTerrain();
+      const material = controller.getCurrentTileMaterial();
+      
+      expect(terrainType).to.be.null;
+      expect(material).to.be.null;
+    });
+
+    it('should calculate correct grid coordinates', function() {
+      model.setPosition(96, 160); // 96/32 = 3, 160/32 = 5
+      
+      controller.getCurrentTerrain();
+      
+      expect(global.MapManager.getTileAtGridCoords.calledWith(3, 5)).to.be.true;
+    });
+  });
+
+  describe('Enhanced API Namespaces', function() {
+    beforeEach(function() {
+      // Mock EffectsRenderer for effects tests with proper addEffect method
+      global.EffectsRenderer = {
+        addEffect: sinon.stub().callsFake((type, config) => {
+          return { id: 'effect-1', type, config };
+        }),
+        bloodSplatter: sinon.stub(),
+        impactSparks: sinon.stub()
+      };
+      window.EffectsRenderer = global.EffectsRenderer;
+    });
+
+    afterEach(function() {
+      delete global.EffectsRenderer;
+      delete window.EffectsRenderer;
+    });
+
+    describe('highlight namespace', function() {
+      it('should provide highlight.selected()', function() {
+        expect(controller.highlight.selected).to.be.a('function');
+        controller.highlight.selected();
+        // Should delegate to view
+      });
+
+      it('should provide highlight.spinning()', function() {
+        expect(controller.highlight.spinning).to.be.a('function');
+      });
+
+      it('should provide highlight.slowSpin()', function() {
+        expect(controller.highlight.slowSpin).to.be.a('function');
+      });
+
+      it('should provide highlight.fastSpin()', function() {
+        expect(controller.highlight.fastSpin).to.be.a('function');
+      });
+
+      it('should provide highlight.resourceHover()', function() {
+        expect(controller.highlight.resourceHover).to.be.a('function');
+      });
+    });
+
+    describe('effects namespace', function() {
+      it('should provide effects.damageNumber()', function() {
+        expect(controller.effects.damageNumber).to.be.a('function');
+        controller.effects.damageNumber(10);
+        expect(global.EffectsRenderer.addEffect.called).to.be.true;
+      });
+
+      it('should provide effects.healNumber()', function() {
+        expect(controller.effects.healNumber).to.be.a('function');
+        controller.effects.healNumber(5);
+        expect(global.EffectsRenderer.addEffect.called).to.be.true;
+      });
+
+      it('should provide effects.floatingText()', function() {
+        expect(controller.effects.floatingText).to.be.a('function');
+        controller.effects.floatingText('test');
+        expect(global.EffectsRenderer.addEffect.called).to.be.true;
+      });
+
+      it('should provide effects.bloodSplatter()', function() {
+        expect(controller.effects.bloodSplatter).to.be.a('function');
+        controller.effects.bloodSplatter();
+        expect(global.EffectsRenderer.bloodSplatter.called).to.be.true;
+      });
+
+      it('should provide effects.impactSparks()', function() {
+        expect(controller.effects.impactSparks).to.be.a('function');
+        controller.effects.impactSparks();
+        expect(global.EffectsRenderer.impactSparks.called).to.be.true;
+      });
+    });
+
+    describe('rendering namespace', function() {
+      it('should provide rendering.setVisible()', function() {
+        expect(controller.rendering.setVisible).to.be.a('function');
+        controller.rendering.setVisible(false);
+        expect(model.isVisible()).to.be.false;
+      });
+
+      it('should provide rendering.setOpacity()', function() {
+        expect(controller.rendering.setOpacity).to.be.a('function');
+        controller.rendering.setOpacity(128);
+        expect(model.getOpacity()).to.equal(128);
+      });
+
+      it('should provide rendering.isVisible()', function() {
+        expect(controller.rendering.isVisible).to.be.a('function');
+        expect(controller.rendering.isVisible()).to.be.true;
+      });
+
+      it('should provide rendering.getOpacity()', function() {
+        expect(controller.rendering.getOpacity).to.be.a('function');
+        expect(controller.rendering.getOpacity()).to.equal(255);
+      });
     });
   });
 

@@ -32,6 +32,7 @@ class EntityController {
     this._initializeSprite(options);
     this._initializeSubControllers(options);
     this._initializeDebugger(options);
+    this._initializeEnhancedAPI();
 
     // Register with systems
     this._registerWithSpatialGrid();
@@ -61,21 +62,28 @@ class EntityController {
    * @private
    */
   _initializeSprite(options) {
+    // Only initialize sprite if imagePath is provided
+    if (!this.model.imagePath) {
+      return;
+    }
+
     const pos = this.model.getPosition();
     const size = this.model.getSize();
 
-    // Create sprite with tile-centered positioning
-    const TILE_SIZE = (typeof window !== 'undefined' && window.TILE_SIZE) ? window.TILE_SIZE : 32;
-    const centeredX = pos.x + (size.x * 0.5);
-    const centeredY = pos.y + (size.y * 0.5);
+    // Load image if loadImage is available
+    let img = null;
+    if (typeof loadImage !== 'undefined') {
+      img = loadImage(this.model.imagePath);
+    }
 
+    // Create sprite
     if (typeof Sprite2D !== 'undefined' && typeof createVector !== 'undefined') {
-      this.model.sprite = new Sprite2D(
-        this.model.imagePath,
-        createVector(centeredX, centeredY),
+      this.model.setSprite(new Sprite2D(
+        img,
+        createVector(pos.x, pos.y),
         createVector(size.x, size.y),
         this.model.rotation
-      );
+      ));
     }
   }
 
@@ -375,6 +383,133 @@ class EntityController {
 
     // Cleanup sub-controllers
     this.subControllers.clear();
+  }
+
+  // ===== TERRAIN LOOKUP =====
+  /**
+   * Get current terrain type from MapManager
+   * @returns {number|null} Terrain type or null if unavailable
+   */
+  getCurrentTerrain() {
+    const map = (typeof g_activeMap !== 'undefined') ? g_activeMap : null;
+    if (!map || !map.getTileAtGridCoords) return null;
+
+    const TILE_SIZE = (typeof window !== 'undefined' && window.TILE_SIZE) ? window.TILE_SIZE : 32;
+    const pos = this.model.getPosition();
+    const gridX = Math.floor(pos.x / TILE_SIZE);
+    const gridY = Math.floor(pos.y / TILE_SIZE);
+
+    const tile = map.getTileAtGridCoords(gridX, gridY);
+    return tile ? tile.type : null;
+  }
+
+  /**
+   * Get current tile material from MapManager
+   * @returns {string|null} Tile material or null if unavailable
+   */
+  getCurrentTileMaterial() {
+    const map = (typeof g_activeMap !== 'undefined') ? g_activeMap : null;
+    if (!map || !map.getTileAtGridCoords) return null;
+
+    const TILE_SIZE = (typeof window !== 'undefined' && window.TILE_SIZE) ? window.TILE_SIZE : 32;
+    const pos = this.model.getPosition();
+    const gridX = Math.floor(pos.x / TILE_SIZE);
+    const gridY = Math.floor(pos.y / TILE_SIZE);
+
+    const tile = map.getTileAtGridCoords(gridX, gridY);
+    return tile ? tile.material : null;
+  }
+
+  // ===== ENHANCED API NAMESPACES =====
+  /**
+   * Initialize enhanced API namespaces for convenience methods
+   * @private
+   */
+  _initializeEnhancedAPI() {
+    // Highlight namespace
+    this.highlight = {
+      selected: () => this.view.highlightSelected(),
+      hover: () => this.view.highlightHover(),
+      combat: () => this.view.highlightCombat(),
+      boxHover: () => this.view.highlightBoxHover(),
+      spinning: () => this.view.highlightSpinning(),
+      slowSpin: () => this.view.highlightSlowSpin(),
+      fastSpin: () => this.view.highlightFastSpin(),
+      resourceHover: () => this.view.highlightResourceHover()
+    };
+
+    // Effects namespace
+    this.effects = {
+      damageNumber: (damage, color = [255, 0, 0]) => {
+        const pos = this.model.getPosition();
+        return this._addEffect({
+          type: 'DAMAGE_NUMBER',
+          text: `-${damage}`,
+          color: color,
+          x: pos.x,
+          y: pos.y - 20
+        });
+      },
+      healNumber: (heal, color = [0, 255, 0]) => {
+        const pos = this.model.getPosition();
+        return this._addEffect({
+          type: 'HEAL_NUMBER',
+          text: `+${heal}`,
+          color: color,
+          x: pos.x,
+          y: pos.y - 20
+        });
+      },
+      floatingText: (text, color = [255, 255, 255]) => {
+        const pos = this.model.getPosition();
+        return this._addEffect({
+          type: 'FLOATING_TEXT',
+          text: text,
+          color: color,
+          x: pos.x,
+          y: pos.y - 15
+        });
+      },
+      bloodSplatter: (options = {}) => {
+        const pos = this.model.getPosition();
+        const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer :
+                               (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+        return effectsRenderer ? effectsRenderer.bloodSplatter(pos.x, pos.y, options) : null;
+      },
+      impactSparks: (options = {}) => {
+        const pos = this.model.getPosition();
+        const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer :
+                               (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+        return effectsRenderer ? effectsRenderer.impactSparks(pos.x, pos.y, options) : null;
+      }
+    };
+
+    // Rendering namespace
+    this.rendering = {
+      setVisible: (visible) => {
+        this.model.setVisible(visible);
+        return this;
+      },
+      setOpacity: (opacity) => {
+        this.model.setOpacity(opacity);
+        return this;
+      },
+      isVisible: () => this.model.isVisible(),
+      getOpacity: () => this.model.getOpacity()
+    };
+  }
+
+  /**
+   * Add effect via EffectsRenderer (INTERNAL)
+   * @private
+   */
+  _addEffect(effectConfig) {
+    const effectsRenderer = (typeof window !== 'undefined') ? window.EffectsRenderer :
+                           (typeof global !== 'undefined') ? global.EffectsRenderer : null;
+    if (effectsRenderer && effectsRenderer.addEffect) {
+      return effectsRenderer.addEffect(effectConfig.type || effectConfig, effectConfig);
+    }
+    return null;
   }
 }
 

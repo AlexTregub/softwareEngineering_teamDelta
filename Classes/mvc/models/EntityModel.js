@@ -187,6 +187,23 @@ class EntityModel {
     this.isActive = active;
   }
 
+  // ===== COMPONENT REFERENCES =====
+  /**
+   * Get sprite reference
+   * @returns {Sprite2D|null} Sprite instance or null
+   */
+  getSprite() {
+    return this.sprite;
+  }
+
+  /**
+   * Set sprite reference (does NOT call sprite methods - data storage only)
+   * @param {Sprite2D|null} sprite - Sprite instance or null
+   */
+  setSprite(sprite) {
+    this.sprite = sprite;
+  }
+
   // ===== VALIDATION DATA =====
   /**
    * Get validation data for testing/debugging

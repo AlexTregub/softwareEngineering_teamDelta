@@ -270,6 +270,41 @@ describe('EntityModel', function() {
     });
   });
 
+  describe('Sprite2D Reference', function() {
+    beforeEach(function() {
+      model = new EntityModel();
+    });
+
+    it('should initialize sprite as null', function() {
+      expect(model.sprite).to.be.null;
+    });
+
+    it('should allow setting sprite reference', function() {
+      const mockSprite = { img: 'test', pos: { x: 0, y: 0 } };
+      model.setSprite(mockSprite);
+      
+      expect(model.sprite).to.equal(mockSprite);
+    });
+
+    it('should allow getting sprite reference', function() {
+      const mockSprite = { img: 'test', pos: { x: 0, y: 0 } };
+      model.setSprite(mockSprite);
+      
+      expect(model.getSprite()).to.equal(mockSprite);
+    });
+
+    it('should store sprite as data only (not call methods)', function() {
+      const mockSprite = { 
+        img: 'test', 
+        render: sinon.spy() 
+      };
+      model.setSprite(mockSprite);
+      
+      // Model should NOT call sprite methods
+      expect(mockSprite.render.called).to.be.false;
+    });
+  });
+
   describe('Data Immutability', function() {
     beforeEach(function() {
       model = new EntityModel({ x: 50, y: 100, width: 32, height: 32 });

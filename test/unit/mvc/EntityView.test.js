@@ -25,6 +25,9 @@ global.ellipse = sinon.stub();
 global.rect = sinon.stub();
 global.tint = sinon.stub();
 global.noTint = sinon.stub();
+global.translate = sinon.stub();
+global.rotate = sinon.stub();
+global.millis = sinon.stub().returns(1000);
 
 // Mock createVector
 global.createVector = sinon.stub().callsFake((x, y) => ({ x: x || 0, y: y || 0 }));
@@ -99,7 +102,11 @@ describe('EntityView', function() {
     it('should render sprite when active and visible', function() {
       model.isActive = true;
       model.visible = true;
-      const spriteMock = { render: sinon.spy() };
+      const spriteMock = { 
+        render: sinon.spy(),
+        pos: { x: 0, y: 0 },
+        size: { x: 32, y: 32 }
+      };
       model.sprite = spriteMock;
 
       view.render();
@@ -208,6 +215,135 @@ describe('EntityView', function() {
       model.sprite = null;
 
       expect(() => view.applyOpacity()).to.not.throw();
+    });
+  });
+
+  describe('Sprite2D Rendering', function() {
+    beforeEach(function() {
+      model.setPosition(100, 100);
+      model.setSize(64, 64);
+    });
+
+    it('should render sprite if model has sprite', function() {
+      const mockSprite = {
+        render: sinon.spy(),
+        pos: { x: 100, y: 100 },
+        size: { x: 64, y: 64 }
+      };
+      model.setSprite(mockSprite);
+
+      view.render();
+
+      expect(mockSprite.render.calledOnce).to.be.true;
+    });
+
+    it('should fallback to rect if no sprite', function() {
+      model.setSprite(null);
+      global.rect.resetHistory(); // Reset existing stub
+
+      view.render();
+
+      expect(global.rect.calledOnce).to.be.true;
+    });
+
+    it('should sync sprite position with model', function() {
+      const mockSprite = {
+        render: sinon.spy(),
+        pos: { x: 0, y: 0 },
+        size: { x: 64, y: 64 }
+      };
+      model.setSprite(mockSprite);
+      model.setPosition(200, 300);
+
+      view.render();
+
+      // Sprite position should match model
+      expect(mockSprite.pos.x).to.equal(200);
+      expect(mockSprite.pos.y).to.equal(300);
+    });
+
+    it('should respect model visibility with sprite', function() {
+      const mockSprite = {
+        render: sinon.spy(),
+        pos: { x: 100, y: 100 },
+        size: { x: 64, y: 64 }
+      };
+      model.setSprite(mockSprite);
+      model.setVisible(false);
+
+      view.render();
+
+      // Should not call sprite.render() if not visible
+      expect(mockSprite.render.called).to.be.false;
+    });
+
+    it('should apply opacity to sprite', function() {
+      const mockSprite = {
+        render: sinon.spy(),
+        pos: { x: 100, y: 100 },
+        size: { x: 64, y: 64 },
+        alpha: 255
+      };
+      model.setSprite(mockSprite);
+      model.setOpacity(128);
+
+      view.render();
+
+      expect(mockSprite.alpha).to.equal(128);
+    });
+  });
+
+  describe('Advanced Highlights', function() {
+    beforeEach(function() {
+      model.setPosition(100, 100);
+      model.setSize(32, 32);
+    });
+
+    it('should render spinning highlight', function() {
+      global.rotate.resetHistory();
+
+      view.highlightSpinning();
+
+      expect(global.rotate.called).to.be.true;
+    });
+
+    it('should render slow spin highlight', function() {
+      global.rotate.resetHistory();
+
+      view.highlightSlowSpin();
+
+      expect(global.rotate.called).to.be.true;
+    });
+
+    it('should render fast spin highlight', function() {
+      global.rotate.resetHistory();
+
+      view.highlightFastSpin();
+
+      expect(global.rotate.called).to.be.true;
+    });
+
+    it('should render resource hover highlight', function() {
+      global.stroke.resetHistory();
+      global.ellipse.resetHistory();
+
+      view.highlightResourceHover();
+
+      expect(global.stroke.called).to.be.true;
+      expect(global.ellipse.called).to.be.true;
+    });
+
+    it('should not modify model state during highlight rendering', function() {
+      const originalData = model.getValidationData();
+
+      view.highlightSpinning();
+      view.highlightSlowSpin();
+      view.highlightFastSpin();
+      view.highlightResourceHover();
+
+      const newData = model.getValidationData();
+      expect(newData.position).to.deep.equal(originalData.position);
+      expect(newData.rotation).to.equal(originalData.rotation);
     });
   });
 

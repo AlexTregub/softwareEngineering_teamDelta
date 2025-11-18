@@ -34,14 +34,53 @@ class EntityView {
     // Apply visual properties
     this.applyOpacity();
 
-    // Render sprite if available
+    // Render sprite if available, otherwise fallback to rect
     if (this.model.sprite) {
+      // Sync sprite position with model
+      this._syncSpritePosition();
+      
       push();
       noSmooth();
       this.model.sprite.render();
       smooth();
       pop();
+    } else {
+      // Fallback rendering without sprite
+      this._renderFallback();
     }
+  }
+
+  /**
+   * Sync sprite position/size with model (INTERNAL)
+   * @private
+   */
+  _syncSpritePosition() {
+    if (!this.model.sprite) return;
+    if (!this.model.sprite.pos || !this.model.sprite.size) return; // Guard against incomplete sprite
+    
+    const pos = this.model.getPosition();
+    const size = this.model.getSize();
+    
+    this.model.sprite.pos.x = pos.x;
+    this.model.sprite.pos.y = pos.y;
+    this.model.sprite.size.x = size.x;
+    this.model.sprite.size.y = size.y;
+  }
+
+  /**
+   * Render fallback rectangle when no sprite
+   * @private
+   */
+  _renderFallback() {
+    const pos = this.model.getPosition();
+    const size = this.model.getSize();
+    
+    push();
+    fill(150);
+    stroke(0);
+    strokeWeight(1);
+    rect(pos.x - size.x/2, pos.y - size.y/2, size.x, size.y);
+    pop();
   }
 
   /**
@@ -118,6 +157,88 @@ class EntityView {
     stroke(255, 255, 0);
     strokeWeight(2);
     rect(pos.x - size.x/2, pos.y - size.y/2, size.x, size.y);
+    pop();
+  }
+
+  /**
+   * Highlight with spinning effect (normal speed)
+   */
+  highlightSpinning() {
+    if (!this.model.isActive || !this.model.visible) return;
+
+    const pos = this.model.getPosition();
+    const size = this.model.getSize();
+    const time = (typeof millis !== 'undefined') ? millis() : Date.now();
+    const angle = (time * 0.002) % (Math.PI * 2);
+
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    noFill();
+    stroke(0, 255, 255); // Cyan
+    strokeWeight(2);
+    ellipse(0, 0, size.x + 10, size.y + 10);
+    pop();
+  }
+
+  /**
+   * Highlight with slow spinning effect
+   */
+  highlightSlowSpin() {
+    if (!this.model.isActive || !this.model.visible) return;
+
+    const pos = this.model.getPosition();
+    const size = this.model.getSize();
+    const time = (typeof millis !== 'undefined') ? millis() : Date.now();
+    const angle = (time * 0.001) % (Math.PI * 2);
+
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    noFill();
+    stroke(0, 255, 255); // Cyan
+    strokeWeight(2);
+    ellipse(0, 0, size.x + 10, size.y + 10);
+    pop();
+  }
+
+  /**
+   * Highlight with fast spinning effect
+   */
+  highlightFastSpin() {
+    if (!this.model.isActive || !this.model.visible) return;
+
+    const pos = this.model.getPosition();
+    const size = this.model.getSize();
+    const time = (typeof millis !== 'undefined') ? millis() : Date.now();
+    const angle = (time * 0.005) % (Math.PI * 2);
+
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    noFill();
+    stroke(255, 0, 255); // Magenta
+    strokeWeight(3);
+    ellipse(0, 0, size.x + 15, size.y + 15);
+    pop();
+  }
+
+  /**
+   * Highlight resource on hover (pulsing circle)
+   */
+  highlightResourceHover() {
+    if (!this.model.isActive || !this.model.visible) return;
+
+    const pos = this.model.getPosition();
+    const size = this.model.getSize();
+    const time = (typeof millis !== 'undefined') ? millis() : Date.now();
+    const pulse = Math.sin(time * 0.005) * 5 + 10;
+
+    push();
+    noFill();
+    stroke(255, 215, 0); // Gold
+    strokeWeight(2);
+    ellipse(pos.x, pos.y, size.x + pulse, size.y + pulse);
     pop();
   }
 
