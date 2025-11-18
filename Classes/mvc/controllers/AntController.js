@@ -8,11 +8,21 @@
  * - Manage ant-specific systems (brain, state machine, job)
  * - Handle resource gathering and combat
  * - Integrate with existing ant systems (AntBrain, JobComponent, StateMachine)
+ * - Publish lifecycle events via EventManager (ANT_DAMAGED, ANT_DIED, etc.)
  * - NO rendering (delegates to view)
  * - NO data storage (delegates to model)
  * 
  * This extends EntityController with ant-specific orchestration.
  */
+
+// Load dependencies
+if (typeof EntityEvents === 'undefined') {
+  if (typeof require !== 'undefined') {
+    const EntityEvents = require('../../events/EntityEvents.js');
+    if (typeof window !== 'undefined') window.EntityEvents = EntityEvents;
+    if (typeof global !== 'undefined') global.EntityEvents = EntityEvents;
+  }
+}
 
 // Load parent class
 if (typeof EntityController === 'undefined') {
@@ -37,11 +47,35 @@ class AntController extends EntityController {
   constructor(model, view, options = {}) {
     super(model, view, options);
 
+    // Get EventManager instance for pub/sub
+    this._eventBus = typeof EventManager !== 'undefined' ? EventManager.getInstance() : null;
+
     // Initialize ant-specific components
     this._initializeBrain();
     this._initializeStateMachine();
     this._initializeJobComponent();
     this._initializeAntEnhancedAPI();
+    
+    // Emit creation event
+    this._emitEvent(EntityEvents.ANT_CREATED, {
+      ant: this,
+      jobName: this.model.getJobName(),
+      position: this.model.getPosition()
+    });
+  }
+
+  // ===== EVENT SYSTEM =====
+
+  /**
+   * Emit event via EventManager
+   * @private
+   * @param {string} eventName - Event name from EntityEvents
+   * @param {Object} data - Event data
+   */
+  _emitEvent(eventName, data) {
+    if (this._eventBus && typeof this._eventBus.emit === 'function') {
+      this._eventBus.emit(eventName, data);
+    }
   }
 
   // ===== ANT-SPECIFIC INITIALIZATION =====
@@ -199,6 +233,9 @@ class AntController extends EntityController {
    * @param {string} jobName - New job name
    */
   setJob(jobName) {
+    // Store old job for event
+    const oldJob = this.model.getJobName();
+
     // Validate job name
     const validJobs = this.getAvailableJobs();
     if (!validJobs.includes(jobName)) {
@@ -226,6 +263,14 @@ class AntController extends EntityController {
       this.jobComponent.name = jobName;
       this.jobComponent.stats = stats;
     }
+
+    // Emit job changed event
+    this._emitEvent(EntityEvents.ANT_JOB_CHANGED, {
+      ant: this,
+      oldJob: oldJob,
+      newJob: jobName,
+      stats: stats
+    });
   }
 
   /**
@@ -305,11 +350,25 @@ class AntController extends EntityController {
    * @param {string} state - State name (IDLE, MOVING, GATHERING, etc.)
    */
   setState(state) {
+    const oldState = this.getCurrentState();
+
     if (this.stateMachine && this.stateMachine.setState) {
       this.stateMachine.setState(state);
       
       // Update model state for view rendering
       this.model.setState(state);
+
+      // Emit state changed event
+      this._emitEvent(EntityEvents.ANT_STATE_CHANGED, {
+        ant: this,
+        oldState: oldState,
+        newState: state
+      });
+
+      // Emit specific state events
+      if (state === 'GATHERING') {
+        this._emitEvent(EntityEvents.ANT_GATHERING_STARTED, { ant: this });
+      }
     }
   }
 
@@ -351,6 +410,24 @@ class AntController extends EntityController {
 
     this.model.setResourceCount(current + collected);
 
+    // Emit resource collected event
+    if (collected > 0) {
+      this._emitEvent(EntityEvents.ANT_RESOURCE_COLLECTED, {
+        ant: this,
+        amount: collected,
+        totalCarried: current + collected,
+        capacity: capacity
+      });
+
+      // Check if at max capacity
+      if (current + collected >= capacity) {
+        this._emitEvent(EntityEvents.ANT_CAPACITY_REACHED, {
+          ant: this,
+          capacity: capacity
+        });
+      }
+    }
+
     return collected;
   }
 
@@ -361,6 +438,16 @@ class AntController extends EntityController {
   depositResources() {
     const amount = this.model.getResourceCount();
     this.model.setResourceCount(0);
+
+    // Emit resource deposited event
+    if (amount > 0) {
+      this._emitEvent(EntityEvents.ANT_RESOURCE_DEPOSITED, {
+        ant: this,
+        amount: amount,
+        dropoff: null // Can be enhanced to track dropoff location
+      });
+    }
+
     return amount;
   }
 
@@ -407,6 +494,19 @@ class AntController extends EntityController {
       target.model.setHealth(targetHealth - damage);
     }
 
+    // Emit attack event
+    this._emitEvent(EntityEvents.ANT_ATTACKED, {
+      ant: this,
+      target: target,
+      damage: damage
+    });
+
+    // Request animation
+    this._emitEvent(EntityEvents.ANIMATION_PLAY_REQUESTED, {
+      entity: this,
+      animationName: 'Attack'
+    });
+
     // Show damage effect
     if (this.effects && this.effects.damageNumber) {
       this.effects.damageNumber(damage);
@@ -422,6 +522,30 @@ class AntController extends EntityController {
     const newHealth = Math.max(0, currentHealth - damage);
     
     this.model.setHealth(newHealth);
+
+    // Emit damaged event
+    this._emitEvent(EntityEvents.ANT_DAMAGED, {
+      ant: this,
+      damage: damage,
+      healthBefore: currentHealth,
+      healthAfter: newHealth,
+      attacker: null // Can be enhanced to track attacker
+    });
+
+    // Check critical health
+    const healthPercent = this.model.getHealthPercentage();
+    if (healthPercent < 0.3 && healthPercent > 0) {
+      this._emitEvent(EntityEvents.ANT_HEALTH_CRITICAL, {
+        ant: this,
+        healthPercent: healthPercent
+      });
+    }
+
+    // Request animation
+    this._emitEvent(EntityEvents.ANIMATION_PLAY_REQUESTED, {
+      entity: this,
+      animationName: 'Attack'
+    });
 
     // Die if health reaches zero
     if (newHealth <= 0) {
@@ -439,6 +563,13 @@ class AntController extends EntityController {
    * @private
    */
   die() {
+    // Emit death event
+    this._emitEvent(EntityEvents.ANT_DIED, {
+      ant: this,
+      cause: 'combat', // Can be enhanced to track actual cause
+      position: this.model.getPosition()
+    });
+
     this.model.setActive(false);
     this.setState('DEAD');
     
@@ -453,7 +584,16 @@ class AntController extends EntityController {
    * @param {Object} target - Target entity
    */
   setCombatTarget(target) {
+    const hadTarget = this.model.combatTarget !== null;
     this.model.combatTarget = target;
+
+    // Emit combat entered if new target
+    if (target && !hadTarget) {
+      this._emitEvent(EntityEvents.ANT_COMBAT_ENTERED, {
+        ant: this,
+        enemy: target
+      });
+    }
   }
 
   /**
@@ -468,8 +608,17 @@ class AntController extends EntityController {
    * Clear combat target
    */
   clearCombatTarget() {
+    const hadTarget = this.model.combatTarget !== null;
     this.model.combatTarget = null;
     
+    // Emit combat exited if had target
+    if (hadTarget) {
+      this._emitEvent(EntityEvents.ANT_COMBAT_EXITED, {
+        ant: this,
+        reason: 'target_cleared'
+      });
+    }
+
     // Exit combat state if in combat
     if (this.getCurrentState() === 'COMBAT') {
       this.setState('IDLE');
@@ -582,6 +731,13 @@ class AntController extends EntityController {
     if (this.model && this.model.setSelected) {
       this.model.setSelected(selected);
     }
+
+    // Emit selection events
+    if (selected) {
+      this._emitEvent(EntityEvents.ANT_SELECTED, { ant: this });
+    } else {
+      this._emitEvent(EntityEvents.ANT_DESELECTED, { ant: this });
+    }
   }
 
   /**
@@ -614,6 +770,12 @@ class AntController extends EntityController {
    * Destroy ant and cleanup
    */
   destroy() {
+    // Emit destroyed event
+    this._emitEvent(EntityEvents.ANT_DESTROYED, {
+      antId: this.model.getId ? this.model.getId() : 'unknown',
+      antIndex: this.model.getAntIndex()
+    });
+
     // Clear combat target
     this.clearCombatTarget();
 

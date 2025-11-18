@@ -14,7 +14,7 @@ class EventManager {
   constructor() {
     logNormal('EventManager initialized');
     
-    // Event storage
+    // Event storage (game events)
     this.events = new Map(); // id => eventConfig
     this.triggers = new Map(); // triggerId => triggerConfig
     this.activeEvents = []; // Currently active events
@@ -27,6 +27,10 @@ class EventManager {
     
     // Debug integration hook
     this._eventDebugManager = null;
+    
+    // ===== PUB/SUB EVENT BUS =====
+    // For entity lifecycle events (ANT_DAMAGED, ANT_DIED, etc.)
+    this._listeners = new Map(); // eventName => Set of callbacks
   }
   
   // ===========================
@@ -769,6 +773,107 @@ class EventManager {
     }
     
     return null;
+  }
+  
+  // ===========================
+  // PUB/SUB EVENT BUS
+  // ===========================
+  
+  /**
+   * Subscribe to an event (pub/sub pattern)
+   * @param {string} eventName - Event name (use EntityEvents constants)
+   * @param {Function} callback - Callback function (data) => {}
+   * @returns {Function} - Unsubscribe function
+   */
+  on(eventName, callback) {
+    if (typeof callback !== 'function') {
+      console.error('EventManager.on(): callback must be a function');
+      return () => {};
+    }
+    
+    if (!this._listeners.has(eventName)) {
+      this._listeners.set(eventName, new Set());
+    }
+    
+    this._listeners.get(eventName).add(callback);
+    
+    // Return unsubscribe function
+    return () => this.off(eventName, callback);
+  }
+  
+  /**
+   * Unsubscribe from an event
+   * @param {string} eventName - Event name
+   * @param {Function} callback - Callback to remove
+   */
+  off(eventName, callback) {
+    if (!this._listeners.has(eventName)) {
+      return;
+    }
+    
+    this._listeners.get(eventName).delete(callback);
+    
+    // Cleanup empty sets
+    if (this._listeners.get(eventName).size === 0) {
+      this._listeners.delete(eventName);
+    }
+  }
+  
+  /**
+   * Subscribe to event once (auto-unsubscribe after first trigger)
+   * @param {string} eventName - Event name
+   * @param {Function} callback - Callback function
+   * @returns {Function} - Unsubscribe function
+   */
+  once(eventName, callback) {
+    const wrapper = (data) => {
+      callback(data);
+      this.off(eventName, wrapper);
+    };
+    return this.on(eventName, wrapper);
+  }
+  
+  /**
+   * Emit an event (pub/sub pattern)
+   * @param {string} eventName - Event name (use EntityEvents constants)
+   * @param {Object} [data] - Event data to pass to listeners
+   */
+  emit(eventName, data = null) {
+    if (!this._listeners.has(eventName)) {
+      return; // No listeners
+    }
+    
+    const listeners = Array.from(this._listeners.get(eventName));
+    
+    for (const callback of listeners) {
+      try {
+        callback(data);
+      } catch (error) {
+        console.error(`EventManager.emit() error in listener for "${eventName}":`, error);
+      }
+    }
+  }
+  
+  /**
+   * Remove all listeners for an event
+   * @param {string} eventName - Event name
+   */
+  removeAllListeners(eventName) {
+    if (eventName) {
+      this._listeners.delete(eventName);
+    } else {
+      // Clear all listeners
+      this._listeners.clear();
+    }
+  }
+  
+  /**
+   * Get listener count for an event
+   * @param {string} eventName - Event name
+   * @returns {number} - Number of listeners
+   */
+  listenerCount(eventName) {
+    return this._listeners.has(eventName) ? this._listeners.get(eventName).size : 0;
   }
   
   // ===========================
