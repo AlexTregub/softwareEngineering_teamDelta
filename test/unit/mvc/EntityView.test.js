@@ -6,44 +6,25 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupP5Mocks, resetP5Mocks } = require('../../helpers/p5Mocks');
 
-// Mock window for Node.js environment
-if (typeof window === 'undefined') {
-  global.window = {};
-}
-
-// Mock p5.js functions
-global.push = sinon.stub();
-global.pop = sinon.stub();
-global.noSmooth = sinon.stub();
-global.smooth = sinon.stub();
-global.fill = sinon.stub();
-global.noFill = sinon.stub();
-global.stroke = sinon.stub();
-global.strokeWeight = sinon.stub();
-global.ellipse = sinon.stub();
-global.rect = sinon.stub();
-global.tint = sinon.stub();
-global.noTint = sinon.stub();
-global.translate = sinon.stub();
-global.rotate = sinon.stub();
-global.millis = sinon.stub().returns(1000);
-
-// Mock createVector
-global.createVector = sinon.stub().callsFake((x, y) => ({ x: x || 0, y: y || 0 }));
-window.createVector = global.createVector;
+// Setup p5.js mocks
+setupP5Mocks();
 
 // Mock CoordinateConverter
 global.CoordinateConverter = {
   worldToScreen: sinon.stub().callsFake((x, y) => ({ x, y })),
   screenToWorld: sinon.stub().callsFake((x, y) => ({ x, y }))
 };
-window.CoordinateConverter = global.CoordinateConverter;
+global.window.CoordinateConverter = global.CoordinateConverter;
 
 describe('EntityView', function() {
   let view, model;
 
   beforeEach(function() {
+    // Reset p5 mocks
+    resetP5Mocks();
+    
     // Load classes
     if (typeof EntityModel === 'undefined') {
       global.EntityModel = require('../../../Classes/mvc/models/EntityModel.js');
@@ -59,13 +40,6 @@ describe('EntityView', function() {
     
     // Create view
     view = new EntityView(model);
-
-    // Reset mocks
-    sinon.reset();
-  });
-
-  afterEach(function() {
-    sinon.restore();
   });
 
   describe('Construction', function() {

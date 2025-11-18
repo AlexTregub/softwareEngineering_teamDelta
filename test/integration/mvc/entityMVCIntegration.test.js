@@ -6,84 +6,21 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupMVCTest, loadMVCClasses, resetMVCMocks } = require('../../helpers/mvcTestHelpers');
 
-// Mock window for Node.js environment
-if (typeof window === 'undefined') {
-  global.window = {};
-}
+// Setup all MVC test mocks
+setupMVCTest();
 
-// Mock p5.js
-global.createVector = sinon.stub().callsFake((x, y) => ({ x: x || 0, y: y || 0 }));
-global.push = sinon.stub();
-global.pop = sinon.stub();
-global.noSmooth = sinon.stub();
-global.smooth = sinon.stub();
-global.fill = sinon.stub();
-global.noFill = sinon.stub();
-global.stroke = sinon.stub();
-global.strokeWeight = sinon.stub();
-global.ellipse = sinon.stub();
-global.rect = sinon.stub();
-global.tint = sinon.stub();
-global.noTint = sinon.stub();
-window.createVector = global.createVector;
-window.TILE_SIZE = 32;
+describe('MVC Integration Tests', function() {
+  beforeEach(function() {
+    // Reset all mocks
+    resetMVCMocks();
+    
+    // Load MVC classes
+    loadMVCClasses();
+  });
+});
 
-// Mock CollisionBox2D
-global.CollisionBox2D = class MockCollisionBox {
-  constructor(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.width = w;
-    this.height = h;
-  }
-  setPosition(x, y) { this.x = x; this.y = y; }
-  setSize(w, h) { this.width = w; this.height = h; }
-  getPosX() { return this.x; }
-  getPosY() { return this.y; }
-  getCenter() { return { x: this.x, y: this.y }; }
-  contains(x, y) {
-    return x >= this.x - this.width/2 && x <= this.x + this.width/2 &&
-           y >= this.y - this.height/2 && y <= this.y + this.height/2;
-  }
-};
-window.CollisionBox2D = global.CollisionBox2D;
-
-// Mock Sprite2D
-global.Sprite2D = class MockSprite {
-  constructor(img, pos, size, rot) {
-    this.img = img;
-    this.pos = pos;
-    this.size = size;
-    this.rotation = rot;
-    this.alpha = 255;
-  }
-  setPosition(pos) { this.pos = pos; }
-  setSize(size) { this.size = size; }
-  render() {}
-};
-window.Sprite2D = global.Sprite2D;
-
-// Mock sub-controllers
-global.TransformController = class MockTransformController {
-  constructor(entity) { this.entity = entity; }
-  update() {}
-  getPosition() { return this.entity.model.getPosition(); }
-  setPosition(x, y) { this.entity.model.setPosition(x, y); }
-  getSize() { return this.entity.model.getSize(); }
-  setSize(w, h) { this.entity.model.setSize(w, h); }
-};
-global.MovementController = class MockMovementController {
-  constructor(entity) { 
-    this.entity = entity;
-    this.movementSpeed = entity.model ? entity.model.movementSpeed : 1;
-    this._isMoving = false;
-  }
-  update() {}
-  moveToLocation(x, y) { this._isMoving = true; }
-  getIsMoving() { return this._isMoving; }
-  stop() { this._isMoving = false; }
-};
 global.SelectionController = class MockSelectionController {
   constructor(entity) { 
     this.entity = entity;
@@ -145,7 +82,13 @@ describe('MVC Integration Tests', function() {
     let model, view, controller;
 
     beforeEach(function() {
-      model = new EntityModel({ x: 100, y: 200, width: 32, height: 32 });
+      model = new EntityModel({ 
+        x: 100, 
+        y: 200, 
+        width: 32, 
+        height: 32,
+        imagePath: 'test/sprite.png' // Create sprite for sprite tests
+      });
       view = new EntityView(model);
       controller = new EntityController(model, view);
     });
@@ -176,10 +119,8 @@ describe('MVC Integration Tests', function() {
     });
 
     it('should render correctly when model is active', function() {
-      // Skip if no sprite (sprite only created with imagePath)
-      if (!model.sprite) {
-        this.skip();
-      }
+      // Sprite should exist with imagePath provided
+      expect(model.sprite).to.exist;
       
       const renderSpy = sinon.spy(model.sprite, 'render');
       
@@ -191,10 +132,8 @@ describe('MVC Integration Tests', function() {
     it('should not render when model is inactive', function() {
       model.setActive(false);
       
-      // Skip if no sprite
-      if (!model.sprite) {
-        this.skip();
-      }
+      // Sprite should exist with imagePath provided
+      expect(model.sprite).to.exist;
       
       const renderSpy = sinon.spy(model.sprite, 'render');
       

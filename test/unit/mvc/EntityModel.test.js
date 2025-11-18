@@ -5,30 +5,16 @@
  */
 
 const { expect } = require('chai');
-const sinon = require('sinon');
+const { setupMVCTest, loadMVCClasses } = require('../../helpers/mvcTestHelpers');
 
-// Mock window for Node.js environment
-if (typeof window === 'undefined') {
-  global.window = {};
-}
-
-// Mock p5.js for testing
-global.createVector = sinon.stub().callsFake((x, y) => ({ x: x || 0, y: y || 0 }));
-window.createVector = global.createVector;
+// Setup all MVC test mocks
+setupMVCTest();
 
 describe('EntityModel', function() {
   let model;
 
   beforeEach(function() {
-    // Mock EntityModel availability
-    if (typeof EntityModel === 'undefined') {
-      global.EntityModel = require('../../../Classes/mvc/models/EntityModel.js');
-      window.EntityModel = global.EntityModel;
-    }
-  });
-
-  afterEach(function() {
-    sinon.restore();
+    loadMVCClasses();
   });
 
   describe('Construction', function() {

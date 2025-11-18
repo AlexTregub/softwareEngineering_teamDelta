@@ -6,129 +6,29 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const { setupMVCTest, loadMVCClasses, resetMVCMocks } = require('../../helpers/mvcTestHelpers');
 
-// Mock window for Node.js environment
-if (typeof window === 'undefined') {
-  global.window = {};
-}
-
-// Mock p5.js
-global.createVector = sinon.stub().callsFake((x, y) => ({ x: x || 0, y: y || 0 }));
-window.createVector = global.createVector;
-
-// Mock p5.js drawing functions
-global.push = sinon.stub();
-global.pop = sinon.stub();
-global.noFill = sinon.stub();
-global.stroke = sinon.stub();
-global.strokeWeight = sinon.stub();
-global.ellipse = sinon.stub();
-
-// Mock CollisionBox2D
-global.CollisionBox2D = class MockCollisionBox {
-  constructor(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.width = w;
-    this.height = h;
-  }
-  setPosition(x, y) { this.x = x; this.y = y; }
-  setSize(w, h) { this.width = w; this.height = h; }
-  getPosX() { return this.x; }
-  getPosY() { return this.y; }
-  getCenter() { return { x: this.x, y: this.y }; }
-  contains(x, y) { return false; }
-};
-window.CollisionBox2D = global.CollisionBox2D;
-
-// Mock Sprite2D
-global.Sprite2D = class MockSprite {
-  constructor(img, pos, size, rot) {
-    this.img = img;
-    this.pos = pos;
-    this.size = size;
-    this.rotation = rot;
-    this.alpha = 255;
-  }
-  setPosition(pos) { this.pos = pos; }
-  setSize(size) { this.size = size; }
-  render() {}
-};
-window.Sprite2D = global.Sprite2D;
-
-// Mock sub-controllers
-global.TransformController = class MockTransformController {
-  constructor(entity) { this.entity = entity; }
-  update() {}
-  getPosition() { return this.entity.model.getPosition(); }
-  setPosition(x, y) { this.entity.model.setPosition(x, y); }
-};
-global.MovementController = class MockMovementController {
-  constructor(entity) { 
-    this.entity = entity;
-    this.movementSpeed = 1;
-    this._isMoving = false;
-  }
-  update() {}
-  moveToLocation(x, y) { this._isMoving = true; }
-  getIsMoving() { return this._isMoving; }
-  stop() { this._isMoving = false; }
-};
-global.SelectionController = class MockSelectionController {
-  constructor(entity) { 
-    this.entity = entity;
-    this._isSelected = false;
-  }
-  update() {}
-  setSelected(val) { this._isSelected = val; }
-  isSelected() { return this._isSelected; }
-  setSelectable(val) {}
-};
-global.CombatController = class MockCombatController {
-  constructor(entity) { this.entity = entity; }
-  update() {}
-  setFaction(faction) {}
-  isInCombat() { return false; }
-};
-
-window.TransformController = global.TransformController;
-window.MovementController = global.MovementController;
-window.SelectionController = global.SelectionController;
-window.CombatController = global.CombatController;
-
-// Mock spatial grid
-global.spatialGridManager = {
-  addEntity: sinon.stub(),
-  removeEntity: sinon.stub(),
-  updateEntity: sinon.stub()
-};
-window.spatialGridManager = global.spatialGridManager;
+// Setup all MVC test mocks
+setupMVCTest();
 
 describe('EntityController', function() {
   let controller, model, view;
 
   beforeEach(function() {
-    // Reset stubs BEFORE creating controller
-    global.spatialGridManager.addEntity.resetHistory();
-    global.spatialGridManager.removeEntity.resetHistory();
-    global.spatialGridManager.updateEntity.resetHistory();
+    // Reset all mocks
+    resetMVCMocks();
+    
+    // Load MVC classes
+    loadMVCClasses();
 
-    // Load classes
-    if (typeof EntityModel === 'undefined') {
-      global.EntityModel = require('../../../Classes/mvc/models/EntityModel.js');
-      window.EntityModel = global.EntityModel;
-    }
-    if (typeof EntityView === 'undefined') {
-      global.EntityView = require('../../../Classes/mvc/views/EntityView.js');
-      window.EntityView = global.EntityView;
-    }
-    if (typeof EntityController === 'undefined') {
-      global.EntityController = require('../../../Classes/mvc/controllers/EntityController.js');
-      window.EntityController = global.EntityController;
-    }
-
-    // Create MVC components
-    model = new EntityModel({ x: 100, y: 200, width: 32, height: 32 });
+    // Create MVC components (with imagePath to create sprite)
+    model = new EntityModel({ 
+      x: 100, 
+      y: 200, 
+      width: 32, 
+      height: 32,
+      imagePath: 'test/sprite.png' // Create sprite for sprite tests
+    });
     view = new EntityView(model);
     controller = new EntityController(model, view);
   });
@@ -156,9 +56,9 @@ describe('EntityController', function() {
     });
 
     it('should create sprite', function() {
-      // Sprite only created if imagePath is provided
-      // The default controller has no imagePath, so no sprite
-      expect(model.sprite).to.be.null;
+      // Sprite created when imagePath is provided
+      expect(model.sprite).to.exist;
+      expect(model.sprite).to.be.instanceOf(Sprite2D);
     });
 
     it('should register with spatial grid', function() {
@@ -241,10 +141,8 @@ describe('EntityController', function() {
     });
 
     it('should sync position to sprite', function() {
-      // Skip if no sprite (sprite only created if imagePath provided)
-      if (!model.sprite) {
-        this.skip();
-      }
+      // Sprite should exist with imagePath provided
+      expect(model.sprite).to.exist;
       
       model.setPosition(150, 250);
       
@@ -361,7 +259,9 @@ describe('EntityController', function() {
     });
 
     it('should skip sprite initialization if no imagePath', function() {
-      expect(model.getSprite()).to.be.null;
+      // Create model without imagePath to test null sprite
+      const modelNoImage = new EntityModel({ x: 100, y: 200, width: 32, height: 32 });
+      expect(modelNoImage.getSprite()).to.be.null;
     });
 
     it('should create sprite with correct position', function() {
