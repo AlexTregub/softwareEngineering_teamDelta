@@ -167,7 +167,7 @@ function setup() {
         window.g_speedUpButton.changeGameSpeed();
       }
     }
-    if (key === '1' || key === '2' || key === '3') { 
+    if (key === '3' || key === '4' || key === '5') { 
       if(window.g_powerBrushManager && typeof window.g_powerBrushManager.switchPower === 'function'){
         window.g_powerBrushManager.switchPower(key);
       }
