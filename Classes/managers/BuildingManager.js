@@ -176,7 +176,7 @@ class HiveSource extends AbstractBuildingFactory {
 
 
 class Building extends Entity {
-  constructor(x, y, width, height, img, faction, info,tileType='grass') {
+  constructor(x, y, width, height, img, faction, info,tileType=['grass','moss','moss_2','moss_3']) {
     let a = g_activeMap.sampleTiles(tileType,10000);
 
     let tilex = a[0][0];
@@ -187,7 +187,7 @@ class Building extends Entity {
 
       let temp = a[pos]
       // console.log(temp)
-      if (temp[0] < 25 & temp[0] > -25 & temp[1] < 25 & temp[1] > -25) {
+      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) {
         tilex = temp[0]
         tiley = temp[1]
 
