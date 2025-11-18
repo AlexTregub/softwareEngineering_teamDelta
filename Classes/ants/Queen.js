@@ -7,7 +7,11 @@ class QueenAnt extends ant {
     // console.log(Buildings)
     // console.log(Buildings[0])     
 
-    super(baseAnt.posX, baseAnt.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    console.log("TARGETBUILDINGANTHILL",Buildings,Buildings[0])
+
+
+    // super(baseAnt.posX, baseAnt.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    super(Buildings[0]._x, Buildings[0]._y, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
     // super(closestHive.posX, closestHive.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
     
     // let closestHive = this.nearestFriendlyBuilding(

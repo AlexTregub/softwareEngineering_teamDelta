@@ -366,10 +366,12 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
-  queenAnt = spawnQueen();
+  
 
   // Main hive, initial, anthill
   Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
+
+  queenAnt = spawnQueen(); // Queen spawn post anthill
 
   // npc test
   Buildings.push(createNPC(350,500));
