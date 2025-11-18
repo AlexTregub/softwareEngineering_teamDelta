@@ -42,8 +42,29 @@ class AntCone extends AbstractBuildingFactory {
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction) {
-    let cone = new Building(x, y, 160, 100, Cone, faction, this.info);
+  createBuilding(x, y, faction,tileType=['grass']) {
+    let a = g_activeMap.sampleTiles(tileType,1); // 
+
+    let tilex = a[0][0]; // Picks initial random position
+    let tiley = a[0][1]; // ...
+
+    // for (let pos in a) { // pos is an index in a
+    //   // let pos = a[pos]
+
+    //   let temp = a[pos]
+    //   // console.log(temp)
+    //   // if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+    //   //   tilex = temp[0]
+    //   //   tiley = temp[1] // tile positions (grid) 
+
+    //   //   // console.log("DONE DID IT ")
+    //   //   break
+    //   // }
+    // }
+
+    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+
+    let cone = new Building(convPos[0], convPos[1], 160, 100, Cone, faction, this.info);
     
     // attach player detection + prompt behavior
     cone.promptRange = this.promptRange;
@@ -100,7 +121,7 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction,tileType=['grass','moss','moss_2','moss_3']) {
+  createBuilding(x, y, faction,tileType=['grass']) {
     let a = g_activeMap.sampleTiles(tileType,10000); // 
 
     let tilex = a[0][0]; // Picks initial random position
