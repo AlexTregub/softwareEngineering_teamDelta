@@ -172,7 +172,17 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
         textSize(16);
         fill(255);
         textFont(terrariaFont);
-        text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
+
+        // console.log(queen.getPosition())
+        const queenPos = queen.getPosition()
+        // console.log(queenPos)
+
+        // console.log(Building.prototype.getPosition())
+        // console.log(this.getPosition())
+        const hillPos = this.getPosition()
+
+        // text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
+        text("[E] Open Hill Menu", hillPos.x , hillPos.y - 10);
         pop();
       }
 
