@@ -36,7 +36,7 @@ class BossEvent extends AbstractEvent {
         
 
 class AntWave extends AbstractEvent {
-    constructor(radius = 500,amountOfBuilding = 2){
+    constructor(radius = 500,amountOfBuilding = 4){
         super();
         this.raidus = radius;
         this.amountOfBuilding = amountOfBuilding;
@@ -51,7 +51,13 @@ class AntWave extends AbstractEvent {
             let degree = (x/this.amountOfBuilding) * 2 * 3.14
             let px = player.posX + this.raidus * cos(degree);
             let py = player.posY + this.raidus * sin(degree);
-            let building = createBuilding('AntCone', px, py, 'waveEnemy');
+
+            let pos = g_activeMap.sampleTiles("stone_1",1)[0]
+
+
+            // let building = createBuilding('AntCone', px, py, 'waveEnemy');
+
+            let building = createBuilding('AntCone', pos[0], pos[1], 'waveEnemy');
             building.upgradeBuilding();
             building._spawnEnabled = true;
             Buildings.push(building);

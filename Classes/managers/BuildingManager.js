@@ -177,10 +177,28 @@ class HiveSource extends AbstractBuildingFactory {
 
 class Building extends Entity {
   constructor(x, y, width, height, img, faction, info,tileType='grass') {
-    let a = g_activeMap.sampleTiles(tileType,1);
+    let a = g_activeMap.sampleTiles(tileType,1000);
+
     let tilex = a[0][0];
     let tiley = a[0][1];
-    super(tilex, tiley, width, height, {
+
+    for (let pos in a) {
+      // let pos = a[pos]
+
+      let temp = a[pos]
+      // console.log(temp)
+      if (temp[0] < 100 & temp[0] > -100 & temp[1] < 100 & temp[1] > -100) {
+        tilex = temp[0]
+        tiley = temp[1]
+
+        console.log("DONE DID IT ")
+        break
+      }
+    }
+
+    let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+
+    super(convPos[0], convPos[1], width, height, {
       type: "Building",
       imagePath: img,
       selectable: true,
@@ -189,12 +207,12 @@ class Building extends Entity {
 
 
     // --- Basic properties ---
-    this._x = x;
-    this._y = y;
+    this._x = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[0];
+    this._y = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])[1];
 
     // Included for legacy compatibility
-    this.posX = x;
-    this.posY = y;
+    this.posX = tilex;
+    this.posY = tiley;
 
     this._width = width;
     this._height = height;
