@@ -4,6 +4,7 @@ let g_canvasY = 800; // Default 800
 const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 50;
 const CHUNKS_Y = 50;
+let frameCount = 0;
 
 const NONE = '\0'; 
 
@@ -38,6 +39,8 @@ let cameraManager;
 
 let terrariaFont;
 
+let IMPORTED_JSON_TERRAIN = NONE
+
 function preload(){
   // return; // !!! REMOVE BEFORE DEV
 
@@ -62,6 +65,10 @@ function preload(){
 function setup() {
   // TEMPORARY
   // disableTerrainCache()
+  // let importButton = createButton('Import json map')
+  // importButton.mousePressed(importTerrain)
+
+  // return
 
   createCanvas(windowWidth,windowHeight) 
 
@@ -239,6 +246,18 @@ function setup() {
   window.BUIManager = new BUIManager();
   window.BUIManager.preload();
   //window.draggablePanelManager.createDefaultPanels();
+
+
+  console.log("SAMPLING EXAMPLE")
+  // console.log("Grass @",g_activeMap.sampleTiles("grass",10))
+  // console.log("Stone peaks @",g_activeMap.sampleTiles("stone_1",10))
+  // console.log("Beaches @",g_activeMap.sampleTiles("sand",10))
+  // console.log("Deep water @",g_activeMap.sampleTiles("waterCave",10))
+  // console.log("Grass OR Sand",g_activeMap.sampleTiles(["grass","sand"],100))
+  // console.log("Grass OR Sand OR Stone peaks @",g_activeMap.sampleTiles(["grass","sand","stone_1"],1000))
+  // console.log("SETUPRESULT:",window)
+
+  // drop(importTerrain)
 }
 
 function addListeners() {
@@ -345,7 +364,7 @@ function initializeWorld() {
   // npc test
   Buildings.push(createNPC(350,500));
   // Boss
-  //let spider = new Spider(); 
+  // let spider = new Spider(); 
 }
 
 /**
@@ -358,6 +377,28 @@ function initializeWorld() {
  */
 
 function draw() {
+  
+
+  // EXAMPLE OF LOADING JSON FILE...
+  // if (frameCount == 300) {
+  //   importTerrainLP("/src/levels/tutorialCave_Start.json")
+  // }
+
+  if (frameCount == 1200) {
+    let spider = new Spider()
+  }
+
+  if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap
+    g_activeMap = IMPORTED_JSON_TERRAIN
+
+    g_activeMap.invalidateCache()
+    g_activeMap.renderConversion.forceTileUpdate()
+
+    g_activeMap.render() // Potential clipping...
+
+    console.log("SWAPPED")
+    IMPORTED_JSON_TERRAIN = NONE
+  }
   // TEST_CHUNK()
   // return
   // ============================================================
@@ -373,6 +414,8 @@ function draw() {
   }
 
   if (GameState.getState() === 'PLAYING') {
+    ++frameCount; // Frames in game
+
     // --- Update gameplay systems ---
     if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
     if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
@@ -1325,6 +1368,8 @@ function windowResized() {
   }
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
+
+  g_activeMap.invalidateCache()
 
   resizeCanvas(g_canvasX,g_canvasY);
 }

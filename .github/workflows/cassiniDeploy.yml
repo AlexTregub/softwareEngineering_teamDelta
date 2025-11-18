@@ -51,6 +51,14 @@ jobs:
 
                 # $RUN "cd softwareEngineering_teamDelta/"
 
+            - name: Clone needed files to web directory...
+              run:
+                $LOGGING
+
+                $RUN "rm -rf ~/web/"
+
+                $RUN "cp -r ~/softwareEngineering_teamDelta/ ~/web"
+
             - name: Stop previous screen session...
               run:
                 $LOGGING
