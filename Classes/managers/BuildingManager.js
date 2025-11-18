@@ -280,9 +280,9 @@ class Building extends Entity {
 
     // --- Spawning (ants) ---
     this._spawnEnabled = false;
-    this._spawnInterval = 10; // seconds
+    this._spawnInterval = 60; // seconds
     this._spawnTimer = 0.0;
-    this._spawnCount = 2; // number of ants per interval
+    this._spawnCount = 1; // number of ants per interval
     // --- Controllers ---
     this._controllers.set('movement', null);
 
