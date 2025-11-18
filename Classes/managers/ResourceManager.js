@@ -78,9 +78,22 @@ class ResourceManager {
     if (this.isAtMaxLoad()) {
       return false;
     }
-    
+  
     this.resources.push(resource);
     this.isAtMaxCapacity = this.isAtMaxLoad();
+  
+    // NEW: increment global totals immediately on pickup
+    try {
+      const rtype = resource._resourceType || resource.type || resource.resourceType || 'misc';
+      const ramt = resource.amount || 1;
+  
+      if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
+        window.addGlobalResource(rtype, ramt);
+      }
+    } catch (e) {
+      console.warn("Error adding resource on pickup:", e);
+    }
+  
     return true;
   }
 
@@ -136,7 +149,7 @@ class ResourceManager {
           const ramt = resource.amount || 1;
           
           if (typeof window !== 'undefined' && typeof window.addGlobalResource === 'function') {
-            window.addGlobalResource(rtype, ramt);
+          //window.addGlobalResource(rtype, ramt);
             console.log(`Added to global totals: ${rtype} +${ramt}`);
             //console.log(_resourceTotals[stick])
           }
@@ -476,7 +489,7 @@ function getResourceCount(type) {
     console.log('Type is not given, returning total resources');
     return Object.values(_resourceTotals).reduce((s, v) => s + v, 0);
   }
-  console.log(`Type given, returning `+ type + ' count');
+  //console.log(`Type given, returning `+ type + ' count');
   return _resourceTotals[type] || 0;
 }
 

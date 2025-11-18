@@ -92,19 +92,19 @@ class PowerBrushManager{
     }
     switchPower(keyPressed){
         switch(keyPressed){
-            case '1':
+            case '3':
                 if(this.currentBrush == this.powerBrushes["lightning"]){
                     this.currentBrush = null;
                 }
                 else this.currentBrush = this.powerBrushes["lightning"];
                 break;
-            case '2':
+            case '4':
                 if(this.currentBrush == this.powerBrushes["finalFlash"]){
                     this.currentBrush = null;
                 }
                 else this.currentBrush = this.powerBrushes["finalFlash"];
                 break;
-            case '3':
+            case '5':
                 if(this.currentBrush == this.powerBrushes["fireball"]){
                     this.currentBrush = null;
                 }

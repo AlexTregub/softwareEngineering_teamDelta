@@ -4,8 +4,17 @@ class QueenAnt extends ant {
     // console.log('queen',baseAnt.posX, baseAnt.posY, baseAnt.getSize().x, baseAnt.getSize().y, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(), baseAnt._faction);
 
     // Call parent ant constructor
+    // console.log(Buildings)
+    // console.log(Buildings[0])     
+
     super(baseAnt.posX, baseAnt.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    // super(closestHive.posX, closestHive.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
     
+    // let closestHive = this.nearestFriendlyBuilding(
+    //   Buildings.filter(b => b.type === "Building" && b._faction === this._faction)
+    // )[0];
+
+
     // Queen-specific properties
     this.commandRadius = 250;
     this.ants = []; // ants under her command
