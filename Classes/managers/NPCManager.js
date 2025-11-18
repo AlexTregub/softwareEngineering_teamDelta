@@ -315,7 +315,15 @@ class NPC extends Building{
       }
       textFont(terrariaFont);
       // position slightly below NPC (like a subtitle)
-      text(`[E] Talk to ${this.name}`, this._x + 35, this._y + 70);
+
+      // const hillPos = this.getPosition()
+      // const posDict = {x: this._x, y: this._y}
+      const renderPos = this._controllers.get("render").worldToScreenPosition({x: this._x, y: this._y})
+      // console.log(renderPos)
+
+      // text(`[E] Talk to ${this.name}`, this._x + 35, this._y + 70);
+      // text(`[E] Talk to ${this.name}`, renderPos.x + 35, renderPos.y + 70);
+      text(`[E] Talk to ${this.name}`, renderPos.x, renderPos.y -20);
       pop();
     }
   }
