@@ -70,7 +70,7 @@ class Swarm extends AbstractEvent {
         
 
 class AntHive extends AbstractEvent {
-    constructor(radius = 1000,amountOfBuilding = 150){
+    constructor(radius = 1000,amountOfBuilding = 20){
         super();
         this.raidus = radius;
         this.amountOfBuilding = amountOfBuilding;
@@ -110,7 +110,7 @@ class AntHive extends AbstractEvent {
 }
 
 class Raid extends AbstractEvent {
-    constructor(radius = 1000,amountOfAnts = 20){
+    constructor(radius = 1000,amountOfAnts = 10){
         super();
         this.raidus = radius;
         this.amountOfAnts = amountOfAnts;
