@@ -310,10 +310,10 @@ function TEST_CHUNK() {
     // return 0
     // stall(1000)
 
-    console.log("Perlin:")
+    //console.log("Perlin:")
     chunk.applyGenerationMode('perlin',[0,0],[1,1]) // Working...
     chunk.render(renderConverter)
-    chunk.print()
+    // chunk.print()
 
     let materialPrev = 'grass'
     for (let i = 0; i < chunk.getSize()[0]*chunk.getSize()[1]; ++i) {

@@ -297,6 +297,55 @@ const EntityEvents = {
    * @property {string} result - Combat result (victory, defeat, etc.)
    */
   COMBAT_ENDED: 'system:combat:ended',
+  
+  // ===== GAME STATE EVENTS =====
+  
+  /**
+   * Fired when game state changes
+   * @event GAME_STATE_CHANGED
+   * @type {Object}
+   * @property {string} oldState - Previous state (MENU, PLAYING, PAUSED, etc.)
+   * @property {string} newState - New state
+   * @property {number} timestamp - When state changed (Date.now())
+   */
+  GAME_STATE_CHANGED: 'game:state:changed',
+  
+  /**
+   * Fired when game enters PLAYING state
+   * @event GAME_PLAYING_STARTED
+   * @type {Object}
+   * @property {number} timestamp - When game started playing (Date.now())
+   */
+  GAME_PLAYING_STARTED: 'game:playing:started',
+  
+  /**
+   * Fired when game exits PLAYING state
+   * @event GAME_PLAYING_STOPPED
+   * @type {Object}
+   * @property {string} reason - Why game stopped (PAUSED, MENU, GAME_OVER, etc.)
+   * @property {number} timestamp - When game stopped playing (Date.now())
+   */
+  GAME_PLAYING_STOPPED: 'game:playing:stopped',
+  
+  // ===== ANT SPAWNING EVENTS =====
+  
+  /**
+   * Fired when a batch of ants is spawned
+   * @event ANTS_BATCH_SPAWNED
+   * @type {Object}
+   * @property {number} count - Number of ants spawned
+   * @property {Array<Object>} ants - Spawned ant MVC triads
+   * @property {Object} location - Spawn location {x, y}
+   */
+  ANTS_BATCH_SPAWNED: 'ants:batch:spawned',
+  
+  /**
+   * Fired when ant factory is ready
+   * @event ANT_FACTORY_READY
+   * @type {Object}
+   * @property {AntFactory} factory - Factory class reference
+   */
+  ANT_FACTORY_READY: 'ant:factory:ready',
 };
 
 // Freeze to prevent modification (immutable constants)

@@ -20,7 +20,6 @@ let animationManager = null;
 function antsPreloader() {
   antSize = createVector(20, 20);
   queenSize = createVector(30, 30);
-  console.log("queenSize",queenSize)
   antbg = [60, 100, 60];
   antBaseSprite = loadImage("Images/Ants/gray_ant.png");
   JobImages = {
@@ -224,7 +223,7 @@ _getFallbackJobStats(jobName) {
 
     case "Queen":
       // Central unit: extremely durable but immobile and weak in combat
-      return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 10 };
+      return { strength: 25, health: 1000, gatherSpeed: 1, movementSpeed: 60 };
 
     case "Spider":
       return { strength: 80, health: 6000, gatherSpeed: 3, movementSpeed: 45 };
@@ -974,8 +973,6 @@ function spawnQueen(){
     spawnY = alignedPos[1];
   }
   
-  // Create QueenAnt directly (no need for wrapper ant)
-  console.log(queenSize)
   let newAnt = new ant(
     spawnX, spawnY, 
     queenSize.x + sizeR, 

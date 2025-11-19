@@ -186,7 +186,8 @@ function updateMenu() {
       if (fadeComplete) {
         if (GameState.fadeDirection === "out") {
           // Fade-out done → switch state to PLAYING
-          GameState.setState("PLAYING", true); // skip callbacks if needed
+          // DO NOT skip callbacks - we need event emissions for ant spawning!
+          GameState.setState("PLAYING", false); 
           GameState.startFadeTransition("in"); // start fade-in
         } else {
           // Fade-in done → stop fading

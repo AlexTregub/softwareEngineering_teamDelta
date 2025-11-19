@@ -8,10 +8,15 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const EventManager = require('../../../Classes/managers/EventManager');
+const { setupP5Mocks } = require('../../helpers/p5Mocks');
 
 describe('EventManager', function() {
   let eventManager;
   let sandbox;
+
+  before(function() {
+    setupP5Mocks();
+  });
 
   beforeEach(function() {
     sandbox = sinon.createSandbox();

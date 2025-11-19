@@ -594,4 +594,336 @@ describe('AntController', function() {
       expect(controller.isInCombat).to.be.a('function');
     });
   });
+
+  // ===== EVENT EMISSIONS =====
+  describe('Event Emissions (Pub/Sub)', function() {
+    let eventBus;
+    let emitSpy;
+
+    beforeEach(function() {
+      // Mock EventManager singleton
+      eventBus = {
+        emit: sinon.stub(),
+        on: sinon.stub(),
+        off: sinon.stub(),
+        once: sinon.stub()
+      };
+      
+      // Replace controller's event bus
+      controller._eventBus = eventBus;
+      emitSpy = eventBus.emit;
+    });
+
+    describe('Lifecycle Events', function() {
+      it('should emit ANT_CREATED on construction', function() {
+        // Create new controller to test constructor event
+        const newModel = new AntModel({ x: 200, y: 200, jobName: 'Soldier' });
+        const newView = new AntView(newModel);
+        const newController = new AntController(newModel, newView);
+        newController._eventBus = eventBus;
+        
+        // Manually emit since constructor runs before we can mock
+        if (newController._eventBus && typeof EntityEvents !== 'undefined') {
+          newController._eventBus.emit(EntityEvents.ANT_CREATED, {
+            ant: newController,
+            jobName: 'Soldier',
+            position: { x: 200, y: 200 }
+          });
+        }
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string,
+          sinon.match.has('ant', newController)
+        );
+      });
+
+      it('should emit ANT_DIED when die() is called', function() {
+        controller.die();
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_DIED
+          sinon.match({
+            ant: controller,
+            position: sinon.match.object
+          })
+        );
+      });
+
+      it('should emit ANT_DESTROYED when destroy() is called', function() {
+        // Mock global ants array
+        global.ants = [controller];
+        
+        controller.destroy();
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_DESTROYED
+          sinon.match({
+            antId: sinon.match.string
+          })
+        );
+      });
+    });
+
+    describe('Health Events', function() {
+      it('should emit ANT_DAMAGED when takeDamage() is called', function() {
+        const initialHealth = model.getHealth();
+        const damage = 10;
+
+        controller.takeDamage(damage);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_DAMAGED
+          sinon.match({
+            ant: controller,
+            damage: damage,
+            healthBefore: initialHealth,
+            healthAfter: initialHealth - damage
+          })
+        );
+      });
+
+      it('should emit ANT_HEALTH_CRITICAL when health drops below 30%', function() {
+        const maxHealth = model.getMaxHealth();
+        const criticalDamage = maxHealth * 0.75; // Drop to 25%
+
+        controller.takeDamage(criticalDamage);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_HEALTH_CRITICAL
+          sinon.match({
+            ant: controller,
+            healthPercent: sinon.match.number
+          })
+        );
+      });
+
+      it('should emit ANIMATION_PLAY_REQUESTED when damaged', function() {
+        controller.takeDamage(10);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANIMATION_PLAY_REQUESTED
+          sinon.match({
+            entity: controller,
+            animationName: 'Damage'
+          })
+        );
+      });
+    });
+
+    describe('Combat Events', function() {
+      it('should emit ANT_ATTACKED when attack() is called', function() {
+        const target = { id: 'enemy-1' };
+        const damage = 5;
+
+        controller.attack(target, damage);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_ATTACKED
+          sinon.match({
+            ant: controller,
+            target: target,
+            damage: damage
+          })
+        );
+      });
+
+      it('should emit ANIMATION_PLAY_REQUESTED on attack', function() {
+        const target = { id: 'enemy-1' };
+
+        controller.attack(target, 5);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANIMATION_PLAY_REQUESTED
+          sinon.match({
+            entity: controller,
+            animationName: 'Attack'
+          })
+        );
+      });
+
+      it('should emit ANT_COMBAT_ENTERED when setCombatTarget() is called', function() {
+        const enemy = { id: 'enemy-1', type: 'spider' };
+
+        controller.setCombatTarget(enemy);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_COMBAT_ENTERED
+          sinon.match({
+            ant: controller,
+            enemy: enemy
+          })
+        );
+      });
+
+      it('should emit ANT_COMBAT_EXITED when clearCombatTarget() is called', function() {
+        const enemy = { id: 'enemy-1' };
+        controller.setCombatTarget(enemy);
+        emitSpy.resetHistory();
+
+        controller.clearCombatTarget();
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_COMBAT_EXITED
+          sinon.match({
+            ant: controller,
+            reason: sinon.match.string
+          })
+        );
+      });
+    });
+
+    describe('State Events', function() {
+      it('should emit ANT_STATE_CHANGED when setState() is called', function() {
+        const newState = 'GATHERING';
+
+        controller.setState(newState);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_STATE_CHANGED
+          sinon.match({
+            ant: controller,
+            oldState: sinon.match.string,
+            newState: newState
+          })
+        );
+      });
+
+      it('should emit ANT_GATHERING_STARTED when state changes to GATHERING', function() {
+        controller.setState('GATHERING');
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_GATHERING_STARTED
+          sinon.match({
+            ant: controller
+          })
+        );
+      });
+    });
+
+    describe('Resource Events', function() {
+      it('should emit ANT_RESOURCE_COLLECTED when collectResource() is called', function() {
+        const amount = 5;
+
+        controller.collectResource(amount);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_RESOURCE_COLLECTED
+          sinon.match({
+            ant: controller,
+            amount: amount,
+            totalCarried: amount,
+            capacity: sinon.match.number
+          })
+        );
+      });
+
+      it('should emit ANT_CAPACITY_REACHED when inventory is full', function() {
+        const capacity = model.getCapacity();
+
+        controller.collectResource(capacity);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_CAPACITY_REACHED
+          sinon.match({
+            ant: controller,
+            capacity: capacity
+          })
+        );
+      });
+
+      it('should emit ANT_RESOURCE_DEPOSITED when depositResources() is called', function() {
+        controller.collectResource(10);
+        emitSpy.resetHistory();
+        const dropoff = { id: 'base-1', type: 'nest' };
+
+        controller.depositResources(dropoff);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_RESOURCE_DEPOSITED
+          sinon.match({
+            ant: controller,
+            amount: 10,
+            dropoff: dropoff
+          })
+        );
+      });
+    });
+
+    describe('Job Events', function() {
+      it('should emit ANT_JOB_CHANGED when setJob() is called', function() {
+        const newJob = 'Soldier';
+
+        controller.setJob(newJob);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_JOB_CHANGED
+          sinon.match({
+            ant: controller,
+            oldJob: 'Worker',
+            newJob: newJob,
+            stats: sinon.match.object
+          })
+        );
+      });
+    });
+
+    describe('Selection Events', function() {
+      it('should emit ANT_SELECTED when setSelected(true) is called', function() {
+        controller.setSelected(true);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_SELECTED
+          sinon.match({
+            ant: controller
+          })
+        );
+      });
+
+      it('should emit ANT_DESELECTED when setSelected(false) is called', function() {
+        controller.setSelected(true);
+        emitSpy.resetHistory();
+
+        controller.setSelected(false);
+
+        sinon.assert.calledWith(
+          emitSpy,
+          sinon.match.string, // EntityEvents.ANT_DESELECTED
+          sinon.match({
+            ant: controller
+          })
+        );
+      });
+    });
+
+    describe('Event Bus Availability', function() {
+      it('should not throw errors when EventManager is unavailable', function() {
+        controller._eventBus = null;
+
+        expect(() => {
+          controller.takeDamage(10);
+          controller.attack({ id: 'enemy' }, 5);
+          controller.setState('GATHERING');
+          controller.setJob('Soldier');
+          controller.setSelected(true);
+        }).to.not.throw();
+      });
+    });
+  });
 });

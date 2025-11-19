@@ -74,27 +74,27 @@ function setup() {
 
   createCanvas(windowWidth,windowHeight) 
 
-  if (!TEST_GRID()) {
-    console.log("GRID MALFORMED.")
-    return
-  } 
+  // if (!TEST_GRID()) {
+  //   console.log("GRID MALFORMED.")
+  //   return
+  // } 
 
   // square(0,0,100)
   // image(GRASS_IMAGE,0,0,32,32)
   // square(10,10,100)
 
-  if (!TEST_CHUNK()) {
-    console.log("CHUNK MALFORMED.")
-    // TEST_CHUNK()
-  }
+  // if (!TEST_CHUNK()) {
+  //   console.log("CHUNK MALFORMED.")
+  //   // TEST_CHUNK()
+  // }
 
-  if (!TEST_CAM_RENDER_CONVERTER()){
-    console.log("CAMERA RENDER CONVERTER MALFORMED.")
-  }
+  // if (!TEST_CAM_RENDER_CONVERTER()){
+  //   console.log("CAMERA RENDER CONVERTER MALFORMED.")
+  // }
 
-  if (!TEST_BASIC_TERRAIN()) {
-    console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
-  }
+  // if (!TEST_BASIC_TERRAIN()) {
+  //   console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
+  // }
  
   // return; // !!! REMOVE BEFORE DEV
 
@@ -239,6 +239,65 @@ function setup() {
       }
     });
   }
+  
+  // Register ant spawning on GAME_PLAYING_STARTED event
+  if (typeof window.eventManager !== 'undefined' && typeof EntityEvents !== 'undefined' && typeof AntFactory !== 'undefined') {
+    console.log('✅ Registering GAME_PLAYING_STARTED event listener');
+    
+    window.eventManager.on(EntityEvents.GAME_PLAYING_STARTED, (data) => {
+      console.log('🐜 GAME_PLAYING_STARTED event received, spawning initial ants...');
+      logNormal('GAME_PLAYING_STARTED event received, spawning initial ants...');
+      
+      // Find anthill location (or use default near map center)
+      let spawnX = 400;
+      let spawnY = 400;
+      
+      // Try to find an anthill building to spawn near
+      if (Buildings && Buildings.length > 0) {
+        const anthill = Buildings.find(b => b.buildingType === 'anthill' && b._faction === 'player');
+        if (anthill) {
+          spawnX = anthill._x;
+          spawnY = anthill._y;
+        }
+      }
+      
+      // Spawn 5 worker ants using AntFactory
+      const ants = AntFactory.createMultiple(5, {
+        jobName: 'Worker',
+        x: spawnX,
+        y: spawnY,
+        faction: 'player',
+        spacing: 15
+      });
+      
+      console.log(`🐜 Spawned ${ants.length} worker ants at (${spawnX}, ${spawnY})`);
+      logNormal(`✅ Spawned ${ants.length} worker ants at (${spawnX}, ${spawnY})`);
+      
+      // Add ant controllers to global ants array (for legacy compatibility)
+      if (typeof window.ants !== 'undefined' && Array.isArray(window.ants)) {
+        ants.forEach(ant => {
+          if (ant.controller) {
+            window.ants.push(ant.controller);
+          }
+        });
+        console.log(`🐜 Added ${ants.length} ants to global array. Total ants: ${window.ants.length}`);
+      }
+      
+      // Emit batch spawned event
+      window.eventManager.emit(EntityEvents.ANTS_BATCH_SPAWNED, {
+        count: ants.length,
+        ants: ants,
+        location: { x: spawnX, y: spawnY }
+      });
+    });
+  } else {
+    console.warn('⚠️ Cannot register ant spawning:', {
+      eventManager: typeof window.eventManager,
+      EntityEvents: typeof EntityEvents,
+      AntFactory: typeof AntFactory
+    });
+  }
+  
   soundManager.startBGMMonitoring();
   initializeContextMenuPrevention();
   // Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
@@ -252,19 +311,6 @@ function setup() {
   // Game Event
   gameEventManager = new GameEventManager();
   gameEventManager.startEvent('Wave'); // Waves / Additional hives...
-
-
-
-  console.log("SAMPLING EXAMPLE")
-  // console.log("Grass @",g_activeMap.sampleTiles("grass",10))
-  // console.log("Stone peaks @",g_activeMap.sampleTiles("stone_1",10))
-  // console.log("Beaches @",g_activeMap.sampleTiles("sand",10))
-  // console.log("Deep water @",g_activeMap.sampleTiles("waterCave",10))
-  // console.log("Grass OR Sand",g_activeMap.sampleTiles(["grass","sand"],100))
-  // console.log("Grass OR Sand OR Stone peaks @",g_activeMap.sampleTiles(["grass","sand","stone_1"],1000))
-  // console.log("SETUPRESULT:",window)
-
-  // drop(importTerrain)
 }
 
 function addListeners() {
@@ -551,7 +597,6 @@ function handleMouseEvent(type, ...args) {
  */
 function mousePressed() { 
   if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
-    console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);
     try {
       window.g_powerBrushManager.usePower(mouseX, mouseY);
     } catch (error) {

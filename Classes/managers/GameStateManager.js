@@ -20,6 +20,16 @@ class GameStateManager {
       KAN_BAN: "KANBAN",
       LEVEL_EDITOR: "LEVEL_EDITOR"
     };
+    
+    // Get EventManager instance for pub/sub
+    this._eventBus = null;
+    if (typeof EventManager !== 'undefined') {
+      this._eventBus = EventManager.getInstance();
+    } else if (typeof window !== 'undefined' && window.EventManager) {
+      this._eventBus = window.EventManager.getInstance();
+    } else if (typeof global !== 'undefined' && global.EventManager) {
+      this._eventBus = global.EventManager.getInstance();
+    }
   }
 
   // Get current state
@@ -39,8 +49,50 @@ class GameStateManager {
 
     if (!skipCallbacks) {
       this.executeCallbacks(newState, this.previousState);
+      this._emitStateEvents(newState, this.previousState);
     }
     return true;
+  }
+  
+  /**
+   * Emit state change events via EventManager
+   * @private
+   * @param {string} newState - New state
+   * @param {string} oldState - Previous state
+   */
+  _emitStateEvents(newState, oldState) {
+    if (!this._eventBus) return;
+    
+    // Get EntityEvents if available
+    const EntityEvents = (typeof window !== 'undefined' && window.EntityEvents) ||
+                        (typeof global !== 'undefined' && global.EntityEvents) ||
+                        (typeof require !== 'undefined' ? require('../events/EntityEvents.js') : null);
+    
+    if (!EntityEvents) return;
+    
+    const timestamp = Date.now();
+    
+    // Always emit GAME_STATE_CHANGED
+    this._eventBus.emit(EntityEvents.GAME_STATE_CHANGED, {
+      oldState: oldState,
+      newState: newState,
+      timestamp: timestamp
+    });
+    
+    // Emit GAME_PLAYING_STARTED when entering PLAYING state
+    if (newState === 'PLAYING' && oldState !== 'PLAYING') {
+      this._eventBus.emit(EntityEvents.GAME_PLAYING_STARTED, {
+        timestamp: timestamp
+      });
+    }
+    
+    // Emit GAME_PLAYING_STOPPED when leaving PLAYING state
+    if (oldState === 'PLAYING' && newState !== 'PLAYING') {
+      this._eventBus.emit(EntityEvents.GAME_PLAYING_STOPPED, {
+        reason: newState,
+        timestamp: timestamp
+      });
+    }
   }
 
   // Get previous state

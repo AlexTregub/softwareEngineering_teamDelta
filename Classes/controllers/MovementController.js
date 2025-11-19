@@ -162,7 +162,7 @@ class MovementController {
     
     // Handle direct movement
     if (this._isMoving && this._targetPosition) {
-      if(animationManager.isAnimation("Walking")){
+      if(typeof animationManager !== 'undefined' && animationManager.isAnimation("Walking")){
         animationManager.play(this._entity,"Walking");
       }
       this.updateDirectMovement();
@@ -203,7 +203,16 @@ class MovementController {
       return;
     }
 
-    this.moveToLocation(targetX, targetY);
+    // Set target directly instead of calling moveToLocation() to avoid infinite recursion
+    // (moveToLocation would recalculate path → setPath → followPath → moveToLocation...)
+    this._targetPosition = { x: targetX, y: targetY };
+    this._isMoving = true;
+    
+    // Flip sprite based on direction
+    const pos = this.getCurrentPosition();
+    if (this._entity._sprite) {
+      this._entity._sprite.flipX = (targetX < pos.x);
+    }
   }
 
   /**

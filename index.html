@@ -124,20 +124,10 @@
 
     <!-- <script src="Classes/coordinateSystem.js"></script> -->
     <script src="Classes/containers/DropoffLocation.js"></script>
-    <script src="Classes/systems/ui/dropoffButton.js"></script>
     <script src="Classes/systems/ui/verticalButtonList.js"></script>
     <script src="Classes/systems/ui/pauseMenu.js"></script>
     <script src="debug/menu_debug.js"></script>
    
-    
-    <!-- Universal Button System Integration -->
-    <script src="Classes/systems/ui/dropoffButton_universal.js"></script>
-    
-    <!-- Legacy fallbacks (commented out - kept for reference) -->
-    <!-- <script src="Classes/systems/ui/dropoffButton.js"></script> -->
-    <!-- <script src="Classes/systems/ui/spawnGreenLeafButton.js"></script> -->
-    <!-- <script src="Classes/systems/ui/spawnControlsUI.js"></script> -->
-    
     <script src="Classes/systems/ui/menu.js"></script>
     <script src="debug/menu_debug.js"></script>
 
@@ -159,8 +149,27 @@
     <script src="Classes/ants/Boss.js"></script>
 
     <script src="Classes/managers/EventManager.js"></script>
+    <script src="Classes/events/EntityEvents.js"></script>
     <script src="Classes/events/EventTrigger.js"></script>
     <script src="Classes/events/Event.js"></script>
+    
+    <!-- MVC Architecture (Model-View-Controller) -->
+    <!-- Models (Data Layer) -->
+    <script src="Classes/mvc/models/EntityModel.js"></script>
+    <script src="Classes/mvc/models/AntModel.js"></script>
+    
+    <!-- Views (Presentation Layer) -->
+    <script src="Classes/mvc/views/EntityView.js"></script>
+    <script src="Classes/mvc/views/AntView.js"></script>
+    
+    <!-- Controllers (Orchestration Layer) -->
+    <script src="Classes/mvc/controllers/EntityController.js"></script>
+    <script src="Classes/mvc/controllers/AntController.js"></script>
+    
+    <!-- Factories (Creation Pattern) -->
+    <script src="Classes/mvc/factories/EntityFactory.js"></script>
+    <script src="Classes/mvc/factories/AntFactory.js"></script>
+    
     <script src="Classes/systems/dialogue/DialogueDemo.js"></script>
     <script src="debug/commandLine.js"></script>
     <script src="debug/EventDebugManager.js"></script>

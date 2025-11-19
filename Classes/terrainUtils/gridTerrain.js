@@ -301,23 +301,23 @@ class gridTerrain {
     }
 
     printDebug() {
-        print("gridTerrain debug:");
-        print("Chunk span:",this._gridSizeX,',',this._gridSizeY,"; Center chunk:",this._centerChunkX,',',this._centerChunkY)
-        print("Top left:",this._gridSpanTL);
-        // print(tileSpan);
+        // print("gridTerrain debug:");
+        // print("Chunk span:",this._gridSizeX,',',this._gridSizeY,"; Center chunk:",this._centerChunkX,',',this._centerChunkY)
+        // print("Top left:",this._gridSpanTL);
+        // // print(tileSpan);
 
-        print(this.chunkArray.getSize());
-        print("Tile-size span");
-        // print(this.chunkArray.rawArray[0].tileData.getSpanRange()[0]);
-        // print(this.chunkArray.rawArray[this.chunkArray.getSize()[0]*this.chunkArray.getSize()[0] - 1].tileData.getSpanRange()[1]);
-        print(this._tileSpan);
-        print("Render center:",this.renderConversion.convPosToCanvas([0,0]));
+        // print(this.chunkArray.getSize());
+        // print("Tile-size span");
+        // // print(this.chunkArray.rawArray[0].tileData.getSpanRange()[0]);
+        // // print(this.chunkArray.rawArray[this.chunkArray.getSize()[0]*this.chunkArray.getSize()[0] - 1].tileData.getSpanRange()[1]);
+        // print(this._tileSpan);
+        // print("Render center:",this.renderConversion.convPosToCanvas([0,0]));
 
-        print("ChunkArray")
-        for (let i = 0; i < this.chunkArray.length; ++i) {
-            console.log(i)
-            this.chunkArray[i].print()
-        }
+        // print("ChunkArray")
+        // for (let i = 0; i < this.chunkArray.length; ++i) {
+        //     console.log(i)
+        //     this.chunkArray[i].print()
+        // }
     }
 
     //// Utils

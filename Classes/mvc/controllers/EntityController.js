@@ -111,7 +111,18 @@ class EntityController {
       view: this.view,
       getController: (name) => this.subControllers.get(name),
       _collisionBox: this.model.collisionBox,
-      _sprite: this.model.sprite
+      _sprite: this.model.sprite || { flipX: false }, // Fallback sprite object
+      
+      // Delegate methods to model
+      getPosition: () => this.model.getPosition(),
+      setPosition: (x, y) => this.model.setPosition(x, y),
+      getSize: () => this.model.getSize(),
+      
+      // State machine access (for movement checks)
+      _stateMachine: null, // Will be set by child classes if available
+      
+      // Movement state
+      _isMoving: false
     };
 
     // Initialize each available controller

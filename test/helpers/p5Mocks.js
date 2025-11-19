@@ -354,6 +354,19 @@ function setupP5Mocks() {
     // Set p5 global
     global.p5 = mockP5;
     global.window.p5 = mockP5;
+    
+    // Setup logging functions
+    global.logNormal = sinon.stub();
+    global.logQuiet = sinon.stub();
+    global.logVerbose = sinon.stub();
+    global.logWarn = sinon.stub();
+    global.logError = sinon.stub();
+    
+    global.window.logNormal = global.logNormal;
+    global.window.logQuiet = global.logQuiet;
+    global.window.logVerbose = global.logVerbose;
+    global.window.logWarn = global.logWarn;
+    global.window.logError = global.logError;
   }
 }
 

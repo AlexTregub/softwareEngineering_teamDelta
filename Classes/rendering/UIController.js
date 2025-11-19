@@ -44,34 +44,10 @@ class UIController {
       this.initialized = true;
       this.setupKeyboardControls();
       
-      // Enable performance overlay by default in development
-      this.uiRenderer.debugUI.performanceOverlay.enabled = true;
-      
-      const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-      if (globalObj && typeof globalObj.console === 'object') {
-        console.log('UIController initialized successfully');
-      } else {
-        console.log('UIController initialized successfully');
-      }
       return true;
     } else {
       console.warn('UIController: UIRenderer not available');
       return false;
-    }
-  }
-
-  /**
-   * Set up keyboard event bindings.
-   * @private
-   */
-  setupKeyboardControls() {
-    // Note: Keyboard integration is handled via g_keyboardController.onKeyPress() in sketch.js setup()
-    // The handleKeyPress method below processes the actual key combinations
-    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.console === 'object') {
-      console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
-    } else {
-      console.log('UIController keyboard shortcuts: Shift+N (Toggle All UI), Ctrl+Shift+1-5 (Individual Panels), ` (Command Line)');
     }
   }
 
@@ -286,14 +262,6 @@ class UIController {
    * @see {@link docs/api/UIController.md#togglePerformanceOverlay} Advanced configuration
    */
   togglePerformanceOverlay() {
-    // Use existing PerformanceMonitor system
-    if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor && typeof g_performanceMonitor.setDebugDisplay === 'function') {
-      const currentState = g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled;
-      g_performanceMonitor.setDebugDisplay(!currentState);
-      console.log('UIController: Performance Monitor', !currentState ? 'ENABLED' : 'DISABLED');
-    } else if (this.uiRenderer && typeof this.uiRenderer.togglePerformanceOverlay === 'function') {
-      this.uiRenderer.togglePerformanceOverlay();
-    }
   }
 
   /**
@@ -301,20 +269,7 @@ class UIController {
    * **Shortcut**: Ctrl+Shift+2
    */
   toggleEntityInspector() {
-    // Use existing entity debug system from debug/EntityDebugManager.js
-    if (typeof getEntityDebugManager === 'function') {
-      const manager = getEntityDebugManager();
-      if (manager && typeof manager.toggleGlobalDebug === 'function') {
-        manager.toggleGlobalDebug();
-        console.log('UIController: Using existing entity debug manager');
-        return;
-      }
-    }
-    
-    // Fallback to UI renderer
-    if (this.uiRenderer && typeof this.uiRenderer.toggleEntityInspector === 'function') {
-      this.uiRenderer.toggleEntityInspector();
-    }
+    // no op
   }
 
   /**
@@ -336,40 +291,7 @@ class UIController {
    * **Shortcut**: Ctrl+Shift+4
    */
   toggleMinimap() {
-    if (this.uiRenderer) {
-      if (this.uiRenderer.hudElements.minimap.enabled) {
-        this.uiRenderer.disableMinimap();
-      } else {
-        this.uiRenderer.enableMinimap();
-      }
-    }
-  }
-
-  /**
-   * Game State Management Methods
-   */
-  /**
-   * Start the game - Transitions from MENU to PLAYING state.
-   * 
-   * **Shortcut**: Ctrl+Shift+5
-   * 
-   * @description
-   * Delegates to GameState.startGame() to handle world initialization, 
-   * UI setup, and state transitions.
-   * 
-   * @example
-   * uiController.startGame(); // Manual start
-   * // Or press Ctrl+Shift+5
-   * 
-   * @see {@link docs/api/UIController.md#startGame} Complete documentation
-   */
-  startGame() {
-    if (typeof GameState !== 'undefined' && GameState && GameState.startGame) {
-      console.log('UIController: Starting game (MENU -> PLAYING state)');
-      GameState.startGame();
-    } else {
-      console.warn('UIController: GameState.startGame() not available');
-    }
+    // no op
   }
 
   /**

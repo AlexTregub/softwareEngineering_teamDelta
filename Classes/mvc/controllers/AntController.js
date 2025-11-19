@@ -797,6 +797,40 @@ class AntController extends EntityController {
     // Call parent destroy
     super.destroy();
   }
+
+  // ===== ANIMATION INTERFACE (AnimationManager compatibility) =====
+
+  /**
+   * Get ant size (for AnimationManager sprite rendering)
+   * @returns {{x: number, y: number}} Size object
+   */
+  getSize() {
+    return this.model.getSize();
+  }
+
+  /**
+   * Get job name (for AnimationManager sprite lookup)
+   * @returns {string} Current job name
+   */
+  get jobName() {
+    return this.model.getJobName();
+  }
+
+  /**
+   * Get health value (for AnimationManager damage animations)
+   * @returns {number} Current health
+   */
+  get _health() {
+    return this.model.getHealth();
+  }
+
+  /**
+   * Set sprite image (for AnimationManager sprite swapping)
+   * @param {p5.Image} image - The sprite image
+   */
+  setImage(image) {
+    this.model.setSprite(image);
+  }
 }
 
 // ===== EXPORTS =====

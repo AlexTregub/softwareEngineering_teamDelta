@@ -402,7 +402,7 @@ class Building extends Entity {
 
     const nextImage = typeof next.image === "function" ? next.image() : next.image;
 
-    console.log("image", this.image);
+    // console.log("image", this.image);
     this.previousStage = {
       image: this.image,        // current image
       maxHealth: this._maxHealth,
