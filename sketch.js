@@ -11,7 +11,7 @@ const NONE = '\0';
 // --- CONTROLLER DECLARATIONS ---
 let g_mouseController;
 let g_keyboardController;
-let g_selectionBoxController; // MVC SelectionBoxController for drag selection
+let selectionBoxController; // MVC SelectionBoxController for drag selection
 let g_tileInteractionManager;
 // Add a single list used by selection systems (ants + buildings)
 let selectables = [];
@@ -169,41 +169,13 @@ function setup() {
       typeof SelectionBoxController !== 'undefined') {
     const selectionBoxModel = new SelectionBoxModel();
     const selectionBoxView = new SelectionBoxView(selectionBoxModel);
-    g_selectionBoxController = new SelectionBoxController(selectionBoxModel, selectionBoxView);
-    window.g_selectionBoxController = g_selectionBoxController;
-    console.log('✅ MVC SelectionBoxController initialized');
-    
-    // Register with RenderManager for rendering in UI layer
-    if (typeof RenderManager !== 'undefined') {
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
-        if (g_selectionBoxController) {
-          g_selectionBoxController.render();
-        }
-      });
-    }
+    selectionBoxController = new SelectionBoxController(selectionBoxModel, selectionBoxView);
+    window.selectionBoxController = selectionBoxController;
+    console.log('✅ MVC SelectionBoxController initialized (auto-registers with RenderManager via signals)');
   }
 
-  // OLD: Ensure selection adapter is registered with RenderManager
-  // This is handled by MVC SelectionController now
-  /*
-  try {
-    if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
-    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
-      const selectionAdapter = {
-        hitTest: function(pointer) { return true; },
-        onPointerDown: function(pointer) { try { g_selectionBoxController.handleClick(pointer.screen.x, pointer.screen.y, 'left'); return true; } catch(e) { return false; } },
-        onPointerMove: function(pointer) { try { g_selectionBoxController.handleDrag(pointer.screen.x, pointer.screen.y); return true; } catch(e) { return false; } },
-        onPointerUp: function(pointer) { try { g_selectionBoxController.handleRelease(pointer.screen.x, pointer.screen.y, 'left'); return true; } catch(e) { return false; } }
-      };
-      RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, selectionAdapter);
-      RenderManager._registeredDrawables.selectionBoxInteractive = true;
-    }
-    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBox) {
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
-      RenderManager._registeredDrawables.selectionBox = true;
-    }
-  } catch (e) { console.warn('Failed to ensure selection adapter registration', e); }
-  */
+  // SelectionBoxView now self-registers via signal-based rendering
+  // No manual registration needed
 
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
@@ -819,8 +791,8 @@ function mousePressed() {
         return; // Consumed the click
       } else {
         // No ant clicked - start selection box
-        if (g_selectionBoxController) {
-          g_selectionBoxController.onMouseDown(mouseX, mouseY);
+        if (selectionBoxController) {
+          selectionBoxController.onMouseDown(mouseX, mouseY);
         }
         
         // Deselect all ants when clicking empty space (if not holding Shift)
@@ -847,8 +819,8 @@ function mouseDragged() {
   }
   
   // Handle SelectionBox drag
-  if (GameState.getState() === 'PLAYING' && g_selectionBoxController && g_selectionBoxController.isActive()) {
-    g_selectionBoxController.onMouseDrag(mouseX, mouseY);
+  if (GameState.getState() === 'PLAYING' && selectionBoxController && selectionBoxController.isActive()) {
+    selectionBoxController.onMouseDrag(mouseX, mouseY);
   }
   
   // Handle UI Debug Manager drag events
@@ -875,8 +847,8 @@ function mouseReleased() {
   }
   
   // Handle SelectionBox release (finalize selection)
-  if (GameState.getState() === 'PLAYING' && g_selectionBoxController) {
-    g_selectionBoxController.onMouseUp();
+  if (GameState.getState() === 'PLAYING' && selectionBoxController) {
+    selectionBoxController.onMouseUp();
   }
   
   // Handle UI Debug Manager release events

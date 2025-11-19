@@ -649,7 +649,7 @@ describe('Ant Controller Integration Tests (JSDOM)', function() {
 
       // Create selection box controller with ants array
       selectionBoxController = SelectionBoxController.getInstance(mouseController, ants);
-      global.g_selectionBoxController = selectionBoxController;
+      global.selectionBoxController = selectionBoxController;
     });
 
     it('should create selection box controller instance', function() {

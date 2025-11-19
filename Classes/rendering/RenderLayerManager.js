@@ -82,11 +82,11 @@ class RenderLayerManager {
     
     this.isInitialized = false;
 
-  // Interactive drawables per layer (topmost last in array)
-  this.layerInteractives = new Map();
+    // Interactive drawables per layer (topmost last in array)
+    this.layerInteractives = new Map();
 
-  // Pointer capture info: { owner: interactiveObj, pointerId }
-  this._pointerCapture = null;
+    // Pointer capture info: { owner: interactiveObj, pointerId }
+    this._pointerCapture = null;
 
     // set this to true in conjucntion with a seperate rendering function to skip the rendering pipeline
     // Temp fix for draggable panels
@@ -100,6 +100,94 @@ class RenderLayerManager {
     this.__RendererOverwriteLast = 0;
     this._overwrittenRendererFn = null;
     this._RendererOverwriteTimerMax = 1; // seconds (default)
+
+    // Map to track registered drawables by ID
+    this._drawableRegistry = new Map();
+
+    // Set up event listeners for signal-based rendering
+    this._setupEventListeners();
+  }
+
+  /**
+   * Set up event listeners for signal-based drawable registration
+   * @private
+   */
+  _setupEventListeners() {
+    if (typeof EventManager === 'undefined' || typeof EntityEvents === 'undefined') {
+      return; // EventManager not available yet
+    }
+
+    const eventBus = EventManager.getInstance();
+    
+    // Listen for drawable registration requests
+    eventBus.on(EntityEvents.RENDER_REGISTER_DRAWABLE, (data) => {
+      this._handleDrawableRegistration(data);
+    });
+    
+    // Listen for drawable unregistration requests
+    eventBus.on(EntityEvents.RENDER_UNREGISTER_DRAWABLE, (data) => {
+      this._handleDrawableUnregistration(data);
+    });
+  }
+
+  /**
+   * Handle drawable registration signal
+   * @private
+   */
+  _handleDrawableRegistration(data) {
+    const { layer, drawFn, id } = data;
+    
+    if (!layer || !drawFn || !id) {
+      console.warn('RenderLayerManager: Invalid drawable registration', data);
+      return;
+    }
+    
+    // Check if drawable already registered
+    if (this._drawableRegistry.has(id)) {
+      console.warn(`RenderLayerManager: Drawable ${id} already registered`);
+      return;
+    }
+    
+    // Register the drawable
+    this.addDrawableToLayer(layer, drawFn);
+    
+    // Track it in registry
+    this._drawableRegistry.set(id, { layer, drawFn });
+    
+    console.log(`✅ RenderLayerManager: Registered drawable "${id}" to layer "${layer}"`);
+  }
+
+  /**
+   * Handle drawable unregistration signal
+   * @private
+   */
+  _handleDrawableUnregistration(data) {
+    const { id } = data;
+    
+    if (!id) {
+      console.warn('RenderLayerManager: Invalid drawable unregistration', data);
+      return;
+    }
+    
+    const registration = this._drawableRegistry.get(id);
+    if (!registration) {
+      console.warn(`RenderLayerManager: Drawable ${id} not found in registry`);
+      return;
+    }
+    
+    // Remove from layer
+    const drawables = this.layerDrawables.get(registration.layer);
+    if (drawables) {
+      const index = drawables.indexOf(registration.drawFn);
+      if (index !== -1) {
+        drawables.splice(index, 1);
+      }
+    }
+    
+    // Remove from registry
+    this._drawableRegistry.delete(id);
+    
+    console.log(`✅ RenderLayerManager: Unregistered drawable "${id}" from layer "${registration.layer}"`);
   }
   
   /**
@@ -129,7 +217,8 @@ class RenderLayerManager {
 
     // Register SelectionBoxController as an interactive so RenderManager dispatches pointer events to it
     try {
-      if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
+      // Old g_selectionBoxController removed - now using MVC signal-based system
+    if (false && !RenderManager._registeredDrawables.selectionBoxInteractive) {
         const selectionAdapter = {
           hitTest: function(pointer) {
             // Always allow selection adapter to receive events on the UI layer
@@ -150,9 +239,9 @@ class RenderLayerManager {
           },
           onPointerDown: function(pointer) {
             try {
-              if (g_selectionBoxController && typeof g_selectionBoxController.handleClick === 'function') {
-                // SelectionBoxController expects screen-local coordinates (it adds cameraX internally)
-                g_selectionBoxController.handleClick(pointer.screen.x, pointer.screen.y, 'left');
+              if (window.selectionBoxController && typeof window.selectionBoxController.onMouseDown === 'function') {
+                // SelectionBoxController expects screen-local coordinates
+                window.selectionBoxController.onMouseDown(pointer.screen.x, pointer.screen.y);
                 return true;
               }
             } catch (e) { console.warn('selectionAdapter.onPointerDown failed', e); }
@@ -160,8 +249,8 @@ class RenderLayerManager {
           },
           onPointerMove: function(pointer) {
             try {
-              if (g_selectionBoxController && typeof g_selectionBoxController.handleDrag === 'function') {
-                g_selectionBoxController.handleDrag(pointer.screen.x, pointer.screen.y);
+              if (window.selectionBoxController && typeof window.selectionBoxController.onMouseDrag === 'function') {
+                window.selectionBoxController.onMouseDrag(pointer.screen.x, pointer.screen.y);
                 return true;
               }
             } catch (e) { /* ignore */ }
@@ -169,8 +258,8 @@ class RenderLayerManager {
           },
           onPointerUp: function(pointer) {
             try {
-              if (g_selectionBoxController && typeof g_selectionBoxController.handleRelease === 'function') {
-                g_selectionBoxController.handleRelease(pointer.screen.x, pointer.screen.y, 'left');
+              if (window.selectionBoxController && typeof window.selectionBoxController.onMouseUp === 'function') {
+                window.selectionBoxController.onMouseUp();
                 return true;
               }
             } catch (e) { /* ignore */ }
@@ -182,8 +271,9 @@ class RenderLayerManager {
       }
     } catch (e) { console.warn('Failed to register selection adapter with RenderManager', e); }
     // Selection box should render in the UI_GAME layer
-    if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBox) {
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
+    // Old g_selectionBoxController removed - SelectionBoxView now self-registers via signals
+    if (false && !RenderManager._registeredDrawables.selectionBox) {
+      // RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, g_selectionBoxController.draw.bind(g_selectionBoxController));
       RenderManager._registeredDrawables.selectionBox = true;
     }
 
@@ -654,10 +744,7 @@ class RenderLayerManager {
       renderCurrencies();
     }
     
-    // Selection box
-    if (g_selectionBoxController) {
-      g_selectionBoxController.draw();
-    }
+    // Selection box now renders via signal-based system (SelectionBoxView self-registers)
   }
   
   /**

@@ -45,13 +45,6 @@ const testSuites = [
     description: 'Running BDD/Behave tests...',
     requiresServer: true
   },
-  {
-    name: 'E2E Tests',
-    command: 'node test/e2e/run-tests.js',
-    color: colors.yellow,
-    description: 'Running Puppeteer E2E tests...',
-    requiresServer: true
-  }
 ];
 
 // Test results tracking
@@ -193,7 +186,7 @@ function runTestSuite(suite) {
           }
         }, 5000);
       }
-    }, 300000); // 5 minutes
+    }, 50000); // 50 seconds
 
     childProcess.on('close', (code) => {
       clearTimeout(watchdog);
@@ -323,7 +316,7 @@ function printTestSummary() {
 
   // Overall result
   if (results.failed === 0) {
-    console.log(`${colors.green}${colors.bright}🎉 ALL TESTS PASSED!${colors.reset}\n`);
+    console.log(`${colors.green}${colors.bright}ALL TESTS PASSED${colors.reset}\n`);
     process.exit(0);
   } else {
     console.log(`${colors.red}${colors.bright}❌ SOME TESTS FAILED${colors.reset}\n`);

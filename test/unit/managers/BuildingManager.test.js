@@ -43,7 +43,7 @@ describe('BuildingManager', function() {
     };
     global.performance = { now: () => Date.now() };
     global.rand = function(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); };
-    global.g_selectionBoxController = { entities: [] };
+    global.selectionBoxController = { entities: [] };
   });
   
   afterEach(function() {
@@ -52,7 +52,7 @@ describe('BuildingManager', function() {
     delete global.antsSpawn;
     delete global.lastSpawn;
     delete global.rand;
-    delete global.g_selectionBoxController;
+    delete global.selectionBoxController;
   });
   
   describe('Building Class', function() {

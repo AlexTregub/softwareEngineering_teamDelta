@@ -178,7 +178,16 @@ class SelectionBoxModel {
    * @returns {Object} Color config
    */
   getColors() {
-    return { ...this.config };
+    return {
+      fillColor: { ...this.config.fillColor },
+      fillAlpha: this.config.fillAlpha,
+      strokeColor: { ...this.config.strokeColor },
+      strokeAlpha: this.config.strokeAlpha,
+      strokeWeight: this.config.strokeWeight,
+      cornerSize: this.config.cornerSize,
+      cornerColor: { ...this.config.cornerColor },
+      cornerAlpha: this.config.cornerAlpha
+    };
   }
 }
 

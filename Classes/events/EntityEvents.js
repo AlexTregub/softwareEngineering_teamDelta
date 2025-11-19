@@ -242,6 +242,26 @@ const EntityEvents = {
    */
   SELECTION_BOX_COMPLETE: 'selection:box:complete',
   
+  // ===== RENDER EVENTS =====
+  
+  /**
+   * Request to register a drawable with RenderLayerManager
+   * @event RENDER_REGISTER_DRAWABLE
+   * @type {Object}
+   * @property {string} layer - Layer name (TERRAIN, ENTITIES, EFFECTS, UI_GAME, UI_DEBUG, UI_MENU)
+   * @property {Function} drawFn - Drawing function to call
+   * @property {string} id - Unique identifier for this drawable
+   */
+  RENDER_REGISTER_DRAWABLE: 'render:register:drawable',
+  
+  /**
+   * Request to unregister a drawable from RenderLayerManager
+   * @event RENDER_UNREGISTER_DRAWABLE
+   * @type {Object}
+   * @property {string} id - Unique identifier of drawable to remove
+   */
+  RENDER_UNREGISTER_DRAWABLE: 'render:unregister:drawable',
+  
   // ===== ANIMATION EVENTS (for AnimationManager integration) =====
   
   /**

@@ -195,7 +195,7 @@ describe('RenderLayerManager Integration Tests', function() {
         window.renderMenu = global.renderMenu;
 
         // Mock selection box controller (set at global scope)
-        global.g_selectionBoxController = {
+        global.selectionBoxController = {
             draw: () => {
                 renderCallOrder.push('selectionBox');
             },
@@ -203,7 +203,7 @@ describe('RenderLayerManager Integration Tests', function() {
             handleDrag: () => {},
             handleRelease: () => {}
         };
-        window.g_selectionBoxController = global.g_selectionBoxController;
+        window.selectionBoxController = global.selectionBoxController;
 
         // Mock performance monitor (set at global scope)
         global.g_performanceMonitor = {

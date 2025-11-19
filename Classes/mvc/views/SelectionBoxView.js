@@ -7,6 +7,7 @@
  * - Render selection box rectangle
  * - Render corner indicators
  * - Apply colors and transparency
+ * - Register itself with RenderLayerManager via signals
  * - NO state mutations
  * - NO update logic
  */
@@ -18,6 +19,42 @@ class SelectionBoxView {
    */
   constructor(model) {
     this.model = model;
+    
+    // Get EventManager instance for rendering registration
+    this._eventBus = typeof EventManager !== 'undefined' ? EventManager.getInstance() : null;
+    
+    // Register with RenderLayerManager via event signal
+    this._registerWithRenderer();
+  }
+
+  /**
+   * Register this view with RenderLayerManager via event signal
+   * Views are responsible for their own rendering registration
+   * @private
+   */
+  _registerWithRenderer() {
+    if (!this._eventBus || typeof EntityEvents === 'undefined') {
+      console.warn('SelectionBoxView: Cannot register - EventManager or EntityEvents not available');
+      return;
+    }
+
+    this._eventBus.emit(EntityEvents.RENDER_REGISTER_DRAWABLE, {
+      layer: 'ui_game', // RenderManager.layers.UI_GAME
+      drawFn: this.render.bind(this),
+      id: 'selection-box-view'
+    });
+  }
+
+  /**
+   * Unregister from RenderLayerManager
+   * Called when view is destroyed
+   */
+  destroy() {
+    if (this._eventBus && typeof EntityEvents !== 'undefined') {
+      this._eventBus.emit(EntityEvents.RENDER_UNREGISTER_DRAWABLE, {
+        id: 'selection-box-view'
+      });
+    }
   }
 
   /**
@@ -49,18 +86,18 @@ class SelectionBoxView {
    * @private
    */
   _renderBox(bounds, colors) {
-    const { fillColor, fillAlpha, strokeColor, strokeAlpha, strokeWeight } = colors;
+    const { fillColor, fillAlpha, strokeColor, strokeAlpha, strokeWeight: weight } = colors;
 
     // Fill
-    fill(fillColor.r, fillColor.g, fillColor.b, fillAlpha);
+    if (typeof fill !== 'undefined') fill(fillColor.r, fillColor.g, fillColor.b, fillAlpha);
 
     // Stroke
-    stroke(strokeColor.r, strokeColor.g, strokeColor.b, strokeAlpha);
-    strokeWeight(strokeWeight);
+    if (typeof stroke !== 'undefined') stroke(strokeColor.r, strokeColor.g, strokeColor.b, strokeAlpha);
+    if (typeof strokeWeight !== 'undefined') strokeWeight(weight);
 
     // Draw rectangle
-    rectMode(CORNER);
-    rect(bounds.minX, bounds.minY, bounds.width, bounds.height);
+    if (typeof rectMode !== 'undefined') rectMode(CORNER);
+    if (typeof rect !== 'undefined') rect(bounds.minX, bounds.minY, bounds.width, bounds.height);
   }
 
   /**
@@ -70,27 +107,29 @@ class SelectionBoxView {
    * @private
    */
   _renderCorners(bounds, colors) {
-    const { cornerSize, cornerColor, cornerAlpha, strokeWeight } = colors;
+    const { cornerSize, cornerColor, cornerAlpha, strokeWeight: weight } = colors;
 
-    stroke(cornerColor.r, cornerColor.g, cornerColor.b, cornerAlpha);
-    strokeWeight(strokeWeight + 1);
-    noFill();
+    if (typeof stroke !== 'undefined') stroke(cornerColor.r, cornerColor.g, cornerColor.b, cornerAlpha);
+    if (typeof strokeWeight !== 'undefined') strokeWeight(weight + 1);
+    if (typeof noFill !== 'undefined') noFill();
 
     // Top-left corner
-    line(bounds.minX, bounds.minY, bounds.minX + cornerSize, bounds.minY);
-    line(bounds.minX, bounds.minY, bounds.minX, bounds.minY + cornerSize);
+    if (typeof line !== 'undefined') {
+      line(bounds.minX, bounds.minY, bounds.minX + cornerSize, bounds.minY);
+      line(bounds.minX, bounds.minY, bounds.minX, bounds.minY + cornerSize);
 
-    // Top-right corner
-    line(bounds.maxX, bounds.minY, bounds.maxX - cornerSize, bounds.minY);
-    line(bounds.maxX, bounds.minY, bounds.maxX, bounds.minY + cornerSize);
+      // Top-right corner
+      line(bounds.maxX, bounds.minY, bounds.maxX - cornerSize, bounds.minY);
+      line(bounds.maxX, bounds.minY, bounds.maxX, bounds.minY + cornerSize);
 
-    // Bottom-left corner
-    line(bounds.minX, bounds.maxY, bounds.minX + cornerSize, bounds.maxY);
-    line(bounds.minX, bounds.maxY, bounds.minX, bounds.maxY - cornerSize);
+      // Bottom-left corner
+      line(bounds.minX, bounds.maxY, bounds.minX + cornerSize, bounds.maxY);
+      line(bounds.minX, bounds.maxY, bounds.minX, bounds.maxY - cornerSize);
 
-    // Bottom-right corner
-    line(bounds.maxX, bounds.maxY, bounds.maxX - cornerSize, bounds.maxY);
-    line(bounds.maxX, bounds.maxY, bounds.maxX, bounds.maxY - cornerSize);
+      // Bottom-right corner
+      line(bounds.maxX, bounds.maxY, bounds.maxX - cornerSize, bounds.maxY);
+      line(bounds.maxX, bounds.maxY, bounds.maxX, bounds.maxY - cornerSize);
+    }
   }
 
   /**
