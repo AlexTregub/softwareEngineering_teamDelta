@@ -1444,7 +1444,9 @@ function windowResized() {
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
 
-  g_activeMap.invalidateCache()
+  if (g_activeMap && typeof g_activeMap.invalidateCache === 'function') {
+    g_activeMap.invalidateCache();
+  }
 
   resizeCanvas(g_canvasX,g_canvasY);
 }

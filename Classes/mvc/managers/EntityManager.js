@@ -4,6 +4,10 @@
  * Centralized tracking system for entities created through MVC factories.
  * Provides type-based queries, legacy compatibility, and efficient lookups.
  * 
+ * Automatically listens to EventManager for entity lifecycle events:
+ * - ANT_CREATED / ANT_DESTROYED (EntityEvents)
+ * - ENTITY_CREATED / ENTITY_DESTROYED (EntityEvents)
+ * 
  * @class EntityManager
  * @singleton
  * 
@@ -11,13 +15,14 @@
  * // Get singleton instance
  * const manager = EntityManager.getInstance();
  * 
- * // Register entity controller
+ * // Register entity controller (manual or automatic via events)
  * manager.register(antController, 'ant');
  * 
  * // Query entities
  * const allAnts = manager.getByType('ant');
  * const entity = manager.getById('entity_123');
  * const total = manager.getCount();
+ * const antCount = manager.getAntCount(); // Convenience method
  * 
  * // Legacy compatibility
  * const ants = manager.getLegacyAnts(); // Returns all ant controllers
@@ -59,6 +64,55 @@ class EntityManager {
     if (typeof window !== 'undefined') {
       window.entityManager = this;
     }
+    
+    // Setup event listeners for automatic tracking
+    this._setupEventListeners();
+  }
+  
+  /**
+   * Setup event listeners for entity lifecycle events
+   * @private
+   */
+  _setupEventListeners() {
+    // Check if EventManager and EntityEvents are available
+    if (typeof EventManager === 'undefined' || typeof EntityEvents === 'undefined') {
+      console.warn('EntityManager: EventManager or EntityEvents not available, skipping event listener setup');
+      return;
+    }
+    
+    const eventManager = EventManager.getInstance();
+    
+    // Listen for ant creation events
+    eventManager.on(EntityEvents.ANT_CREATED, (data) => {
+      if (data && data.ant) {
+        // Auto-register ant controller when created
+        this.register(data.ant, 'ant');
+      }
+    });
+    
+    // Listen for ant destruction events
+    eventManager.on(EntityEvents.ANT_DESTROYED, (data) => {
+      if (data && data.antId) {
+        // Auto-unregister ant when destroyed
+        this.unregister(data.antId);
+      }
+    });
+    
+    // Listen for generic entity creation events
+    eventManager.on(EntityEvents.ENTITY_CREATED, (data) => {
+      if (data && data.entity && data.type) {
+        // Auto-register entity controller when created
+        this.register(data.entity, data.type);
+      }
+    });
+    
+    // Listen for generic entity destruction events
+    eventManager.on(EntityEvents.ENTITY_DESTROYED, (data) => {
+      if (data && data.entityId) {
+        // Auto-unregister entity when destroyed
+        this.unregister(data.entityId);
+      }
+    });
   }
 
   /**
@@ -252,6 +306,19 @@ class EntityManager {
    */
   getLegacyAnts() {
     return this.getByType('ant');
+  }
+  
+  /**
+   * Get current ant count (convenience method)
+   * 
+   * @returns {number} Number of registered ants
+   * 
+   * @example
+   * const antCount = manager.getAntCount();
+   * console.log(`${antCount} ants alive`);
+   */
+  getAntCount() {
+    return this.getCount('ant');
   }
 
   /**

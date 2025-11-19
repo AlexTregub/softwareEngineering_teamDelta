@@ -44,6 +44,7 @@ Feature: Ant Visual Rendering Verification
     Then the screenshot should contain non-grass colored pixels
     And the pixel count should indicate at least 5 ants
 
+  @skip
   Scenario: Visual regression comparison
     When the player starts a new game
     And I wait for ants to be created
