@@ -133,14 +133,39 @@ class EntityView {
   highlightSelected() {
     if (!this.model.isActive || !this.model.visible) return;
 
-    const pos = this.model.getPosition();
+    const screenPos = this._getScreenPosition();
     const size = this.model.getSize();
 
     push();
+    // Draw green selection box
     noFill();
     stroke(0, 255, 0); // Green outline
+    strokeWeight(3);
+    rectMode(CENTER);
+    rect(screenPos.x, screenPos.y, size.x + 10, size.y + 10);
+    
+    // Draw corner indicators
+    stroke(0, 255, 0);
     strokeWeight(2);
-    ellipse(pos.x, pos.y, size.x + 10, size.y + 10);
+    const offset = (size.x + 10) / 2;
+    const cornerSize = 5;
+    
+    // Top-left corner
+    line(screenPos.x - offset, screenPos.y - offset, screenPos.x - offset + cornerSize, screenPos.y - offset);
+    line(screenPos.x - offset, screenPos.y - offset, screenPos.x - offset, screenPos.y - offset + cornerSize);
+    
+    // Top-right corner
+    line(screenPos.x + offset, screenPos.y - offset, screenPos.x + offset - cornerSize, screenPos.y - offset);
+    line(screenPos.x + offset, screenPos.y - offset, screenPos.x + offset, screenPos.y - offset + cornerSize);
+    
+    // Bottom-left corner
+    line(screenPos.x - offset, screenPos.y + offset, screenPos.x - offset + cornerSize, screenPos.y + offset);
+    line(screenPos.x - offset, screenPos.y + offset, screenPos.x - offset, screenPos.y + offset - cornerSize);
+    
+    // Bottom-right corner
+    line(screenPos.x + offset, screenPos.y + offset, screenPos.x + offset - cornerSize, screenPos.y + offset);
+    line(screenPos.x + offset, screenPos.y + offset, screenPos.x + offset, screenPos.y + offset - cornerSize);
+    
     pop();
   }
 
@@ -150,13 +175,16 @@ class EntityView {
   highlightHover() {
     if (!this.model.isActive || !this.model.visible) return;
 
-    const pos = this.model.getPosition();
+    const screenPos = this._getScreenPosition();
     const size = this.model.getSize();
 
     push();
-    fill(255, 255, 0, 50); // Yellow tint
-    noStroke();
-    ellipse(pos.x, pos.y, size.x + 5, size.y + 5);
+    // Yellow hover box
+    fill(255, 255, 0, 80); // Yellow tint with transparency
+    stroke(255, 255, 0, 200); // Yellow outline
+    strokeWeight(2);
+    rectMode(CENTER);
+    rect(screenPos.x, screenPos.y, size.x + 8, size.y + 8);
     pop();
   }
 
@@ -166,14 +194,14 @@ class EntityView {
   highlightCombat() {
     if (!this.model.isActive || !this.model.visible) return;
 
-    const pos = this.model.getPosition();
+    const screenPos = this._getScreenPosition();
     const size = this.model.getSize();
 
     push();
     noFill();
     stroke(255, 0, 0); // Red outline
     strokeWeight(3);
-    ellipse(pos.x, pos.y, size.x + 15, size.y + 15);
+    ellipse(screenPos.x, screenPos.y, size.x + 15, size.y + 15);
     pop();
   }
 
@@ -183,14 +211,15 @@ class EntityView {
   highlightBoxHover() {
     if (!this.model.isActive || !this.model.visible) return;
 
-    const pos = this.model.getPosition();
+    const screenPos = this._getScreenPosition();
     const size = this.model.getSize();
 
     push();
     fill(255, 255, 0, 50);
     stroke(255, 255, 0);
     strokeWeight(2);
-    rect(pos.x - size.x/2, pos.y - size.y/2, size.x, size.y);
+    rectMode(CENTER);
+    rect(screenPos.x, screenPos.y, size.x + 8, size.y + 8);
     pop();
   }
 

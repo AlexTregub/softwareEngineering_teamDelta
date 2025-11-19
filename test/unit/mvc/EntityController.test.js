@@ -459,4 +459,121 @@ describe('EntityController', function() {
       expect(pos).to.deep.equal(model.getPosition());
     });
   });
+
+  describe('Mouse Interaction (Hover & Selection)', function() {
+    beforeEach(function() {
+      // Create entity at known position with known size
+      model = new EntityModel({ 
+        x: 100, 
+        y: 100, 
+        width: 32, 
+        height: 32,
+        imagePath: 'test/sprite.png'
+      });
+      view = new EntityView(model);
+      controller = new EntityController(model, view, { selectable: true });
+    });
+
+    describe('Hover Detection', function() {
+      it('should detect mouse over entity bounds', function() {
+        const selection = controller.getController('selection');
+        expect(selection).to.exist;
+        
+        // Mouse at center of entity (100 + 16 = 116)
+        selection.updateHoverState(116, 116);
+        expect(selection.isHovered()).to.be.true;
+      });
+
+      it('should detect mouse outside entity bounds', function() {
+        const selection = controller.getController('selection');
+        
+        // Mouse far away from entity
+        selection.updateHoverState(50, 50);
+        expect(selection.isHovered()).to.be.false;
+      });
+
+      it('should update hover state on mouse move', function() {
+        const selection = controller.getController('selection');
+        
+        // Start outside
+        selection.updateHoverState(50, 50);
+        expect(selection.isHovered()).to.be.false;
+        
+        // Move inside
+        selection.updateHoverState(116, 116);
+        expect(selection.isHovered()).to.be.true;
+        
+        // Move outside again
+        selection.updateHoverState(200, 200);
+        expect(selection.isHovered()).to.be.false;
+      });
+    });
+
+    describe('Click Selection', function() {
+      it('should set selected state when clicked', function() {
+        controller.setSelected(true);
+        expect(controller.isSelected()).to.be.true;
+      });
+
+      it('should clear selected state when deselected', function() {
+        controller.setSelected(true);
+        controller.setSelected(false);
+        expect(controller.isSelected()).to.be.false;
+      });
+
+      it('should toggle selection', function() {
+        expect(controller.isSelected()).to.be.false;
+        controller.toggleSelection();
+        expect(controller.isSelected()).to.be.true;
+        controller.toggleSelection();
+        expect(controller.isSelected()).to.be.false;
+      });
+    });
+
+    describe('Highlight Rendering Integration', function() {
+      it('should call view.highlightHover when hovered', function() {
+        const highlightSpy = sinon.spy(view, 'highlightHover');
+        const selection = controller.getController('selection');
+        
+        // Hover over entity
+        selection.updateHoverState(116, 116);
+        selection.applyHighlighting();
+        
+        expect(highlightSpy.called).to.be.true;
+      });
+
+      it('should call view.highlightSelected when selected', function() {
+        const highlightSpy = sinon.spy(view, 'highlightSelected');
+        const selection = controller.getController('selection');
+        
+        // Select entity
+        controller.setSelected(true);
+        selection.applyHighlighting();
+        
+        expect(highlightSpy.called).to.be.true;
+      });
+
+      it('should prioritize selected highlight over hover', function() {
+        const selection = controller.getController('selection');
+        
+        // Both selected and hovered
+        controller.setSelected(true);
+        selection.updateHoverState(116, 116);
+        selection.updateHighlightType();
+        
+        expect(selection.getHighlightType()).to.equal('selected');
+      });
+    });
+
+    describe('SelectionController Update Cycle', function() {
+      it('should update hover state during controller update', function() {
+        const selection = controller.getController('selection');
+        const updateSpy = sinon.spy(selection, 'update');
+        
+        controller.update();
+        
+        expect(updateSpy.called).to.be.true;
+      });
+    });
+  });
 });

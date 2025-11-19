@@ -114,12 +114,13 @@
     <script src="Classes/controllers/TaskManager.js"></script>
     <script src="Classes/controllers/CombatController.js"></script>
     <script src="Classes/controllers/TransformController.js"></script>
-    <script src="Classes/controllers/SelectionController.js"></script>
+    <!-- OLD selection system removed - MVC SelectionController used instead -->
+    <!-- <script src="Classes/controllers/SelectionController.js"></script> -->
+    <!-- <script src="Classes/controllers/SelectionBoxController.js"></script> -->
+    <!-- <script src="Classes/controllers/UISelectionController.js"></script> -->
     <script src="Classes/controllers/TerrainController.js"></script>
     <script src="Classes/controllers/MouseInputController.js"></script>
     <script src="Classes/controllers/KeyboardInputController.js"> </script>
-    <script src="Classes/controllers/SelectionBoxController.js"></script>
-    <script src="Classes/controllers/UISelectionController.js"></script>
     <script src="Classes/controllers/InventoryController.js"></script>
     <!-- HealthController.js manages the health state and logic for entities; added to support entity health tracking and updates. -->
     <script src="Classes/controllers/HealthController.js"></script>
@@ -150,12 +151,16 @@
     <!-- Models (Data Layer) -->
     <script src="Classes/mvc/models/EntityModel.js"></script>
     <script src="Classes/mvc/models/AntModel.js"></script>
+    <script src="Classes/mvc/models/SelectionBoxModel.js"></script>
     
     <!-- Views (Presentation Layer) -->
     <script src="Classes/mvc/views/EntityView.js"></script>
     <script src="Classes/mvc/views/AntView.js"></script>
+    <script src="Classes/mvc/views/SelectionBoxView.js"></script>
     
     <!-- Controllers (Orchestration Layer) -->
+    <script src="Classes/mvc/controllers/SelectionController.js"></script>
+    <script src="Classes/mvc/controllers/SelectionBoxController.js"></script>
     <script src="Classes/mvc/controllers/EntityController.js"></script>
     <script src="Classes/mvc/controllers/AntController.js"></script>
     
@@ -209,9 +214,11 @@
     <script src="Classes/ui/FormatConverter.js"></script>
     <script src="Classes/ui/FileMenuBar.js"></script>
     <script src="Classes/ui/menuBar/BrushSizeMenuModule.js"></script>
-    <script src="Classes/ui/SelectionManager.js"></script>
+    <!-- OLD SelectionManager removed - MVC SelectionController used instead -->
+    <!-- <script src="Classes/ui/SelectionManager.js"></script> -->
     <script src="Classes/ui/HoverPreviewManager.js"></script>
     <script src="Classes/ui/ResourceDisplayComponent.js"></script>
+    <script src="Classes/ui/AntCountDisplayComponent.js"></script>
     <script src="Classes/ui/GameUIOverlay.js"></script>
     <script src="Classes/systems/ui/EventEditorPanel.js"></script>
     <script src="Classes/systems/ui/LevelEditor.js"></script>

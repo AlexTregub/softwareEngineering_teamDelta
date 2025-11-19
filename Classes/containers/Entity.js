@@ -103,11 +103,11 @@ class Entity {
     this._controllers = new Map();
 
     // Map of controller name -> constructor (or null if not available)
+    // NOTE: SelectionController removed - only for MVC entities
     const availableControllers = {
       'transform': typeof TransformController !== 'undefined' ? TransformController : null,
       'movement': typeof MovementController !== 'undefined' ? MovementController : null,
       'render': typeof RenderController !== 'undefined' ? RenderController : null,
-      'selection': typeof SelectionController !== 'undefined' ? SelectionController : null,
       'combat': typeof CombatController !== 'undefined' ? CombatController : null,
       'terrain': typeof TerrainController !== 'undefined' ? TerrainController : null,
       'taskManager': typeof TaskManager !== 'undefined' ? TaskManager : null,
@@ -133,13 +133,16 @@ class Entity {
    */
   _configureControllers(options) {
     const movement = this._controllers.get('movement');
-    movement.movementSpeed = options.movementSpeed;
+    if (movement) {
+      movement.movementSpeed = options.movementSpeed;
+    }
 
-    const selection = this._controllers.get('selection');
-    selection.setSelectable(options.selectable);
+    // SelectionController removed - only exists in MVC entities now
 
     const combat = this._controllers.get('combat');
-    combat.setFaction(options.faction);
+    if (combat) {
+      combat.setFaction(options.faction);
+    }
   }
 
   // --- Controller Access Helper ---

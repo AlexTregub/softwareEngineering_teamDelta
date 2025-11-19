@@ -1,0 +1,3106 @@
+﻿
+> ant-game-tests@1.0.0 test:unit
+> node test/unit/run-with-summary.js
+
+
+Found 43 test files
+
+Loading ResourceManager.js
+
+[0m[0m
+[0m  Level Editor - Brush Panel Hidden by Default[0m
+[0m    Default Visibility[0m
+node.exe : LevelEditorPanels: DraggablePanelManager not found
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (LevelEditorPane...nager not found:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    [32m  Γ£ö[0m[90m should NOT include Brush Panel in LEVEL_EDITOR state visibility[0m
+LevelEditorPanels: DraggablePanelManager not found
+    [32m  Γ£ö[0m[90m should initialize Level Editor without Brush Panel visible[0m
+[0m    View Menu Integration[0m
+LevelEditorPanels: DraggablePanelManager not found
+    [32m  Γ£ö[0m[90m should NOT include Brush Panel toggle in View menu[0m
+[0m    Other Panels Still Visible[0m
+LevelEditorPanels: DraggablePanelManager not found
+    [32m  Γ£ö[0m[90m should still show Materials Panel by default[0m
+LevelEditorPanels: DraggablePanelManager not found
+    [32m  Γ£ö[0m[90m should still show Tools Panel by default[0m
+
+[0m  Level Editor - Brush Size Scroll[0m
+[0m    Shift + Scroll Up[0m
+    [32m  Γ£ö[0m[90m should increase brush size up to max 9[0m
+    [32m  Γ£ö[0m[90m should not exceed max size of 9[0m
+[0m    Shift + Scroll Down[0m
+    [32m  Γ£ö[0m[90m should decrease brush size down to min 1[0m
+    [32m  Γ£ö[0m[90m should not go below min size of 1[0m
+[0m    Normal Scroll (no Shift)[0m
+    [32m  Γ£ö[0m[90m should not change brush size and allow zoom[0m
+[0m    Tool-Specific Behavior[0m
+    [32m  Γ£ö[0m[90m should only work when paint tool is active[0m
+    [32m  Γ£ö[0m[90m should not work with fill tool[0m
+    [32m  Γ£ö[0m[90m should not work with select tool[0m
+[0m    Menu Display Update[0m
+    [32m  Γ£ö[0m[90m should update menu when size changes[0m
+
+[0m  LevelEditor - Dialog Blocking[0m
+[0m    handleClick() - Save Dialog Blocking[0m
+    [32m  Γ£ö[0m[90m should block terrain painting when save dialog is visible (clicked outside dialog)[0m
+    [32m  Γ£ö[0m[90m should block terrain painting when save dialog consumes click[0m
+    [32m  Γ£ö[0m[90m should allow terrain painting when save dialog is NOT visible[0m
+[0m    handleClick() - Load Dialog Blocking[0m
+    [32m  Γ£ö[0m[90m should block terrain painting when load dialog is visible (clicked outside dialog)[0m
+    [32m  Γ£ö[0m[90m should block terrain painting when load dialog consumes click[0m
+    [32m  Γ£ö[0m[90m should allow terrain painting when load dialog is NOT visible[0m
+[0m    handleDrag() - Save Dialog Blocking[0m
+    [32m  Γ£ö[0m[90m should block terrain painting when save dialog is visible[0m
+    [32m  Γ£ö[0m[90m should allow terrain painting when save dialog is NOT visible[0m
+[0m    handleDrag() - Load Dialog Blocking[0m
+    [32m  Γ£ö[0m[90m should block terrain painting when load dialog is visible[0m
+    [32m  Γ£ö[0m[90m should allow terrain painting when load dialog is NOT visible[0m
+[0m    Dialog Priority Order[0m
+    [32m  Γ£ö[0m[90m should check dialogs BEFORE menu bar check[0m
+    [32m  Γ£ö[0m[90m should check save dialog before load dialog[0m
+
+[0m  Level Editor - Events Panel Visibility[0m
+[0m    Default Visibility[0m
+    [32m  Γ£ö[0m[90m should not be visible by default[0m
+    [32m  Γ£ö[0m[90m should not render when state is LEVEL_EDITOR[0m
+[0m    Tools Panel Integration[0m
+    [32m  Γ£ö[0m[90m should have Events toggle button in Tools panel[0m
+    [32m  Γ£ö[0m[90m should show panel when Events button clicked[0m
+    [32m  Γ£ö[0m[90m should hide panel when Events button clicked again[0m
+[0m    Button Highlighting[0m
+    [32m  Γ£ö[0m[90m should highlight Events button when panel visible[0m
+    [32m  Γ£ö[0m[90m should remove highlight when panel hidden[0m
+[0m    Render Behavior[0m
+    [32m  Γ£ö[0m[90m should render panel when visible[0m
+    [32m  Γ£ö[0m[90m should persist visibility across renders[0m
+
+[0m  Level Editor - Filename Display[0m
+[0m    Default Display[0m
+    [32m  Γ£ö[0m[90m should display "Untitled" by default[0m
+    [32m  Γ£ö[0m[90m should render at top-center of canvas[0m
+[0m    Filename Updates[0m
+    [32m  Γ£ö[0m[90m should update when filename changes[0m
+    [32m  Γ£ö[0m[90m should strip .json extension from display[0m
+    [32m  Γ£ö[0m[90m should handle .JSON extension (case insensitive)[0m
+    [32m  Γ£ö[0m[90m should not strip .json from middle of filename[0m
+[0m    Render Behavior[0m
+    [32m  Γ£ö[0m[90m should render updated filename[0m
+    [32m  Γ£ö[0m[90m should use correct text size[0m
+    [32m  Γ£ö[0m[90m should center text horizontally[0m
+[0m    Display After Save[0m
+    [32m  Γ£ö[0m[90m should display saved filename after save operation[0m
+
+[0m  Level Editor - File New[0m
+[0m    Unsaved Changes Prompt[0m
+    [32m  Γ£ö[0m[90m should prompt if terrain has been modified[0m
+    [32m  Γ£ö[0m[90m should not prompt if terrain has not been modified[0m
+[0m    Confirmation Behavior[0m
+    [32m  Γ£ö[0m[90m should create new blank terrain on confirmation[0m
+    [32m  Γ£ö[0m[90m should preserve current terrain on cancel[0m
+[0m    Filename Reset[0m
+    [32m  Γ£ö[0m[90m should reset filename to "Untitled"[0m
+[0m    Undo/Redo History[0m
+    [32m  Γ£ö[0m[90m should clear undo/redo history[0m
+    [32m  Γ£ö[0m[90m should have empty undo history after new[0m
+[0m    Modified Flag[0m
+    [32m  Γ£ö[0m[90m should reset modified flag to false[0m
+
+[0m  Level Editor - File Save/Export[0m
+[0m    File Save - Naming Dialog[0m
+    [32m  Γ£ö[0m[90m should show naming dialog when Save clicked[0m
+    [32m  Γ£ö[0m[90m should set currentFilename when name entered[0m
+    [32m  Γ£ö[0m[90m should strip .json extension from filename[0m
+    [32m  Γ£ö[0m[90m should set isModified to false after save[0m
+[0m    File Export - With Filename[0m
+    [32m  Γ£ö[0m[90m should export immediately if filename is set[0m
+    [32m  Γ£ö[0m[90m should append .json extension for download[0m
+[0m    File Export - Without Filename[0m
+    [32m  Γ£ö[0m[90m should prompt for filename if Untitled[0m
+    [32m  Γ£ö[0m[90m should export after save dialog completes[0m
+[0m    Filename Storage[0m
+    [32m  Γ£ö[0m[90m should store filename without extension internally[0m
+    [32m  Γ£ö[0m[90m should handle filename without extension[0m
+
+[0m  Level Editor - Menu Blocking[0m
+[0m    Menu State Tracking[0m
+    [32m  Γ£ö[0m[90m should return true when dropdown is visible[0m
+    [32m  Γ£ö[0m[90m should return false when dropdown is closed[0m
+[0m    Click Blocking[0m
+    [32m  Γ£ö[0m[90m should block handleClick when menu is open[0m
+    [32m  Γ£ö[0m[90m should allow handleClick when menu is closed[0m
+[0m    Hover Preview Blocking[0m
+    [32m  Γ£ö[0m[90m should skip hover preview when menu is open[0m
+    [32m  Γ£ö[0m[90m should show hover preview when menu is closed[0m
+[0m    Tool Disabling[0m
+    [32m  Γ£ö[0m[90m should disable paint tool when menu open[0m
+    [32m  Γ£ö[0m[90m should disable fill tool when menu open[0m
+[0m    Tool Re-enabling[0m
+    [32m  Γ£ö[0m[90m should re-enable tools when menu closes[0m
+
+[0m  LevelEditor - Menu Interaction Blocking[0m
+[0m    Click Handling Priority When Menu Open[0m
+    [32m  Γ£ö[0m[90m should NOT paint terrain when clicking menu bar (even with menu closed)[0m
+    [32m  Γ£ö[0m[90m should check menu bar BEFORE blocking terrain interaction[0m
+    [32m  Γ£ö[0m[90m should allow menu bar to handle clicks even when menu is open[0m
+    [32m  Γ£ö[0m[90m should close menu when clicking canvas while menu is open[0m
+    [32m  Γ£ö[0m[90m should consume canvas click that closes menu (no terrain interaction)[0m
+    [31m  1) should allow terrain interaction when menu is closed[0m
+[0m    Menu State Management[0m
+    [32m  Γ£ö[0m[90m should set isMenuOpen to true when menu opens[0m
+    [32m  Γ£ö[0m[90m should set isMenuOpen to false when menu closes[0m
+[0m    Hover Preview When Menu Open[0m
+    [32m  Γ£ö[0m[90m should disable hover preview when menu is open[0m
+    [32m  Γ£ö[0m[90m should show hover preview when menu is closed[0m
+[0m    Drag Painting Over Menu Bar (Bug Fix #4)[0m
+    [32m  Γ£ö[0m[90m should NOT paint when dragging mouse over menu bar[0m
+    [32m  Γ£ö[0m[90m should NOT paint when menu is open[0m
+    [31m  2) should paint when dragging over canvas with menu closed[0m
+    [31m  3) should NOT paint when other tools active[0m
+
+[0m  Level Editor - Properties Panel Visibility[0m
+[0m    Default Visibility[0m
+    [32m  Γ£ö[0m[90m should not be visible by default in LEVEL_EDITOR state[0m
+    [32m  Γ£ö[0m[90m should not render when state is LEVEL_EDITOR[0m
+[0m    Toggle via View Menu[0m
+    [32m  Γ£ö[0m[90m should show panel when toggled on[0m
+    [32m  Γ£ö[0m[90m should hide panel when toggled off[0m
+    [32m  Γ£ö[0m[90m should render panel when visible in LEVEL_EDITOR state[0m
+[0m    State Persistence[0m
+    [32m  Γ£ö[0m[90m should persist visibility state across renders[0m
+    [32m  Γ£ö[0m[90m should not affect other states[0m
+
+[0m  AntManager[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with null selectedAnt[0m
+    [32m  Γ£ö[0m[90m should create new instance successfully[0m
+[0m    handleAntClick()[0m
+    [32m  Γ£ö[0m[90m should move selected ant when ant is already selected[0m
+    [32m  Γ£ö[0m[90m should select ant under mouse when no ant selected[0m
+    [32m  Γ£ö[0m[90m should not select ant when mouse not over any ant[0m
+    [32m  Γ£ö[0m[90m should deselect previous ant when selecting new one[0m
+    [32m  Γ£ö[0m[90m should only select first ant under mouse[0m
+    [32m  Γ£ö[0m[90m should handle no ants in array[0m
+[0m    moveSelectedAnt()[0m
+    [32m  Γ£ö[0m[90m should move selected ant and keep selection when resetSelection is false[0m
+    [32m  Γ£ö[0m[90m should move selected ant and clear selection when resetSelection is true[0m
+    [32m  Γ£ö[0m[90m should do nothing when no ant is selected[0m
+    [32m  Γ£ö[0m[90m should handle error for non-boolean resetSelection parameter[0m
+    [32m  Γ£ö[0m[90m should log error when IncorrectParamPassed is undefined[0m
+AntManager: Invalid parameter type for resetSelection. Expected boolean, got object
+    [32m  Γ£ö[0m[90m should handle null resetSelection parameter[0m
+AntManager: Invalid parameter type for resetSelection. Expected boolean, got undefined
+    [32m  Γ£ö[0m[90m should handle undefined resetSelection parameter[0m
+[0m    selectAnt()[0m
+    [32m  Γ£ö[0m[90m should select ant when mouse is over it[0m
+    [32m  Γ£ö[0m[90m should not select ant when mouse is not over it[0m
+    [32m  Γ£ö[0m[90m should return early when ant is not instance of ant class[0m
+    [32m  Γ£ö[0m[90m should handle null ant parameter[0m
+    [32m  Γ£ö[0m[90m should handle undefined ant parameter[0m
+    [32m  Γ£ö[0m[90m should handle ant without isMouseOver method[0m
+[0m    getAntObject()[0m
+    [32m  Γ£ö[0m[90m should return ant at specified index[0m
+    [32m  Γ£ö[0m[90m should return null for invalid index[0m
+    [32m  Γ£ö[0m[90m should return null for negative index[0m
+    [32m  Γ£ö[0m[90m should return null when ants array is undefined[0m
+    [32m  Γ£ö[0m[90m should return null when ant at index is null[0m
+    [32m  Γ£ö[0m[90m should return null when ant at index is undefined[0m
+    [32m  Γ£ö[0m[90m should handle empty ants array[0m
+[0m    getSelectedAnt()[0m
+    [32m  Γ£ö[0m[90m should return selected ant[0m
+    [32m  Γ£ö[0m[90m should return null when no ant selected[0m
+    [32m  Γ£ö[0m[90m should return correct ant after selection change[0m
+[0m    setSelectedAnt()[0m
+    [32m  Γ£ö[0m[90m should set selected ant[0m
+    [32m  Γ£ö[0m[90m should clear selected ant with null[0m
+    [32m  Γ£ö[0m[90m should replace previously selected ant[0m
+    [32m  Γ£ö[0m[90m should handle undefined parameter[0m
+[0m    clearSelection()[0m
+    [32m  Γ£ö[0m[90m should deselect ant and set selectedAnt to null[0m
+    [32m  Γ£ö[0m[90m should do nothing when no ant is selected[0m
+    [32m  Γ£ö[0m[90m should handle ant without setSelected method gracefully[0m
+    [32m  Γ£ö[0m[90m should work after multiple selections[0m
+[0m    hasSelection()[0m
+    [32m  Γ£ö[0m[90m should return true when ant is selected[0m
+    [32m  Γ£ö[0m[90m should return false when no ant is selected[0m
+    [32m  Γ£ö[0m[90m should update when selection changes[0m
+[0m    getDebugInfo()[0m
+    [32m  Γ£ö[0m[90m should return debug info with no selection[0m
+    [32m  Γ£ö[0m[90m should return debug info with selected ant[0m
+    [32m  Γ£ö[0m[90m should include position from getPosition method[0m
+    [32m  Γ£ö[0m[90m should update when selection changes[0m
+[0m    Legacy Compatibility Methods[0m
+[0m      AntClickControl()[0m
+      [32m  Γ£ö[0m[90m should delegate to handleAntClick[0m
+[0m      MoveAnt()[0m
+      [32m  Γ£ö[0m[90m should delegate to moveSelectedAnt[0m
+      [32m  Γ£ö[0m[90m should pass false parameter correctly[0m
+[0m      SelectAnt()[0m
+      [32m  Γ£ö[0m[90m should delegate to selectAnt[0m
+      [32m  Γ£ö[0m[90m should handle null parameter[0m
+[0m      getAntObj()[0m
+      [32m  Γ£ö[0m[90m should delegate to getAntObject[0m
+      [32m  Γ£ö[0m[90m should return null for invalid index[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle rapid selection changes[0m
+    [32m  Γ£ö[0m[90m should handle selecting same ant multiple times[0m
+    [32m  Γ£ö[0m[90m should handle move operations with no mouseX/mouseY globals[0m
+AntManager: Invalid parameter type for resetSelection. Expected boolean, got string
+    [32m  Γ£ö[0m[90m should maintain state consistency after errors[0m
+
+[0m  BuildingManager[0m
+[0m    Building Class[0m
+[0m      Constructor[0m
+      [32m  Γ£ö[0m[90m should create a building with position[0m
+      [32m  Γ£ö[0m[90m should create a building with dimensions[0m
+      [32m  Γ£ö[0m[90m should set faction[0m
+      [32m  Γ£ö[0m[90m should initialize with full health[0m
+      [32m  Γ£ö[0m[90m should initialize as not dead[0m
+      [32m  Γ£ö[0m[90m should initialize with spawn disabled[0m
+      [31m  4) should set default spawn parameters[0m
+      [32m  Γ£ö[0m[90m should initialize as active[0m
+      [32m  Γ£ö[0m[90m should set image when provided[0m
+[0m      Getters[0m
+      [32m  Γ£ö[0m[90m should get faction[0m
+      [32m  Γ£ö[0m[90m should get health[0m
+      [32m  Γ£ö[0m[90m should get maxHealth[0m
+      [32m  Γ£ö[0m[90m should get damage[0m
+[0m      takeDamage()[0m
+      [32m  Γ£ö[0m[90m should reduce health[0m
+      [32m  Γ£ö[0m[90m should not go below zero health[0m
+      [32m  Γ£ö[0m[90m should return new health value[0m
+      [32m  Γ£ö[0m[90m should handle zero damage[0m
+      [32m  Γ£ö[0m[90m should handle multiple damage calls[0m
+      [32m  Γ£ö[0m[90m should call health controller onDamage[0m
+[0m      heal()[0m
+      [32m  Γ£ö[0m[90m should increase health[0m
+      [32m  Γ£ö[0m[90m should not exceed max health[0m
+      [32m  Γ£ö[0m[90m should return new health value[0m
+      [32m  Γ£ö[0m[90m should handle zero healing[0m
+      [32m  Γ£ö[0m[90m should handle undefined healing amount[0m
+      [32m  Γ£ö[0m[90m should call health controller onHeal if available[0m
+[0m      update()[0m
+      [32m  Γ£ö[0m[90m should not update if inactive[0m
+      [31m  5) should update spawn timer when enabled[0m
+      [31m  6) should spawn ants when timer exceeds interval[0m
+      [31m  7) should spawn at building center[0m
+      [31m  8) should reset timer after spawning[0m
+[0m      moveToLocation()[0m
+      [32m  Γ£ö[0m[90m should not move buildings[0m
+[0m      die()[0m
+      [31m  9) should set isActive to false[0m
+      [32m  Γ£ö[0m[90m should set isDead to true[0m
+      [31m  10) should remove from Buildings array[0m
+      [31m  11) should remove from selectables array[0m
+[0m      render()[0m
+      [31m  12) should not render if inactive[0m
+      [31m  13) should call health controller render[0m
+[0m    Factory Classes[0m
+[0m      AbstractBuildingFactory[0m
+      [31m  14) AntCone should create building[0m
+      [31m  15) AntHill should create building[0m
+      [32m  Γ£ö[0m[90m HiveSource should create building[0m
+[0m    createBuilding() Function[0m
+    [31m  16) should create building by type[0m
+    [32m  Γ£ö[0m[90m should handle null type[0m
+    [32m  Γ£ö[0m[90m should handle invalid type[0m
+    [31m  17) should create antcone[0m
+    [31m  18) should create anthill[0m
+    [32m  Γ£ö[0m[90m should create hivesource[0m
+    [31m  19) should be case insensitive[0m
+    [31m  20) should default faction to neutral[0m
+    [31m  21) should set building as active[0m
+    [31m  22) should add to Buildings array[0m
+    [31m  23) should add to selectables array[0m
+    [31m  24) should enable spawning for hivesource[0m
+    [31m  25) should enable spawning for anthill[0m
+    [31m  26) should enable spawning for antcone[0m
+    [31m  27) should not add duplicate to Buildings[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle building with zero dimensions[0m
+    [32m  Γ£ö[0m[90m should handle negative damage (acts as healing)[0m
+    [32m  Γ£ö[0m[90m should handle excessive damage[0m
+    [32m  Γ£ö[0m[90m should handle heal on full health[0m
+    [32m  Γ£ö[0m[90m should handle rapid damage and heal cycles[0m
+    [31m  28) should handle update without antsSpawn function[0m
+    [32m  Γ£ö[0m[90m should handle die() when not in arrays[0m
+    [32m  Γ£ö[0m[90m should handle multiple die() calls[0m
+
+[0m  EventManager - Pub/Sub[0m
+[0m    on() - Event Subscription[0m
+    [32m  Γ£ö[0m[90m should register a listener for an event[0m
+    [32m  Γ£ö[0m[90m should allow multiple listeners for same event[0m
+    [32m  Γ£ö[0m[90m should return an unsubscribe function[0m
+    [32m  Γ£ö[0m[90m should remove listener when unsubscribe function is called[0m
+EventManager.on(): callback must be a function
+EventManager.on(): callback must be a function
+EventManager.on(): callback must be a function
+    [32m  Γ£ö[0m[90m should not throw when callback is not a function[0m
+[0m    off() - Event Unsubscription[0m
+    [32m  Γ£ö[0m[90m should remove a specific listener[0m
+    [32m  Γ£ö[0m[90m should only remove the specified listener[0m
+    [32m  Γ£ö[0m[90m should not throw when removing non-existent listener[0m
+    [32m  Γ£ö[0m[90m should not throw when event has no listeners[0m
+[0m    once() - Single-Fire Subscription[0m
+    [32m  Γ£ö[0m[90m should trigger listener only once[0m
+    [32m  Γ£ö[0m[90m should auto-unsubscribe after first trigger[0m
+    [32m  Γ£ö[0m[90m should return an unsubscribe function[0m
+    [32m  Γ£ö[0m[90m should allow manual unsubscribe before trigger[0m
+[0m    emit() - Event Emission[0m
+    [32m  Γ£ö[0m[90m should call all registered listeners[0m
+    [32m  Γ£ö[0m[90m should pass event data to listeners[0m
+    [32m  Γ£ö[0m[90m should not throw when no listeners exist[0m
+EventManager.emit() error in listener for "test:event": Error: Listener error
+    at Context.<anonymous> (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\test\unit\managers\EventManager.pubsub.test.js:203:45)
+    at callFn (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:364:21)
+    at Runnable.run (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:352:5)
+    at Runner.runTest (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:677:10)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:800:12
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:592:14)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:602:7
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:485:14)
+    at Immediate._onImmediate (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:570:5)
+    at process.processImmediate (node:internal/timers:505:21)
+    [32m  Γ£ö[0m[90m should continue emitting if one listener throws[0m
+    [32m  Γ£ö[0m[90m should emit to listeners in registration order[0m
+[0m    listenerCount() - Listener Counting[0m
+    [32m  Γ£ö[0m[90m should return 0 for events with no listeners[0m
+    [32m  Γ£ö[0m[90m should return correct count for single listener[0m
+    [32m  Γ£ö[0m[90m should return correct count for multiple listeners[0m
+    [32m  Γ£ö[0m[90m should update count after unsubscription[0m
+[0m    removeAllListeners() - Bulk Unsubscription[0m
+    [32m  Γ£ö[0m[90m should remove all listeners for a specific event[0m
+    [32m  Γ£ö[0m[90m should remove all listeners for all events when no event name provided[0m
+    [32m  Γ£ö[0m[90m should not throw when removing listeners from nonexistent event[0m
+[0m    Isolation & Memory Management[0m
+    [32m  Γ£ö[0m[90m should not affect other events when modifying one[0m
+    [32m  Γ£ö[0m[90m should prevent memory leaks when unsubscribing[0m
+    [32m  Γ£ö[0m[90m should allow same callback for different events[0m
+[0m    Error Handling[0m
+EventManager.emit() error in listener for "test:event": Error: Test error
+    at Context.<anonymous> (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\test\unit\managers\EventManager.pubsub.test.js:334:49)
+    at callFn (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:364:21)
+    at Runnable.run (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:352:5)
+    at Runner.runTest (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:677:10)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:800:12
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:592:14)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:602:7
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:485:14)
+    at Immediate._onImmediate (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:570:5)
+    at process.processImmediate (node:internal/timers:505:21)
+    [32m  Γ£ö[0m[90m should not crash when listener throws[0m
+    [32m  Γ£ö[0m[90m should handle invalid event names gracefully[0m
+    [32m  Γ£ö[0m[90m should handle missing event data[0m
+[0m    Singleton Behavior[0m
+    [32m  Γ£ö[0m[90m should return same instance from getInstance()[0m
+    [32m  Γ£ö[0m[90m should maintain listeners across getInstance() calls[0m
+
+[0m  EventManager[0m
+  [31m  29) "before all" hook in "EventManager"[0m
+
+[0m  EventManager - exportToJSON()[0m
+[0m    Basic Export[0m
+    [32m  Γ£ö[0m[90m should export empty configuration[0m
+    [32m  Γ£ö[0m[90m should export single event[0m
+    [32m  Γ£ö[0m[90m should export multiple events[0m
+[0m    Function Removal[0m
+    [32m  Γ£ö[0m[90m should remove onTrigger function[0m
+    [32m  Γ£ö[0m[90m should remove onComplete function[0m
+    [32m  Γ£ö[0m[90m should remove onPause function[0m
+    [32m  Γ£ö[0m[90m should remove update function[0m
+[0m    Active State Export[0m
+    [32m  Γ£ö[0m[90m should exclude active state by default[0m
+    [32m  Γ£ö[0m[90m should include active state when requested[0m
+[0m    Trigger Export[0m
+    [32m  Γ£ö[0m[90m should export registered triggers[0m
+    [32m  Γ£ö[0m[90m should remove internal trigger state[0m
+[0m    Import/Export Roundtrip[0m
+    [32m  Γ£ö[0m[90m should preserve event data through export/import cycle[0m
+    [32m  Γ£ö[0m[90m should preserve trigger data through export/import cycle[0m
+[0m    JSON Structure[0m
+    [32m  Γ£ö[0m[90m should have correct top-level structure[0m
+    [32m  Γ£ö[0m[90m should include ISO timestamp[0m
+    [32m  Γ£ö[0m[90m should format JSON with indentation[0m
+
+[0m  GameStateManager - Event Emission[0m
+[0m    setState() Event Emissions[0m
+    [32m  Γ£ö[0m[90m should emit GAME_STATE_CHANGED when state changes[0m
+    [32m  Γ£ö[0m[90m should emit GAME_PLAYING_STARTED when entering PLAYING state[0m
+    [32m  Γ£ö[0m[90m should emit GAME_PLAYING_STOPPED when leaving PLAYING state[0m
+    [32m  Γ£ö[0m[90m should not emit events when skipCallbacks is true[0m
+    [32m  Γ£ö[0m[90m should include timestamp in GAME_STATE_CHANGED event[0m
+[0m    Multiple State Transitions[0m
+    [32m  Γ£ö[0m[90m should emit GAME_PLAYING_STOPPED when transitioning PLAYING -> MENU[0m
+    [32m  Γ£ö[0m[90m should emit GAME_PLAYING_STOPPED when transitioning PLAYING -> GAME_OVER[0m
+    [32m  Γ£ö[0m[90m should not emit GAME_PLAYING_STOPPED when transitioning MENU -> OPTIONS[0m
+[0m    Event Data Validation[0m
+    [32m  Γ£ö[0m[90m should include all required fields in GAME_STATE_CHANGED[0m
+    [32m  Γ£ö[0m[90m should include all required fields in GAME_PLAYING_STARTED[0m
+    [32m  Γ£ö[0m[90m should include all required fields in GAME_PLAYING_STOPPED[0m
+
+[0m  GameStateManager[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with MENU state[0m
+    [32m  Γ£ö[0m[90m should initialize previousState to null[0m
+    [32m  Γ£ö[0m[90m should initialize fadeAlpha to 0[0m
+    [32m  Γ£ö[0m[90m should initialize isFading to false[0m
+    [32m  Γ£ö[0m[90m should initialize empty stateChangeCallbacks array[0m
+    [32m  Γ£ö[0m[90m should initialize fadeDirection to "out"[0m
+    [32m  Γ£ö[0m[90m should define all valid states[0m
+[0m    getState()[0m
+    [32m  Γ£ö[0m[90m should return current state[0m
+    [32m  Γ£ö[0m[90m should return updated state after change[0m
+[0m    setState()[0m
+    [32m  Γ£ö[0m[90m should change state successfully[0m
+    [32m  Γ£ö[0m[90m should update previousState[0m
+Invalid game state: INVALID_STATE
+    [32m  Γ£ö[0m[90m should return false for invalid state[0m
+Invalid game state: INVALID_STATE
+    [32m  Γ£ö[0m[90m should not change state when invalid[0m
+    [32m  Γ£ö[0m[90m should execute callbacks by default[0m
+    [32m  Γ£ö[0m[90m should skip callbacks when skipCallbacks is true[0m
+    [32m  Γ£ö[0m[90m should warn for invalid states[0m
+[0m    getPreviousState()[0m
+    [32m  Γ£ö[0m[90m should return null initially[0m
+    [32m  Γ£ö[0m[90m should return previous state after transition[0m
+    [32m  Γ£ö[0m[90m should update with each state change[0m
+[0m    isState()[0m
+    [32m  Γ£ö[0m[90m should return true for current state[0m
+    [32m  Γ£ö[0m[90m should return false for different state[0m
+    [32m  Γ£ö[0m[90m should update when state changes[0m
+[0m    isAnyState()[0m
+    [32m  Γ£ö[0m[90m should return true when current matches one of provided[0m
+    [32m  Γ£ö[0m[90m should return false when current matches none[0m
+    [32m  Γ£ö[0m[90m should handle single state[0m
+    [32m  Γ£ö[0m[90m should handle many states[0m
+[0m    isValidState()[0m
+    [32m  Γ£ö[0m[90m should return true for valid states[0m
+    [32m  Γ£ö[0m[90m should return false for invalid states[0m
+    [32m  Γ£ö[0m[90m should handle null and undefined[0m
+[0m    Fade Transition Management[0m
+[0m      getFadeAlpha()[0m
+      [32m  Γ£ö[0m[90m should return initial fade alpha[0m
+      [32m  Γ£ö[0m[90m should return updated fade alpha[0m
+[0m      setFadeAlpha()[0m
+      [32m  Γ£ö[0m[90m should set fade alpha[0m
+      [32m  Γ£ö[0m[90m should clamp to 0 minimum[0m
+      [32m  Γ£ö[0m[90m should clamp to 255 maximum[0m
+      [32m  Γ£ö[0m[90m should handle boundary values[0m
+[0m      isFadingTransition()[0m
+      [32m  Γ£ö[0m[90m should return false initially[0m
+      [32m  Γ£ö[0m[90m should return true after starting fade[0m
+      [32m  Γ£ö[0m[90m should return false after stopping fade[0m
+[0m      startFadeTransition()[0m
+      [32m  Γ£ö[0m[90m should set isFading to true[0m
+      [32m  Γ£ö[0m[90m should set fadeAlpha to 0 for "out" direction[0m
+      [32m  Γ£ö[0m[90m should set fadeAlpha to 255 for "in" direction[0m
+      [32m  Γ£ö[0m[90m should default to "out" direction[0m
+      [32m  Γ£ö[0m[90m should set fadeDirection[0m
+[0m      stopFadeTransition()[0m
+      [32m  Γ£ö[0m[90m should set isFading to false[0m
+      [32m  Γ£ö[0m[90m should work when already stopped[0m
+[0m      updateFade()[0m
+      [32m  Γ£ö[0m[90m should return false when not fading[0m
+      [32m  Γ£ö[0m[90m should increase fadeAlpha for "out" direction[0m
+      [32m  Γ£ö[0m[90m should decrease fadeAlpha for "in" direction[0m
+      [32m  Γ£ö[0m[90m should return true when fade-out completes[0m
+      [32m  Γ£ö[0m[90m should return true when fade-in completes[0m
+      [32m  Γ£ö[0m[90m should stop fading when fade-in completes[0m
+      [32m  Γ£ö[0m[90m should use default increment of 5[0m
+      [32m  Γ£ö[0m[90m should handle custom increments[0m
+[0m    Callback System[0m
+[0m      onStateChange()[0m
+      [32m  Γ£ö[0m[90m should register callback[0m
+      [32m  Γ£ö[0m[90m should register multiple callbacks[0m
+      [32m  Γ£ö[0m[90m should not register non-function[0m
+[0m      removeStateChangeCallback()[0m
+      [32m  Γ£ö[0m[90m should remove registered callback[0m
+      [32m  Γ£ö[0m[90m should do nothing for unregistered callback[0m
+      [32m  Γ£ö[0m[90m should handle removing from empty list[0m
+[0m      executeCallbacks()[0m
+      [32m  Γ£ö[0m[90m should execute all registered callbacks[0m
+      [32m  Γ£ö[0m[90m should pass new and old state to callbacks[0m
+Error in state change callback: Error: Test error
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\test\unit\managers\GameStateManager.test.js:402:45
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\Classes\managers\GameStateManager.js:199:9
+    at Array.forEach (<anonymous>)
+    at GameStateManager.executeCallbacks (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\Classes\managers\GameStateManager.js:197:31)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\test\unit\managers\GameStateManager.test.js:405:30
+    at Proxy.assertThrows (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\node_modules\chai\lib\chai\core\assertions.js:2644:7)
+    at Proxy.methodWrapper (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\node_modules\chai\lib\chai\utils\addMethod.js:57:25)
+    at Context.<anonymous> (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\test\unit\managers\GameStateManager.test.js:405:79)
+    at callFn (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:364:21)
+    at Runnable.run (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:352:5)
+      [32m  Γ£ö[0m[90m should handle callback errors gracefully[0m
+[0m    Convenience State Check Methods[0m
+    [32m  Γ£ö[0m[90m isInMenu() should check MENU state[0m
+    [32m  Γ£ö[0m[90m isInOptions() should check OPTIONS state[0m
+    [32m  Γ£ö[0m[90m isInGame() should check PLAYING state[0m
+    [32m  Γ£ö[0m[90m isPaused() should check PAUSED state[0m
+    [32m  Γ£ö[0m[90m isGameOver() should check GAME_OVER state[0m
+    [32m  Γ£ö[0m[90m isDebug() should check DEBUG_MENU state[0m
+    [32m  Γ£ö[0m[90m isKanban() should check KAN_BAN state[0m
+[0m    Transition Methods[0m
+    [32m  Γ£ö[0m[90m goToMenu() should transition to MENU[0m
+    [32m  Γ£ö[0m[90m goToOptions() should transition to OPTIONS[0m
+    [32m  Γ£ö[0m[90m goToDebug() should transition to DEBUG_MENU[0m
+    [32m  Γ£ö[0m[90m startGame() should transition to PLAYING[0m
+    [32m  Γ£ö[0m[90m startGame() should start fade transition[0m
+    [32m  Γ£ö[0m[90m pauseGame() should transition to PAUSED[0m
+    [32m  Γ£ö[0m[90m resumeGame() should transition to PLAYING[0m
+    [32m  Γ£ö[0m[90m endGame() should transition to GAME_OVER[0m
+    [32m  Γ£ö[0m[90m goToKanban() should transition to KAN_BAN[0m
+[0m    reset()[0m
+    [32m  Γ£ö[0m[90m should reset to MENU state[0m
+    [32m  Γ£ö[0m[90m should reset previousState to null[0m
+    [32m  Γ£ö[0m[90m should reset fadeAlpha to 0[0m
+    [32m  Γ£ö[0m[90m should reset isFading to false[0m
+[0m    getDebugInfo()[0m
+    [32m  Γ£ö[0m[90m should return debug information object[0m
+    [32m  Γ£ö[0m[90m should include current state[0m
+    [32m  Γ£ö[0m[90m should include previous state[0m
+    [32m  Γ£ö[0m[90m should include fade alpha[0m
+    [32m  Γ£ö[0m[90m should include isFading[0m
+    [32m  Γ£ö[0m[90m should include callback count[0m
+    [32m  Γ£ö[0m[90m should include valid states[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle rapid state changes[0m
+    [32m  Γ£ö[0m[90m should handle setting same state multiple times[0m
+    [32m  Γ£ö[0m[90m should handle multiple fade transitions[0m
+    [36m  - should handle callback during state transition (causes infinite loop)[0m
+
+[0m  MapManager[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with empty maps[0m
+    [32m  Γ£ö[0m[90m should initialize activeMap to null[0m
+    [32m  Γ£ö[0m[90m should initialize activeMapId to null[0m
+    [32m  Γ£ö[0m[90m should set default tile size to 32[0m
+    [32m  Γ£ö[0m[90m should initialize _maps as a Map[0m
+[0m    registerMap()[0m
+    [32m  Γ£ö[0m[90m should register a valid map[0m
+MapManager.registerMap: Invalid map ID
+MapManager.registerMap: Invalid map ID
+MapManager.registerMap: Invalid map ID
+    [32m  Γ£ö[0m[90m should return false for invalid mapId[0m
+MapManager.registerMap: Invalid map ID
+MapManager.registerMap: Invalid map ID
+    [32m  Γ£ö[0m[90m should return false for non-string mapId[0m
+MapManager.registerMap: Invalid map object
+MapManager.registerMap: Invalid map object
+MapManager.registerMap: Invalid map object
+    [32m  Γ£ö[0m[90m should return false for invalid map object[0m
+MapManager.registerMap: Map 'level1' already registered, replacing
+    [32m  Γ£ö[0m[90m should replace existing map with warning[0m
+    [32m  Γ£ö[0m[90m should set map as active when setActive is true[0m
+    [32m  Γ£ö[0m[90m should not set map as active when setActive is false[0m
+    [32m  Γ£ö[0m[90m should default setActive to false[0m
+    [32m  Γ£ö[0m[90m should register multiple maps[0m
+[0m    unregisterMap()[0m
+    [32m  Γ£ö[0m[90m should unregister a map[0m
+MapManager.unregisterMap: Map 'nonexistent' not found
+    [32m  Γ£ö[0m[90m should return false for non-existent map[0m
+MapManager.unregisterMap: Cannot remove active map
+    [32m  Γ£ö[0m[90m should not allow removing active map[0m
+    [32m  Γ£ö[0m[90m should allow removing non-active map[0m
+    [32m  Γ£ö[0m[90m should reduce map count[0m
+[0m    setActiveMap()[0m
+    [32m  Γ£ö[0m[90m should set active map by ID[0m
+MapManager.setActiveMap: Map 'nonexistent' not found
+    [32m  Γ£ö[0m[90m should return false for non-existent map[0m
+    [32m  Γ£ö[0m[90m should switch active maps[0m
+    [32m  Γ£ö[0m[90m should invalidate cache when map has invalidateCache method[0m
+    [32m  Γ£ö[0m[90m should handle map without invalidateCache method[0m
+[0m    getActiveMap()[0m
+    [32m  Γ£ö[0m[90m should return null when no active map[0m
+    [32m  Γ£ö[0m[90m should return active map instance[0m
+    [32m  Γ£ö[0m[90m should return updated active map after switch[0m
+[0m    getActiveMapId()[0m
+    [32m  Γ£ö[0m[90m should return null when no active map[0m
+    [32m  Γ£ö[0m[90m should return active map ID[0m
+[0m    getMap()[0m
+    [32m  Γ£ö[0m[90m should return map by ID[0m
+    [32m  Γ£ö[0m[90m should return null for non-existent map[0m
+    [32m  Γ£ö[0m[90m should return null for invalid ID types[0m
+[0m    hasMap()[0m
+    [32m  Γ£ö[0m[90m should return true for registered map[0m
+    [32m  Γ£ö[0m[90m should return false for non-existent map[0m
+    [32m  Γ£ö[0m[90m should return false after unregistration[0m
+[0m    getMapIds()[0m
+    [32m  Γ£ö[0m[90m should return empty array when no maps[0m
+    [32m  Γ£ö[0m[90m should return array of map IDs[0m
+    [32m  Γ£ö[0m[90m should update after adding map[0m
+    [32m  Γ£ö[0m[90m should update after removing map[0m
+[0m    getTileAtPosition()[0m
+    [32m  Γ£ö[0m[90m should return null when no active map[0m
+    [32m  Γ£ö[0m[90m should return tile at world position[0m
+    [32m  Γ£ö[0m[90m should use renderConversion for coordinate conversion[0m
+MapManager.getTileAtPosition error: Error: Test error
+    at Object.convCanvasToPos (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\test\unit\managers\MapManager.test.js:349:42)
+    at MapManager.getTileAtPosition (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\Classes\managers\MapManager.js:176:58)
+    at Context.<anonymous> (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\test\unit\managers\MapManager.test.js:354:22)
+    at callFn (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:364:21)
+    at Runnable.run (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:352:5)
+    at Runner.runTest (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:677:10)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:800:12
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:592:14)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:602:7
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:485:14)
+    [32m  Γ£ö[0m[90m should handle errors gracefully[0m
+[0m    getTileAtGridCoords()[0m
+    [32m  Γ£ö[0m[90m should return null when no active map[0m
+    [32m  Γ£ö[0m[90m should return null when chunkArray missing[0m
+    [32m  Γ£ö[0m[90m should return tile at grid coordinates[0m
+    [32m  Γ£ö[0m[90m should return null for out-of-bounds coordinates[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+[0m    getTileAtCoords() [deprecated][0m
+    [32m  Γ£ö[0m[90m should call getTileAtGridCoords[0m
+    [32m  Γ£ö[0m[90m should return same result as getTileAtGridCoords[0m
+[0m    getTileMaterial()[0m
+    [32m  Γ£ö[0m[90m should return null when no tile found[0m
+    [32m  Γ£ö[0m[90m should return material of tile at position[0m
+    [32m  Γ£ö[0m[90m should return null for out-of-bounds position[0m
+[0m    getInfo()[0m
+    [32m  Γ£ö[0m[90m should return info object with all properties[0m
+    [32m  Γ£ö[0m[90m should reflect empty state[0m
+    [32m  Γ£ö[0m[90m should reflect registered maps[0m
+    [32m  Γ£ö[0m[90m should reflect active map[0m
+    [32m  Γ£ö[0m[90m should update after changes[0m
+[0m    clearAll()[0m
+    [32m  Γ£ö[0m[90m should clear all maps[0m
+    [32m  Γ£ö[0m[90m should clear active map[0m
+    [32m  Γ£ö[0m[90m should result in empty getInfo[0m
+[0m    Edge Cases[0m
+MapManager.registerMap: Map 'level1' already registered, replacing
+    [32m  Γ£ö[0m[90m should handle registering same map twice[0m
+    [32m  Γ£ö[0m[90m should handle rapid map switching[0m
+    [32m  Γ£ö[0m[90m should handle tile queries on empty map[0m
+MapManager.unregisterMap: Map 'level1' not found
+    [32m  Γ£ö[0m[90m should handle unregister after clearAll[0m
+    [32m  Γ£ö[0m[90m should handle getMap after clearAll[0m
+
+[0m  NPCManager[0m
+[0m    NPC Class[0m
+    [31m  30) constructor should set position, defaults and dialogueRange[0m
+    [31m  31) initDialogues should log when Queen ant within range[0m
+    [31m  32) initDialogues should not log for non-Queen ants[0m
+    [31m  33) update should call initDialogues[0m
+    [31m  34) render should not proceed when inactive[0m
+    [31m  35) render should call highlightBoxHover when isBoxHovered is true[0m
+[0m    createNPC function[0m
+    [31m  36) should create an NPC instance, activate it and add to NPCList and selectables[0m
+
+[0m  pheromoneControl[0m
+[0m    showPath()[0m
+    [32m  Γ£ö[0m[90m should exist as a function[0m
+    [32m  Γ£ö[0m[90m should execute without throwing errors[0m
+    [32m  Γ£ö[0m[90m should be callable multiple times[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle being called with undefined[0m
+    [32m  Γ£ö[0m[90m should handle being called with null[0m
+    [32m  Γ£ö[0m[90m should handle being called with various argument types[0m
+[0m    Future Implementation[0m
+    [32m  Γ£ö[0m[90m should be ready for path visualization logic[0m
+
+[0m  Resource Movement Integration[0m
+  [32m  Γ£ö[0m[90m prevents resources from skittering when movementSpeed is 0[0m
+
+[0m  ResourceManager[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with parent entity[0m
+    [32m  Γ£ö[0m[90m should initialize with default maxCapacity of 2[0m
+    [32m  Γ£ö[0m[90m should initialize with custom maxCapacity[0m
+    [32m  Γ£ö[0m[90m should initialize with default collectionRange of 25[0m
+    [32m  Γ£ö[0m[90m should initialize with custom collectionRange[0m
+    [32m  Γ£ö[0m[90m should initialize empty resources array[0m
+    [32m  Γ£ö[0m[90m should initialize isDroppingOff to false[0m
+    [32m  Γ£ö[0m[90m should initialize isAtMaxCapacity to false[0m
+    [32m  Γ£ö[0m[90m should initialize selectedResourceType to null[0m
+    [32m  Γ£ö[0m[90m should initialize highlightSelectedType to true[0m
+    [32m  Γ£ö[0m[90m should initialize focusedCollection to false[0m
+[0m    getCurrentLoad()[0m
+    [32m  Γ£ö[0m[90m should return 0 when no resources[0m
+    [32m  Γ£ö[0m[90m should return correct count with resources[0m
+    [32m  Γ£ö[0m[90m should update when resources are added[0m
+    [32m  Γ£ö[0m[90m should update when resources are removed[0m
+[0m    isAtMaxLoad()[0m
+    [32m  Γ£ö[0m[90m should return false when empty[0m
+    [32m  Γ£ö[0m[90m should return false when below capacity[0m
+    [32m  Γ£ö[0m[90m should return true when at capacity[0m
+    [32m  Γ£ö[0m[90m should return false after dropping resources[0m
+    [32m  Γ£ö[0m[90m should respect custom capacity limits[0m
+[0m    getRemainingCapacity()[0m
+    [32m  Γ£ö[0m[90m should return maxCapacity when empty[0m
+    [32m  Γ£ö[0m[90m should return correct remaining capacity[0m
+    [32m  Γ£ö[0m[90m should return 0 when at max capacity[0m
+    [32m  Γ£ö[0m[90m should update after dropping resources[0m
+    [32m  Γ£ö[0m[90m should handle custom capacity correctly[0m
+[0m    addResource()[0m
+    [32m  Γ£ö[0m[90m should add resource successfully[0m
+    [32m  Γ£ö[0m[90m should return false when at max capacity[0m
+    [32m  Γ£ö[0m[90m should not add resource when at max capacity[0m
+    [32m  Γ£ö[0m[90m should update isAtMaxCapacity when reaching limit[0m
+Error adding resource on pickup: TypeError: Cannot read properties of null (reading '_resourceType')
+    at ResourceManager.addResource (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\Classes\managers\ResourceManager.js:87:30)
+    at Context.<anonymous> (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\test\unit\managers\ResourceManager.test.js:199:30)
+    at callFn (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:364:21)
+    at Runnable.run (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:352:5)
+    at Runner.runTest (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:677:10)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:800:12
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:592:14)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:602:7
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:485:14)
+    at Immediate._onImmediate (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:570:5)
+    [32m  Γ£ö[0m[90m should handle null resource[0m
+    [32m  Γ£ö[0m[90m should add multiple different resources[0m
+    [32m  Γ£ö[0m[90m should maintain resource order[0m
+[0m    dropAllResources()[0m
+    [32m  Γ£ö[0m[90m should return empty array when no resources[0m
+    [32m  Γ£ö[0m[90m should return all carried resources[0m
+    [32m  Γ£ö[0m[90m should clear resources array[0m
+    [32m  Γ£ö[0m[90m should set isDroppingOff to false[0m
+    [32m  Γ£ö[0m[90m should set isAtMaxCapacity to false[0m
+    [32m  Γ£ö[0m[90m should return copy of resources not reference[0m
+[0m    startDropOff()[0m
+    [32m  Γ£ö[0m[90m should set isDroppingOff to true[0m
+    [32m  Γ£ö[0m[90m should set isAtMaxCapacity to true[0m
+    [32m  Γ£ö[0m[90m should call moveToLocation on parent entity[0m
+    [32m  Γ£ö[0m[90m should handle entity without moveToLocation[0m
+    [32m  Γ£ö[0m[90m should handle null entity[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+[0m    processDropOff()[0m
+    [32m  Γ£ö[0m[90m should drop all resources into global array[0m
+    [32m  Γ£ö[0m[90m should call drop() on each resource[0m
+    [32m  Γ£ö[0m[90m should return dropped resources[0m
+    [32m  Γ£ö[0m[90m should handle null globalResourceArray[0m
+    [32m  Γ£ö[0m[90m should handle undefined globalResourceArray[0m
+    [32m  Γ£ö[0m[90m should handle resources without drop method[0m
+    [32m  Γ£ö[0m[90m should handle drop() method throwing error[0m
+    [32m  Γ£ö[0m[90m should clear manager resources after processing[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle capacity of 0[0m
+    [32m  Γ£ö[0m[90m should handle capacity of 1[0m
+    [32m  Γ£ö[0m[90m should handle very large capacity[0m
+    [32m  Γ£ö[0m[90m should handle negative collection range[0m
+    [32m  Γ£ö[0m[90m should handle adding same resource multiple times[0m
+    [32m  Γ£ö[0m[90m should maintain state after rapid add/drop cycles[0m
+    [32m  Γ£ö[0m[90m should handle entity with only posX[0m
+    [32m  Γ£ö[0m[90m should handle entity with getPosition method[0m
+
+[0m  ResourceSystemManager[0m
+[0m    Constructor[0m
+    [31m  37) "before each" hook for "should initialize with default spawn interval"[0m
+
+[0m  SoundManager[0m
+[0m    Constructor[0m
+    [36m  - should initialize with empty sounds object[0m
+    [36m  - should set loaded flag to false[0m
+    [36m  - should have default soundList with click and bgMusic[0m
+    [36m  - should have correct paths in soundList[0m
+[0m    preload()[0m
+    [36m  - should load all sounds from soundList[0m
+    [36m  - should set loaded flag to true[0m
+    [36m  - should load sounds with correct paths[0m
+    [36m  - should register bgMusic in Music category[0m
+    [36m  - should register click in SystemSounds category[0m
+    [36m  - should handle empty soundList[0m
+    [36m  - should handle additional sounds in soundList[0m
+[0m    play()[0m
+    [36m  - should play a sound by name[0m
+    [36m  - should apply category volume to registered sounds[0m
+    [36m  - should multiply base volume with category volume[0m
+    [36m  - should set rate correctly[0m
+    [36m  - should default base volume to 1[0m
+    [36m  - should default rate to 1[0m
+    [36m  - should stop sound before replaying if already playing[0m
+    [36m  - should play sound without looping by default[0m
+    [36m  - should loop sound when loop parameter is true[0m
+    [36m  - should handle non-existent sound name gracefully[0m
+    [36m  - should handle multiple sounds playing simultaneously[0m
+[0m    stop()[0m
+    [36m  - should stop a playing sound[0m
+    [36m  - should handle stopping a sound that is not playing[0m
+    [36m  - should handle non-existent sound name[0m
+    [36m  - should only stop the specified sound[0m
+[0m    toggleMusic()[0m
+    [36m  - should start looping bgMusic if not playing[0m
+    [36m  - should pause bgMusic if playing[0m
+    [36m  - should toggle on and off repeatedly[0m
+    [36m  - should work with custom sound name[0m
+    [36m  - should handle non-existent sound gracefully[0m
+    [36m  - should default to bgMusic when no name provided[0m
+[0m    testSounds()[0m
+    [36m  - should exist as a method[0m
+    [36m  - should not throw errors[0m
+[0m    Edge Cases[0m
+    [36m  - should handle playing before preload[0m
+    [36m  - should handle stopping before preload[0m
+    [36m  - should handle toggling before preload[0m
+    [36m  - should handle null sound name[0m
+    [36m  - should handle undefined sound name[0m
+    [36m  - should handle extreme volume values[0m
+    [36m  - should handle extreme rate values[0m
+    [36m  - should handle zero volume[0m
+    [36m  - should handle zero rate[0m
+    [36m  - should handle rapid play/stop cycles[0m
+    [36m  - should handle multiple preload calls[0m
+    [36m  - should handle empty string as sound name[0m
+    [36m  - should handle special characters in sound name[0m
+    [36m  - should handle very long sound names[0m
+[0m    Integration Scenarios[0m
+    [36m  - should handle playing multiple sounds with different settings[0m
+    [36m  - should maintain sound state across operations[0m
+    [36m  - should handle complete lifecycle: load -> play -> stop[0m
+[0m    BGM Monitoring[0m
+[0m      startBGMMonitoring()[0m
+      [36m  - should start monitoring interval[0m
+      [36m  - should not create multiple intervals if called multiple times[0m
+      [36m  - should exist as a method[0m
+[0m      stopBGMMonitoring()[0m
+      [36m  - should stop monitoring interval[0m
+      [36m  - should handle being called when not monitoring[0m
+      [36m  - should exist as a method[0m
+[0m      checkAndCorrectBGM()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should not throw when loaded is false[0m
+      [36m  - should start bgMusic when in MENU state and not playing[0m
+      [36m  - should stop bgMusic when in PLAYING state[0m
+      [36m  - should handle undefined GameState gracefully[0m
+      [36m  - should handle missing expected BGM sound[0m
+[0m    Fade Out[0m
+[0m      fadeOut()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should set isFading flag to true when fading[0m
+      [36m  - should handle non-playing sound gracefully[0m
+      [36m  - should handle non-existent sound gracefully[0m
+      [36m  - should accept custom duration[0m
+      [36m  - should use default duration when not specified[0m
+      [36m  - should clear currentBGM after fade completes[0m
+      [36m  - should gradually reduce volume during fade[0m
+[0m      stop() with fade[0m
+      [36m  - should call fadeOut when useFade is true[0m
+      [36m  - should stop immediately when useFade is false[0m
+      [36m  - should default to immediate stop when useFade not specified[0m
+[0m    State BGM Mapping[0m
+    [36m  - should have stateBGMMap property[0m
+    [36m  - should map MENU state to bgMusic[0m
+    [36m  - should map OPTIONS state to bgMusic[0m
+    [36m  - should map DEBUG_MENU state to bgMusic[0m
+    [36m  - should map PLAYING state to null[0m
+    [36m  - should map PAUSED state to null[0m
+    [36m  - should map GAME_OVER state to null[0m
+    [36m  - should map KANBAN state to null[0m
+[0m    BGM Tracking[0m
+    [36m  - should track currentBGM when playing bgMusic with loop[0m
+    [36m  - should track bgmVolume when playing bgMusic[0m
+    [36m  - should not track currentBGM for non-looping sounds[0m
+    [36m  - should clear currentBGM when stopping it[0m
+    [36m  - should not clear currentBGM when stopping different sound[0m
+[0m    Lightning Strike Sound Integration[0m
+    [36m  - should allow registering lightningStrike in SoundEffects category[0m
+    [36m  - should play lightningStrike sound after registration[0m
+[0m    LocalStorage Audio Settings[0m
+[0m      loadVolumeSettings()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should return empty object if no saved settings[0m
+      [36m  - should load settings from localStorage[0m
+      [36m  - should handle corrupted localStorage data[0m
+[0m      saveVolumeSettings()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should save current category volumes to localStorage[0m
+      [36m  - should use key "antgame.audioSettings"[0m
+[0m      Constructor loads saved settings[0m
+      [36m  - should load saved Music volume on initialization[0m
+      [36m  - should load saved SoundEffects volume on initialization[0m
+      [36m  - should load saved SystemSounds volume on initialization[0m
+      [36m  - should use defaults if no saved settings[0m
+      [36m  - should use defaults for missing category in saved settings[0m
+[0m      setCategoryVolume() saves settings[0m
+      [36m  - should automatically save to localStorage when setting volume[0m
+      [36m  - should save all categories when any category changes[0m
+[0m    Constructor Properties[0m
+    [36m  - should initialize fadeOutDuration to 1000ms[0m
+    [36m  - should initialize isFading to false[0m
+    [36m  - should initialize bgmCheckInterval to null[0m
+    [36m  - should initialize currentBGM to null[0m
+    [36m  - should initialize bgmVolume to 0.125[0m
+    [36m  - should initialize drawCounter to 0[0m
+    [36m  - should initialize musicRestartThreshold to 100[0m
+    [36m  - should initialize musicRestarted to false[0m
+    [36m  - should initialize musicCorrect to false[0m
+[0m    Sound Categories[0m
+[0m      Constructor Category Initialization[0m
+      [36m  - should initialize categories object[0m
+      [36m  - should have Music category[0m
+      [36m  - should have SoundEffects category[0m
+      [36m  - should have SystemSounds category[0m
+      [36m  - should initialize Music category with default volume 0.5[0m
+      [36m  - should initialize SoundEffects category with default volume 0.75[0m
+      [36m  - should initialize SystemSounds category with default volume 0.8[0m
+      [36m  - should initialize Music category with empty sounds object[0m
+      [36m  - should initialize SoundEffects category with empty sounds object[0m
+      [36m  - should initialize SystemSounds category with empty sounds object[0m
+[0m      registerSound()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should register a sound in Music category[0m
+      [36m  - should register a sound in SoundEffects category[0m
+      [36m  - should register a sound in SystemSounds category[0m
+      [36m  - should store sound path correctly[0m
+      [36m  - should load the sound into global sounds object[0m
+      [36m  - should throw error for invalid category[0m
+      [36m  - should throw error if name is missing[0m
+      [36m  - should throw error if name is null[0m
+      [36m  - should throw error if path is missing[0m
+      [36m  - should throw error if path is null[0m
+      [36m  - should throw error if category is missing[0m
+      [36m  - should allow registering multiple sounds in same category[0m
+      [36m  - should allow registering sounds across different categories[0m
+      [36m  - should warn and overwrite if sound name already exists[0m
+      [36m  - should store category reference in sound metadata[0m
+[0m      setCategoryVolume()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should set Music category volume[0m
+      [36m  - should set SoundEffects category volume[0m
+      [36m  - should set SystemSounds category volume[0m
+      [36m  - should throw error for invalid category[0m
+      [36m  - should throw error for volume below 0[0m
+      [36m  - should throw error for volume above 1[0m
+      [36m  - should accept volume of 0[0m
+      [36m  - should accept volume of 1[0m
+      [36m  - should update volume for currently playing sounds in category[0m
+      [36m  - should only update sounds in the specified category[0m
+[0m      getCategoryVolume()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should return Music category volume[0m
+      [36m  - should return SoundEffects category volume[0m
+      [36m  - should return SystemSounds category volume[0m
+      [36m  - should throw error for invalid category[0m
+      [36m  - should return default volumes for new instance[0m
+[0m      getSoundCategory()[0m
+      [36m  - should exist as a method[0m
+      [36m  - should return correct category for Music sound[0m
+      [36m  - should return correct category for SoundEffects sound[0m
+      [36m  - should return correct category for SystemSounds sound[0m
+      [36m  - should return null for non-existent sound[0m
+      [36m  - should return Music for bgMusic after preload[0m
+      [36m  - should return SystemSounds for click after preload[0m
+[0m      play() with Category Volumes[0m
+      [36m  - should apply Music category volume when playing bgMusic[0m
+      [36m  - should apply SystemSounds category volume when playing click[0m
+      [36m  - should multiply provided volume with Music category volume[0m
+      [36m  - should multiply provided volume with SystemSounds category volume[0m
+      [36m  - should handle volume of 0 in category[0m
+      [36m  - should handle volume of 1 in category[0m
+      [36m  - should respect category volume changes for subsequent plays[0m
+      [36m  - should handle newly registered sounds in SoundEffects category[0m
+      [36m  - should handle newly registered sounds in Music category[0m
+[0m      Category Integration Tests[0m
+      [36m  - should handle complete workflow: register -> set volume -> play[0m
+      [36m  - should handle multiple sounds in same category with category volume[0m
+      [36m  - should handle sounds across different categories independently[0m
+      [36m  - should maintain category-based volume for preloaded sounds[0m
+      [36m  - should handle mixing legacy and categorized sounds[0m
+[0m      Edge Cases for Categories[0m
+      [36m  - should handle registering same sound name in different category[0m
+      [36m  - should handle category names case-sensitively[0m
+      [36m  - should handle very small category volumes[0m
+      [36m  - should handle precision in volume multiplication[0m
+      [36m  - should handle rapid category volume changes[0m
+      [36m  - should handle registering many sounds in one category[0m
+
+[0m  SpatialGridManager[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with empty entities[0m
+    [32m  Γ£ö[0m[90m should initialize _allEntities array[0m
+    [32m  Γ£ö[0m[90m should initialize _entitiesByType map[0m
+    [32m  Γ£ö[0m[90m should initialize stats[0m
+    [32m  Γ£ö[0m[90m should create spatial grid[0m
+    [32m  Γ£ö[0m[90m should accept custom cell size[0m
+[0m    addEntity()[0m
+    [32m  Γ£ö[0m[90m should add entity successfully[0m
+    [32m  Γ£ö[0m[90m should return false for null entity[0m
+    [32m  Γ£ö[0m[90m should return false for undefined entity[0m
+    [32m  Γ£ö[0m[90m should add entity to _allEntities array[0m
+    [32m  Γ£ö[0m[90m should track entity by type[0m
+    [32m  Γ£ö[0m[90m should increment add count[0m
+    [32m  Γ£ö[0m[90m should add multiple entities[0m
+    [32m  Γ£ö[0m[90m should maintain insertion order[0m
+    [32m  Γ£ö[0m[90m should track multiple types[0m
+[0m    removeEntity()[0m
+    [32m  Γ£ö[0m[90m should remove entity successfully[0m
+    [32m  Γ£ö[0m[90m should return false for null entity[0m
+    [32m  Γ£ö[0m[90m should remove entity from _allEntities array[0m
+    [32m  Γ£ö[0m[90m should remove entity from type tracking[0m
+    [32m  Γ£ö[0m[90m should clean up empty type arrays[0m
+    [32m  Γ£ö[0m[90m should increment remove count[0m
+    [32m  Γ£ö[0m[90m should handle removing non-existent entity[0m
+    [32m  Γ£ö[0m[90m should maintain array integrity after removal[0m
+[0m    updateEntity()[0m
+    [32m  Γ£ö[0m[90m should update entity position[0m
+    [32m  Γ£ö[0m[90m should return false for null entity[0m
+    [32m  Γ£ö[0m[90m should increment update count[0m
+    [32m  Γ£ö[0m[90m should handle multiple updates[0m
+[0m    getNearbyEntities()[0m
+    [32m  Γ£ö[0m[90m should find entities within radius[0m
+    [32m  Γ£ö[0m[90m should filter by type[0m
+    [32m  Γ£ö[0m[90m should use custom filter function[0m
+    [32m  Γ£ö[0m[90m should combine type and custom filter[0m
+    [32m  Γ£ö[0m[90m should increment query count[0m
+    [32m  Γ£ö[0m[90m should return empty array when no entities nearby[0m
+[0m    getEntitiesInRect()[0m
+    [32m  Γ£ö[0m[90m should find entities in rectangle[0m
+    [32m  Γ£ö[0m[90m should filter by type[0m
+    [32m  Γ£ö[0m[90m should use custom filter[0m
+    [32m  Γ£ö[0m[90m should increment query count[0m
+    [32m  Γ£ö[0m[90m should return empty array for empty rectangle[0m
+[0m    findNearestEntity()[0m
+    [32m  Γ£ö[0m[90m should find nearest entity[0m
+    [32m  Γ£ö[0m[90m should return null when no entities[0m
+    [32m  Γ£ö[0m[90m should respect maxRadius[0m
+    [32m  Γ£ö[0m[90m should return null when outside maxRadius[0m
+    [32m  Γ£ö[0m[90m should filter by type[0m
+    [32m  Γ£ö[0m[90m should use custom filter[0m
+    [32m  Γ£ö[0m[90m should increment query count[0m
+[0m    getAllEntities()[0m
+    [32m  Γ£ö[0m[90m should return empty array initially[0m
+    [32m  Γ£ö[0m[90m should return all entities[0m
+    [32m  Γ£ö[0m[90m should return reference to internal array[0m
+[0m    getEntitiesByType()[0m
+    [32m  Γ£ö[0m[90m should return entities of specified type[0m
+    [32m  Γ£ö[0m[90m should return empty array for non-existent type[0m
+    [32m  Γ£ö[0m[90m should return single entity type[0m
+[0m    getEntityCount()[0m
+    [32m  Γ£ö[0m[90m should return 0 initially[0m
+    [32m  Γ£ö[0m[90m should return correct count after adds[0m
+    [32m  Γ£ö[0m[90m should return correct count after removes[0m
+[0m    getEntityCountByType()[0m
+    [32m  Γ£ö[0m[90m should return count for type[0m
+    [32m  Γ£ö[0m[90m should return 0 for non-existent type[0m
+    [32m  Γ£ö[0m[90m should update after removal[0m
+[0m    hasEntity()[0m
+    [32m  Γ£ö[0m[90m should return true for managed entity[0m
+    [32m  Γ£ö[0m[90m should return false for non-managed entity[0m
+    [32m  Γ£ö[0m[90m should return false after removal[0m
+[0m    clear()[0m
+    [32m  Γ£ö[0m[90m should clear all entities[0m
+    [32m  Γ£ö[0m[90m should clear _allEntities array[0m
+    [32m  Γ£ö[0m[90m should clear type tracking[0m
+    [32m  Γ£ö[0m[90m should clear spatial grid[0m
+[0m    rebuildGrid()[0m
+    [32m  Γ£ö[0m[90m should rebuild grid from entities[0m
+    [32m  Γ£ö[0m[90m should maintain entity count[0m
+    [32m  Γ£ö[0m[90m should work after clearing grid manually[0m
+[0m    getStats()[0m
+    [32m  Γ£ö[0m[90m should return statistics object[0m
+    [32m  Γ£ö[0m[90m should track operations[0m
+    [32m  Γ£ö[0m[90m should include grid stats[0m
+[0m    getGrid()[0m
+    [32m  Γ£ö[0m[90m should return spatial grid instance[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle adding same entity twice[0m
+    [32m  Γ£ö[0m[90m should handle rapid add/remove cycles[0m
+    [32m  Γ£ö[0m[90m should handle entities with no type[0m
+    [32m  Γ£ö[0m[90m should handle large number of entities[0m
+    [32m  Γ£ö[0m[90m should handle queries with no results[0m
+
+[0m  TaskManager smoke[0m
+  [36m  - constructs and can add a task[0m
+
+[0m  TileInteractionManager[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with tile size[0m
+    [32m  Γ£ö[0m[90m should initialize with grid dimensions[0m
+    [32m  Γ£ö[0m[90m should initialize empty tile map[0m
+    [32m  Γ£ö[0m[90m should initialize empty UI elements array[0m
+    [32m  Γ£ö[0m[90m should initialize with debug disabled[0m
+[0m    pixelToTile()[0m
+    [32m  Γ£ö[0m[90m should convert pixel to tile coordinates[0m
+    [32m  Γ£ö[0m[90m should calculate tile center[0m
+    [32m  Γ£ö[0m[90m should handle 0,0 coordinates[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+    [32m  Γ£ö[0m[90m should handle large coordinates[0m
+    [32m  Γ£ö[0m[90m should handle fractional coordinates[0m
+[0m    getTileKey()[0m
+    [32m  Γ£ö[0m[90m should create tile key string[0m
+    [32m  Γ£ö[0m[90m should handle 0,0 coordinates[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+    [32m  Γ£ö[0m[90m should create unique keys for different tiles[0m
+[0m    isValidTile()[0m
+    [32m  Γ£ö[0m[90m should return true for valid tiles[0m
+    [32m  Γ£ö[0m[90m should return false for negative coordinates[0m
+    [32m  Γ£ö[0m[90m should return false for out-of-bounds coordinates[0m
+    [32m  Γ£ö[0m[90m should validate upper bounds correctly[0m
+[0m    addObjectToTile()[0m
+    [32m  Γ£ö[0m[90m should add object to tile[0m
+    [32m  Γ£ö[0m[90m should not add to invalid tile[0m
+    [32m  Γ£ö[0m[90m should not add duplicate objects[0m
+    [32m  Γ£ö[0m[90m should sort objects by z-index[0m
+    [32m  Γ£ö[0m[90m should handle objects with no z-index[0m
+    [32m  Γ£ö[0m[90m should add to multiple tiles[0m
+[0m    removeObjectFromTile()[0m
+    [32m  Γ£ö[0m[90m should remove object from tile[0m
+    [32m  Γ£ö[0m[90m should keep other objects in tile[0m
+    [32m  Γ£ö[0m[90m should clean up empty tiles[0m
+    [32m  Γ£ö[0m[90m should handle removing non-existent object[0m
+    [32m  Γ£ö[0m[90m should handle removing from non-existent tile[0m
+[0m    updateObjectPosition()[0m
+    [32m  Γ£ö[0m[90m should move object to new tile[0m
+    [32m  Γ£ö[0m[90m should handle undefined old coordinates[0m
+    [32m  Γ£ö[0m[90m should work with debug enabled[0m
+[0m    getObjectsAtPixel()[0m
+    [32m  Γ£ö[0m[90m should return objects at pixel location[0m
+    [32m  Γ£ö[0m[90m should return empty array for empty tile[0m
+    [32m  Γ£ö[0m[90m should handle edge coordinates[0m
+[0m    getObjectsInTile()[0m
+    [32m  Γ£ö[0m[90m should return all objects in tile[0m
+    [32m  Γ£ö[0m[90m should return empty array for empty tile[0m
+    [32m  Γ£ö[0m[90m should return objects sorted by z-index[0m
+[0m    registerUIElement()[0m
+    [32m  Γ£ö[0m[90m should register UI element[0m
+    [32m  Γ£ö[0m[90m should register with priority[0m
+    [32m  Γ£ö[0m[90m should default priority to 0[0m
+    [32m  Γ£ö[0m[90m should sort by priority descending[0m
+    [32m  Γ£ö[0m[90m should register multiple UI elements[0m
+[0m    unregisterUIElement()[0m
+    [32m  Γ£ö[0m[90m should remove UI element[0m
+    [32m  Γ£ö[0m[90m should handle removing non-existent element[0m
+    [32m  Γ£ö[0m[90m should keep other elements[0m
+[0m    handleMouseClick()[0m
+    [32m  Γ£ö[0m[90m should prioritize UI elements[0m
+    [32m  Γ£ö[0m[90m should handle object clicks[0m
+    [32m  Γ£ö[0m[90m should return tile center for valid clicks[0m
+    [32m  Γ£ö[0m[90m should handle clicks on empty tiles[0m
+    [32m  Γ£ö[0m[90m should handle invalid tile clicks[0m
+    [32m  Γ£ö[0m[90m should handle different mouse buttons[0m
+    [32m  Γ£ö[0m[90m should work with debug enabled[0m
+[0m    handleMouseRelease()[0m
+    [32m  Γ£ö[0m[90m should check objects at pixel[0m
+    [32m  Γ£ö[0m[90m should return false when no objects handle release[0m
+[0m    handleTileClick()[0m
+    [32m  Γ£ö[0m[90m should be overridable[0m
+    [32m  Γ£ö[0m[90m should handle different buttons[0m
+[0m    setDebugEnabled()[0m
+    [32m  Γ£ö[0m[90m should enable debug mode[0m
+    [32m  Γ£ö[0m[90m should disable debug mode[0m
+[0m    getDebugInfo()[0m
+    [32m  Γ£ö[0m[90m should return debug information[0m
+    [32m  Γ£ö[0m[90m should count occupied tiles correctly[0m
+    [32m  Γ£ö[0m[90m should count total objects correctly[0m
+    [32m  Γ£ö[0m[90m should count UI elements[0m
+    [32m  Γ£ö[0m[90m should include grid size[0m
+[0m    clear()[0m
+    [32m  Γ£ö[0m[90m should clear all objects[0m
+    [32m  Γ£ö[0m[90m should clear UI elements[0m
+    [32m  Γ£ö[0m[90m should result in empty debug info[0m
+[0m    addObject()[0m
+    [32m  Γ£ö[0m[90m should add object at its position[0m
+    [32m  Γ£ö[0m[90m should handle null object[0m
+    [32m  Γ£ö[0m[90m should handle object without position[0m
+    [32m  Γ£ö[0m[90m should use getPosition if available[0m
+    [32m  Γ£ö[0m[90m should use sprite.pos as fallback[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle very large grid[0m
+    [32m  Γ£ö[0m[90m should handle small tile size[0m
+    [32m  Γ£ö[0m[90m should handle many objects in one tile[0m
+    [32m  Γ£ö[0m[90m should handle rapid add/remove cycles[0m
+
+[0m  CacheManager - Core Functionality[0m
+[0m    Singleton Pattern[0m
+    [32m  Γ£ö[0m[90m should return the same instance on multiple getInstance calls[0m
+    [32m  Γ£ö[0m[90m should initialize with default memory budget[0m
+    [32m  Γ£ö[0m[90m should allow setting custom memory budget[0m
+[0m    Cache Registration[0m
+    [32m  Γ£ö[0m[90m should register a new cache with a unique name[0m
+    [32m  Γ£ö[0m[90m should throw error when registering duplicate cache name[0m
+    [32m  Γ£ö[0m[90m should throw error for unsupported cache strategy[0m
+    [32m  Γ£ö[0m[90m should track memory usage when registering cache[0m
+[0m    Cache Retrieval[0m
+    [32m  Γ£ö[0m[90m should retrieve registered cache by name[0m
+    [32m  Γ£ö[0m[90m should return null for non-existent cache[0m
+    [32m  Γ£ö[0m[90m should list all registered cache names[0m
+[0m    Memory Budget Enforcement[0m
+    [32m  Γ£ö[0m[90m should track total memory usage across all caches[0m
+    [32m  Γ£ö[0m[90m should prevent registration when memory budget exceeded[0m
+    [32m  Γ£ö[0m[90m should trigger eviction when budget exceeded[0m
+    [32m  Γ£ö[0m[90m should calculate accurate memory for graphics buffers[0m
+[0m    LRU Eviction Policy[0m
+    [32m  Γ£ö[0m[90m should track access times for caches[0m
+    [32m  Γ£ö[0m[90m should evict least recently used cache first[0m
+    [32m  Γ£ö[0m[90m should update access time on cache retrieval[0m
+    [32m  Γ£ö[0m[90m should not evict caches marked as protected[0m
+[0m    Cache Invalidation[0m
+    [32m  Γ£ö[0m[90m should invalidate cache by name[0m
+    [32m  Γ£ö[0m[90m should support partial invalidation with region[0m
+    [32m  Γ£ö[0m[90m should invalidate all caches when no name specified[0m
+    [32m  Γ£ö[0m[90m should clear dirty regions on full invalidation[0m
+[0m    Cache Statistics[0m
+    [32m  Γ£ö[0m[90m should track cache hit count[0m
+    [32m  Γ£ö[0m[90m should track cache miss count[0m
+    [32m  Γ£ö[0m[90m should calculate hit rate percentage[0m
+    [32m  Γ£ö[0m[90m should report memory usage per cache[0m
+    [32m  Γ£ö[0m[90m should report total caches count[0m
+    [32m  Γ£ö[0m[90m should track eviction count[0m
+[0m    Cache Cleanup[0m
+    [32m  Γ£ö[0m[90m should remove cache and free memory[0m
+    [32m  Γ£ö[0m[90m should call graphics buffer remove() on cleanup[0m
+    [32m  Γ£ö[0m[90m should remove all caches on destroy[0m
+    [32m  Γ£ö[0m[90m should reset statistics on destroy[0m
+[0m    Multiple Cache Types[0m
+    [32m  Γ£ö[0m[90m should support fullBuffer strategy[0m
+    [32m  Γ£ö[0m[90m should support dirtyRect strategy[0m
+    [32m  Γ£ö[0m[90m should support throttled strategy[0m
+    [32m  Γ£ö[0m[90m should support tiled strategy[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle zero memory budget gracefully[0m
+    [32m  Γ£ö[0m[90m should handle negative memory budget gracefully[0m
+    [32m  Γ£ö[0m[90m should handle cache registration with zero dimensions[0m
+    [32m  Γ£ö[0m[90m should handle removing non-existent cache gracefully[0m
+    [32m  Γ£ö[0m[90m should handle stats request for non-existent cache[0m
+
+[0m  FullBufferCache Strategy[0m
+[0m    Initialization[0m
+    [32m  Γ£ö[0m[90m should create cache with valid dimensions[0m
+    [32m  Γ£ö[0m[90m should initialize with default config if not provided[0m
+    [32m  Γ£ö[0m[90m should create graphics buffer on initialization[0m
+    [32m  Γ£ö[0m[90m should track creation timestamp[0m
+[0m    Buffer Management[0m
+    [32m  Γ£ö[0m[90m should calculate memory usage correctly[0m
+    [32m  Γ£ö[0m[90m should return buffer for rendering[0m
+    [32m  Γ£ö[0m[90m should cleanup buffer on destroy[0m
+    [32m  Γ£ö[0m[90m should handle missing createGraphics gracefully[0m
+[0m    Render Callback[0m
+    [32m  Γ£ö[0m[90m should accept and store render callback[0m
+    [32m  Γ£ö[0m[90m should call render callback during cache generation[0m
+    [32m  Γ£ö[0m[90m should mark cache as valid after successful generation[0m
+[FullBufferCache] Render error for 'test-cache': Error: Render failed
+    at Context.<anonymous> (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\test\unit\rendering\caches\fullBufferCache.test.js:190:44)
+    at callFn (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:364:21)
+    at Runnable.run (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runnable.js:352:5)
+    at Runner.runTest (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:677:10)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:800:12
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:592:14)
+    at C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:602:7
+    at next (C:\Users\willm\OneDrive\Desktop\Classes\Class Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:485:14)
+    at Immediate._onImmediate (C:\Users\willm\OneDrive\Desktop\Classes\Class 
+Repo\softwareEngineering_teamDelta\node_modules\mocha\lib\runner.js:570:5)
+    at process.processImmediate (node:internal/timers:505:21)
+    [32m  Γ£ö[0m[90m should handle render callback errors gracefully[0m
+[0m    Cache Invalidation[0m
+    [32m  Γ£ö[0m[90m should mark cache as invalid when invalidated[0m
+    [32m  Γ£ö[0m[90m should support partial invalidation with region[0m
+    [32m  Γ£ö[0m[90m should allow regeneration after invalidation[0m
+[0m    Statistics[0m
+    [32m  Γ£ö[0m[90m should track hit count[0m
+    [32m  Γ£ö[0m[90m should track miss count[0m
+    [32m  Γ£ö[0m[90m should track last access time[0m
+    [32m  Γ£ö[0m[90m should provide comprehensive stats[0m
+[0m    Protected Cache[0m
+    [32m  Γ£ö[0m[90m should support protected flag to prevent eviction[0m
+    [32m  Γ£ö[0m[90m should default to unprotected[0m
+    [32m  Γ£ö[0m[90m should allow toggling protected status[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle zero dimensions[0m
+    [32m  Γ£ö[0m[90m should handle very large dimensions[0m
+    [32m  Γ£ö[0m[90m should handle missing render callback during generation[0m
+    [32m  Γ£ö[0m[90m should handle multiple destroy calls[0m
+    [32m  Γ£ö[0m[90m should handle invalidation of already invalid cache[0m
+
+[0m  EffectsLayerRenderer[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with default configuration[0m
+    [32m  Γ£ö[0m[90m should initialize particle pools[0m
+    [32m  Γ£ö[0m[90m should initialize active effects arrays[0m
+    [32m  Γ£ö[0m[90m should initialize selection box state[0m
+    [32m  Γ£ö[0m[90m should initialize effect types registry with Map[0m
+    [32m  Γ£ö[0m[90m should register combat effect types[0m
+    [32m  Γ£ö[0m[90m should register environmental effect types[0m
+    [32m  Γ£ö[0m[90m should register interactive effect types[0m
+    [32m  Γ£ö[0m[90m should register visual effect types[0m
+    [32m  Γ£ö[0m[90m should register audio effect types[0m
+    [32m  Γ£ö[0m[90m should initialize screen effects state[0m
+    [32m  Γ£ö[0m[90m should initialize performance stats[0m
+[0m    Particle Effect Creation[0m
+    [32m  Γ£ö[0m[90m should create blood splatter effect[0m
+    [32m  Γ£ö[0m[90m should create impact sparks effect[0m
+    [32m  Γ£ö[0m[90m should create dust cloud effect[0m
+    [32m  Γ£ö[0m[90m should create selection sparkle effect[0m
+    [32m  Γ£ö[0m[90m should use default particle count if not specified[0m
+    [32m  Γ£ö[0m[90m should set effect position correctly[0m
+    [32m  Γ£ö[0m[90m should apply custom particle color[0m
+    [32m  Γ£ö[0m[90m should add effect to active list[0m
+    [32m  Γ£ö[0m[90m should warn on unknown effect type[0m
+[0m    Visual Effect Creation[0m
+    [32m  Γ£ö[0m[90m should create screen shake effect[0m
+    [32m  Γ£ö[0m[90m should use default intensity for screen shake[0m
+    [32m  Γ£ö[0m[90m should create fade transition effect[0m
+    [32m  Γ£ö[0m[90m should create damage flash effect[0m
+    [32m  Γ£ö[0m[90m should use default flash color[0m
+[0m    Audio Effect Creation[0m
+    [32m  Γ£ö[0m[90m should create audio effect[0m
+    [32m  Γ£ö[0m[90m should use default audio volume[0m
+    [32m  Γ£ö[0m[90m should add audio effect to active list[0m
+[0m    Particle Update Methods[0m
+    [32m  Γ£ö[0m[90m should update blood splatter particles[0m
+    [32m  Γ£ö[0m[90m should update impact sparks particles[0m
+    [32m  Γ£ö[0m[90m should update dust cloud particles[0m
+    [32m  Γ£ö[0m[90m should remove dead particles[0m
+    [32m  Γ£ö[0m[90m should return false when effect expires[0m
+    [32m  Γ£ö[0m[90m should update selection sparkle particles with orbital motion[0m
+    [32m  Γ£ö[0m[90m should update gathering sparkle with spiral inward motion[0m
+    [32m  Γ£ö[0m[90m should use generic particle update for unknown types[0m
+[0m    Visual Effect Updates[0m
+    [32m  Γ£ö[0m[90m should update screen shake[0m
+    [32m  Γ£ö[0m[90m should deactivate screen shake when expired[0m
+    [32m  Γ£ö[0m[90m should update screen fade alpha[0m
+    [32m  Γ£ö[0m[90m should deactivate screen fade when expired[0m
+    [32m  Γ£ö[0m[90m should update screen flash alpha[0m
+    [32m  Γ£ö[0m[90m should track active visual effects count[0m
+[0m    Audio Effect Updates[0m
+    [32m  Γ£ö[0m[90m should update audio effects time[0m
+    [32m  Γ£ö[0m[90m should remove expired audio effects[0m
+    [32m  Γ£ö[0m[90m should track active audio effects count[0m
+[0m    Particle Pooling System[0m
+    [32m  Γ£ö[0m[90m should get particle from pool when available[0m
+    [32m  Γ£ö[0m[90m should return null when pool is empty[0m
+    [32m  Γ£ö[0m[90m should return particle to pool[0m
+    [32m  Γ£ö[0m[90m should create new pool category if needed[0m
+    [32m  Γ£ö[0m[90m should create new particle effect when pool empty[0m
+[0m    Selection Box System[0m
+    [32m  Γ£ö[0m[90m should start selection box[0m
+    [32m  Γ£ö[0m[90m should apply custom selection box styling[0m
+    [32m  Γ£ö[0m[90m should call onStart callback when starting selection[0m
+    [32m  Γ£ö[0m[90m should update selection box end position[0m
+    [32m  Γ£ö[0m[90m should call onUpdate callback when updating selection[0m
+    [32m  Γ£ö[0m[90m should not update if selection is not active[0m
+    [32m  Γ£ö[0m[90m should end selection box and return entities[0m
+    [32m  Γ£ö[0m[90m should call onEnd callback when ending selection[0m
+    [32m  Γ£ö[0m[90m should return empty array if selection not active[0m
+    [32m  Γ£ö[0m[90m should cancel selection box without callbacks[0m
+    [32m  Γ£ö[0m[90m should get selection box bounds[0m
+    [32m  Γ£ö[0m[90m should return null bounds if selection not active[0m
+    [32m  Γ£ö[0m[90m should set entity list for selection detection[0m
+    [32m  Γ£ö[0m[90m should detect entity in selection box[0m
+    [32m  Γ£ö[0m[90m should detect entity outside selection box[0m
+    [32m  Γ£ö[0m[90m should chain selection box methods[0m
+[0m    Convenience Methods[0m
+    [32m  Γ£ö[0m[90m should create blood splatter with convenience method[0m
+    [32m  Γ£ö[0m[90m should create impact sparks with convenience method[0m
+    [32m  Γ£ö[0m[90m should create dust cloud with convenience method[0m
+    [32m  Γ£ö[0m[90m should create screen shake with convenience method[0m
+    [32m  Γ£ö[0m[90m should create damage flash with convenience method[0m
+    [32m  Γ£ö[0m[90m should create fade transition with convenience method[0m
+    [32m  Γ£ö[0m[90m should create flash effect with backwards compatibility[0m
+    [32m  Γ£ö[0m[90m should spawn particle burst[0m
+[0m    Visual Effect Helpers[0m
+    [32m  Γ£ö[0m[90m should add visual effect with screen shake type[0m
+    [32m  Γ£ö[0m[90m should add visual effect with screen flash type[0m
+    [32m  Γ£ö[0m[90m should add custom visual effect to active list[0m
+    [32m  Γ£ö[0m[90m should generate unique ID for visual effects[0m
+[0m    Configuration and Stats[0m
+    [32m  Γ£ö[0m[90m should update configuration[0m
+    [32m  Γ£ö[0m[90m should get stats copy[0m
+    [32m  Γ£ö[0m[90m should get active particles count[0m
+    [32m  Γ£ö[0m[90m should get active effects summary[0m
+    [32m  Γ£ö[0m[90m should get configuration copy[0m
+    [32m  Γ£ö[0m[90m should set and return new configuration[0m
+    [32m  Γ£ö[0m[90m should toggle particles enabled[0m
+    [32m  Γ£ö[0m[90m should toggle particles with explicit parameter[0m
+    [32m  Γ£ö[0m[90m should clear all effects[0m
+[0m    Main Render Method[0m
+    [32m  Γ£ö[0m[90m should track render time[0m
+    [32m  Γ£ö[0m[90m should skip particles if disabled[0m
+    [32m  Γ£ö[0m[90m should skip visual effects if disabled[0m
+    [32m  Γ£ö[0m[90m should skip audio effects if disabled[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle null particle pools gracefully[0m
+    [32m  Γ£ö[0m[90m should handle empty effect type in particle update[0m
+    [32m  Γ£ö[0m[90m should handle missing entity properties in selection detection[0m
+    [32m  Γ£ö[0m[90m should handle very large particle counts[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+    [32m  Γ£ö[0m[90m should handle zero duration effects[0m
+[0m    Integration Scenarios[0m
+    [32m  Γ£ö[0m[90m should handle full particle lifecycle[0m
+    [32m  Γ£ö[0m[90m should manage multiple concurrent effects[0m
+    [32m  Γ£ö[0m[90m should handle full selection box workflow[0m
+
+[0m  EntityAccessor[0m
+[0m    getPosition()[0m
+    [32m  Γ£ö[0m[90m should return default position for null entity[0m
+    [32m  Γ£ö[0m[90m should return default position for undefined entity[0m
+    [32m  Γ£ö[0m[90m should use getPosition() method when available[0m
+    [32m  Γ£ö[0m[90m should use position property when getPosition not available[0m
+    [32m  Γ£ö[0m[90m should prefer getPosition() over position property[0m
+    [32m  Γ£ö[0m[90m should use _sprite.pos when position not available[0m
+    [32m  Γ£ö[0m[90m should use sprite.pos when _sprite not available[0m
+    [32m  Γ£ö[0m[90m should use posX/posY properties as fallback[0m
+    [32m  Γ£ö[0m[90m should use x/y properties as final fallback[0m
+    [32m  Γ£ö[0m[90m should handle entity with only x coordinate[0m
+    [32m  Γ£ö[0m[90m should handle entity with only y coordinate[0m
+    [32m  Γ£ö[0m[90m should handle zero coordinates[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+    [32m  Γ£ö[0m[90m should handle very large coordinates[0m
+[0m    getSize()[0m
+    [32m  Γ£ö[0m[90m should return default size for null entity[0m
+    [32m  Γ£ö[0m[90m should return default size for undefined entity[0m
+    [32m  Γ£ö[0m[90m should use getSize() method when available[0m
+    [32m  Γ£ö[0m[90m should use size property with x/y format[0m
+    [32m  Γ£ö[0m[90m should use size property with width/height format[0m
+    [32m  Γ£ö[0m[90m should prefer x/y over width/height in size property[0m
+    [32m  Γ£ö[0m[90m should prefer getSize() over size property[0m
+    [32m  Γ£ö[0m[90m should use _sprite.size when size not available[0m
+    [32m  Γ£ö[0m[90m should use sprite.size when _sprite not available[0m
+    [32m  Γ£ö[0m[90m should use sizeX/sizeY properties as fallback[0m
+    [32m  Γ£ö[0m[90m should use width/height properties as final fallback[0m
+    [32m  Γ£ö[0m[90m should handle entity with only width[0m
+    [32m  Γ£ö[0m[90m should handle entity with only height[0m
+    [32m  Γ£ö[0m[90m should handle zero size[0m
+    [32m  Γ£ö[0m[90m should handle very large size[0m
+    [32m  Γ£ö[0m[90m should handle partial size property (x only)[0m
+    [32m  Γ£ö[0m[90m should handle partial size property (y only)[0m
+[0m    getSizeWH()[0m
+    [32m  Γ£ö[0m[90m should return size with width/height properties[0m
+    [32m  Γ£ö[0m[90m should convert x/y to width/height[0m
+    [32m  Γ£ö[0m[90m should return default size in width/height format[0m
+    [32m  Γ£ö[0m[90m should handle mixed format (x and height)[0m
+    [32m  Γ£ö[0m[90m should handle mixed format (width and y)[0m
+[0m    getCenter()[0m
+    [32m  Γ£ö[0m[90m should calculate center from position and size[0m
+    [32m  Γ£ö[0m[90m should use default values for null entity[0m
+    [32m  Γ£ö[0m[90m should handle zero position[0m
+    [32m  Γ£ö[0m[90m should handle negative position[0m
+    [32m  Γ£ö[0m[90m should handle odd sizes correctly[0m
+    [32m  Γ£ö[0m[90m should work with getPosition/getSize methods[0m
+[0m    hasPosition()[0m
+    [32m  Γ£ö[0m[90m should return false for null entity[0m
+    [32m  Γ£ö[0m[90m should return false for undefined entity[0m
+    [32m  Γ£ö[0m[90m should return true when getPosition exists[0m
+    [32m  Γ£ö[0m[90m should return true when position property exists[0m
+    [32m  Γ£ö[0m[90m should return true when _sprite.pos exists[0m
+    [32m  Γ£ö[0m[90m should return true when sprite.pos exists[0m
+    [32m  Γ£ö[0m[90m should return true when posX/posY exist[0m
+    [32m  Γ£ö[0m[90m should return true when x/y exist[0m
+    [32m  Γ£ö[0m[90m should return false when only x exists[0m
+    [32m  Γ£ö[0m[90m should return false when only y exists[0m
+    [32m  Γ£ö[0m[90m should return false for empty object[0m
+    [32m  Γ£ö[0m[90m should return true for x/y even if zero[0m
+[0m    hasSize()[0m
+    [32m  Γ£ö[0m[90m should return false for null entity[0m
+    [32m  Γ£ö[0m[90m should return false for undefined entity[0m
+    [32m  Γ£ö[0m[90m should return true when getSize exists[0m
+    [32m  Γ£ö[0m[90m should return true when size property exists[0m
+    [32m  Γ£ö[0m[90m should return true when _sprite.size exists[0m
+    [32m  Γ£ö[0m[90m should return true when sprite.size exists[0m
+    [32m  Γ£ö[0m[90m should return true when sizeX/sizeY exist[0m
+    [32m  Γ£ö[0m[90m should return true when width/height exist[0m
+    [32m  Γ£ö[0m[90m should return false when only width exists[0m
+    [32m  Γ£ö[0m[90m should return false when only height exists[0m
+    [32m  Γ£ö[0m[90m should return false for empty object[0m
+    [32m  Γ£ö[0m[90m should return true for width/height even if zero[0m
+[0m    getBounds()[0m
+    [32m  Γ£ö[0m[90m should return bounds with x, y, width, height[0m
+    [32m  Γ£ö[0m[90m should use default values for null entity[0m
+    [32m  Γ£ö[0m[90m should handle getPosition/getSize methods[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+    [32m  Γ£ö[0m[90m should handle zero size[0m
+    [32m  Γ£ö[0m[90m should handle position from one source and size from another[0m
+[0m    Fallback Chain Priority[0m
+    [32m  Γ£ö[0m[90m should follow correct position priority chain[0m
+    [32m  Γ£ö[0m[90m should follow correct size priority chain[0m
+[0m    Edge Cases and Integration[0m
+    [32m  Γ£ö[0m[90m should handle entity with mixed position/size formats[0m
+    [32m  Γ£ö[0m[90m should handle entity with partial sprite data[0m
+    [32m  Γ£ö[0m[90m should handle entity with function-based properties[0m
+    [32m  Γ£ö[0m[90m should handle very large numbers without precision loss[0m
+    [32m  Γ£ö[0m[90m should handle fractional coordinates and sizes[0m
+
+[0m  EntityDelegationBuilder[0m
+[0m    Configuration Exports[0m
+    [32m  Γ£ö[0m[90m should export EntityDelegationBuilder class[0m
+    [32m  Γ£ö[0m[90m should export STANDARD_ENTITY_API_CONFIG[0m
+    [32m  Γ£ö[0m[90m should export MINIMAL_ENTITY_API_CONFIG[0m
+    [32m  Γ£ö[0m[90m should export ADVANCED_ENTITY_API_CONFIG[0m
+[0m    createDelegationMethods()[0m
+    [32m  Γ£ö[0m[90m should create delegation methods on prototype[0m
+    [32m  Γ£ö[0m[90m should delegate method calls to controller[0m
+    [32m  Γ£ö[0m[90m should pass arguments to delegated methods[0m
+    [32m  Γ£ö[0m[90m should handle multiple arguments[0m
+    [32m  Γ£ö[0m[90m should warn when controller not available[0m
+    [32m  Γ£ö[0m[90m should warn when method not available on controller[0m
+    [32m  Γ£ö[0m[90m should support namespace parameter[0m
+[0m    createNamespaceDelegation()[0m
+    [32m  Γ£ö[0m[90m should create namespace property on prototype[0m
+    [32m  Γ£ö[0m[90m should create methods within namespace[0m
+    [32m  Γ£ö[0m[90m should delegate namespace method calls[0m
+    [32m  Γ£ö[0m[90m should support multiple namespaces[0m
+    [32m  Γ£ö[0m[90m should cache namespace object per instance[0m
+[0m    createChainableAPI()[0m
+    [32m  Γ£ö[0m[90m should create chainable namespace[0m
+    [32m  Γ£ö[0m[90m should allow method chaining[0m
+    [32m  Γ£ö[0m[90m should return value for non-chainable methods[0m
+    [32m  Γ£ö[0m[90m should default to chainable if not specified[0m
+[0m    createPropertyAPI()[0m
+    [32m  Γ£ö[0m[90m should create property namespace[0m
+    [32m  Γ£ö[0m[90m should create getter properties[0m
+    [32m  Γ£ö[0m[90m should create setter properties[0m
+    [32m  Γ£ö[0m[90m should support custom getter/setter names[0m
+[0m    setupEntityAPI()[0m
+    [32m  Γ£ö[0m[90m should setup namespaces from config[0m
+    [32m  Γ£ö[0m[90m should setup direct methods from config[0m
+    [32m  Γ£ö[0m[90m should setup properties from config[0m
+    [32m  Γ£ö[0m[90m should handle empty config[0m
+    [32m  Γ£ö[0m[90m should use custom controller property name[0m
+[0m    createNamespaceAPI()[0m
+    [32m  Γ£ö[0m[90m should create namespace with statistics tracking[0m
+    [32m  Γ£ö[0m[90m should track class names in statistics[0m
+    [32m  Γ£ö[0m[90m should track methods per class[0m
+[0m    validateDelegationConfig()[0m
+    [32m  Γ£ö[0m[90m should validate valid configuration[0m
+    [32m  Γ£ö[0m[90m should reject null configuration[0m
+    [32m  Γ£ö[0m[90m should reject undefined configuration[0m
+    [32m  Γ£ö[0m[90m should reject non-object configuration[0m
+    [32m  Γ£ö[0m[90m should reject invalid namespace structure[0m
+    [32m  Γ£ö[0m[90m should accept null method values[0m
+    [32m  Γ£ö[0m[90m should accept string method values[0m
+    [32m  Γ£ö[0m[90m should accept function method values[0m
+[0m    validateControllerMethods()[0m
+    [32m  Γ£ö[0m[90m should identify available methods[0m
+    [32m  Γ£ö[0m[90m should identify missing methods[0m
+    [32m  Γ£ö[0m[90m should detect when controller exists[0m
+    [32m  Γ£ö[0m[90m should detect when controller missing[0m
+[0m    createAdvancedDelegation()[0m
+    [32m  Γ£ö[0m[90m should support method transforms[0m
+    [32m  Γ£ö[0m[90m should support conditional delegation[0m
+    [32m  Γ£ö[0m[90m should support warn error handling[0m
+    [32m  Γ£ö[0m[90m should support silent error handling[0m
+[0m    Delegation Statistics[0m
+    [32m  Γ£ö[0m[90m should initialize statistics[0m
+    [32m  Γ£ö[0m[90m should track total delegated methods[0m
+    [32m  Γ£ö[0m[90m should reset statistics[0m
+[0m    Predefined Configurations[0m
+    [32m  Γ£ö[0m[90m STANDARD_ENTITY_API_CONFIG should have highlight namespace[0m
+    [32m  Γ£ö[0m[90m STANDARD_ENTITY_API_CONFIG should have effects namespace[0m
+    [32m  Γ£ö[0m[90m STANDARD_ENTITY_API_CONFIG should have rendering namespace[0m
+    [32m  Γ£ö[0m[90m STANDARD_ENTITY_API_CONFIG should have properties config[0m
+    [32m  Γ£ö[0m[90m STANDARD_ENTITY_API_CONFIG should have chainable config[0m
+    [32m  Γ£ö[0m[90m STANDARD_ENTITY_API_CONFIG should have direct methods[0m
+    [32m  Γ£ö[0m[90m MINIMAL_ENTITY_API_CONFIG should be subset of STANDARD[0m
+    [32m  Γ£ö[0m[90m ADVANCED_ENTITY_API_CONFIG should extend STANDARD with additional namespaces[0m
+    [32m  Γ£ö[0m[90m ADVANCED_ENTITY_API_CONFIG should include STANDARD namespaces[0m
+[0m    Edge Cases and Integration[0m
+    [32m  Γ£ö[0m[90m should handle class without constructor[0m
+    [32m  Γ£ö[0m[90m should handle multiple instances sharing prototype methods[0m
+    [32m  Γ£ö[0m[90m should handle delegating to same method from multiple namespaces[0m
+    [32m  Γ£ö[0m[90m should handle very long method names[0m
+    [32m  Γ£ö[0m[90m should handle delegating methods that return undefined[0m
+    [32m  Γ£ö[0m[90m should handle delegating methods that throw errors[0m
+    [32m  Γ£ö[0m[90m should preserve method context in delegated calls[0m
+
+[0m  EntityLayerRenderer (EntityRenderer)[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize render groups[0m
+    [31m  38) should initialize with default configuration[0m
+    [32m  Γ£ö[0m[90m should initialize performance stats[0m
+    [32m  Γ£ö[0m[90m should have exactly 5 render groups[0m
+[0m    Entity Collection[0m
+    [32m  Γ£ö[0m[90m should collect resources from global resource list[0m
+    [32m  Γ£ö[0m[90m should collect ants from global ants array[0m
+    [32m  Γ£ö[0m[90m should collect buildings from global Buildings array[0m
+    [32m  Γ£ö[0m[90m should skip null entities in ants array[0m
+    [32m  Γ£ö[0m[90m should call updateAll on resources in PLAYING state[0m
+    [32m  Γ£ö[0m[90m should call antsUpdate in PLAYING state[0m
+    [32m  Γ£ö[0m[90m should call building update in PLAYING state[0m
+    [32m  Γ£ö[0m[90m should handle missing resource list gracefully[0m
+    [32m  Γ£ö[0m[90m should clear render groups before collecting[0m
+[0m    Frustum Culling[0m
+    [32m  Γ£ö[0m[90m should render entity within viewport[0m
+    [31m  39) should cull entity outside viewport[0m
+    [32m  Γ£ö[0m[90m should render entity partially in viewport[0m
+    [32m  Γ£ö[0m[90m should respect cull margin[0m
+    [32m  Γ£ö[0m[90m should skip culling when disabled[0m
+    [32m  Γ£ö[0m[90m should not render inactive entities[0m
+    [32m  Γ£ö[0m[90m should render when position cannot be determined[0m
+[0m    Depth Sorting[0m
+    [32m  Γ£ö[0m[90m should sort entities by Y position (depth)[0m
+    [32m  Γ£ö[0m[90m should sort all render groups[0m
+    [32m  Γ£ö[0m[90m should skip sorting when disabled[0m
+    [32m  Γ£ö[0m[90m should handle entities with same depth[0m
+[0m    Entity Position and Size[0m
+    [32m  Γ£ö[0m[90m should get entity position using EntityAccessor[0m
+    [32m  Γ£ö[0m[90m should get entity size using EntityAccessor[0m
+    [32m  Γ£ö[0m[90m should get entity depth from Y position[0m
+    [32m  Γ£ö[0m[90m should use 0 depth if position unavailable[0m
+[0m    Render Group Management[0m
+    [32m  Γ£ö[0m[90m should clear all render groups[0m
+    [32m  Γ£ö[0m[90m should render standard group with render method[0m
+    [32m  Γ£ö[0m[90m should skip entities without render method[0m
+    [32m  Γ£ö[0m[90m should handle render errors gracefully[0m
+    [32m  Γ£ö[0m[90m should use batched rendering for large groups[0m
+    [32m  Γ£ö[0m[90m should use standard rendering for small groups[0m
+    [32m  Γ£ö[0m[90m should skip empty groups[0m
+[0m    Performance Monitoring Integration[0m
+    [32m  Γ£ö[0m[90m should track render phases with performance monitor[0m
+    [32m  Γ£ö[0m[90m should record entity stats with performance monitor[0m
+    [32m  Γ£ö[0m[90m should finalize entity performance[0m
+    [32m  Γ£ö[0m[90m should track entity render time[0m
+    [32m  Γ£ö[0m[90m should work without performance monitor[0m
+[0m    Main Render Method[0m
+    [32m  Γ£ö[0m[90m should reset stats at start of render[0m
+    [32m  Γ£ö[0m[90m should track render time[0m
+    [32m  Γ£ö[0m[90m should store last frame stats[0m
+    [32m  Γ£ö[0m[90m should render all groups in correct order[0m
+    [32m  Γ£ö[0m[90m should sort entities when depth sorting enabled[0m
+[0m    Performance Statistics[0m
+    [32m  Γ£ö[0m[90m should calculate cull efficiency[0m
+    [32m  Γ£ö[0m[90m should calculate render efficiency[0m
+    [32m  Γ£ö[0m[90m should handle zero total entities[0m
+    [32m  Γ£ö[0m[90m should include all stats properties[0m
+[0m    Configuration[0m
+    [32m  Γ£ö[0m[90m should update configuration[0m
+    [32m  Γ£ö[0m[90m should preserve unmodified config values[0m
+[0m    Entity Type Breakdown[0m
+    [32m  Γ£ö[0m[90m should get entity type breakdown[0m
+    [32m  Γ£ö[0m[90m should handle mixed entity types[0m
+    [32m  Γ£ö[0m[90m should return empty breakdown when no entities[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle null entities gracefully[0m
+    [32m  Γ£ö[0m[90m should handle undefined entities gracefully[0m
+    [32m  Γ£ö[0m[90m should handle entities without position[0m
+    [32m  Γ£ö[0m[90m should handle entities without size[0m
+    [31m  40) should handle very large coordinates[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates[0m
+    [32m  Γ£ö[0m[90m should handle zero-size entities[0m
+    [32m  Γ£ö[0m[90m should handle empty Buildings array[0m
+    [32m  Γ£ö[0m[90m should handle undefined Buildings[0m
+[0m    Integration Scenarios[0m
+    [32m  Γ£ö[0m[90m should handle full render cycle with mixed entities[0m
+    [31m  41) should cull off-screen entities correctly[0m
+    [32m  Γ£ö[0m[90m should maintain render order with depth sorting[0m
+    [32m  Γ£ö[0m[90m should handle entities appearing and disappearing[0m
+
+[0m  PerformanceMonitor[0m
+[0m    Constructor and Initialization[0m
+    [32m  Γ£ö[0m[90m should initialize with default frame data[0m
+    [32m  Γ£ö[0m[90m should initialize with default layer timing[0m
+    [32m  Γ£ö[0m[90m should initialize with default entity stats[0m
+    [32m  Γ£ö[0m[90m should initialize with default performance metrics[0m
+    [32m  Γ£ö[0m[90m should initialize with default debug display settings[0m
+    [32m  Γ£ö[0m[90m should detect memory tracking availability[0m
+    [32m  Γ£ö[0m[90m should initialize entity performance tracking[0m
+    [32m  Γ£ö[0m[90m should accept custom configuration[0m
+[0m    Frame Timing[0m
+    [32m  Γ£ö[0m[90m should start frame timing[0m
+    [32m  Γ£ö[0m[90m should end frame timing[0m
+    [36m  - should calculate frame time[0m
+    [32m  Γ£ö[0m[90m should update frame history[0m
+    [32m  Γ£ö[0m[90m should handle multiple frames[0m
+    [32m  Γ£ö[0m[90m should update memory tracking on startFrame[0m
+    [32m  Γ£ö[0m[90m should track peak memory[0m
+    [32m  Γ£ö[0m[90m should reset layer timing on startFrame[0m
+[0m    Layer Timing[0m
+    [32m  Γ£ö[0m[90m should start layer timing[0m
+    [32m  Γ£ö[0m[90m should end layer timing[0m
+    [32m  Γ£ö[0m[90m should track layer history[0m
+    [32m  Γ£ö[0m[90m should limit layer history to 30 measurements[0m
+    [32m  Γ£ö[0m[90m should get layer statistics[0m
+    [32m  Γ£ö[0m[90m should return zero stats for unknown layer[0m
+    [32m  Γ£ö[0m[90m should handle multiple layers simultaneously[0m
+    [32m  Γ£ö[0m[90m should only end timing for matching layer[0m
+    [32m  Γ£ö[0m[90m should use startLayerTiming method[0m
+    [32m  Γ£ö[0m[90m should use endLayerTiming method[0m
+    [32m  Γ£ö[0m[90m should return 0 if endLayerTiming called without start[0m
+[0m    Entity Statistics[0m
+    [32m  Γ£ö[0m[90m should record entity statistics[0m
+    [32m  Γ£ö[0m[90m should update entity types[0m
+    [32m  Γ£ö[0m[90m should get entity statistics[0m
+    [32m  Γ£ö[0m[90m should calculate culling efficiency[0m
+    [32m  Γ£ö[0m[90m should handle zero entities gracefully[0m
+    [32m  Γ£ö[0m[90m should update lastUpdate timestamp[0m
+[0m    Entity Performance Tracking[0m
+    [32m  Γ£ö[0m[90m should start render phase[0m
+    [32m  Γ£ö[0m[90m should end render phase[0m
+    [32m  Γ£ö[0m[90m should track all render phases[0m
+    [32m  Γ£ö[0m[90m should start entity render timing[0m
+    [32m  Γ£ö[0m[90m should end entity render timing[0m
+    [36m  - should track entity type timings[0m
+    [32m  Γ£ö[0m[90m should track slowest entities[0m
+    [32m  Γ£ö[0m[90m should limit slowest entities list[0m
+    [32m  Γ£ö[0m[90m should finalize entity performance[0m
+    [32m  Γ£ö[0m[90m should clear current frame data after finalize[0m
+    [32m  Γ£ö[0m[90m should preserve last frame data for display[0m
+    [32m  Γ£ö[0m[90m should calculate type averages[0m
+    [36m  - should maintain type history[0m
+    [36m  - should limit type history to 30 frames[0m
+    [32m  Γ£ö[0m[90m should get entity performance report[0m
+    [32m  Γ£ö[0m[90m should handle entity without explicit ID[0m
+    [32m  Γ£ö[0m[90m should handle entity with constructor name[0m
+[0m    Performance Metrics[0m
+    [32m  Γ£ö[0m[90m should update performance metrics[0m
+    [32m  Γ£ö[0m[90m should detect GOOD performance level[0m
+    [32m  Γ£ö[0m[90m should detect FAIR performance level[0m
+    [32m  Γ£ö[0m[90m should detect POOR performance level[0m
+    [32m  Γ£ö[0m[90m should calculate average FPS[0m
+    [32m  Γ£ö[0m[90m should track min and max FPS[0m
+    [32m  Γ£ö[0m[90m should check if performance is poor[0m
+    [32m  Γ£ö[0m[90m should check if performance is good[0m
+[0m    Performance Warnings[0m
+    [32m  Γ£ö[0m[90m should warn about low FPS[0m
+    [32m  Γ£ö[0m[90m should warn about frame spikes[0m
+    [32m  Γ£ö[0m[90m should warn about low culling efficiency[0m
+    [32m  Γ£ö[0m[90m should warn about memory growth[0m
+    [32m  Γ£ö[0m[90m should return empty array when performance is good[0m
+[0m    Frame Statistics[0m
+    [32m  Γ£ö[0m[90m should get comprehensive frame stats[0m
+    [32m  Γ£ö[0m[90m should include entity performance in stats[0m
+    [32m  Γ£ö[0m[90m should include memory info when available[0m
+    [32m  Γ£ö[0m[90m should round values appropriately[0m
+[0m    Memory Tracking[0m
+    [32m  Γ£ö[0m[90m should detect memory tracking availability[0m
+    [32m  Γ£ö[0m[90m should track memory baseline[0m
+    [32m  Γ£ö[0m[90m should update memory tracking[0m
+    [32m  Γ£ö[0m[90m should get memory information[0m
+    [32m  Γ£ö[0m[90m should track peak memory usage[0m
+    [32m  Γ£ö[0m[90m should have getMemoryStats alias[0m
+[0m    Debug Display[0m
+    [32m  Γ£ö[0m[90m should enable debug display[0m
+    [32m  Γ£ö[0m[90m should disable debug display[0m
+    [32m  Γ£ö[0m[90m should set debug position[0m
+    [32m  Γ£ö[0m[90m should not render when disabled[0m
+    [32m  Γ£ö[0m[90m should have default display settings[0m
+    [32m  Γ£ö[0m[90m should get performance level color[0m
+    [32m  Γ£ö[0m[90m should return white for unknown performance level[0m
+[0m    Data Export and Reset[0m
+    [32m  Γ£ö[0m[90m should export performance data[0m
+    [32m  Γ£ö[0m[90m should include frame history in export[0m
+    [32m  Γ£ö[0m[90m should reset performance data[0m
+    [32m  Γ£ö[0m[90m should reset memory baseline on reset[0m
+    [32m  Γ£ö[0m[90m should reset frame history[0m
+[0m    Edge Cases and Error Handling[0m
+    [32m  Γ£ö[0m[90m should handle missing entity type[0m
+    [32m  Γ£ö[0m[90m should handle endEntityRender without start[0m
+    [32m  Γ£ö[0m[90m should handle endRenderPhase without start[0m
+    [32m  Γ£ö[0m[90m should handle empty frame history[0m
+    [32m  Γ£ö[0m[90m should handle zero frame time[0m
+    [32m  Γ£ö[0m[90m should handle missing memory API[0m
+    [32m  Γ£ö[0m[90m should handle invalid custom thresholds[0m
+    [32m  Γ£ö[0m[90m should handle very large entity counts[0m
+    [32m  Γ£ö[0m[90m should handle negative timing values gracefully[0m
+[0m    Integration Scenarios[0m
+    [32m  Γ£ö[0m[90m should handle complete frame cycle[0m
+    [32m  Γ£ö[0m[90m should maintain data across multiple frames[0m
+    [32m  Γ£ö[0m[90m should track performance degradation[0m
+
+[0m  RenderController[0m
+[0m    Constructor[0m
+    [36m  - should initialize with entity reference[0m
+    [36m  - should initialize empty effects array[0m
+    [36m  - should initialize empty animations object[0m
+    [36m  - should start with no highlight[0m
+    [36m  - should initialize highlight intensity to 1.0[0m
+    [36m  - should initialize random bob offset[0m
+    [36m  - should initialize random pulse offset[0m
+    [36m  - should disable smoothing by default[0m
+    [36m  - should disable debug mode by default[0m
+    [36m  - should initialize render call count to 0[0m
+    [36m  - should define HIGHLIGHT_TYPES[0m
+    [36m  - should define STATE_INDICATORS[0m
+[0m    Highlight Types[0m
+    [36m  - should define SELECTED highlight[0m
+    [36m  - should define HOVER highlight[0m
+    [36m  - should define BOX_HOVERED highlight[0m
+    [36m  - should define COMBAT highlight[0m
+    [36m  - should define FRIENDLY highlight[0m
+    [36m  - should define ENEMY highlight[0m
+    [36m  - should define RESOURCE highlight[0m
+    [36m  - should have exactly 7 highlight types[0m
+[0m    State Indicators[0m
+    [36m  - should define MOVING indicator[0m
+    [36m  - should define GATHERING indicator[0m
+    [36m  - should define BUILDING indicator[0m
+    [36m  - should define ATTACKING indicator[0m
+    [36m  - should define FOLLOWING indicator[0m
+    [36m  - should define FLEEING indicator[0m
+    [36m  - should define MATING indicator[0m
+    [36m  - should define IDLE indicator[0m
+    [36m  - should have exactly 8 state indicators[0m
+    [36m  - should have color for each indicator[0m
+[0m    setHighlight[0m
+    [36m  - should set highlight state[0m
+    [36m  - should set highlight color from type[0m
+    [36m  - should set custom intensity[0m
+    [36m  - should default intensity to 1.0[0m
+    [36m  - should clamp intensity to 0-1 range[0m
+    [36m  - should clamp negative intensity to 0[0m
+    [36m  - should handle unknown highlight type[0m
+    [36m  - should handle null type[0m
+    [36m  - should update highlight color when type changes[0m
+[0m    clearHighlight[0m
+    [36m  - should clear highlight state[0m
+    [36m  - should clear highlight color[0m
+    [36m  - should reset intensity to 1.0[0m
+    [36m  - should be safe to call when no highlight set[0m
+    [36m  - should be callable multiple times[0m
+[0m    Animation Update[0m
+    [36m  - should update bob offset[0m
+    [36m  - should update pulse offset[0m
+    [36m  - should increment bob offset by 0.1[0m
+    [36m  - should increment pulse offset by 0.08[0m
+    [36m  - should wrap bob offset at 4*PI[0m
+    [36m  - should wrap pulse offset at 4*PI[0m
+    [36m  - should be called during update[0m
+[0m    Effects Management[0m
+    [36m  - should start with empty effects[0m
+    [36m  - should allow adding effects[0m
+    [36m  - should have updateEffects method[0m
+    [36m  - should have renderEffects method[0m
+[0m    Render Methods[0m
+    [36m  - should have render method[0m
+    [36m  - should have renderEntity method[0m
+    [36m  - should have renderHighlighting method[0m
+    [36m  - should have renderStateIndicators method[0m
+    [36m  - should have renderMovementIndicators method[0m
+    [36m  - should have renderDebugInfo method[0m
+    [36m  - should have applyZoom method[0m
+    [36m  - should increment render call count on render[0m
+[0m    Debug Mode[0m
+    [36m  - should start with debug disabled[0m
+    [36m  - should allow enabling debug mode[0m
+    [36m  - should allow disabling debug mode[0m
+[0m    Smoothing Control[0m
+    [36m  - should start with smoothing disabled[0m
+    [36m  - should allow enabling smoothing[0m
+    [36m  - should allow disabling smoothing[0m
+[0m    Update Method[0m
+    [36m  - should call updateEffects[0m
+    [36m  - should call _updateAnimations[0m
+    [36m  - should not throw errors[0m
+[0m    Safe Render Helper[0m
+    [36m  - should have _safeRender method[0m
+    [36m  - should execute render function[0m
+    [36m  - should pass through function result[0m
+[0m    Edge Cases[0m
+    [36m  - should handle entity without sprite[0m
+    [36m  - should handle null entity[0m
+    [36m  - should handle undefined entity[0m
+    [36m  - should handle very high intensity values[0m
+    [36m  - should handle very low intensity values[0m
+    [36m  - should handle rapid highlight changes[0m
+    [36m  - should handle many animation updates[0m
+[0m    Integration Scenarios[0m
+    [36m  - should support full highlight workflow[0m
+    [36m  - should support animation workflow[0m
+    [36m  - should maintain entity reference across operations[0m
+    [36m  - should handle multiple highlights in sequence[0m
+[0m    State Management[0m
+    [36m  - should maintain independent highlight and animation state[0m
+    [36m  - should track render calls independently[0m
+    [36m  - should maintain separate animation offsets per instance[0m
+
+[0m  RenderLayerManager[0m
+[0m    Constructor[0m
+    [36m  - should initialize with layer definitions[0m
+    [36m  - should initialize empty layer renderers Map[0m
+    [36m  - should initialize empty layer drawables Map[0m
+    [36m  - should initialize empty disabled layers Set[0m
+    [36m  - should initialize render stats[0m
+    [36m  - should initialize cache status[0m
+    [36m  - should start as not initialized[0m
+    [36m  - should initialize layer interactives Map[0m
+    [36m  - should initialize pointer capture as null[0m
+    [36m  - should initialize renderer overwrite flags[0m
+[0m    Layer Registration[0m
+    [36m  - should register layer renderer[0m
+    [36m  - should replace existing layer renderer[0m
+    [36m  - should register multiple layer renderers[0m
+    [36m  - should register renderer for standard layer names[0m
+[0m    Drawable Management[0m
+    [36m  - should add drawable to layer[0m
+    [36m  - should add multiple drawables to same layer[0m
+    [36m  - should create drawable array if layer not exists[0m
+    [36m  - should remove drawable from layer[0m
+    [36m  - should return false when removing non-existent drawable[0m
+    [36m  - should return false when removing from non-existent layer[0m
+    [36m  - should maintain drawable order[0m
+[0m    Interactive Drawable Management[0m
+    [36m  - should add interactive drawable to layer[0m
+    [36m  - should add multiple interactives to layer[0m
+    [36m  - should remove interactive drawable[0m
+    [36m  - should return false when removing non-existent interactive[0m
+    [36m  - should return false when removing from non-existent layer[0m
+    [36m  - should create interactive array if layer not exists[0m
+[0m    Layer Toggle[0m
+    [36m  - should disable layer[0m
+    [36m  - should enable layer by removing from disabled set[0m
+    [36m  - should track multiple disabled layers[0m
+[0m    Render Stats[0m
+    [36m  - should track frame count[0m
+    [36m  - should track last frame time[0m
+    [36m  - should track layer times[0m
+    [36m  - should allow clearing layer times[0m
+[0m    Cache Management[0m
+    [36m  - should start with invalid terrain cache[0m
+    [36m  - should allow setting cache valid[0m
+    [36m  - should track last terrain update time[0m
+    [36m  - should allow invalidating cache[0m
+[0m    Renderer Overwrite System[0m
+    [36m  - should start with overwrite disabled[0m
+    [36m  - should allow setting overwrite function[0m
+    [36m  - should track overwrite timer[0m
+    [36m  - should have default timer max[0m
+    [36m  - should allow enabling overwrite mode[0m
+    [36m  - should track last overwrite time[0m
+[0m    Pointer Capture[0m
+    [36m  - should start with no pointer capture[0m
+    [36m  - should allow setting pointer capture[0m
+    [36m  - should allow releasing pointer capture[0m
+[0m    Initialization[0m
+    [36m  - should have initialize method[0m
+    [36m  - should set isInitialized to true after initialize[0m
+    [36m  - should register default layer renderers on initialize[0m
+    [36m  - should not re-initialize if already initialized[0m
+[0m    Layer Constants[0m
+    [36m  - should define TERRAIN layer[0m
+    [36m  - should define ENTITIES layer[0m
+    [36m  - should define EFFECTS layer[0m
+    [36m  - should define UI_GAME layer[0m
+    [36m  - should define UI_DEBUG layer[0m
+    [36m  - should define UI_MENU layer[0m
+    [36m  - should have exactly 6 layer definitions[0m
+[0m    Edge Cases[0m
+    [36m  - should handle null renderer function[0m
+    [36m  - should handle null drawable function[0m
+    [36m  - should handle undefined layer name[0m
+    [36m  - should handle empty layer name[0m
+    [36m  - should handle removing drawable that appears multiple times[0m
+    [36m  - should handle very large number of drawables[0m
+    [36m  - should handle rapid add/remove cycles[0m
+[0m    State Management[0m
+    [36m  - should maintain independent layer states[0m
+    [36m  - should track stats independently per layer[0m
+    [36m  - should allow clearing all drawables for a layer[0m
+    [36m  - should allow clearing all layer renderers[0m
+[0m    Integration Scenarios[0m
+    [36m  - should support full layer registration workflow[0m
+    [36m  - should support layer disable workflow[0m
+    [36m  - should maintain state across multiple operations[0m
+[0m    Type Checking[0m
+    [36m  - should accept function as renderer[0m
+    [36m  - should accept arrow function as renderer[0m
+    [36m  - should accept bound function as renderer[0m
+    [36m  - should store interactive object reference[0m
+
+[0m  Sprite2D[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with basic parameters[0m
+    [32m  Γ£ö[0m[90m should default rotation to 0[0m
+    [32m  Γ£ö[0m[90m should copy vectors not reference them[0m
+    [32m  Γ£ö[0m[90m should handle plain object vectors[0m
+[0m    Setters[0m
+    [32m  Γ£ö[0m[90m setImage should update image[0m
+    [32m  Γ£ö[0m[90m setPosition should update and copy position[0m
+    [32m  Γ£ö[0m[90m setPosition should handle plain objects[0m
+    [32m  Γ£ö[0m[90m setSize should update and copy size[0m
+    [32m  Γ£ö[0m[90m setSize should handle plain objects[0m
+    [32m  Γ£ö[0m[90m setRotation should update rotation[0m
+[0m    Rendering[0m
+    [32m  Γ£ö[0m[90m render should execute without error[0m
+    [31m  42) render should call p5 functions in correct order[0m
+    [32m  Γ£ö[0m[90m render should handle zero rotation[0m
+[0m    Integration[0m
+    [32m  Γ£ö[0m[90m should support full lifecycle updates[0m
+    [32m  Γ£ö[0m[90m should handle vector method compatibility[0m
+    [32m  Γ£ö[0m[90m should create multiple independent sprites[0m
+
+[0m  TimeOfDayOverlay - Unit Tests[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with default configuration[0m
+    [32m  Γ£ö[0m[90m should initialize current state to transparent[0m
+    [32m  Γ£ö[0m[90m should store reference to GlobalTime[0m
+    [32m  Γ£ö[0m[90m should initialize state tracking properties[0m
+    [32m  Γ£ö[0m[90m should have debug disabled by default[0m
+[0m    Configuration Management[0m
+    [32m  Γ£ö[0m[90m should validate day configuration[0m
+    [32m  Γ£ö[0m[90m should validate sunset configuration[0m
+    [32m  Γ£ö[0m[90m should validate night configuration[0m
+    [32m  Γ£ö[0m[90m should validate sunrise configuration[0m
+    [32m  Γ£ö[0m[90m should allow getting configuration[0m
+    [32m  Γ£ö[0m[90m should allow setting configuration for a time period[0m
+    [32m  Γ£ö[0m[90m should reject invalid time of day[0m
+    [32m  Γ£ö[0m[90m should validate RGB values are 0-255[0m
+[0m    Interpolation Helpers[0m
+[0m      lerp()[0m
+      [32m  Γ£ö[0m[90m should interpolate between two numbers at t=0[0m
+      [32m  Γ£ö[0m[90m should interpolate between two numbers at t=1[0m
+      [32m  Γ£ö[0m[90m should interpolate between two numbers at t=0.5[0m
+      [32m  Γ£ö[0m[90m should handle negative numbers[0m
+      [32m  Γ£ö[0m[90m should handle decimal results[0m
+[0m      lerpColor()[0m
+      [32m  Γ£ö[0m[90m should interpolate RGB colors at t=0[0m
+      [32m  Γ£ö[0m[90m should interpolate RGB colors at t=1[0m
+      [32m  Γ£ö[0m[90m should interpolate RGB colors at t=0.5[0m
+      [32m  Γ£ö[0m[90m should return integer RGB values[0m
+      [32m  Γ£ö[0m[90m should handle identical colors[0m
+[0m      easeInOutCubic()[0m
+      [32m  Γ£ö[0m[90m should return 0 at t=0[0m
+      [32m  Γ£ö[0m[90m should return 1 at t=1[0m
+      [32m  Γ£ö[0m[90m should return 0.5 at t=0.5[0m
+      [32m  Γ£ö[0m[90m should ease in at start (t < 0.5)[0m
+      [32m  Γ£ö[0m[90m should ease out at end (t > 0.5)[0m
+      [32m  Γ£ö[0m[90m should be symmetrical around 0.5[0m
+[0m    State Updates - Day[0m
+    [32m  Γ£ö[0m[90m should have no overlay during day[0m
+    [32m  Γ£ö[0m[90m should use day color configuration[0m
+[0m    State Updates - Sunset Transition[0m
+    [32m  Γ£ö[0m[90m should start with no overlay at beginning of sunset[0m
+    [32m  Γ£ö[0m[90m should have full sunset overlay at end of transition[0m
+    [32m  Γ£ö[0m[90m should interpolate alpha during transition[0m
+    [32m  Γ£ö[0m[90m should interpolate color during transition[0m
+    [32m  Γ£ö[0m[90m should apply easing to transition[0m
+[0m    State Updates - Night Stable[0m
+    [32m  Γ£ö[0m[90m should settle into night state smoothly[0m
+    [32m  Γ£ö[0m[90m should eventually reach full night values[0m
+    [32m  Γ£ö[0m[90m should interpolate from sunset to night[0m
+[0m    State Updates - Sunrise Transition[0m
+    [32m  Γ£ö[0m[90m should start from night at beginning of sunrise[0m
+    [32m  Γ£ö[0m[90m should end at day at end of sunrise[0m
+    [32m  Γ£ö[0m[90m should show sunrise colors in the middle[0m
+    [32m  Γ£ö[0m[90m should handle inverted transition direction correctly[0m
+    [32m  Γ£ö[0m[90m should smoothly transition through night -> sunrise -> day[0m
+[0m    State Change Detection[0m
+    [32m  Γ£ö[0m[90m should detect time of day changes[0m
+    [32m  Γ£ö[0m[90m should reset state change progress on time change[0m
+    [32m  Γ£ö[0m[90m should not reset progress if time hasn't changed[0m
+[0m    Debug Mode[0m
+    [32m  Γ£ö[0m[90m should toggle debug mode[0m
+    [32m  Γ£ö[0m[90m should return debug state when toggling[0m
+[0m    Force Time of Day[0m
+    [32m  Γ£ö[0m[90m should allow forcing day[0m
+    [32m  Γ£ö[0m[90m should allow forcing sunset[0m
+    [32m  Γ£ö[0m[90m should allow forcing night[0m
+    [32m  Γ£ö[0m[90m should allow forcing sunrise[0m
+    [32m  Γ£ö[0m[90m should reject invalid time of day[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle missing GlobalTime reference[0m
+    [32m  Γ£ö[0m[90m should handle unknown time of day gracefully[0m
+    [32m  Γ£ö[0m[90m should clamp alpha values to 0-1 range[0m
+    [32m  Γ£ö[0m[90m should handle rapid time changes[0m
+    [32m  Γ£ö[0m[90m should maintain state consistency during updates[0m
+[0m    Performance[0m
+    [32m  Γ£ö[0m[90m should update quickly[0m
+    [32m  Γ£ö[0m[90m should not create new objects on every update[0m
+
+[0m  UIController[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should create instance with null uiRenderer[0m
+    [32m  Γ£ö[0m[90m should initialize as not initialized[0m
+    [32m  Γ£ö[0m[90m should create key bindings Map[0m
+    [32m  Γ£ö[0m[90m should have CTRL+SHIFT+1 binding for performance overlay[0m
+    [32m  Γ£ö[0m[90m should have CTRL+SHIFT+2 binding for entity inspector[0m
+    [32m  Γ£ö[0m[90m should have CTRL+SHIFT+3 binding for debug console[0m
+    [32m  Γ£ö[0m[90m should have CTRL+SHIFT+4 binding for minimap[0m
+    [32m  Γ£ö[0m[90m should have CTRL+SHIFT+5 binding for start game[0m
+    [32m  Γ£ö[0m[90m should have BACKTICK binding for debug console[0m
+[0m    initialize()[0m
+    [32m  Γ£ö[0m[90m should return false when UIRenderer not available[0m
+    [32m  Γ£ö[0m[90m should return true when UIRenderer available on window[0m
+    [32m  Γ£ö[0m[90m should return true when UIRenderer available on global[0m
+    [32m  Γ£ö[0m[90m should set uiRenderer reference[0m
+    [31m  43) should enable performance overlay by default[0m
+[0m    handleKeyPress()[0m
+    [32m  Γ£ö[0m[90m should return false when not initialized[0m
+    [32m  Γ£ö[0m[90m should handle backtick (192) for debug console[0m
+    [32m  Γ£ö[0m[90m should handle Shift+N (78) for toggle all UI[0m
+    [32m  Γ£ö[0m[90m should handle Ctrl+Shift+1 for performance overlay[0m
+    [32m  Γ£ö[0m[90m should handle Ctrl+Shift+2 for entity inspector[0m
+    [32m  Γ£ö[0m[90m should handle Ctrl+Shift+3[0m
+    [32m  Γ£ö[0m[90m should handle Ctrl+Shift+4 for minimap[0m
+    [31m  44) should handle Ctrl+Shift+5 for start game[0m
+    [32m  Γ£ö[0m[90m should return false for unhandled keys[0m
+[0m    Mouse Event Handlers[0m
+[0m      handleMousePressed()[0m
+      [32m  Γ£ö[0m[90m should return false when not initialized[0m
+      [32m  Γ£ö[0m[90m should start selection box on left click[0m
+      [32m  Γ£ö[0m[90m should handle right click for context menu[0m
+      [32m  Γ£ö[0m[90m should not show context menu when no items[0m
+[0m      handleMouseDragged()[0m
+      [32m  Γ£ö[0m[90m should return false when not initialized[0m
+      [32m  Γ£ö[0m[90m should update selection box when active[0m
+      [32m  Γ£ö[0m[90m should return false when selection box not active[0m
+[0m      handleMouseReleased()[0m
+      [32m  Γ£ö[0m[90m should return false when not initialized[0m
+      [32m  Γ£ö[0m[90m should end selection box when active[0m
+      [32m  Γ£ö[0m[90m should hide context menu when active[0m
+[0m      handleMouseMoved()[0m
+      [32m  Γ£ö[0m[90m should return false when not initialized[0m
+      [32m  Γ£ö[0m[90m should update tooltips on mouse move[0m
+[0m    Tooltip and Entity Methods[0m
+[0m      getEntityAtPosition()[0m
+      [32m  Γ£ö[0m[90m should return null when no ants[0m
+      [32m  Γ£ö[0m[90m should return ant within hover radius[0m
+      [32m  Γ£ö[0m[90m should return null when ant too far[0m
+      [32m  Γ£ö[0m[90m should skip null ants[0m
+[0m      getEntityTooltipText()[0m
+      [32m  Γ£ö[0m[90m should generate basic tooltip[0m
+      [32m  Γ£ö[0m[90m should include constructor name[0m
+      [32m  Γ£ö[0m[90m should include entity id[0m
+      [32m  Γ£ö[0m[90m should include current state[0m
+      [32m  Γ£ö[0m[90m should include health[0m
+[0m      getContextMenuItems()[0m
+      [32m  Γ£ö[0m[90m should return entity-specific items when entity hovered[0m
+      [32m  Γ£ö[0m[90m should include Deselect for selected entities[0m
+      [32m  Γ£ö[0m[90m should return general items when no entity[0m
+      [32m  Γ£ö[0m[90m should always include Cancel[0m
+[0m    UI Toggle Methods[0m
+[0m      togglePerformanceOverlay()[0m
+      [31m  45) should use g_performanceMonitor when available[0m
+      [31m  46) should fallback to uiRenderer[0m
+[0m      toggleEntityInspector()[0m
+      [31m  47) should use EntityDebugManager when available[0m
+      [31m  48) should fallback to uiRenderer[0m
+[0m      toggleMinimap()[0m
+      [31m  49) should disable minimap when enabled[0m
+      [31m  50) should enable minimap when disabled[0m
+[0m    Game State Methods[0m
+    [31m  51) should start game when GameState available[0m
+    [32m  Γ£ö[0m[90m should show main menu[0m
+    [32m  Γ£ö[0m[90m should hide main menu[0m
+    [32m  Γ£ö[0m[90m should show pause menu[0m
+    [32m  Γ£ö[0m[90m should hide pause menu[0m
+[0m    Individual Panel Show/Hide Methods[0m
+    [32m  Γ£ö[0m[90m should show performance overlay[0m
+    [32m  Γ£ö[0m[90m should hide performance overlay[0m
+    [32m  Γ£ö[0m[90m should show entity inspector[0m
+    [32m  Γ£ö[0m[90m should hide entity inspector[0m
+    [32m  Γ£ö[0m[90m should show minimap[0m
+    [32m  Γ£ö[0m[90m should hide minimap[0m
+[0m    Configuration and Utility Methods[0m
+    [32m  Γ£ö[0m[90m should configure UI renderer[0m
+    [32m  Γ£ö[0m[90m should get stats from UI renderer[0m
+    [32m  Γ£ö[0m[90m should return null stats when no UI renderer[0m
+    [32m  Γ£ö[0m[90m should get UI renderer reference[0m
+    [32m  Γ£ö[0m[90m should select entity for inspection[0m
+[0m    Module Exports[0m
+    [32m  Γ£ö[0m[90m should export UIController class[0m
+    [32m  Γ£ö[0m[90m should export UIManager instance[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle initialize when logNormal not available[0m
+    [32m  Γ£ö[0m[90m should handle toggleDebugConsole with uiRenderer fallback[0m
+    [31m  52) should handle startGame when GameState not available[0m
+    [32m  Γ£ö[0m[90m should handle getEntityAtPosition with entities missing coordinates[0m
+    [32m  Γ£ö[0m[90m should handle toggleAllUI without draggablePanelManager[0m
+
+[0m  UIDebugManager[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with isActive false[0m
+    [32m  Γ£ö[0m[90m should initialize registeredElements as empty object[0m
+    [32m  Γ£ö[0m[90m should initialize drag state[0m
+    [32m  Γ£ö[0m[90m should initialize config with default values[0m
+    [32m  Γ£ö[0m[90m should initialize event listeners object[0m
+[0m    registerElement()[0m
+    [32m  Γ£ö[0m[90m should register element with valid parameters[0m
+    [32m  Γ£ö[0m[90m should reject registration with null elementId[0m
+    [32m  Γ£ö[0m[90m should reject registration with invalid elementId type[0m
+    [32m  Γ£ö[0m[90m should reject registration with null bounds[0m
+    [32m  Γ£ö[0m[90m should reject registration with invalid bounds[0m
+    [32m  Γ£ö[0m[90m should reject registration with null callback[0m
+    [32m  Γ£ö[0m[90m should reject registration with invalid callback type[0m
+    [32m  Γ£ö[0m[90m should store element bounds[0m
+    [32m  Γ£ö[0m[90m should store original bounds separately[0m
+    [32m  Γ£ö[0m[90m should store position callback[0m
+    [32m  Γ£ö[0m[90m should use elementId as default label[0m
+    [32m  Γ£ö[0m[90m should use custom label when provided[0m
+    [32m  Γ£ö[0m[90m should use elementId as default persistKey[0m
+    [32m  Γ£ö[0m[90m should use custom persistKey when provided[0m
+    [32m  Γ£ö[0m[90m should default isDraggable to true[0m
+    [32m  Γ£ö[0m[90m should respect isDraggable option[0m
+    [32m  Γ£ö[0m[90m should store constraints when provided[0m
+[0m    unregisterElement()[0m
+    [32m  Γ£ö[0m[90m should unregister existing element[0m
+    [32m  Γ£ö[0m[90m should return false for non-existent element[0m
+[0m    updateElementBounds()[0m
+    [32m  Γ£ö[0m[90m should update element bounds[0m
+    [32m  Γ£ö[0m[90m should return false for non-existent element[0m
+    [32m  Γ£ö[0m[90m should preserve existing bounds properties[0m
+    [32m  Γ£ö[0m[90m should constrain position to screen[0m
+[0m    toggle() and enable/disable()[0m
+    [32m  Γ£ö[0m[90m should toggle from disabled to enabled[0m
+    [32m  Γ£ö[0m[90m should toggle from enabled to disabled[0m
+    [32m  Γ£ö[0m[90m should enable debug mode[0m
+    [32m  Γ£ö[0m[90m should disable debug mode[0m
+[0m    render()[0m
+    [32m  Γ£ö[0m[90m should not render when inactive[0m
+    [32m  Γ£ö[0m[90m should render when active[0m
+[0m    Drag Handling[0m
+[0m      handlePointerDown()[0m
+      [32m  Γ£ö[0m[90m should return false when inactive[0m
+      [32m  Γ£ö[0m[90m should detect drag handle click[0m
+      [32m  Γ£ö[0m[90m should not start drag when clicking outside handle[0m
+[0m      startDragging()[0m
+      [32m  Γ£ö[0m[90m should initialize drag state[0m
+      [32m  Γ£ö[0m[90m should not start drag for non-draggable element[0m
+[0m      updateDragPosition()[0m
+      [32m  Γ£ö[0m[90m should not update when not dragging[0m
+      [32m  Γ£ö[0m[90m should update position when dragging[0m
+      [32m  Γ£ö[0m[90m should apply grid snapping when enabled[0m
+[0m    moveElement()[0m
+    [32m  Γ£ö[0m[90m should move element to new position[0m
+    [32m  Γ£ö[0m[90m should return false for non-existent element[0m
+    [32m  Γ£ö[0m[90m should call position callback[0m
+    [32m  Γ£ö[0m[90m should constrain to screen boundaries[0m
+    [32m  Γ£ö[0m[90m should apply custom constraints[0m
+[0m    Position Persistence[0m
+    [32m  Γ£ö[0m[90m should save element position[0m
+    [32m  Γ£ö[0m[90m should load element position[0m
+    [32m  Γ£ö[0m[90m should return null when no saved position[0m
+    [32m  Γ£ö[0m[90m should apply loaded position to element[0m
+[0m    constrainToScreen()[0m
+    [32m  Γ£ö[0m[90m should constrain negative X to 0[0m
+    [32m  Γ£ö[0m[90m should constrain negative Y to 0[0m
+    [32m  Γ£ö[0m[90m should constrain X to keep element on screen[0m
+    [32m  Γ£ö[0m[90m should constrain Y to keep element on screen[0m
+    [32m  Γ£ö[0m[90m should not modify bounds already within screen[0m
+[0m    Cleanup[0m
+    [32m  Γ£ö[0m[90m should dispose without errors[0m
+    [32m  Γ£ö[0m[90m should stop dragging on disable[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle registration with minimal options[0m
+    [32m  Γ£ö[0m[90m should handle zero-size elements[0m
+    [32m  Γ£ö[0m[90m should handle very large coordinates[0m
+    [32m  Γ£ö[0m[90m should handle multiple elements[0m
+    [32m  Γ£ö[0m[90m should handle updating non-draggable element[0m
+    [32m  Γ£ö[0m[90m should handle render without p5 instance[0m
+
+[0m  UILayerRenderer[0m
+[0m    Constructor[0m
+    [32m  Γ£ö[0m[90m should initialize with default configuration[0m
+    [32m  Γ£ö[0m[90m should initialize HUD elements structure[0m
+    [32m  Γ£ö[0m[90m should initialize interaction UI structure[0m
+    [32m  Γ£ö[0m[90m should initialize debug UI structure[0m
+    [32m  Γ£ö[0m[90m should initialize menu systems structure[0m
+    [32m  Γ£ö[0m[90m should initialize font structure[0m
+    [32m  Γ£ö[0m[90m should initialize color palette[0m
+    [32m  Γ£ö[0m[90m should initialize performance stats[0m
+[0m    Main Render Method[0m
+    [32m  Γ£ö[0m[90m should render in-game UI for PLAYING state[0m
+    [32m  Γ£ö[0m[90m should render in-game UI and pause menu for PAUSED state[0m
+    [32m  Γ£ö[0m[90m should render main menu for MAIN_MENU state[0m
+    [32m  Γ£ö[0m[90m should render settings menu for SETTINGS state[0m
+    [32m  Γ£ö[0m[90m should render game over menu for GAME_OVER state[0m
+    [32m  Γ£ö[0m[90m should fallback to in-game UI for unknown states[0m
+    [31m  53) should track render time[0m
+    [31m  54) should reset UI elements count[0m
+[0m    In-Game UI Rendering[0m
+    [31m  55) should render HUD when enabled[0m
+    [31m  56) should skip HUD when disabled[0m
+    [31m  57) should render selection box when active and enabled[0m
+    [31m  58) should skip selection box when inactive[0m
+    [31m  59) should render tooltip when active and enabled[0m
+    [31m  60) should render context menu when active[0m
+    [31m  61) should render performance overlay when debug UI enabled[0m
+    [31m  62) should render entity inspector when enabled[0m
+[0m    Selection Box API[0m
+    [32m  Γ£ö[0m[90m should start selection box[0m
+    [32m  Γ£ö[0m[90m should update selection box end position[0m
+    [32m  Γ£ö[0m[90m should not update inactive selection box[0m
+    [32m  Γ£ö[0m[90m should end selection box and clear state[0m
+[0m    Tooltip API[0m
+    [32m  Γ£ö[0m[90m should show tooltip[0m
+    [32m  Γ£ö[0m[90m should hide tooltip[0m
+[0m    Context Menu API[0m
+    [32m  Γ£ö[0m[90m should show context menu[0m
+    [32m  Γ£ö[0m[90m should hide context menu[0m
+[0m    Debug UI API[0m
+    [32m  Γ£ö[0m[90m should toggle performance overlay[0m
+    [32m  Γ£ö[0m[90m should toggle entity inspector[0m
+    [32m  Γ£ö[0m[90m should select entity for inspection[0m
+    [32m  Γ£ö[0m[90m should toggle debug console[0m
+[0m    Minimap API[0m
+    [32m  Γ£ö[0m[90m should enable minimap[0m
+    [32m  Γ£ö[0m[90m should disable minimap[0m
+[0m    Configuration API[0m
+    [32m  Γ£ö[0m[90m should update configuration[0m
+    [32m  Γ£ö[0m[90m should get configuration copy[0m
+    [32m  Γ£ö[0m[90m should get stats copy[0m
+[0m    Required API Methods[0m
+    [32m  Γ£ö[0m[90m should have renderInteractionUI method[0m
+    [32m  Γ£ö[0m[90m should render interaction UI with selection[0m
+    [32m  Γ£ö[0m[90m should render interaction UI with hovered entity[0m
+    [32m  Γ£ö[0m[90m should have renderDebugOverlay method[0m
+    [32m  Γ£ö[0m[90m should render debug overlay when enabled[0m
+    [32m  Γ£ö[0m[90m should have renderMenus method[0m
+    [32m  Γ£ö[0m[90m should render menus based on game state[0m
+    [32m  Γ£ö[0m[90m should handle pause state in renderMenus[0m
+    [32m  Γ£ö[0m[90m should have setConsoleMessages method[0m
+    [32m  Γ£ö[0m[90m should set console messages[0m
+[0m    Helper Methods[0m
+    [32m  Γ£ö[0m[90m should render selection box from data[0m
+    [32m  Γ£ö[0m[90m should skip rendering invalid selection box data[0m
+    [32m  Γ£ö[0m[90m should generate entity tooltip[0m
+    [32m  Γ£ö[0m[90m should generate tooltip for entity without optional properties[0m
+[0m    Render Methods[0m
+    [32m  Γ£ö[0m[90m should render HUD elements[0m
+    [32m  Γ£ö[0m[90m should render minimap when enabled[0m
+    [31m  63) should use fallback currency display when no draggable panel manager[0m
+    [32m  Γ£ö[0m[90m should use fallback currency display when no resource panel[0m
+    [31m  64) should render fallback currency display[0m
+    [32m  Γ£ö[0m[90m should render selection box when active[0m
+    [36m  - should render tooltip when active[0m
+    [32m  Γ£ö[0m[90m should render context menu when active[0m
+    [32m  Γ£ö[0m[90m should render performance overlay without draggable panel manager[0m
+    [31m  65) should render basic performance overlay[0m
+    [32m  Γ£ö[0m[90m should render entity inspector when entity selected[0m
+    [32m  Γ£ö[0m[90m should not render entity inspector when no entity selected[0m
+    [36m  - should render main menu[0m
+    [32m  Γ£ö[0m[90m should render settings menu[0m
+    [32m  Γ£ö[0m[90m should render game over menu[0m
+[0m    Edge Cases[0m
+    [32m  Γ£ö[0m[90m should handle null selection in renderInteractionUI[0m
+    [32m  Γ£ö[0m[90m should handle undefined entity in generateEntityTooltip[0m
+    [32m  Γ£ö[0m[90m should handle missing tooltip text[0m
+    [32m  Γ£ö[0m[90m should handle missing context menu items[0m
+    [32m  Γ£ö[0m[90m should handle null game state in renderMenus[0m
+    [32m  Γ£ö[0m[90m should handle game state without currentState property[0m
+    [32m  Γ£ö[0m[90m should handle empty console messages[0m
+    [32m  Γ£ö[0m[90m should handle null console messages[0m
+    [31m  66) should handle missing resource list in fallback currency[0m
+    [31m  67) should handle undefined ants array in fallback currency[0m
+    [31m  68) should handle missing performance.memory[0m
+    [32m  Γ£ö[0m[90m should handle very long tooltip text[0m
+    [32m  Γ£ö[0m[90m should handle negative coordinates for UI elements[0m
+    [32m  Γ£ö[0m[90m should handle selection box with zero width[0m
+    [32m  Γ£ö[0m[90m should handle selection box with zero height[0m
+[0m    Integration Scenarios[0m
+    [32m  Γ£ö[0m[90m should handle full selection workflow[0m
+    [32m  Γ£ö[0m[90m should handle tooltip show/hide cycle[0m
+    [32m  Γ£ö[0m[90m should handle multiple context menu cycles[0m
+    [32m  Γ£ö[0m[90m should handle debug UI state transitions[0m
+    [36m  - should handle game state transitions[0m
+    [32m  Γ£ö[0m[90m should maintain state across multiple renders[0m
+    [36m  - should handle concurrent UI elements[0m
+
+[0m  BrushSizeMenuModule[0m
+[0m    Initialization[0m
+    [32m  Γ£ö[0m[90m should initialize with default size of 1[0m
+    [32m  Γ£ö[0m[90m should accept custom initial size within valid range[0m
+[0m    Size Range Validation[0m
+    [32m  Γ£ö[0m[90m should accept sizes 1-9[0m
+    [32m  Γ£ö[0m[90m should clamp size below 1 to 1[0m
+    [31m  69) should clamp size above 9 to 9[0m
+[0m    Rendering[0m
+    [31m  70) should render size options in dropdown[0m
+    [31m  71) should highlight current brush size[0m
+[0m    Event Emission[0m
+    [32m  Γ£ö[0m[90m should emit brushSizeChanged event on size selection[0m
+    [32m  Γ£ö[0m[90m should not emit event if size unchanged[0m
+[0m    Click Handling[0m
+    [31m  72) should handle click on size option[0m
+
+[0m  FileMenuBar - Interaction Bug Fix[0m
+[0m    Menu Bar Clickability When Dropdown Open[0m
+    [32m  Γ£ö[0m[90m should handle clicks on menu bar even when dropdown is open[0m
+    [32m  Γ£ö[0m[90m should handle clicks on dropdown items when dropdown is open[0m
+    [32m  Γ£ö[0m[90m should close dropdown when clicking outside menu area[0m
+    [32m  Γ£ö[0m[90m should remain clickable after opening and closing dropdown[0m
+[0m    Input Consumption Priority[0m
+    [32m  Γ£ö[0m[90m should return true when handling menu bar clicks[0m
+    [32m  Γ£ö[0m[90m should return true when handling dropdown clicks[0m
+    [32m  Γ£ö[0m[90m should return true when closing menu via outside click[0m
+    [32m  Γ£ö[0m[90m should return false when click is not on menu bar and menu is closed[0m
+[0m    Menu State Notifications[0m
+    [32m  Γ£ö[0m[90m should notify LevelEditor when menu opens[0m
+    [32m  Γ£ö[0m[90m should notify LevelEditor when menu closes[0m
+
+
+[92m [0m[32m 1390 passing[0m[90m (2s)[0m
+[36m [0m[36m 357 pending[0m
+[31m  72 failing[0m
+
+[0m  1) LevelEditor - Menu Interaction Blocking
+       Click Handling Priority When Menu Open
+         should allow terrain interaction when menu is closed:
+[0m[31m     TypeError: draggablePanelManager.handleMouseEvents is not a function[0m[90m
+      at LevelEditor.handleClick (Classes\systems\ui\LevelEditor.js:335:51)
+      at Context.<anonymous> (test\unit\levelEditor\menuInteractionBlocking.test.js:151:19)
+[0m
+[0m  2) LevelEditor - Menu Interaction Blocking
+       Drag Painting Over Menu Bar (Bug Fix #4)
+         should paint when dragging over canvas with menu closed:
+[0m[31m     TypeError: draggablePanelManager.handleMouseEvents is not a function[0m[90m
+      at LevelEditor.handleDrag (Classes\systems\ui\LevelEditor.js:478:51)
+      at Context.<anonymous> (test\unit\levelEditor\menuInteractionBlocking.test.js:260:19)
+[0m
+[0m  3) LevelEditor - Menu Interaction Blocking
+       Drag Painting Over Menu Bar (Bug Fix #4)
+         should NOT paint when other tools active:
+[0m[31m     TypeError: draggablePanelManager.handleMouseEvents is not a function[0m[90m
+      at LevelEditor.handleDrag (Classes\systems\ui\LevelEditor.js:478:51)
+      at Context.<anonymous> (test\unit\levelEditor\menuInteractionBlocking.test.js:276:19)
+[0m
+[0m  4) BuildingManager
+       Building Class
+         Constructor
+           should set default spawn parameters:
+
+      [31mAssertionError: expected 60 to equal 5[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-60[0m
+      [32m+5[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:95:44)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  5) BuildingManager
+       Building Class
+         update()
+           should update spawn timer when enabled:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at Building.getAnts (Classes\managers\BuildingManager.js:333:21)
+      at Building.statsBuff (Classes\managers\BuildingManager.js:351:29)
+      at Building.update (Classes\managers\BuildingManager.js:450:10)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:248:18)
+[0m
+[0m  6) BuildingManager
+       Building Class
+         update()
+           should spawn ants when timer exceeds interval:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at Building.getAnts (Classes\managers\BuildingManager.js:333:21)
+      at Building.statsBuff (Classes\managers\BuildingManager.js:351:29)
+      at Building.update (Classes\managers\BuildingManager.js:450:10)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:260:18)
+[0m
+[0m  7) BuildingManager
+       Building Class
+         update()
+           should spawn at building center:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at Building.getAnts (Classes\managers\BuildingManager.js:333:21)
+      at Building.statsBuff (Classes\managers\BuildingManager.js:351:29)
+      at Building.update (Classes\managers\BuildingManager.js:450:10)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:272:18)
+[0m
+[0m  8) BuildingManager
+       Building Class
+         update()
+           should reset timer after spawning:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at Building.getAnts (Classes\managers\BuildingManager.js:333:21)
+      at Building.statsBuff (Classes\managers\BuildingManager.js:351:29)
+      at Building.update (Classes\managers\BuildingManager.js:450:10)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:283:18)
+[0m
+[0m  9) BuildingManager
+       Building Class
+         die()
+           should set isActive to false:
+
+      [31mAssertionError: expected true to be false[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:310:40)
+[0m
+[0m  10) BuildingManager
+       Building Class
+         die()
+           should remove from Buildings array:
+[0m[31m     AssertionError: expected [ Building{ posX: 100, ΓÇª(27) } ] to not include Building{ posX: 100, posY: 200, ΓÇª(26) }[0m[90m
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:320:41)
+[0m
+[0m  11) BuildingManager
+       Building Class
+         die()
+           should remove from selectables array:
+[0m[31m     AssertionError: expected [ Building{ posX: 100, ΓÇª(27) } ] to not include Building{ posX: 100, posY: 200, ΓÇª(26) }[0m[90m
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:325:43)
+[0m
+[0m  12) BuildingManager
+       Building Class
+         render()
+           should not render if inactive:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: factionList is not deΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:338:53)
+[0m
+[0m  13) BuildingManager
+       Building Class
+         render()
+           should call health controller render:
+[0m[31m     ReferenceError: factionList is not defined[0m[90m
+      at Building.render (Classes\managers\BuildingManager.js:533:5)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:349:18)
+[0m
+[0m  14) BuildingManager
+       Factory Classes
+         AbstractBuildingFactory
+           AntCone should create building:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:359:34)
+[0m
+[0m  15) BuildingManager
+       Factory Classes
+         AbstractBuildingFactory
+           AntHill should create building:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntHill.createBuilding (Classes\managers\BuildingManager.js:129:13)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:368:34)
+[0m
+[0m  16) BuildingManager
+       createBuilding() Function
+         should create building by type:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:386:24)
+[0m
+[0m  17) BuildingManager
+       createBuilding() Function
+         should create antcone:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:401:24)
+[0m
+[0m  18) BuildingManager
+       createBuilding() Function
+         should create anthill:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntHill.createBuilding (Classes\managers\BuildingManager.js:129:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:407:24)
+[0m
+[0m  19) BuildingManager
+       createBuilding() Function
+         should be case insensitive:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:419:25)
+[0m
+[0m  20) BuildingManager
+       createBuilding() Function
+         should default faction to neutral:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:429:24)
+[0m
+[0m  21) BuildingManager
+       createBuilding() Function
+         should set building as active:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:434:24)
+[0m
+[0m  22) BuildingManager
+       createBuilding() Function
+         should add to Buildings array:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:439:24)
+[0m
+[0m  23) BuildingManager
+       createBuilding() Function
+         should add to selectables array:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:444:24)
+[0m
+[0m  24) BuildingManager
+       createBuilding() Function
+         should enable spawning for hivesource:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:450:43)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  25) BuildingManager
+       createBuilding() Function
+         should enable spawning for anthill:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntHill.createBuilding (Classes\managers\BuildingManager.js:129:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:455:24)
+[0m
+[0m  26) BuildingManager
+       createBuilding() Function
+         should enable spawning for antcone:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:461:24)
+[0m
+[0m  27) BuildingManager
+       createBuilding() Function
+         should not add duplicate to Buildings:
+[0m[31m     ReferenceError: g_activeMap is not defined[0m[90m
+      at AntCone.createBuilding (Classes\managers\BuildingManager.js:46:13)
+      at createBuilding (Classes\managers\BuildingManager.js:591:28)
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:467:24)
+[0m
+[0m  28) BuildingManager
+       Edge Cases
+         should handle update without antsSpawn function:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: EntityManager is not ΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\managers\BuildingManager.test.js:524:51)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  29) EventManager
+       "before all" hook in "EventManager":
+[0m[31m     TypeError: Cannot set properties of undefined (setting 'log')[0m[90m
+      at setupP5Mocks (test\helpers\p5Mocks.js:365:31)
+      at Context.<anonymous> (test\unit\managers\eventManager.test.js:18:5)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  30) NPCManager
+       NPC Class
+         constructor should set position, defaults and dialogueRange:
+[0m[31m     ReferenceError: Buildings is not defined[0m[90m
+      at new NPC (Classes\managers\NPCManager.js:99:22)
+      at Context.<anonymous> (test\unit\managers\NPCManager.test.js:68:19)
+[0m
+[0m  31) NPCManager
+       NPC Class
+         initDialogues should log when Queen ant within range:
+[0m[31m     ReferenceError: Buildings is not defined[0m[90m
+      at new NPC (Classes\managers\NPCManager.js:99:22)
+      at Context.<anonymous> (test\unit\managers\NPCManager.test.js:79:19)
+[0m
+[0m  32) NPCManager
+       NPC Class
+         initDialogues should not log for non-Queen ants:
+[0m[31m     ReferenceError: Buildings is not defined[0m[90m
+      at new NPC (Classes\managers\NPCManager.js:99:22)
+      at Context.<anonymous> (test\unit\managers\NPCManager.test.js:89:19)
+[0m
+[0m  33) NPCManager
+       NPC Class
+         update should call initDialogues:
+[0m[31m     ReferenceError: Buildings is not defined[0m[90m
+      at new NPC (Classes\managers\NPCManager.js:99:22)
+      at Context.<anonymous> (test\unit\managers\NPCManager.test.js:98:19)
+[0m
+[0m  34) NPCManager
+       NPC Class
+         render should not proceed when inactive:
+[0m[31m     ReferenceError: Buildings is not defined[0m[90m
+      at new NPC (Classes\managers\NPCManager.js:99:22)
+      at Context.<anonymous> (test\unit\managers\NPCManager.test.js:106:19)
+[0m
+[0m  35) NPCManager
+       NPC Class
+         render should call highlightBoxHover when isBoxHovered is true:
+[0m[31m     ReferenceError: Buildings is not defined[0m[90m
+      at new NPC (Classes\managers\NPCManager.js:99:22)
+      at Context.<anonymous> (test\unit\managers\NPCManager.test.js:116:19)
+[0m
+[0m  36) NPCManager
+       createNPC function
+         should create an NPC instance, activate it and add to NPCList and selectables:
+[0m[31m     ReferenceError: Buildings is not defined[0m[90m
+      at new NPC (Classes\managers\NPCManager.js:99:22)
+      at createNPC (Classes\managers\NPCManager.js:334:17)
+      at Context.<anonymous> (test\unit\managers\NPCManager.test.js:134:19)
+[0m
+[0m  37) ResourceSystemManager
+       "before each" hook for "should initialize with default spawn interval":
+[0m[31m     TypeError: Cannot read properties of undefined (reading 'log')[0m[90m
+      at new ResourceSystemManager (Classes\managers\ResourceSystemManager.js:85:35)
+      at Context.<anonymous> (test\unit\managers\ResourceSystemManager.test.js:97:15)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  38) EntityLayerRenderer (EntityRenderer)
+       Constructor
+         should initialize with default configuration:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\EntityLayerRenderer.test.js:82:57)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  39) EntityLayerRenderer (EntityRenderer)
+       Frustum Culling
+         should cull entity outside viewport:
+
+      [31mAssertionError: expected true to be false[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\EntityLayerRenderer.test.js:234:27)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  40) EntityLayerRenderer (EntityRenderer)
+       Edge Cases
+         should handle very large coordinates:
+
+      [31mAssertionError: expected true to be false[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\EntityLayerRenderer.test.js:782:27)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  41) EntityLayerRenderer (EntityRenderer)
+       Integration Scenarios
+         should cull off-screen entities correctly:
+
+      [31mAssertionError: expected 2 to equal 1[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-2[0m
+      [32m+1[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\EntityLayerRenderer.test.js:844:50)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  42) Sprite2D
+       Rendering
+         render should call p5 functions in correct order:
+
+      [31mAssertionError: expected [ 'push', 'imageMode', ΓÇª(5) ] to deeply equal [ 'push', 'translate', 'scale', ΓÇª(4) ][0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         "push"
+      [31m-  "imageMode"[0m
+         "translate"
+         "scale"
+         "rotate"
+      [32m+  "imageMode"[0m
+         "image"
+         "pop"
+       ]
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\sprite2d.test.js:185:33)
+[0m
+[0m  43) UIController
+       initialize()
+         should enable performance overlay by default:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:132:77)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  44) UIController
+       handleKeyPress()
+         should handle Ctrl+Shift+5 for start game:
+[0m[31m     TypeError: this.startGame is not a function[0m[90m
+      at UIController.handleKeyPress (Classes\rendering\UIController.js:100:16)
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:198:33)
+[0m
+[0m  45) UIController
+       UI Toggle Methods
+         togglePerformanceOverlay()
+           should use g_performanceMonitor when available:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:462:30)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  46) UIController
+       UI Toggle Methods
+         togglePerformanceOverlay()
+           should fallback to uiRenderer:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:469:29)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  47) UIController
+       UI Toggle Methods
+         toggleEntityInspector()
+           should use EntityDebugManager when available:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:481:30)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  48) UIController
+       UI Toggle Methods
+         toggleEntityInspector()
+           should fallback to uiRenderer:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:488:29)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  49) UIController
+       UI Toggle Methods
+         toggleMinimap()
+           should disable minimap when enabled:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:498:31)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  50) UIController
+       UI Toggle Methods
+         toggleMinimap()
+           should enable minimap when disabled:
+
+      [31mAssertionError: expected false to be true[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:506:30)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  51) UIController
+       Game State Methods
+         should start game when GameState available:
+[0m[31m     TypeError: controller.startGame is not a function[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:533:18)
+[0m
+[0m  52) UIController
+       Edge Cases
+         should handle startGame when GameState not available:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'TypeError: controller.startGame is noΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UIController.test.js:718:56)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  53) UILayerRenderer
+       Main Render Method
+         should track render time:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at UILayerRenderer.renderUI (Classes\rendering\UILayerRenderer.js:86:14)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:250:16)
+[0m
+[0m  54) UILayerRenderer
+       Main Render Method
+         should reset UI elements count:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at UILayerRenderer.renderUI (Classes\rendering\UILayerRenderer.js:86:14)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:260:16)
+[0m
+[0m  55) UILayerRenderer
+       In-Game UI Rendering
+         should render HUD when enabled:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderBasicPerformanceOverlay (Classes\rendering\UILayerRenderer.js:459:25)
+      at UILayerRenderer.renderPerformanceOverlay (Classes\rendering\UILayerRenderer.js:418:12)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:133:14)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:273:16)
+[0m
+[0m  56) UILayerRenderer
+       In-Game UI Rendering
+         should skip HUD when disabled:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderBasicPerformanceOverlay (Classes\rendering\UILayerRenderer.js:459:25)
+      at UILayerRenderer.renderPerformanceOverlay (Classes\rendering\UILayerRenderer.js:418:12)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:133:14)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:284:16)
+[0m
+[0m  57) UILayerRenderer
+       In-Game UI Rendering
+         should render selection box when active and enabled:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:296:16)
+[0m
+[0m  58) UILayerRenderer
+       In-Game UI Rendering
+         should skip selection box when inactive:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:308:16)
+[0m
+[0m  59) UILayerRenderer
+       In-Game UI Rendering
+         should render tooltip when active and enabled:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:320:16)
+[0m
+[0m  60) UILayerRenderer
+       In-Game UI Rendering
+         should render context menu when active:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:331:16)
+[0m
+[0m  61) UILayerRenderer
+       In-Game UI Rendering
+         should render performance overlay when debug UI enabled:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:343:16)
+[0m
+[0m  62) UILayerRenderer
+       In-Game UI Rendering
+         should render entity inspector when enabled:
+[0m[31m     ReferenceError: EntityManager is not defined[0m[90m
+      at UILayerRenderer.renderFallbackCurrencyDisplay (Classes\rendering\UILayerRenderer.js:194:24)
+      at UILayerRenderer.renderCurrencyDisplay (Classes\rendering\UILayerRenderer.js:174:12)
+      at UILayerRenderer.renderHUDElements (Classes\rendering\UILayerRenderer.js:147:10)
+      at UILayerRenderer.renderInGameUI (Classes\rendering\UILayerRenderer.js:116:12)
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:355:16)
+[0m
+[0m  63) UILayerRenderer
+       Render Methods
+         should use fallback currency display when no draggable panel manager:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: EntityManager is not ΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:727:66)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  64) UILayerRenderer
+       Render Methods
+         should render fallback currency display:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: EntityManager is not ΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:748:74)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  65) UILayerRenderer
+       Render Methods
+         should render basic performance overlay:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: EntityManager is not ΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:794:74)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  66) UILayerRenderer
+       Edge Cases
+         should handle missing resource list in fallback currency:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: EntityManager is not ΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:904:74)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  67) UILayerRenderer
+       Edge Cases
+         should handle undefined ants array in fallback currency:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: EntityManager is not ΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:911:74)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  68) UILayerRenderer
+       Edge Cases
+         should handle missing performance.memory:
+[0m[31m     AssertionError: expected [Function] to not throw an error but 'ReferenceError: EntityManager is not ΓÇª' was thrown[0m[90m
+      at Context.<anonymous> (test\unit\rendering\UILayerRenderer.test.js:919:74)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  69) BrushSizeMenuModule
+       Size Range Validation
+         should clamp size above 9 to 9:
+
+      [31mAssertionError: expected 10 to equal 9[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-10[0m
+      [32m+9[0m
+      [0m[90m
+      at Context.<anonymous> (test\unit\ui\menuBar\BrushSizeMenuModule.test.js:92:35)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  70) BrushSizeMenuModule
+       Rendering
+         should render size options in dropdown:
+[0m[31m     TypeError: module.setOpen is not a function[0m[90m
+      at Context.<anonymous> (test\unit\ui\menuBar\BrushSizeMenuModule.test.js:108:14)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  71) BrushSizeMenuModule
+       Rendering
+         should highlight current brush size:
+[0m[31m     TypeError: module.setOpen is not a function[0m[90m
+      at Context.<anonymous> (test\unit\ui\menuBar\BrushSizeMenuModule.test.js:125:14)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+[0m  72) BrushSizeMenuModule
+       Click Handling
+         should handle click on size option:
+[0m[31m     TypeError: module.setOpen is not a function[0m[90m
+      at Context.<anonymous> (test\unit\ui\menuBar\BrushSizeMenuModule.test.js:181:14)
+      at process.processImmediate (node:internal/timers:505:21)
+[0m
+
+

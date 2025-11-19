@@ -356,7 +356,7 @@ function setupUITestEnvironment() {
       LevelEditorPanels: global.LevelEditorPanels,
       cameraManager: global.cameraManager,
       TILE_SIZE: global.TILE_SIZE,
-      console.log: global.console.log,
+      log: global.console.log,
       logDebug: global.logDebug,
       logWarning: global.logWarning,
       logError: global.logError,

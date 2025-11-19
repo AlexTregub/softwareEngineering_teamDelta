@@ -1167,11 +1167,12 @@ function renderPipelineInit() {
     initializeAntControlPanel();
   }
   
-  // Initialize UI Selection Controller for effects layer selection box
-  // This must happen after RenderManager.initialize() creates the EffectsRenderer
-  if (UISelectionController && window.EffectsRenderer) {
-    g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
-  }
+  // OLD UISelectionController removed - MVC SelectionController used instead
+  // UISelectionController was part of the fragmented old selection system
+  // MVC entities now handle their own selection via SelectionController sub-controller
+  // if (UISelectionController && window.EffectsRenderer) {
+  //   g_uiSelectionController = new UISelectionController(window.EffectsRenderer, g_mouseController);
+  // }
 }
 
 

@@ -186,16 +186,22 @@ class ResourceDisplayComponent {
     const yPos = this.y + iconSize / 2;
     
     try {
-      // Draw icon (sprite if available, emoji fallback)
+      // Draw icon (sprite if available and loaded, emoji fallback)
       if (typeof iconOrSprite === 'string') {
         // Emoji fallback
         if (typeof textSize === 'function') textSize(iconSize);
         if (typeof fill === 'function') fill(255);
         if (typeof text === 'function') text(iconOrSprite, xPos, yPos);
-      } else if (iconOrSprite && typeof image === 'function') {
-        // Sprite image
+      } else if (iconOrSprite && iconOrSprite.width > 0 && typeof image === 'function') {
+        // Sprite image (only if loaded)
         if (typeof imageMode === 'function') imageMode(CENTER);
         image(iconOrSprite, xPos + iconSize / 2, yPos, iconSize, iconSize);
+      } else if (iconOrSprite && iconOrSprite.width === undefined) {
+        // Loading, show emoji placeholder
+        if (typeof textSize === 'function') textSize(iconSize);
+        if (typeof fill === 'function') fill(255);
+        const emoji = resourceType === 'food' ? '🐜' : resourceType === 'wood' ? '🪵' : '🪨';
+        if (typeof text === 'function') text(emoji, xPos, yPos);
       }
       
       // Draw count with color

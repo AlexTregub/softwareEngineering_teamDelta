@@ -538,6 +538,12 @@ class EntityController {
   render() {
     if (this.view && typeof this.view.render === 'function') {
       this.view.render();
+      
+      // Apply selection/hover highlights after main rendering
+      const selection = this.subControllers.get('selection');
+      if (selection && typeof selection.applyHighlighting === 'function') {
+        selection.applyHighlighting();
+      }
     }
   }
 

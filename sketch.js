@@ -11,7 +11,7 @@ const NONE = '\0';
 // --- CONTROLLER DECLARATIONS ---
 let g_mouseController;
 let g_keyboardController;
-let g_selectionBoxController;
+let g_selectionBoxController; // MVC SelectionBoxController for drag selection
 let g_tileInteractionManager;
 // Add a single list used by selection systems (ants + buildings)
 let selectables = [];
@@ -120,8 +120,18 @@ function setup() {
   
   // Initialize EntityManager for MVC entity tracking
   if (typeof EntityManager !== 'undefined') {
-    window.entityManager = EntityManager.getInstance();
+    window.entityManager = new EntityManager();
     console.log('✅ EntityManager initialized');
+  }
+  
+  // Initialize GameUIOverlay for real-time ant count display
+  if (typeof GameUIOverlay !== 'undefined' && typeof RenderManager !== 'undefined') {
+    window.gameUIOverlay = new GameUIOverlay({
+      eventManager: window.eventManager,
+      renderManager: RenderManager
+    });
+    window.gameUIOverlay.initialize();
+    console.log('✅ GameUIOverlay initialized (AntCount + ResourceDisplay)');
   }
   
   // Initialize spatial grid manager FIRST (before any entities are created)
@@ -152,10 +162,30 @@ function setup() {
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
-  g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-  window.g_selectionBoxController = g_selectionBoxController; // Ensure it's on window object
+  
+  // Initialize MVC SelectionBoxController for drag selection
+  if (typeof SelectionBoxModel !== 'undefined' && 
+      typeof SelectionBoxView !== 'undefined' && 
+      typeof SelectionBoxController !== 'undefined') {
+    const selectionBoxModel = new SelectionBoxModel();
+    const selectionBoxView = new SelectionBoxView(selectionBoxModel);
+    g_selectionBoxController = new SelectionBoxController(selectionBoxModel, selectionBoxView);
+    window.g_selectionBoxController = g_selectionBoxController;
+    console.log('✅ MVC SelectionBoxController initialized');
+    
+    // Register with RenderManager for rendering in UI layer
+    if (typeof RenderManager !== 'undefined') {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
+        if (g_selectionBoxController) {
+          g_selectionBoxController.render();
+        }
+      });
+    }
+  }
 
-  // Ensure selection adapter is registered with RenderManager now that controller exists
+  // OLD: Ensure selection adapter is registered with RenderManager
+  // This is handled by MVC SelectionController now
+  /*
   try {
     if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
     if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
@@ -173,6 +203,7 @@ function setup() {
       RenderManager._registeredDrawables.selectionBox = true;
     }
   } catch (e) { console.warn('Failed to ensure selection adapter registration', e); }
+  */
 
   // Connect keyboard controller for general input handling
   g_keyboardController.onKeyPress((keyCode, key) => {
@@ -504,6 +535,7 @@ function draw() {
     if (window.g_queenControlPanel) window.g_queenControlPanel.update();
 
     if (window.eventManager) window.eventManager.update();
+    if (window.gameUIOverlay) window.gameUIOverlay.update();
     if (window.g_fireballManager) window.g_fireballManager.update();
     if (window.g_lightningManager) window.g_lightningManager.update();
     if (window.g_flashManager) window.g_flashManager.update();
@@ -614,6 +646,12 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() { 
+  // GameUIOverlay - handle interactive UI clicks first
+  if (window.gameUIOverlay && typeof window.gameUIOverlay.handleClick === 'function') {
+    const handled = window.gameUIOverlay.handleClick(mouseX, mouseY);
+    if (handled) return; // Don't process other mouse events
+  }
+  
   if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
     try {
       window.g_powerBrushManager.usePower(mouseX, mouseY);
@@ -747,6 +785,57 @@ function mousePressed() {
       console.error('❌ Error handling queen control panel events:', error);
     }
   }
+  
+  // Handle Ant Selection (MVC System)
+  if (GameState.getState() === 'PLAYING' && window.entityManager) {
+    try {
+      const worldPos = cameraManager.screenToWorld(mouseX, mouseY);
+      const ants = window.entityManager.getByType('ant');
+      let selectedAnt = null;
+      
+      // Find ant under mouse
+      for (const ant of ants) {
+        const selection = ant.controller?.getController('selection');
+        if (selection && selection.containsPoint(worldPos.x, worldPos.y)) {
+          selectedAnt = ant;
+          break;
+        }
+      }
+      
+      // Handle selection
+      if (selectedAnt) {
+        const selection = selectedAnt.controller.getController('selection');
+        // Deselect all other ants unless Shift is pressed
+        if (!keyIsDown(SHIFT)) {
+          ants.forEach(a => {
+            if (a !== selectedAnt) {
+              const sel = a.controller?.getController('selection');
+              if (sel) sel.setSelected(false);
+            }
+          });
+        }
+        // Toggle selection on clicked ant
+        selection.toggleSelection();
+        return; // Consumed the click
+      } else {
+        // No ant clicked - start selection box
+        if (g_selectionBoxController) {
+          g_selectionBoxController.onMouseDown(mouseX, mouseY);
+        }
+        
+        // Deselect all ants when clicking empty space (if not holding Shift)
+        if (!keyIsDown(SHIFT)) {
+          ants.forEach(a => {
+            const sel = a.controller?.getController('selection');
+            if (sel) sel.setSelected(false);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error handling ant selection:', error);
+    }
+  }
+  
   handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
 }
 
@@ -755,6 +844,11 @@ function mouseDragged() {
   if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
     levelEditor.handleDrag(mouseX, mouseY);
     return; // Don't process other drag events when level editor is active
+  }
+  
+  // Handle SelectionBox drag
+  if (GameState.getState() === 'PLAYING' && g_selectionBoxController && g_selectionBoxController.isActive()) {
+    g_selectionBoxController.onMouseDrag(mouseX, mouseY);
   }
   
   // Handle UI Debug Manager drag events
@@ -778,6 +872,11 @@ function mouseReleased() {
   // Handle level editor release events FIRST
   if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
     levelEditor.handleMouseRelease(mouseX, mouseY);
+  }
+  
+  // Handle SelectionBox release (finalize selection)
+  if (GameState.getState() === 'PLAYING' && g_selectionBoxController) {
+    g_selectionBoxController.onMouseUp();
   }
   
   // Handle UI Debug Manager release events
@@ -1092,9 +1191,13 @@ function keyPressed() {
     if (deactivateActiveBrushes()) {
       return;
     }
-    // Then handle selection box clearing
-    if (g_selectionBoxController) {
-      g_selectionBoxController.deselectAll();
+    // Deselect all ants (MVC system)
+    if (window.entityManager) {
+      const ants = window.entityManager.getByType('ant');
+      ants.forEach(ant => {
+        const selection = ant.controller?.getController('selection');
+        if (selection) selection.setSelected(false);
+      });
       return;
     }
   }

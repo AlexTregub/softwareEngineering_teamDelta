@@ -372,6 +372,281 @@ describe('EntityManager (MVC)', function() {
     });
   });
 
+  describe('Event Signal Handling', function() {
+    let EventManager, EntityEvents, eventManager;
+    
+    beforeEach(function() {
+      // Load EventManager and EntityEvents
+      try {
+        delete require.cache[require.resolve('../../../Classes/managers/EventManager.js')];
+        delete require.cache[require.resolve('../../../Classes/events/EntityEvents.js')];
+        EventManager = require('../../../Classes/managers/EventManager.js');
+        EntityEvents = require('../../../Classes/events/EntityEvents.js');
+        
+        // Setup globals for EntityManager to detect
+        global.EventManager = EventManager;
+        global.EntityEvents = EntityEvents;
+        global.window.EventManager = EventManager;
+        global.window.EntityEvents = EntityEvents;
+        
+        // Create fresh EventManager instance
+        EventManager._instance = null;
+        eventManager = EventManager.getInstance();
+      } catch (e) {
+        console.log('EventManager or EntityEvents not available, skipping event tests');
+      }
+    });
+    
+    afterEach(function() {
+      if (eventManager) {
+        eventManager.removeAllListeners();
+        EventManager._instance = null;
+      }
+      delete global.EventManager;
+      delete global.EntityEvents;
+      delete global.window.EventManager;
+      delete global.window.EntityEvents;
+    });
+    
+    it('should setup event listeners when EventManager is available', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      // Create fresh instance after EventManager is available
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      // Verify listeners were registered
+      expect(eventManager.listenerCount(EntityEvents.ANT_CREATED)).to.be.at.least(1);
+      expect(eventManager.listenerCount(EntityEvents.ANT_DESTROYED)).to.be.at.least(1);
+      expect(eventManager.listenerCount(EntityEvents.ENTITY_CREATED)).to.be.at.least(1);
+      expect(eventManager.listenerCount(EntityEvents.ENTITY_DESTROYED)).to.be.at.least(1);
+    });
+    
+    it('should auto-register ants via ANT_CREATED signal', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      const mockAnt = {
+        id: 'ant_signal_1',
+        type: 'ant',
+        render: sinon.stub()
+      };
+      
+      // Emit ANT_CREATED signal
+      eventManager.emit(EntityEvents.ANT_CREATED, {
+        ant: mockAnt,
+        jobName: 'Worker',
+        position: { x: 100, y: 100 }
+      });
+      
+      // Verify ant was auto-registered
+      expect(manager.getCount('ant')).to.equal(1);
+      expect(manager.getById('ant_signal_1')).to.equal(mockAnt);
+      expect(manager.getAntCount()).to.equal(1);
+    });
+    
+    it('should auto-unregister ants via ANT_DESTROYED signal', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      // Register ant first
+      const mockAnt = {
+        id: 'ant_signal_2',
+        type: 'ant',
+        render: sinon.stub()
+      };
+      manager.register(mockAnt, 'ant');
+      expect(manager.getAntCount()).to.equal(1);
+      
+      // Emit ANT_DESTROYED signal
+      eventManager.emit(EntityEvents.ANT_DESTROYED, {
+        antId: 'ant_signal_2',
+        antIndex: 0
+      });
+      
+      // Verify ant was auto-unregistered
+      expect(manager.getAntCount()).to.equal(0);
+      expect(manager.getById('ant_signal_2')).to.be.null;
+    });
+    
+    it('should auto-register generic entities via ENTITY_CREATED signal', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      const mockEntity = {
+        id: 'building_signal_1',
+        type: 'building',
+        render: sinon.stub()
+      };
+      
+      // Emit ENTITY_CREATED signal
+      eventManager.emit(EntityEvents.ENTITY_CREATED, {
+        entity: mockEntity,
+        type: 'building'
+      });
+      
+      // Verify entity was auto-registered
+      expect(manager.getCount('building')).to.equal(1);
+      expect(manager.getById('building_signal_1')).to.equal(mockEntity);
+    });
+    
+    it('should auto-unregister generic entities via ENTITY_DESTROYED signal', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      // Register entity first
+      const mockEntity = {
+        id: 'building_signal_2',
+        type: 'building',
+        render: sinon.stub()
+      };
+      manager.register(mockEntity, 'building');
+      expect(manager.getCount('building')).to.equal(1);
+      
+      // Emit ENTITY_DESTROYED signal
+      eventManager.emit(EntityEvents.ENTITY_DESTROYED, {
+        entityId: 'building_signal_2',
+        type: 'building'
+      });
+      
+      // Verify entity was auto-unregistered
+      expect(manager.getCount('building')).to.equal(0);
+      expect(manager.getById('building_signal_2')).to.be.null;
+    });
+    
+    it('should handle multiple ants created via signals', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      // Create 5 ants via signals
+      for (let i = 0; i < 5; i++) {
+        eventManager.emit(EntityEvents.ANT_CREATED, {
+          ant: {
+            id: `ant_batch_${i}`,
+            type: 'ant',
+            render: sinon.stub()
+          },
+          jobName: 'Worker',
+          position: { x: i * 10, y: i * 10 }
+        });
+      }
+      
+      expect(manager.getAntCount()).to.equal(5);
+      expect(manager.getByType('ant')).to.have.lengthOf(5);
+    });
+    
+    it('should track ant count in real-time via signals', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      expect(manager.getAntCount()).to.equal(0);
+      
+      // Create 3 ants
+      for (let i = 0; i < 3; i++) {
+        eventManager.emit(EntityEvents.ANT_CREATED, {
+          ant: { id: `ant_rt_${i}`, type: 'ant' }
+        });
+      }
+      expect(manager.getAntCount()).to.equal(3);
+      
+      // Destroy 1 ant
+      eventManager.emit(EntityEvents.ANT_DESTROYED, {
+        antId: 'ant_rt_1'
+      });
+      expect(manager.getAntCount()).to.equal(2);
+      
+      // Destroy another ant
+      eventManager.emit(EntityEvents.ANT_DESTROYED, {
+        antId: 'ant_rt_0'
+      });
+      expect(manager.getAntCount()).to.equal(1);
+    });
+    
+    it('should handle signals with missing data gracefully', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      // ANT_CREATED with null data
+      expect(() => {
+        eventManager.emit(EntityEvents.ANT_CREATED, null);
+      }).to.not.throw();
+      
+      // ANT_CREATED without ant property
+      expect(() => {
+        eventManager.emit(EntityEvents.ANT_CREATED, { jobName: 'Worker' });
+      }).to.not.throw();
+      
+      // ANT_DESTROYED with null data
+      expect(() => {
+        eventManager.emit(EntityEvents.ANT_DESTROYED, null);
+      }).to.not.throw();
+      
+      // ANT_DESTROYED without antId
+      expect(() => {
+        eventManager.emit(EntityEvents.ANT_DESTROYED, { antIndex: 0 });
+      }).to.not.throw();
+      
+      expect(manager.getCount()).to.equal(0);
+    });
+    
+    it('should work alongside manual registration', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      // Manual registration
+      manager.register({ id: 'ant_manual', type: 'ant' }, 'ant');
+      expect(manager.getAntCount()).to.equal(1);
+      
+      // Signal registration
+      eventManager.emit(EntityEvents.ANT_CREATED, {
+        ant: { id: 'ant_signal', type: 'ant' }
+      });
+      expect(manager.getAntCount()).to.equal(2);
+      
+      // Both should be tracked
+      expect(manager.getById('ant_manual')).to.not.be.null;
+      expect(manager.getById('ant_signal')).to.not.be.null;
+    });
+    
+    it('should provide getAntCount() convenience method', function() {
+      if (!EventManager || !EntityEvents) this.skip();
+      
+      EntityManager._instance = null;
+      const manager = EntityManager.getInstance();
+      
+      expect(manager.getAntCount()).to.equal(0);
+      
+      // Via signal
+      eventManager.emit(EntityEvents.ANT_CREATED, {
+        ant: { id: 'ant_count_1', type: 'ant' }
+      });
+      expect(manager.getAntCount()).to.equal(1);
+      
+      // Via manual
+      manager.register({ id: 'ant_count_2', type: 'ant' }, 'ant');
+      expect(manager.getAntCount()).to.equal(2);
+      
+      // Should equal getCount('ant')
+      expect(manager.getAntCount()).to.equal(manager.getCount('ant'));
+    });
+  });
+
   describe('Performance', function() {
     it('should handle 1000+ entities efficiently', function() {
       if (!EntityManager) this.skip();

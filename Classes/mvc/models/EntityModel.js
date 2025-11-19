@@ -51,6 +51,8 @@ class EntityModel {
     this.jobName = null;
     this.movementSpeed = options.movementSpeed || 1;
     this.selected = false; // Selection state
+    this.hovered = false; // Hover state
+    this.boxHovered = false; // Box selection hover state
 
     // ===== COMPONENT REFERENCES =====
     // These are set by the controller, not created here

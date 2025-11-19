@@ -18,10 +18,13 @@ const sinon = require('sinon');
 describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
   let GameUIOverlay;
   let EventManager;
+  let EntityManager;
   let RenderLayerManager;
   let ResourceDisplayComponent;
+  let AntCountDisplayComponent;
   let overlay;
   let eventManager;
+  let entityManager;
   let renderManager;
 
   before(function() {
@@ -32,14 +35,21 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
 
     // Load dependencies
     EventManager = require('../../../Classes/managers/EventManager.js');
+    EntityManager = require('../../../Classes/mvc/managers/EntityManager.js');
     const renderModule = require('../../../Classes/rendering/RenderLayerManager.js');
     RenderLayerManager = renderModule.RenderLayerManager;
     ResourceDisplayComponent = require('../../../Classes/ui/ResourceDisplayComponent.js');
+    AntCountDisplayComponent = require('../../../Classes/ui/AntCountDisplayComponent.js');
     GameUIOverlay = require('../../../Classes/ui/GameUIOverlay.js');
   });
 
   beforeEach(function() {
-    eventManager = new EventManager();
+    // Clear singleton instances
+    EventManager._instance = null;
+    EntityManager._instance = null;
+    
+    eventManager = EventManager.getInstance();
+    entityManager = EntityManager.getInstance();
     renderManager = new RenderLayerManager();
   });
 
@@ -47,6 +57,8 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
     if (overlay && overlay.destroy) {
       overlay.destroy();
     }
+    EventManager._instance = null;
+    EntityManager._instance = null;
   });
 
   after(function() {
@@ -123,10 +135,19 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
       expect(overlay.resourceDisplay).to.be.instanceOf(ResourceDisplayComponent);
     });
 
-    it('should add ResourceDisplayComponent to components array', function() {
+    it('should create AntCountDisplayComponent on initialize()', function() {
+      overlay.initialize();
+
+      expect(overlay.antCountDisplay).to.exist;
+      expect(overlay.antCountDisplay).to.be.instanceOf(AntCountDisplayComponent);
+    });
+
+    it('should add both components to components array', function() {
       overlay.initialize();
 
       expect(overlay.components).to.include(overlay.resourceDisplay);
+      expect(overlay.components).to.include(overlay.antCountDisplay);
+      expect(overlay.components.length).to.equal(2);
     });
 
     it('should set initialized flag to true after initialize()', function() {
@@ -153,6 +174,25 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
       const pos = overlay.resourceDisplay.getPosition();
       expect(pos.x).to.equal(100);
       expect(pos.y).to.equal(200);
+    });
+
+    it('should allow custom position for AntCountDisplayComponent', function() {
+      overlay.initialize({
+        antCountDisplay: { x: 50, y: 300 }
+      });
+
+      expect(overlay.antCountDisplay.x).to.equal(50);
+      expect(overlay.antCountDisplay.y).to.equal(300);
+    });
+
+    it('should use default positions if not specified', function() {
+      overlay.initialize();
+
+      const resourcePos = overlay.resourceDisplay.getPosition();
+      expect(resourcePos.x).to.equal(10);
+      expect(resourcePos.y).to.equal(10);
+      expect(overlay.antCountDisplay.x).to.equal(10);
+      expect(overlay.antCountDisplay.y).to.equal(120);
     });
 
     it('should allow custom factionId', function() {
@@ -183,11 +223,23 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
       expect(finalCount).to.be.greaterThan(initialCount);
     });
 
+    it('should register AntCountDisplayComponent with RenderLayerManager', function() {
+      const drawables = renderManager.layerDrawables.get(renderManager.layers.UI_GAME) || [];
+      const initialCount = drawables.length;
+
+      overlay.initialize();
+
+      const finalDrawables = renderManager.layerDrawables.get(renderManager.layers.UI_GAME) || [];
+      const finalCount = finalDrawables.length;
+      // Should have 2 new drawables (resource + ant count)
+      expect(finalCount).to.equal(initialCount + 2);
+    });
+
     it('should store drawable function references for cleanup', function() {
       overlay.initialize();
 
       expect(overlay._drawableFunctions).to.be.an('array');
-      expect(overlay._drawableFunctions.length).to.be.greaterThan(0);
+      expect(overlay._drawableFunctions.length).to.equal(2); // Resource + Ant Count
     });
 
     it('should unregister drawables on destroy()', function() {
@@ -242,11 +294,13 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
     it('should call destroy() on all components', function() {
       overlay.initialize();
 
-      const destroySpy = sinon.spy(overlay.resourceDisplay, 'destroy');
+      const resourceDestroySpy = sinon.spy(overlay.resourceDisplay, 'destroy');
+      const antCountDestroySpy = sinon.spy(overlay.antCountDisplay, 'destroy');
 
       overlay.destroy();
 
-      expect(destroySpy.called).to.be.true;
+      expect(resourceDestroySpy.called).to.be.true;
+      expect(antCountDestroySpy.called).to.be.true;
     });
 
     it('should clear components array on destroy()', function() {
@@ -302,6 +356,15 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
       overlay.initialize();
 
       expect(() => overlay.update(16.67)).to.not.throw();
+    });
+
+    it('should call update on AntCountDisplayComponent', function() {
+      overlay.initialize();
+      const updateSpy = sinon.spy(overlay.antCountDisplay, 'update');
+
+      overlay.update();
+
+      expect(updateSpy.called).to.be.true;
     });
   });
 
@@ -359,12 +422,26 @@ describe('GameUIOverlay - Unit Tests (Phase 7)', function() {
       expect(overlay.resourceDisplay.getResources().food).to.equal(100);
     });
 
-    it('should maintain component state across update() calls', function() {
+    it('should provide access to AntCountDisplayComponent', function() {
+      expect(overlay.antCountDisplay).to.exist;
+      expect(overlay.antCountDisplay).to.be.instanceOf(AntCountDisplayComponent);
+    });
+
+    it('should allow direct manipulation of AntCountDisplayComponent', function() {
+      overlay.antCountDisplay.updateTotal(5, 50);
+
+      expect(overlay.antCountDisplay.currentAnts).to.equal(5);
+      expect(overlay.antCountDisplay.maxAnts).to.equal(50);
+    });
+
+    it('should maintain both component states across update() calls', function() {
       overlay.resourceDisplay.updateResourceCount('food', 50);
+      overlay.antCountDisplay.updateTotal(10, 50);
 
       overlay.update();
 
       expect(overlay.resourceDisplay.getResources().food).to.equal(50);
+      expect(overlay.antCountDisplay.currentAnts).to.equal(10);
     });
   });
 

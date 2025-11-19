@@ -221,6 +221,27 @@ const EntityEvents = {
    */
   ANT_DESELECTED: 'entity:ant:deselected',
   
+  // ===== SELECTION BOX EVENTS =====
+  
+  /**
+   * Fired when selection box bounds update (during drag)
+   * @event SELECTION_BOX_UPDATE
+   * @type {Object}
+   * @property {Object} worldBounds - {minX, minY, maxX, maxY, width, height} in world coords
+   * @property {Object} screenBounds - {minX, minY, maxX, maxY, width, height} in screen coords
+   * @property {number} entityCount - Number of entities under box
+   */
+  SELECTION_BOX_UPDATE: 'selection:box:update',
+  
+  /**
+   * Fired when selection box is released (selection complete)
+   * @event SELECTION_BOX_COMPLETE
+   * @type {Object}
+   * @property {number} selectedCount - Number of entities selected
+   * @property {Array<Object>} entities - Selected entity controllers
+   */
+  SELECTION_BOX_COMPLETE: 'selection:box:complete',
+  
   // ===== ANIMATION EVENTS (for AnimationManager integration) =====
   
   /**
