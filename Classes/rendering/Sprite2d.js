@@ -61,8 +61,8 @@ class Sprite2D {
     push();
     // Use CENTER mode for proper flipping/rotation around sprite center
     imageMode(CENTER);
-    // Translate to center of sprite (screenX/Y is top-left, add half size for center)
-    translate(screenX + this.size.x / 2, screenY + this.size.y / 2);
+    // screenX/Y from convPosToCanvas is already the tile center, no need to add offset
+    translate(screenX, screenY);
     scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
     rotate(radians(this.rotation));
     

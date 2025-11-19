@@ -70,9 +70,14 @@ class EntityController {
     const pos = this.model.getPosition();
     const size = this.model.getSize();
 
-    // Load image if loadImage is available
+    // Try to get preloaded sprite first
     let img = null;
-    if (typeof loadImage !== 'undefined') {
+    if (typeof SpriteMapping !== 'undefined' && SpriteMapping.getPreloadedSprite) {
+      img = SpriteMapping.getPreloadedSprite(this.model.imagePath);
+    }
+    
+    // Fall back to loading image if not preloaded
+    if (!img && typeof loadImage !== 'undefined') {
       img = loadImage(this.model.imagePath);
     }
 

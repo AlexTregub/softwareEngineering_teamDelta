@@ -98,6 +98,12 @@ class AntFactory {
       imagePath: options.imagePath || null,
       ...options // Allow additional options to pass through
     };
+    
+    // Use SpriteMapping to get sprite path if not explicitly provided
+    if (!config.imagePath && typeof SpriteMapping !== 'undefined') {
+      config.imagePath = SpriteMapping.getAntSpritePath(config.jobName, config.faction);
+      console.log('[AntFactory] Using sprite path from SpriteMapping:', config.imagePath);
+    }
 
     console.log('[AntFactory] Final config:', config);
 

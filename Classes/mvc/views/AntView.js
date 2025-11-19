@@ -260,35 +260,51 @@ class AntView extends EntityView {
 
   // ===== SPECIES LABEL RENDERING =====
   /**
-   * Render job name below ant
-   * E.g., "Warrior", "Scout", "Builder"
+   * Render job name and faction below ant
+   * Job name on first line, faction on second line
+   * Faction color: white (player) or red (enemy)
    */
   renderSpeciesLabel() {
     const jobName = this.model.getJobName();
+    const faction = this.model.getFaction();
     
     // Handle missing job name
     if (!jobName) {
       return;
     }
 
-    const pos = this.model.getPosition();
+    const screenPos = this._getScreenPosition();
     const size = this.model.getSize();
     
-    // Position: below ant
-    const labelX = pos.x;
-    const labelY = pos.y + size.y / 2 + 12;
+    // Position: below ant (in screen coordinates)
+    const labelX = screenPos.x;
+    const jobLabelY = screenPos.y + size.y / 2 + 12;
+    const factionLabelY = jobLabelY + 14; // 14px below job name
 
     push();
     
-    // Text style
+    // Job name text style
     fill(255);
     stroke(0);
     strokeWeight(3);
     textAlign(CENTER, TOP);
     textSize(11);
     
-    // Draw text
-    text(jobName, labelX, labelY);
+    // Draw job name
+    text(jobName, labelX, jobLabelY);
+    
+    // Draw faction if available
+    if (faction) {
+      // Set faction color: white for player, red for enemy
+      if (faction.toLowerCase() === 'player') {
+        fill(255); // White
+      } else {
+        fill(255, 0, 0); // Red
+      }
+      
+      textSize(10);
+      text(faction, labelX, factionLabelY);
+    }
     
     pop();
   }

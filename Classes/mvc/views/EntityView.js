@@ -52,7 +52,7 @@ class EntityView {
 
   /**
    * Sync sprite position/size with model (INTERNAL)
-   * Converts world coordinates to screen coordinates
+   * Sprite2D handles its own coordinate conversion, just sync data
    * @private
    */
   _syncSpritePosition() {
@@ -62,11 +62,10 @@ class EntityView {
     const pos = this.model.getPosition();
     const size = this.model.getSize();
     
-    // Convert world position to screen position
-    const screenPos = this._getScreenPosition();
-    
-    this.model.sprite.pos.x = screenPos.x;
-    this.model.sprite.pos.y = screenPos.y;
+    // Sprite2D will convert world to screen coordinates in its render() method
+    // Just keep sprite in sync with model's world coordinates
+    this.model.sprite.pos.x = pos.x;
+    this.model.sprite.pos.y = pos.y;
     this.model.sprite.size.x = size.x;
     this.model.sprite.size.y = size.y;
   }

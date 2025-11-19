@@ -46,6 +46,11 @@ let gameEventManager;
 function preload(){
   // return; // !!! REMOVE BEFORE DEV
 
+  // Preload all entity sprites (MVC system)
+  if (typeof SpriteMapping !== 'undefined' && SpriteMapping.spritePreloader) {
+    SpriteMapping.spritePreloader();
+  }
+
   smoothingPreload();
   terrainPreloader();
 
