@@ -716,7 +716,7 @@ _getFallbackJobStats(jobName) {
       
       else if (isWorker) {
         if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
-        //closestHive ? goToHive() : this._attackTarget(this._combatTarget);
+        closestHive ? goToHive() : this._attackTarget(this._combatTarget);
       }
     }
 
@@ -728,7 +728,7 @@ _getFallbackJobStats(jobName) {
       
       else if (isWorker) {
         if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
-        //goToHive()
+        goToHive()
       }
     }
   }
