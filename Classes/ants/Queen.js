@@ -1,5 +1,5 @@
 class QueenAnt extends ant {
-  constructor(baseAnt) {
+  constructor(baseAnt,target=NONE) {
     // If a base ant is passed, use its properties; otherwise create a default queen ant
     // console.log('queen',baseAnt.posX, baseAnt.posY, baseAnt.getSize().x, baseAnt.getSize().y, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(), baseAnt._faction);
 
@@ -7,7 +7,16 @@ class QueenAnt extends ant {
     // console.log(Buildings)
     // console.log(Buildings[0])     
 
-    super(baseAnt.posX, baseAnt.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    console.log("TARGETBUILDINGANTHILL",Buildings,Buildings[0])
+
+
+    // super(baseAnt.posX, baseAnt.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    if (target == NONE) {
+      super(Buildings[0]._x, Buildings[0]._y, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
+    } else {
+      super(target[0], target[1], 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction)
+    }
+    
     // super(closestHive.posX, closestHive.posY, 55,55, baseAnt.movementSpeed, baseAnt.rotation || 0, baseAnt.getImage(),"Queen", baseAnt._faction);
     
     // let closestHive = this.nearestFriendlyBuilding(
@@ -173,6 +182,21 @@ class QueenAnt extends ant {
   }
 
   render() {
+    
+    if (this._type == "Queen") {
+      let temp = this.getPosition()
+      // let temp1 = this._controllers.get("render").worldToScreenPos(temp)
+      let temp1 = this._controllers.get("render").worldToScreenPosition(temp)
+
+      let temp2 = g_activeMap.renderConversion.convCanvasToPos([temp1.x,temp1.y])
+
+      // console.log(temp,temp1,temp2)
+      // console.log("QUEEN POSITION @ ",temp2)
+      // console.log("QueenPos:",this.getPosition(),g_activeMap.renderConversion.convCanvasToPos([this.getPosition().x,this.getPosition().y]))
+    }
+    
+
+
     super.render();
 
     // Draw command radius if visible

@@ -57,145 +57,305 @@
 
 ## Core Architecture
 
-### Entity-Controller Pattern (Composition Over Inheritance)
+### ⚠️ MANDATORY: MVC Pattern for ALL Features
 
-**Entity** (`Classes/containers/Entity.js`) - Base class with optional controllers:
-- `TransformController` - Position, rotation, scale
-- `MovementController` - Pathfinding, movement speed
-- `TaskManager` - Priority queue (EMERGENCY=0, HIGH=1, NORMAL=2, LOW=3, IDLE=4)
-- `RenderController` - Visual rendering, effects
-- `SelectionController` - Selection states, highlighting
-- `CombatController`, `HealthController`, `InventoryController`, `TerrainController`
+**ALL NEW CODE MUST FOLLOW STRICT MVC SEPARATION**
 
-Controllers auto-initialize if available. Access via `entity.getController('name')` or delegate methods.
+**Why MVC?**
+- ✅ **Testability**: Each layer tested independently (100% coverage achievable)
+- ✅ **Maintainability**: Clear separation prevents tangled dependencies
+- ✅ **Reusability**: Models/Views can be composed differently
+- ✅ **Debugging**: Isolate issues to specific layer (data vs display vs logic)
+- ✅ **Scalability**: Add features without breaking existing code
 
-### Creating a New Controller - TDD CHECKLIST
+**When to use MVC:**
+- ✅ ALL new game entities (ants, resources, buildings, enemies)
+- ✅ ALL new UI components (panels, buttons, overlays)
+- ✅ ALL new game systems (inventory, crafting, quests)
+- ✅ ALL new visual effects (particles, animations, highlights)
+- ❌ ONLY skip for: Simple utility functions, pure math helpers, one-line delegates
 
-**STEP 1: Write Tests FIRST**
+**Model (Data Layer)** - `Classes/mvc/models/`
+- ✅ Store state ONLY (position, size, type, properties)
+- ✅ Provide getters/setters for data access
+- ✅ Return copies to prevent external mutation
+- ❌ NO rendering logic
+- ❌ NO update/game loop logic
+- ❌ NO external system calls (no MapManager, no EffectsRenderer)
+- ❌ NO business logic (orchestration)
+
+**View (Presentation Layer)** - `Classes/mvc/views/`
+- ✅ Render sprites, effects, highlights
+- ✅ Read from model (NEVER modify)
+- ✅ Handle visual transformations
+- ❌ NO state mutations
+- ❌ NO update methods
+- ❌ NO controller logic
+- ❌ NO data storage
+
+**Controller (Orchestration Layer)** - `Classes/mvc/controllers/`
+- ✅ Coordinate model + view
+- ✅ Manage sub-controllers (movement, selection, combat)
+- ✅ Handle game loop updates
+- ✅ System integration (spatial grid, MapManager, EffectsRenderer)
+- ❌ NO rendering (delegate to view)
+- ❌ NO direct data storage (delegate to model)
+- ❌ NO drawing methods (push, pop, rect, ellipse)
+
+**Factory (Creation Pattern)** - `Classes/mvc/factories/`
+- ✅ Create complete MVC triads
+- ✅ Handle configuration/defaults
+- ✅ Batch operations (createMultiple, createGrid, createCircle)
+
+### MVC Integration Example
+
 ```javascript
-// test/unit/controllers/MyController.test.js
-const { expect } = require('chai');
-const sinon = require('sinon');
+// ✅ CORRECT: Strict MVC separation
+const model = new EntityModel({ x: 100, y: 100, width: 32, height: 32, imagePath: 'ant.png' });
+const view = new EntityView(model);
+const controller = new EntityController(model, view);
 
-describe('MyController', function() {
-  let entity, controller;
+// Controller orchestrates
+controller.moveToLocation(200, 200);
+controller.setSelected(true);
+controller.getCurrentTerrain(); // Queries MapManager
+controller.effects.damageNumber(10); // Delegates to EffectsRenderer
+controller.highlight.spinning(); // Delegates to view
+
+// View renders (no state changes)
+view.render();
+view.highlightSelected();
+
+// Model stores data (no logic)
+model.setPosition(200, 200);
+model.getPosition(); // Returns copy
+```
+
+### Common MVC Violations (DO NOT DO)
+
+**❌ WRONG: Model with logic**
+```javascript
+class BadModel {
+  update() { // Models should NOT have update logic
+    this.position.x += this.velocity.x;
+  }
+  render() { // Models should NEVER render
+    rect(this.position.x, this.position.y, 32, 32);
+  }
+}
+```
+
+**✅ CORRECT: Pure data model**
+```javascript
+class GoodModel {
+  getPosition() { return { x: this.position.x, y: this.position.y }; }
+  setPosition(x, y) { this.position.x = x; this.position.y = y; }
+  // Data only, no logic
+}
+```
+
+**❌ WRONG: View mutating state**
+```javascript
+class BadView {
+  render() {
+    this.model.position.x += 5; // NEVER modify model in view
+    rect(this.model.position.x, this.model.position.y, 32, 32);
+  }
+}
+```
+
+**✅ CORRECT: Read-only view**
+```javascript
+class GoodView {
+  render() {
+    const pos = this.model.getPosition(); // Read only
+    rect(pos.x, pos.y, 32, 32);
+  }
+}
+```
+
+**❌ WRONG: Controller with rendering**
+```javascript
+class BadController {
+  render() { // Controllers should NOT render
+    push();
+    rect(this.model.getX(), this.model.getY(), 32, 32);
+    pop();
+  }
+}
+```
+
+**✅ CORRECT: Controller orchestrates**
+```javascript
+class GoodController {
+  update() {
+    // Orchestrate systems
+    this._updateMovement();
+    this._checkCollisions();
+  }
   
-  beforeEach(function() {
-    // Mock p5.js
-    global.createVector = sinon.stub().callsFake((x, y) => ({ x, y }));
-    window.createVector = global.createVector; // Sync for JSDOM
+  render() {
+    this.view.render(); // Delegate to view
+  }
+}
+```
+
+**❌ WRONG: Direct data storage in controller**
+```javascript
+class BadController {
+  constructor(model, view) {
+    this.position = { x: 0, y: 0 }; // Don't store data
+    this.size = { x: 32, y: 32 }; // Use model instead
+  }
+}
+```
+
+**✅ CORRECT: Controller delegates to model**
+```javascript
+class GoodController {
+  constructor(model, view) {
+    this.model = model; // Reference to model
+    this.view = view;   // Reference to view
+  }
+  
+  getPosition() {
+    return this.model.getPosition(); // Delegate to model
+  }
+}
+```
+
+### Legacy Entity-Controller Pattern (DEPRECATED)
+
+**Entity** (`Classes/containers/Entity.js`) - ONLY use for backward compatibility:
+- Legacy system with controllers
+- NEW features MUST use MVC pattern above
+- DO NOT extend Entity for new features
+
+### Creating New MVC Components - TDD CHECKLIST
+
+**STEP 1: Write Model Tests FIRST**
+```javascript
+// test/unit/mvc/MyFeatureModel.test.js
+describe('MyFeatureModel', function() {
+  it('should store data only (no logic)', function() {
+    const model = new MyFeatureModel({ x: 100, y: 200 });
+    expect(model.getPosition()).to.deep.equal({ x: 100, y: 200 });
+  });
+  
+  it('should NOT have render methods', function() {
+    const model = new MyFeatureModel();
+    expect(model.render).to.be.undefined;
+  });
+});
+```
+
+**STEP 2: Implement Model**
+```javascript
+// Classes/mvc/models/MyFeatureModel.js
+class MyFeatureModel {
+  constructor(options = {}) {
+    this.position = { x: options.x || 0, y: options.y || 0 };
+    // Data storage ONLY
+  }
+  
+  getPosition() { return { x: this.position.x, y: this.position.y }; }
+  setPosition(x, y) { this.position.x = x; this.position.y = y; }
+}
+```
+
+**STEP 3: Write View Tests**
+```javascript
+// test/unit/mvc/MyFeatureView.test.js
+describe('MyFeatureView', function() {
+  it('should render without modifying model', function() {
+    const model = new MyFeatureModel({ x: 100, y: 100 });
+    const view = new MyFeatureView(model);
     
-    entity = new Entity(0, 0, 32, 32);
-    controller = entity.getController('myController'); // Will fail
-  });
-  
-  afterEach(function() {
-    sinon.restore();
-  });
-  
-  it('should initialize with defaults', function() {
-    expect(controller).to.exist;
-    expect(controller.myProperty).to.equal(expectedValue);
-  });
-  
-  it('should perform behavior', function() {
-    controller.myMethod(arg);
-    expect(controller.myProperty).to.equal(expectedResult);
+    view.render();
+    
+    expect(model.getPosition()).to.deep.equal({ x: 100, y: 100 });
   });
 });
 ```
 
-**STEP 2: Run tests (should fail)**
-```bash
-npx mocha "test/unit/controllers/MyController.test.js"
-```
-
-**STEP 3: Create controller class**
+**STEP 4: Implement View**
 ```javascript
-// Classes/controllers/MyController.js
-class MyController {
-  constructor(entity) {
-    this._entity = entity;
-    this._myProperty = defaultValue;
+// Classes/mvc/views/MyFeatureView.js
+class MyFeatureView {
+  constructor(model) {
+    this.model = model;
   }
   
-  myMethod(arg) {
-    this._myProperty = transform(arg);
+  render() {
+    const pos = this.model.getPosition(); // Read only
+    push();
+    rect(pos.x, pos.y, 32, 32);
+    pop();
   }
-  
-  update() { /* called each frame */ }
-  
-  get myProperty() { return this._myProperty; }
-}
-
-// Global export
-if (typeof window !== 'undefined') window.MyController = MyController;
-if (typeof module !== 'undefined') module.exports = MyController;
-```
-
-**STEP 4: Register in Entity**
-```javascript
-// Classes/containers/Entity.js - _initializeControllers()
-const availableControllers = {
-  'myController': typeof MyController !== 'undefined' ? MyController : null,
-  // ... other controllers
-};
-```
-
-**STEP 5: Add delegate methods (optional)**
-```javascript
-// Classes/containers/Entity.js - _initializeEnhancedAPI()
-const myController = this._controllers.get('myController');
-if (myController) {
-  this.myDelegateMethod = (arg) => myController.myMethod(arg);
 }
 ```
 
-**STEP 6: Add to index.html**
-```html
-<script src="Classes/controllers/MyController.js"></script>
-```
-
-**STEP 7: Run tests (should pass)**
-```bash
-npx mocha "test/unit/controllers/MyController.test.js"
-```
-
-**STEP 8: Integration tests**
+**STEP 5: Write Controller Tests**
 ```javascript
-// test/integration/controllers/myController.integration.test.js
-it('should work with real systems', function() {
-  const entity = new Entity(100, 100, 32, 32);
-  entity.myDelegateMethod(arg);
-  expect(entity.getController('myController').myProperty).to.equal(expected);
+// test/unit/mvc/MyFeatureController.test.js
+describe('MyFeatureController', function() {
+  it('should orchestrate model and view', function() {
+    const model = new MyFeatureModel();
+    const view = new MyFeatureView(model);
+    const controller = new MyFeatureController(model, view);
+    
+    controller.moveTo(200, 300);
+    expect(model.getPosition()).to.deep.equal({ x: 200, y: 300 });
+  });
+  
+  it('should NOT have render methods', function() {
+    expect(controller.render).to.be.undefined;
+  });
 });
 ```
 
-**STEP 9: E2E tests with screenshots**
+**STEP 6: Implement Controller**
 ```javascript
-// test/e2e/controllers/pw_my_controller.js
-const { launchBrowser, sleep, saveScreenshot } = require('../puppeteer_helper');
-const cameraHelper = require('../camera_helper');
+// Classes/mvc/controllers/MyFeatureController.js
+class MyFeatureController {
+  constructor(model, view) {
+    this.model = model;
+    this.view = view;
+  }
+  
+  moveTo(x, y) {
+    this.model.setPosition(x, y); // Update model
+    // View reads from model automatically
+  }
+  
+  update() {
+    // Game loop orchestration
+  }
+}
+```
 
-(async () => {
-  const browser = await launchBrowser();
-  const page = await browser.newPage();
-  await page.goto('http://localhost:8000?test=1');
-  
-  // CRITICAL: Ensure game started
-  const gameStarted = await cameraHelper.ensureGameStarted(page);
-  if (!gameStarted.started) throw new Error('Game failed to start');
-  
-  const result = await page.evaluate(() => {
-    const entity = new Entity(100, 100, 32, 32);
-    entity.myDelegateMethod(testArg);
-    return { success: entity.myProperty === expectedValue };
-  });
-  
-  await saveScreenshot(page, 'controllers/my_controller', result.success);
-  await browser.close();
-  process.exit(result.success ? 0 : 1);
-})();
+**STEP 7: Create Factory**
+```javascript
+// Classes/mvc/factories/MyFeatureFactory.js
+class MyFeatureFactory {
+  static create(options = {}) {
+    const model = new MyFeatureModel(options);
+    const view = new MyFeatureView(model);
+    const controller = new MyFeatureController(model, view);
+    return { model, view, controller };
+  }
+}
+```
+
+**STEP 8: Integration Tests**
+```javascript
+// test/integration/mvc/myFeature.integration.test.js
+it('should coordinate all MVC layers', function() {
+  const entity = MyFeatureFactory.create({ x: 100, y: 100 });
+  entity.controller.moveTo(200, 200);
+  entity.view.render();
+  expect(entity.model.getPosition()).to.deep.equal({ x: 200, y: 200 });
+});
 ```
 
 ## Rendering Pipeline
@@ -444,25 +604,31 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 6. **Run full suite** (`npm test` - no regressions)
 7. **Update docs** (move to "Fixed Issues", add comments in code)
 
-### New Feature Process (TDD + Roadmap)
+### New Feature Process (TDD + Roadmap + MVC)
 
 **MANDATORY**: Create a roadmap document for features requiring >2 hours work
 
+**CRITICAL**: ALL NEW FEATURES MUST USE MVC PATTERN
+
 1. **Create Roadmap** in `docs/roadmaps/[FEATURE_NAME]_ROADMAP.md`
-   - Break feature into phases
+   - Break feature into MVC phases (Model → View → Controller → Factory)
    - Add checklists for each phase (TDD: unit → integration → E2E)
    - List deliverables, files affected, documentation needs
    - Estimate time per phase
    
-2. **Write unit tests FIRST** (tests will fail)
+2. **Write unit tests FIRST** for Model (tests will fail)
 3. **Run tests** (confirm failure)
-4. **Implement feature** (minimal code to pass)
+4. **Implement Model** (minimal code to pass, data only)
 5. **Run tests** (confirm pass)
-6. **Integration tests** (real system interactions)
-7. **E2E tests** (browser with screenshots)
-8. **Update roadmap** (mark phases complete, update existing doc)
-9. **Update docs** (usage examples, CHANGELOG, architecture docs)
-10. **Full test suite** (`npm test` - all pass before commit)
+6. **Write unit tests FIRST** for View (presentation only)
+7. **Implement View** (rendering, no state mutations)
+8. **Write unit tests FIRST** for Controller (orchestration)
+9. **Implement Controller** (coordinates model/view/systems)
+10. **Integration tests** (MVC triad working together)
+11. **E2E tests** (browser with screenshots)
+12. **Update roadmap** (mark phases complete, update existing doc)
+13. **Update docs** (usage examples, CHANGELOG, architecture docs)
+14. **Full test suite** (`npm test` - all pass before commit)
 
 **Roadmap Template Structure**:
 ```markdown
@@ -473,19 +639,35 @@ Brief description, goals, affected systems
 
 ## Phases
 
-### Phase 1: Core Implementation
+### Phase 1: Model (Data Layer)
 - [ ] Write unit tests (TDD)
-- [ ] Implement core class
+- [ ] Implement model class (data storage only)
 - [ ] Run tests (pass)
+- [ ] Verify NO logic/rendering
 **Deliverables**: [List files created/modified]
 
-### Phase 2: Integration
+### Phase 2: View (Presentation Layer)
+- [ ] Write unit tests
+- [ ] Implement view class (rendering only)
+- [ ] Run tests (pass)
+- [ ] Verify NO state mutations
+**Deliverables**: [List files]
+
+### Phase 3: Controller (Orchestration)
+- [ ] Write unit tests
+- [ ] Implement controller class
+- [ ] Run tests (pass)
+- [ ] Verify NO rendering/data storage
+**Deliverables**: [List files]
+
+### Phase 4: Factory & Integration
+- [ ] Create factory for MVC triad
 - [ ] Write integration tests
 - [ ] Connect to existing systems
 - [ ] Run tests (pass)
 **Deliverables**: [List files]
 
-### Phase 3: E2E & Documentation
+### Phase 5: E2E & Documentation
 - [ ] Write E2E tests with screenshots
 - [ ] Create API reference
 - [ ] Update architecture docs
@@ -493,6 +675,11 @@ Brief description, goals, affected systems
 
 ## Testing Strategy
 Unit → Integration → E2E breakdown
+
+## MVC Compliance
+- Model: Pure data, no logic
+- View: Read-only, no mutations
+- Controller: Orchestrates, no rendering
 
 ## Documentation Updates
 - [ ] API reference
@@ -690,20 +877,22 @@ window.SomeClass = global.SomeClass; // Required
 
 ## Critical Reminders
 
-1. **TDD ALWAYS** - Write tests before implementation (unit → integration → E2E)
-2. **USE CHECKLISTS** - Follow `FEATURE_ENHANCEMENT_CHECKLIST.md` for all features
-3. **CREATE ROADMAPS** - Document phases for features >2 hours work
-4. **UPDATE DOCS** - Modify existing docs, don't create new summaries
-5. **Script load order matters** - Rendering before Entity, Entity before controllers
-6. **System APIs only** - Never manual property injection in tests
-7. **Headless only** - `--headless=new` for all browser tests
-8. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
-9. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
-10. **E2E screenshots** - Visual proof required, not just internal state
-11. **Force redraw** - Call `window.redraw()` multiple times after state changes
-12. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
-13. **Controllers optional** - Check availability before delegation
-14. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
+1. **MVC ALWAYS** - ALL new features use Model-View-Controller pattern
+2. **TDD ALWAYS** - Write tests before implementation (unit → integration → E2E)
+3. **USE CHECKLISTS** - Follow `FEATURE_ENHANCEMENT_CHECKLIST.md` for all features
+4. **CREATE ROADMAPS** - Document phases for features >2 hours work
+5. **UPDATE DOCS** - Modify existing docs, don't create new summaries
+6. **Script load order matters** - Rendering before Entity, Entity before controllers
+7. **System APIs only** - Never manual property injection in tests
+8. **Headless only** - `--headless=new` for all browser tests
+9. **Read testing docs** - TESTING_METHODOLOGY_STANDARDS.md before any test
+10. **MapManager for terrain** - Never Grid.get() (Y-axis bug)
+11. **E2E screenshots** - Visual proof required, not just internal state
+12. **Force redraw** - Call `window.redraw()` multiple times after state changes
+13. **Ensure game started** - Use `cameraHelper.ensureGameStarted()` in E2E
+14. **Controllers optional** - Check availability before delegation
+15. **No emoji decoration** - Use only for visual clarity (checkmarks, warnings)
+16. **MVC separation** - Model (data), View (render), Controller (orchestrate)
 
 ## Quick Reference
 

@@ -1,8 +1,40 @@
 
 class Boss extends QueenAnt {
-    constructor(entityName,entityFaction,entitySizeX,entitySizeY) {
+    constructor(entityName,entityFaction,entitySizeX,entitySizeY,tileType=['grass']) {
         let queenBase = new spawnQueen();
-        super(queenBase);
+
+        let a = g_activeMap.sampleTiles(tileType,10000); // 
+
+        let tilex = a[0][0]; // Picks initial random position
+        let tiley = a[0][1]; // ...
+
+        for (let pos in a) { // pos is an index in a
+            // let pos = a[pos]
+
+            let temp = a[pos]
+            // console.log(temp)
+            if (temp[0] < 15 & temp[0] > -15 & temp[1] < 15 & temp[1] > -15) { // Bounds close to center
+                tilex = temp[0]
+                tiley = temp[1] // tile positions (grid) 
+
+                console.log("DONE DID IT FOR THE BOSS")
+                break
+            }
+        }
+
+        if (tilex > 15 | tilex < -15 | tiley > 15 | tiley < -15) {
+            tilex = 0
+            tiley = 0
+            console.log("WARNING: DEFAULT SPAWN POS FOR SPIDER")
+        }
+
+        let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
+
+        queenBase.setPosition(convPos[0],convPos[1])
+
+        console.log("TARGETBOSSENTITY",queenBase,convPos,Buildings[0])
+
+        super(queenBase,convPos);
 
 
         this._type = entityName;

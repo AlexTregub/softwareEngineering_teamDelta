@@ -609,7 +609,7 @@ _getFallbackJobStats(jobName) {
       if (this._stateMachine && this._stateMachine.isInCombat() && this._enemies.length > 0) {
         this._performCombatAttack();
       }else{
-        if(this._combatTarget != null){
+        if(this._combatTarget != null && this._combatTarget._faction != this._faction){
           this.moveToLocation(this._combatTarget.posX, this._combatTarget.posY);
         }
       }
@@ -716,7 +716,7 @@ _getFallbackJobStats(jobName) {
       
       else if (isWorker) {
         if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
-        closestHive ? goToHive() : this._attackTarget(this._combatTarget);
+        //closestHive ? goToHive() : this._attackTarget(this._combatTarget);
       }
     }
 
@@ -728,7 +728,7 @@ _getFallbackJobStats(jobName) {
       
       else if (isWorker) {
         if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
-        goToHive()
+        //goToHive()
       }
     }
   }
@@ -1060,6 +1060,7 @@ function spawnAntByType(antObj){
 
 // --- Spawn Ants ---
 function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
+  let list = [];
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let JobName = assignJob();
@@ -1107,7 +1108,9 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     if (g_tileInteractionManager) {
       g_tileInteractionManager.addObject(newAnt, 'ant');
     }
+    list.push(newAnt);
   }
+  return list;
 }
 
 // --- Update All Ants ---

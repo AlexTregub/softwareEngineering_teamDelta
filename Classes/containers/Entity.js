@@ -23,7 +23,7 @@ class Entity {
    * @param {number} height - initial height
    * @param {Object} [options={}] - optional configuration (type, imagePath, movementSpeed, faction, selectable, etc.)
    */
-  constructor(x = 0, y = 0, width = 32, height = 32, options = {}) {
+  constructor(x = 0, y = 0, width = 32, height = 32, options = {}) { // x,y canvas
     // Core properties
     this._id = `entity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     this._type = options.type || "Entity";
@@ -32,8 +32,11 @@ class Entity {
     // Apply +0.5 tile offset for tile-centered positioning
     // This moves entities to the visual center of their tile, so rendering doesn't need offset
     const TILE_SIZE = typeof window !== 'undefined' && window.TILE_SIZE ? window.TILE_SIZE : 32;
-    const centeredX = x + (TILE_SIZE * 0.5);
-    const centeredY = y + (TILE_SIZE * 0.5);
+    // const centeredX = x + (TILE_SIZE * 0.5); // Canvas cordinates
+    // const centeredY = y + (TILE_SIZE * 0.5); // Tiles offset by -0.5,-0.5 -- matching that
+
+    const centeredX = x + (width * 0.5); // Canvas cordinates
+    const centeredY = y + (height * 0.5); 
 
     // Initialize collision box first (required by some controllers)
     this._collisionBox = new CollisionBox2D(centeredX, centeredY, width, height);

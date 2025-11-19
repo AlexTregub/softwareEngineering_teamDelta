@@ -96,9 +96,18 @@ function NPCPreloader() {
  
 class NPC extends Building{
   constructor(x, y) {
-    super(x, y, 40, 40, Character, 'NPC', null);
-    this._x = x;
-    this._y = y;
+    let targetHive = Buildings[0] // Target position
+    // console.log("TARGETHIVEPOSITION",targetHive,Buildings)
+    console.log("TARGETHIVEPOSITION",Buildings[0]._x,Buildings[0]._y)
+
+    let newX = Buildings[0]._x - 50
+    let newY = Buildings[0]._y - 50
+    
+    // super(x, y, 40, 40, Character, 'NPC', null);
+    super(newX, newY, 40, 40, Character, 'NPC', null);
+
+    this._x = newX;
+    this._y = newY;
     this._faction = 'player';
     this.isBoxHovered = false;
     this.dialogueRange = 100;
@@ -306,7 +315,15 @@ class NPC extends Building{
       }
       textFont(terrariaFont);
       // position slightly below NPC (like a subtitle)
-      text(`[E] Talk to ${this.name}`, this._x + 35, this._y + 70);
+
+      // const hillPos = this.getPosition()
+      // const posDict = {x: this._x, y: this._y}
+      const renderPos = this._controllers.get("render").worldToScreenPosition({x: this._x, y: this._y})
+      // console.log(renderPos)
+
+      // text(`[E] Talk to ${this.name}`, this._x + 35, this._y + 70);
+      // text(`[E] Talk to ${this.name}`, renderPos.x + 35, renderPos.y + 70);
+      text(`[E] Talk to ${this.name}`, renderPos.x, renderPos.y -20);
       pop();
     }
   }
