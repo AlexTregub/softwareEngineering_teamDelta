@@ -74,4 +74,11 @@ class AnimationManager {
 
         }
     }
+
+    update() {
+
+
+    }
+
+
 }

@@ -33,10 +33,44 @@ class BossEvent extends AbstractEvent {
     }
 
 }
+
+class Swarm extends AbstractEvent {
+    constructor(radius = 1000,amountOfAnts = 10){
+        super();
+        this.raidus = radius;
+        this.amountOfAnts = amountOfAnts;
+        this.finished = false;
+    }
+
+    _init(){
+        let player = getQueen();        
+        if(!player){return;}
+        let degree = (x/this.amountOfAnts) * 2 * 3.14
+        let px = player.posX + this.raidus * cos(degree);
+        let py = player.posY + this.raidus * sin(degree);
+        let list = antsSpawn(this.amountOfAnts,'waveEnemy',px,py);
+        list.forEach(ant=>{
+            if(ant.faction != 'waveEnemy'){return;}
+            ant.moveToLocation(player.posX,player.posY)
+            ant.getController('combat')._detectionRadius = this.raidus + 100;
+        })
+        console.log(`A swarm of ${this.amountOfAnts} enemies is approaching from the shadows!`);
+    }
+
+    isFinished(){
+        return this.finished;
+    }
+    
+    update(){
+        if(ants.filter(ant => ant.faction == 'waveEnemy').length == 0){
+            this.finished = true;
+        }
+    }
+}
         
 
-class AntWave extends AbstractEvent {
-    constructor(radius = 500,amountOfBuilding = 100){
+class AntHive extends AbstractEvent {
+    constructor(radius = 1000,amountOfBuilding = 150){
         super();
         this.raidus = radius;
         this.amountOfBuilding = amountOfBuilding;
@@ -69,7 +103,7 @@ class AntWave extends AbstractEvent {
     }
     
     update(){
-        if(ants.filter(ant => ant.faction == 'waveEnemy').length == 0){
+        if(Buildings.filter(building => building.faction == 'waveEnemy').length == 0){
             this.finished = true;
         }
     }
@@ -84,7 +118,7 @@ class Raid extends AbstractEvent {
     }
 
     _init(){
-        let wave = new AntWave(this.raidus,this.amountOfAnts);
+        let wave = new AntHive(this.raidus,this.amountOfAnts);
         let boss = new BossEvent();
         wave._init();
         boss._init();
@@ -106,9 +140,10 @@ class Raid extends AbstractEvent {
 class EventFactory {
     constructor(){
         this.eventRegistery = {
-            'Wave' : AntWave,
             'Boss' : BossEvent,
             'Raid' : Raid,
+            "AntHive": AntHive,
+            "Swarm": Swarm
         }
     }
 
