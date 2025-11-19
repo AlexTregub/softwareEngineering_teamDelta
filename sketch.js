@@ -251,7 +251,7 @@ function setup() {
 
   // Game Event
   gameEventManager = new GameEventManager();
-  gameEventManager.startEvent('Wave'); // Waves / Additional hives...
+  gameEventManager.startEvent('AntHive'); // Waves / Additional hives...
 
 
 
