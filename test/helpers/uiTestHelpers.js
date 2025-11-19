@@ -63,7 +63,7 @@ function setupUITestEnvironment() {
   };
   
   // Mock debug logging functions
-  global.logNormal = sinon.stub();
+  global.console.log = sinon.stub();
   global.logDebug = sinon.stub();
   global.logWarning = sinon.stub();
   global.logError = sinon.stub();
@@ -356,7 +356,7 @@ function setupUITestEnvironment() {
       LevelEditorPanels: global.LevelEditorPanels,
       cameraManager: global.cameraManager,
       TILE_SIZE: global.TILE_SIZE,
-      logNormal: global.logNormal,
+      console.log: global.console.log,
       logDebug: global.logDebug,
       logWarning: global.logWarning,
       logError: global.logError,

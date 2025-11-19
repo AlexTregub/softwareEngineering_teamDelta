@@ -194,6 +194,9 @@ function setup() {
   // Initialize camera management system
   cameraManager = new CameraManager();
   cameraManager.initialize();
+  
+  // Expose globally for debugging and external access
+  window.cameraManager = cameraManager;
 
   // Disable right-click context menu to prevent interference with brush controls
   if (typeof document !== 'undefined') {

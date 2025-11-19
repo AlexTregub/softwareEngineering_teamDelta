@@ -85,7 +85,7 @@ class DraggablePanel {
 
         // Log creation success (only for debug mode)
     if (devConsoleEnabled) {
-      logNormal(`🪟 DraggablePanel '${this.config.id}' created at (${this.state.position.x}, ${this.state.position.y})`);
+      console.log(`🪟 DraggablePanel '${this.config.id}' created at (${this.state.position.x}, ${this.state.position.y})`);
     }
   }
 

@@ -45,7 +45,7 @@ class SpatialGridManager {
     };
 
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.logNormal === 'function') {
+    if (globalObj && typeof globalObj.console.log === 'function') {
     }
   }
 
@@ -286,7 +286,7 @@ class SpatialGridManager {
     this._entitiesByType.clear();
     
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.logNormal === 'function') {
+    if (globalObj && typeof globalObj.console.log === 'function') {
     }
   }
 
@@ -297,7 +297,7 @@ class SpatialGridManager {
    */
   rebuildGrid() {
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.logNormal === 'function') {
+    if (globalObj && typeof globalObj.console.log === 'function') {
     }
 
     this._grid.clear();
@@ -306,7 +306,7 @@ class SpatialGridManager {
       this._grid.addEntity(entity);
     }
 
-    if (globalObj && typeof globalObj.logNormal === 'function') {
+    if (globalObj && typeof globalObj.console.log === 'function') {
     }
   }
 

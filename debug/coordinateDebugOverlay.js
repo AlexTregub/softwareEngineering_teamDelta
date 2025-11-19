@@ -12,7 +12,7 @@ class CoordinateDebugOverlay {
 
   toggle() {
     this.enabled = !this.enabled;
-    logNormal(`Coordinate Debug Overlay: ${this.enabled ? 'ENABLED' : 'DISABLED'}`);
+    console.log(`Coordinate Debug Overlay: ${this.enabled ? 'ENABLED' : 'DISABLED'}`);
   }
 
   findQueenAnt() {

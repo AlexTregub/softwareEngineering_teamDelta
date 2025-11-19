@@ -82,7 +82,7 @@ class ResourceSystemManager {
       ...options
     };
 
-    if (typeof globalThis.logNormal === 'function') {
+    if (typeof globalThis.console.log === 'function') {
     } else {
     }
 
@@ -175,7 +175,7 @@ class ResourceSystemManager {
     const removedResources = [...this.resources];
     this.resources = [];
     
-    if (typeof globalThis.logNormal === 'function') {
+    if (typeof globalThis.console.log === 'function') {
     } else {
     }
     
@@ -217,7 +217,7 @@ class ResourceSystemManager {
       this.isActive = true;
       this.timer = setInterval(() => this.spawn(), this.spawnInterval * 1000);
       
-      if (typeof globalThis.logNormal === 'function') {
+      if (typeof globalThis.console.log === 'function') {
       } else {
       }
     }
@@ -234,7 +234,7 @@ class ResourceSystemManager {
         this.timer = null;
       }
       
-      if (typeof globalThis.logNormal === 'function') {
+      if (typeof globalThis.console.log === 'function') {
       } else {
       }
     }
@@ -449,7 +449,7 @@ class ResourceSystemManager {
       ...config
     };
 
-    if (typeof globalThis.logNormal === 'function') {
+    if (typeof globalThis.console.log === 'function') {
     } else {
     }
 
@@ -548,7 +548,7 @@ class ResourceSystemManager {
     }
     this.registeredResourceTypes[resourceType] = resourceConfig;
 
-    if (typeof globalThis.logNormal === 'function') {
+    if (typeof globalThis.console.log === 'function') {
     } else {
     }
   }
@@ -596,7 +596,7 @@ class ResourceSystemManager {
       }
     }
 
-    if (typeof globalThis.logNormal === 'function') {
+    if (typeof globalThis.console.log === 'function') {
     } else {
     }
   }
@@ -825,7 +825,7 @@ class ResourceSystemManager {
     this.stopSpawning();
     this.clearAllResources();
     
-    if (typeof globalThis.logNormal === 'function') {
+    if (typeof globalThis.console.log === 'function') {
     } else {
     }
   }

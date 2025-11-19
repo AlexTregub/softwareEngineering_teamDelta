@@ -27,7 +27,12 @@ class BossEvent extends AbstractEvent {
     }
 
     update(){
-        if(ants.filter(ant => ant.faction == "waveEnemy").length == 0){
+        const allAnts = EntityManager.getInstance().getByType('ant');
+        const waveEnemyCount = allAnts.filter(ant => {
+            return ant.model.getFaction() === 'waveEnemy';
+        }).length;
+        
+        if(waveEnemyCount == 0){
             this.finished = true;
         }
     }
@@ -69,7 +74,12 @@ class AntWave extends AbstractEvent {
     }
     
     update(){
-        if(ants.filter(ant => ant.faction == 'waveEnemy').length == 0){
+        const allAnts = EntityManager.getInstance().getByType('ant');
+        const waveEnemyCount = allAnts.filter(ant => {
+            return ant.model.getFaction() === 'waveEnemy';
+        }).length;
+        
+        if(waveEnemyCount == 0){
             this.finished = true;
         }
     }
@@ -95,7 +105,12 @@ class Raid extends AbstractEvent {
     }
     
     update(){
-        if(ants.filter(ant => ant.faction == 'waveEnemy').length == 0){
+        const allAnts = EntityManager.getInstance().getByType('ant');
+        const waveEnemyCount = allAnts.filter(ant => {
+            return ant.model.getFaction() === 'waveEnemy';
+        }).length;
+        
+        if(waveEnemyCount == 0){
             this.finished = true;
         }
     }

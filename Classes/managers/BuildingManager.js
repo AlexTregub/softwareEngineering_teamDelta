@@ -330,7 +330,11 @@ class Building extends Entity {
   }
 
   getAnts(faction){
-    return ants.filter(ant => (ant.faction === faction || ant.faction === 'neutral'));
+    const allAnts = EntityManager.getInstance().getByType('ant');
+    return allAnts.filter(ant => {
+      const antFaction = ant.model.getFaction();
+      return antFaction === faction || antFaction === 'neutral';
+    });
   }
   
   _releaseAnts(){
@@ -346,6 +350,11 @@ class Building extends Entity {
     // Apply building-specific buffs
     const nearbyAnts = this.getAnts(this.faction);
     nearbyAnts.forEach(ant => {
+      // Skip ants without job stats (MVC ants or incomplete initialization)
+      if (!ant.job || !ant.job.stats) {
+        return;
+      }
+      
       const range = dist(this._x, this._y, ant.posX, ant.posY);
       const defaultStats = ant.job.stats;
       const buff = {

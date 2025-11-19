@@ -191,7 +191,7 @@ class UILayerRenderer {
     // Get current resource values
     const wood = (g_resourceList && g_resourceList.wood) ? g_resourceList.wood.length : 0;
     const food = (g_resourceList && g_resourceList.food) ? g_resourceList.food.length : 0;
-    const population = (typeof ants !== 'undefined') ? ants.length : 0;
+    const population = EntityManager.getInstance().getCount('ant');
     
     text(`Wood: ${wood}`, 20, 25);
     text(`Food: ${food}`, 20, 45);
@@ -277,15 +277,16 @@ class UILayerRenderer {
     rect(minimapX + 2, minimapY + 2, size - 4, size - 4);
     
     // Ant positions (if available)
-    if (ants && ants.length > 0) {
+    const allAnts = EntityManager.getInstance().getByType('ant');
+    
+    if (allAnts.length > 0) {
       fill(255, 0, 0);
-      for (let ant of ants) {
-        if (ant && ant.x !== undefined && ant.y !== undefined) {
-          // Scale ant position to minimap
-          const antX = map(ant.x, 0, width, minimapX + 2, minimapX + size - 2);
-          const antY = map(ant.y, 0, height, minimapY + 2, minimapY + size - 2);
-          circle(antX, antY, 2);
-        }
+      for (let ant of allAnts) {
+        const pos = ant.model.getPosition();
+        // Scale ant position to minimap
+        const antX = map(pos.x, 0, width, minimapX + 2, minimapX + size - 2);
+        const antY = map(pos.y, 0, height, minimapY + 2, minimapY + size - 2);
+        circle(antX, antY, 2);
       }
     }
     
@@ -454,7 +455,8 @@ class UILayerRenderer {
     yOffset += 20;
     
     // Entity counts
-    const entityCount = (typeof ants !== 'undefined') ? ants.length : 0;
+    // Entity count
+    const entityCount = EntityManager.getInstance().getCount();
     text(`Entities: ${entityCount} total`, overlayX + 10, overlayY + yOffset);
     yOffset += 20;
     

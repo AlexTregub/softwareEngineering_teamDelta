@@ -20,7 +20,7 @@ class FlashAimBrush extends BrushBase {
 
   toggle() {
     this.isActive = !this.isActive;
-    logNormal(`${this.isActive ? '🔵' : '⚪'} Final Flash Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
+    console.log(`${this.isActive ? '🔵' : '⚪'} Final Flash Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 

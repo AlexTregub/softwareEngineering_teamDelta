@@ -108,7 +108,7 @@ class SelectionController {
   setHovered(hovered) {
     // Debug: log when hover state changes
     if (this._isHovered !== hovered && this._entity._debugger && this._entity._debugger.isActive) {
-      logNormal(`[SelectionController.setHovered] ${this._entity.type || 'Entity'} hover changed: ${this._isHovered} → ${hovered}`);
+      console.log(`[SelectionController.setHovered] ${this._entity.type || 'Entity'} hover changed: ${this._isHovered} → ${hovered}`);
     }
     this._isHovered = hovered;
   }

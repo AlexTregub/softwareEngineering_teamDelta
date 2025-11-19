@@ -174,10 +174,26 @@ class EntityModel {
 
   /**
    * Set job name
-   * @param {string} jobName - Job name
+   * @param {string} jobName - Job name (Worker, Scout, etc.)
    */
   setJobName(jobName) {
     this.jobName = jobName;
+  }
+
+  /**
+   * Get faction
+   * @returns {string} Entity faction
+   */
+  getFaction() {
+    return this.faction;
+  }
+
+  /**
+   * Set faction
+   * @param {string} faction - Entity faction (player, enemy, neutral, etc.)
+   */
+  setFaction(faction) {
+    this.faction = faction;
   }
 
   /**

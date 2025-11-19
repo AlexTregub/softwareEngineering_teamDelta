@@ -355,7 +355,7 @@ if (typeof window !== 'undefined') {
       if (globalThis.shouldRunTests()) {
         runUISelectionBoxTests();
       } else {
-        globalThis.logNormal('🧪 UI Selection Box tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
+        globalThis.console.log('🧪 UI Selection Box tests available but disabled. Use enableTests() to enable or runTests() to run manually.');
       }
     } else {
       // Legacy behavior when global test runner is not available

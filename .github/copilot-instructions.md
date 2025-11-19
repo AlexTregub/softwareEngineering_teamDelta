@@ -40,20 +40,19 @@
 - ✅ Use JSDOM, sync `global` and `window` objects
 - ❌ Don't mock core systems (MapManager, SpatialGrid)
 
-**E2E Tests** (Puppeteer, PRIMARY with screenshots):
-- ✅ Test complete workflows in real browser
-- ✅ Provide screenshot proof (visual evidence)
-- ✅ Use system APIs, not manual property injection
-- ✅ Run headless for CI/CD
-- ❌ NEVER skip `ensureGameStarted()` (must bypass menu)
-- ❌ NEVER change state without `redraw()` calls
-- ❌ NEVER skip screenshot verification
-
-**BDD Tests** (Python Behave, headless):
-- ✅ Test user-facing behavior
+**BDD Tests** (Python Behave, PRIMARY for user-facing features):
+- ✅ Test user-facing behavior in real browser (headless)
 - ✅ Use plain language (no technical jargon)
+- ✅ Verify complete workflows and user stories
+- ✅ Test game state transitions and interactions
 - ❌ NEVER use "real", "actual", "fake" (see BDD_LANGUAGE_STYLE_GUIDE.md)
 - ❌ NEVER hardcode test results
+- ❌ NEVER skip browser automation setup
+
+**E2E Tests** (DEPRECATED - Use BDD instead):
+- ❌ DO NOT write new E2E tests with Puppeteer
+- ✅ Use BDD tests for browser-based testing
+- ✅ Migrate existing E2E tests to BDD when touching them
 
 ## Core Architecture
 
@@ -512,69 +511,61 @@ it('should avoid water when pathfinding', function() {
 **TDD Plan**:
 1. Write unit tests for PheromoneManager (creation, decay, diffusion)
 2. Write integration tests for ant-pheromone interaction
-3. E2E tests with visual pheromone trails (screenshots)
+3. BDD tests: "When ant finds food, pheromone trail appears"
 4. Add PheromoneController to Entity
 5. Register in EFFECTS rendering layer
 
-## E2E Testing Critical Patterns
+## BDD Testing Critical Patterns
 
-**MANDATORY**: See `docs/guides/E2E_TESTING_QUICKSTART.md`
+**MANDATORY**: See `docs/guides/BDD_LANGUAGE_STYLE_GUIDE.md`
 
 ### 1. Server Setup
 ```bash
 npm run dev  # Must be running on localhost:8000
 ```
 
-### 2. Menu Bypass (CRITICAL!)
-```javascript
-const cameraHelper = require('../camera_helper');
-const gameStarted = await cameraHelper.ensureGameStarted(page);
-if (!gameStarted.started) throw new Error('Failed to start - still on menu');
+### 2. Plain Language
+```gherkin
+Feature: Ant rendering
+  Scenario: Player starts game
+    Given the game is loaded
+    When the player starts a new game
+    Then ants should be visible on the map
 ```
-**Without this**: Screenshots show main menu, not game!
+**NEVER use**: "real", "actual", "fake", "mock"
 
-### 3. Force Rendering After State Changes
-```javascript
-await page.evaluate(() => {
-  window.gameState = 'PLAYING';
-  
-  if (window.draggablePanelManager) {
-    window.draggablePanelManager.renderPanels('PLAYING');
-  }
-  
-  if (typeof window.redraw === 'function') {
-    window.redraw(); window.redraw(); window.redraw();
-  }
-});
-await sleep(500);
-await saveScreenshot(page, 'category/name', true);
-```
-**Without this**: Screenshots show old state!
+### 3. Browser Automation (Python + Selenium)
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
-### 4. Panel Visibility System
-```javascript
-await page.evaluate(() => {
-  if (!window.draggablePanelManager.stateVisibility.PLAYING) {
-    window.draggablePanelManager.stateVisibility.PLAYING = [];
-  }
-  window.draggablePanelManager.stateVisibility.PLAYING.push('test-panel-id');
-});
-```
-**Without this**: Panel won't render!
-
-### 5. Screenshot Proof (MANDATORY)
-```javascript
-await saveScreenshot(page, 'ui/test_name', true);  // success/
-await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
+@given('the game is loaded')
+def step_impl(context):
+    context.browser.get('http://localhost:8000')
+    
+@when('the player starts a new game')
+def step_impl(context):
+    start_button = context.browser.find_element(By.ID, 'start-button')
+    start_button.click()
 ```
 
-**Verify screenshots show**:
-- ✅ Game terrain (NOT main menu)
-- ✅ Expected UI elements
-- ✅ Correct visual state
-- ❌ Main menu = test failed
+### 4. Visual Verification
+```python
+@then('ants should be visible on the map')
+def step_impl(context):
+    # Wait for game to load
+    WebDriverWait(context.browser, 10).until(
+        EC.presence_of_element_located((By.TAG_NAME, 'canvas'))
+    )
+    
+    # Verify via JavaScript
+    ant_count = context.browser.execute_script(
+        'return window.entityManager ? window.entityManager.getCount("ant") : 0'
+    )
+    assert ant_count > 0, f"Expected ants but found {ant_count}"
+```
 
-**Location**: `test/e2e/screenshots/{category}/{success|failure}/{name}.png`
+**Location**: `test/bdd/features/` and `test/bdd/steps/`
 
 ## Development Process & Checklists
 
@@ -583,7 +574,7 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 ### Why Checklists Matter
 
 **Checklists enforce**:
-- TDD at every phase (unit → integration → E2E)
+- TDD at every phase (unit → integration → BDD)
 - Systematic verification (no missed steps)
 - Documentation updates (keep docs current)
 - Quality gates (all tests pass before commit)
@@ -612,7 +603,7 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 
 1. **Create Roadmap** in `docs/roadmaps/[FEATURE_NAME]_ROADMAP.md`
    - Break feature into MVC phases (Model → View → Controller → Factory)
-   - Add checklists for each phase (TDD: unit → integration → E2E)
+   - Add checklists for each phase (TDD: unit → integration → BDD)
    - List deliverables, files affected, documentation needs
    - Estimate time per phase
    
@@ -625,10 +616,10 @@ await saveScreenshot(page, 'ui/test_error', false); // failure/ with timestamp
 8. **Write unit tests FIRST** for Controller (orchestration)
 9. **Implement Controller** (coordinates model/view/systems)
 10. **Integration tests** (MVC triad working together)
-11. **E2E tests** (browser with screenshots)
+11. **BDD tests** (browser automation with user-facing scenarios)
 12. **Update roadmap** (mark phases complete, update existing doc)
 13. **Update docs** (usage examples, CHANGELOG, architecture docs)
-14. **Full test suite** (`npm test` - all pass before commit)
+14. **Full test suite** (`npm test` then `npm run test:bdd` - all pass before commit)
 
 **Roadmap Template Structure**:
 ```markdown
@@ -667,14 +658,14 @@ Brief description, goals, affected systems
 - [ ] Run tests (pass)
 **Deliverables**: [List files]
 
-### Phase 5: E2E & Documentation
-- [ ] Write E2E tests with screenshots
+### Phase 5: BDD & Documentation
+- [ ] Write BDD tests with user scenarios
 - [ ] Create API reference
 - [ ] Update architecture docs
 **Deliverables**: [List docs]
 
 ## Testing Strategy
-Unit → Integration → E2E breakdown
+Unit → Integration → BDD breakdown
 
 ## MVC Compliance
 - Model: Pure data, no logic
@@ -707,17 +698,14 @@ npx mocha "test/unit/path/to/file.test.js"
 # Integration
 npm run test:integration
 
-# BDD (headless)
+# BDD (PRIMARY - headless browser automation)
 npm run test:bdd
 npm run test:bdd:ants
-
-# E2E (PRIMARY with screenshots)
-npm run test:e2e
-npm run test:e2e:ui
-node test/e2e/ui/pw_panel_minimize.js
+python -m behave test/bdd/features/
 
 # All tests (CI/CD)
-npm test  # unit → integration → BDD → E2E
+npm test  # unit → integration
+npm run test:bdd  # BDD scenarios
 ```
 
 ## Development Workflow
@@ -749,10 +737,9 @@ Classes/
 test/
   unit/          - Isolated tests (write FIRST)
   integration/   - Component interactions
-  e2e/           - Puppeteer with screenshots (PRIMARY)
-    ui/, camera/, controllers/, screenshots/
-    puppeteer_helper.js, camera_helper.js (CRITICAL!)
-  bdd/           - Behave (headless)
+  bdd/           - Behave scenarios (PRIMARY for browser testing)
+    features/    - .feature files (Gherkin)
+    steps/       - Step definitions (Python)
 docs/
   guides/
     E2E_TESTING_QUICKSTART.md        - MUST READ

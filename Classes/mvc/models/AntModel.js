@@ -70,6 +70,9 @@ class AntModel extends EntityModel {
     this._jobName = options.jobName || null; // Display name
     this._faction = options.faction || 'friendly';
     this._enemies = Array.isArray(options.enemies) ? [...options.enemies] : [];
+    
+    // Set parent EntityModel's public jobName property
+    this.jobName = options.jobName || null;
 
     // Health properties
     this._health = options.health !== undefined ? options.health : 100;

@@ -290,7 +290,7 @@ class RenderController {
   highlightHover() {
     // Debug: log when highlight is set
     if (this._entity._debugger && this._entity._debugger.isActive) {
-      logNormal(`[RenderController.highlightHover] ${this._entity.type || 'Entity'} highlight set to HOVER`);
+      console.log(`[RenderController.highlightHover] ${this._entity.type || 'Entity'} highlight set to HOVER`);
       console.trace('Called from:');
     }
     this.setHighlight("HOVER");

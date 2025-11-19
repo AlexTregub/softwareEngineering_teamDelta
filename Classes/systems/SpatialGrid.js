@@ -35,7 +35,7 @@ class SpatialGrid {
     this._entityCount = 0;
     
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.logNormal === 'function') {
+    if (globalObj && typeof globalObj.console.log === 'function') {
     }
   }
 
@@ -357,7 +357,7 @@ class SpatialGrid {
     this._entityCount = 0;
     
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
-    if (globalObj && typeof globalObj.logNormal === 'function') {
+    if (globalObj && typeof globalObj.console.log === 'function') {
     }
   }
 

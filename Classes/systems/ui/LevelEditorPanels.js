@@ -184,7 +184,7 @@ class LevelEditorPanels {
       // 'level-editor-properties' - Hidden by default (Feature 7)
     );
 
-    logNormal('✅ Level Editor panels initialized and added to DraggablePanelManager');
+    console.log('✅ Level Editor panels initialized and added to DraggablePanelManager');
     return true;
   }
 

@@ -644,8 +644,8 @@ let shareholderDemo = null;
  */
 function initializeShareholderDemo() {
   shareholderDemo = new ShareholderDemo();
-  if (typeof globalThis.logNormal === 'function') {
-    globalThis.logNormal('🎭 Shareholder Demo system initialized');
+  if (typeof globalThis.console.log === 'function') {
+    globalThis.console.log('🎭 Shareholder Demo system initialized');
   } else {
     console.log('🎭 Shareholder Demo system initialized');
   }

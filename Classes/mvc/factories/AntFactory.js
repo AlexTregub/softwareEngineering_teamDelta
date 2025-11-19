@@ -123,15 +123,27 @@ class AntFactory {
 
     console.log('[AntFactory] Ant created successfully at', config.x, config.y);
     
+    // Create MVC wrapper object with proper structure
+    const antEntity = {
+      model: model,
+      view: view,
+      controller: controller,
+      // Delegate methods to controller for compatibility
+      render: controller.render ? controller.render.bind(controller) : null,
+      update: controller.update ? controller.update.bind(controller) : null,
+      setSelected: controller.setSelected ? controller.setSelected.bind(controller) : null,
+      moveToLocation: controller.moveToLocation ? controller.moveToLocation.bind(controller) : null
+    };
+    
     // Auto-register with EntityManager if available
     if (typeof EntityManager !== 'undefined' || (typeof window !== 'undefined' && window.EntityManager)) {
       const EntityMgr = (typeof EntityManager !== 'undefined') ? EntityManager : window.EntityManager;
       const manager = EntityMgr.getInstance();
-      manager.register(controller, 'ant');
+      manager.register(antEntity, 'ant');
       console.log('[AntFactory] Registered with EntityManager. Total ants:', manager.getCount('ant'));
     }
     
-    return { model, view, controller };
+    return antEntity;
   }
 
   // ===== JOB-SPECIFIC CREATION =====

@@ -17,9 +17,14 @@ class ResourceDisplayComponent {
    * @param {number} x - X position
    * @param {number} y - Y position
    * @param {string} factionId - Faction identifier
-   * @param {Object} [sprites={}] - Optional sprite images {food, wood, stone}
+   * @param {Object} [options={}] - Optional configuration
+   * @param {Object} [options.sprites] - Sprite images {food, wood, stone}
+   * @param {EventManager} [options.eventManager] - EventManager for auto-updates
    */
-  constructor(x, y, factionId, sprites = {}) {
+  constructor(x, y, factionId, options = {}) {
+    // Handle backward compatibility: options could be sprites object
+    const sprites = options.sprites || (options.eventManager ? {} : options);
+    
     // Position
     this.x = x;
     this.y = y;
@@ -39,6 +44,15 @@ class ResourceDisplayComponent {
     
     // Sprite storage (deep copy to prevent external mutation)
     this.sprites = { ...sprites };
+    
+    // EventManager integration (Phase 6)
+    this.eventManager = options.eventManager;
+    this._eventUnsubscribers = [];
+    
+    // Setup event listeners if EventManager provided
+    if (this.eventManager) {
+      this._setupEventListeners();
+    }
   }
 
   /**
@@ -203,6 +217,69 @@ class ResourceDisplayComponent {
   _formatNumber(num) {
     if (num === undefined || num === null) return '0';
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  /**
+   * Setup event listeners for resource updates (Phase 6)
+   * @private
+   */
+  _setupEventListeners() {
+    if (!this.eventManager) return;
+    
+    // Subscribe to RESOURCE_UPDATED event
+    const handler = this._onResourceUpdated.bind(this);
+    this.eventManager.on('RESOURCE_UPDATED', handler);
+    
+    // Store unsubscriber for cleanup
+    this._eventUnsubscribers.push(() => {
+      this.eventManager.off('RESOURCE_UPDATED', handler);
+    });
+  }
+
+  /**
+   * Handle RESOURCE_UPDATED event
+   * @private
+   * @param {Object} data - Event data
+   * @param {string} data.factionId - Faction ID
+   * @param {string} [data.resourceType] - Single resource type
+   * @param {number} [data.amount] - Single resource amount
+   * @param {Object} [data.resources] - Bulk resource updates {food, wood, stone}
+   */
+  _onResourceUpdated(data) {
+    if (!data || data.factionId !== this.factionId) {
+      return; // Ignore events for other factions
+    }
+    
+    // Handle bulk updates
+    if (data.resources) {
+      Object.keys(data.resources).forEach(type => {
+        if (this._resources.hasOwnProperty(type)) {
+          this._resources[type] = data.resources[type];
+        }
+      });
+      return;
+    }
+    
+    // Handle single resource update
+    if (data.resourceType && data.amount !== undefined) {
+      const type = data.resourceType.toLowerCase();
+      if (this._resources.hasOwnProperty(type)) {
+        this._resources[type] = data.amount;
+      }
+    }
+  }
+
+  /**
+   * Cleanup event listeners and resources
+   */
+  destroy() {
+    // Unsubscribe from all events
+    this._eventUnsubscribers.forEach(unsubscribe => unsubscribe());
+    this._eventUnsubscribers = [];
+    
+    // Clear references
+    this.eventManager = null;
+    this.sprites = null;
   }
 }
 

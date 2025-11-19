@@ -84,7 +84,7 @@ function stopConsoleCapture() {
 // Convenience: one-off capture function that preserves original behavior
 function captureConsoleOutput(...args) {
   // Mirror to real console first
-  //try { _originalConsole.log.apply(console, args); } catch (e) { /* ignore */ }
+  //try { _originalconsole.log.apply(console, args); } catch (e) { /* ignore */ }
 
   // Capture if active
   if (commandLineActive) {
@@ -96,7 +96,7 @@ function captureConsoleOutput(...args) {
 
 // Optional: Create a game-specific logger that always captures (and mirrors)
 function gameLog(...args) {
-  try { _originalConsole.log.apply(console, args); } catch (e) { /* ignore */ }
+  try { _originalconsole.log.apply(console, args); } catch (e) { /* ignore */ }
   let message = _formatConsoleArgs(args);
   consoleOutput.unshift(message);
   if (consoleOutput.length > 100) consoleOutput.length = 100;

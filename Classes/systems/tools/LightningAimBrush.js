@@ -20,7 +20,7 @@ class LightningAimBrush extends BrushBase {
 
   toggle() {
     this.isActive = !this.isActive;
-    logNormal(`${this.isActive ? '🔵' : '⚪'} Lightning Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
+    console.log(`${this.isActive ? '🔵' : '⚪'} Lightning Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 

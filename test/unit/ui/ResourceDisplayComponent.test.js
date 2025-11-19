@@ -301,11 +301,12 @@ describe('ResourceDisplayComponent - Data Layer (Unit)', function() {
       expect(component.render).to.be.a('function');
     });
 
-    it('should NOT subscribe to events yet (Phase 6)', function() {
+    it('should have EventManager integration (Phase 6 complete)', function() {
       const component = new ResourceDisplayComponent(0, 0, 'player');
 
-      expect(component._setupEventListeners).to.be.undefined;
-      expect(component._eventUnsubscribers).to.be.undefined;
+      expect(component._setupEventListeners).to.be.a('function');
+      expect(component._onResourceUpdated).to.be.a('function');
+      expect(component.destroy).to.be.a('function');
     });
   });
 });

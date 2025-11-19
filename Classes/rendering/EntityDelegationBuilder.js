@@ -410,7 +410,7 @@ class EntityDelegationBuilder {
         // Log performance if tracking enabled
         if (performanceTracking) {
           const elapsed = performance.now() - startTime;
-          logNormal(`Delegation ${this.constructor.name}.${methodName}: ${elapsed.toFixed(2)}ms`);
+          console.log(`Delegation ${this.constructor.name}.${methodName}: ${elapsed.toFixed(2)}ms`);
         }
         
         return result;

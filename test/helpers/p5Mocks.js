@@ -356,13 +356,13 @@ function setupP5Mocks() {
     global.window.p5 = mockP5;
     
     // Setup logging functions
-    global.logNormal = sinon.stub();
+    global.console.log = sinon.stub();
     global.logQuiet = sinon.stub();
     global.logVerbose = sinon.stub();
     global.logWarn = sinon.stub();
     global.logError = sinon.stub();
     
-    global.window.logNormal = global.logNormal;
+    global.window.console.log = global.console.log;
     global.window.logQuiet = global.logQuiet;
     global.window.logVerbose = global.logVerbose;
     global.window.logWarn = global.logWarn;

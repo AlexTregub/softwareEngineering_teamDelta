@@ -41,7 +41,7 @@ globalThis.logQuiet = function(...args) {
   }
 };
 
-globalThis.logNormal = function(...args) {
+globalThis.console.log = function(...args) {
   if (shouldLogAtLevel(2) && console && console.log) {
     console.log(...args);
   }
@@ -97,7 +97,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     logSilent: globalThis.logSilent,
     logQuiet: globalThis.logQuiet,
-    logNormal: globalThis.logNormal,
+    console.log: globalThis.console.log,
     logVerbose: globalThis.logVerbose,
     logDebug: globalThis.logDebug,
     logError: globalThis.logError,

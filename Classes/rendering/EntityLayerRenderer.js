@@ -171,6 +171,7 @@ class EntityRenderer {
   collectAnts(gameState) {
     // Try EntityManager first (MVC entities)
     let antsList = [];
+    
     if (typeof window !== 'undefined' && window.entityManager) {
       antsList = window.entityManager.getByType('ant');
     } 
@@ -197,8 +198,6 @@ class EntityRenderer {
         }
       }
     }
-    
-    console.log('[EntityLayerRenderer] Total ants in ANTS render group:', this.renderGroups.ANTS.length);
     
     // Update ants if in playing state  
     if (gameState === 'PLAYING' && antsUpdate) {

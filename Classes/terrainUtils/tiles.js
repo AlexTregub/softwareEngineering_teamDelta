@@ -367,7 +367,7 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
       if (this._coordSysUpdateId != coordSys.getUpdateId() || this._coordSysPos == NONE) {
         this._coordSysPos = coordSys.convPosToCanvas([this._x,this._y]);
         // console.log("Updating...")
-        logNormal("updating tile...");
+        console.log("updating tile...");
       }
       
       // noSmooth();

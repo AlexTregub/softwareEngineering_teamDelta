@@ -592,7 +592,7 @@ function createMenuButton(x, y, width, height, caption, style = 'default', click
 
   const buttonStyle = {
     ...styleMap[style],
-    onClick: clickHandler || (() => logNormal(`${caption} clicked!`)),
+    onClick: clickHandler || (() => console.log(`${caption} clicked!`)),
     image: image
   };
 

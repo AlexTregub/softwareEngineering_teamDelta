@@ -515,6 +515,32 @@ class EntityController {
     };
   }
 
+  // ===== LIFECYCLE METHODS =====
+  /**
+   * Update entity (game loop)
+   */
+  update() {
+    // Update sub-controllers if they exist
+    if (this.movement && typeof this.movement.update === 'function') {
+      this.movement.update();
+    }
+    if (this.combat && typeof this.combat.update === 'function') {
+      this.combat.update();
+    }
+    if (this.health && typeof this.health.update === 'function') {
+      this.health.update();
+    }
+  }
+
+  /**
+   * Render entity (delegates to view)
+   */
+  render() {
+    if (this.view && typeof this.view.render === 'function') {
+      this.view.render();
+    }
+  }
+
   /**
    * Add effect via EffectsRenderer (INTERNAL)
    * @private

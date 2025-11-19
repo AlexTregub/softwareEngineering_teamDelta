@@ -68,143 +68,169 @@ Adapt the TypeScript `ResourceDisplayComponent` from the AntRedo fork to work wi
 
 ---
 
-### Phase 3: E2E Visual Verification (Screenshots)
-**Test File**: `test/e2e/ui/pw_resource_display.js`
+### Phase 3: BDD Behavior Tests (User-Facing)
+**Test File**: `test/bdd/features/resource_display.feature`
 
-**Tests to Write**:
-- [ ] Resource display renders on screen (screenshot proof)
-- [ ] Shows correct initial resource counts (0, 0, 0)
-- [ ] Updates when resource counts change (via EventManager)
-- [ ] Position updates correctly
-- [ ] Scale multiplier works (test at 1.0 and 1.5)
-- [ ] Survives game state transitions (MENU → PLAYING)
+**Scenarios to Write**:
+- [ ] Player sees resource counts when game starts
+- [ ] Resource counts update when resources collected
+- [ ] Display shows formatted numbers (commas for thousands)
+- [ ] Icons appear for each resource type
+- [ ] Display appears at correct screen position
+- [ ] Display scales with different scale values
 
-**Test Pattern**:
-```javascript
-await page.evaluate(() => {
-  window.g_resourceDisplay = new ResourceDisplayComponent(50, 50, 'player');
-  RenderLayerManager.addDrawableToLayer(
-    RenderLayerManager.layers.UI_GAME,
-    () => window.g_resourceDisplay.render(window.gameState)
-  );
-  window.redraw(); window.redraw(); window.redraw();
-});
-await sleep(500);
-await saveScreenshot(page, 'ui/resource_display_initial', true);
+**Test Pattern** (Gherkin):
+```gherkin
+Feature: Resource Display
+  As a player
+  I want to see my faction's resources on screen
+  So that I can track what I have collected
+
+  Scenario: Initial resource display
+    Given the game is running
+    When I view the screen
+    Then I see resource counts for food, wood, and stone
+    And all counts start at 0
+
+  Scenario: Resources update when collected
+    Given the resource display shows 10 food
+    When 5 food is collected
+    Then the display shows 15 food
 ```
 
 **Deliverables**:
-- [ ] E2E test file with 6-8 tests
-- [ ] Screenshot evidence in `test/e2e/screenshots/ui/success/`
-- [ ] All tests passing
+- [x] BDD feature file with 5-6 scenarios
+- [ ] Step definitions in `test/bdd/steps/resource_display_steps.py`
+- [ ] All BDD tests passing (headless)
 
 ---
 
-### Phase 4: EventManager Integration (Unit + Integration Tests)
-**Test File**: `test/unit/ui/ResourceDisplayComponent.events.test.js`
+### Phase 4: EventManager Integration (COMPLETED ✅)
+**Test File**: `test/unit/ui/ResourceDisplayComponent.eventManager.test.js`
 
-**Tests to Write**:
-- [ ] Component subscribes to resource update events on init
-- [ ] `RESOURCE_UPDATED` event triggers `updateResourceCount()`
-- [ ] Event unsubscription on cleanup/destroy
-- [ ] Multiple components can subscribe independently
-- [ ] Events only update matching factionId
-- [ ] No memory leaks (unsubscribe works)
+**Tests** (22 passing):
+- [x] Component subscribes to resource update events on init
+- [x] `RESOURCE_UPDATED` event triggers resource updates
+- [x] Event unsubscription on cleanup/destroy
+- [x] Multiple components can subscribe independently
+- [x] Events only update matching factionId
+- [x] No memory leaks (unsubscribe works)
+- [x] Bulk resource updates via events
+- [x] Error handling for malformed events
 
 **Implementation**:
-- [ ] Add `setupEventListeners()` method
-- [ ] Subscribe to EventManager events in constructor
-- [ ] Track unsubscribe functions for cleanup
-- [ ] Add `destroy()` method to unregister events
-- [ ] Emit events when ResourceManager changes resources
+- [x] Added `_setupEventListeners()` method
+- [x] Subscribe to EventManager events in constructor (optional)
+- [x] Track unsubscribe functions for cleanup
+- [x] Added `destroy()` method to unregister events
+- [x] Support bulk and single resource updates
 
 **EventManager Integration**:
 ```javascript
-// In ResourceDisplayComponent
-constructor(x, y, factionId) {
-  // ... existing code ...
-  this._eventUnsubscribers = [];
-  this._setupEventListeners();
-}
+// ResourceDisplayComponent now supports:
+const component = new ResourceDisplayComponent(50, 50, 'player', {
+  eventManager: EventManager.getInstance()
+});
 
-_setupEventListeners() {
-  const eventManager = EventManager.getInstance();
-  const unsub = eventManager.on('RESOURCE_UPDATED', (data) => {
-    if (data.factionId === this.factionId) {
-      this.updateResourceCount(data.resourceType, data.amount);
-    }
-  });
-  this._eventUnsubscribers.push(unsub);
-}
+// Auto-updates on event:
+eventManager.emit('RESOURCE_UPDATED', {
+  factionId: 'player',
+  resourceType: 'food',
+  amount: 100
+});
 
-destroy() {
-  this._eventUnsubscribers.forEach(unsub => unsub());
-  this._eventUnsubscribers = [];
-}
+// Cleanup:
+component.destroy();
 ```
 
 **Deliverables**:
-- [ ] Event integration tests passing
-- [ ] ResourceDisplayComponent auto-updates via events
-- [ ] Clean unsubscription on destroy
+- [x] Event integration tests passing (22 tests)
+- [x] ResourceDisplayComponent auto-updates via events
+- [x] Clean unsubscription on destroy
 
 ---
 
-### Phase 5: GameUIOverlay Orchestrator (Factory Pattern)
+### Phase 5: GameUIOverlay Orchestrator (Factory Pattern) ✅ COMPLETE
+
+**Status**: All 34 tests passing  
 **Test File**: `test/unit/ui/GameUIOverlay.test.js`
 
-**Tests to Write**:
-- [ ] GameUIOverlay creates ResourceDisplayComponent
-- [ ] `initialize()` registers component with RenderLayerManager
-- [ ] `update()` exists (for future updates)
-- [ ] `cleanup()` unregisters component and calls destroy()
-- [ ] `setComponentVisibility('resources', false)` hides component
-- [ ] Multiple components can be managed (future: population, minimap)
+**Tests Written** (TDD - tests first):
+- ✅ GameUIOverlay creates ResourceDisplayComponent (7 tests)
+- ✅ `initialize()` registers component with RenderLayerManager (3 tests)
+- ✅ `update()` exists and handles deltaTime (4 tests)
+- ✅ `destroy()` unregisters component and calls cleanup (5 tests)
+- ✅ Multiple components can be managed (1 test)
+- ✅ EventManager integration (2 tests)
+- ✅ Error handling (4 tests)
+- ✅ Component access and state management (8 tests)
 
 **Implementation**:
-- [ ] Create `Classes/ui/GameUIOverlay.js`
-- [ ] Manage component lifecycle (create, register, cleanup)
-- [ ] Store unregister functions for cleanup
-- [ ] Provide visibility toggles
+- ✅ Created `Classes/ui/GameUIOverlay.js` (180 lines)
+- ✅ Manages component lifecycle (create, register, cleanup)
+- ✅ Stores drawable functions for RenderLayerManager cleanup
+- ✅ Provides component access via properties
 
 **API**:
 ```javascript
 const overlay = new GameUIOverlay({
-  canvasWidth: 800,
-  canvasHeight: 800,
-  factionId: 'player',
-  showResources: true
+  eventManager,
+  renderManager
 });
-overlay.initialize(); // Creates and registers components
-overlay.update();     // Per-frame updates
-overlay.cleanup();    // Unregister and destroy
+
+overlay.initialize({
+  position: { x: 10, y: 10 },
+  factionId: 'player'
+});
+
+overlay.update(deltaTime); // Per-frame updates
+overlay.destroy();         // Cleanup
 ```
 
+**API Fix**: Corrected tests to use `renderManager.layerDrawables.get()` (Map property) instead of non-existent `getLayerDrawables()` method.
+
 **Deliverables**:
-- [ ] `Classes/ui/GameUIOverlay.js`
-- [ ] Unit tests passing
-- [ ] Clean lifecycle management
+- ✅ `Classes/ui/GameUIOverlay.js`
+- ✅ 34 unit tests passing
+- ✅ Clean lifecycle with destroy()
+
+**Validation**: **108 total tests passing** (22 EventManager + 27 Data + 25 Rendering + 34 Orchestrator)
 
 ---
 
-### Phase 6: Full System Integration (E2E)
-**Test File**: `test/e2e/ui/pw_game_ui_overlay.js`
+### Phase 6: Full System Integration ✅ COMPLETE
 
-**Tests to Write**:
-- [ ] GameUIOverlay + ResourceDisplayComponent render together
-- [ ] Resource updates via ResourceManager reflect in UI
-- [ ] EventManager events trigger visual updates
-- [ ] Cleanup removes all UI elements
-- [ ] Multiple overlays can coexist (player vs enemy factions)
+**Status**: All 32 integration tests passing  
+**Test File**: `test/integration/ui/fullSystem.integration.test.js`
+
+**Tests Written**:
+- ✅ System initialization (4 tests)
+- ✅ Event-driven updates (4 tests) - RESOURCE_UPDATED event → data update
+- ✅ Rendering pipeline integration (4 tests) - RenderLayerManager → visual output
+- ✅ Complete workflow: Event → Data → Render (3 tests)
+- ✅ Multiple GameUIOverlay instances (4 tests) - player vs enemy factions
+- ✅ Lifecycle management (4 tests) - initialize, update, destroy
+- ✅ Error handling and edge cases (6 tests)
+- ✅ Performance characteristics (3 tests) - 1000 events, 100 renders, no memory leaks
+
+**Key Integration Points Verified**:
+- GameUIOverlay creates and manages ResourceDisplayComponent
+- EventManager emits RESOURCE_UPDATED → ResourceDisplayComponent updates data
+- RenderLayerManager renders ResourceDisplayComponent on UI_GAME layer
+- Multiple overlays coexist independently (faction-specific filtering)
+- Clean lifecycle: initialize() → update() → destroy()
+- Handles 1000 events and 100 render calls efficiently
 
 **Deliverables**:
-- [ ] E2E integration tests passing
-- [ ] Screenshot evidence of full system
-- [ ] All components working together
+- ✅ `test/integration/ui/fullSystem.integration.test.js` (32 tests)
+- ✅ All components working together
+- ✅ No memory leaks verified
+
+**Validation**: **140 total tests passing** (22 EventManager + 27 Data + 25 Rendering + 34 Orchestrator + 32 Full System)
 
 ---
 
-### Phase 7: Documentation
+### Phase 7: Documentation 🔄 IN PROGRESS
 **Files to Create**:
 - [ ] `docs/api/ResourceDisplayComponent_API_Reference.md`
 - [ ] `docs/api/GameUIOverlay_API_Reference.md`
