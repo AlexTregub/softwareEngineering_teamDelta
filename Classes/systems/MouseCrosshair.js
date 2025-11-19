@@ -161,13 +161,11 @@ if (typeof window !== 'undefined') {
   // Console commands
   window.toggleMouseCrosshair = function() {
     const state = window.g_mouseCrosshair.toggle();
-    logNormal(`Mouse crosshair ${state ? 'enabled' : 'disabled'}`);
     return state;
   };
   
   window.setMouseCrosshairSize = function(size) {
     window.g_mouseCrosshair.setSize(size);
-    logNormal(`Mouse crosshair size set to ${size}`);
   };
 }
 

@@ -3,7 +3,6 @@
  * Sets up draggable panels for UI});
     
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ Debug info panel created');s like resource display and performance monitor
  * 
  * @author Software Engineering Team Delta - David Willman
  * @version 1.0.0
@@ -65,7 +64,6 @@ function setupPanelKeyboardShortcuts() {
         // Ctrl+Shift+R: Reset all panels to default positions
         if (keyCode === 82 && keyIsDown(CONTROL) && keyIsDown(SHIFT)) { // 'R' key
           window.draggablePanelManager.resetAllPanels();
-          logNormal('All panels reset to default positions');
         }
       }
     };
@@ -81,7 +79,6 @@ function coordinateWithUIRenderer() {
     // Disable the static performance overlay since we're using draggable panels
     if (window.uiLayerRenderer.debugUI && window.uiLayerRenderer.debugUI.performanceOverlay) {
       window.uiLayerRenderer.debugUI.performanceOverlay.enabled = false;
-      logNormal('✅ Static performance overlay disabled - using draggable panel');
     }
   }
   
@@ -90,7 +87,6 @@ function coordinateWithUIRenderer() {
     if (window.uiLayerRenderer && 
         window.uiLayerRenderer.debugUI && window.uiLayerRenderer.debugUI.performanceOverlay) {
       window.uiLayerRenderer.debugUI.performanceOverlay.enabled = false;
-      logNormal('✅ Static performance overlay disabled (delayed) - using draggable panel');
     }
   }, 1000);
 }

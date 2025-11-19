@@ -417,7 +417,6 @@ class DraggablePanelManager {
             caption: 'Gather 10 wood',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('Gather 10 wood clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T1') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('10 wood')));
@@ -425,14 +424,12 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Gather 10 wood'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
@@ -440,7 +437,6 @@ class DraggablePanelManager {
             caption: 'spawn 5 new ants',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('spawn 5 new ants clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T2') || (t.description && t.description.toLowerCase().includes('spawn') && t.description.includes('5')));
@@ -448,14 +444,12 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.toLowerCase().includes('spawn 5'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
@@ -463,7 +457,6 @@ class DraggablePanelManager {
             caption: 'Kill 10 ants',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('Kill 10 ants clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T3') || (t.description && t.description.toLowerCase().includes('kill') && t.description.includes('10')));
@@ -471,14 +464,12 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('Kill 10'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           },
@@ -486,7 +477,6 @@ class DraggablePanelManager {
             caption: 'Gather 20 leaves',
             style: ButtonStyles.SUCCESS,
             onClick: () => {
-              logNormal('Gather 20 leaves clicked');
               const lib = window.taskLibrary;
               if (!lib) { console.warn('No TaskLibrary available'); return; }
               const task = lib.availableTasks.find(t => (t.ID === 'T4') || (t.description && t.description.toLowerCase().includes('gather') && t.description.includes('20 leaves')));
@@ -494,14 +484,12 @@ class DraggablePanelManager {
               const satisfied = (typeof lib.isTaskResourcesSatisfied === 'function') ? lib.isTaskResourcesSatisfied(task.ID) : false;
               if (satisfied) {
                 task.status = 'COMPLETE';
-                logNormal(`Task ${task.ID} complete`);
                 const panel = this.panels.get('tasks');
                 if (panel && panel.buttons && Array.isArray(panel.buttons.items)) {
                   const btn = panel.buttons.items.find(b => b.caption && b.caption.includes('20 leaves'));
                   if (btn) btn.caption = `${task.description} [COMPLETE]`;
                 }
               } else {
-                logNormal('Task not complete yet:', (lib.getTaskResourceProgress ? lib.getTaskResourceProgress(task.ID) : null));
               }
             }
           }
@@ -926,7 +914,6 @@ class DraggablePanelManager {
       // Reset to initial position from config
       panel.setPosition(panel.config.position.x, panel.config.position.y);
     }
-    logNormal('🔄 Reset all panels to default positions');
   }
 
   /**
@@ -939,7 +926,6 @@ class DraggablePanelManager {
   togglePanelTrainMode() {
     this.debugMode.panelTrainMode = !this.debugMode.panelTrainMode;
     const status = this.debugMode.panelTrainMode ? 'ENABLED' : 'DISABLED';
-    logNormal(`🚂 Panel Train Mode ${status}`);
     return this.debugMode.panelTrainMode;
   }
 
@@ -960,7 +946,6 @@ class DraggablePanelManager {
   setPanelTrainMode(enabled) {
     this.debugMode.panelTrainMode = !!enabled;
     const status = this.debugMode.panelTrainMode ? 'ENABLED' : 'DISABLED';
-    logNormal(`🚂 Panel Train Mode ${status}`);
   }
 
   /**
@@ -978,7 +963,6 @@ class DraggablePanelManager {
       }
     }
     
-    logNormal(`🔍 Global panel scale set to ${this.globalScale.toFixed(2)}x`);
   }
 
   /**
@@ -1072,7 +1056,6 @@ class DraggablePanelManager {
   updateGameState(newState) {
     if (this.gameState !== newState) {
       this.gameState = newState;
-      logNormal(`🎮 Panel visibility updated for state: ${newState}`);
     }
   }
 
@@ -1084,7 +1067,6 @@ class DraggablePanelManager {
    * Spawn multiple ants at random positions or near mouse
    */
   spawnAnts(count = 1) {
-    logVerbose(`🐜 Spawning ${count} ant(s)...`);
     
     let spawned = 0;
     
@@ -1144,7 +1126,6 @@ class DraggablePanelManager {
     // Try each method until one succeeds
     for (const method of spawnMethods) {
       if (method()) {
-        logVerbose(`✅ Successfully spawned ${spawned} ant(s)`);
         return;
       }
     }
@@ -1156,7 +1137,6 @@ class DraggablePanelManager {
    * Spawn a single enemy ant near the mouse cursor or screen center
    */
   spawnEnemyAnt() {
-    logNormal('🔴 Spawning enemy ant...');
     
     // Try multiple spawning methods until we find one that works
     const spawnMethods = [
@@ -1170,7 +1150,6 @@ class DraggablePanelManager {
           
           const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
           if (enemyAnt) {
-            logNormal('✅ Successfully spawned enemy ant using AntUtilities');
             return true;
           }
         }
@@ -1185,7 +1164,6 @@ class DraggablePanelManager {
             executeCommand(`spawn 1 ant enemy`);
             const spawned = ants.length - initialAntCount;
             if (spawned > 0) {
-              logNormal('✅ Successfully spawned enemy ant using command system');
               return true;
             }
           } catch (error) {
@@ -1210,7 +1188,6 @@ class DraggablePanelManager {
    * Spawn multiple enemy ants near the mouse cursor or screen center
    */
   spawnEnemyAnts(count = 1) {
-    logNormal(`🔴 Spawning ${count} enemy ant(s)...`);
     
     let spawned = 0;
     
@@ -1233,7 +1210,6 @@ class DraggablePanelManager {
           }
           
           if (spawned > 0) {
-            logNormal(`✅ Successfully spawned ${spawned} enemy ant(s) using AntUtilities`);
             return true;
           }
         }
@@ -1248,7 +1224,6 @@ class DraggablePanelManager {
             executeCommand(`spawn ${count} ant enemy`);
             spawned = ants.length - initialAntCount;
             if (spawned > 0) {
-              logNormal(`✅ Successfully spawned ${spawned} enemy ant(s) using command system`);
               return true;
             }
           } catch (error) {
@@ -1293,7 +1268,6 @@ class DraggablePanelManager {
       button.style.backgroundColor = isActive ? '#32CD32' : '#FF4500'; // Green when active, orange when inactive
     }
     
-    logNormal(`🎨 Enemy Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
   }
 
   /**
@@ -1320,7 +1294,6 @@ class DraggablePanelManager {
       button.style.backgroundColor = isActive ? '#228B22' : '#32CD32'; // Darker green when active
     }
     
-    logNormal(`🎨 Resource Paint Brush ${isActive ? 'activated' : 'deactivated'}`);
   }
 
   /**
@@ -1378,7 +1351,6 @@ class DraggablePanelManager {
       });
     }
     
-    logNormal(`🏗️ Building Brush ${isActive ? 'activated' : 'deactivated'}: ${buildingType}`);
   }
 
   /**
@@ -1388,7 +1360,6 @@ class DraggablePanelManager {
     if (typeof Buildings !== 'undefined' && Array.isArray(Buildings)) {
       const count = Buildings.length;
       Buildings.length = 0; // Clear the array
-      logNormal(`🏗️ Cleared ${count} building(s)`);
     }
   }
 
@@ -1406,7 +1377,6 @@ class DraggablePanelManager {
     if (typeof queen.unlockPower === 'function') {
       const success = queen.unlockPower(powerName);
       if (success) {
-        logNormal(`✅ Unlocked power: ${powerName}`);
         
         // Update the button to show it's unlocked
         const button = this.findButtonByCaption(`Unlock ${powerName}`, true);
@@ -1443,7 +1413,6 @@ class DraggablePanelManager {
       }
     }
 
-    logNormal(`✅ Unlocked ${unlocked}/${powers.length} powers`);
 
     // Update all unlock buttons to show they're unlocked
     const panel = this.panels.get('cheats');
@@ -1492,7 +1461,6 @@ class DraggablePanelManager {
    * Kill/remove multiple ants from the game
    */
   killAnts(count = 1) {
-    logNormal(`💀 Killing ${count} ant(s)...`);
     
     let killed = 0;
     
@@ -1533,7 +1501,6 @@ class DraggablePanelManager {
     // Try each method until one succeeds
     for (const method of killMethods) {
       if (method()) {
-        logNormal(`✅ Successfully killed ${killed} ant(s)`);
         return;
       }
     }
@@ -1545,7 +1512,6 @@ class DraggablePanelManager {
    * Clear all ants from the game
    */
   clearAnts() {
-    logNormal('🧹 Clearing all ants...');
     
     let cleared = 0;
     
@@ -1564,19 +1530,16 @@ class DraggablePanelManager {
       globalThis.tempAnts.length = 0;
     }
     
-    logNormal(`✅ Cleared ${cleared} ant(s)`);
   }
 
   /**
    * Toggle game pause state
    */
   togglePause() {
-    globalThis.logNormal('⏯️ Toggling pause state...');
     
     // Try multiple pause methods
     if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.togglePause === 'function') {
       g_gameStateManager.togglePause();
-      globalThis.logNormal('✅ Game pause toggled via GameStateManager');
     } else {
       console.warn('⚠️ No pause system available');
     }
@@ -1630,7 +1593,6 @@ class DraggablePanelManager {
         const executed = g_lightningManager.requestStrike(targetAnt);
         const button = this.findButtonByCaption('Shoot Lightning');
         if (executed) {
-          logNormal('⚡ Lightning strike executed', targetAnt && (targetAnt._antIndex || targetAnt.id || 'ant'));
           // Show cooldown on the button if available
           if (button) {
             const cooldownMs = g_lightningManager.cooldown || 3000;
@@ -1648,7 +1610,6 @@ class DraggablePanelManager {
             }, cooldownMs + 50);
           }
         } else {
-          logNormal('⏳ Lightning on cooldown');
           if (button) {
             // Briefly flash the button to indicate cooldown
             const prevColor = button.style.backgroundColor;
@@ -1750,7 +1711,6 @@ class DraggablePanelManager {
         const executed = g_flashManager.requestStrike(targetAnt);
         const button = this.findButtonByCaption('Shoot Final Flash');
         if (executed) {
-          logNormal('⚡ Final Flash strike executed', targetAnt && (targetAnt._antIndex || targetAnt.id || 'ant'));
           // Show cooldown on the button if available
           if (button) {
             const cooldownMs = g_flashManager.cooldown || 3000;
@@ -1768,7 +1728,6 @@ class DraggablePanelManager {
             }, cooldownMs + 50);
           }
         } else {
-          logNormal('⏳ Final Flash on cooldown');
           if (button) {
             // Briefly flash the button to indicate cooldown
             const prevColor = button.style.backgroundColor;
@@ -1791,7 +1750,6 @@ class DraggablePanelManager {
    * Toggle debug information display
    */
   toggleDebug() {
-    logNormal('🔧 Toggling debug mode...');
     
     // Try multiple debug systems
     let debugToggled = false;
@@ -1820,7 +1778,6 @@ class DraggablePanelManager {
         globalThis.debugMode = false;
       }
       globalThis.debugMode = !globalThis.debugMode;
-      logNormal(`✅ Global debug mode ${globalThis.debugMode ? 'enabled' : 'disabled'}`);
       debugToggled = true;
     }
     
@@ -1833,7 +1790,6 @@ class DraggablePanelManager {
    * Select a resource type for interaction
    */
   selectResource(resourceType) {
-    logNormal(`📦 Selected resource: ${resourceType}`);
     if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.selectResource === 'function') {
       g_resourceManager.selectResource(resourceType);
     } else {
@@ -1845,7 +1801,6 @@ class DraggablePanelManager {
    * Show resource information panel
    */
   showResourceInfo() {
-    logNormal('ℹ️ Showing resource information...');
     // TODO: Integrate with resource info system
   }
 
@@ -1853,11 +1808,9 @@ class DraggablePanelManager {
    * Save current game state
    */
   saveGame() {
-    logNormal('💾 Saving game...');
     
     if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.saveGame === 'function') {
       g_gameStateManager.saveGame();
-      logNormal('✅ Game saved via GameStateManager');
     } else {
       // Fallback: Save basic game state to localStorage
       try {
@@ -1867,7 +1820,6 @@ class DraggablePanelManager {
           resourceCount: (typeof g_resourceManager !== 'undefined' && g_resourceManager) ? g_resourceManager.getResourceList().length : 0
         };
         localStorage.setItem('gameState', JSON.stringify(gameState));
-        logNormal('✅ Basic game state saved to localStorage');
       } catch (e) {
         console.warn('⚠️ Could not save game state:', e.message);
       }
@@ -1878,21 +1830,16 @@ class DraggablePanelManager {
    * Load saved game state
    */
   loadGame() {
-    logNormal('📁 Loading game...');
     
     if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.loadGame === 'function') {
       g_gameStateManager.loadGame();
-      logNormal('✅ Game loaded via GameStateManager');
     } else {
       // Fallback: Load from localStorage
       try {
         const savedState = localStorage.getItem('gameState');
         if (savedState) {
           const gameState = JSON.parse(savedState);
-          logNormal('📋 Found saved game state:', gameState);
-          logNormal('✅ Basic game state loaded from localStorage');
         } else {
-          logNormal('ℹ️ No saved game state found');
         }
       } catch (e) {
         console.warn('⚠️ Could not load game state:', e.message);
@@ -1904,18 +1851,15 @@ class DraggablePanelManager {
    * Reset game to initial state
    */
   resetGame() {
-    logNormal('🔄 Resetting game...');
     
     if (typeof g_gameStateManager !== 'undefined' && g_gameStateManager && typeof g_gameStateManager.resetGame === 'function') {
       g_gameStateManager.resetGame();
-      logNormal('✅ Game reset via GameStateManager');
     } else {
       // Fallback: Manual reset
       this.clearAnts();
       if (typeof g_resourceManager !== 'undefined' && g_resourceManager && typeof g_resourceManager.clearAllResources === 'function') {
         g_resourceManager.clearAllResources();
       }
-      logNormal('✅ Basic game reset completed');
     }
   }
 
@@ -1923,7 +1867,6 @@ class DraggablePanelManager {
    * Toggle rendering system on/off
    */
   toggleRendering() {
-    logNormal('🎨 Toggling rendering system...');
     if (typeof g_renderController !== 'undefined' && g_renderController) {
       g_renderController.toggleRendering();
     } else {
@@ -1935,7 +1878,6 @@ class DraggablePanelManager {
    * Toggle performance monitoring
    */
   togglePerformance() {
-    logNormal('📊 Toggling performance monitor...');
     if (typeof g_performanceMonitor !== 'undefined' && g_performanceMonitor) {
       g_performanceMonitor.toggle();
     } else {
@@ -1947,7 +1889,6 @@ class DraggablePanelManager {
    * Toggle entity debug visualization
    */
   toggleEntityDebug() {
-    logNormal('🔍 Toggling entity debug...');
     if (typeof g_entityDebugManager !== 'undefined' && g_entityDebugManager) {
       g_entityDebugManager.toggle();
     } else {
@@ -1959,7 +1900,6 @@ class DraggablePanelManager {
    * Select all ants in the game
    */
   selectAllAnts() {
-    logNormal('🎯 Selecting all ants...');
     
     // Try multiple selection methods
     const selectionMethods = [
@@ -2007,7 +1947,6 @@ class DraggablePanelManager {
             }
           });
           if (selected > 0) {
-            logNormal(`✅ Selected ${selected} ants directly`);
             return true;
           }
         }
@@ -2027,7 +1966,6 @@ class DraggablePanelManager {
    * Deselect all ants in the game
    */
   deselectAllAnts() {
-    logNormal('🎯 Deselecting all ants...');
     
     // Try multiple deselection methods
     const deselectionMethods = [
@@ -2067,7 +2005,6 @@ class DraggablePanelManager {
             }
           });
           if (deselected > 0) {
-            logNormal(`✅ Deselected ${deselected} ants directly`);
             return true;
           }
         }
@@ -2087,7 +2024,6 @@ class DraggablePanelManager {
    * Damage selected ants by specified amount
    */
   damageSelectedAnts(amount) {
-    logNormal(`💥 Damaging selected entities by ${amount} HP...`);
 
     // Preferred: use selection controller to get selected entities (ants/buildings)
     let selected = [];
@@ -2117,15 +2053,13 @@ class DraggablePanelManager {
       }
     });
 
-    if (damagedCount > 0) logNormal(`✅ Damaged ${damagedCount} selected entities by ${amount} HP`);
-    else console.warn('⚠️ No selected entities supported takeDamage()');
+    if (damagedCount === 0) console.warn('⚠️ No selected entities supported takeDamage()');
   }
 
   /**
    * Heal selected ants by specified amount
    */
   healSelectedAnts(amount) {
-    logNormal(`💚 Healing selected entities by ${amount} HP...`);
     
     // Preferred: use selection controller to get selected entities (ants/buildings)
     let selected = [];
@@ -2153,9 +2087,7 @@ class DraggablePanelManager {
         try { entity.heal(amount); healedCount++; } catch (e) { console.warn('Heal call failed', e); }
       }
     });
-
-    if (healedCount > 0) logNormal(`✅ Healed ${healedCount} selected entities by ${amount} HP`);
-    else console.warn('⚠️ No selected entities supported heal()');
+    if (healedCount === 0) console.warn('⚠️ No selected entities supported heal()');
   }
 
   // --- Ant State Control Methods ---
@@ -2164,7 +2096,6 @@ class DraggablePanelManager {
    * Set selected ants to IDLE state
    */
   setSelectedAntsIdle() {
-    logNormal('😴 Setting selected ants to IDLE state...');
     this._setSelectedAntsState('IDLE', 'OUT_OF_COMBAT', 'DEFAULT');
   }
 
@@ -2172,7 +2103,6 @@ class DraggablePanelManager {
    * Set selected ants to PATROL state
    */
   setSelectedAntsPatrol() {
-    logNormal('🚶 Setting selected ants to PATROL state...');
     this._setSelectedAntsState('PATROL', 'OUT_OF_COMBAT', 'DEFAULT');
   }
 
@@ -2180,7 +2110,6 @@ class DraggablePanelManager {
    * Set selected ants to combat state
    */
   setSelectedAntsCombat() {
-    logNormal('⚔️ Setting selected ants to COMBAT state...');
     this._setSelectedAntsState('MOVING', 'IN_COMBAT', 'DEFAULT');
   }
 
@@ -2188,7 +2117,6 @@ class DraggablePanelManager {
    * Set selected ants to BUILDING state
    */
   setSelectedAntsBuilding() {
-    logNormal('🏗️ Setting selected ants to BUILDING state...');
     this._setSelectedAntsState('BUILDING', 'OUT_OF_COMBAT', 'DEFAULT');
   }
 
@@ -2196,10 +2124,8 @@ class DraggablePanelManager {
    * Set selected ants to GATHERING state for autonomous resource collection
    */
   setSelectedAntsGathering() {
-    logNormal('🔍 Setting selected ants to GATHERING state (7-grid radius)...');
     if (typeof AntUtilities !== 'undefined' && AntUtilities.setSelectedAntsGathering && typeof ants !== 'undefined' && Array.isArray(ants)) {
       const count = AntUtilities.setSelectedAntsGathering(ants);
-      logNormal(`✅ Set ${count} ants to autonomous gathering mode`);
     } else {
       console.warn('AntUtilities.setSelectedAntsGathering not available - using fallback');
       // Fallback to basic state setting
@@ -2258,7 +2184,6 @@ class DraggablePanelManager {
         });
         
         if (changedCount > 0) {
-          logNormal(`✅ Changed state of ${changedCount} ants to ${primaryState}`);
           return;
         }
       }
@@ -2281,7 +2206,6 @@ class DraggablePanelManager {
       });
       
       if (changedCount > 0) {
-        logNormal(`✅ Changed state of ${changedCount} ants to ${primaryState} (direct manipulation)`);
         
         // Synchronize selection systems after successful state change
         if (typeof AntUtilities !== 'undefined' && typeof AntUtilities.synchronizeSelections === 'function') {
@@ -2305,7 +2229,6 @@ class DraggablePanelManager {
    * Dump debug information to console
    */
   dumpConsole() {
-    logNormal('📝 Dumping debug information...');
     console.table({
       'Panel Manager': {
         initialized: this.isInitialized,
@@ -2324,7 +2247,6 @@ class DraggablePanelManager {
   dispose() {
     this.panels.clear();
     this.isInitialized = false;
-    logNormal('🗑️ DraggablePanelManager disposed');
   }
 }
 

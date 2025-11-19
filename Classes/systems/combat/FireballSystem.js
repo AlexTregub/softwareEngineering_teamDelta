@@ -46,7 +46,6 @@ class Fireball {
     // Collision detection
     this.collisionRadius = 15;
     
-    logNormal(`🔥 Fireball created from (${Math.round(startX)}, ${Math.round(startY)}) to (${Math.round(targetX)}, ${Math.round(targetY)})`);
   }
 
   /**
@@ -137,12 +136,10 @@ class Fireball {
    * @param {Object} ant - The ant that was hit
    */
   hitAnt(ant) {
-    logNormal(`🔥 Fireball hit ant ${ant._antIndex || 'unknown'}!`);
     
     // Deal damage to the ant
     if (typeof ant.takeDamage === 'function') {
       ant.takeDamage(this.damage);
-      logNormal(`💥 Dealt ${this.damage} damage to ant. Health: ${ant.health}/${ant._maxHealth}`);
     }
 
     // Create explosion effect
@@ -160,7 +157,6 @@ class Fireball {
   explode() {
     this.hasExploded = true;
     this.isActive = false;
-    logNormal(`💥 Fireball exploded at (${Math.round(this.x)}, ${Math.round(this.y)})`);
     
     // Could add particle effects here later
   }
@@ -359,7 +355,6 @@ let g_fireballManager = null;
 function initializeFireballSystem() {
   if (!g_fireballManager) {
     g_fireballManager = new FireballManager();
-    logNormal('🔥 Fireball system initialized');
   }
   return g_fireballManager;
 }

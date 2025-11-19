@@ -197,10 +197,6 @@ class RenderLayerManager {
 
     // Dropoff UI and pause menu UI belong to UI_GAME layer if available
     if (typeof window !== 'undefined') {
-      if (typeof window.drawDropoffUI === 'function' && !RenderManager._registeredDrawables.drawDropoffUI) {
-        RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.drawDropoffUI.bind(window));
-        RenderManager._registeredDrawables.drawDropoffUI = true;
-      }
       if (typeof window.renderPauseMenuUI === 'function' && !RenderManager._registeredDrawables.renderPauseMenuUI) {
         RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, window.renderPauseMenuUI.bind(window));
         RenderManager._registeredDrawables.renderPauseMenuUI = true;
@@ -569,6 +565,8 @@ class RenderLayerManager {
       return;
     }
     
+    console.log('[RenderLayerManager] renderEntitiesLayer() - applying camera transform');
+    
     push();
     this.applyZoom();
     
@@ -579,6 +577,8 @@ class RenderLayerManager {
     // Use EntityRenderer instance for all entity rendering
     if (entityRenderer && typeof entityRenderer.renderAllLayers === 'function') {
       entityRenderer.renderAllLayers(gameState);
+    } else {
+      console.warn('[RenderLayerManager] EntityRenderer not found or missing renderAllLayers method');
     }
     pop();
   }
@@ -667,9 +667,6 @@ class RenderLayerManager {
   renderInteractionUI(gameState) {
     // Only show interaction UI during active gameplay
     if (gameState !== 'PLAYING') return;
-    
-    window.updateDropoffUI();
-    window.drawDropoffUI();
   }
   
   /**
@@ -976,7 +973,6 @@ class RenderLayerManager {
    */
   forceAllLayersVisible() {
     this.enableAllLayers();
-    logNormal('✅ All render layers forced visible:', this.getLayerStates());
     return this.getLayerStates();
   }
 
@@ -1080,7 +1076,6 @@ class RenderLayerManager {
             if (handlerName && typeof interactive[handlerName] === 'function') {
               const consumed = interactive[handlerName](pointer) === true;
               if (consumed) {
-                logNormal(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
                 // If interactive wants pointer capture, it should set capture via return value or property
                 if (interactive.capturePointer) {
                   this._pointerCapture = { owner: interactive, pointerId: pointer.pointerId };
@@ -1156,11 +1151,6 @@ function renderPipelineInit() {
   //
   window.g_uiDebugManager = new UIDebugManager();
   g_uiDebugManager = window.g_uiDebugManager; // Make globally available
-  
-  // Initialize dropoff UI if present (creates the Place Dropoff button)
-  if (typeof window.initDropoffUI === 'function') {
-    window.initDropoffUI();
-  }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
@@ -1200,7 +1190,6 @@ if (typeof window !== 'undefined') {
   
   // Add global console command to check layer states
   window.checkLayerStates = function() {
-    logNormal('🎨 Current layer states:', RenderManager.getLayerStates());
     return RenderManager.getLayerStates();
   };
   

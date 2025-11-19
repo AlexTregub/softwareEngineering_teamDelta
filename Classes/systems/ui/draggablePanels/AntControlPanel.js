@@ -59,29 +59,21 @@ function initializeAntControlPanel() {
     });
 
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('✅ Ant Control Panel created');
     } else {
-      logNormal('✅ Ant Control Panel created');
     }
     
     // Ensure panel is visible and force update
     if (antControlPanel && typeof antControlPanel.setVisible === 'function') {
       antControlPanel.setVisible(true);
       if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose('✅ Ant Control Panel visibility explicitly set to true');
       } else {
-        logNormal('✅ Ant Control Panel visibility explicitly set to true');
       }
     }
     
     // Log panel manager state for debugging
     if (window.draggablePanelManager) {
       if (typeof globalThis.logVerbose === 'function') {
-        globalThis.logVerbose(`📊 Panel Manager Stats: ${window.draggablePanelManager.getPanelCount()} panels registered`);
-        globalThis.logVerbose(`👁️ Visible panels: ${window.draggablePanelManager.getVisiblePanelCount()}`);
       } else {
-        logNormal(`📊 Panel Manager Stats: ${window.draggablePanelManager.getPanelCount()} panels registered`);
-        logNormal(`👁️ Visible panels: ${window.draggablePanelManager.getVisiblePanelCount()}`);
       }
     }
 
@@ -90,13 +82,10 @@ function initializeAntControlPanel() {
       if (window.draggablePanelManager && window.draggablePanelManager.hasPanel('ant-control')) {
         const isVisible = window.draggablePanelManager.isPanelVisible('ant-control');
         if (typeof globalThis.logVerbose === 'function') {
-          globalThis.logVerbose(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
         } else {
-          logVerbose(`🔍 Delayed check - Ant Control Panel visible: ${isVisible}`);
         }
         
         if (!isVisible) {
-          logVerbose('⚡ Panel was not visible, forcing visibility...');
           showAntControlPanel();
         }
       }
@@ -251,7 +240,6 @@ function renderJobSpawnButton(jobName, x, y, w, h) {
     const currentFaction = getSelectedFaction();
     
     AntUtilities.spawnAnt(spawnX, spawnY, jobName, currentFaction);
-    logNormal(`Spawned ${jobName} ant with faction ${currentFaction}`);
   }
 }
 
@@ -300,7 +288,6 @@ function renderEnemySpawnButton(buttonText, x, y, w, h) {
     }
     
     AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy", enemyImage);
-    logNormal(`Spawned Enemy Warrior ant at (${spawnX}, ${spawnY})`);
   }
 }
 
@@ -432,11 +419,9 @@ function showAntControlPanel() {
     const panel = window.draggablePanelManager.getPanel('ant-control');
     if (panel && typeof panel.setVisible === 'function') {
       panel.setVisible(true);
-      logVerbose('👁️ Ant Control Panel is now visible');
     } else {
       // Fallback method if setVisible doesn't exist
       window.draggablePanelManager.showPanel('ant-control');
-      logVerbose('👁️ Ant Control Panel shown via showPanel');
     }
   } else {
     console.error('❌ Cannot show panel - DraggablePanelManager or panel not available');
@@ -451,11 +436,9 @@ function hideAntControlPanel() {
     const panel = window.draggablePanelManager.getPanel('ant-control');
     if (panel && typeof panel.setVisible === 'function') {
       panel.setVisible(false);
-      logNormal('👁️ Ant Control Panel is now hidden');
     } else {
       // Fallback method
       window.draggablePanelManager.hidePanel('ant-control');
-      logNormal('👁️ Ant Control Panel hidden via hidePanel');
     }
   } else {
     console.error('❌ Cannot hide panel - DraggablePanelManager or panel not available');
@@ -470,7 +453,6 @@ function toggleAntControlPanel() {
     const panel = window.draggablePanelManager.getPanel('ant-control');
     if (panel && typeof panel.toggleVisibility === 'function') {
       panel.toggleVisibility();
-      logNormal('👁️ Ant Control Panel visibility toggled');
     } else {
       // Try to determine current state and toggle
       const isVisible = window.draggablePanelManager.isPanelVisible('ant-control');

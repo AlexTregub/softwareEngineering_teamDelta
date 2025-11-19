@@ -81,11 +81,11 @@ class EntityRenderer {
     }
     
     // Render each group in order
-    this.renderGroup(this.renderGroups.BACKGROUND);
-    this.renderGroup(this.renderGroups.RESOURCES);
-    this.renderGroup(this.renderGroups.ANTS);
-    this.renderGroup(this.renderGroups.EFFECTS);
-    this.renderGroup(this.renderGroups.FOREGROUND);
+    this.renderGroup(this.renderGroups.BACKGROUND, 'BACKGROUND');
+    this.renderGroup(this.renderGroups.RESOURCES, 'RESOURCES');
+    this.renderGroup(this.renderGroups.ANTS, 'ANTS');
+    this.renderGroup(this.renderGroups.EFFECTS, 'EFFECTS');
+    this.renderGroup(this.renderGroups.FOREGROUND, 'FOREGROUND');
     
     // End rendering phase, start post-processing
     if (g_performanceMonitor) {
@@ -169,9 +169,19 @@ class EntityRenderer {
    * Collect ant entities
    */
   collectAnts(gameState) {
-    for (let i = 0; i < ants.length; i++) {
-      if (ants[i]) {
-        const ant = ants[i];
+    // Try EntityManager first (MVC entities)
+    let antsList = [];
+    if (typeof window !== 'undefined' && window.entityManager) {
+      antsList = window.entityManager.getByType('ant');
+    } 
+    // Fallback to global ants array (legacy entities)
+    else if (typeof ants !== 'undefined' && Array.isArray(ants)) {
+      antsList = ants;
+    }
+    
+    for (let i = 0; i < antsList.length; i++) {
+      if (antsList[i]) {
+        const ant = antsList[i];
         this.stats.totalEntities++;
         
         if (this.shouldRenderEntity(ant)) {
@@ -187,6 +197,8 @@ class EntityRenderer {
         }
       }
     }
+    
+    console.log('[EntityLayerRenderer] Total ants in ANTS render group:', this.renderGroups.ANTS.length);
     
     // Update ants if in playing state  
     if (gameState === 'PLAYING' && antsUpdate) {
@@ -308,7 +320,7 @@ class EntityRenderer {
   /**
    * Render a specific entity group
    */
-  renderGroup(entityGroup) {
+  renderGroup(entityGroup, groupName) {
     if (!entityGroup || entityGroup.length === 0) return;
     
     if (this.config.enableBatching && entityGroup.length > this.config.maxBatchSize) {
@@ -316,14 +328,14 @@ class EntityRenderer {
       this.renderEntityGroupBatched(entityGroup);
     } else {
       // Standard render for small groups
-      this.renderEntityGroupStandard(entityGroup);
+      this.renderEntityGroupStandard(entityGroup, groupName);
     }
   }
   
   /**
    * Standard rendering for entity groups
    */
-  renderEntityGroupStandard(entityGroup) {
+  renderEntityGroupStandard(entityGroup, groupName) {
     for (const entityData of entityGroup) {
       try {
         if (entityData.entity && entityData.entity.render) {

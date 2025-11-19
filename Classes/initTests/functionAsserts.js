@@ -29,7 +29,6 @@ class FunctionAsserts {
      * @returns {boolean} True if all critical assertions pass
      */
     runAllAsserts() {
-        logNormal('🔍 Running rendering system function assertions...');
         
         this.assertP5JSFunctions();
         this.assertGlobalDependencies();
@@ -64,7 +63,6 @@ class FunctionAsserts {
 
         if (missingFunctions.length === 0) {
             this.assertionResults.p5js = true;
-            logNormal('✅ p5.js functions available');
         } else {
             this.errors.push(`❌ Missing p5.js functions: ${missingFunctions.join(', ')}`);
             console.error('❌ p5.js functions missing:', missingFunctions);
@@ -105,7 +103,6 @@ class FunctionAsserts {
 
         if (missing.length === 0) {
             this.assertionResults.globalDependencies = true;
-            logNormal('✅ Global dependencies available');
         } else {
             this.errors.push(`❌ Missing global dependencies: ${missing.join(', ')}`);
         }
@@ -166,7 +163,6 @@ class FunctionAsserts {
 
         if (missing.length === 0) {
             this.assertionResults.renderingFunctions = true;
-            logNormal('✅ Rendering functions available');
         } else {
             this.errors.push(`❌ Missing rendering functions: ${missing.join(', ')}`);
         }
@@ -205,7 +201,6 @@ class FunctionAsserts {
 
         this.assertionResults.gameSystems = systems.length > 0;
         if (this.assertionResults.gameSystems) {
-            logNormal('✅ Game systems initialized');
         }
     }
 
@@ -213,23 +208,12 @@ class FunctionAsserts {
      * Display assertion results to console
      */
     displayResults() {
-        logNormal('\n📊 Function Assertion Results:');
-        logNormal(`p5.js Functions: ${this.assertionResults.p5js ? '✅' : '❌'}`);
-        logNormal(`Global Dependencies: ${this.assertionResults.globalDependencies ? '✅' : '❌'}`);
-        logNormal(`Rendering Functions: ${this.assertionResults.renderingFunctions ? '✅' : '❌'}`);
-        logNormal(`Game Systems: ${this.assertionResults.gameSystems ? '✅' : '❌'}`);
         
         if (this.warnings.length > 0) {
-            logNormal('\n⚠️ Warnings:');
-            this.warnings.forEach(warning => logNormal(warning));
         }
 
         if (this.errors.length > 0) {
-            logNormal('\n❌ Critical Errors:');
-            this.errors.forEach(error => logNormal(error));
-            logNormal('\n🚫 Rendering system cannot start safely!');
         } else {
-            logNormal('\n🎉 All critical assertions passed - rendering system ready!');
         }
     }
 

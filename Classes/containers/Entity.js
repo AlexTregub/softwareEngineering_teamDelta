@@ -89,29 +89,7 @@ class Entity {
    * @private
    */
   _initializeDebugger(options = {}) {
-    if (typeof UniversalDebugger !== 'undefined') {
-      try {
-        // Configure debugger with entity-specific settings
-        const debugConfig = {
-          showBoundingBox: true,
-          showPropertyPanel: options.showDebugPanel !== false,
-          borderColor: options.debugBorderColor || '#FF0000',
-          fillColor: options.debugFillColor || 'rgba(255, 0, 0, 0.1)',
-          autoRefresh: options.debugAutoRefresh || false,
-          fontSize: options.debugFontSize || 10,
-          ...options.debugConfig
-        };
-        
-        this._debugger = new UniversalDebugger(this, debugConfig);
-        
-        // Register this entity with the global debug manager if available
-        window.EntityDebugManager.registerEntity(this);
-
-      } catch (error) {
-        console.warn('Failed to initialize entity debugger:', error);
-        this._debugger = null;
-      }
-    }
+    // no opp
   }
 
   // --- Controller Initialization ---

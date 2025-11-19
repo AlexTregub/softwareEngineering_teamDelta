@@ -355,17 +355,19 @@ class FinalFlash extends Power{
     }
 }
 
-class Fireball extends Power{
-    constructor(damage, x, y, name){
-        super(damage, x, y, "strike", name);
-    }
-    activate(){
-
-    }
-    render(){
-        
-    }
-}
+// Note: This legacy Fireball class is not used. The active implementation is in FireballSystem.js
+// Keeping this commented out to avoid redeclaration errors.
+// class FireballPower extends Power{
+//     constructor(damage, x, y, name){
+//         super(damage, x, y, "strike", name);
+//     }
+//     activate(){
+// 
+//     }
+//     render(){
+//         
+//     }
+// }
 
 class PowerManager{
     constructor(forWeather = false){

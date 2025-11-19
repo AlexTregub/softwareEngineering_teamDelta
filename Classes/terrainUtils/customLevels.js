@@ -17,7 +17,6 @@
  * @returns {gridTerrain} The generated terrain
  */
 function createMossStoneColumnLevel(chunksX, chunksY, seed, chunkSize = CHUNK_SIZE, tileSize = TILE_SIZE, canvasSize = [windowWidth, windowHeight]) {
-  logNormal("🏛️ Creating Moss & Stone Column Level");
   
   // Create terrain with 'columns' generation mode
   const terrain = new gridTerrain(chunksX, chunksY, seed, chunkSize, tileSize, canvasSize, 'columns');
@@ -25,7 +24,6 @@ function createMossStoneColumnLevel(chunksX, chunksY, seed, chunkSize = CHUNK_SI
   // Align to canvas
   terrain.renderConversion.alignToCanvas();
   
-  logNormal("✅ Moss & Stone Column Level created");
   return terrain;
 }
 
@@ -41,7 +39,6 @@ function createMossStoneColumnLevel(chunksX, chunksY, seed, chunkSize = CHUNK_SI
  * @returns {gridTerrain} The generated terrain
  */
 function createMossStoneCheckerboardLevel(chunksX, chunksY, seed, chunkSize = CHUNK_SIZE, tileSize = TILE_SIZE, canvasSize = [windowWidth, windowHeight]) {
-  logNormal("♟️ Creating Moss & Stone Checkerboard Level");
   
   // Create terrain with 'checkerboard' generation mode
   const terrain = new gridTerrain(chunksX, chunksY, seed, chunkSize, tileSize, canvasSize, 'checkerboard');
@@ -49,16 +46,9 @@ function createMossStoneCheckerboardLevel(chunksX, chunksY, seed, chunkSize = CH
   // Align to canvas
   terrain.renderConversion.alignToCanvas();
   
-  logNormal("✅ Moss & Stone Checkerboard Level created");
   return terrain;
 }
 
 // Export functions to global scope for easy access
 window.createMossStoneColumnLevel = createMossStoneColumnLevel;
 window.createMossStoneCheckerboardLevel = createMossStoneCheckerboardLevel;
-
-logNormal("🎮 Custom Levels Module Loaded");
-logNormal("  - createMossStoneColumnLevel() - 'columns' generation mode");
-logNormal("  - createMossStoneCheckerboardLevel() - 'checkerboard' generation mode");
-logNormal("  - Available modes: 'perlin' (default), 'columns', 'checkerboard', 'flat'");
-

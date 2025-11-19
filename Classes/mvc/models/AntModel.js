@@ -21,7 +21,8 @@
  * @version 1.0.0
  */
 
-const EntityModel = require('./EntityModel.js');
+// EntityModel is loaded via index.html script tag
+// const EntityModel = require('./EntityModel.js'); // Not needed in browser
 
 class AntModel extends EntityModel {
   /**

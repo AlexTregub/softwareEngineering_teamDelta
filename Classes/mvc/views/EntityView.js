@@ -36,7 +36,7 @@ class EntityView {
 
     // Render sprite if available, otherwise fallback to rect
     if (this.model.sprite) {
-      // Sync sprite position with model
+      // Sync sprite position with model (using screen coordinates)
       this._syncSpritePosition();
       
       push();
@@ -52,17 +52,21 @@ class EntityView {
 
   /**
    * Sync sprite position/size with model (INTERNAL)
+   * Converts world coordinates to screen coordinates
    * @private
    */
   _syncSpritePosition() {
     if (!this.model.sprite) return;
-    if (!this.model.sprite.pos || !this.model.sprite.size) return; // Guard against incomplete sprite
+    if (!this.model.sprite.pos || !this.model.sprite.size) return;
     
     const pos = this.model.getPosition();
     const size = this.model.getSize();
     
-    this.model.sprite.pos.x = pos.x;
-    this.model.sprite.pos.y = pos.y;
+    // Convert world position to screen position
+    const screenPos = this._getScreenPosition();
+    
+    this.model.sprite.pos.x = screenPos.x;
+    this.model.sprite.pos.y = screenPos.y;
     this.model.sprite.size.x = size.x;
     this.model.sprite.size.y = size.y;
   }
@@ -75,12 +79,43 @@ class EntityView {
     const pos = this.model.getPosition();
     const size = this.model.getSize();
     
+    // Convert world position to screen position
+    const screenPos = this._getScreenPosition();
+    
     push();
     fill(150);
     stroke(0);
     strokeWeight(1);
-    rect(pos.x - size.x/2, pos.y - size.y/2, size.x, size.y);
+    rectMode(CORNER);
+    rect(screenPos.x - size.x/2, screenPos.y - size.y/2, size.x, size.y);
+    
+    // Debug: Show position text
+    fill(255, 255, 0);
+    textSize(10);
+    textAlign(CENTER);
+    text(`${Math.round(pos.x)},${Math.round(pos.y)}`, screenPos.x, screenPos.y - size.y/2 - 5);
     pop();
+  }
+
+  /**
+   * Convert world position to screen position using terrain's coordinate converter
+   * Used by all MVC entities to handle camera transforms
+   * @protected
+   * @returns {Object} Screen position {x, y}
+   */
+  _getScreenPosition() {
+    const pos = this.model.getPosition();
+    
+    // Convert world position to screen position using terrain's coordinate converter
+    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+      const tileX = pos.x / TILE_SIZE;
+      const tileY = pos.y / TILE_SIZE;
+      const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+      return { x: screenPos[0], y: screenPos[1] };
+    }
+    
+    // Fallback to world position if converter not available
+    return pos;
   }
 
   /**

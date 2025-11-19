@@ -21,15 +21,28 @@ class GameStateManager {
       LEVEL_EDITOR: "LEVEL_EDITOR"
     };
     
-    // Get EventManager instance for pub/sub
+    // EventManager will be lazily retrieved when needed
     this._eventBus = null;
-    if (typeof EventManager !== 'undefined') {
-      this._eventBus = EventManager.getInstance();
-    } else if (typeof window !== 'undefined' && window.EventManager) {
-      this._eventBus = window.EventManager.getInstance();
-    } else if (typeof global !== 'undefined' && global.EventManager) {
-      this._eventBus = global.EventManager.getInstance();
+  }
+
+  // Lazy getter for EventManager - checks at runtime
+  get eventBus() {
+    if (!this._eventBus) {
+      if (typeof EventManager !== 'undefined') {
+        this._eventBus = EventManager.getInstance();
+        console.log('🎮 GameStateManager: EventManager lazily initialized');
+      } else if (typeof window !== 'undefined' && window.EventManager) {
+        this._eventBus = window.EventManager.getInstance();
+        console.log('🎮 GameStateManager: EventManager lazily initialized via window');
+      } else if (typeof global !== 'undefined' && global.EventManager) {
+        this._eventBus = global.EventManager.getInstance();
+        console.log('🎮 GameStateManager: EventManager lazily initialized via global');
+      } else if (typeof window !== 'undefined' && window.eventManager) {
+        this._eventBus = window.eventManager;
+        console.log('🎮 GameStateManager: Using window.eventManager instance');
+      }
     }
+    return this._eventBus;
   }
 
   // Get current state
@@ -39,6 +52,8 @@ class GameStateManager {
 
   // Set state with optional callback execution
   setState(newState, skipCallbacks = false) {
+    console.log(`🎮 GameStateManager.setState() called: ${this.currentState} -> ${newState}`);
+    
     if (!this.isValidState(newState)) {
       console.warn(`Invalid game state: ${newState}`);
       return false;
@@ -46,6 +61,8 @@ class GameStateManager {
 
     this.previousState = this.currentState;
     this.currentState = newState;
+    
+    console.log(`🎮 State changed from ${this.previousState} to ${this.currentState}`);
 
     if (!skipCallbacks) {
       this.executeCallbacks(newState, this.previousState);
@@ -61,19 +78,27 @@ class GameStateManager {
    * @param {string} oldState - Previous state
    */
   _emitStateEvents(newState, oldState) {
-    if (!this._eventBus) return;
+    // Use getter to lazily initialize EventManager
+    const eventBus = this.eventBus;
+    if (!eventBus) {
+      console.warn('🎮 GameStateManager: No EventManager available for state events');
+      return;
+    }
     
     // Get EntityEvents if available
     const EntityEvents = (typeof window !== 'undefined' && window.EntityEvents) ||
                         (typeof global !== 'undefined' && global.EntityEvents) ||
                         (typeof require !== 'undefined' ? require('../events/EntityEvents.js') : null);
     
-    if (!EntityEvents) return;
+    if (!EntityEvents) {
+      console.warn('🎮 GameStateManager: EntityEvents not available');
+      return;
+    }
     
     const timestamp = Date.now();
     
     // Always emit GAME_STATE_CHANGED
-    this._eventBus.emit(EntityEvents.GAME_STATE_CHANGED, {
+    eventBus.emit(EntityEvents.GAME_STATE_CHANGED, {
       oldState: oldState,
       newState: newState,
       timestamp: timestamp
@@ -81,14 +106,16 @@ class GameStateManager {
     
     // Emit GAME_PLAYING_STARTED when entering PLAYING state
     if (newState === 'PLAYING' && oldState !== 'PLAYING') {
-      this._eventBus.emit(EntityEvents.GAME_PLAYING_STARTED, {
+      console.log('🎮 GameStateManager: Emitting GAME_PLAYING_STARTED event');
+      eventBus.emit(EntityEvents.GAME_PLAYING_STARTED, {
         timestamp: timestamp
       });
+      console.log('🎮 GameStateManager: GAME_PLAYING_STARTED event emitted');
     }
     
     // Emit GAME_PLAYING_STOPPED when leaving PLAYING state
     if (oldState === 'PLAYING' && newState !== 'PLAYING') {
-      this._eventBus.emit(EntityEvents.GAME_PLAYING_STOPPED, {
+      eventBus.emit(EntityEvents.GAME_PLAYING_STOPPED, {
         reason: newState,
         timestamp: timestamp
       });

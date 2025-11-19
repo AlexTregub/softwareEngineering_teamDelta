@@ -100,7 +100,6 @@ function setup() {
 
   // Initialize TaskLibrary before other systems that depend on it
   // window.taskLibrary = window.taskLibrary || new TaskLibrary();
-  // logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
 
   
   g_canvasX = windowWidth;
@@ -108,10 +107,21 @@ function setup() {
   RenderMangerOverwrite = false
   createCanvas(g_canvasX, g_canvasY);
   
+  // Initialize EventManager singleton FIRST (before any event registration)
+  if (typeof EventManager !== 'undefined') {
+    window.eventManager = EventManager.getInstance();
+    console.log('✅ EventManager initialized');
+  }
+  
+  // Initialize EntityManager for MVC entity tracking
+  if (typeof EntityManager !== 'undefined') {
+    window.entityManager = EntityManager.getInstance();
+    console.log('✅ EntityManager initialized');
+  }
+  
   // Initialize spatial grid manager FIRST (before any entities are created)
   if (typeof SpatialGridManager !== 'undefined') {
     window.spatialGridManager = new SpatialGridManager(TILE_SIZE); // Match terrain tile size (32px)
-    logNormal(`SpatialGridManager initialized with ${TILE_SIZE}px cells (matching terrain tiles)`);
     
     // Register spatial grid visualization in debug layer (only renders when enabled)
     if (typeof RenderManager !== 'undefined') {
@@ -210,10 +220,6 @@ function setup() {
   }
 
   initializeQueenControlPanel();
-  // window.g_fireballManager = new FireballManager();
-  window.eventManager = EventManager.getInstance();
-  window.eventDebugManager = new EventDebugManager();
-  window.eventManager.setEventDebugManager(window.eventDebugManager);
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
@@ -243,10 +249,13 @@ function setup() {
   // Register ant spawning on GAME_PLAYING_STARTED event
   if (typeof window.eventManager !== 'undefined' && typeof EntityEvents !== 'undefined' && typeof AntFactory !== 'undefined') {
     console.log('✅ Registering GAME_PLAYING_STARTED event listener');
+    console.log('   - eventManager:', !!window.eventManager);
+    console.log('   - EntityEvents.GAME_PLAYING_STARTED:', EntityEvents.GAME_PLAYING_STARTED);
+    console.log('   - AntFactory:', !!AntFactory);
     
     window.eventManager.on(EntityEvents.GAME_PLAYING_STARTED, (data) => {
-      console.log('🐜 GAME_PLAYING_STARTED event received, spawning initial ants...');
-      logNormal('GAME_PLAYING_STARTED event received, spawning initial ants...');
+      console.log('🐜🐜🐜 GAME_PLAYING_STARTED event received! Data:', data);
+      console.log('🐜 Spawning initial ants...');
       
       // Find anthill location (or use default near map center)
       let spawnX = 400;
@@ -261,26 +270,36 @@ function setup() {
         }
       }
       
-      // Spawn 5 worker ants using AntFactory
-      const ants = AntFactory.createMultiple(5, {
-        jobName: 'Worker',
-        x: spawnX,
-        y: spawnY,
-        faction: 'player',
-        spacing: 15
-      });
-      
-      console.log(`🐜 Spawned ${ants.length} worker ants at (${spawnX}, ${spawnY})`);
-      logNormal(`✅ Spawned ${ants.length} worker ants at (${spawnX}, ${spawnY})`);
-      
-      // Add ant controllers to global ants array (for legacy compatibility)
-      if (typeof window.ants !== 'undefined' && Array.isArray(window.ants)) {
-        ants.forEach(ant => {
-          if (ant.controller) {
-            window.ants.push(ant.controller);
-          }
+      // Spawn 100 worker ants scattered around the map
+      const ants = [];
+      for (let i = 0; i < 100; i++) {
+        // Random positions across the map (assuming map is ~3200x3200)
+        const randomX = Math.random() * 3200 - 1600; // -1600 to 1600
+        const randomY = Math.random() * 3200 - 1600; // -1600 to 1600
+        
+        const ant = AntFactory.create({
+          jobName: 'Worker',
+          x: randomX,
+          y: randomY,
+          faction: 'player'
         });
-        console.log(`🐜 Added ${ants.length} ants to global array. Total ants: ${window.ants.length}`);
+        ants.push(ant);
+      }
+      
+      console.log(`🐜 Spawned ${ants.length} worker ants scattered across the map`);
+      
+      // EntityManager has auto-registered them. Get stats for verification.
+      if (window.entityManager) {
+        const stats = window.entityManager.getStats();
+        console.log('🐜 EntityManager stats:', stats);
+        console.log(`🐜 Total ants managed: ${window.entityManager.getCount('ant')}`);
+        
+        // Verify first ant has required methods
+        const allAnts = window.entityManager.getByType('ant');
+        if (allAnts.length > 0) {
+          console.log('🐜 First ant has render():', typeof allAnts[0]?.render);
+          console.log('🐜 First ant has update():', typeof allAnts[0]?.update);
+        }
       }
       
       // Emit batch spawned event
@@ -354,13 +373,6 @@ function initializeContextMenuPrevention() {
     console.warn('⚠️ Could not set canvas context menu prevention:', error);
   }
   
-  logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
-}
-
-// Make functions globally available
-if (typeof window !== 'undefined') {
-  window.testContextMenuPrevention = testContextMenuPrevention;
-  window.disableContextMenu = disableContextMenu;
 }
 
 /**
@@ -395,7 +407,6 @@ function initializeWorld() {
   // Register with MapManager (which will also update g_activeMap)
   if (typeof mapManager !== 'undefined') {
     mapManager.registerMap('level1', g_map2, true);
-    logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
      
   g_gridMap = new PathMap(g_map);
@@ -585,7 +596,6 @@ function handleMouseEvent(type, ...args) {
   if (GameState.isInGame()) {
     g_mouseController[type](...args);
     if (g_activeMap && g_activeMap.renderConversion) {
-      logVerbose(g_activeMap.renderConversion.convCanvasToPos([mouseX,mouseY]));
     }
   }
 }
@@ -698,10 +708,8 @@ function mousePressed() {
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
     if (consumed) {
-      logVerbose('🖱️ Mouse click consumed by RenderManager');
       return; // consumed by an interactive (buttons/panels/etc.)
     }
-    logVerbose('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
     // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
   } catch (e) {
     console.error('Error dispatching pointerdown to RenderManager:', e);
@@ -1049,7 +1057,6 @@ function keyPressed() {
     
     if (handled) {
       // Display current layer states
-      logVerbose('🔧 Layer States:', RenderManager.getLayerStates());
       return; // Layer toggle was handled, don't process further
     }
   }
@@ -1263,12 +1270,10 @@ function deactivateActiveBrushes() {
   let deactivated = false;
   if (typeof g_resourceBrush !== 'undefined' && g_resourceBrush && g_resourceBrush.isActive) {
     g_resourceBrush.toggle();
-    logNormal('🎨 Resource brush deactivated via ESC key');
     deactivated = true;
   }
   if (typeof g_enemyAntBrush !== 'undefined' && g_enemyAntBrush && g_enemyAntBrush.isActive) {
     g_enemyAntBrush.toggle();
-    logNormal('🎨 Enemy brush deactivated via ESC key');
     deactivated = true;
   }
   return deactivated;
@@ -1365,7 +1370,6 @@ function getActiveMap() {
  * @returns {boolean} True if successful, false otherwise
  */
 function loadMossStoneLevel() {
-  logNormal("🏛️ Loading Moss & Stone Column Level");
   
   try {
     // Create the moss/stone column level
@@ -1381,7 +1385,6 @@ function loadMossStoneLevel() {
     // Register with MapManager
     if (typeof mapManager !== 'undefined') {
       mapManager.registerMap('mossStone', mossStoneLevel, true);
-      logNormal("✅ Moss & Stone level registered and set as active");
       return true;
     } else {
       console.error("❌ MapManager not available");
@@ -1402,7 +1405,6 @@ function loadMossStoneLevel() {
  * @param {string} levelId - The ID of the level to switch to
  */
 function switchToLevel(levelId) {
-  logNormal(`🔄 Switching to level: ${levelId}`);
   
   // If the level is 'mossStone' and doesn't exist yet, create it
   if (levelId === 'mossStone') {
@@ -1420,7 +1422,6 @@ function switchToLevel(levelId) {
   // CRITICAL: Invalidate terrain cache to force re-render with new terrain
   if (g_activeMap && typeof g_activeMap.invalidateCache === 'function') {
     g_activeMap.invalidateCache();
-    logNormal("✅ Terrain cache invalidated - new terrain will render");
   }
   
   // Start the game

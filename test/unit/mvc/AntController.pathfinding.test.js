@@ -16,7 +16,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const { setupP5Mocks } = require('../../helpers/p5Mocks');
-const { loadAntModel, loadAntView } = require('../../helpers/mvcTestHelpers');
+const { loadAntModel, loadAntView, loadMVCClasses } = require('../../helpers/mvcTestHelpers');
 
 describe('Ant MVC Pathfinding Integration', function() {
   let AntController;
@@ -30,6 +30,9 @@ describe('Ant MVC Pathfinding Integration', function() {
   before(function() {
     setupP5Mocks();
 
+    // Load MVC base classes first (EntityModel, EntityView, EntityController)
+    loadMVCClasses();
+    
     // Load MVC classes
     AntModel = loadAntModel();
     AntView = loadAntView();
@@ -266,7 +269,9 @@ describe('Ant MVC Pathfinding Integration', function() {
       
       const path = findPath(start, end, pathMap);
       
-      expect(path[0]).to.deep.equal({ _x: 1, _y: 1 });
+      // Compare only _x and _y properties (avoid deep equal on Node with circular references)
+      expect(path[0]._x).to.equal(1);
+      expect(path[0]._y).to.equal(1);
       expect(path[path.length - 1]._x).to.equal(8);
       expect(path[path.length - 1]._y).to.equal(8);
     });
@@ -304,7 +309,7 @@ describe('Ant MVC Pathfinding Integration', function() {
       });
     });
 
-    it('should return null for impossible paths', function() {
+    it('should return empty array for impossible paths', function() {
       // Create terrain completely blocked
       const blockedTerrain = createMockTerrain(10, 10, [
         [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9]
@@ -316,7 +321,8 @@ describe('Ant MVC Pathfinding Integration', function() {
       
       const path = findPath(start, end, blockedPathMap);
       
-      expect(path).to.be.null;
+      expect(path).to.be.an('array');
+      expect(path).to.have.lengthOf(0);
     });
   });
 
@@ -451,6 +457,10 @@ describe('Ant MVC Pathfinding Integration', function() {
     let model, view, controller;
 
     beforeEach(function() {
+      // Set globals needed by MovementController
+      global.deltaTime = 16.67; // 60fps
+      global.tileSize = 32;
+      
       model = new AntModel({ x: 32, y: 32, width: 32, height: 32, jobName: 'Worker' });
       view = new AntView(model);
       controller = new AntController(model, view);

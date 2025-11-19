@@ -32,7 +32,6 @@ class ResourceBrush extends BrushBase {
       setTimeout(() => { this.showResourceChangeEffect = false; }, 1000);
     };
 
-    logNormal('🎨 Resource Paint Brush initialized');
   }
 
   /**
@@ -44,9 +43,7 @@ class ResourceBrush extends BrushBase {
     
     if (this.isActive) {
       const name = (this.currentType && this.currentType.name) ? this.currentType.name : 'Resource';
-      logNormal(`🎨 Resource brush activated - painting ${name}`);
     } else {
-      logNormal('🎨 Resource brush deactivated');
     }
     
     return this.isActive;
@@ -57,7 +54,6 @@ class ResourceBrush extends BrushBase {
   setResourceType(resourceType) {
     const newType = this.setType(resourceType);
     if (newType) {
-      logNormal(`🎯 Set resource type to: ${newType.name}`);
     } else {
       console.warn(`⚠️ Unknown resource type: ${resourceType}`);
     }
@@ -121,7 +117,6 @@ class ResourceBrush extends BrushBase {
           const added = g_resourceManager.addResource(resource);
           if (added) {
             const paintedName = (type && type.name) ? type.name : 'Resource';
-            logNormal(`🎨 Painted ${paintedName} at (${Math.round(finalX)}, ${Math.round(finalY)})`);
             this.lastSpawnTime = now;
           } else {
             console.warn('⚠️ Could not add resource - at capacity');
@@ -225,7 +220,6 @@ let g_resourceBrush = null;
 function initializeResourceBrush() {
   if (!g_resourceBrush) {
     g_resourceBrush = new ResourceBrush();
-    logNormal('🎨 Resource Brush system initialized');
   }
   return g_resourceBrush;
 }
@@ -239,7 +233,6 @@ if (typeof window !== 'undefined') {
   
   // Add global console commands for testing
   window.testResourceBrush = function() {
-    logNormal('🧪 Testing Resource Brush...');
     
     if (!window.g_resourceBrush) {
       console.error('❌ Resource Brush not initialized');
@@ -247,8 +240,6 @@ if (typeof window !== 'undefined') {
     }
     
     window.g_resourceBrush.toggle();
-    logNormal('✅ Resource Brush activated for testing');
-    logNormal('📊 Brush state:', window.g_resourceBrush.getDebugInfo());
     
     return true;
   };
@@ -260,7 +251,6 @@ if (typeof window !== 'undefined') {
     }
     
     const state = window.g_resourceBrush.getDebugInfo();
-    logNormal('🎨 Resource Brush state:', state);
     return state;
   };
 }

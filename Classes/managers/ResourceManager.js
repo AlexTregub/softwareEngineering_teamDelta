@@ -274,9 +274,7 @@ class ResourceManager {
     this.selectedResourceType = resourceType;
     
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose(`ResourceManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
     } else {
-      logNormal(`ResourceManager: Selected resource type: ${resourceType} (was: ${previousSelection})`);
     }
     
     // Notify global resource system if available
@@ -304,9 +302,7 @@ class ResourceManager {
     this.selectedResourceType = null;
     
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose(`ResourceManager: Cleared resource selection (was: ${previousSelection})`);
     } else {
-      logNormal(`ResourceManager: Cleared resource selection (was: ${previousSelection})`);
     }
     
     // Notify global resource system if available
@@ -369,9 +365,7 @@ class ResourceManager {
     this.focusedCollection = focusEnabled;
     
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose(`ResourceManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
     } else {
-      logNormal(`ResourceManager: Focused collection ${focusEnabled ? 'enabled' : 'disabled'} for type: ${this.selectedResourceType}`);
     }
   }
 
@@ -409,7 +403,6 @@ class ResourceManager {
    */
   forceDropAll() {
     const dropped = this.dropAllResources();
-    logNormal(`ResourceManager: Force dropped ${dropped.length} resources`);
     return dropped;
   }
 
@@ -438,9 +431,6 @@ function addGlobalResource(type, amount = 1) {
 
   // Debug: show change and current totals
   try {
-    logNormal(`[ResourceManager] addGlobalResource: ${type} +${amt} -> ${_resourceTotals[type]}`);
-    logNormal('[ResourceManager] totals:', getResourceTotals());
-    logNormal('added resource')
   } catch (e) { /* ignore logging errors */ }
 
   return _resourceTotals[type];
@@ -464,8 +454,6 @@ function removeGlobalResource(type, amount = 1) {
 
   // Debug: show change and current totals
   try {
-    logNormal(`[ResourceManager] removeGlobalResource: ${type} -${amt} -> ${_resourceTotals[type] || 0}`);
-    logNormal('[ResourceManager] totals:', getResourceTotals());
   } catch (e) { /* ignore logging errors */ }
 
   return true;
@@ -496,8 +484,6 @@ function getResourceCount(type) {
 // Debug helper you can call from console or UI
 function logResourceTotals() {
   try {
-    logNormal('test resource totals log:');
-    logNormal('[ResourceManager] current totals:', getResourceTotals());
   } catch (e) { /* ignore */ }
 }
 

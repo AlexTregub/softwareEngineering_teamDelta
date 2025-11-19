@@ -110,13 +110,10 @@ function gameLog(...args) {
  */
 function handleUIDebugCommand(args) {
   if (typeof g_uiDebugManager === 'undefined' || !g_uiDebugManager) {
-    logNormal("❌ UI Debug Manager not available");
     return;
   }
   
   if (args.length === 0) {
-    logNormal(`🎯 UI Debug Manager Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
-    logNormal(`📊 Registered Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
     return;
   }
   
@@ -124,27 +121,22 @@ function handleUIDebugCommand(args) {
   switch (action) {
     case 'toggle':
       g_uiDebugManager.toggle();
-      logNormal(`🎯 UI Debug Manager: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
       break;
       
     case 'enable':
     case 'on':
       g_uiDebugManager.enable();
-      logNormal("🎯 UI Debug Manager ENABLED");
       break;
       
     case 'disable':
     case 'off':
       g_uiDebugManager.disable();
-      logNormal("🎯 UI Debug Manager DISABLED");
       break;
       
     case 'reset':
       if (g_uiDebugManager.resetAllPositions) {
         g_uiDebugManager.resetAllPositions();
-        logNormal("🔄 All UI elements reset to original positions");
       } else {
-        logNormal("❌ Reset function not available");
       }
       break;
       
@@ -152,32 +144,18 @@ function handleUIDebugCommand(args) {
       const elements = g_uiDebugManager.registeredElements;
       const elementCount = Object.keys(elements).length;
       if (elementCount === 0) {
-        logNormal("📝 No UI elements registered yet");
       } else {
-        logNormal(`📝 Registered UI Elements (${elementCount}):`);
         Object.entries(elements).forEach(([id, element], index) => {
           const status = element.isDraggable ? '🖱️' : '🔒';
           const pos = `(${element.bounds.x}, ${element.bounds.y})`;
-          logNormal(`   ${index + 1}. ${status} ${element.label || id} - ${pos}`);
         });
       }
       break;
       
     case 'info':
-      logNormal("🎯 UI Debug Manager Information:");
-      logNormal(`   Status: ${g_uiDebugManager.isActive ? 'ENABLED' : 'DISABLED'}`);
-      logNormal(`   Elements: ${Object.keys(g_uiDebugManager.registeredElements).length}`);
-      logNormal(`   Debug Mode: Press ~ or \` to toggle`);
-      logNormal(`   Drag: Click yellow handles when debug mode is ON`);
       break;
       
     default:
-      logNormal("❌ Usage: ui <toggle|enable|disable|reset|list|info>");
-      logNormal("Examples:");
-      logNormal("  ui toggle    - Toggle debug mode on/off");
-      logNormal("  ui enable    - Enable UI debug mode");
-      logNormal("  ui list      - List all registered UI elements");
-      logNormal("  ui reset     - Reset all positions to original");
   }
 }
 
@@ -280,7 +258,6 @@ function executeCommand(command) {
     case 'showeventlist': handleShowEventList(); break;
     case 'showlevelinfo': handleShowLevelInfo(); break;
     case 'listevents': handleListEvents(); break;
-    default: logNormal(`❌ Unknown command: ${cmd}. Type 'help' for available commands.`);
   }
 }
 
@@ -290,37 +267,6 @@ function executeCommand(command) {
  * Prints available commands and usage examples to the console output.
  */
 function showCommandHelp() {
-  logNormal("💻 Available Commands:");
-  logNormal("  help - Show this help message");
-  logNormal("  spawn <count> [type] [faction] - Spawn ants (e.g., 'spawn 5 ant player')");
-  logNormal("  clear - Clear console output");
-  logNormal("  debug <on|off> - Toggle debug logging");
-  logNormal("  select <all|none|index> - Select entities");
-  logNormal("  kill <all|selected|index> - Remove entities");
-  logNormal("  teleport <x> <y> - Move selected ant to coordinates");
-  logNormal("  info - Show game state information");
-  logNormal("  perf [toggle|stats] - Control performance monitor");
-  logNormal("  entity-perf [report|reset] - Entity performance analysis");
-  logNormal("  ui <toggle|enable|disable|reset|list> - Control UI Debug Manager");
-  logNormal("  damage <amount> - Damage selected ants by amount");
-  logNormal("  heal <amount> - Heal selected ants by amount");
-  logNormal("  🚂 train [on|off|toggle] - TRAIN MODE! Panels follow each other like train cars!");
-  logNormal("");
-  logNormal("🎮 Event Debug Commands:");
-  logNormal("  eventDebug <on|off|toggle> - Control event debug system");
-  logNormal("  triggerEvent <eventId> - Manually trigger an event");
-  logNormal("  showEventFlags - Toggle event flag overlay");
-  logNormal("  showEventList - Toggle event list panel");
-  logNormal("  showLevelInfo - Toggle level event info panel");
-  logNormal("  listEvents - List all events with trigger commands");
-  logNormal("Examples:");
-  logNormal("  spawn 10 ant blue");
-  logNormal("  teleport 100 200");
-  logNormal("  select all");
-  logNormal("  perf toggle");
-  logNormal("  entity-perf report");
-  logNormal("  eventDebug on");
-  logNormal("  triggerEvent wave_1_spawn");
 }
 
 /**
@@ -335,8 +281,6 @@ function handleSpawnCommand(args) {
   const count = Number.isNaN(parsed) ? 1 : parsed;
   const type = args[1] || 'ant';
   const faction = args[2] || 'neutral';
-  if (count < 1 || count > 5000) { logNormal("❌ Spawn count must be between 1 and 5000"); return; }
-  logVerbose(`🐜 Spawning ${count} ${type}(s) with faction: ${faction}`);
   const startingCount = antIndex;
   for (let i = 0; i < count; i++) {
     try {
@@ -354,12 +298,11 @@ function handleSpawnCommand(args) {
       
       // Store ant directly
       ants.push(newAnt);
-      
-      if (!newAnt) { logNormal(`❌ Failed to create ant ${i + 1}`); continue; }
-    } catch (error) { logNormal(`❌ Error creating ant ${i + 1}: ${error.message}`); }
+    } catch (e) {
+      console.error('Failed to spawn ant:', e);
+    }
   }
   const actualSpawned = ants.length - startingCount;
-  logVerbose(`✅ Spawned ${actualSpawned} ants. Total ants: ${ants.length}`);
   if (g_selectionBoxController) g_selectionBoxController.entities = ants;
 }
 
@@ -370,16 +313,12 @@ function handleSpawnCommand(args) {
  * @param {string[]} args - Command arguments, expects 'on' or 'off'.
  */
 function handleDebugCommand(args) {
-  if (args.length === 0) { logNormal(`🛠️  Debug logging is currently: ${devConsoleEnabled ? 'ON' : 'OFF'}`); return; }
   switch (args[0].toLowerCase()) {
     case 'on':
     case 'true':
-      devConsoleEnabled = true; logNormal("🛠️  Debug logging enabled"); break;
     case 'off':
     case 'false':
-      devConsoleEnabled = false; logNormal("🛠️  Debug logging disabled"); break;
     default:
-      logNormal("❌ Use 'debug on' or 'debug off'");
   }
 }
 
@@ -391,26 +330,21 @@ function handleDebugCommand(args) {
  * @param {string[]} args
  */
 function handleSelectCommand(args){
-  if(!args.length){ logNormal("❌ Specify 'all','none', or an ant index"); return; }
   const target = args[0].toLowerCase();
   switch(target){
     case 'all': {
       let count = 0;
       for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a){ a.isSelected = true; count++; } }
-      logNormal(`✅ Selected ${count} ants`);
       break;
     }
     case 'none': {
       for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a) a.isSelected = false; }
-      selectedAnt = null; logNormal("✅ Deselected all ants");
       break;
     }
     default: {
       const index = Number.parseInt(target, 10);
-      if(!Number.isInteger(index) || index < 0 || index >= ants.length || !ants[index]) { logNormal(`❌ Invalid ant index: ${target}`); return; }
       for(let i=0;i<ants.length;i++){ const a = ants[i]?.antObject ?? ants[i]; if(a) a.isSelected = false; }
       const a = ants[index]?.antObject ?? ants[index];
-      if(a){ a.isSelected = true; selectedAnt = a; logNormal(`✅ Selected ant ${index}`); }
     }
   }
 }
@@ -423,13 +357,11 @@ function handleSelectCommand(args){
  * @param {string[]} args
  */
 function handleKillCommand(args) {
-  if (!args.length) { logNormal("❌ Specify 'all', 'selected', or an ant index"); return; }
   const target = args[0].toLowerCase();
   switch (target) {
     case 'all': {
       const count = antIndex;
       ants = []; antIndex = 0; selectedAnt = null;
-      logNormal(`💀 Removed all ${count} ants`);
       break;
     }
     case 'selected': {
@@ -439,16 +371,13 @@ function handleKillCommand(args) {
         if (antObj && antObj.isSelected) { ants.splice(i, 1); count++; }
       }
       antIndex = ants.length; selectedAnt = null;
-      logNormal(`💀 Removed ${count} selected ants`);
       break;
     }
     default: {
       const index = Number.parseInt(target, 10);
       if (!Number.isInteger(index) || index < 0 || index >= ants.length || !ants[index]) {
-        logNormal(`❌ Invalid ant index: ${target}`); return;
       }
       ants.splice(index, 1); antIndex = ants.length; selectedAnt = null;
-      logNormal(`💀 Removed ant ${index}`);
     }
   }
 }
@@ -461,11 +390,7 @@ function handleKillCommand(args) {
  * @param {string[]} args
  */
 function handleTeleportCommand(args) {
-  if (args.length < 2) { logNormal("❌ Usage: teleport <x> <y>"); return; }
   const x = parseInt(args[0], 10); const y = parseInt(args[1], 10);
-  if (isNaN(x) || isNaN(y)) { logNormal("❌ Coordinates must be numbers"); return; }
-  if (!selectedAnt) { logNormal("❌ No ant selected. Use 'select <index>' first."); return; }
-  selectedAnt.setPosition(x, y); logNormal(`🚀 Teleported selected ant to (${x}, ${y})`);
 }
 
 /**
@@ -474,14 +399,8 @@ function handleTeleportCommand(args) {
  * Prints summary information about the current game state.
  */
 function showGameInfo() {
-  logNormal("🎮 Game State Information:");
-  logNormal(`  Total Ants: ${antIndex}`);
-  logNormal(`  Canvas Size: ${width} x ${height}`);
-  logNormal(`  Dev Console: ${devConsoleEnabled ? 'ON' : 'OFF'}`);
-  logNormal(`  Selected Ant: ${selectedAnt ? 'Yes' : 'None'}`);
   const factions = {};
   for (let i = 0; i < antIndex; i++) if (ants[i]) { const antObj = ants[i].antObject ? ants[i].antObject : ants[i]; if (antObj && antObj.faction) factions[antObj.faction] = (factions[antObj.faction] || 0) + 1; }
-  if (Object.keys(factions).length > 0) { logNormal("  Factions:"); for (const [faction, count] of Object.entries(factions)) logNormal(`    ${faction}: ${count} ants`); }
 }
 
 /**
@@ -563,7 +482,6 @@ if (typeof window !== 'undefined') {
 
 // Debug: Log that the file loaded successfully (using original console.log to avoid circular capture)
 if (globalThis.globalDebugVerbosity >= 1) {
-  logNormal('✅ commandLine.js loaded successfully with non-intrusive console capture');
 }
 
 /**
@@ -574,7 +492,6 @@ if (globalThis.globalDebugVerbosity >= 1) {
  */
 function handlePerformanceCommand(args) {
   if (typeof g_performanceMonitor === 'undefined' || !g_performanceMonitor) {
-    logNormal("❌ Performance monitor not available");
     return;
   }
 
@@ -584,24 +501,15 @@ function handlePerformanceCommand(args) {
     case 'toggle':
       const currentState = g_performanceMonitor.debugDisplay && g_performanceMonitor.debugDisplay.enabled;
       g_performanceMonitor.setDebugDisplay(!currentState);
-      logNormal(`🔍 Performance monitor ${!currentState ? 'ENABLED' : 'DISABLED'}`);
       break;
       
     case 'stats':
       const stats = g_performanceMonitor.getFrameStats();
-      logNormal("📊 Performance Statistics:");
-      logNormal(`   FPS: ${stats.fps} (avg: ${stats.avgFPS}, min: ${stats.minFPS})`);
-      logNormal(`   Frame Time: ${stats.frameTime}ms (avg: ${stats.avgFrameTime}ms)`);
-      logNormal(`   Performance Level: ${stats.performanceLevel}`);
-      logNormal(`   Entities: ${stats.entityStats.totalEntities} total, ${stats.entityStats.renderedEntities} rendered`);
       if (stats.entityPerformance) {
-        logNormal(`   Entity Render Time: ${stats.entityPerformance.totalEntityRenderTime.toFixed(2)}ms`);
-        logNormal(`   Entity Efficiency: ${stats.entityPerformance.entityRenderEfficiency.toFixed(1)}%`);
       }
       break;
       
     default:
-      logNormal("❌ Usage: perf [toggle|stats]");
   }
 }
 
@@ -613,7 +521,6 @@ function handlePerformanceCommand(args) {
  */
 function handleEntityPerformanceCommand(args) {
   if (typeof g_performanceMonitor === 'undefined' || !g_performanceMonitor) {
-    logNormal("❌ Performance monitor not available");
     return;
   }
 
@@ -622,30 +529,20 @@ function handleEntityPerformanceCommand(args) {
   switch (action.toLowerCase()) {
     case 'report':
       const report = g_performanceMonitor.getEntityPerformanceReport();
-      logNormal("🎯 Entity Performance Report:");
-      logNormal(`   Total Render Time: ${report.totalRenderTime.toFixed(2)}ms`);
-      logNormal(`   Average per Entity: ${report.averageRenderTime.toFixed(2)}ms`);
-      logNormal(`   Render Efficiency: ${report.renderEfficiency.toFixed(1)}%`);
       
       if (report.typePerformance.length > 0) {
-        logNormal("\n📋 Entity Types (by performance):");
         report.typePerformance.forEach(type => {
-          logNormal(`   ${type.type}: ${type.currentAverage.toFixed(2)}ms avg (${type.count}x) - ${type.efficiency.toFixed(0)} entities/sec`);
         });
       }
       
       if (report.slowestEntities.length > 0) {
-        logNormal("\n⚠️  Slowest Entities:");
         report.slowestEntities.slice(0, 5).forEach((entity, i) => {
-          logNormal(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms`);
         });
       }
       
       if (report.phaseBreakdown.length > 0) {
-        logNormal("\n⏱️  Render Phases:");
         report.phaseBreakdown.forEach(phase => {
           if (phase.time > 0) {
-            logNormal(`   ${phase.phase}: ${phase.time.toFixed(2)}ms (${phase.percentage.toFixed(1)}%)`);
           }
         });
       }
@@ -656,23 +553,18 @@ function handleEntityPerformanceCommand(args) {
       g_performanceMonitor.entityPerformance.slowestEntities = [];
       g_performanceMonitor.entityPerformance.typeHistory.clear();
       g_performanceMonitor.entityPerformance.typeAverages.clear();
-      logNormal("🔄 Entity performance data reset");
       break;
       
     case 'slowest':
       const slowest = g_performanceMonitor.entityPerformance.slowestEntities.slice(0, 10);
       if (slowest.length > 0) {
-        logNormal("🐌 Top 10 Slowest Entities:");
         slowest.forEach((entity, i) => {
-          logNormal(`   ${i + 1}. ${entity.type} (${entity.id}): ${entity.renderTime.toFixed(2)}ms (frame ${entity.frame})`);
         });
       } else {
-        logNormal("📊 No entity performance data available yet");
       }
       break;
       
     default:
-      logNormal("❌ Usage: entity-perf [report|reset|slowest]");
   }
 }
 
@@ -684,7 +576,6 @@ function handleEntityPerformanceCommand(args) {
  */
 function handlePanelTrainCommand(args) {
   if (!window.draggablePanelManager) {
-    logNormal("❌ Draggable Panel Manager not available");
     return;
   }
 
@@ -699,43 +590,31 @@ function handlePanelTrainCommand(args) {
     case 'enable':
       window.draggablePanelManager.setPanelTrainMode(true);
       const onMsg = onMessages[Math.floor(Math.random() * onMessages.length)];
-      logNormal(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
       break;
       
     case 'off':
     case 'disable':
       window.draggablePanelManager.setPanelTrainMode(false);
       const offMsg = offMessages[Math.floor(Math.random() * offMessages.length)];
-      logNormal(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
       break;
       
     case 'toggle':
       const newState = window.draggablePanelManager.togglePanelTrainMode();
       if (newState) {
         const onMsg = onMessages[Math.floor(Math.random() * onMessages.length)];
-        logNormal(`🚂 TRAIN MODE: ${onMsg}! Panels will now follow each other like train cars! CHOO CHOO!`);
       } else {
         const offMsg = offMessages[Math.floor(Math.random() * offMessages.length)];
-        logNormal(`🚂 TRAIN MODE: ${offMsg}. Panels now drag independently. 😞`);
       }
       break;
       
     case 'status':
       const isEnabled = window.draggablePanelManager.isPanelTrainModeEnabled();
       if (isEnabled) {
-        logNormal(`🚂 TRAIN MODE: Currently ENABLED! CHOO CHOO! 🚂💨`);
       } else {
-        logNormal(`🚂 TRAIN MODE: Currently disabled. How boring. 😴`);
       }
       break;
       
     default:
-      logNormal("❌ Usage: train [on|off|toggle|status]");
-      logNormal("🚂 Examples:");
-      logNormal("  train on     - Enable TRAIN MODE! (panels follow each other)");
-      logNormal("  train off    - Disable train mode (boring normal dragging)");
-      logNormal("  train toggle - Switch between modes");
-      logNormal("  train status - Check current mode");
   }
 }
 
@@ -747,14 +626,11 @@ function handlePanelTrainCommand(args) {
  */
 function handleDamageCommand(args) {
   if (args.length === 0) {
-    logNormal("❌ Usage: damage <amount>");
-    logNormal("Example: damage 25 (damages selected ants by 25 HP)");
     return;
   }
   
   const amount = parseInt(args[0], 10);
   if (isNaN(amount) || amount <= 0) {
-    logNormal("❌ Damage amount must be a positive number");
     return;
   }
   
@@ -767,7 +643,6 @@ function handleDamageCommand(args) {
   }
   
   if (selectedAnts.length === 0) {
-    logNormal("❌ No ants selected. Use 'select <index>' or 'select all' first.");
     return;
   }
   
@@ -786,7 +661,6 @@ function handleDamageCommand(args) {
     }
   });
   
-  logNormal(`💥 Damaged ${damaged} selected ant(s) by ${amount} HP`);
 }
 
 /**
@@ -797,14 +671,11 @@ function handleDamageCommand(args) {
  */
 function handleHealCommand(args) {
   if (args.length === 0) {
-    logNormal("❌ Usage: heal <amount>");
-    logNormal("Example: heal 50 (heals selected ants by 50 HP)");
     return;
   }
   
   const amount = parseInt(args[0], 10);
   if (isNaN(amount) || amount <= 0) {
-    logNormal("❌ Heal amount must be a positive number");
     return;
   }
   
@@ -817,7 +688,6 @@ function handleHealCommand(args) {
   }
   
   if (selectedAnts.length === 0) {
-    logNormal("❌ No ants selected. Use 'select <index>' or 'select all' first.");
     return;
   }
   
@@ -836,7 +706,6 @@ function handleHealCommand(args) {
     }
   });
   
-  logNormal(`💚 Healed ${healed} selected ant(s) by ${amount} HP`);
 }
 
 // ============================================================
@@ -850,7 +719,6 @@ function handleHealCommand(args) {
  */
 function handleEventDebugCommand(args) {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
@@ -860,23 +728,19 @@ function handleEventDebugCommand(args) {
     case 'on':
     case 'enable':
       window.eventDebugManager.enable();
-      logNormal("🎮 Event debug system enabled");
       break;
       
     case 'off':
     case 'disable':
       window.eventDebugManager.disable();
-      logNormal("🎮 Event debug system disabled");
       break;
       
     case 'toggle':
       window.eventDebugManager.toggle();
       const state = window.eventDebugManager.enabled ? 'enabled' : 'disabled';
-      logNormal(`🎮 Event debug system ${state}`);
       break;
       
     default:
-      logNormal("❌ Usage: eventDebug <on|off|toggle>");
   }
 }
 
@@ -887,13 +751,10 @@ function handleEventDebugCommand(args) {
  */
 function handleTriggerEventCommand(args) {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   if (args.length === 0) {
-    logNormal("❌ Usage: triggerEvent <eventId>");
-    logNormal("Example: triggerEvent wave_1_spawn");
     return;
   }
   
@@ -901,7 +762,6 @@ function handleTriggerEventCommand(args) {
   const result = window.eventDebugManager.manualTriggerEvent(eventId);
   
   if (!result) {
-    logNormal(`❌ Failed to trigger event: ${eventId}`);
   }
 }
 
@@ -911,13 +771,11 @@ function handleTriggerEventCommand(args) {
  */
 function handleShowEventFlags() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   window.eventDebugManager.toggleEventFlags();
   const state = window.eventDebugManager.showEventFlags ? 'ON' : 'OFF';
-  logNormal(`🏴 Event flags overlay: ${state}`);
 }
 
 /**
@@ -926,13 +784,11 @@ function handleShowEventFlags() {
  */
 function handleShowEventList() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   window.eventDebugManager.toggleEventList();
   const state = window.eventDebugManager.showEventList ? 'ON' : 'OFF';
-  logNormal(`📋 Event list panel: ${state}`);
 }
 
 /**
@@ -941,13 +797,11 @@ function handleShowEventList() {
  */
 function handleShowLevelInfo() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   
   window.eventDebugManager.toggleLevelInfo();
   const state = window.eventDebugManager.showLevelInfo ? 'ON' : 'OFF';
-  logNormal(`ℹ️ Level event info panel: ${state}`);
 }
 
 /**
@@ -956,7 +810,6 @@ function handleShowLevelInfo() {
  */
 function handleListEvents() {
   if (typeof window === 'undefined' || !window.eventDebugManager) {
-    logNormal("❌ EventDebugManager not initialized");
     return;
   }
   

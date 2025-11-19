@@ -1,6 +1,5 @@
 // Minimal UI panel to create tasks and show progress based on global resource totals.
 // Usage: window.taskUI = new TaskUI(window.taskManager, window.taskLibrary);
-logNormal("loading TaskUI.js");
 class TaskUI {
   constructor(taskManager, taskLibrary, opts = {}) {
     this.tm = taskManager;
@@ -83,7 +82,6 @@ class TaskUI {
     }
 
     pop();
-    logNormal("shown task UI");
   }
 
   handleClick(mx, my) {

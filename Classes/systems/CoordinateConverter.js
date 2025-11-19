@@ -20,7 +20,6 @@
  * @example
  * // Get tile coordinates from mouse
  * const tile = CoordinateConverter.screenToWorldTile(mouseX, mouseY);
- * logNormal(`Mouse over tile ${tile.x}, ${tile.y}`);
  */
 
 (function() {
@@ -39,7 +38,6 @@
      * @example
      * function mousePressed() {
      *   const worldPos = CoordinateConverter.screenToWorld(mouseX, mouseY);
-     *   logNormal('Clicked at world:', worldPos.x, worldPos.y);
      * }
      */
     screenToWorld: function(screenX, screenY) {
@@ -169,7 +167,6 @@
      * @example
      * function highlightTileUnderMouse() {
      *   const tile = CoordinateConverter.screenToWorldTile(mouseX, mouseY);
-     *   logNormal(`Mouse over tile [${tile.x}, ${tile.y}]`);
      * }
      */
     screenToWorldTile: function(screenX, screenY) { // Updated to round...

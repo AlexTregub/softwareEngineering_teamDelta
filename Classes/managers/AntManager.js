@@ -116,7 +116,6 @@ class AntManager {
    * const antObj = antManager.getAntObject(5);
    * if (antObj) {
    *   const pos = antObj.getPosition();
-   *   logNormal('Ant position:', pos.x, pos.y);
    * }
    */
   getAntObject(antIndex) {
@@ -133,7 +132,6 @@ class AntManager {
    * const selected = antManager.getSelectedAnt();
    * if (selected) {
    *   const pos = selected.getPosition();
-   *   logNormal('Selected ant at:', pos.x, pos.y);
    * }
    */
   getSelectedAnt() {
@@ -175,7 +173,6 @@ class AntManager {
    * @returns {boolean} True if an ant is selected, false otherwise
    * @example
    * if (antManager.hasSelection()) {
-   *   logNormal('An ant is selected');
    * }
    */
   hasSelection() {
@@ -188,7 +185,6 @@ class AntManager {
    * @returns {Object} Debug information object
    * @example
    * const debug = antManager.getDebugInfo();
-   * logNormal('Manager state:', debug);
    */
   getDebugInfo() {
     return {

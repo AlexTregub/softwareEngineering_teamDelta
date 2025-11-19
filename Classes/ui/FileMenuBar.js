@@ -674,7 +674,6 @@ class FileMenuBar {
     if (this.levelEditor && typeof this.levelEditor.handleFileNew === 'function') {
       this.levelEditor.handleFileNew();
     } else if (this.levelEditor) {
-      logNormal('New level (handleFileNew not available)');
     }
   }
   
@@ -696,7 +695,6 @@ class FileMenuBar {
     if (this.levelEditor && typeof this.levelEditor.handleFileExport === 'function') {
       this.levelEditor.handleFileExport();
     } else if (this.levelEditor) {
-      logNormal('Export level (handleFileExport not available)');
     }
   }
   

@@ -390,9 +390,6 @@ class gridTerrain {
         return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
 
         // CONVERSIONS HAVE FAILED?
-        // logNormal(access)
-        // logNormal(this.chunkArray.convRelToArrPos(access[0]))
-        // logNormal(chunkRawAccess)
         // return this.chunkArray.rawArray[chunkRawAccess].getArrPos(access[1]);
     }
 
@@ -420,7 +417,6 @@ class gridTerrain {
     render() {
         // Use caching system for performance optimization
         if (!this._shouldUseCache()) {
-            logNormal('GridTerrain: Caching disabled, using direct rendering');
             // this.renderConversion.forceTileUpdate();  // Improves performance, leaves inconsistent framerate.
             this.renderDirect();
             return;
@@ -432,11 +428,7 @@ class gridTerrain {
         
         // Check if cache needs regeneration
         if (!this._cacheValid || this._viewportChanged() || !this._terrainCache) {
-            if (typeof globalThis.logNormal === 'function') {
-              globalThis.logNormal(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
-            } else {
-              logNormal(`GridTerrain: Cache needs regeneration - Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, valid: ${this._cacheValid}, viewportChanged: ${this._viewportChanged()}, exists: ${!!this._terrainCache}`);
-            }
+
             this._generateTerrainCache();
         }
 
@@ -458,11 +450,7 @@ class gridTerrain {
      */
     _generateTerrainCache() {
         try {
-            if (typeof globalThis.logNormal === 'function') {
-              globalThis.logNormal('GridTerrain: Generating terrain cache...');
-            } else {
-              logNormal('GridTerrain: Generating terrain cache...');
-            }
+
             
             // Use current canvas dimensions (g_canvasX, g_canvasY) instead of stored _canvasSize
             const currentCanvasWidth = typeof g_canvasX !== 'undefined' ? g_canvasX : this._canvasSize[0];
@@ -475,9 +463,7 @@ class gridTerrain {
             const terrainHeight = totalTilesY * this._tileSize;
             
             if (typeof globalThis.logVerbose === 'function') {
-              globalThis.logVerbose(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
             } else {
-              logNormal(`GridTerrain: Cache dimensions - Current Canvas: ${currentCanvasWidth}x${currentCanvasHeight}, Terrain: ${terrainWidth}x${terrainHeight}`);
             }
             
             // Safely create off-screen graphics buffer - use current canvas size for viewport-based caching
@@ -525,12 +511,7 @@ class gridTerrain {
                 cacheSize: [cacheWidth, cacheHeight]
             };
             this._lastCameraPosition = [...this.renderConversion._camPosition];
-            
-            if (typeof globalThis.logNormal === 'function') {
-              globalThis.logNormal('GridTerrain: Terrain cache generated successfully');
-            } else {
-              logNormal('GridTerrain: Terrain cache generated successfully');
-            }
+
             
         } catch (error) {
             console.error('GridTerrain: Error generating terrain cache:', error);
@@ -661,7 +642,6 @@ class gridTerrain {
             
             // DEBUG: Log first few tile positions
             if (tile._x === 0 && tile._y === 0 && typeof globalThis.logVerbose === 'function') {
-                globalThis.logVerbose(`Rendering tile at world [${tilePos}] to cache position [${cachePos}]`);
             }
             
             // Use tile's material to render correctly
@@ -699,7 +679,6 @@ class gridTerrain {
         const currentCanvasHeight = this._canvasSize[1];
         if (currentCanvasWidth !== this._cacheViewport.canvasSize[0] || 
             currentCanvasHeight !== this._cacheViewport.canvasSize[1]) {
-            logVerbose(`GridTerrain: Canvas size changed from ${this._cacheViewport.canvasSize[0]}x${this._cacheViewport.canvasSize[1]} to ${currentCanvasWidth}x${currentCanvasHeight}`);
             return true;
         }
         
@@ -712,11 +691,6 @@ class gridTerrain {
      */
     invalidateCache() {
         this._cacheValid = false;
-        if (typeof globalThis.logNormal === 'function') {
-          globalThis.logNormal('GridTerrain: Cache invalidated manually');
-        } else {
-          logNormal('GridTerrain: Cache invalidated manually');
-        }
     }
 
     /**
@@ -739,12 +713,6 @@ class gridTerrain {
         if (!this._terrainCache || !this._cacheValid) return;
         
         try {
-            // DEBUG: Log coordinate systems
-            if (typeof globalThis.logVerbose === 'function') {
-                globalThis.logVerbose(`Cache Draw - Main canvas center: [${this.renderConversion._canvasCenter}], Cache canvas center: [${this._cacheRenderConverter._canvasCenter}]`);
-                globalThis.logVerbose(`Camera position: [${this.renderConversion._camPosition}]`);
-                globalThis.logVerbose(`Cache buffer size: ${this._terrainCache.width}x${this._terrainCache.height}`);
-            }
             
             // Draw cache using CORNER mode to match how tiles were rendered into cache
             // CRITICAL FIX: Using CENTER mode caused a 0.5-tile offset because the cache
@@ -895,7 +863,6 @@ class gridTerrain {
         //     // Cull rendering of un-viewable chunks
         //     let chunkLoc = this.chunkArray.convArrToRelPos(this.chunkArray.convToSquare(i));
         //     if (chunkLoc[0] < chunkSpan[0][0] || chunkLoc[0] > chunkSpan[1][0] || chunkLoc[1] > chunkSpan[0][1] || chunkLoc[1] < chunkSpan[1][1]) {
-        //         // logNormal("Chunk "+i+'/'+chunkLoc+" skipped.");
         //         chunksSkipped += 1;
         //         continue;
         //     }
@@ -908,8 +875,6 @@ class gridTerrain {
         // Only access chunks which need to be rendered, reduce array access at cost of position conversions
         // Verify indices, seem ok.
 
-        // logNormal("Skipped "+chunksSkipped+" chunks in frame (of "+this._gridSizeX*this._gridSizeY+')');
-        logNormal("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
         // console.log("Rendered "+chunksRendered+" chunks in frame of "+this._gridChunkCount +". Current fps: "+frameRate());
 
         smooth()
@@ -920,10 +885,8 @@ class gridTerrain {
 function checkTerrainCacheStatus() {
     if (typeof g_activeMap !== 'undefined' && g_activeMap && typeof g_activeMap.getCacheStats === 'function') {
         const stats = g_activeMap.getCacheStats();
-        logNormal('Terrain Cache Status:', stats);
         return stats;
     } else {
-        logNormal('Terrain cache not available');
         return null;
     }
 }
@@ -932,19 +895,16 @@ function enableTerrainCache() {
     window.DISABLE_TERRAIN_CACHE = false;
     if (g_activeMap) {
         g_activeMap.invalidateCache();
-        logNormal('Terrain cache enabled');
     }
 }
 
 function disableTerrainCache() {
     window.DISABLE_TERRAIN_CACHE = true;
-    logNormal('Terrain cache disabled');
 }
 
 function forceTerrainCacheRegeneration() {
     if (g_activeMap) {
         g_activeMap.invalidateCache();
-        logNormal('Terrain cache regeneration forced');
     }
 }
 
@@ -979,7 +939,7 @@ class camRenderConverter {
                 this._camPosition[1]+this._tileOffsets[1]
             ]
         ];
-
+        
         this._updateId = 0; // Incrementing this will trigger updates in tiles, MUST BE DONE
         // this._updateId = random()
     } // tested
@@ -1033,7 +993,6 @@ class camRenderConverter {
             this._canvasSize[1]/2   // Center Y in pixels
         ];
 
-        //logNormal(this._canvasCenter)
 
         // Calculate how many tiles fit from center to edge of viewport
         this._tileOffsets = [
@@ -1050,12 +1009,7 @@ class camRenderConverter {
                 this._camPosition[1]+this._tileOffsets[1]   // Bottom boundary (-Y is down)
             ]
         ];
-        /*
-        logNormal("TOP:",this._viewSpan[0][1])
-        logNormal("LEFT:",this._viewSpan[0][0])
-        logNormal("RIGHT:",this._viewSpan[1][0])
-        logNormal("BOTTOM:",this._viewSpan[1][1]) */
-    } // tested
+    }
 
     setTileSize(size) { // Can be used for scaling...
         ++this._updateId;
@@ -1089,11 +1043,9 @@ class camRenderConverter {
     alignToCanvas() {
         // ++this._updateId;
         let alignPos = this.convCanvasToPos([0,0]); // Fixed reference
-        logVerbose(alignPos); // Gets 'coordinate' of current TL of canvas 
 
         let alignOffsetX = floor(alignPos[0]) - alignPos[0] + 0.5; // Align TL corner of tile, instead of center.
         let alignOffsetY = floor(alignPos[1]) - alignPos[1] + 0.5;
-        // logNormal(alignOffsetX,alignOffsetY);
         // console.log(alignOffsetX,alignOffsetY)
 
         // this._camPosition = [this._camPosition + alignOffsetX,this._camPosition + alignOffsetY];
@@ -1119,7 +1071,6 @@ class camRenderConverter {
         // Standard conversion without Y-axis inversion
         // Converts tile coordinates to canvas pixel coordinates
         // Uses standard p5.js coordinate system: Y increases downward
-        // console.log(input)
         return [
             (input[0] - this._camPosition[0])*this._tileSize + this._canvasCenter[0],
             (input[1] - this._camPosition[1])*this._tileSize + this._canvasCenter[1]

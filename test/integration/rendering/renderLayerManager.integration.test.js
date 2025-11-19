@@ -184,14 +184,6 @@ describe('RenderLayerManager Integration Tests', function() {
         };
         window.renderCurrencies = global.renderCurrencies;
 
-        global.updateDropoffUI = () => {};
-        window.updateDropoffUI = global.updateDropoffUI;
-        
-        global.drawDropoffUI = () => {
-            renderCallOrder.push('dropoff');
-        };
-        window.drawDropoffUI = global.drawDropoffUI;
-
         global.updateMenu = () => {};
         window.updateMenu = global.updateMenu;
         

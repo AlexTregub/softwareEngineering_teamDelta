@@ -116,7 +116,6 @@ class QueenAnt extends ant {
   unlockPower(powerName) {
     if (this.unlockedPowers.hasOwnProperty(powerName)) {
       this.unlockedPowers[powerName] = true;
-      logNormal(`👑 Queen unlocked power: ${powerName}`);
       return true;
     }
     console.warn(`⚠️ Unknown power: ${powerName}`);
@@ -126,7 +125,6 @@ class QueenAnt extends ant {
   lockPower(powerName) {
     if (this.unlockedPowers.hasOwnProperty(powerName)) {
       this.unlockedPowers[powerName] = false;
-      logNormal(`👑 Queen locked power: ${powerName}`);
       return true;
     }
     return false;

@@ -483,7 +483,6 @@ class AntUtilities {
     const selectedAnts = this.getSelectedAnts(ants);
     
     if (selectedAnts.length === 0) {
-      logNormal('No ants selected for state change');
       return;
     }
 
@@ -497,7 +496,6 @@ class AntUtilities {
       }
     }
 
-    logNormal(`Changed state of ${changedCount} ants to ${primaryState}`);
     
     // Synchronize selection systems after state change
     this.synchronizeSelections(ants);
@@ -559,7 +557,6 @@ class AntUtilities {
       }
     });
     
-    logNormal(`🔍 Set ${gatheringCount} ants to GATHERING state (7-grid radius)`);
     this.synchronizeSelections(ants);
     return gatheringCount;
   }
@@ -593,7 +590,6 @@ class AntUtilities {
       }
     });
     
-    logNormal(`⏹️ Stopped ${stoppedCount} ants from gathering`);
     this.synchronizeSelections(ants);
     return stoppedCount;
   }

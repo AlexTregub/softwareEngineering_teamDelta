@@ -58,6 +58,8 @@ class AntFactory {
    * @returns {{model: AntModel, view: AntView, controller: AntController}}
    */
   static create(options = {}) {
+    console.log('[AntFactory] create() called with options:', options);
+    
     // Get class references
     const AntModelClass = (typeof AntModel !== 'undefined') ? AntModel :
                           (typeof window !== 'undefined' && window.AntModel) || 
@@ -71,7 +73,14 @@ class AntFactory {
                                (typeof window !== 'undefined' && window.AntController) || 
                                (typeof global !== 'undefined' && global.AntController);
 
+    console.log('[AntFactory] Classes available:', {
+      AntModelClass: !!AntModelClass,
+      AntViewClass: !!AntViewClass,
+      AntControllerClass: !!AntControllerClass
+    });
+
     if (!AntModelClass || !AntViewClass || !AntControllerClass) {
+      console.error('[AntFactory] Missing required classes!');
       throw new Error('AntFactory requires AntModel, AntView, and AntController to be loaded');
     }
 
@@ -90,16 +99,32 @@ class AntFactory {
       ...options // Allow additional options to pass through
     };
 
+    console.log('[AntFactory] Final config:', config);
+
     // Create MVC triad
+    console.log('[AntFactory] Creating model...');
     const model = new AntModelClass(config);
+    console.log('[AntFactory] Creating view...');
     const view = new AntViewClass(model);
+    console.log('[AntFactory] Creating controller...');
     const controller = new AntControllerClass(model, view, config);
 
     // Apply job stats if job was specified
     if (config.jobName && config.jobName !== 'Worker') {
+      console.log('[AntFactory] Setting job:', config.jobName);
       controller.setJob(config.jobName);
     }
 
+    console.log('[AntFactory] Ant created successfully at', config.x, config.y);
+    
+    // Auto-register with EntityManager if available
+    if (typeof EntityManager !== 'undefined' || (typeof window !== 'undefined' && window.EntityManager)) {
+      const EntityMgr = (typeof EntityManager !== 'undefined') ? EntityManager : window.EntityManager;
+      const manager = EntityMgr.getInstance();
+      manager.register(controller, 'ant');
+      console.log('[AntFactory] Registered with EntityManager. Total ants:', manager.getCount('ant'));
+    }
+    
     return { model, view, controller };
   }
 
@@ -169,6 +194,8 @@ class AntFactory {
    * @returns {Array<{model: AntModel, view: AntView, controller: AntController}>}
    */
   static createMultiple(count, options = {}) {
+    console.log(`[AntFactory] createMultiple() called: count=${count}, options:`, options);
+    
     const ants = [];
     const baseX = options.x || 0;
     const baseY = options.y || 0;
@@ -179,6 +206,8 @@ class AntFactory {
       const offsetX = baseX + (i % 5) * spacing;
       const offsetY = baseY + Math.floor(i / 5) * spacing;
 
+      console.log(`[AntFactory] Creating ant ${i+1}/${count} at (${offsetX}, ${offsetY})`);
+      
       const ant = AntFactory.create({
         ...options,
         x: offsetX,
@@ -188,6 +217,7 @@ class AntFactory {
       ants.push(ant);
     }
 
+    console.log(`[AntFactory] Created ${ants.length} ants successfully`);
     return ants;
   }
 

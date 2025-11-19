@@ -30,7 +30,6 @@ class EnemyAntBrush extends BrushBase {
    */
   toggle() {
     this.isActive = !this.isActive;
-    logNormal(`🎨 Enemy Ant Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 
@@ -39,7 +38,6 @@ class EnemyAntBrush extends BrushBase {
    */
   activate() {
     this.isActive = true;
-    logNormal('🎨 Enemy Ant Brush activated');
   }
 
   /**
@@ -47,7 +45,6 @@ class EnemyAntBrush extends BrushBase {
    */
   deactivate() {
     this.isActive = false;
-    logNormal('🎨 Enemy Ant Brush deactivated');
   }
 
   /**
@@ -167,7 +164,6 @@ class EnemyAntBrush extends BrushBase {
       const enemyAnt = AntUtilities.spawnAnt(spawnX, spawnY, "Warrior", "enemy");
       if (enemyAnt) {
         spawned = true;
-        logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)})`);
       }
     }
 
@@ -184,7 +180,6 @@ class EnemyAntBrush extends BrushBase {
             newAnt.setPosition(spawnX, spawnY);
           }
           spawned = true;
-          logNormal(`🎨 Painted enemy ant at (${Math.round(spawnX)}, ${Math.round(spawnY)}) via command`);
         }
       } catch (error) {
         console.warn('⚠️ Brush spawn via command failed:', error.message);
@@ -204,7 +199,6 @@ class EnemyAntBrush extends BrushBase {
    */
   setBrushSize(size) {
     this.brushSize = Math.max(10, Math.min(100, size)); // Clamp between 10-100
-    logNormal(`🎨 Brush size set to ${this.brushSize}px`);
   }
 
   /**
@@ -231,7 +225,6 @@ let g_enemyAntBrush = null;
 function initializeEnemyAntBrush() {
   if (!g_enemyAntBrush) {
     g_enemyAntBrush = new EnemyAntBrush();
-    logNormal('🎨 Enemy Ant Brush system initialized');
   }
   return g_enemyAntBrush;
 }

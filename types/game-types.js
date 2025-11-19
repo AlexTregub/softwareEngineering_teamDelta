@@ -22,8 +22,6 @@ if (typeof globalThis !== 'undefined') {
   globalThis.LEGACY_TYPES_LOADED = true;
   
   if (typeof globalThis.logVerbose === 'function') {
-    globalThis.logVerbose("⚠️ game-types.js is deprecated. Use automatic JSDoc system instead.");
-    globalThis.logVerbose("📖 See: docs/guides/automatic-intellisense.md");
   } else {
     console.log("⚠️ game-types.js is deprecated. Use automatic JSDoc system instead.");
   }

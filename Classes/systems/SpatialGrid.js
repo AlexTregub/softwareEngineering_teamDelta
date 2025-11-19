@@ -36,7 +36,6 @@ class SpatialGrid {
     
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
     if (globalObj && typeof globalObj.logNormal === 'function') {
-      globalObj.logNormal(`SpatialGrid: Initialized with cell size ${this._cellSize}px (matching terrain tile size)`);
     }
   }
 
@@ -359,7 +358,6 @@ class SpatialGrid {
     
     const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined' ? global : window);
     if (globalObj && typeof globalObj.logNormal === 'function') {
-      globalObj.logNormal('SpatialGrid: Cleared all entities');
     }
   }
 
@@ -368,7 +366,6 @@ class SpatialGrid {
    * @returns {Object} Grid statistics
    * @example
    * const stats = spatialGrid.getStats();
-   * logNormal(`Entities: ${stats.entityCount}, Cells: ${stats.cellCount}`);
    */
   getStats() {
     let minEntitiesPerCell = Infinity;
@@ -465,9 +462,7 @@ if (typeof window !== 'undefined') {
   window.visualizeSpatialGrid = function() {
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager) {
       window.VISUALIZE_SPATIAL_GRID = !window.VISUALIZE_SPATIAL_GRID;
-      logNormal('Spatial grid visualization:', window.VISUALIZE_SPATIAL_GRID ? 'ON' : 'OFF');
     } else {
-      logNormal('SpatialGridManager not available');
     }
   };
 
@@ -478,10 +473,8 @@ if (typeof window !== 'undefined') {
   window.getSpatialGridStats = function() {
     if (typeof spatialGridManager !== 'undefined' && spatialGridManager && spatialGridManager._grid) {
       const stats = spatialGridManager._grid.getStats();
-      logNormal('Spatial Grid Statistics:', stats);
       return stats;
     } else {
-      logNormal('SpatialGridManager not available');
       return null;
     }
   };

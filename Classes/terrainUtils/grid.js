@@ -74,7 +74,6 @@ class Grid {
 
         for (let j = tlArrayPos[1]; j <= brArrayPos[1]; ++j) {
             for (let i = tlArrayPos[0]; i <= brArrayPos[0]; ++i) {
-                // logNormal(this.rawArray[this.convToFlat([i,j])])
                 collect.push(this.rawArray[this.convToFlat([i,j])]);
             }
         }
@@ -430,12 +429,9 @@ function testGridBulk() {
         test.rawArray[i] = i;
     }
 
-    logNormal(test.getArrPos([9,0]));
-    logNormal(test.getArrPos([10,0])); // OOB
 
     let testPos = [4,4];
     for (let j = 0; j < size[0]; ++j) {
-        logNormal(test.getRangeNeighborhoodData(testPos,j))
     }
 
     let test1 = test.convertToGrid(test.getRangeNeighborhoodData([1,1],1),3,3); // Size must be known

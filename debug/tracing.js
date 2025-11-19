@@ -15,7 +15,6 @@
  * @example
  * // Matches "functionName" from "functionName@file.js:10:5"
  * const match = "functionName@file.js:10:5".match(functionNameRegX);
- * logNormal(match[1]); // "functionName"
  */
 const functionNameRegX = /^([^@]*)/
 
@@ -26,7 +25,6 @@ const functionNameRegX = /^([^@]*)/
  * @returns {string} The complete stack trace including function names, file paths, and line numbers
  * @example
  * function myFunction() {
- *   logNormal(getCurrentCallStack());
  *   // Output: Error\n    at myFunction (file.js:2:15)\n    at Object.<anonymous> (file.js:5:1)...
  * }
  */
@@ -151,7 +149,6 @@ function IncorrectParamPassed(expectedParam, offendingParam) {
  * 
  * // Usage - logs warning and calls newFunction
  * const result = oldFunction(5, 3); // Warns: "oldFunction is deprecated. Use newFunction() instead."
- * logNormal(result); // 8
  * 
  * @example
  * // Invalid usage - triggers parameter error
@@ -266,28 +263,12 @@ function incorrectLoadOrderWarning(typeMissing){
  * // String length: 11
  */
 function paramInfo(param) {
-    logNormal("=== Parameter Debug Info ===");
-    logNormal("Received:", param);
-    logNormal("Type:", typeof param);
-    logNormal("Is function:", typeof param === "function");
-    logNormal("Is null:", param === null);
-    logNormal("Is undefined:", param === undefined);
-    logNormal("Detailed type:", getType(param));
     
     if (typeof param === "function") {
-        logNormal("Function name:", param.name || "(anonymous)");
-        logNormal("Function length (params):", param.length);
-        logNormal("Function string preview:", param.toString().substring(0, 100) + "...");
     } else if (typeof param === "string") {
-        logNormal("String value:", `"${param}"`);
-        logNormal("String length:", param.length);
     } else if (typeof param === "object" && param !== null) {
-        logNormal("Object keys:", Object.keys(param));
-        logNormal("Constructor:", param.constructor?.name || "unknown");
     }
     
-    logNormal("Called from function:", getFunctionName(3));
-    logNormal("=============================");
 }
 
 /**

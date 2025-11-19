@@ -66,7 +66,6 @@ class MiniMap {
             });
             
             this._cache = manager.getCache(this._cacheName);
-            logNormal(`[MiniMap] Cache registered: ${this._cacheName} (${this.width}x${this.height})`);
         } catch (error) {
             console.error('[MiniMap] Failed to initialize cache:', error);
             this._cacheEnabled = false;
@@ -140,7 +139,6 @@ class MiniMap {
             const manager = CacheManager.getInstance();
             manager.invalidate(this._cacheName);
             this._terrainGenerated = false;
-            logNormal(`[MiniMap] Cache invalidated: ${this._cacheName}`);
         }
     }
     
@@ -368,11 +366,9 @@ class MiniMap {
             if (!this._cache.valid) {
                 // Call the render callback to generate cache
                 if (this._cache._buffer && this._cache.config && this._cache.config.renderCallback) {
-                    logNormal(`[MiniMap] Generating cache: ${this._cacheName} (${this.width}x${this.height})`);
                     this._cache.config.renderCallback(this._cache._buffer);
                     this._cache.valid = true;
                     this._cache.hits++;
-                    logNormal(`[MiniMap] Cache generated successfully`);
                 } else {
                     console.warn(`[MiniMap] Cache generation failed - buffer:`, !!this._cache._buffer, 'callback:', !!this._cache.config?.renderCallback);
                     this._renderTerrainDirect();
@@ -480,7 +476,6 @@ class MiniMap {
             const manager = CacheManager.getInstance();
             manager.removeCache(this._cacheName);
             this._cache = null;
-            logNormal(`[MiniMap] Cache removed: ${this._cacheName}`);
         }
     }
 }

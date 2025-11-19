@@ -90,7 +90,6 @@
     }
     try {
       if ((typeof window !== 'undefined') && (window.TESTING_ENABLED || (window.location && window.location.search && window.location.search.indexOf('test=1') !== -1))) {
-        logNormal('SelectionBoxController.handleClick worldPt=', wx, wy, 'selectionStart=', this._selectionStart && this._selectionStart.x, this._selectionStart && this._selectionStart.y);
       }
     } catch (e) {}
   };
@@ -146,11 +145,9 @@
     
     try {
       if ((typeof window !== 'undefined') && (window.TESTING_ENABLED || (window.location && window.location.search && window.location.search.indexOf('test=1') !== -1))) {
-        logNormal('SelectionBoxController.handleRelease selRect=', { x1, x2, y1, y2 }, 'selectedCount=', this._selectedEntities.length);
         try {
           // log entity positions
           var ents = this._entities.map(function(e){ return { idx: e._antIndex || e.antIndex || null, pos: (e.getPosition?e.getPosition():{x:e.posX,y:e.posY}), isSelected: e.isSelected }; });
-          logNormal('SelectionBoxController.entities=', ents);
         } catch (e) {}
       }
     } catch (e) {}

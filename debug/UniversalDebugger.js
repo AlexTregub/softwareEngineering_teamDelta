@@ -280,27 +280,19 @@ class UniversalDebugger {
     const isHovering = this.target._selectionController ? this.target._selectionController.isHovered() : false;
     
     // Log comprehensive info
-    logNormal(`[UniversalDebugger] ${this.target.type || 'Entity'} Hover Debug:`);
-    logNormal(`  Screen Mouse: (${screenMouse.x.toFixed(0)}, ${screenMouse.y.toFixed(0)})`);
-    logNormal(`  World Mouse:  (${worldMouse.x.toFixed(2)}, ${worldMouse.y.toFixed(2)})`);
     if (entityWorldPos) {
-      logNormal(`  Entity World: (${entityWorldPos.x.toFixed(2)}, ${entityWorldPos.y.toFixed(2)})`);
     }
     if (entityScreenPos && entityScreenPos !== entityWorldPos) {
-      logNormal(`  Entity Screen: (${entityScreenPos.x.toFixed(0)}, ${entityScreenPos.y.toFixed(0)})`);
     }
     
     // ALWAYS show sprite and collision positions
     if (spritePos) {
       const match = spritePos.x === entityWorldPos?.x && spritePos.y === entityWorldPos?.y;
-      logNormal(`  Sprite Pos:    (${spritePos.x.toFixed(2)}, ${spritePos.y.toFixed(2)})${match ? ' [OK]' : ' [MISMATCH!]'}`);
     }
     if (collisionPos) {
       const match = collisionPos.x === entityWorldPos?.x && collisionPos.y === entityWorldPos?.y;
-      logNormal(`  Collision Pos: (${collisionPos.x.toFixed(2)}, ${collisionPos.y.toFixed(2)})${match ? ' [OK]' : ' [MISMATCH!]'}`);
     }
     
-    logNormal(`  Is Hovering: ${isHovering}`);
   }
 
   /**
@@ -1303,7 +1295,6 @@ class UniversalDebugger {
    */
   resetPerformanceData() {
     this._initializePerformanceTracking();
-    logNormal(`Performance data reset for ${this.introspectionData?.objectType?.constructor || 'object'}`);
   }
 
   /**
@@ -1333,7 +1324,6 @@ class UniversalDebugger {
       this.graphToggles[toggleKey] = !this.graphToggles[toggleKey];
     }
     
-    logNormal(`${graphType} graph ${this.graphToggles[toggleKey] ? 'enabled' : 'disabled'} for ${this.introspectionData?.objectType?.constructor || 'object'}`);
     return this.graphToggles[toggleKey];
   }
 
@@ -1359,7 +1349,6 @@ class UniversalDebugger {
     this.graphToggles.showMemoryGraph = state;
     this.graphToggles.showSummaryGraph = state;
     
-    logNormal(`All graphs ${state ? 'enabled' : 'disabled'} for ${this.introspectionData?.objectType?.constructor || 'object'}`);
   }
 }
 

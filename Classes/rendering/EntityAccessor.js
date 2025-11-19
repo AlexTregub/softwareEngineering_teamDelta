@@ -23,6 +23,11 @@ class EntityAccessor {
   static getPosition(entity) {
     if (!entity) return { x: 0, y: 0 };
     
+    // MVC Controller - access via model
+    if (entity.model && entity.model.getPosition) {
+      return entity.model.getPosition();
+    }
+    
     // Standard getPosition() method (preferred)
     if (entity.getPosition) {
       return entity.getPosition();
@@ -41,7 +46,10 @@ class EntityAccessor {
       return entity.sprite.pos;
     }
     
-    // Direct coordinate properties
+    // Direct coordinate properties (_x/_y for Entity class)
+    if (entity._x !== undefined && entity._y !== undefined) {
+      return { x: entity._x, y: entity._y };
+    }
     if (entity.posX !== undefined && entity.posY !== undefined) {
       return { x: entity.posX, y: entity.posY };
     }
@@ -60,6 +68,11 @@ class EntityAccessor {
    */
   static getSize(entity) {
     if (!entity) return { x: 20, y: 20 };
+    
+    // MVC Controller - access via model
+    if (entity.model && entity.model.getSize) {
+      return entity.model.getSize();
+    }
     
     // Standard getSize() method (preferred)
     if (entity.getSize) {
@@ -83,7 +96,10 @@ class EntityAccessor {
       return entity.sprite.size;
     }
     
-    // Direct size properties  
+    // Direct size properties (_width/_height for Entity class)
+    if (entity._width !== undefined && entity._height !== undefined) {
+      return { x: entity._width, y: entity._height };
+    }
     if (entity.sizeX !== undefined && entity.sizeY !== undefined) {
       return { x: entity.sizeX, y: entity.sizeY };
     }

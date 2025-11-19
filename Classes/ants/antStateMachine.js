@@ -271,10 +271,6 @@ class AntStateMachine {
   // Debug: Print current state
   printState() {
     if (devConsoleEnabled) {
-      logNormal(`AntStateMachine State: ${this.getFullState()}`);
-      logNormal(`  Primary: ${this.primaryState}`);
-      logNormal(`  Combat: ${this.combatModifier || "None"}`);
-      logNormal(`  Terrain: ${this.terrainModifier || "None"}`);
     }
   }
 
@@ -341,7 +337,6 @@ function runAntStateCoverageTest(selectedAnt = null, verbose = false) {
         if (!ok) failures.push({ primary: p, combat: c, terrain: t, reason: 'setState returned false' });
         if (actual !== expected) failures.push({ primary: p, combat: c, terrain: t, reason: 'state mismatch', expected, actual });
         if (verbose && failures.length === 0) {
-          logNormal(`OK: ${expected}`);
         }
       }
     }
@@ -354,7 +349,6 @@ function runAntStateCoverageTest(selectedAnt = null, verbose = false) {
     visitedCount: visited.size
   };
 
-  logNormal(`AntStateCoverage: checked ${checked} combinations, failures: ${failures.length}, visitedStateCount: ${visited.size}`);
   if (failures.length) console.table(failures);
   return report;
 }

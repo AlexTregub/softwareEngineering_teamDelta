@@ -42,7 +42,6 @@ class QueenControlPanel {
         name: 'Fireball',
         key: 'fireball',
         activate: () => {
-          logNormal('🔥 Fireball activated!');
           this.activateFireballTargeting();
         }
       },
@@ -50,12 +49,10 @@ class QueenControlPanel {
         name: 'Lightning',
         key: 'lightning',
         activate: () => {
-          logNormal('⚡ Lightning activated!');
           // Initialize lightning brush if needed
           if (typeof window.g_lightningAimBrush === 'undefined' || !window.g_lightningAimBrush) {
             if (typeof window.initializeLightningAimBrush === 'function') {
               window.g_lightningAimBrush = window.initializeLightningAimBrush();
-              logNormal('✅ Lightning brush initialized');
               
               // Register the render function with RenderLayerManager
               if (typeof RenderManager !== 'undefined' && RenderManager && 
@@ -65,7 +62,6 @@ class QueenControlPanel {
                   RenderManager.layers.UI_GAME, 
                   window.g_lightningAimBrush.render.bind(window.g_lightningAimBrush)
                 );
-                logNormal('✅ Lightning brush render registered');
               }
             } else {
               console.warn('⚠️ Lightning Aim Brush system not available');
@@ -75,20 +71,10 @@ class QueenControlPanel {
           
           // Activate lightning aim brush
           if (window.g_lightningAimBrush) {
-            logNormal('⚡ Lightning brush state before activation:', {
-              isActive: window.g_lightningAimBrush.isActive,
-              hasRender: typeof window.g_lightningAimBrush.render === 'function'
-            });
-            
             // If already active, don't toggle off - just ensure it's on
             if (!window.g_lightningAimBrush.isActive) {
               window.g_lightningAimBrush.toggle();
             }
-            
-            logNormal('⚡ Lightning targeting mode activated - click to strike!');
-            logNormal('⚡ Lightning brush state after activation:', {
-              isActive: window.g_lightningAimBrush.isActive
-            });
           }
         }
       },
@@ -96,33 +82,28 @@ class QueenControlPanel {
         name: 'Blackhole',
         key: 'blackhole',
         activate: () => {
-          logNormal('🌀 Blackhole power - not yet implemented');
         }
       },
       {
         name: 'Sludge',
         key: 'sludge',
         activate: () => {
-          logNormal('☠️ Sludge power - not yet implemented');
         }
       },
       {
         name: 'Tidal Wave',
         key: 'tidalWave',
         activate: () => {
-          logNormal('🌊 Tidal Wave power - not yet implemented');
         }
       },
       {
         name: 'Final Flash',
         key: 'finalFlash',
         activate: () => {
-          logNormal('⚡ Flash activated!');
           // Initialize lightning brush if needed
           if (typeof window.g_flashAimBrush === 'undefined' || !window.g_flashAimBrush) {
             if (typeof window.initializeFlashAimBrush === 'function') {
               window.g_flashAimBrush = window.initializeFlashAimBrush();
-              logNormal('✅ final flash brush initialized');
               
               // Register the render function with RenderLayerManager
               if (typeof RenderManager !== 'undefined' && RenderManager && 
@@ -132,7 +113,6 @@ class QueenControlPanel {
                   RenderManager.layers.UI_GAME, 
                   window.g_flashAimBrush.render.bind(window.g_flashAimBrush)
                 );
-                logNormal('✅ final flash brush render registered');
               }
             } else {
               console.warn('⚠️ final flash Aim Brush system not available');
@@ -142,7 +122,7 @@ class QueenControlPanel {
           
           // Activate lightning aim brush
           if (window.g_flashAimBrush) {
-            logNormal('⚡ Final flash brush state before activation:', {
+            this.updatePowerState({
               isActive: window.g_flashAimBrush.isActive,
               hasRender: typeof window.g_flashAimBrush.render === 'function'
             });
@@ -151,9 +131,7 @@ class QueenControlPanel {
             if (!window.g_flashAimBrush.isActive) {
               window.g_flashAimBrush.toggle();
             }
-            
-            logNormal('⚡ final flash targeting mode activated - click to strike!');
-            logNormal('⚡ final flash brush state after activation:', {
+            this.updatePowerState({
               isActive: window.g_flashAimBrush.isActive
             });
           }
@@ -180,7 +158,6 @@ class QueenControlPanel {
     // Create or update the draggable panel
     this.createPanel();
     
-    logNormal('👑 Queen Control Panel shown');
   }
 
   /**
@@ -198,7 +175,6 @@ class QueenControlPanel {
       this.panel = null;
     }
     
-    logNormal('👑 Queen Control Panel hidden');
   }
 
   /**
@@ -262,13 +238,11 @@ class QueenControlPanel {
     const now = Date.now();
     if (now - this.lastFireballTime < this.fireballCooldown) {
       const remainingTime = Math.ceil((this.fireballCooldown - (now - this.lastFireballTime)) / 1000);
-      logNormal(`🔥 Fireball on cooldown for ${remainingTime} more seconds`);
       return;
     }
     
     this.targetingMode = true;
     this.targetCursor.visible = true;
-    logNormal('🎯 Fireball targeting activated - click to fire!');
   }
 
   /**
@@ -277,7 +251,6 @@ class QueenControlPanel {
   cancelTargeting() {
     this.targetingMode = false;
     this.targetCursor.visible = false;
-    logNormal('🎯 Fireball targeting cancelled');
   }
 
   /**
@@ -290,11 +263,9 @@ class QueenControlPanel {
     // Activate dropoff placement mode
     if (typeof window.g_dropoffTilePlacementMode !== 'undefined') {
       window.g_dropoffTilePlacementMode = true;
-      logNormal("🎯 Place Dropoff: click a tile to place, press ESC to cancel.");
     } else if (typeof window.activateDropoffPlacement === 'function') {
       window.activateDropoffPlacement();
     } else {
-      logNormal("🎯 Place Dropoff: click a tile to place, press ESC to cancel.");
       // Fallback: set global flag
       window.g_dropoffTilePlacementMode = true;
     }
@@ -357,7 +328,6 @@ class QueenControlPanel {
 
     const unlockedPowers = this.getUnlockedPowers();
     if (unlockedPowers.length === 0) {
-      logNormal('❌ No powers unlocked yet! Use the cheats panel to unlock powers.');
       return;
     }
 
@@ -371,7 +341,6 @@ class QueenControlPanel {
     this.updatePowerButtonState();
 
     const currentPower = unlockedPowers[this.currentPowerIndex];
-    logNormal(`👑 Queen power cycled to: ${currentPower.name}`);
   }
 
   /**
@@ -385,7 +354,6 @@ class QueenControlPanel {
 
     const unlockedPowers = this.getUnlockedPowers();
     if (unlockedPowers.length === 0) {
-      logNormal('❌ No powers unlocked yet!');
       return;
     }
 
@@ -394,7 +362,6 @@ class QueenControlPanel {
     }
 
     const currentPower = unlockedPowers[this.currentPowerIndex];
-    logNormal(`👑 Activating power: ${currentPower.name}`);
     
     // Activate the power
     currentPower.activate();
@@ -506,7 +473,6 @@ class QueenControlPanel {
     // Exit targeting mode
     this.cancelTargeting();
 
-    logNormal(`🔥 Queen fired fireball from (${Math.round(queenPos.x)}, ${Math.round(queenPos.y)}) to (${Math.round(targetX)}, ${Math.round(targetY)})`);
   }
 
   /**
@@ -648,7 +614,6 @@ let g_queenControlPanel = null;
 function initializeQueenControlPanel() {
   if (!g_queenControlPanel) {
     g_queenControlPanel = new QueenControlPanel();
-    logNormal('👑 Queen Control Panel system initialized');
   }
   return g_queenControlPanel;
 }
@@ -698,7 +663,6 @@ if (typeof window !== 'undefined') {
   
   // Add global console command to force show queen panel (for testing)
   window.testQueenPanel = function() {
-    logNormal('🧪 Testing Queen Control Panel...');
     
     if (!window.g_queenControlPanel) {
       console.error('❌ Queen Control Panel not initialized');
@@ -720,8 +684,6 @@ if (typeof window !== 'undefined') {
     testQueen.isSelected = true;
     window.g_queenControlPanel.show(testQueen);
     
-    logNormal('✅ Queen Control Panel forced visible for testing');
-    logNormal('📊 Panel state:', window.g_queenControlPanel.getDebugInfo());
     
     return true;
   };
@@ -734,7 +696,6 @@ if (typeof window !== 'undefined') {
     }
     
     const state = window.g_queenControlPanel.getDebugInfo();
-    logNormal('👑 Queen Control Panel state:', state);
     return state;
   };
 }

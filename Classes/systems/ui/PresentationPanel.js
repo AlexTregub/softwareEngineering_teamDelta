@@ -74,7 +74,6 @@ function initializePresentationPanels() {
       contentFunction: renderKanbanTransitionContent
     });
 
-    logNormal('✅ Presentation panels created successfully');
     return true;
   } catch (error) {
     console.error('❌ Error initializing presentation panels:', error);
@@ -192,8 +191,6 @@ function transitionToPresentation() {
     // Transition to KANBAN state
     GameState.goToKanban();
     
-    logNormal('🎯 Transitioned to Presentation (KANBAN) state');
-    logNormal('⏰ Started 5-minute countdown timer');
   } else {
     console.error('❌ GameState not available for transition');
   }
@@ -211,7 +208,6 @@ function transitionToPlaying() {
     // Transition to PLAYING state
     GameState.setState('PLAYING');
     
-    logNormal('🎯 Transitioned back to PLAYING state');
   } else {
     console.error('❌ GameState not available for transition');
   }
@@ -242,7 +238,6 @@ function updatePresentationPanels(currentState) {
     
     // Auto-transition when timer expires
     if (presentationTimer <= 0) {
-      logNormal('⏰ Presentation timer expired, returning to menu');
       if (typeof GameState !== 'undefined') {
         GameState.goToMenu();
       }
@@ -321,7 +316,6 @@ function loadPresentationAssets() {
   if (typeof loadImage !== 'undefined') {
     sprint5Image = loadImage('Images/KanBan/Sprint 6.png', 
       () => {
-        logVerbose('✅ Sprint 5.png loaded successfully');
       },
       () => {
         console.warn('⚠️ Failed to load Sprint 5.png, using fallback');
@@ -425,7 +419,6 @@ function renderSprintImageInMenu() {
  */
 function toggleSprintImageInMenu() {
   showSprintImageInMenu = !showSprintImageInMenu;
-  logNormal(`Sprint 5 image in menu: ${showSprintImageInMenu ? 'ON' : 'OFF'}`);
 }
 
 /**

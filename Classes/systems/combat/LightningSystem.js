@@ -72,7 +72,6 @@ class LightningManager {
     
     this.lastUpdate = null;
       
-    logNormal('⚡ Lightning system initialized');
   }
 
   strikeAtAnt(ant, damage = 50, radius = 3) {
@@ -92,9 +91,7 @@ class LightningManager {
       // Deal damage to ant (skip if it's the player queen)
       if (!isPlayerQueen && typeof ant.takeDamage === 'function') {
         ant.takeDamage(damage);
-        logNormal(`⚡ Lightning struck ant ${ant._antIndex || ''} for ${damage} damage`);
       } else if (isPlayerQueen) {
-        logNormal(`👑 Lightning skipped player queen (no friendly fire)`);
       } else {
         console.warn(`⚠️ Ant doesn't have takeDamage() method, skipping damage`);
       }
@@ -119,7 +116,6 @@ class LightningManager {
               if (typeof other.takeDamage === 'function') {
                 try { 
                   other.takeDamage(damage); 
-                  logNormal(`  ⚡ AoE damaged ant at ${d.toFixed(1)}px for ${damage} damage`);
                 } catch (e) { 
                   console.warn(`  ⚠️ Failed to damage ant:`, e.message);
                 }
@@ -272,14 +268,12 @@ class LightningManager {
    */
   strikeAtPosition(x, y, damage = 50, radius = 3) {
     try {
-      logNormal(`⚡ strikeAtPosition called at (${x.toFixed(1)}, ${y.toFixed(1)}) with radius ${radius} tiles, damage ${damage}`);
       this.createFlash(x, y);
       this.createExplosion(x, y);
       // Damage nearby ants (area effect)
       try {
         const aoeRadius = TILE_SIZE*radius;
         const playerQueen = (typeof getQueen === 'function') ? getQueen() : null;
-        logNormal(`⚡ AOE radius: ${aoeRadius}px, checking ${typeof ants !== 'undefined' && Array.isArray(ants) ? ants.length : 0} ants`);
         if (typeof ants !== 'undefined' && Array.isArray(ants)) {
           let hitCount = 0;
           for (const ant of ants) {
@@ -290,22 +284,17 @@ class LightningManager {
             const d = Math.hypot(p.x - x, p.y - y);
             if (d <= aoeRadius) {
               hitCount++;
-              logNormal(`  ⚡ Hit ant at distance ${d.toFixed(1)}px (ant pos: ${p.x.toFixed(1)}, ${p.y.toFixed(1)})`);
               try {
                 if (typeof ant.takeDamage === 'function') {
                   ant.takeDamage(damage);
-                  logNormal(`    ✓ Dealt ${damage} damage to ant`);
                 } else {
-                  logNormal(`    ⚠️ Ant has no takeDamage() method, skipping`);
                 }
               } catch (e) {
-                logNormal(`    ⚠️ Exception damaging ant: ${e.message}`);
               }
               // Apply knockback tween for AoE victims
               try { this.applyKnockback(ant, x, y, this.knockbackPx); } catch (e) { /* ignore */ }
             }
           }
-          logNormal(`⚡ Total ants hit: ${hitCount}`);
         }
       } catch (e) {
         console.error('❌ Error applying AoE damage in strikeAtPosition:', e);

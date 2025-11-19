@@ -90,7 +90,6 @@ class CameraManager {
     // Clamp to bounds if map dimensions are available (safe-guarded inside clampToBounds)
     try { this.clampToBounds(); } catch (e) { /* ignore if clamp depends on uninitialized systems */ }
 
-    logVerbose('CameraManager initialized', { cameraX: this.cameraX, cameraY: this.cameraY, canvasWidth: this.canvasWidth, canvasHeight: this.canvasHeight });
 
     // If the terrain exists at initialization time, sync its camera position so the render
     // converter and CameraManager agree. Convert camera pixel center to tile coordinates.
@@ -253,34 +252,6 @@ class CameraManager {
     // Get world position at focus point before zoom
     const focusWorld = this.screenToWorld(focusX, focusY);
 
-    // DEBUG: Comprehensive zoom debugging
-    if (typeof console !== 'undefined') {
-      logVerbose('[CameraManager] setZoom DETAILED DEBUG', {
-        zoomChange: {
-          from: this.cameraZoom,
-          to: clampedZoom,
-          factor: clampedZoom / this.cameraZoom
-        },
-        focusPoint: {
-          screen: { x: focusX, y: focusY },
-          world: focusWorld,
-          screenPercent: {
-            x: ((focusX / this.canvasWidth) * 100).toFixed(1) + '%',
-            y: ((focusY / this.canvasHeight) * 100).toFixed(1) + '%'
-          }
-        },
-        cameraBefore: {
-          x: this.cameraX,
-          y: this.cameraY,
-          zoom: this.cameraZoom
-        },
-        canvasSize: {
-          width: this.canvasWidth,
-          height: this.canvasHeight
-        }
-      });
-    }
-
     // Store old zoom for calculation
     const oldZoom = this.cameraZoom;
     
@@ -309,55 +280,7 @@ class CameraManager {
       CameraController.setCameraPosition(this.cameraX, this.cameraY);
     }
 
-    if (typeof console !== 'undefined') {
-      // Test the zoom focus calculation
-      const testScreenCoords = this.worldToScreen(focusWorld.worldX, focusWorld.worldY);
-      
-      logVerbose('[CameraManager] setZoom RESULT VERIFICATION', {
-        cameraMovement: {
-          deltaX: newCameraX - this.cameraX,
-          deltaY: newCameraY - this.cameraY,
-          direction: this.getCameraMovementDirection(this.cameraX, this.cameraY, newCameraX, newCameraY)
-        },
-        zoomFocus: {
-          originalScreen: { x: focusX, y: focusY },
-          worldPoint: focusWorld,
-          recalculatedScreen: testScreenCoords,
-          screenError: {
-            x: Math.abs(focusX - testScreenCoords.screenX),
-            y: Math.abs(focusY - testScreenCoords.screenY)
-          }
-        },
-        newCamera: {
-          x: newCameraX,
-          y: newCameraY,
-          zoom: clampedZoom
-        }
-      });
-    }
-
     this.clampToBounds();
-
-    // DEBUG: Final verification after bounds clamping
-    if (typeof console !== 'undefined') {
-      const finalScreenCoords = this.worldToScreen(focusWorld.worldX, focusWorld.worldY);
-      logVerbose('[CameraManager] FINAL STATE after clampToBounds', {
-        finalCamera: { x: this.cameraX, y: this.cameraY, zoom: this.cameraZoom },
-        boundsEffect: {
-          cameraChanged: (this.cameraX !== newCameraX) || (this.cameraY !== newCameraY),
-          originalCalculated: { x: newCameraX, y: newCameraY },
-          afterBounds: { x: this.cameraX, y: this.cameraY }
-        },
-        focusAccuracy: {
-          target: { x: focusX, y: focusY },
-          actual: finalScreenCoords,
-          error: {
-            x: Math.abs(focusX - finalScreenCoords.screenX).toFixed(2),
-            y: Math.abs(focusY - finalScreenCoords.screenY).toFixed(2)
-          }
-        }
-      });
-    }
 
     // DEBUG: Print terrain converter and camera controller state after zoom so we can
     // see whether the render converter (g_activeMap) or CameraController are out of sync.
@@ -371,17 +294,6 @@ class CameraManager {
         const convPos = conv._camPosition ?? null;
         const convCenter = conv._canvasCenter ?? null;
         const stats = typeof g_activeMap.getCacheStats === 'function' ? g_activeMap.getCacheStats() : null;
-        logVerbose('[CameraManager] post-zoom state', {
-          cameraX: this.cameraX,
-          cameraY: this.cameraY,
-          cameraZoom: this.cameraZoom,
-          cameraControllerPos: ccPos,
-          g_activeMap_convPos: convPos,
-          g_activeMap_convCenter: convCenter,
-          g_activeMap_stats: stats
-        });
-      } else {
-        logVerbose('[CameraManager] post-zoom state', { cameraX: this.cameraX, cameraY: this.cameraY, cameraZoom: this.cameraZoom, cameraControllerPos: ccPos, g_activeMap: null });
       }
     } catch (e) {
       console.warn('CameraManager: post-zoom debug failed', e);
@@ -415,23 +327,6 @@ class CameraManager {
     if (wheelDelta === 0) { 
       return false; 
     }
-
-    // DEBUG: Mouse coordinates and wheel direction
-    logVerbose('[CameraManager] handleMouseWheel DEBUG', {
-      wheelDelta,
-      zoomDirection: wheelDelta > 0 ? 'zoom out' : 'zoom in',
-      mouseX: typeof mouseX !== 'undefined' ? mouseX : 'undefined',
-      mouseY: typeof mouseY !== 'undefined' ? mouseY : 'undefined',
-      canvasWidth: this.canvasWidth,
-      canvasHeight: this.canvasHeight,
-      mousePosition: {
-        relative: {
-          x: typeof mouseX !== 'undefined' ? (mouseX / this.canvasWidth * 100).toFixed(1) + '%' : 'N/A',
-          y: typeof mouseY !== 'undefined' ? (mouseY / this.canvasHeight * 100).toFixed(1) + '%' : 'N/A'
-        },
-        quadrant: this.getMouseQuadrant()
-      }
-    });
 
     const zoomFactor = wheelDelta > 0 ? (1 / this.CAMERA_ZOOM_STEP) : this.CAMERA_ZOOM_STEP;
     const targetZoom = this.cameraZoom * zoomFactor;
@@ -536,7 +431,6 @@ class CameraManager {
   setLevelBounds(bounds = null, levelMap = null) {
     this.customBounds = bounds;
     this.currentLevel = levelMap;
-    logVerbose('CameraManager: Level bounds updated', { bounds, levelMap: levelMap ? 'set' : 'null' });
   }
 
   /**
@@ -640,16 +534,6 @@ class CameraManager {
       worldY: this.cameraY + py / this.cameraZoom
     };
     
-    logVerbose('[CameraManager] screenToWorld DEBUG', {
-      input: { px, py },
-      camera: { x: this.cameraX, y: this.cameraY, zoom: this.cameraZoom },
-      calculation: {
-        worldX: `${this.cameraX} + ${px} / ${this.cameraZoom} = ${result.worldX}`,
-        worldY: `${this.cameraY} + ${py} / ${this.cameraZoom} = ${result.worldY}`
-      },
-      result
-    });
-    
     return result;
   }
 
@@ -718,14 +602,12 @@ function getWorldMouseX() {
   if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
     const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
     if (window.g_mouseDebugEnabled) {
-      logVerbose(`[getWorldMouseX] Screen: ${mouseX} -> World: ${worldPos.worldX} (Camera: ${window.g_cameraManager.cameraX}, Zoom: ${window.g_cameraManager.cameraZoom})`);
     }
     return worldPos.worldX;
   }
   // Fallback to screen coordinates if no camera manager
   const fallbackX = typeof mouseX !== 'undefined' ? mouseX : 0;
   if (window.g_mouseDebugEnabled) {
-    logVerbose(`[getWorldMouseX] Fallback mode: ${fallbackX} (no camera manager)`);
   }
   return fallbackX;
 }
@@ -734,14 +616,12 @@ function getWorldMouseY() {
   if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
     const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
     if (window.g_mouseDebugEnabled) {
-      logVerbose(`[getWorldMouseY] Screen: ${mouseY} -> World: ${worldPos.worldY} (Camera: ${window.g_cameraManager.cameraY}, Zoom: ${window.g_cameraManager.cameraZoom})`);
     }
     return worldPos.worldY;
   }
   // Fallback to screen coordinates if no camera manager
   const fallbackY = typeof mouseY !== 'undefined' ? mouseY : 0;
   if (window.g_mouseDebugEnabled) {
-    logVerbose(`[getWorldMouseY] Fallback mode: ${fallbackY} (no camera manager)`);
   }
   return fallbackY;
 }
@@ -754,7 +634,6 @@ function getWorldMousePosition() {
   if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
     const worldPos = window.g_cameraManager.screenToWorld(mouseX, mouseY);
     if (window.g_mouseDebugEnabled) {
-      logVerbose(`[getWorldMousePosition] Screen: (${mouseX}, ${mouseY}) -> World: (${worldPos.worldX}, ${worldPos.worldY}) | Camera: (${window.g_cameraManager.cameraX}, ${window.g_cameraManager.cameraY}), Zoom: ${window.g_cameraManager.cameraZoom}`);
     }
     return { x: worldPos.worldX, y: worldPos.worldY };
   }
@@ -764,7 +643,6 @@ function getWorldMousePosition() {
     y: typeof mouseY !== 'undefined' ? mouseY : 0 
   };
   if (window.g_mouseDebugEnabled) {
-    logVerbose(`[getWorldMousePosition] Fallback mode: (${fallback.x}, ${fallback.y}) (no camera manager)`);
   }
   return fallback;
 }
@@ -778,7 +656,6 @@ let g_mouseDebugInterval = null;
 function startMouseDebug() {
   if (typeof window !== 'undefined') {
     window.g_mouseDebugEnabled = true;
-    logVerbose("[Mouse Debug] Starting periodic debug output (1 second intervals)");
     
     // Clear any existing interval
     if (g_mouseDebugInterval) {
@@ -787,12 +664,9 @@ function startMouseDebug() {
     
     // Start new interval to call functions every second
     g_mouseDebugInterval = setInterval(() => {
-      logVerbose("=== Mouse Debug Sample (1s interval) ===");
       const worldX = getWorldMouseX();
       const worldY = getWorldMouseY();
       const worldPos = getWorldMousePosition();
-      logVerbose(`Summary: Screen(${typeof mouseX !== 'undefined' ? mouseX : 'N/A'}, ${typeof mouseY !== 'undefined' ? mouseY : 'N/A'}) -> World(${worldX}, ${worldY})`);
-      logVerbose("=====================================");
     }, 1000);
   }
 }
@@ -803,7 +677,6 @@ function startMouseDebug() {
 function stopMouseDebug() {
   if (typeof window !== 'undefined') {
     window.g_mouseDebugEnabled = false;
-    logVerbose("[Mouse Debug] Stopping periodic debug output");
     
     if (g_mouseDebugInterval) {
       clearInterval(g_mouseDebugInterval);
@@ -834,5 +707,3 @@ if (typeof window !== 'undefined') {
   window.toggleMouseDebug = toggleMouseDebug;
   window.g_mouseDebugEnabled = false; // Initialize as disabled
 }
-
-

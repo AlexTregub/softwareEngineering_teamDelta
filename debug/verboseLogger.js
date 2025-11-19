@@ -13,9 +13,6 @@
  * 
  * Usage:
  *   logSilent('Critical error')     - Always shows (level 0+)
- *   logQuiet('Test completed')      - Shows on quiet+ (level 1+)
- *   logNormal('System ready')       - Shows on normal+ (level 2+)
- *   logVerbose('Initializing...')   - Shows on verbose+ (level 3+)
  *   logDebug('Internal state: {}')  - Shows on debug only (level 4)
  */
 
@@ -115,5 +112,4 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof console !== 'undefined') {
   const level = getCurrentVerbosity();
   const levels = ['SILENT', 'QUIET', 'NORMAL', 'VERBOSE', 'DEBUG'];
-  globalThis.logQuiet(`🔊 Verbose Logger initialized - Level: ${level} (${levels[level]})`);
 }

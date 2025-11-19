@@ -42,7 +42,6 @@ class UIController {
     
     if (this.uiRenderer) {
       this.initialized = true;
-      this.setupKeyboardControls();
       
       return true;
     } else {

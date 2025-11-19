@@ -144,7 +144,6 @@ class TileInteractionManager {
     this.addObjectToTile(object, newTileX, newTileY);
     
     if (this.debugEnabled) {
-      logNormal(`Moved object from tile (${oldTileX},${oldTileY}) to (${newTileX},${newTileY})`);
     }
   }
 
@@ -204,7 +203,6 @@ class TileInteractionManager {
    */
   handleMouseClick(mouseX, mouseY, button = 'LEFT') {
     if (this.debugEnabled) {
-      logNormal(`Mouse click at (${mouseX}, ${mouseY}) with ${button} button`);
     }
 
     // 1. Check UI elements first (highest priority)

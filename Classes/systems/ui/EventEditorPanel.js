@@ -62,7 +62,6 @@ class EventEditorPanel {
     }
     
     this.eventManager = EventManager.getInstance();
-    logNormal('✅ EventEditorPanel initialized');
     return true;
   }
   
@@ -430,13 +429,11 @@ class EventEditorPanel {
               relY >= dragBtnY && relY <= dragBtnY + dragBtnSize) {
             // Start drag operation
             this.startDragPlacement(event.id);
-            logNormal(`Starting drag for event: ${event.id}`);
             return true;
           }
           
           // Otherwise, just select the event
           this.selectedEventId = event.id;
-          logNormal('Selected event:', event.id);
           return true;
         }
         
@@ -542,7 +539,6 @@ class EventEditorPanel {
     const success = this.eventManager.registerEvent(eventConfig);
     
     if (success) {
-      logNormal('Event saved:', eventConfig.id);
       this.editMode = null;
       this.selectedEventId = eventConfig.id;
     } else {
@@ -559,12 +555,10 @@ class EventEditorPanel {
       // Use EventManager's exportToJSON method
       const json = this.eventManager.exportToJSON(false);
       
-      logNormal('Event Configuration:\n', json);
       
       // Copy to clipboard if available
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
         navigator.clipboard.writeText(json).then(() => {
-          logNormal('✅ Configuration copied to clipboard');
         }).catch(err => {
           console.error('Failed to copy to clipboard:', err);
         });
@@ -595,7 +589,6 @@ class EventEditorPanel {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      logNormal('✅ Downloaded:', filename);
     } catch (error) {
       console.error('Download failed:', error);
     }
@@ -622,7 +615,6 @@ class EventEditorPanel {
           const success = this.eventManager.loadFromJSON(json);
           
           if (success) {
-            logNormal('✅ Events imported successfully');
             this.selectedEventId = null;
             this.editMode = null;
             return { type: 'event_imported', success: true };
@@ -696,7 +688,6 @@ class EventEditorPanel {
     this.dragState.cursorX = 0;
     this.dragState.cursorY = 0;
     
-    logNormal(`EventEditorPanel: Started drag for event '${eventId}'`);
     return true;
   }
   
@@ -748,7 +739,6 @@ class EventEditorPanel {
     const success = this.eventManager.registerTrigger(triggerConfig);
     
     if (success) {
-      logNormal(`EventEditorPanel: Placed trigger for '${eventId}' at (${worldX}, ${worldY}) with radius ${radius}`);
       
       // Reset drag state
       this._resetDragState();
@@ -776,7 +766,6 @@ class EventEditorPanel {
    */
   cancelDrag() {
     if (this.dragState.isDragging) {
-      logNormal(`EventEditorPanel: Cancelled drag for '${this.dragState.eventId}'`);
     }
     this._resetDragState();
   }

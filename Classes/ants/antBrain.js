@@ -11,7 +11,6 @@ To Do:
 
 class AntBrain{
     constructor(antInstance, antType){
-        logVerbose(`I LIVE!!!`);
         this.ant = antInstance;
         this.antType = antType;
         this.flag_ = "";
@@ -152,22 +151,18 @@ class AntBrain{
 
     checkHunger(){
         this.hunger++;
-        logVerbose(`my belly is bellying`);
         //Checks hunger meter every second
         if(this.hunger === HUNGRY){
-            logNormal('hungry')
             this.flag_ = "hungry";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === STARVING){
-            logNormal(`starving`);
             this.flag_ = "starving";
             this.runFlagState();
             this.decideState();
         }
         if(this.hunger === DEATH){
-            logNormal(`dead`);
             this.flag_ = "death";
             this.runFlagState();
             //this.killAnt();//Need to make this
@@ -200,14 +195,6 @@ class AntBrain{
             //this.penalizedTrails = []; Move this reset somewhere else
             break;
         }
-        logNormal(`
-                ${this.flag_}:
-                Build: ${this.followBuildTrail}
-                Forage: ${this.followForageTrail}
-                Farm: ${this.followFarmTrail}
-                Enemy: ${this.followEnemyTrail}
-                Boss: ${this.followBossTrail}
-                `);
     }
 
     update(deltaTime){  
@@ -221,7 +208,6 @@ class AntBrain{
     internalTimer(deltaTime){
         this._accumulator = (this._accumulator || 0) + deltaTime;
         if (this._accumulator >= increment) { // every second
-            logVerbose(`${this.hunger}`);
             this._accumulator = 0;
             this.checkHunger();
         }

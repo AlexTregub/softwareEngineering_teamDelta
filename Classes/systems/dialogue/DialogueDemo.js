@@ -30,7 +30,6 @@ function initializeDialogueSystem() {
     return false;
   }
 
-  logNormal('🎭 Initializing Dialogue System Demo...');
 
   // Register sample dialogues
   registerSampleDialogues();
@@ -43,15 +42,6 @@ function initializeDialogueSystem() {
   window.showAllDialogues = showAllDialogues;
   window.registerSampleDialogues = registerSampleDialogues;
 
-  logNormal('✅ Dialogue System Demo Ready!');
-  logNormal('\n📚 Available Functions:');
-  logNormal('  triggerDialogue(id) - Trigger a specific dialogue');
-  logNormal('  showAllDialogues() - List all registered dialogues');
-  logNormal('\n⌨️  Keyboard Shortcuts:');
-  logNormal('  Press 1 - Queen\'s Welcome');
-  logNormal('  Press 2 - Worker\'s Request');
-  logNormal('  Press 3 - Scout\'s Report');
-  logNormal('\n💡 Example: triggerDialogue("queen_welcome")');
 
   return true;
 }
@@ -65,7 +55,6 @@ function registerSampleDialogues() {
     return;
   }
 
-  logNormal('📝 Registering sample dialogues...');
 
   // Dialogue 1: Queen's Welcome
   const queenWelcome = new DialogueEvent({
@@ -78,21 +67,18 @@ function registerSampleDialogues() {
         { 
           text: 'Thank you, Your Majesty!',
           onSelect: () => {
-            logNormal('Player chose: Thank you');
           }
         },
         { 
           text: 'What can I do to help?',
           nextEventId: 'worker_request',
           onSelect: () => {
-            logNormal('Player chose: Help');
           }
         },
         {
           text: 'Tell me about the colony',
           nextEventId: 'colony_info',
           onSelect: () => {
-            logNormal('Player chose: Colony info');
           }
         }
       ]
@@ -111,7 +97,6 @@ function registerSampleDialogues() {
           text: 'I will gather resources',
           nextEventId: 'scout_report',
           onSelect: () => {
-            logNormal('Player accepted gathering mission');
             // Set flag to track mission acceptance
             if (window.eventManager) {
               window.eventManager.setFlag('gathering_mission_accepted', true);
@@ -122,13 +107,11 @@ function registerSampleDialogues() {
           text: 'How many workers do we have?',
           nextEventId: 'worker_stats',
           onSelect: () => {
-            logNormal('Player asked about workers');
           }
         },
         {
           text: 'Not right now',
           onSelect: () => {
-            logNormal('Player declined mission');
           }
         }
       ]
@@ -146,7 +129,6 @@ function registerSampleDialogues() {
         { 
           text: 'Yes, send a team!',
           onSelect: () => {
-            logNormal('Player sent team to food source');
             if (window.eventManager) {
               window.eventManager.setFlag('food_mission_started', true);
               window.eventManager.setFlag('scout_location_investigated', true);
@@ -156,7 +138,6 @@ function registerSampleDialogues() {
         { 
           text: 'No, too risky',
           onSelect: () => {
-            logNormal('Player avoided risk');
             if (window.eventManager) {
               window.eventManager.setFlag('avoided_risk', true);
             }
@@ -166,7 +147,6 @@ function registerSampleDialogues() {
           text: 'Tell me more about the rivals',
           nextEventId: 'rival_info',
           onSelect: () => {
-            logNormal('Player wants more info');
           }
         }
       ]
@@ -208,7 +188,6 @@ function registerSampleDialogues() {
         {
           text: 'I\'ll help recruit more',
           onSelect: () => {
-            logNormal('Player will help recruit');
             if (window.eventManager) {
               window.eventManager.setFlag('recruiting_mission', true);
             }
@@ -229,7 +208,6 @@ function registerSampleDialogues() {
         {
           text: 'Let\'s move now!',
           onSelect: () => {
-            logNormal('Player chose aggressive strategy');
             if (window.eventManager) {
               window.eventManager.setFlag('aggressive_expansion', true);
               window.eventManager.setFlag('food_mission_started', true);
@@ -277,13 +255,11 @@ function registerSampleDialogues() {
   dialogues.forEach(dialogue => {
     if (window.eventManager.registerEvent(dialogue)) {
       registered++;
-      logNormal(`  ✅ Registered: ${dialogue.id}`);
     } else {
       console.warn(`  ⚠️  Failed to register: ${dialogue.id}`);
     }
   });
 
-  logNormal(`✅ Registered ${registered}/${dialogues.length} dialogues`);
   return registered;
 }
 
@@ -299,16 +275,13 @@ function triggerDialogue(dialogueId) {
   const dialogue = window.eventManager.getEvent(dialogueId);
   if (!dialogue) {
     console.error(`Dialogue "${dialogueId}" not found`);
-    logNormal('Available dialogues:', window.eventManager.getAllEvents().map(e => e.id));
     return false;
   }
 
-  logNormal(`🎭 Triggering dialogue: ${dialogueId}`);
   
   // Make sure we're in PLAYING state to show dialogue
   if (window.gameState !== 'PLAYING') {
     window.gameState = 'PLAYING';
-    logNormal('Switched to PLAYING state');
   }
 
   // Create new DialogueEvent instance and trigger it
@@ -330,20 +303,12 @@ function showAllDialogues() {
   const events = window.eventManager.getAllEvents();
   const dialogues = events.filter(e => e.type === 'dialogue');
 
-  logNormal(`\n📋 Registered Dialogues (${dialogues.length}):\n`);
   
   dialogues.forEach((dialogue, index) => {
-    logNormal(`${index + 1}. ${dialogue.id}`);
-    logNormal(`   Speaker: ${dialogue.content.speaker}`);
-    logNormal(`   Priority: ${dialogue.priority}`);
-    logNormal(`   Choices: ${dialogue.content.choices ? dialogue.content.choices.length : 0}`);
     if (dialogue.content.autoContinue) {
-      logNormal(`   Auto-continue: Yes (${dialogue.content.autoContinueDelay}ms)`);
     }
-    logNormal('');
   });
 
-  logNormal('💡 Trigger any dialogue: triggerDialogue("dialogue_id")');
 }
 
 /**
@@ -379,7 +344,6 @@ function setupDialogueKeyboardShortcuts() {
     }
   };
 
-  logNormal('⌨️  Keyboard shortcuts registered');
 }
 
 // Auto-initialize when script loads
@@ -388,7 +352,6 @@ if (typeof window !== 'undefined') {
   if (window.eventManager && window.DialogueEvent) {
     initializeDialogueSystem();
   } else {
-    logNormal('⏳ Waiting for game to load...');
     
     // Poll for game readiness
     const checkInterval = setInterval(() => {

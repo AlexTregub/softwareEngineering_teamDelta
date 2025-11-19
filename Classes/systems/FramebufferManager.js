@@ -127,7 +127,6 @@ class FramebufferManager {
       this.lastUpdateTimes.set(layerName, 0);
     }
 
-    logNormal(`FramebufferManager initialized: ${canvasWidth}x${canvasHeight}`);
     return true;
   }
 
@@ -170,7 +169,6 @@ class FramebufferManager {
         this.stats.memoryUsage += memoryEstimate;
 
         if (this.config.debugMode) {
-          logNormal(`Created framebuffer for ${layerName}: ${width}x${height}, alpha: ${hasAlpha}`);
         }
 
         return buffer;
@@ -258,7 +256,6 @@ class FramebufferManager {
       tracking.changeCount++;
       
       if (this.config.debugMode) {
-        logNormal(`Layer ${layerName} marked dirty: ${reason}`);
       }
     }
   }
@@ -330,7 +327,6 @@ class FramebufferManager {
       this.adaptiveManager.recordRenderTime(layerName, renderTime);
       
       if (this.config.debugMode) {
-        logNormal(`Rendered ${layerName} to framebuffer in ${renderTime.toFixed(2)}ms`);
       }
       
     } finally {
@@ -516,7 +512,6 @@ class FramebufferManager {
       totalTimeSaved: 0
     };
 
-    logNormal('FramebufferManager cleaned up');
   }
 
   /**

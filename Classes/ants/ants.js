@@ -329,7 +329,6 @@ _getFallbackJobStats(jobName) {
           resources.push(r); deposited++;
         }
       }
-      if (typeof console !== 'undefined') logNormal(`Ant ${this._antIndex} deposited ${deposited} resource(s) at dropoff.`);
       if (this._stateMachine) this._stateMachine.setState("IDLE");
       this._targetDropoff = null;
     }
@@ -388,7 +387,6 @@ _getFallbackJobStats(jobName) {
    * Remove this ant from all game systems when it dies
    */
   _removeFromGame() {
-    logNormal(`💀 Removing dead ant ${this._antIndex} from game systems`);
 
     // Clear entity from faction attack tracking
     for(let obj in factionList){
@@ -402,7 +400,6 @@ _getFallbackJobStats(jobName) {
       const index = ants.indexOf(this);
       if (index !== -1) {
         ants.splice(index, 1);
-        logNormal(`   ✅ Removed from ants array (${ants.length} remaining)`);
       }
     }
     
@@ -413,7 +410,6 @@ _getFallbackJobStats(jobName) {
         const tileX = Math.floor(pos.x / (g_tileInteractionManager.tileSize || 32));
         const tileY = Math.floor(pos.y / (g_tileInteractionManager.tileSize || 32));
         g_tileInteractionManager.removeObjectFromTile(this, tileX, tileY);
-        logNormal(`   ✅ Removed from TileInteractionManager`);
       }
     }
     
@@ -433,7 +429,6 @@ _getFallbackJobStats(jobName) {
         antManager.selectedAnt = null;
       }
       
-      logNormal(`   ✅ Cleared from selection systems`);
     }
     
     // // 4. Clear combat targets pointing to this dead ant
@@ -441,7 +436,6 @@ _getFallbackJobStats(jobName) {
       ants.forEach(otherAnt => {
         if (otherAnt._combatTarget === this) {
           otherAnt._combatTarget = null;
-          logNormal(`   ✅ Cleared combat target from ant ${otherAnt._antIndex}`);
         }
       });
     }
@@ -449,7 +443,6 @@ _getFallbackJobStats(jobName) {
     // // 5. Update UI selection entities if function exists
     if (typeof updateUISelectionEntities === 'function') {
       updateUISelectionEntities();
-      logNormal(`   ✅ Updated UI selection entities`);
     }
 
     
@@ -545,12 +538,10 @@ _getFallbackJobStats(jobName) {
       // Update gather state behavior if ant is in GATHERING state
       if (this._stateMachine.getCurrentState() == "GATHERING" && this._stateMachine.isGathering() && this._gatherState) {
         if (!this._gatherState.isActive) {
-          //logNormal(`🔍 Ant ${this.id} entering GatherState (GATHERING state detected)`);
           this._gatherState.enter() 
         }
         if (this._gatherState.update()) {this.stateMachine.beginIdle();};
       } else if (this._gatherState && this._gatherState.isActive) {
-        //logNormal(`🔍 Ant ${this.id} exiting GatherState (no longer GATHERING)`);
         this._gatherState.exit();
         
       }
@@ -774,7 +765,6 @@ _getFallbackJobStats(jobName) {
           this._renderController.showDamageNumber(attackPower, [255, 100, 100]);
         }
         this._lastAttackTime = now;
-        logNormal(`🗡️ Ant ${this._antIndex} (${this._faction}) attacked enemy ${target._antIndex || 'unknown'} for ${attackPower} damage`);
     }
   }
   

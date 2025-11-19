@@ -70,10 +70,7 @@ class TerrainController {
       
       // Debug logging (enable with window.DEBUG_TERRAIN = true)
       if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN) {
-        logNormal(`[TerrainController] ${this._entity._type} terrain changed: ${oldTerrain} → ${newTerrain}`, {
-          entityId: this._entity._id,
-          position: this._getEntityPosition()
-        });
+        // Terrain change detected
       }
       
       this._onTerrainChange(oldTerrain, newTerrain);
@@ -130,15 +127,6 @@ class TerrainController {
     if (tile) {
       terrainType = this._mapTerrainType(tile);
       
-      // Debug logging for first detection
-      if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN && !this._terrainCache.has(cacheKey)) {
-        logNormal(`[TerrainController] Detected terrain:`, {
-          method: detectionMethod,
-          position: pos,
-          tileMaterial: tile.material,
-          terrainType: terrainType
-        });
-      }
     } else if (typeof window.DEBUG_TERRAIN !== 'undefined' && window.DEBUG_TERRAIN && !this._terrainCache.has(cacheKey)) {
       console.warn(`[TerrainController] No tile found at position:`, pos, `method: ${detectionMethod}`);
     }

@@ -152,7 +152,6 @@ class LevelEditor {
     
     this.active = true;
     
-    logVerbose('Level Editor initialized');
     return true;
   }
   
@@ -729,7 +728,6 @@ class LevelEditor {
     const gridX = Math.floor(worldCoords.worldX / tileSize);
     const gridY = Math.floor(worldCoords.worldY / tileSize);
     
-    logNormal(`🎯 [HIGHLIGHT] Mouse: (${mouseX}, ${mouseY}) → World: (${worldCoords.worldX.toFixed(1)}, ${worldCoords.worldY.toFixed(1)}) → Grid: (${gridX}, ${gridY})`);
     
     return { gridX, gridY };
   }
@@ -781,7 +779,6 @@ class LevelEditor {
     const zoomFactor = delta < 0 ? 1.1 : 0.9;
     const newZoom = currentZoom * zoomFactor;
     
-    logNormal('🔍 [ZOOM]', delta < 0 ? 'IN' : 'OUT', '- Current:', currentZoom.toFixed(2), '→ New:', newZoom.toFixed(2));
     
     // Apply zoom centered on mouse position
     if (typeof this.editorCamera.setZoom === 'function') {

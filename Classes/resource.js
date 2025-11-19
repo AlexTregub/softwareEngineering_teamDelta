@@ -148,7 +148,6 @@ class resourcesArrayCompat {
   set resources(value) {
     // For compatibility, but discourage direct assignment
     if (typeof globalThis.logVerbose === 'function') {
-      globalThis.logVerbose('ResourcesArrayCompat: Direct resource assignment deprecated, use ResourceSystemManager methods instead');
     }
   }
 
@@ -354,7 +353,6 @@ class ResourceSpawner {
     if (!this.isActive) {
       this.isActive = true;
       this.timer = setInterval(() => this.spawn(), this.interval * 1000);
-      logNormal('ResourceSpawner: Started spawning resources');
     }
   }
 
@@ -366,7 +364,6 @@ class ResourceSpawner {
         clearInterval(this.timer);
         this.timer = null;
       }
-      logNormal('ResourceSpawner: Stopped spawning resources');
     }
   }
 
@@ -520,7 +517,6 @@ class Resource extends Entity {
     if (this.highlight && typeof this.highlight === 'object' && this.highlight.hover) {
         this.highlight.hover();
     } else {
-      logVerbose("No hover effect available");
     }
   }
 

@@ -49,18 +49,13 @@ const MENU_CONFIGS = {
     { x: -10, y: -10,  w: 220, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
     { x: -10, y: 70, w: 220, h:80, text: "Import level", style: 'info', action: () => importTerrain()},
     { x: -10, y: 150,   w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
-    { x: -10, y: 230,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => logNormal("Exit!") },
     { x: -60, y: 260, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
-    { x: 0,   y: 260,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => logNormal("Debug:", GameState.getDebugInfo()) }
   ],
   OPTIONS: [
     { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => showAudioSettings() },
-    { x: -10, y: -12,  w: 220, h: 80, text: "Video Settings", style: 'default', action: () => logNormal("Video Settings") },
-    { x: -10, y: 70,   w: 220, h: 80, text: "Controls",      style: 'default', action: () => logNormal("Controls") },
     { x: 60,   y: 148,  w: 145, h: 70, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ],
   DEBUG: [
-    { x: -100, y: -100, w: 200, h: 50, text: "Check Mouse Over", style: 'warning', action: () => logNormal("Audio Settings") },
     { x: -100, y: 80,   w: 200, h: 50, text: "Back to Menu",  style: 'success', action: () => GameState.goToMenu() }
   ]
 };
@@ -348,5 +343,3 @@ function drawAudioSettings() {
     hideAudioSettings();
   }
 }
-
-

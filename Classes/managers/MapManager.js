@@ -28,7 +28,6 @@ class MapManager {
     /** @type {number} Default tile size in pixels */
     this._defaultTileSize = 32;
     
-    logNormal("MapManager initialized");
   }
 
   // --- Map Registration ---
@@ -56,7 +55,6 @@ class MapManager {
     }
 
     this._maps.set(mapId, map);
-    logNormal(`MapManager: Registered map '${mapId}'`);
 
     if (setActive) {
       this.setActiveMap(mapId);
@@ -83,7 +81,6 @@ class MapManager {
     }
 
     this._maps.delete(mapId);
-    logNormal(`MapManager: Unregistered map '${mapId}'`);
     return true;
   }
 
@@ -112,10 +109,8 @@ class MapManager {
     // Invalidate terrain cache to force re-render with new map
     if (map && typeof map.invalidateCache === 'function') {
       map.invalidateCache();
-      logNormal(`MapManager: Terrain cache invalidated for '${mapId}'`);
     }
 
-    logNormal(`MapManager: Active map set to '${mapId}'`);
     return true;
   }
 
@@ -353,7 +348,6 @@ class MapManager {
     if (typeof window !== 'undefined') {
       window.g_activeMap = null;
     }
-    logNormal("MapManager: All maps cleared");
   }
 }
 
