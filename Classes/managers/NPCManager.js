@@ -108,7 +108,7 @@ class NPC extends Building{
 
     this._x = newX;
     this._y = newY;
-    this._faction = 'player';
+    this._faction = 'neutral';
     this.isBoxHovered = false;
     this.dialogueRange = 100;
 

@@ -103,7 +103,7 @@ class AntHive extends AbstractEvent {
     }
     
     update(){
-        if(Buildings.filter(building => building.faction == 'waveEnemy').length == 0){
+        if(Buildings.filter(building => building._faction == 'waveEnemy').length == 0){
             this.finished = true;
         }
     }
@@ -129,7 +129,7 @@ class Raid extends AbstractEvent {
     }
     
     update(){
-        if(ants.filter(ant => ant.faction == 'waveEnemy').length == 0){
+        if(ants.filter(ant => ant._faction == 'waveEnemy').length == 0){
             this.finished = true;
         }
     }

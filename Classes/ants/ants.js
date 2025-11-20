@@ -91,6 +91,7 @@ class ant extends Entity {
     // Initialize Gather State behavior
     this._gatherState = new GatherState(this);
     
+
     // Faction and enemy tracking
     this._faction = faction;
     this._enemies = [];
@@ -513,7 +514,12 @@ _getFallbackJobStats(jobName) {
     this.lastFrameTime = now;
 
     if (!this.isActive) return;
-    
+
+    // disable resource gathering for non-player factions
+    let cantCollect = ["Spider","Warrior","DeLozier",'Scout','Spitter'];
+    if(this._gatherState && (this._faction != "player" || cantCollect.includes(this.jobName))){
+      this._gatherState.isActive = false;
+    }
     // Update Entity systems first
     super.update();
     
