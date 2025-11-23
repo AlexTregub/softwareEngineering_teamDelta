@@ -52,9 +52,9 @@ class AntCountDisplayComponent {
     this.hoverAlpha = 230;
     this.isHovering = false;
     
-    // Animation
+    // Animation (framerate-independent)
     this.currentHeight = this.panelHeight;
-    this.animationSpeed = 0.2; // Lerp speed
+    this.animationSpeed = 8.0; // Units per second (was 0.2 lerp at 60fps)
     
     // Sprites (will be loaded from JobImages global if available)
     this.sprites = options.sprites || {};
@@ -264,12 +264,15 @@ class AntCountDisplayComponent {
     const antsArrayExists = typeof ants !== 'undefined';
     this.updateFromAntsArray();
     
-    // Smooth height animation
+    // Framerate-independent smooth height animation using p5.js deltaTime
     const targetHeight = this.isExpanded ? this.expandedHeight : this.panelHeight;
     const diff = targetHeight - this.currentHeight;
     
     if (Math.abs(diff) > 1) {
-      this.currentHeight += diff * this.animationSpeed;
+      // p5.js deltaTime is in milliseconds, convert to seconds
+      const dt = deltaTime / 1000.0;
+      const smoothingFactor = 1.0 - Math.pow(1.0 - 0.92, this.animationSpeed * dt);
+      this.currentHeight += diff * smoothingFactor;
     } else {
       this.currentHeight = targetHeight;
     }
