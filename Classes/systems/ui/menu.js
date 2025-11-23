@@ -1,6 +1,6 @@
 // Concise Menu System for Ant Game - Uses GameStateManager
 let menuButtons = [];
-let titleY = -50, titleTargetY, titleSpeed = 9;
+let titleY = -50, titleTargetY, titleSpeed = 13;
 let menuButton;
 let playButton;
 let optionButton;
@@ -17,41 +17,14 @@ let g_mapRendered
 // window.menuLayoutData = { debugRects:[], groupRects:[], centers:[], debugImgs:[], headerTop }
 // global vertical offset (px) to move the menu up/down. Negative moves up.
 // default offset and persisted storage key
-const DEFAULT_MENU_YOFFSET = 0;
-const MENU_YOFFSET_KEY = 'antgame.menuYOffset';
-
-
-// load persisted offset if available, otherwise fall back to default
-let menuYOffset = (function(){
-  try {
-    const v = localStorage.getItem(MENU_YOFFSET_KEY);
-    if (v !== null) {
-      const n = parseInt(v, 10);
-      if (!Number.isNaN(n)) return n;
-    }
-  } catch (err) {
-    // localStorage may be unavailable in some contexts
-  }
-  return DEFAULT_MENU_YOFFSET;
-})();
-
-// the canonical default to reset to (Home will reset to this value)
-const initialMenuYOffset = DEFAULT_MENU_YOFFSET;
-// Debug behaviors (keyboard, pointer, drag, history, rendering) were moved
-// to debug/menu_debug.js. The debug module exposes initializeMenuDebug()
-// and drawMenuDebug() which we call when available.
+const DEFAULT_MENU_YOFFSET = -80;
 
 // Button configurations for each menu state
 const MENU_CONFIGS = {
   MENU: [
-    { x: -10, y: -200, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: -10, y: -100, w: 220, h: 80, text: "Moss & Stone Level", style: 'info', action: () => switchToLevel('mossStone') },
+    { x: -10, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
     { x: -10, y: -10,  w: 220, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
-    { x: -10, y: 70, w: 220, h:80, text: "Import level", style: 'info', action: () => importTerrain()},
-    { x: -10, y: 150,   w: 220, h: 80, text: "Options",    style: 'success', action: () => GameState.goToOptions() },
-    { x: -10, y: 230,   w: 220, h: 80, text: "Exit Game",  style: 'danger',  action: () => logNormal("Exit!") },
-    { x: -60, y: 260, w: 145, h: 70, text: "Credits", style: 'purple', action: () => alert("Game by Team Delta!") },
-    { x: 0,   y: 260,  w: 145, h: 70, text: "Debug",      style: 'warning', action: () => logNormal("Debug:", GameState.getDebugInfo()) }
+    { x: -10, y: 70, w: 220, h: 80, text: "Import level", style: 'info', action: () => importTerrain()},
   ],
   OPTIONS: [
     { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => showAudioSettings() },
@@ -81,7 +54,7 @@ function menuPreload(){
 
 // Initialize menu system
 function initializeMenu() {
-  titleTargetY = g_canvasY / 2 - 150 + menuYOffset;
+  titleTargetY = g_canvasY / 2 - 150 + DEFAULT_MENU_YOFFSET;
   loadButtons();
   soundManager.play("bgMusic");
   
@@ -94,15 +67,11 @@ function initializeMenu() {
       loadButtons();
     }
   });
-  
-
-  // Debug system initialization disabled
-  // if (window.initializeMenuDebug) window.initializeMenuDebug();
 }
 
 // Load buttons for current state
 function loadButtons() {
-  const centerX = g_canvasX / 2, centerY = g_canvasY / 2 + menuYOffset;
+  const centerX = g_canvasX / 2, centerY = g_canvasY / 2 + DEFAULT_MENU_YOFFSET;
     const currentState = GameState.getState();
     const configs = (MENU_CONFIGS[currentState] || MENU_CONFIGS.MENU);
 
@@ -110,23 +79,16 @@ function loadButtons() {
     // This preserves each config's width/height but constrains max width
     // and evenly spaces buttons vertically while keeping horizontal offsets
     // (btn.x) as small manual nudges if present.
-  const container = new VerticalButtonList(centerX, centerY, { spacing: 8, maxWidth: Math.floor(g_canvasX * 0.55), headerImg: menuImage, headerScale: .7, headerGap: 30, headerMaxWidth: 500 });
+  const container = new VerticalButtonList(centerX, centerY,
+     { spacing: 8,
+       maxWidth: Math.floor(g_canvasX * 0.55), 
+       headerImg: menuImage, 
+       headerScale: .6, 
+       headerGap: 150, headerMaxWidth: 500 ,
+      });
   const layout = container.buildFromConfigs(configs);
   menuButtons = layout.buttons;
   menuHeader = layout.header || null;
-  
-  // publish layout debug data for the debug module (if present)
-  try {
-    window.menuLayoutData = {
-      debugRects: layout.debugRects || [],
-      groupRects: layout.groupRects || [],
-      centers: layout.centers || [],
-      debugImgs: layout.debugImgs || [],
-      headerTop: layout.headerTop
-    };
-  } catch (err) {
-    // ignore if window is not writable in some test contexts
-  }
 
   // Register buttons for click handling
   setActiveButtons(menuButtons);
@@ -146,26 +108,15 @@ function drawMenu() {
     let easing = 0.07;
     titleY += (titleTargetY - titleY) * easing;
 
-    // Add a slow downward drift
-    titleY += 0.2; // tweak this value for speed of float-down
-
-    let floatOffset = Math.sin(frameCount * 0.03) * 5;
+    // Float animation (sine wave)
+    let floatOffset = Math.sin(millis() * 0.002) * 8;
     textAlign(CENTER, CENTER);
   
     // Draw logo instead of plain text
     imageMode(CENTER);
-    // If we have a header laid out by the container, draw it centered at its computed position.
-    if (menuHeader && menuHeader.img) {
-      const hx = g_canvasX / 2;
-      const hy = menuHeader.y + menuHeader.h / 2 + floatOffset;
-      image(menuHeader.img, hx, hy, menuHeader.w + 150, menuHeader.h + 100);
-    } else if (menuImage) {
-      // fallback to previous large logo behavior if header wasn't provided
-      image(menuImage, g_canvasX / 2, (titleY - 50) + floatOffset, 700, 700);
-    } else {
-      // fallback outlined text if image fails
-      outlinedText("ANTS!", g_canvasX / 2, titleY + floatOffset, g_menuFont, 48, color(255), color(0));
-    }
+    const hx = g_canvasX / 2;
+    const hy = menuHeader.y + menuHeader.h / 2 + floatOffset;
+    image(menuHeader.img, hx, hy, menuHeader.w + 150, menuHeader.h + 100);
   
   menuButtons.forEach(btn => {
     btn.update(mouseX, mouseY, mouseIsPressed);

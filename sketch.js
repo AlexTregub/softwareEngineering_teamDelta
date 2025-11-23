@@ -109,19 +109,20 @@ function setup() {
   RenderMangerOverwrite = false
   createCanvas(g_canvasX, g_canvasY);
   
-  // Initialize spatial grid manager FIRST (before any entities are created)
-  if (typeof SpatialGridManager !== 'undefined') {
-    window.spatialGridManager = new SpatialGridManager(TILE_SIZE); // Match terrain tile size (32px)
-    logNormal(`SpatialGridManager initialized with ${TILE_SIZE}px cells (matching terrain tiles)`);
-    
-    // Register spatial grid visualization in debug layer (only renders when enabled)
-    if (typeof RenderManager !== 'undefined') {
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_DEBUG, () => {
-        if (window.VISUALIZE_SPATIAL_GRID && spatialGridManager) {
-          spatialGridManager.visualize({ color: 'rgba(0, 255, 0, 0.3)' });
-        }
-      });
-    }
+  // Initialize all window managers using centralized initializer
+  if (typeof initializeWindowManagers !== 'undefined') {
+    initializeWindowManagers();
+  } else {
+    console.error('❌ windowInitializer.js not loaded');
+  }
+  
+  // Register spatial grid visualization in debug layer (only renders when enabled)
+  if (typeof RenderManager !== 'undefined' && window.spatialGridManager) {
+    RenderManager.addDrawableToLayer(RenderManager.layers.UI_DEBUG, () => {
+      if (window.VISUALIZE_SPATIAL_GRID && spatialGridManager) {
+        spatialGridManager.visualize({ color: 'rgba(0, 255, 0, 0.3)' });
+      }
+    });
   }
 
   // Now spawn initial resources (after spatial grid exists)
@@ -131,14 +132,6 @@ function setup() {
   
   initializeWorld();
   initializeDraggablePanelSystem()
-
-  // Initialize EntityManager BEFORE any entities are created
-  if (typeof EntityManager !== 'undefined') {
-    window.entityManager = new EntityManager();
-    console.log('✅ EntityManager initialized');
-  } else {
-    console.error('❌ EntityManager class not found');
-  }
 
   // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
@@ -219,10 +212,7 @@ function setup() {
   }
 
   initializeQueenControlPanel();
-  // window.g_fireballManager = new FireballManager();
-  window.eventManager = EventManager.getInstance();
-  window.eventDebugManager = new EventDebugManager();
-  window.eventManager.setEventDebugManager(window.eventDebugManager);
+  // Note: EventManager and EventDebugManager initialized by windowInitializer
 
   initializeMenu();  // Initialize the menu system
   renderPipelineInit();
@@ -264,9 +254,10 @@ function setup() {
   // Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
   window.QuestManager.preloadAssets();
 
-  // --- initialize shop manager ---
-  window.BUIManager = new BUIManager();
-  window.BUIManager.preload();
+  // Note: BUIManager initialized by windowInitializer
+  if (window.BUIManager && typeof window.BUIManager.preload === 'function') {
+    window.BUIManager.preload();
+  }
   //window.draggablePanelManager.createDefaultPanels();
 
   // Game Event
@@ -441,47 +432,11 @@ function initializeWorld() {
     console.warn('⚠️ AntCountDisplayComponent not loaded');
   }
   
-  // Initialize AntCountDropDown directly (GameUIOverlay commented out)
-  if (typeof AntCountDropDown !== 'undefined') {
-    window.antCountDropdown = new AntCountDropDown(window, {
-      x: 20,
-      y: 80,
-      faction: 'player'
-    });
-    console.log('✅ AntCountDropDown initialized');
-    
-    // Register with RenderLayerManager
-    if (typeof RenderManager !== 'undefined') {
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
-        if (window.antCountDropdown) {
-          window.antCountDropdown.render();
-        }
-      });
-      console.log('✅ AntCountDropDown registered with RenderLayerManager');
-    }
+  // Initialize UI components using centralized initializer
+  if (typeof initializeUIComponents !== 'undefined') {
+    initializeUIComponents(window);
   } else {
-    console.error('❌ AntCountDropDown class not found');
-  }
-  
-  // Initialize ResourceCountDisplay
-  if (typeof ResourceCountDisplay !== 'undefined') {
-    window.resourceCountDisplay = new ResourceCountDisplay(window, {
-      // x and y will auto-center horizontally at top
-      height: 40
-    });
-    console.log('✅ ResourceCountDisplay initialized');
-    
-    // Register with RenderLayerManager
-    if (typeof RenderManager !== 'undefined') {
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
-        if (window.resourceCountDisplay) {
-          window.resourceCountDisplay.render();
-        }
-      });
-      console.log('✅ ResourceCountDisplay registered with RenderLayerManager');
-    }
-  } else {
-    console.error('❌ ResourceCountDisplay class not found');
+    console.error('❌ initializeUIComponents not available');
   }
 
 
@@ -646,393 +601,24 @@ gameEventManager.update()
 
 
 
- /* handleMouseEvent
- * ----------------
- * Delegates mouse events to the mouse controller if the game is in an active state.
- * @param {string} type - The mouse event type (e.g., 'handleMousePressed').
- * @param {...any} args - Arguments to pass to the controller handler.
- */
-function handleMouseEvent(type, ...args) {
-  if (GameState.isInGame()) {
-    g_mouseController[type](...args);
-    if (g_activeMap && g_activeMap.renderConversion) {
-      logVerbose(g_activeMap.renderConversion.convCanvasToPos([mouseX,mouseY]));
-    }
-  }
-}
-
-/**
- * mousePressed
- * ------------
- * Handles mouse press events by delegating to the mouse controller.
- */
-function mousePressed() {
-  
-  if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
-    console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);
-    try {
-      window.g_powerBrushManager.usePower(mouseX, mouseY);
-    } catch (error) {
-      console.error('❌ Error using power brush:', error);
-    }
-  }
-  // Level Editor - handle clicks first if active
-  if (GameState.getState() === 'LEVEL_EDITOR') {
-    if (window.levelEditor && levelEditor.isActive()) {
-      levelEditor.handleClick(mouseX, mouseY);
-      return; // Don't process other mouse events
-    }
-  }
-  
-  // Tile Inspector - check first
-  if (typeof tileInspectorEnabled !== 'undefined' && tileInspectorEnabled) {
-    if (typeof inspectTileAtMouse === 'function') {
-      inspectTileAtMouse(mouseX, mouseY);
-      return; // Don't process other mouse events
-    }
-  }
-  
-  // Handle UI Debug Manager mouse events first
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
-    const handled = g_uiDebugManager.handlePointerDown({ x: mouseX, y: mouseY });
-    if (handled) return;
-  }
-
-  // PRIORITY 1: Check active brushes FIRST (before UI elements)
-  // This ensures brush clicks work even if panels are visible
-  
-  // Handle Enemy Ant Brush events
-  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
-    console.log('🖌️ Checking g_enemyAntBrush (active)');
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_enemyAntBrush.onMousePressed returned:', handled);
-      if (handled) {
-        console.log('🛑 g_enemyAntBrush consumed the click - returning early');
-        return; // Brush consumed the event, don't process other mouse events
-      }
-    } catch (error) {
-      console.error('❌ Error handling enemy ant brush events:', error);
-    }
-  }
-
-  // Handle Resource Brush events
-  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
-    console.log('🖌️ Checking g_resourceBrush (active)');
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_resourceBrush.onMousePressed returned:', handled);
-      if (handled) {
-        console.log('🛑 g_resourceBrush consumed the click - returning early');
-        return; // Brush consumed the event, don't process other mouse events
-      }
-    } catch (error) {
-      console.error('❌ Error handling resource brush events:', error);
-    }
-  }
-
-  // Handle Building Brush events
-  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
-    console.log('🖌️ Checking g_buildingBrush (active)');
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_buildingBrush.onMousePressed returned:', handled);
-      if (handled) {
-        console.log('🛑 g_buildingBrush consumed the click - returning early');
-        return; // Brush consumed the event, don't process other mouse events
-      }
-    } catch (error) {
-      console.error('❌ Error handling building brush events:', error);
-    }
-  }
-
-  // Handle Lightning Aim Brush events
-  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
-    console.log('🖌️ Checking g_lightningAimBrush (active)');
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_lightningAimBrush.onMousePressed returned:', handled);
-      if (handled) {
-        console.log('🛑 g_lightningAimBrush consumed the click - returning early');
-        return;
-      }
-    } catch (error) {
-      console.error('❌ Error handling lightning aim brush events:', error);
-    }
-  }
-
-  // Handle Final Flash Aim Brush events
-  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
-    console.log('🖌️ Checking g_flashAimBrush (active)');
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      const handled = window.g_flashAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_flashAimBrush.onMousePressed returned:', handled);
-      if (handled) {
-        console.log('🛑 g_flashAimBrush consumed the click - returning early');
-        return;
-      }
-    } catch (error) {
-      console.error('❌ Error handling Flash Flash aim brush events:', error);
-    }
-  }
-
-  // Handle Queen Control Panel right-click for power cycling
-  if (window.g_queenControlPanel && mouseButton === RIGHT) {
-    try {
-      const handled = window.g_queenControlPanel.handleRightClick();
-      if (handled) return; // Queen panel consumed the right-click
-    } catch (error) {
-      console.error('❌ Error handling queen control panel right-click:', error);
-    }
-  }
-
-  // PRIORITY 2: RenderManager UI elements (buttons, panels, etc.)
-  // Forward to RenderManager interactive dispatch (gives adapters priority)
-  console.log('📡 About to call RenderManager.dispatchPointerEvent with', { x: mouseX, y: mouseY });
-  try {
-    const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
-    console.log('📡 RenderManager.dispatchPointerEvent returned:', consumed);
-    if (consumed) {
-      console.log('✅ Mouse click consumed by RenderManager');
-      logVerbose('🖱️ Mouse click consumed by RenderManager');
-      return; // consumed by an interactive (buttons/panels/etc.)
-    }
-    console.log('⏭️ Mouse click NOT consumed by RenderManager, passing to other handlers');
-    logVerbose('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
-    // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
-  } catch (e) {
-    console.error('Error dispatching pointerdown to RenderManager:', e);
-    // best-effort: still notify legacy controller if present to avoid breaking older flows
-    try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
-  }
-
-  // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.
-  
-  // Handle DraggablePanel mouse events
-  if (window.draggablePanelManager && 
-      typeof window.draggablePanelManager.handleMouseEvents === 'function') {
-    try {
-      const handled = window.draggablePanelManager.handleMouseEvents(mouseX, mouseY, true);
-      if (handled) return; // Panel consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling draggable panel mouse events:', error);
-    }
-  }
-
-  // Handle Queen Control Panel events
-  if (window.g_queenControlPanel && window.g_queenControlPanel.isQueenSelected()) {
-    try {
-      const handled = window.g_queenControlPanel.handleMouseClick(mouseX, mouseY);
-      if (handled) return; // Queen panel consumed the event, don't process other mouse events
-    } catch (error) {
-      console.error('❌ Error handling queen control panel events:', error);
-    }
-  }
-  handleMouseEvent('handleMousePressed', window.getWorldMouseX(), window.getWorldMouseY(), mouseButton);
-}
-
-function mouseDragged() {
-  // Handle level editor drag events FIRST (before UI debug or RenderManager)
-  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
-    levelEditor.handleDrag(mouseX, mouseY);
-    return; // Don't process other drag events when level editor is active
-  }
-  
-  // Handle UI Debug Manager drag events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager !== null && g_uiDebugManager.isActive) {
-    g_uiDebugManager.handlePointerMove({ x: mouseX, y: mouseY });
-  }
-  // Forward move to RenderManager
-  try {
-    const consumed = RenderManager.dispatchPointerEvent('pointermove', { x: mouseX, y: mouseY, isPressed: true });
-    // If not consumed, attempt best-effort legacy notification but prefer RenderManager adapters
-    if (!consumed) {
-      try { handleMouseEvent('handleMouseDragged', mouseX, mouseY); } catch (e) {}
-    }
-  } catch (e) {
-    console.error('Error dispatching pointermove to RenderManager:', e);
-    try { handleMouseEvent('handleMouseDragged', mouseX, mouseY); } catch (er) {}
-  }
-}
-
-function mouseReleased() {
-  // Handle level editor release events FIRST
-  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
-    levelEditor.handleMouseRelease(mouseX, mouseY);
-  }
-  
-  // Handle UI Debug Manager release events
-  if (typeof g_uiDebugManager !== 'undefined' && g_uiDebugManager && g_uiDebugManager.isActive) {
-    g_uiDebugManager.handlePointerUp({ x: mouseX, y: mouseY });
-  }
-  
-  // Handle Enemy Ant Brush release events
-  if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_enemyAntBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling enemy ant brush release events:', error);
-    }
-  }
-  
-  // Handle Resource Brush release events
-  if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_resourceBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling resource brush release events:', error);
-    }
-  }
-
-  // Handle Building Brush release events
-  if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_buildingBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling building brush release events:', error);
-    }
-  }
-
-  // Handle Lightning Aim Brush release events
-  if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_lightningAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling lightning aim brush release events:', error);
-    }
-  }
-
-  //Handle Flash Flash Aim Brush release events
-  if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
-    try {
-      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
-      window.g_flashAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
-    } catch (error) {
-      console.error('❌ Error handling Final Flash aim brush release events:', error);
-    }
-  }
-  
-  // Forward to RenderManager first
-  try {
-    const consumed = RenderManager.dispatchPointerEvent('pointerup', { x: mouseX, y: mouseY, isPressed: false });
-    if (!consumed) {
-      try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (e) {}
-    }
-  } catch (e) {
-    console.error('Error dispatching pointerup to RenderManager:', e);
-    try { handleMouseEvent('handleMouseReleased', mouseX, mouseY, mouseButton); } catch (er) {}
-  }
-}
-
-/**
- * mouseMoved - Handle hover events for Level Editor
- */
-function mouseMoved() {
-  // Handle level editor hover for preview highlighting
-  if (typeof levelEditor !== 'undefined' && levelEditor.isActive()) {
-    levelEditor.handleHover(mouseX, mouseY);
-  }
-}
-
-/**
- * mouseWheel
- * ---------
- * Forward mouse wheel events to active brushes so users can cycle brush types
- * with the scroll wheel. Prevents default page scrolling while in-game.
- */
-function mouseWheel(event) {
-  try {
-    // Level Editor - Shift+scroll for brush size, normal scroll for zoom
-    if (GameState.getState() === 'LEVEL_EDITOR') {
-      if (window.levelEditor && levelEditor.isActive()) {
-        const delta = event.deltaY || 0;
-        const shiftPressed = event.shiftKey || keyIsDown(SHIFT);
-        
-        // Try brush size adjustment first (if Shift is pressed)
-        if (shiftPressed && levelEditor.handleMouseWheel) {
-          const handled = levelEditor.handleMouseWheel(event, shiftPressed);
-          if (handled) {
-            event.preventDefault();
-            return false;
-          }
-        }
-        
-        // Otherwise, handle zoom
-        levelEditor.handleZoom(delta);
-        event.preventDefault();
-        return false;
-      }
-    }
-
-    if (!GameState.isInGame()) return false;
-
-    // Determine scroll direction (positive = down, negative = up)
-    const delta = event.deltaY || 0;
-    const step = (delta > 0) ? 1 : (delta < 0) ? -1 : 0;
-
-    // Helper to call directional cycling on a brush if available
-    const tryCycleDir = (brush) => {
-      if (!brush || !brush.isActive || step === 0) return false;
-      // Preferred: BrushBase-style directional API
-      if (typeof brush.cycleTypeStep === 'function') { brush.cycleTypeStep(step); return true; }
-      if (typeof brush.cycleType === 'function') { brush.cycleType(step); return true; }
-      // Legacy resource brush method
-      if (typeof brush.cycleResourceType === 'function') { if (step > 0) brush.cycleResourceType(); else { /* no backward legacy */ } return true; }
-      // Fallback: adjust availableTypes index if exposed
-      if (Array.isArray(brush.availableTypes) && typeof brush.currentIndex === 'number') {
-        const len = brush.availableTypes.length;
-        brush.currentIndex = ((brush.currentIndex + step) % len + len) % len;
-        brush.currentType = brush.availableTypes[brush.currentIndex];
-        if (typeof brush.onTypeChanged === 'function') { try { brush.onTypeChanged(brush.currentType); } catch(e){} }
-        return true;
-      }
-      return false;
-    };
-
-    // Priority order: Enemy brush, Resource brush, Lightning aim brush, Queen powers
-    if (window.g_enemyAntBrush && tryCycleDir(window.g_enemyAntBrush)) {
-      event.preventDefault();
-      return false;
-    }
-    if (window.g_resourceBrush && tryCycleDir(window.g_resourceBrush)) {
-      event.preventDefault();
-      return false;
-    }
-    if (window.g_lightningAimBrush && tryCycleDir(window.g_lightningAimBrush)) {
-      event.preventDefault();
-      return false;
-    }
-    if (window.g_flashAimBrush && tryCycleDir(window.g_flashAimBrush)) {
-      event.preventDefault();
-      return false;
-    }
-    
-    // Queen power cycling with mouse wheel
-    if (window.g_queenControlPanel && window.g_queenControlPanel.handleMouseWheel(delta)) {
-      event.preventDefault();
-      return false;
-    }
-    
-    // If no brush consumed the event, delegate to CameraManager for zoom (PLAYING state)
-    if (cameraManager && typeof cameraManager.handleMouseWheel === 'function') {
-      return cameraManager.handleMouseWheel(event);
-    }
-
-  } catch (e) {
-    console.error('❌ Error handling mouseWheel for brushes:', e);
-  }
-  // Let other handlers/processes receive the event if no brush consumed it
-  return true;
-}
+// ============================================================
+// MOUSE EVENT HANDLERS
+// ============================================================
+// All mouse-related functions have been moved to:
+// Classes/controllers/mouseEventHandlers.js
+//
+// Functions moved:
+// - handleMouseEvent(type, ...args)
+// - mousePressed()
+// - mouseDragged()
+// - mouseReleased()
+// - mouseMoved()
+// - mouseWheel(event)
+//
+// The functions are automatically loaded from mouseEventHandlers.js
+// and work exactly as before. This keeps sketch.js cleaner and more
+// maintainable.
+// ============================================================
 
 // KEYBOARD INTERACTIONS
 
@@ -1333,31 +919,6 @@ function getEntityWorldCenter(entity) {
 }
 
 /**
- * getMapPixelDimensions
- * ---------------------
- * Returns the pixel dimensions of the active map.
- * If the map object (g_activeMap) is available, it calculates the dimensions
- * based on the number of tiles and their size. Otherwise, it defaults
- * to the canvas dimensions.
- *
- * @returns {Object} - An object containing the width and height of the map in pixels.
- */
-function getMapPixelDimensions() {
-  if (!g_activeMap) {
-    return { width: g_canvasX, height: g_canvasY };
-  }
-
-  const width = g_activeMap._xCount ? g_activeMap._xCount * TILE_SIZE : g_canvasX;
-  const height = g_activeMap._yCount ? g_activeMap._yCount * TILE_SIZE : g_canvasY;
-  //const gridSize = g_activeMap.getGridSizePixels()
-  return { width, height };
-}
-
-
-
-  
-
-/**
  * Deactivates any active brushes (resource, enemy ant) and logs the action.
  * Returns true if any brush was deactivated.
  */
@@ -1402,133 +963,6 @@ function drawDebugGrid(tileSize, gridWidth, gridHeight) {
   pop();
 }
 
-/**
- * setActiveMap
- * ------------
- * Sets the currently active terrain map by ID. Future-proof for level switching.
- * Delegates to MapManager for centralized map management.
- * 
- * @param {string|gridTerrain} mapIdOrMap - Map ID string or terrain map instance
- * @returns {boolean} True if successful, false if invalid
- * 
- * @example
- * // Switch by ID
- * setActiveMap('level2');
- * 
- * // Switch by creating new map
- * const newMap = new gridTerrain(20, 20, seed, 8, 32, [windowWidth, windowHeight]);
- * mapManager.registerMap('level2', newMap);
- * setActiveMap('level2');
- */
-function setActiveMap(mapIdOrMap) {
-  if (typeof mapManager === 'undefined') {
-    console.error("setActiveMap: MapManager not available");
-    return false;
-  }
-  
-  // If passed a string ID, use MapManager
-  if (typeof mapIdOrMap === 'string') {
-    return mapManager.setActiveMap(mapIdOrMap);
-  }
-  
-  // If passed a map object, register it and set active
-  if (mapIdOrMap && typeof mapIdOrMap.chunkArray !== 'undefined') {
-    const tempId = `map_${Date.now()}`;
-    mapManager.registerMap(tempId, mapIdOrMap, true);
-    return true;
-  }
-  
-  console.error("setActiveMap: Invalid argument");
-  return false;
-}
-
-/**
- * getActiveMap
- * ------------
- * Returns the currently active terrain map.
- * Delegates to MapManager for centralized access.
- * 
- * @returns {gridTerrain|null} The active terrain map, or null if none set
- */
-function getActiveMap() {
-  if (typeof mapManager !== 'undefined') {
-    return mapManager.getActiveMap();
-  }
-  return g_activeMap || null;
-}
-
-/**
- * loadMossStoneLevel
- * ------------------
- * Creates and loads the moss & stone column level as the active map.
- * This level features alternating columns of moss and stone for testing
- * terrain speed modifiers (moss = IN_MUD, stone = ON_ROUGH).
- * 
- * @returns {boolean} True if successful, false otherwise
- */
-function loadMossStoneLevel() {
-  logNormal("🏛️ Loading Moss & Stone Column Level");
-  
-  try {
-    // Create the moss/stone column level
-    const mossStoneLevel = createMossStoneColumnLevel(
-      CHUNKS_X,
-      CHUNKS_Y,
-      g_seed,
-      CHUNK_SIZE,
-      TILE_SIZE,
-      [windowWidth, windowHeight]
-    );
-    
-    // Register with MapManager
-    if (typeof mapManager !== 'undefined') {
-      mapManager.registerMap('mossStone', mossStoneLevel, true);
-      logNormal("✅ Moss & Stone level registered and set as active");
-      return true;
-    } else {
-      console.error("❌ MapManager not available");
-      return false;
-    }
-  } catch (error) {
-    console.error("❌ Failed to load Moss & Stone level:", error);
-    return false;
-  }
-}
-
-/**
- * switchToLevel
- * -------------
- * Switches to a specific level by ID and starts the game.
- * Convenience function for menu buttons.
- * 
- * @param {string} levelId - The ID of the level to switch to
- */
-function switchToLevel(levelId) {
-  logNormal(`🔄 Switching to level: ${levelId}`);
-  
-  // If the level is 'mossStone' and doesn't exist yet, create it
-  if (levelId === 'mossStone') {
-    const existingMap = mapManager.getMap('mossStone');
-    if (!existingMap) {
-      loadMossStoneLevel();
-    } else {
-      mapManager.setActiveMap('mossStone');
-    }
-  } else {
-    // Switch to existing level
-    setActiveMap(levelId);
-  }
-  
-  // CRITICAL: Invalidate terrain cache to force re-render with new terrain
-  if (g_activeMap && typeof g_activeMap.invalidateCache === 'function') {
-    g_activeMap.invalidateCache();
-    logNormal("✅ Terrain cache invalidated - new terrain will render");
-  }
-  
-  // Start the game
-  startGameTransition();
-}
-
 // Dynamic window resizing:
 function windowResized() {
   if (g_activeMap && g_activeMap.renderConversion) {
@@ -1543,124 +977,10 @@ function windowResized() {
 }
 
 // ===== CONSOLE HELPER FUNCTIONS =====
+// All helper functions (spawnInitialAnts, spawnTestAnts, spawnAnts, addTestResources) 
+// are now centralized in windowInitializer.js
 
-/**
- * Spawn initial ants when game starts
- * Called automatically when gameState changes to PLAYING
- * @private
- */
-function spawnInitialAnts() {
-  if (typeof LegacyAntFactory === 'undefined') {
-    console.warn('⚠️ LegacyAntFactory not available - skipping initial ant spawn');
-    return;
-  }
-  
-  const centerX = width / 2;
-  const centerY = height / 2;
-  const spacing = 40;
-  
-  // Spawn 1-3 of each job type (except Queen)
-  const jobs = ['Scout', 'Builder', 'Farmer', 'Warrior', 'Spitter'];
-  let xOffset = -(jobs.length * spacing) / 2; // Center the group
-  
-  jobs.forEach(jobName => {
-    const count = Math.floor(Math.random() * 3) + 1; // 1-3 ants
-    
-    LegacyAntFactory.createMultiple(count, {
-      x: centerX + xOffset,
-      y: centerY,
-      jobName: jobName,
-      faction: 'player',
-      spacing: 25
-    });
-    
-    xOffset += spacing;
-  });
-  
-  console.log('🐜 Initial player ants spawned');
-}
-
-/**
- * Spawn test ants - one of each job type
- * Usage in console: spawnTestAnts()
- */
-function spawnTestAnts() {
-  if (typeof LegacyAntFactory === 'undefined') {
-    console.error('❌ LegacyAntFactory not loaded');
-    return;
-  }
-  
-  const centerX = width / 2;
-  const centerY = height / 2;
-  
-  const squad = LegacyAntFactory.createTestSquad(centerX - 100, centerY, { faction: 'player' });
-  
-  // Add all squad members to global ants array
-  if (squad.scout) ants.push(squad.scout);
-  if (squad.builder) ants.push(squad.builder);
-  if (squad.farmer) ants.push(squad.farmer);
-  if (squad.warrior) ants.push(squad.warrior);
-  if (squad.spitter) ants.push(squad.spitter);
-  
-  console.log('✅ Spawned test squad:');
-  console.log('  - Scout:', squad.scout?.id);
-  console.log('  - Builder:', squad.builder?.id);
-  console.log('  - Farmer:', squad.farmer?.id);
-  console.log('  - Warrior:', squad.warrior?.id);
-  console.log('  - Spitter:', squad.spitter?.id);
-  console.log(`  - Total ants in game: ${ants.length}`);
-  
-  return squad;
-}
-
-/**
- * Spawn multiple ants of a specific job
- * Usage: spawnAnts(5, 'Scout') or spawnAnts(3, 'Warrior')
- */
-function spawnAnts(count, jobName = 'Scout') {
-  if (typeof LegacyAntFactory === 'undefined') {
-    console.error('❌ LegacyAntFactory not loaded');
-    return;
-  }
-  
-  const centerX = width / 2;
-  const centerY = height / 2;
-  
-  const ants = LegacyAntFactory.createMultiple(count, {
-    x: centerX,
-    y: centerY,
-    jobName: jobName,
-    faction: 'player'
-  });
-  
-  console.log(`✅ Spawned ${count} ${jobName} ants`);
-  return ants;
-}
-
-
-// Make functions globally available
-if (typeof window !== 'undefined') {
-  window.spawnTestAnts = spawnTestAnts;
-  window.spawnAnts = spawnAnts;
-  window.addTestResources = addTestResources;
-}
-
-/**
- * Add test resources to see ResourceCountDisplay working
- * Usage in console: addTestResources()
- */
-function addTestResources() {
-  if (typeof window.addGlobalResource === 'undefined') {
-    console.error('❌ addGlobalResource not available');
-    return;
-  }
-  
-  // Add some resources using actual resource types
-  window.addGlobalResource('stick', 50);      // Wood/building materials
-  window.addGlobalResource('stone', 30);      // Stone
-  window.addGlobalResource('greenLeaf', 40);  // Food (green leaves)
-  window.addGlobalResource('mapleLeaf', 35);  // Food (maple leaves)
-  
-  console.log('✅ Test resources added:', window.getResourceTotals());
-  return window.getResourceTotals();
+// Make functions globally available using centralized initializer
+if (typeof initializeGlobalFunctions !== 'undefined') {
+  initializeGlobalFunctions();
 }
