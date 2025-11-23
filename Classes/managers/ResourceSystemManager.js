@@ -41,8 +41,14 @@ class ResourceSystemManager {
       greenLeaf: { 
         weight: 0.5, 
         make: () => {
-          const x = random(0, g_canvasX - 20);
-          const y = random(0, g_canvasY - 20);
+          const randPos = g_activeMap.sampleTiles('grass',1)[0]
+          const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
+
+          const x = randPos[0]
+          const y = randPos[1]
+
+          // const x = random(0, g_canvasX - 20);
+          // const y = random(0, g_canvasY - 20);
           return Resource.createGreenLeaf(x, y);
         }
       },
@@ -50,8 +56,14 @@ class ResourceSystemManager {
       mapleLeaf: { 
         weight: 0.8, 
         make: () => {
-          const x = random(0, g_canvasX - 20);
-          const y = random(0, g_canvasY - 20);
+          const randPos = g_activeMap.sampleTiles('grass',1)[0]
+          const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
+
+          const x = randPos[0]
+          const y = randPos[1]
+
+          // const x = random(0, g_canvasX - 20);
+          // const y = random(0, g_canvasY - 20);
           return Resource.createMapleLeaf(x, y);
         }
       },
@@ -59,8 +71,14 @@ class ResourceSystemManager {
       stick: { 
         weight: 0.6, 
         make: () => {
-          const x = random(0, g_canvasX - 20);
-          const y = random(0, g_canvasY - 20);
+          const randPos = g_activeMap.sampleTiles('grass',1)[0]
+          const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
+
+          const x = randPos[0]
+          const y = randPos[1]
+
+          // const x = random(0, g_canvasX - 20);
+          // const y = random(0, g_canvasY - 20);
           return Resource.createStick(x, y);
         }
       },
@@ -68,8 +86,13 @@ class ResourceSystemManager {
       stone: { 
         weight: 0.3, 
         make: () => {
-          const x = random(0, g_canvasX - 20);
-          const y = random(0, g_canvasY - 20);
+          const randPos = g_activeMap.sampleTiles('grass',1)[0]
+          const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
+
+          const x = randPos[0]
+          const y = randPos[1]
+          // const x = random(0, g_canvasX - 20);
+          // const y = random(0, g_canvasY - 20);
           return Resource.createStone(x, y);
         }
       },
