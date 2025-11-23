@@ -367,6 +367,13 @@ function initializeWorld() {
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
   
+  // Initialize Game UI Overlay with AntCountDropDown
+  if (typeof initializeGameUIOverlay === 'function') {
+    initializeGameUIOverlay();
+  } else {
+    console.warn('⚠️ initializeGameUIOverlay not found - UI overlay not initialized');
+  }
+  
 
   // Main hive, initial, anthill
   Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
