@@ -135,6 +135,22 @@ function keyPressed() {
   // ========================================
   if (!isInGame) return;
   
+  // Speed Control (X key)
+  if (k === 'x') {
+    if (window.g_speedUpButton?.changeGameSpeed) {
+      window.g_speedUpButton.changeGameSpeed();
+      return;
+    }
+  }
+  
+  // Power Brush Manager (3, 4, 5 keys)
+  if (k === '3' || k === '4' || k === '5') {
+    if (window.g_powerBrushManager?.switchPower) {
+      window.g_powerBrushManager.switchPower(key);
+      return;
+    }
+  }
+  
   // Queen Commands (R = rally, Shift+R = reset zoom to avoid conflict)
   const playerQueen = getQueen();
   if (playerQueen instanceof QueenAnt) {

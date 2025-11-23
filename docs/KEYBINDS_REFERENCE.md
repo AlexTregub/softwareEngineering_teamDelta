@@ -31,26 +31,55 @@ Complete reference of all keyboard shortcuts in the Ant Colony Simulation Game.
 | Key | Modifier | Action | Status | TODO |
 |-----|----------|--------|--------|------|
 | `R` | None | Emergency Rally (gather all ants to queen) | ✅ Working | - [ ] Add visual feedback (rally flag/pulse) |
-| `M` | None | Gather ants at mouse position | ✅ Working | - [ ] Add target marker at mouse location |
+| `W` | None | Move queen up (continuous) | ✅ Working | - [ ] Add movement animation |
+| `A` | None | Move queen left (continuous) | ✅ Working | - [ ] Add movement animation |
+| `S` | None | Move queen down (continuous) | ✅ Working | - [ ] Add movement animation |
+| `D` | None | Move queen right (continuous) | ✅ Working | - [ ] Add movement animation |
+
+**Note:** WASD movement uses continuous polling (`keyIsDown()`) in the draw loop, not event-based `keyPressed()`
+
+**TODO:**
+- [ ] Add diagonal movement support
+- [ ] Add sprint modifier (Shift+WASD)
+- [ ] Add movement speed configuration
 
 ## Unit & Building Management
 
 | Key | Modifier | Action | Status | TODO |
 |-----|----------|--------|--------|------|
 | `U` | None | Release ants from ALL buildings | ✅ Working | - [ ] Add confirmation prompt (dangerous action) |
-| `U` (uppercase) | None | Upgrade selected building 10 times | ✅ Working | - [ ] Show upgrade progress/feedback |
+| `U` | Shift | Upgrade selected building 10 times | ✅ Working | - [ ] Show upgrade progress/feedback |
 | `E` | None | Interact with nearby objects (NPC/Anthill/Buildings) | ✅ Working | - [ ] Add interaction prompt UI |
+| `X` | None | Toggle game speed | ✅ Working | - [ ] Add speed indicator UI |
+| `3` | None | Switch to Power 3 (Power Brush) | ✅ Working | - [ ] Add power name display |
+| `4` | None | Switch to Power 4 (Power Brush) | ✅ Working | - [ ] Add power name display |
+| `5` | None | Switch to Power 5 (Power Brush) | ✅ Working | - [ ] Add power name display |
 
 ### E Key Interaction Priority
 1. Continue NPC dialogue (if active)
-2. Talk to nearby NPC named "Antony"
+2. Talk to nearby NPC (any NPC within range)
 3. Open/close Building UI for nearby player anthill
 4. Rebuild dead enemy buildings
 
 **TODO:**
-- [ ] Make NPC interaction generic (not hardcoded to "Antony")
 - [ ] Add range indicator for interactions
 - [ ] Show interaction tooltip on hover
+- [ ] Make interaction range configurable
+
+## Power & Speed Management
+
+| Key | Modifier | Action | Status | TODO |
+|-----|----------|--------|--------|------|
+| `X` | None | Toggle game speed | ✅ Working | - [ ] Add speed indicator UI (1x, 2x, 4x) |
+| `3` | None | Switch to Power 3 (Power Brush) | ✅ Working | - [ ] Document power names |
+| `4` | None | Switch to Power 4 (Power Brush) | ✅ Working | - [ ] Document power names |
+| `5` | None | Switch to Power 5 (Power Brush) | ✅ Working | - [ ] Document power names |
+
+**TODO:**
+- [ ] Add visual feedback for active power
+- [ ] Add cooldown indicators
+- [ ] Add power descriptions in-game
+- [ ] Add keybind for returning to 1x speed
 
 ## Camera Controls
 
@@ -106,26 +135,21 @@ Complete reference of all keyboard shortcuts in the Ant Colony Simulation Game.
 ## Key Binding Conflicts
 
 ### Potential Conflicts
-1. **R key** - Used for both:
-   - Queen emergency rally (in-game)
-   - Reset camera zoom (in-game)
-   - **TODO:** [ ] Resolve conflict (maybe Shift+R for rally?)
+1. **R key** - ✅ RESOLVED:
+   - `R` = Queen emergency rally (no modifier)
+   - `Shift+R` = Reset camera zoom (with Shift)
 
-2. **O key** - Used for both:
-   - Camera overview zoom
-   - Terrain grid debug (with Ctrl+Shift)
-   - ✅ No conflict (different modifiers)
+2. **O key** - ✅ No conflict:
+   - `O` = Camera overview zoom (no modifier)
+   - `Ctrl+Shift+O` = Terrain grid debug (different modifiers)
 
-3. **M key** - Used for both:
-   - Queen gather ants at mouse
-   - Toggle UI_DEBUG layer (with Shift)
-   - ✅ No conflict (different modifiers)
+3. **M key** - ✅ No conflict:
+   - `M` = Queen gather removed (was conflicting)
+   - `Shift+M` = Toggle UI_DEBUG layer
 
-4. **U key** - Used for both:
-   - Release ants from buildings (lowercase)
-   - Upgrade building 10x (uppercase)
-   - ⚠️ Both are 'u' key (case doesn't matter in p5.js)
-   - **TODO:** [ ] Separate these actions (maybe Shift+U for upgrade?)
+4. **U key** - ✅ RESOLVED:
+   - `U` = Release ants from buildings (no modifier)
+   - `Shift+U` = Upgrade building 10x (with Shift)
 
 ## Missing Keybinds
 
@@ -171,7 +195,8 @@ Suggested additions:
 ---
 
 **Last Updated:** November 23, 2025
-**Status:** Documentation in progress
-**Total Keybinds:** 30+ documented
-**Conflicts Identified:** 2 major, 0 minor
+**Status:** ✅ Fully documented and conflicts resolved
+**Total Keybinds:** 35+ documented
+**Conflicts Resolved:** All major conflicts fixed
 **Missing Keybinds:** 15+ suggested
+**Code Location:** `Classes/controllers/keyboardEventHandlers.js`

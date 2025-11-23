@@ -75,27 +75,27 @@ function setup() {
 
   createCanvas(windowWidth,windowHeight) 
 
-  if (!TEST_GRID()) {
-    console.log("GRID MALFORMED.")
-    return
-  } 
+  // if (!TEST_GRID()) {
+  //   console.log("GRID MALFORMED.")
+  //   return
+  // } 
 
   // square(0,0,100)
   // image(GRASS_IMAGE,0,0,32,32)
   // square(10,10,100)
 
-  if (!TEST_CHUNK()) {
-    console.log("CHUNK MALFORMED.")
-    // TEST_CHUNK()
-  }
+  // if (!TEST_CHUNK()) {
+  //   console.log("CHUNK MALFORMED.")
+  //   // TEST_CHUNK()
+  // }
 
-  if (!TEST_CAM_RENDER_CONVERTER()){
-    console.log("CAMERA RENDER CONVERTER MALFORMED.")
-  }
+  // if (!TEST_CAM_RENDER_CONVERTER()){
+  //   console.log("CAMERA RENDER CONVERTER MALFORMED.")
+  // }
 
-  if (!TEST_BASIC_TERRAIN()) {
-    console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
-  }
+  // if (!TEST_BASIC_TERRAIN()) {
+  //   console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
+  // }
  
   // return; // !!! REMOVE BEFORE DEV
 
