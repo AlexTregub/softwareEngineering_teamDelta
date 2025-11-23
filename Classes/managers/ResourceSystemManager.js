@@ -44,8 +44,8 @@ class ResourceSystemManager {
           const randPos = g_activeMap.sampleTiles('grass',1)[0]
           const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
 
-          const x = randPos[0]
-          const y = randPos[1]
+          const x = convPos[0]
+          const y = convPos[1]
 
           // const x = random(0, g_canvasX - 20);
           // const y = random(0, g_canvasY - 20);
@@ -59,8 +59,8 @@ class ResourceSystemManager {
           const randPos = g_activeMap.sampleTiles('grass',1)[0]
           const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
 
-          const x = randPos[0]
-          const y = randPos[1]
+          const x = convPos[0]
+          const y = convPos[1]
 
           // const x = random(0, g_canvasX - 20);
           // const y = random(0, g_canvasY - 20);
@@ -74,8 +74,8 @@ class ResourceSystemManager {
           const randPos = g_activeMap.sampleTiles('grass',1)[0]
           const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
 
-          const x = randPos[0]
-          const y = randPos[1]
+          const x = convPos[0]
+          const y = convPos[1]
 
           // const x = random(0, g_canvasX - 20);
           // const y = random(0, g_canvasY - 20);
@@ -89,8 +89,8 @@ class ResourceSystemManager {
           const randPos = g_activeMap.sampleTiles('grass',1)[0]
           const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
 
-          const x = randPos[0]
-          const y = randPos[1]
+          const x = convPos[0]
+          const y = convPos[1]
           // const x = random(0, g_canvasX - 20);
           // const y = random(0, g_canvasY - 20);
           return Resource.createStone(x, y);
