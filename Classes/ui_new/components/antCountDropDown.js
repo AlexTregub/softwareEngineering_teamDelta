@@ -6,32 +6,6 @@
  * Integrates with EntityManager via EventBus for real-time updates.
  */
 
-// Import dependencies
-let DropDownMenu, InformationLine, eventBus;
-
-if (typeof require !== 'undefined') {
-    try {
-        DropDownMenu = require('./dropdownMenu');
-        const infoLineModule = require('./informationLine');
-        InformationLine = infoLineModule.InformationLine || infoLineModule;
-        eventBus = require('../../globals/eventBus').default;
-    } catch (e) {
-        // Will be available in browser context
-    }
-}
-
-if (typeof window !== 'undefined') {
-    DropDownMenu = window.DropDownMenu || DropDownMenu;
-    InformationLine = window.InformationLine || InformationLine;
-    eventBus = window.eventBus || eventBus;
-}
-
-if (typeof global !== 'undefined') {
-    DropDownMenu = global.DropDownMenu || DropDownMenu;
-    InformationLine = global.InformationLine || InformationLine;
-    eventBus = global.eventBus || eventBus;
-}
-
 class AntCountDropDown {
     /**
      * Create an AntCountDropDown

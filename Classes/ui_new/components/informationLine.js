@@ -7,19 +7,6 @@
  * Each information line can contain a sprite and a caption.
  */
 
-// Import eventBus for both browser and Node.js environments
-let eventBus;
-if (typeof window !== 'undefined' && window.eventBus) {
-    eventBus = window.eventBus;
-} else if (typeof require !== 'undefined') {
-    try {
-        eventBus = require('../../globals/eventBus').default;
-    } catch (e) {
-        // EventBus not available, will be injected during tests
-    }
-}
-
-
 class InformationLine {
     /**
      * Creates an InformationLine instance.
@@ -232,9 +219,11 @@ class InformationLine {
     }
 }
 
-const InformationLineSignals ={
+const InformationLineSignals = {
     UPDATE_INFORMATION_LINES: 'updateInformationLines',
-    
-}
+};
 
-module.exports = { InformationLine, InformationLineSignals };
+// Export for Node.js test environments only
+if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') {
+    module.exports = { InformationLine, InformationLineSignals };
+}

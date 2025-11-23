@@ -191,9 +191,7 @@ class AntCountDisplayComponent {
    * Toggle expanded state
    */
   toggleExpanded() {
-    console.log('🔄 toggleExpanded called - changing from', this.isExpanded, 'to', !this.isExpanded);
     this.isExpanded = !this.isExpanded;
-    console.log('✅ isExpanded is now:', this.isExpanded);
   }
   
   /**
@@ -218,23 +216,10 @@ class AntCountDisplayComponent {
    * @returns {boolean} True if click was on panel
    */
   handleClick(mouseX, mouseY) {
-    console.log('🖱️ AntCountDisplayComponent.handleClick()', {
-      mouseX, mouseY,
-      panelBounds: {
-        x: this.x,
-        y: this.y,
-        width: this.panelWidth,
-        height: this.currentHeight
-      },
-      isOver: this.isMouseOver(mouseX, mouseY),
-      currentExpanded: this.isExpanded
-    });
     if (this.isMouseOver(mouseX, mouseY)) {
-      console.log('✅ Click detected! Toggling expanded state from', this.isExpanded, 'to', !this.isExpanded);
       this.toggleExpanded();
       return true;
     }
-    console.log('❌ Click outside panel bounds');
     return false;
   }
   

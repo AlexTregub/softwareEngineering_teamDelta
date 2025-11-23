@@ -7,18 +7,6 @@
  * The arrow can rotate, highlight on hover, and emit events when clicked.
  */
 
-// Import eventBus for both browser and Node.js environments
-let eventBus;
-if (typeof window !== 'undefined' && window.eventBus) {
-    eventBus = window.eventBus;
-} else if (typeof require !== 'undefined') {
-    try {
-        eventBus = require('../../globals/eventBus').default;
-    } catch (e) {
-        // EventBus not available, will be injected during tests
-    }
-}
-
 class ArrowComponent {
     /**
      * Creates an ArrowComponent instance.
@@ -246,4 +234,7 @@ const ArrowComponentSignals = {
     ARROW_CLICKED: 'arrowSymbolClicked'
 };
 
-module.exports = { ArrowComponent, ArrowComponentSignals };
+// Export for Node.js test environments only
+if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') {
+    module.exports = { ArrowComponent, ArrowComponentSignals };
+}

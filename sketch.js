@@ -276,38 +276,24 @@ function setup() {
     RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
       id: 'ant-count-display',
       hitTest: (pointer) => {
-        console.log('🎯 [AntCountDisplay] Hit test called', { pointer, hasDisplay: !!g_antCountDisplay });
         if (!g_antCountDisplay || GameState.getState() !== 'PLAYING') return false;
         
         // RenderManager passes pointer.screen.x/y for UI layers
         const x = pointer.screen ? pointer.screen.x : pointer.x;
         const y = pointer.screen ? pointer.screen.y : pointer.y;
-        console.log('🎯 [AntCountDisplay] Hit test using coordinates:', { x, y });
         
-        const result = g_antCountDisplay.isMouseOver(x, y);
-        console.log('🎯 [AntCountDisplay] isMouseOver result:', result);
-        return result;
+        return g_antCountDisplay.isMouseOver(x, y);
       },
       onPointerDown: (pointer) => {
-        console.log('🖱️ [AntCountDisplay] onPointerDown called', {
-          pointer,
-          pointerKeys: Object.keys(pointer),
-          hasDisplay: !!g_antCountDisplay,
-          gameState: GameState.getState()
-        });
         if (!g_antCountDisplay || GameState.getState() !== 'PLAYING') return false;
         
         // RenderManager passes pointer.screen.x/y for UI layers
         const x = pointer.screen ? pointer.screen.x : pointer.x;
         const y = pointer.screen ? pointer.screen.y : pointer.y;
-        console.log('📍 [AntCountDisplay] Using coordinates:', { x, y });
         
-        const result = g_antCountDisplay.handleClick(x, y);
-        console.log('🎯 [AntCountDisplay] handleClick result:', result);
-        return result;
+        return g_antCountDisplay.handleClick(x, y);
       }
     });
-    console.log('✅ AntCountDisplay interactive registered at END of setup() for priority');
   }
 }
 
@@ -355,11 +341,7 @@ function initializeContextMenuPrevention() {
   logVerbose('🚫 Multiple layers of right-click context menu prevention initialized');
 }
 
-// Make functions globally available
-if (typeof window !== 'undefined') {
-  window.testContextMenuPrevention = testContextMenuPrevention;
-  window.disableContextMenu = disableContextMenu;
-}
+// No global exports needed - context menu prevention is automatic
 
 /**
  * initializeWorld
@@ -630,7 +612,6 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() {
-  console.log('🖱️ mousePressed() called at', { x: mouseX, y: mouseY, button: mouseButton, gameState: GameState.getState() });
   
   if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
     console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);

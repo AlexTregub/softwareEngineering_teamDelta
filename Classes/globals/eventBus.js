@@ -58,11 +58,14 @@ class EventBus {
     }
 }
 
-const eventBus = new EventBus();
-if (typeof window !== 'undefined') {
-    window.eventBus = eventBus;
-} 
-if (typeof global !== 'undefined') {
-    global.eventBus = eventBus;
+// Only create eventBus if it doesn't already exist
+if (typeof window !== 'undefined' && !window.eventBus) {
+    window.eventBus = new EventBus();
+} else if (typeof global !== 'undefined' && !global.eventBus) {
+    global.eventBus = new EventBus();
 }
-export default eventBus;
+
+// Export for Node.js test environments only
+if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') {
+    module.exports = (typeof global !== 'undefined' && global.eventBus) || new EventBus();
+}

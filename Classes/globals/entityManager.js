@@ -5,18 +5,6 @@
  * Provides a centralized registry for all game entities (ants, resources, buildings, etc.)
  */
 
-// Import eventBus for both browser and Node.js environments
-let eventBus;
-if (typeof window !== 'undefined' && window.eventBus) {
-    eventBus = window.eventBus;
-} else if (typeof require !== 'undefined') {
-    try {
-        eventBus = require('./eventBus').default;
-    } catch (e) {
-        // EventBus not available, will be injected
-    }
-}
-
 class EntityManager {
     /**
      * Create an EntityManager

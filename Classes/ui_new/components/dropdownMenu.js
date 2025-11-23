@@ -6,21 +6,6 @@
  * menu component that can display information lines and toggle between open/closed states.
  */
 
-const { InformationLine, InformationLineSignals } = require('./informationLine');
-const { ArrowComponent, ArrowComponentSignals } = require('./arrowComponent');
-
-// Import eventBus for both browser and Node.js environments
-let eventBus;
-if (typeof window !== 'undefined' && window.eventBus) {
-    eventBus = window.eventBus;
-} else if (typeof require !== 'undefined') {
-    try {
-        eventBus = require('../../globals/eventBus').default;
-    } catch (e) {
-        // EventBus not available, will be injected during tests
-    }
-}
-
 class DropDownMenu {
     /**
      * Creates a DropDownMenu instance.
@@ -444,4 +429,7 @@ class DropDownMenu {
     }
 }
 
-module.exports = DropDownMenu;
+// Export for Node.js test environments only
+if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') {
+    module.exports = DropDownMenu;
+}

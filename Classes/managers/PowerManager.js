@@ -355,7 +355,7 @@ class FinalFlash extends Power{
     }
 }
 
-class Fireball extends Power{
+class FireballPower extends Power{
     constructor(damage, x, y, name){
         super(damage, x, y, "strike", name);
     }
