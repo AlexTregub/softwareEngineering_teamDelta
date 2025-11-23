@@ -132,6 +132,14 @@ function setup() {
   initializeWorld();
   initializeDraggablePanelSystem()
 
+  // Initialize EntityManager BEFORE any entities are created
+  if (typeof EntityManager !== 'undefined') {
+    window.entityManager = new EntityManager();
+    console.log('✅ EntityManager initialized');
+  } else {
+    console.error('❌ EntityManager class not found');
+  }
+
   // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
@@ -240,6 +248,17 @@ function setup() {
       }
     });
   }
+  
+  // Register state change callback for spawning initial ants
+  if (typeof GameState !== 'undefined' && typeof LegacyAntFactory !== 'undefined') {
+    GameState.onStateChange((newState, oldState) => {
+      if (newState === 'PLAYING' && oldState !== 'PAUSED') {
+        // Only spawn ants on fresh game start (not when resuming from pause)
+        spawnInitialAnts();
+      }
+    });
+  }
+  
   soundManager.startBGMMonitoring();
   initializeContextMenuPrevention();
   // Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
@@ -422,13 +441,49 @@ function initializeWorld() {
     console.warn('⚠️ AntCountDisplayComponent not loaded');
   }
   
-  // Initialize Game UI Overlay with AntCountDropDown
-  if (typeof initializeGameUIOverlay === 'function') {
-    initializeGameUIOverlay();
+  // Initialize AntCountDropDown directly (GameUIOverlay commented out)
+  if (typeof AntCountDropDown !== 'undefined') {
+    window.antCountDropdown = new AntCountDropDown(window, {
+      x: 20,
+      y: 80,
+      faction: 'player'
+    });
+    console.log('✅ AntCountDropDown initialized');
+    
+    // Register with RenderLayerManager
+    if (typeof RenderManager !== 'undefined') {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
+        if (window.antCountDropdown) {
+          window.antCountDropdown.render();
+        }
+      });
+      console.log('✅ AntCountDropDown registered with RenderLayerManager');
+    }
   } else {
-    console.warn('⚠️ initializeGameUIOverlay not found - UI overlay not initialized');
+    console.error('❌ AntCountDropDown class not found');
   }
   
+  // Initialize ResourceCountDisplay
+  if (typeof ResourceCountDisplay !== 'undefined') {
+    window.resourceCountDisplay = new ResourceCountDisplay(window, {
+      // x and y will auto-center horizontally at top
+      height: 40
+    });
+    console.log('✅ ResourceCountDisplay initialized');
+    
+    // Register with RenderLayerManager
+    if (typeof RenderManager !== 'undefined') {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
+        if (window.resourceCountDisplay) {
+          window.resourceCountDisplay.render();
+        }
+      });
+      console.log('✅ ResourceCountDisplay registered with RenderLayerManager');
+    }
+  } else {
+    console.error('❌ ResourceCountDisplay class not found');
+  }
+
 
   // Main hive, initial, anthill
   Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
@@ -1485,4 +1540,127 @@ function windowResized() {
   g_activeMap.invalidateCache()
 
   resizeCanvas(g_canvasX,g_canvasY);
+}
+
+// ===== CONSOLE HELPER FUNCTIONS =====
+
+/**
+ * Spawn initial ants when game starts
+ * Called automatically when gameState changes to PLAYING
+ * @private
+ */
+function spawnInitialAnts() {
+  if (typeof LegacyAntFactory === 'undefined') {
+    console.warn('⚠️ LegacyAntFactory not available - skipping initial ant spawn');
+    return;
+  }
+  
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const spacing = 40;
+  
+  // Spawn 1-3 of each job type (except Queen)
+  const jobs = ['Scout', 'Builder', 'Farmer', 'Warrior', 'Spitter'];
+  let xOffset = -(jobs.length * spacing) / 2; // Center the group
+  
+  jobs.forEach(jobName => {
+    const count = Math.floor(Math.random() * 3) + 1; // 1-3 ants
+    
+    LegacyAntFactory.createMultiple(count, {
+      x: centerX + xOffset,
+      y: centerY,
+      jobName: jobName,
+      faction: 'player',
+      spacing: 25
+    });
+    
+    xOffset += spacing;
+  });
+  
+  console.log('🐜 Initial player ants spawned');
+}
+
+/**
+ * Spawn test ants - one of each job type
+ * Usage in console: spawnTestAnts()
+ */
+function spawnTestAnts() {
+  if (typeof LegacyAntFactory === 'undefined') {
+    console.error('❌ LegacyAntFactory not loaded');
+    return;
+  }
+  
+  const centerX = width / 2;
+  const centerY = height / 2;
+  
+  const squad = LegacyAntFactory.createTestSquad(centerX - 100, centerY, { faction: 'player' });
+  
+  // Add all squad members to global ants array
+  if (squad.scout) ants.push(squad.scout);
+  if (squad.builder) ants.push(squad.builder);
+  if (squad.farmer) ants.push(squad.farmer);
+  if (squad.warrior) ants.push(squad.warrior);
+  if (squad.spitter) ants.push(squad.spitter);
+  
+  console.log('✅ Spawned test squad:');
+  console.log('  - Scout:', squad.scout?.id);
+  console.log('  - Builder:', squad.builder?.id);
+  console.log('  - Farmer:', squad.farmer?.id);
+  console.log('  - Warrior:', squad.warrior?.id);
+  console.log('  - Spitter:', squad.spitter?.id);
+  console.log(`  - Total ants in game: ${ants.length}`);
+  
+  return squad;
+}
+
+/**
+ * Spawn multiple ants of a specific job
+ * Usage: spawnAnts(5, 'Scout') or spawnAnts(3, 'Warrior')
+ */
+function spawnAnts(count, jobName = 'Scout') {
+  if (typeof LegacyAntFactory === 'undefined') {
+    console.error('❌ LegacyAntFactory not loaded');
+    return;
+  }
+  
+  const centerX = width / 2;
+  const centerY = height / 2;
+  
+  const ants = LegacyAntFactory.createMultiple(count, {
+    x: centerX,
+    y: centerY,
+    jobName: jobName,
+    faction: 'player'
+  });
+  
+  console.log(`✅ Spawned ${count} ${jobName} ants`);
+  return ants;
+}
+
+
+// Make functions globally available
+if (typeof window !== 'undefined') {
+  window.spawnTestAnts = spawnTestAnts;
+  window.spawnAnts = spawnAnts;
+  window.addTestResources = addTestResources;
+}
+
+/**
+ * Add test resources to see ResourceCountDisplay working
+ * Usage in console: addTestResources()
+ */
+function addTestResources() {
+  if (typeof window.addGlobalResource === 'undefined') {
+    console.error('❌ addGlobalResource not available');
+    return;
+  }
+  
+  // Add some resources using actual resource types
+  window.addGlobalResource('stick', 50);      // Wood/building materials
+  window.addGlobalResource('stone', 30);      // Stone
+  window.addGlobalResource('greenLeaf', 40);  // Food (green leaves)
+  window.addGlobalResource('mapleLeaf', 35);  // Food (maple leaves)
+  
+  console.log('✅ Test resources added:', window.getResourceTotals());
+  return window.getResourceTotals();
 }

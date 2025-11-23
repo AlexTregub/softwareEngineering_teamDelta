@@ -65,19 +65,13 @@ class AntCountDropDown {
     _setupEventListeners() {
         if (!eventBus) return;
         
-        // Listen for entity registration
-        this.listeners.entityRegistered = (data) => {
-            this._handleEntityRegistered(data);
+        // Listen for entity count updates from EntityManager
+        this.listeners.countsUpdated = (data) => {
+            this._handleCountsUpdated(data);
         };
-        eventBus.on('ENTITY_REGISTERED', this.listeners.entityRegistered);
+        eventBus.on('ENTITY_COUNTS_UPDATED', this.listeners.countsUpdated);
         
-        // Listen for entity unregistration
-        this.listeners.entityUnregistered = (data) => {
-            this._handleEntityUnregistered(data);
-        };
-        eventBus.on('ENTITY_UNREGISTERED', this.listeners.entityUnregistered);
-        
-        // Listen for ant details response
+        // Listen for ant details response (for initial query)
         this.listeners.antDetailsResponse = (data) => {
             this._handleAntDetailsResponse(data);
         };
@@ -95,35 +89,21 @@ class AntCountDropDown {
     }
     
     /**
-     * Handle ENTITY_REGISTERED event
+     * Handle ENTITY_COUNTS_UPDATED event
      * @private
      */
-    _handleEntityRegistered(data) {
-        // Only count player faction ants
-        if (data.type !== 'ant' || data.faction !== this.faction) return;
+    _handleCountsUpdated(data) {
+        // Extract player faction ant counts by job
+        const playerAnts = data.factions?.[this.faction]?.ant || 0;
+        const playerJobBreakdown = data.antJobsByFaction?.[this.faction] || {};
         
-        const jobName = data.metadata?.jobName || 'Unknown';
-        this.antCounts[jobName] = (this.antCounts[jobName] || 0) + 1;
-        this.antCounts.total = (this.antCounts.total || 0) + 1;
+        // Reset counts
+        this.antCounts = { total: playerAnts };
         
-        this._updateDisplay(this.antCounts);
-    }
-    
-    /**
-     * Handle ENTITY_UNREGISTERED event
-     * @private
-     */
-    _handleEntityUnregistered(data) {
-        // Only count player faction ants
-        if (data.type !== 'ant' || data.faction !== this.faction) return;
-        
-        const jobName = data.metadata?.jobName || 'Unknown';
-        if (this.antCounts[jobName] > 0) {
-            this.antCounts[jobName]--;
-        }
-        if (this.antCounts.total > 0) {
-            this.antCounts.total--;
-        }
+        // Update job breakdown (already filtered by faction)
+        Object.keys(playerJobBreakdown).forEach(jobName => {
+            this.antCounts[jobName] = playerJobBreakdown[jobName];
+        });
         
         this._updateDisplay(this.antCounts);
     }
@@ -203,11 +183,8 @@ class AntCountDropDown {
      */
     destroy() {
         if (eventBus) {
-            if (this.listeners.entityRegistered) {
-                eventBus.off('ENTITY_REGISTERED', this.listeners.entityRegistered);
-            }
-            if (this.listeners.entityUnregistered) {
-                eventBus.off('ENTITY_UNREGISTERED', this.listeners.entityUnregistered);
+            if (this.listeners.countsUpdated) {
+                eventBus.off('ENTITY_COUNTS_UPDATED', this.listeners.countsUpdated);
             }
             if (this.listeners.antDetailsResponse) {
                 eventBus.off('ANT_DETAILS_RESPONSE', this.listeners.antDetailsResponse);

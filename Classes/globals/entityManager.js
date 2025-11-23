@@ -21,8 +21,8 @@ class EntityManager {
         // Faction tracking: { faction: { type: count } }
         this.factions = {};
         
-        // Ant job tracking: { jobName: count }
-        this.antJobs = {};
+        // Ant job tracking per faction: { faction: { jobName: count } }
+        this.antJobsByFaction = {};
         
         // Setup event listeners
         this._setupEventListeners();
@@ -127,19 +127,16 @@ class EntityManager {
         }
         this.factions[faction][type]++;
         
-        // Track ant jobs
+        // Track ant jobs per faction
         if (type === 'ant' && metadata.jobName) {
-            this.antJobs[metadata.jobName] = (this.antJobs[metadata.jobName] || 0) + 1;
+            if (!this.antJobsByFaction[faction]) {
+                this.antJobsByFaction[faction] = {};
+            }
+            this.antJobsByFaction[faction][metadata.jobName] = (this.antJobsByFaction[faction][metadata.jobName] || 0) + 1;
         }
         
-        // Emit event
-        if (this.eventBus) {
-            this.eventBus.emit('ENTITY_REGISTERED', {
-                type: type,
-                id: id,
-                metadata: metadata
-            });
-        }
+        // Broadcast updated counts
+        this._broadcastCounts();
     }
     
     /**
@@ -169,11 +166,17 @@ class EntityManager {
             }
         }
         
-        // Remove from ant jobs tracking
+        // Remove from ant jobs tracking per faction
         if (type === 'ant' && metadata.jobName) {
-            this.antJobs[metadata.jobName]--;
-            if (this.antJobs[metadata.jobName] <= 0) {
-                delete this.antJobs[metadata.jobName];
+            if (this.antJobsByFaction[faction] && this.antJobsByFaction[faction][metadata.jobName]) {
+                this.antJobsByFaction[faction][metadata.jobName]--;
+                if (this.antJobsByFaction[faction][metadata.jobName] <= 0) {
+                    delete this.antJobsByFaction[faction][metadata.jobName];
+                }
+                // Clean up empty faction job tracking
+                if (Object.keys(this.antJobsByFaction[faction]).length === 0) {
+                    delete this.antJobsByFaction[faction];
+                }
             }
         }
         
@@ -185,14 +188,8 @@ class EntityManager {
             delete this.entities[type];
         }
         
-        // Emit event
-        if (this.eventBus) {
-            this.eventBus.emit('ENTITY_UNREGISTERED', {
-                type: type,
-                id: id,
-                metadata: metadata
-            });
-        }
+        // Broadcast updated counts
+        this._broadcastCounts();
     }
     
     /**
@@ -224,6 +221,25 @@ class EntityManager {
         
         // Update metadata
         this.entities[type][id] = metadata;
+    }
+    
+    /**
+     * Broadcast current entity counts to all listeners
+     * @private
+     */
+    _broadcastCounts() {
+        if (!this.eventBus) return;
+        
+        // Broadcast total counts by type
+        const counts = this.getCounts();
+        const total = this.getTotalCount();
+        
+        this.eventBus.emit('ENTITY_COUNTS_UPDATED', {
+            counts: counts,
+            total: total,
+            factions: this.factions,
+            antJobsByFaction: this.antJobsByFaction
+        });
     }
     
     /**
