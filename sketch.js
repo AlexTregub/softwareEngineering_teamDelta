@@ -23,6 +23,7 @@ let g_gridMap;
 let g_activeMap; // Reference to currently active terrain map (for level switching)
 // --- UI ---
 let g_menuFont;
+let g_antCountDisplay; // Ant population display component
 // --- IDK! ----
 let g_recordingPath;
 // -- Queen ---
@@ -265,6 +266,49 @@ function setup() {
   // console.log("SETUPRESULT:",window)
 
   // drop(importTerrain)
+  
+  // ==========================================
+  // REGISTER INTERACTIVE LAST FOR PRIORITY
+  // ==========================================
+  // Register AntCountDisplay interactive AFTER all other systems
+  // so it's checked FIRST in reverse-order dispatch
+  if (typeof g_antCountDisplay !== 'undefined' && typeof RenderManager !== 'undefined') {
+    RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
+      id: 'ant-count-display',
+      hitTest: (pointer) => {
+        console.log('🎯 [AntCountDisplay] Hit test called', { pointer, hasDisplay: !!g_antCountDisplay });
+        if (!g_antCountDisplay || GameState.getState() !== 'PLAYING') return false;
+        
+        // RenderManager passes pointer.screen.x/y for UI layers
+        const x = pointer.screen ? pointer.screen.x : pointer.x;
+        const y = pointer.screen ? pointer.screen.y : pointer.y;
+        console.log('🎯 [AntCountDisplay] Hit test using coordinates:', { x, y });
+        
+        const result = g_antCountDisplay.isMouseOver(x, y);
+        console.log('🎯 [AntCountDisplay] isMouseOver result:', result);
+        return result;
+      },
+      onPointerDown: (pointer) => {
+        console.log('🖱️ [AntCountDisplay] onPointerDown called', {
+          pointer,
+          pointerKeys: Object.keys(pointer),
+          hasDisplay: !!g_antCountDisplay,
+          gameState: GameState.getState()
+        });
+        if (!g_antCountDisplay || GameState.getState() !== 'PLAYING') return false;
+        
+        // RenderManager passes pointer.screen.x/y for UI layers
+        const x = pointer.screen ? pointer.screen.x : pointer.x;
+        const y = pointer.screen ? pointer.screen.y : pointer.y;
+        console.log('📍 [AntCountDisplay] Using coordinates:', { x, y });
+        
+        const result = g_antCountDisplay.handleClick(x, y);
+        console.log('🎯 [AntCountDisplay] handleClick result:', result);
+        return result;
+      }
+    });
+    console.log('✅ AntCountDisplay interactive registered at END of setup() for priority');
+  }
 }
 
 function addListeners() {
@@ -366,6 +410,35 @@ function initializeWorld() {
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
+  
+  if (typeof AntCountDisplayComponent !== 'undefined') {
+    g_antCountDisplay = new AntCountDisplayComponent(20, 80, {
+      sprites: {} // Auto-loads from JobImages global
+    });
+    
+    // Expose to window for E2E tests
+    window.g_antCountDisplay = g_antCountDisplay;
+    
+    if (typeof RenderManager !== 'undefined') {
+      // Update drawable - queries ants array
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
+        if (g_antCountDisplay && GameState.getState() === 'PLAYING') {
+          g_antCountDisplay.update();
+        }
+      });
+      
+      // Render drawable - draws the panel
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
+        if (g_antCountDisplay && GameState.getState() === 'PLAYING') {
+          g_antCountDisplay.render('PLAYING');
+        }
+      });
+      
+      // Interactive registration moved to END of setup() for priority
+      }
+  } else {
+    console.warn('⚠️ AntCountDisplayComponent not loaded');
+  }
   
   // Initialize Game UI Overlay with AntCountDropDown
   if (typeof initializeGameUIOverlay === 'function') {
@@ -556,7 +629,9 @@ function handleMouseEvent(type, ...args) {
  * ------------
  * Handles mouse press events by delegating to the mouse controller.
  */
-function mousePressed() { 
+function mousePressed() {
+  console.log('🖱️ mousePressed() called at', { x: mouseX, y: mouseY, button: mouseButton, gameState: GameState.getState() });
+  
   if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
     console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);
     try {
@@ -592,10 +667,15 @@ function mousePressed() {
   
   // Handle Enemy Ant Brush events
   if (window.g_enemyAntBrush && window.g_enemyAntBrush.isActive) {
+    console.log('🖌️ Checking g_enemyAntBrush (active)');
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
+      console.log('🖌️ g_enemyAntBrush.onMousePressed returned:', handled);
+      if (handled) {
+        console.log('🛑 g_enemyAntBrush consumed the click - returning early');
+        return; // Brush consumed the event, don't process other mouse events
+      }
     } catch (error) {
       console.error('❌ Error handling enemy ant brush events:', error);
     }
@@ -603,10 +683,15 @@ function mousePressed() {
 
   // Handle Resource Brush events
   if (window.g_resourceBrush && window.g_resourceBrush.isActive) {
+    console.log('🖌️ Checking g_resourceBrush (active)');
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
+      console.log('🖌️ g_resourceBrush.onMousePressed returned:', handled);
+      if (handled) {
+        console.log('🛑 g_resourceBrush consumed the click - returning early');
+        return; // Brush consumed the event, don't process other mouse events
+      }
     } catch (error) {
       console.error('❌ Error handling resource brush events:', error);
     }
@@ -614,10 +699,15 @@ function mousePressed() {
 
   // Handle Building Brush events
   if (window.g_buildingBrush && window.g_buildingBrush.isActive) {
+    console.log('🖌️ Checking g_buildingBrush (active)');
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return; // Brush consumed the event, don't process other mouse events
+      console.log('🖌️ g_buildingBrush.onMousePressed returned:', handled);
+      if (handled) {
+        console.log('🛑 g_buildingBrush consumed the click - returning early');
+        return; // Brush consumed the event, don't process other mouse events
+      }
     } catch (error) {
       console.error('❌ Error handling building brush events:', error);
     }
@@ -625,10 +715,15 @@ function mousePressed() {
 
   // Handle Lightning Aim Brush events
   if (window.g_lightningAimBrush && window.g_lightningAimBrush.isActive) {
+    console.log('🖌️ Checking g_lightningAimBrush (active)');
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return;
+      console.log('🖌️ g_lightningAimBrush.onMousePressed returned:', handled);
+      if (handled) {
+        console.log('🛑 g_lightningAimBrush consumed the click - returning early');
+        return;
+      }
     } catch (error) {
       console.error('❌ Error handling lightning aim brush events:', error);
     }
@@ -636,10 +731,15 @@ function mousePressed() {
 
   // Handle Final Flash Aim Brush events
   if (window.g_flashAimBrush && window.g_flashAimBrush.isActive) {
+    console.log('🖌️ Checking g_flashAimBrush (active)');
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_flashAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      if (handled) return;
+      console.log('🖌️ g_flashAimBrush.onMousePressed returned:', handled);
+      if (handled) {
+        console.log('🛑 g_flashAimBrush consumed the click - returning early');
+        return;
+      }
     } catch (error) {
       console.error('❌ Error handling Flash Flash aim brush events:', error);
     }
@@ -657,12 +757,16 @@ function mousePressed() {
 
   // PRIORITY 2: RenderManager UI elements (buttons, panels, etc.)
   // Forward to RenderManager interactive dispatch (gives adapters priority)
+  console.log('📡 About to call RenderManager.dispatchPointerEvent with', { x: mouseX, y: mouseY });
   try {
     const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
+    console.log('📡 RenderManager.dispatchPointerEvent returned:', consumed);
     if (consumed) {
+      console.log('✅ Mouse click consumed by RenderManager');
       logVerbose('🖱️ Mouse click consumed by RenderManager');
       return; // consumed by an interactive (buttons/panels/etc.)
     }
+    console.log('⏭️ Mouse click NOT consumed by RenderManager, passing to other handlers');
     logVerbose('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
     // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
   } catch (e) {
