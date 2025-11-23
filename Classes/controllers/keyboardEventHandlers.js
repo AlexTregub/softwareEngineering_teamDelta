@@ -25,6 +25,22 @@ function handleKeyEvent(type, ...args) {
 }
 
 /**
+ * handleQueenMovement
+ * -------------------
+ * Handles WASD queen movement using keyIsDown() for smooth continuous movement
+ * Called from draw() loop for frame-by-frame polling
+ */
+function handleQueenMovement() {
+  const playerQueen = getQueen?.();
+  if (!playerQueen || GameState.getState() !== 'PLAYING') return;
+  
+  if (keyIsDown(87)) playerQueen.move("s"); // W
+  if (keyIsDown(65)) playerQueen.move("a"); // A
+  if (keyIsDown(83)) playerQueen.move("w"); // S
+  if (keyIsDown(68)) playerQueen.move("d"); // D
+}
+
+/**
  * keyPressed
  * ----------
  * Handles key press events with priority order:
@@ -150,6 +166,10 @@ function keyPressed() {
       return;
     }
   }
+  
+  // Queen Movement (WASD - continuous polling in draw loop handled separately)
+  // Note: Actual movement is handled in sketch.js draw() via keyIsDown() for smooth continuous movement
+  // This section is for documentation purposes - WASD uses keyIsDown() not keyPressed events
   
   // Queen Commands (R = rally, Shift+R = reset zoom to avoid conflict)
   const playerQueen = getQueen();

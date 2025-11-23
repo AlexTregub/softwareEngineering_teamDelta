@@ -382,6 +382,39 @@ class AntCountDisplayComponent {
   }
   
   /**
+   * Register interactive handlers with RenderManager
+   * Should be called AFTER all other interactive elements are registered
+   * to ensure this component has highest priority
+   */
+  registerInteractive() {
+    if (typeof RenderManager === 'undefined') return;
+    
+    RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
+      id: 'ant-count-display',
+      hitTest: (pointer) => {
+        if (typeof GameState === 'undefined') return false;
+        if (GameState.getState() !== 'PLAYING') return false;
+        
+        // RenderManager passes pointer.screen.x/y for UI layers
+        const x = pointer.screen ? pointer.screen.x : pointer.x;
+        const y = pointer.screen ? pointer.screen.y : pointer.y;
+        
+        return this.isMouseOver(x, y);
+      },
+      onPointerDown: (pointer) => {
+        if (typeof GameState === 'undefined') return false;
+        if (GameState.getState() !== 'PLAYING') return false;
+        
+        // RenderManager passes pointer.screen.x/y for UI layers
+        const x = pointer.screen ? pointer.screen.x : pointer.x;
+        const y = pointer.screen ? pointer.screen.y : pointer.y;
+        
+        return this.handleClick(x, y);
+      }
+    });
+  }
+  
+  /**
    * Cleanup
    */
   destroy() {

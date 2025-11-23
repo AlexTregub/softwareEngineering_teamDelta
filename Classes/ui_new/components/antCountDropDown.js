@@ -169,6 +169,39 @@ class AntCountDropDown {
     }
     
     /**
+     * Register interactive handlers with RenderManager
+     * Should be called AFTER all other interactive elements are registered
+     * to ensure this component has highest priority
+     */
+    registerInteractive() {
+        if (typeof RenderManager === 'undefined') return;
+        
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
+            id: 'ant-count-display',
+            hitTest: (pointer) => {
+                if (!this.menu || typeof GameState === 'undefined') return false;
+                if (GameState.getState() !== 'PLAYING') return false;
+                
+                // RenderManager passes pointer.screen.x/y for UI layers
+                const x = pointer.screen ? pointer.screen.x : pointer.x;
+                const y = pointer.screen ? pointer.screen.y : pointer.y;
+                
+                return this.menu.isMouseOver ? this.menu.isMouseOver(x, y) : false;
+            },
+            onPointerDown: (pointer) => {
+                if (!this.menu || typeof GameState === 'undefined') return false;
+                if (GameState.getState() !== 'PLAYING') return false;
+                
+                // RenderManager passes pointer.screen.x/y for UI layers
+                const x = pointer.screen ? pointer.screen.x : pointer.x;
+                const y = pointer.screen ? pointer.screen.y : pointer.y;
+                
+                return this.menu.handleClick ? this.menu.handleClick(x, y) : false;
+            }
+        });
+    }
+    
+    /**
      * Render the dropdown
      */
     render() {

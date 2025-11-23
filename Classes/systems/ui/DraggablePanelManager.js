@@ -60,7 +60,7 @@ class DraggablePanelManager {
     }
 
     // DISABLED FOR PRESENTATION
-    this.createDefaultPanels();
+    //this.createDefaultPanels();
     
     // Register with RenderLayerManager using addDrawableToLayer
     if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addDrawableToLayer === 'function') {

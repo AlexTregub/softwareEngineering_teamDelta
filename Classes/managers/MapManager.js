@@ -491,6 +491,50 @@ class MapManager {
     
     return { width, height };
   }
+
+  /**
+   * registerGameStateCallbacks
+   * ---------------------------
+   * Registers GameState change callbacks for level editor and ant spawning
+   * Centralizes state-dependent initialization logic
+   */
+  registerGameStateCallbacks() {
+    if (typeof GameState === 'undefined') {
+      console.warn('⚠️ GameState not available for callback registration');
+      return;
+    }
+
+    // Level editor initialization callback
+    if (typeof levelEditor !== 'undefined') {
+      GameState.onStateChange((newState, oldState) => {
+        if (newState === 'LEVEL_EDITOR') {
+          if (!levelEditor.isActive()) {
+            // Create fresh blank terrain for editor
+            // CustomTerrain: simple 2D grid, faster than gridTerrain
+            // Parameters: width (tiles), height (tiles), tileSize (pixels), defaultMaterial
+            const terrain = new CustomTerrain(50, 50, 32, 'dirt');
+            levelEditor.initialize(terrain);
+          }
+        } else if (oldState === 'LEVEL_EDITOR') {
+          levelEditor.deactivate();
+        }
+      });
+    }
+
+    // Initial ant spawning callback
+    if (typeof LegacyAntFactory !== 'undefined') {
+      GameState.onStateChange((newState, oldState) => {
+        if (newState === 'PLAYING' && oldState !== 'PAUSED') {
+          // Only spawn ants on fresh game start (not when resuming from pause)
+          if (typeof spawnInitialAnts === 'function') {
+            spawnInitialAnts();
+          }
+        }
+      });
+    }
+
+    logNormal('✅ MapManager: GameState callbacks registered');
+  }
 }
 
 // Create global singleton instance

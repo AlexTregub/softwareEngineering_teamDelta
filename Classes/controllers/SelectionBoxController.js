@@ -43,6 +43,63 @@
     return SelectionBoxController._instance;
   };
 
+  /**
+   * registerWithRenderManager
+   * --------------------------
+   * Registers the selection box with RenderManager for rendering and interaction
+   * Handles both drawable and interactive registration in one call
+   */
+  SelectionBoxController.prototype.registerWithRenderManager = function() {
+    if (typeof RenderManager === 'undefined') {
+      console.warn('⚠️ RenderManager not available for SelectionBoxController registration');
+      return false;
+    }
+
+    // Prevent duplicate registration
+    if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
+    
+    // Register interactive drawable (pointer handling)
+    if (!RenderManager._registeredDrawables.selectionBoxInteractive) {
+      const selectionAdapter = {
+        hitTest: function(pointer) { return true; },
+        onPointerDown: function(pointer) { 
+          try { 
+            this.handleClick(pointer.screen.x, pointer.screen.y, 'left'); 
+            return true; 
+          } catch(e) { 
+            return false; 
+          } 
+        }.bind(this),
+        onPointerMove: function(pointer) { 
+          try { 
+            this.handleDrag(pointer.screen.x, pointer.screen.y); 
+            return true; 
+          } catch(e) { 
+            return false; 
+          } 
+        }.bind(this),
+        onPointerUp: function(pointer) { 
+          try { 
+            this.handleRelease(pointer.screen.x, pointer.screen.y, 'left'); 
+            return true; 
+          } catch(e) { 
+            return false; 
+          } 
+        }.bind(this)
+      };
+      RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, selectionAdapter);
+      RenderManager._registeredDrawables.selectionBoxInteractive = true;
+    }
+
+    // Register render drawable (visual drawing)
+    if (!RenderManager._registeredDrawables.selectionBox) {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, this.draw.bind(this));
+      RenderManager._registeredDrawables.selectionBox = true;
+    }
+
+    return true;
+  };
+
   SelectionBoxController.prototype.handleClick = function (x, y, button) {
     // Check if selection is enabled
     if (!this._config.enabled) return;

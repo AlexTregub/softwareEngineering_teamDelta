@@ -147,4 +147,19 @@ class PowerBrushManager{
             this.currentBrush.update();
         }
     }
+    
+    /**
+     * updateAllBrushes
+     * ----------------
+     * Centralized update for all brush systems
+     * Called from draw() loop to update all active brushes
+     */
+    updateAllBrushes() {
+        if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
+        if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
+        if (window.g_resourceBrush) window.g_resourceBrush.update();
+        if (window.g_buildingBrush) window.g_buildingBrush.update();
+        if (window.g_flashAimBrush) window.g_flashAimBrush.update();
+        this.update(); // Update power brushes
+    }
 }

@@ -35,6 +35,13 @@ function handleMouseEvent(type, ...args) {
  * Handles mouse press events by delegating to the mouse controller.
  */
 function mousePressed() {
+  // Menu State - handle button clicks first
+  if (GameState.getState() === 'MENU' || GameState.getState() === 'OPTIONS') {
+    if (typeof handleButtonsClick === 'function') {
+      handleButtonsClick();
+      return; // Don't process other mouse events
+    }
+  }
   
   if (window.g_powerBrushManager && window.g_powerBrushManager.currentBrush != null) {
     console.log(`current brush: ${window.g_powerBrushManager.currentBrush}`);

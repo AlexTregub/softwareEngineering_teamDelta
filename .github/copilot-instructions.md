@@ -398,6 +398,45 @@ RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
 });
 ```
 
+**⚠️ CRITICAL: Interactive Registration Pattern**
+
+When refactoring UI components to use RenderManager, **ALWAYS**:
+1. **Add `registerInteractive()` method** to component class
+2. **Call method in sketch.js `setup()`** after component creation
+3. **Use `pointer.screen.x/y`** for UI_GAME/UI_MENU layers (screen coords)
+4. **Check GameState** in hitTest/onPointerDown (e.g., `PLAYING` for game UI)
+
+**Common mistake**: Refactoring registration pattern to new components but forgetting to update old components still in use. If interactive elements stop working after refactoring, check if the component has `registerInteractive()` method and if it's being called.
+
+**Example pattern**:
+```javascript
+// In component class (e.g., AntCountDisplayComponent.js)
+registerInteractive() {
+  if (typeof RenderManager === 'undefined') return;
+  
+  RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
+    id: 'my-component-id',
+    hitTest: (pointer) => {
+      if (GameState.getState() !== 'PLAYING') return false;
+      const x = pointer.screen ? pointer.screen.x : pointer.x;
+      const y = pointer.screen ? pointer.screen.y : pointer.y;
+      return this.isMouseOver(x, y);
+    },
+    onPointerDown: (pointer) => {
+      if (GameState.getState() !== 'PLAYING') return false;
+      const x = pointer.screen ? pointer.screen.x : pointer.x;
+      const y = pointer.screen ? pointer.screen.y : pointer.y;
+      return this.handleClick(x, y);
+    }
+  });
+}
+
+// In sketch.js setup() - AFTER component creation
+if (g_myComponent && g_myComponent.registerInteractive) {
+  g_myComponent.registerInteractive();
+}
+```
+
 **STEP 4: E2E test with screenshots**
 ```javascript
 await page.evaluate(() => {
