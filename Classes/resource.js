@@ -313,8 +313,16 @@ class ResourceSpawner {
       greenLeaf: { 
         weight: 0.5, 
         make: () => {
-          const x = random(0, g_canvasX - 20);
-          const y = random(0, g_canvasY - 20);
+          // const randPos = g_activeMap.sampleTiles(['dirt_1','moss_1','stone_2','stone_3', 'moss_2','moss_3','moss_4','dirt','stone','moss','stone_1','grass'],1)[0]
+          const randPos = g_activeMap.sampleTiles('grass',1)[0]
+          const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
+
+          // const x = random(0, g_canvasX - 20);
+          // const y = random(0, g_canvasY - 20);
+          const x = convPos[0]
+          const y = convPos[1]
+
+          console.log("GREEN LEAF AT ",randPos,convPos)
           return Resource.createGreenLeaf(x, y);
         }
       },
@@ -322,8 +330,15 @@ class ResourceSpawner {
       mapleLeaf: { 
         weight: 0.8, 
         make: () => {
-          const x = random(0, g_canvasX - 20);
-          const y = random(0, g_canvasY - 20);
+          // const x = random(0, g_canvasX - 20);
+          // const y = random(0, g_canvasY - 20);
+
+          const randPos = g_activeMap.sampleTiles('grass',1)[0]
+          const convPos = g_activeMap.renderConversion.convPosToCanvas(randPos)
+
+          const x = convPos[0]
+          const y = convPos[1]
+          console.log("MAPLE LEAF AT ",randPos,convPos)
           return Resource.createMapleLeaf(x, y);
         }
       },
