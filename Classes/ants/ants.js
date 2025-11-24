@@ -31,7 +31,9 @@ function antsPreloader() {
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
     // DeLozier: loadImage('Images/Ants/greg.jpg'),
     Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
-    Spider: loadImage('Images/Ants/spider.png')
+    Spider: loadImage('Images/Ants/spider.png'),
+    waveEnemy: loadImage("Images/Ants/gray_ant.png"),
+
   };
   initializeAntManager();
 }
@@ -175,12 +177,12 @@ class ant extends Entity {
     const combat = this.getController('combat');
     switch(this.jobName){
       case "Queen":
-        combat._detectionRadius = 300;
-        this._attackRange = combat._detectionRadius - 50; 
+        // combat._detectionRadius = 300;
+        // this._attackRange = combat._detectionRadius - 50; 
         break;
       case "Spitter":
-        combat._detectionRadius = 250;
-        this._attackRange = 250; 
+        // combat._detectionRadius = 250;
+        // this._attackRange = 250; 
         break;
       case "Spider":
         combat._detectionRadius = 300;
@@ -709,18 +711,18 @@ _getFallbackJobStats(jobName) {
     this._combatTarget = nearestEnemy;
     if (isOverlapping || shortestDistance <= this._attackRange) {
       if (isRanged) {
-        if (this.jobName === "Spitter") {
-            window.draggablePanelManager.handleShootLightning(this._combatTarget);
-        } else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
-          window.draggablePanelManager.handleShootLightning(this._combatTarget);
-        }
+        // if (this.jobName === "Spitter") {
+        //     window.draggablePanelManager.handleShootLightning(this._combatTarget);
+        // } else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
+        //   window.draggablePanelManager.handleShootLightning(this._combatTarget);
+        // }
       } 
       
-      else if (isMelee || this._faction != "player") {
+      if (isMelee || this._faction != "player" || isRanged) {
         this._attackTarget(this._combatTarget);
       } 
       
-      else if (isWorker) {
+      if (isWorker) {
         if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
         closestHive ? goToHive() : this._attackTarget(this._combatTarget);
       }
@@ -1069,7 +1071,10 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
   let list = [];
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
-    let JobName = assignJob();
+    let JobName  = assignJob();
+    if (faction != "player") {
+      JobName = "waveEnemy";
+    }
 
     let px, py;
     if (x !== null && y !== null) {

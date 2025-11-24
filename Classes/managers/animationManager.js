@@ -9,6 +9,7 @@ function animationPreloader() {
     "Builder": loadImage("Images/Animation/Builder.png"),
     "Farmer": loadImage("Images/Animation/Farmer.png"),
     "Spitter": loadImage("Images/Animation/Spitter.png"),
+    "waveEnemy": loadImage("Images/Animation/Gray.png"),
   };
 }
 

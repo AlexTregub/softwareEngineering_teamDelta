@@ -12,37 +12,30 @@ class JobComponent {
   static getJobStats(jobName) {
     switch (jobName) {
       case "Builder":
-        // Strong enough to build and carry, average mobility
-        return { strength: 20, health: 120, gatherSpeed: 15, movementSpeed: 55 };
+        return { strength: 30, health: 120, gatherSpeed: 15, movementSpeed: 55 };
 
       case "Scout":
-        // Fast and agile, but fragile
-        return { strength: 10, health: 70, gatherSpeed: 8, movementSpeed: 85 };
+        return { strength: 30, health: 70, gatherSpeed: 8, movementSpeed: 85 };
 
       case "Farmer":
-        // Focused on gathering efficiency
-        return { strength: 15, health: 100, gatherSpeed: 35, movementSpeed: 50 };
+        return { strength: 30, health: 100, gatherSpeed: 35, movementSpeed: 50 };
 
       case "Warrior":
-        // Heavy combat role: high strength and durability, slower speed
         return { strength: 45, health: 300, gatherSpeed: 5, movementSpeed: 45 };
 
       case "Spitter":
-        // Ranged attacker: moderate health, good damage, slightly faster than warrior
-        return { strength: 35, health: 110, gatherSpeed: 5, movementSpeed: 55 };
+        return { strength: 40, health: 110, gatherSpeed: 5, movementSpeed: 55 };
 
       case "DeLozier":
         return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
 
       case "Queen":
-        // Central unit: extremely durable but immobile and weak in combat
-        return { strength: 25, health: 500, gatherSpeed: 1, movementSpeed: 45 };
+        return { strength: 40, health: 500, gatherSpeed: 1, movementSpeed: 45 };
 
       case "Spider":
         return { strength: 80, health: 1000, gatherSpeed: 3, movementSpeed: 40 };
 
       default:
-        // Generic fallback for untyped ants
         return { strength: 15, health: 100, gatherSpeed: 10, movementSpeed: 60 };
     }
   }
