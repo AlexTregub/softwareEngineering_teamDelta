@@ -41,11 +41,21 @@ jobs:
           zip -r deploy.zip ./* ; 
           $RUN mkdir -p /home/$USER/web ;
           $RUN "rm -rf /home/$USER/web/* || true " ; 
+          $RUN "rm -rf /home/$USER/web/.* || true " ; 
+
+          echo "Also providing alternative tar+gz..."
+          tar -cf deploy.tar ./*
+          gzip -k deploy.tar
 
           echo "Sending zipped...";
           $COPY deploy.zip $TARGET:/home/$USER/web
+          $COPY deploy.tar.gz $TARGET:/home/$USER/web
 
-          $RUN "cd /home/$USER/web && unzip -o deploy.zip && rm deploy.zip"
+          echo "First attempt direct 'unzip' (keeping all intact incase of failure...)"
+          $RUN "cd /home/$USER/web && unzip -o deploy.zip && && rm deploy.tar.gz && rm deploy.zip || true"
+
+          echo "Fallback incase of unzip missing (currently is...)"
+          $RUN "cd /home/$USER/web && gzip -d deploy.tar.gz && tar -xf deploy.tar || true"
 
           echo "Target state after deploy"
           $RUN ls -la /home/$USER/web
