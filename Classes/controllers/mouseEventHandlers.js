@@ -156,6 +156,22 @@ function mousePressed() {
     }
   }
 
+  // Handle Fireball Aim Brush events (charge mechanic)
+  if (window.g_fireballAimBrush && window.g_fireballAimBrush.isActive) {
+    console.log('🖌️ Checking g_fireballAimBrush (active)');
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      const handled = window.g_fireballAimBrush.onMousePressed(mouseX, mouseY, buttonName);
+      console.log('🖌️ g_fireballAimBrush.onMousePressed returned:', handled);
+      if (handled) {
+        console.log('🛑 g_fireballAimBrush consumed the click (started charging) - returning early');
+        return;
+      }
+    } catch (error) {
+      console.error('❌ Error handling Fireball aim brush events:', error);
+    }
+  }
+
   // Handle Queen Control Panel right-click for power cycling
   if (window.g_queenControlPanel && mouseButton === RIGHT) {
     try {
@@ -309,6 +325,16 @@ function mouseReleased() {
       console.error('❌ Error handling Final Flash aim brush release events:', error);
     }
   }
+
+  // Handle Fireball Aim Brush release events (fires when fully charged)
+  if (window.g_fireballAimBrush && window.g_fireballAimBrush.isActive) {
+    try {
+      const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
+      window.g_fireballAimBrush.onMouseReleased(mouseX, mouseY, buttonName);
+    } catch (error) {
+      console.error('❌ Error handling Fireball aim brush release events:', error);
+    }
+  }
   
   // Forward to RenderManager first
   try {
@@ -403,6 +429,10 @@ function mouseWheel(event) {
       return false;
     }
     if (window.g_flashAimBrush && tryCycleDir(window.g_flashAimBrush)) {
+      event.preventDefault();
+      return false;
+    }
+    if (window.g_fireballAimBrush && tryCycleDir(window.g_fireballAimBrush)) {
       event.preventDefault();
       return false;
     }

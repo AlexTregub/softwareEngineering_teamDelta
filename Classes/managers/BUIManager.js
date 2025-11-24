@@ -84,17 +84,21 @@ class BUIManager {
         if (key === '2') {
             const currentAnts = ants?.length || 0;
             const maxAnts = window.maxAnts || 10;
+            console.log(`🐜 Spawn attempt: ${currentAnts}/${maxAnts} ants`);
+            
             if (currentAnts < maxAnts) {
                 const centerX = this.hill._x + this.hill._width / 2;
                 const centerY = this.hill._y + this.hill._height / 2;
+                console.log(`🐜 Spawning at position: (${centerX}, ${centerY})`);
+                
                 if (typeof antsSpawn === 'function') {
                     antsSpawn(1, this.hill._faction || 'player', centerX, centerY);
-                    console.log("Spawned ant at hill!");
+                    console.log("✅ Spawned ant at hill!");
                 } else {
-                    console.warn("antsSpawn() not available");
+                    console.warn("⚠️ antsSpawn() not available");
                 }
             } else {
-                console.log("Max ants reached!");
+                console.log("⚠️ Max ants reached!");
             }
             return true;
         }

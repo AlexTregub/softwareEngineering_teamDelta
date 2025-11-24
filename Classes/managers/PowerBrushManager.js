@@ -160,6 +160,7 @@ class PowerBrushManager{
         if (window.g_resourceBrush) window.g_resourceBrush.update();
         if (window.g_buildingBrush) window.g_buildingBrush.update();
         if (window.g_flashAimBrush) window.g_flashAimBrush.update();
+        if (window.g_fireballAimBrush) window.g_fireballAimBrush.update();
         this.update(); // Update power brushes
     }
 }

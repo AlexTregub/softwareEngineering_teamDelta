@@ -227,11 +227,11 @@ class MovementController {
       direction.x /= distance;
       direction.y /= distance;
 
-      // Calculate movement step
+      // Calculate movement step (framerate independent)
       const effectiveSpeed = this.getEffectiveMovementSpeed();
-      const deltaTime = window.deltaTime || 16.67; // Default to 60fps
-      const speedPerMs = effectiveSpeed / 1000;
-      const step = Math.min(speedPerMs * deltaTime, distance);
+      // p5.js provides deltaTime in milliseconds
+      const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67);
+      const step = Math.min((effectiveSpeed * dt) / 1000, distance);
 
       // Only move if effective speed is greater than 0
       if (effectiveSpeed > 0) {

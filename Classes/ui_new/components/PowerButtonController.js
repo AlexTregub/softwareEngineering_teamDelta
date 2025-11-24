@@ -220,25 +220,34 @@ class PowerButtonController {
       return;
     }
     
-    // Fireball power - toggle fireball aim brush (if it exists)
+    // Fireball power - toggle fireball aim brush
     if (powerName === 'fireball') {
-      if (typeof window.g_flashAimBrush !== 'undefined' && window.g_flashAimBrush) {
-        // Register with RenderManager if not already registered
-        if (typeof RenderManager !== 'undefined' && 
-            typeof window.g_flashAimBrush.render === 'function' &&
-            !RenderManager._registeredDrawables.flashAimBrush) {
-          RenderManager.addDrawableToLayer(
-            RenderManager.layers.UI_GAME, 
-            window.g_flashAimBrush.render.bind(window.g_flashAimBrush)
-          );
-          RenderManager._registeredDrawables.flashAimBrush = true;
-          console.log('✅ Fireball aim brush registered with RenderManager');
+      if (typeof window.g_fireballAimBrush === 'undefined' || !window.g_fireballAimBrush) {
+        // Initialize brush if not present
+        if (typeof window.initializeFireballAimBrush === 'function') {
+          window.g_fireballAimBrush = window.initializeFireballAimBrush();
+          
+          // Register with RenderManager so it actually renders
+          if (typeof RenderManager !== 'undefined' && 
+              typeof window.g_fireballAimBrush.render === 'function' &&
+              !RenderManager._registeredDrawables.fireballAimBrush) {
+            RenderManager.addDrawableToLayer(
+              RenderManager.layers.UI_GAME, 
+              window.g_fireballAimBrush.render.bind(window.g_fireballAimBrush)
+            );
+            RenderManager._registeredDrawables.fireballAimBrush = true;
+            console.log('✅ Fireball aim brush registered with RenderManager');
+          }
+        } else {
+          console.warn('Cannot activate fireball - g_fireballAimBrush not available');
+          return;
         }
-        
-        window.g_flashAimBrush.toggle();
-        console.log(`🔥 Fireball aim brush toggled: ${window.g_flashAimBrush.isActive ? 'ACTIVE' : 'INACTIVE'}`);
-        return;
       }
+      
+      // Toggle the brush
+      window.g_fireballAimBrush.toggle();
+      console.log(`🔥 Fireball aim brush toggled: ${window.g_fireballAimBrush.isActive ? 'ACTIVE' : 'INACTIVE'}`);
+      return;
     }
     
     // Fallback: emit event to PowerManager for other powers
