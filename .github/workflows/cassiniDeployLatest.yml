@@ -28,8 +28,24 @@ jobs:
         run:
           $LOGGING
 
-          echo "Remote" ;
+          echo "Remote files" ;
           ls -la 
 
-          echo "Target" ;
+          echo "Target files" ;
           $RUN ls -la
+
+          echo "Prep files for zip... (note dotfiles ignored)" ;
+          echo "Nothing done. Drop remote tests in future." ;
+
+          echo "Zipping + sending... (ignore rmrf fail)" ; 
+          zip -r deploy.zip ./* ; 
+          $RUN mkdir -p /home/$USER/web ;
+          $RUN "rm -rf /home/$USER/web/* || true " ; 
+
+          echo "Sending zipped...";
+          $COPY deploy.zip $TARGET:/home/$USER/web
+
+          $RUN "cd /home/$USER/web && unzip -o deploy.zip && rm deploy.zip"
+
+          echo "Target state after deploy"
+          $RUN ls -la /home/$USER/web
