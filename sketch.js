@@ -252,6 +252,7 @@ function setup() {
   // Game Event
   gameEventManager = new GameEventManager();
   gameEventManager.startEvent('AntHive'); // Waves / Additional hives...
+  gameEventManager.startEvent('Boss'); 
 
 
 
@@ -397,7 +398,6 @@ function draw() {
   // }
 
   if (frameCount == 300) {
-    // let spider = new Spider()
   }
 
   if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap

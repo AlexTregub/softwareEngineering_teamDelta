@@ -19,9 +19,8 @@ class BossEvent extends AbstractEvent {
         // let posX = Math.floor(random(0,player.posX));
         // let posY = Math.floor(random(0,player.posY));
         this.boss.push(new Spider("Spider","waveEnemy"));
-        this.boss.push(new AntEater("AntEater","waveEnemy")); 
-        
-        this.boss.forEach(boss => boss.moveToLocation(player.posX,player.posY));
+        this.boss.push(new AntEater("AntEater","waveEnemy"));
+        this.boss.forEach(b => b.moveToLocation(player.posX,player.posY));
     }
 
     isFinished(){
@@ -47,17 +46,22 @@ class Swarm extends AbstractEvent {
     _init(){
         let player = getQueen();        
         if(!player){return;}
-        let degree = (x/this.amountOfAnts) * 2 * 3.14
-        let px = player.posX + this.raidus * cos(degree);
-        let py = player.posY + this.raidus * sin(degree);
-        let list = antsSpawn(this.amountOfAnts,'waveEnemy',px,py);
-        list.forEach(ant=>{
-            if(ant.faction != 'waveEnemy'){return;}
-            ant.moveToLocation(player.posX,player.posY)
-            ant.getController('combat')._detectionRadius = this.raidus + 100;
-        })
-        console.log(`A swarm of ${this.amountOfAnts} enemies is approaching from the shadows!`);
+
+        for(let i = 0; i < this.amountOfAnts; i++){
+            let degree = (i / this.amountOfAnts) * 2 * Math.PI;
+            let px = player.posX + this.radius * cos(degree);
+            let py = player.posY + this.radius * sin(degree);
+
+            let list = antsSpawn(1,'waveEnemy',px,py);
+            list.forEach(ant=>{
+                if(ant.faction != 'waveEnemy'){return;}
+                ant.moveToLocation(player.posX,player.posY)
+                ant.getController('combat')._detectionRadius = this.radius + 100;
+            });
+        }
+
     }
+
 
     isFinished(){
         return this.finished;
@@ -117,6 +121,7 @@ class Raid extends AbstractEvent {
         this.raidus = radius;
         this.amountOfAnts = amountOfAnts;
         this.finished = false;
+        this.children = [];
     }
 
     _init(){
@@ -124,6 +129,7 @@ class Raid extends AbstractEvent {
         let boss = new BossEvent();
         wave._init();
         boss._init();
+        this.children.push(wave,boss);
     }
 
     isFinished(){
@@ -131,7 +137,9 @@ class Raid extends AbstractEvent {
     }
     
     update(){
-        if(ants.filter(ant => ant._faction == 'waveEnemy').length == 0){
+        this.children.forEach(e => e.update());
+
+        if(this.children.every(e => e.isFinished())){
             this.finished = true;
         }
     }
@@ -151,7 +159,7 @@ class EventFactory {
 
     create(type = null){
         let eventType = this.eventRegistery[type];
-        if(!eventType){return new Error("Invalid Event Type" ,type)};
+        if(!eventType){throw new Error("Invalid Event Type" ,type)};
         return new eventType();
     }
 
@@ -165,20 +173,19 @@ class EventFactory {
 class GameEventManager{
     constructor(){
         this.factory = new EventFactory();
-        this.activeEvent = null;
+        this.activeEvent = [];
     }
 
     startEvent(type = null){
-        this.activeEvent = type? this.factory.create(type): this.factory.chosenRandom();
-        console.log('startEvent:', this.activeEvent);
-        this.activeEvent._init();
-    }
+        let event = type? this.factory.create(type): this.factory.chosenRandom();
+        this.activeEvent.push(event);
+        console.log('startEvent:', event); 
+        event._init(); 
+    }    
 
     update(){
-        if(!this.activeEvent){return}
-        this.activeEvent.update();
-        if(this.activeEvent.isFinished()){
-            this.activeEvent = null;
-        }
+        if(this.activeEvent.length === 0){return}
+        this.activeEvent.forEach(event => event.update());
+        this.activeEvent = this.activeEvent.filter(event => !event.isFinished()); 
     }
 }

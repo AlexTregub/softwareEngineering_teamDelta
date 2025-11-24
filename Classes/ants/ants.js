@@ -197,6 +197,7 @@ class ant extends Entity {
       case "Scout" :
         combat._detectionRadius = 500; 
         break;
+      
     }
   }
   

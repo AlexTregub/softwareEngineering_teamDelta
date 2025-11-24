@@ -33,10 +33,10 @@ class JobComponent {
         return { strength: 40, health: 500, gatherSpeed: 1, movementSpeed: 45 };
 
       case "Spider":
-        return { strength: 80, health: 1000, gatherSpeed: 3, movementSpeed: 40 };
+        return { strength: 80, health: 500, gatherSpeed: 3, movementSpeed: 40 };
 
       case "AntEater":
-        return { strength: 80, health: 1000, gatherSpeed: 3, movementSpeed: 40 };
+        return { strength: 40, health: 500, gatherSpeed: 3, movementSpeed: 40 };
 
       default:
         return { strength: 15, health: 100, gatherSpeed: 10, movementSpeed: 60 };
