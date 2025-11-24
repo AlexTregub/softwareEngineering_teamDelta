@@ -5,7 +5,6 @@ const TILE_SIZE = 32; //  Defg++ client.cpp -o client ault 35
 const CHUNKS_X = 50;
 const CHUNKS_Y = 50;
 let frameCount = 0;
-
 const NONE = '\0'; 
 
 // --- CONTROLLER DECLARATIONS ---
@@ -21,36 +20,20 @@ let g_map;
 let g_map2;
 let g_gridMap;
 let g_activeMap; // Reference to currently active terrain map (for level switching)
-// --- UI ---
 let g_menuFont;
 let g_antCountDisplay; // Ant population display component
-// --- IDK! ----
-let g_recordingPath;
-// -- Queen ---
 let queenAnt;
-// -- Time ---
 let g_globalTime;
 let g_timeOfDayOverlay;
-
-// GameObjects list (NPC, Buildings, etc.)
 let Buildings = [];
-
-// Camera system - now managed by CameraManager
 let cameraManager;
-
 let terrariaFont;
-
 let IMPORTED_JSON_TERRAIN = NONE
-
 let gameEventManager;
 
 function preload(){
-  // return; // !!! REMOVE BEFORE DEV
-
   smoothingPreload();
   terrainPreloader();
-
-  // return
   soundManagerPreload();
   resourcePreLoad();
   preloadPauseImages();
@@ -66,80 +49,21 @@ function preload(){
 
 
 function setup() {
-  // TEMPORARY
-  // disableTerrainCache()
-  // let importButton = createButton('Import json map')
-  // importButton.mousePressed(importTerrain)
-
-  // return
-
   createCanvas(windowWidth,windowHeight) 
-
-  // if (!TEST_GRID()) {
-  //   console.log("GRID MALFORMED.")
-  //   return
-  // } 
-
-  // square(0,0,100)
-  // image(GRASS_IMAGE,0,0,32,32)
-  // square(10,10,100)
-
-  // if (!TEST_CHUNK()) {
-  //   console.log("CHUNK MALFORMED.")
-  //   // TEST_CHUNK()
-  // }
-
-  // if (!TEST_CAM_RENDER_CONVERTER()){
-  //   console.log("CAMERA RENDER CONVERTER MALFORMED.")
-  // }
-
-  // if (!TEST_BASIC_TERRAIN()) {
-  //   console.log("BASIC TERRAIN FUNCTIONALITY MALFORMED.")
-  // }
- 
-  // return; // !!! REMOVE BEFORE DEV
-
-  // Initialize TaskLibrary before other systems that depend on it
-  // window.taskLibrary = window.taskLibrary || new TaskLibrary();
-  // logNormal('[Setup] TaskLibrary initialized:', window.taskLibrary.availableTasks?.length || 0, 'tasks');
-
-  
   g_canvasX = windowWidth;
   g_canvasY = windowHeight;
   RenderMangerOverwrite = false
   createCanvas(g_canvasX, g_canvasY);
   initializeWindowManagers();
-  
-  // Register spatial grid visualization in debug layer (only renders when enabled)
-  if (typeof RenderManager !== 'undefined' && window.spatialGridManager) {
-    RenderManager.addDrawableToLayer(RenderManager.layers.UI_DEBUG, () => {
-      if (window.VISUALIZE_SPATIAL_GRID && spatialGridManager) {
-        spatialGridManager.visualize({ color: 'rgba(0, 255, 0, 0.3)' });
-      }
-    });
-  }
-
-  // Now spawn initial resources (after spatial grid exists)
-  if (typeof spawnInitialResources === 'function') {
-    spawnInitialResources();
-  }
-  
+  spawnInitialResources();
   initializeWorld();
   initializeDraggablePanelSystem()
-
-  // Initialize TileInteractionManager for efficient mouse input handling
   g_tileInteractionManager = new TileInteractionManager(g_canvasX, g_canvasY, TILE_SIZE);
 
   // --- Initialize Controllers ---
   g_mouseController = new MouseInputController();
   g_keyboardController = new KeyboardInputController();
   g_selectionBoxController = SelectionBoxController.getInstance(g_mouseController, ants);
-  window.g_selectionBoxController = g_selectionBoxController;
-
-  // Register selection box with RenderManager
-  if (g_selectionBoxController && typeof g_selectionBoxController.registerWithRenderManager === 'function') {
-    g_selectionBoxController.registerWithRenderManager();
-  }
 
   // Initialize camera management system
   cameraManager = new CameraManager();
@@ -162,10 +86,11 @@ function setup() {
   gameEventManager = new GameEventManager();
   gameEventManager.startEvent('Wave'); // Waves / Additional hives...
   
-  // Register AntCountDisplay interactive AFTER all other systems
-  if (typeof g_antCountDisplay !== 'undefined' && g_antCountDisplay.registerInteractive) {
-    g_antCountDisplay.registerInteractive();
-  }
+  // Register global references for testing/debugging access
+  registerGlobalReferences();
+  
+  // Register all components with RenderManager (must be last for proper priority)
+  registerWithRenderManager();
 }
 
 /**
@@ -241,25 +166,14 @@ function initializeContextMenuPrevention() {
  * for tests or reset logic.
  */
 function initializeWorld() {
-
   g_seed = hour()*minute()*floor(second()/10);
-
-  // OLD TERRAIN SYSTEM - Commented out, using gridTerrain instead
-   g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
-  // MAP.randomize(g_seed); // ROLLED BACK RANDOMIZATION, ALLOWING PATHFINDING, ALL WEIGHTS SAME
-  
-  // New, Improved, and Chunked Terrain using MapManager
-  // g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[g_canvasX,g_canvasY]);
-  // disableTerrainCache(); // TEMPORARILY DISABLING CACHE. BEGIN MOVING THINGS OVER.
+  g_map = new Terrain(g_canvasX,g_canvasY,TILE_SIZE);
   g_map2 = new gridTerrain(CHUNKS_X,CHUNKS_Y,g_seed,CHUNK_SIZE,TILE_SIZE,[windowWidth,windowHeight]);
   g_map2.randomize(g_seed);
   g_map2.renderConversion.alignToCanvas(); // Snaps grid to canvas 
 
   // g_map2.setMat([0,0],'farmland')
-  
-  // IMPORTANT: Set g_activeMap immediately after g_map2 creation
   g_activeMap = g_map2;
-
   g_activeMap.setMat([0,0],'farmland')
   
   // Register with MapManager (which will also update g_activeMap)
@@ -273,62 +187,83 @@ function initializeWorld() {
   
   // Initialize Time of Day Overlay system
   g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
-  window.g_timeOfDayOverlay = g_timeOfDayOverlay; // Make globally available
-
-  window.g_speedUpButton = new SpeedUpButton();
-  window.g_powerManager = new PowerManager();
-  window.g_powerBrushManager = new PowerBrushManager();
-  window.g_naturePower = new PowerManager(true);
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
-  
-  if (typeof AntCountDisplayComponent !== 'undefined') {
-    g_antCountDisplay = new AntCountDisplayComponent(20, 80, {
-      sprites: {} // Auto-loads from JobImages global
-    });
-    
-    // Expose to window for E2E tests
-    window.g_antCountDisplay = g_antCountDisplay;
-    
-    if (typeof RenderManager !== 'undefined') {
-      // Update drawable - queries ants array
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
-        if (g_antCountDisplay && GameState.getState() === 'PLAYING') {
-          g_antCountDisplay.update();
-        }
-      });
-      
-      // Render drawable - draws the panel
-      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
-        if (g_antCountDisplay && GameState.getState() === 'PLAYING') {
-          g_antCountDisplay.render('PLAYING');
-        }
-      });
-      
-      // Interactive registration moved to END of setup() for priority
-      }
-  } else {
-    console.warn('⚠️ AntCountDisplayComponent not loaded');
-  }
-  
-  // Initialize UI components using centralized initializer
-  if (typeof initializeUIComponents !== 'undefined') {
-    initializeUIComponents(window);
-  } else {
-    console.error('❌ initializeUIComponents not available');
-  }
 
+  g_antCountDisplay = new AntCountDisplayComponent(20, 80, {
+    sprites: {} // Auto-loads from JobImages global
+  });
+  registerWithRenderManager();
+  initializeUIComponents(window); 
 
   // Main hive, initial, anthill
   Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
-
   queenAnt = spawnQueen(); // Queen spawn post anthill
-
-  // npc test
   Buildings.push(createNPC(350,500));
-  // Boss
-  // let spider = new Spider(); 
+}
+
+/**
+ * registerGlobalReferences
+ * -------------------------
+ * Centralizes all window.* assignments for global component access
+ * Called from setup() to make components available globally for testing/debugging
+ */
+function registerGlobalReferences() {
+  g_speedUpButton = new SpeedUpButton();
+  g_powerManager = new PowerManager();
+  g_powerBrushManager = new PowerBrushManager();
+  g_naturePower = new PowerManager(true);
+
+  // Controllers
+  if (g_selectionBoxController) window.g_selectionBoxController = g_selectionBoxController;
+  
+  // UI Components
+  if (g_antCountDisplay) window.g_antCountDisplay = g_antCountDisplay;
+  if (g_timeOfDayOverlay) window.g_timeOfDayOverlay = g_timeOfDayOverlay;
+  
+  // Managers
+  if (g_speedUpButton) window.g_speedUpButton = g_speedUpButton;
+  if (g_powerManager) window.g_powerManager = g_powerManager;
+  if (g_powerBrushManager) window.g_powerBrushManager = g_powerBrushManager;
+  if (g_naturePower) window.g_naturePower = g_naturePower;
+}
+
+/**
+ * registerWithRenderManager
+ * --------------------------
+ * Registers all components with the RenderManager
+ * Called from setup() after all components are initialized
+ */
+function registerWithRenderManager() {
+  if (typeof RenderManager === 'undefined') return;
+  
+  // Register SelectionBoxController
+  if (g_selectionBoxController && g_selectionBoxController.registerWithRenderManager) {
+    g_selectionBoxController.registerWithRenderManager();
+  }
+  
+  // Register AntCountDisplay drawables
+  if (g_antCountDisplay) {
+    // Update drawable - queries ants array
+    RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
+      if (g_antCountDisplay && GameState.getState() === 'PLAYING') {
+        g_antCountDisplay.update();
+      }
+    });
+    
+    // Render drawable - draws the panel
+    RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
+      if (g_antCountDisplay && GameState.getState() === 'PLAYING') {
+        g_antCountDisplay.render('PLAYING');
+      }
+    });
+    
+    // Register interactive (higher priority - registered last)
+    if (g_antCountDisplay.registerInteractive) {
+      g_antCountDisplay.registerInteractive();
+    }
+  }
 }
 
 /**
@@ -416,12 +351,7 @@ function renderUIOverlays() {
  * -------------------
  * Renders debug visualizations if enabled
  */
-function renderDebugOverlays() {
-  if (typeof window.drawCoordinateVisualization === 'function') {
-    try { window.drawCoordinateVisualization(); }
-    catch (error) { console.error('❌ Error drawing coordinate visualization:', error); }
-  }
-  
+function renderDebugOverlays() {  
   if (typeof window.drawTerrainGrid === 'function') {
     try { window.drawTerrainGrid(); }
     catch (error) { console.error('❌ Error drawing terrain grid:', error); }

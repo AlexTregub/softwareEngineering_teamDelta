@@ -35,8 +35,8 @@ class JobComponent {
         return { strength: 45, health: 160, gatherSpeed: 5, movementSpeed: 45 };
 
       case "Queen":
-        // Central unit: extremely durable but immobile and weak in combat
-        return { strength: 25, health: 500, gatherSpeed: 1, movementSpeed: 45 };
+        // Playable queen ant stats
+        return { strength: 25, health: 500, gatherSpeed: 1, movementSpeed: 100 };
 
       case "Spider":
         return { strength: 80, health: 1000, gatherSpeed: 3, movementSpeed: 40 };

@@ -371,9 +371,7 @@ class MapManager {
    * @param {number[]} canvasSize - [width, height] of canvas
    * @returns {boolean} True if successful, false otherwise
    */
-  loadMossStoneLevel(chunksX, chunksY, seed, chunkSize, tileSize, canvasSize) {
-    logNormal("🏛️ Loading Moss & Stone Column Level");
-    
+  loadMossStoneLevel(chunksX, chunksY, seed, chunkSize, tileSize, canvasSize) {    
     try {
       // Check if createMossStoneColumnLevel function exists
       if (typeof window !== 'undefined' && typeof window.createMossStoneColumnLevel !== 'function') {
@@ -393,10 +391,8 @@ class MapManager {
       
       // Register with MapManager
       this.registerMap('mossStone', mossStoneLevel, true);
-      logNormal("✅ Moss & Stone level registered and set as active");
       return true;
     } catch (error) {
-      console.error("❌ Failed to load Moss & Stone level:", error);
       return false;
     }
   }
@@ -442,7 +438,6 @@ class MapManager {
       } else {
         // Switch to existing level
         if (!this.setActiveMap(levelId)) {
-          console.error(`❌ Failed to switch to level: ${levelId}`);
           return false;
         }
       }
@@ -509,9 +504,6 @@ class MapManager {
       GameState.onStateChange((newState, oldState) => {
         if (newState === 'LEVEL_EDITOR') {
           if (!levelEditor.isActive()) {
-            // Create fresh blank terrain for editor
-            // CustomTerrain: simple 2D grid, faster than gridTerrain
-            // Parameters: width (tiles), height (tiles), tileSize (pixels), defaultMaterial
             const terrain = new CustomTerrain(50, 50, 32, 'dirt');
             levelEditor.initialize(terrain);
           }
@@ -533,7 +525,6 @@ class MapManager {
       });
     }
 
-    logNormal('✅ MapManager: GameState callbacks registered');
   }
 }
 

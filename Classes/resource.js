@@ -354,7 +354,6 @@ class ResourceSpawner {
     if (!this.isActive) {
       this.isActive = true;
       this.timer = setInterval(() => this.spawn(), this.interval * 1000);
-      logNormal('ResourceSpawner: Started spawning resources');
     }
   }
 
@@ -366,7 +365,6 @@ class ResourceSpawner {
         clearInterval(this.timer);
         this.timer = null;
       }
-      logNormal('ResourceSpawner: Stopped spawning resources');
     }
   }
 
@@ -508,7 +506,6 @@ class Resource extends Entity {
     }
   }
 
-  // Deprecated: Use SelectionController's isHovered() instead
   // This method doesn't account for camera movement
   isMouseOver(mx, my) {
     console.warn('Resource.isMouseOver() is deprecated - use SelectionController.isHovered() instead');

@@ -442,7 +442,7 @@ class Building extends Entity {
     this._updateHealthController();
 
     // Spawn ants if enabled — uses global antsSpawn(num, faction, x, y)
-    if (this._spawnEnabled && typeof antsSpawn === 'function') {
+    if (this._spawnEnabled && typeof antsSpawn === 'function' && GameState.isInGame()) {
       try {
         this._spawnTimer += deltaTime;
         while (this._spawnTimer >= this._spawnInterval) {
