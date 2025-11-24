@@ -45,6 +45,11 @@ function preload(){
   antsPreloader();
   animationPreloader();
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
+  
+  // Load particle effect presets
+  if (typeof ParticleEmitter !== 'undefined' && typeof ParticleEmitter.loadPresets === 'function') {
+    ParticleEmitter.loadPresets();
+  }
 }
 
 /**

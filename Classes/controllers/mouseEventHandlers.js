@@ -82,7 +82,6 @@ function mousePressed() {
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_enemyAntBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_enemyAntBrush.onMousePressed returned:', handled);
       if (handled) {
         console.log('🛑 g_enemyAntBrush consumed the click - returning early');
         return; // Brush consumed the event, don't process other mouse events
@@ -98,7 +97,6 @@ function mousePressed() {
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_resourceBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_resourceBrush.onMousePressed returned:', handled);
       if (handled) {
         console.log('🛑 g_resourceBrush consumed the click - returning early');
         return; // Brush consumed the event, don't process other mouse events
@@ -114,7 +112,6 @@ function mousePressed() {
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_buildingBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_buildingBrush.onMousePressed returned:', handled);
       if (handled) {
         console.log('🛑 g_buildingBrush consumed the click - returning early');
         return; // Brush consumed the event, don't process other mouse events
@@ -130,9 +127,7 @@ function mousePressed() {
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_lightningAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_lightningAimBrush.onMousePressed returned:', handled);
       if (handled) {
-        console.log('🛑 g_lightningAimBrush consumed the click - returning early');
         return;
       }
     } catch (error) {
@@ -146,9 +141,7 @@ function mousePressed() {
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_flashAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_flashAimBrush.onMousePressed returned:', handled);
       if (handled) {
-        console.log('🛑 g_flashAimBrush consumed the click - returning early');
         return;
       }
     } catch (error) {
@@ -162,9 +155,7 @@ function mousePressed() {
     try {
       const buttonName = mouseButton === LEFT ? 'LEFT' : mouseButton === RIGHT ? 'RIGHT' : 'CENTER';
       const handled = window.g_fireballAimBrush.onMousePressed(mouseX, mouseY, buttonName);
-      console.log('🖌️ g_fireballAimBrush.onMousePressed returned:', handled);
       if (handled) {
-        console.log('🛑 g_fireballAimBrush consumed the click (started charging) - returning early');
         return;
       }
     } catch (error) {
@@ -184,26 +175,18 @@ function mousePressed() {
 
   // PRIORITY 2: RenderManager UI elements (buttons, panels, etc.)
   // Forward to RenderManager interactive dispatch (gives adapters priority)
-  console.log('📡 About to call RenderManager.dispatchPointerEvent with', { x: mouseX, y: mouseY });
   try {
     const result = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
-    console.log('📡 RenderManager.dispatchPointerEvent returned:', result);
     if (result && typeof result === 'object' && result.consumed) {
-      console.log(`✅ Mouse click consumed by: ${result.consumedBy} on layer ${result.layer}`);
-      logVerbose(`🖱️ Mouse click consumed by ${result.consumedBy}`);
       return; // consumed by an interactive (buttons/panels/etc.)
     } else if (result === true) {
-      console.log('✅ Mouse click consumed by RenderManager (unknown interactive)');
-      logVerbose('🖱️ Mouse click consumed by RenderManager');
       return; // consumed by an interactive (buttons/panels/etc.)
     }
-    console.log('⏭️ Mouse click NOT consumed by RenderManager, passing to other handlers');
-    logVerbose('🖱️ Mouse click NOT consumed by RenderManager, passing to other handlers');
     // If not consumed, let higher-level systems decide; legacy fallbacks removed in favor of RenderManager adapters.
   } catch (e) {
     console.error('Error dispatching pointerdown to RenderManager:', e);
-    // best-effort: still notify legacy controller if present to avoid breaking older flows
-    try { handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
+    try { 
+      handleMouseEvent('handleMousePressed', window.getWorldMouseX && window.getWorldMouseX(), window.getWorldMouseY && window.getWorldMouseY(), mouseButton); } catch (er) {}
   }
 
   // Legacy mouse controller fallbacks removed - RenderManager should handle UI dispatch.

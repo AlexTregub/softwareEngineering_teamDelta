@@ -16,21 +16,10 @@ class GlobalTime{
         this.rainEmitter = null;
         if (typeof ParticleEmitter !== 'undefined') {
             this.rainEmitter = new ParticleEmitter({
+                preset: 'heavyRain',
                 x: 0,
                 y: 0,
-                emissionRate: 900, // Heavy rain
-                maxParticles: 1600,
-                spawnRadius: windowWidth, // Spawn across entire screen
-                lifetime: 1200, // Short lifetime for fast-falling rain
-                types: ['rain'],
-                sizeRange: [3, 9], // Thin streaks
-                speedRange: [4, 9], // Fast downward
-                gravity: 0.8, // Downward acceleration
-                drift: 0.08, // Very slight horizontal movement
-                turbulence: 0.002, // Almost no randomness - rain falls straight
-                colors: {
-                    rain: [[150, 180, 220], [180, 200, 230], [200, 220, 240]] // Light blue/white rain
-                }
+                spawnRadius: windowWidth // Override with current window width
             });
         }
         

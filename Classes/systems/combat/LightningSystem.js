@@ -402,7 +402,7 @@ class LightningManager {
   }
 
   render() {
-    // Render bolt visuals first (soot stains render beneath if needed)
+    // Render bolt visuals (lightning strikes)
     for (const b of this.bolts) {
       const t = (millis() - b.created) / b.duration;
       
@@ -459,6 +459,13 @@ class LightningManager {
       
       pop();
     }
+    // Note: Soot stains now render separately via renderSootStains() on TERRAIN layer
+  }
+
+  /**
+   * Render soot stains only (called from TERRAIN layer, before entities)
+   */
+  renderSootStains() {
     for (const s of this.sootStains) {
       if (s && s.isActive) s.render();
     }

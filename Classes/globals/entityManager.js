@@ -340,6 +340,115 @@ class EntityManager {
     }
     
     /**
+     * Get count of ants by job type for a specific faction
+     * @param {string} faction - Faction name
+     * @param {string} jobName - Job type (Builder, Scout, Farmer, Warrior, Spitter, Queen)
+     * @returns {number} Count of ants with that job for faction
+     */
+    getAntJobCount(faction, jobName) {
+        if (!this.antJobsByFaction[faction]) return 0;
+        return this.antJobsByFaction[faction][jobName] || 0;
+    }
+    
+    /**
+     * Select all ants of a specific job type for a faction
+     * Updates selection state via global selection controller
+     * @param {string} jobName - Job type to select
+     * @param {string} [faction='player'] - Faction to filter by
+     * @returns {Array} Array of selected ant entities
+     */
+    selectAntsByJob(jobName, faction = 'player') {
+        // Get global ants array
+        const antsArray = (typeof window !== 'undefined' && window.ants) ? window.ants : 
+                         (typeof ants !== 'undefined') ? ants : [];
+        
+        // Filter ants by faction and job type
+        const matchingAnts = antsArray.filter(ant => {
+            if (!ant || !ant._isActive) return false;
+            if (ant._faction !== faction) return false;
+            if (ant.jobName !== jobName && ant.JobName !== jobName) return false;
+            return true;
+        });
+        
+        // Update selection via selection controller
+        if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+            // Deselect all first
+            g_selectionBoxController.deselectAll();
+            
+            // Select matching ants
+            matchingAnts.forEach(ant => {
+                if (ant.isSelected !== undefined) {
+                    ant.isSelected = true;
+                }
+                // Add to selectedEntities array
+                if (g_selectionBoxController.selectedEntities && Array.isArray(g_selectionBoxController.selectedEntities)) {
+                    g_selectionBoxController.selectedEntities.push(ant);
+                }
+            });
+        }
+        
+        return matchingAnts;
+    }
+    
+    /**
+     * Select the queen and optionally focus camera on her
+     * Double-click detection: if called within 500ms, focus camera
+     * @param {string} [faction='player'] - Faction to filter by
+     * @param {boolean} [focusCamera=false] - Whether to move camera to queen
+     * @returns {Object|null} Queen entity or null if not found
+     */
+    selectQueen(faction = 'player', focusCamera = false) {
+        // Get queen via global function
+        const queen = (typeof getQueen === 'function') ? getQueen() : null;
+        
+        if (!queen) return null;
+        
+        // Check faction
+        if (queen._faction !== faction) return null;
+        
+        // Track double-click for camera focus
+        // Use millis() if available (p5.js), otherwise Date.now()
+        const now = (typeof millis === 'function') ? millis() : Date.now();
+        if (!this._lastQueenSelectTime) {
+            this._lastQueenSelectTime = 0;
+        }
+        
+        const timeSinceLastSelect = now - this._lastQueenSelectTime;
+        const isDoubleClick = timeSinceLastSelect > 0 && timeSinceLastSelect < 500; // 500ms double-click window
+        
+        this._lastQueenSelectTime = now;
+        
+        // Update selection
+        if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+            g_selectionBoxController.deselectAll();
+            
+            if (queen.isSelected !== undefined) {
+                queen.isSelected = true;
+            }
+            
+            if (g_selectionBoxController.selectedEntities && Array.isArray(g_selectionBoxController.selectedEntities)) {
+                g_selectionBoxController.selectedEntities.push(queen);
+            }
+        }
+        
+        // Focus camera on double-click or if explicitly requested
+        if ((isDoubleClick || focusCamera) && typeof g_cameraManager !== 'undefined' && g_cameraManager) {
+            const queenPos = queen.getPosition && typeof queen.getPosition === 'function' ? queen.getPosition() : null;
+            
+            if (queenPos && queenPos.x !== undefined && queenPos.y !== undefined) {
+                if (typeof g_cameraManager.focusOn === 'function') {
+                    g_cameraManager.focusOn(queenPos.x, queenPos.y);
+                } else if (typeof g_cameraManager.setPosition === 'function') {
+                    // Fallback: set camera position directly
+                    g_cameraManager.setPosition(queenPos.x, queenPos.y);
+                }
+            }
+        }
+        
+        return queen;
+    }
+    
+    /**
      * Reset all entity counts
      */
     reset() {

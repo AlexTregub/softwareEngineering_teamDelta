@@ -358,20 +358,6 @@
         
         return { x: worldX, y: worldY };
       }
-      
-      // Fallback: use camera manager if terrain not available
-      if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
-        var w = window.g_cameraManager.screenToWorld(sx, sy);
-        return { x: w.worldX !== undefined ? w.worldX : (w.x !== undefined ? w.x : sx), y: w.worldY !== undefined ? w.worldY : (w.y !== undefined ? w.y : sy) };
-      }
-      if (typeof CameraController !== 'undefined' && typeof CameraController.screenToWorld === 'function') {
-        var cw = CameraController.screenToWorld(sx, sy);
-        return { x: cw.worldX !== undefined ? cw.worldX : (cw.x !== undefined ? cw.x : sx + (typeof cameraX !== 'undefined' ? cameraX : 0)), y: cw.worldY !== undefined ? cw.worldY : (cw.y !== undefined ? cw.y : sy + (typeof cameraY !== 'undefined' ? cameraY : 0)) };
-      }
-      // Final fallback: assume globals cameraX/cameraY and no zoom
-      var camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : (typeof cameraX !== 'undefined' ? cameraX : 0);
-      var camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : (typeof cameraY !== 'undefined' ? cameraY : 0);
-      return { x: sx + camX, y: sy + camY };
     } catch (e) { return { x: sx, y: sy }; }
   };
 
@@ -388,24 +374,8 @@
         var screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
         return { x: Math.round(screenPos[0]), y: Math.round(screenPos[1]) };
       }
-      
-      // Fallback: use camera manager if terrain not available
-      if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.worldToScreen === 'function') {
-        var s = window.g_cameraManager.worldToScreen(wx, wy);
-        return { x: s.screenX !== undefined ? s.screenX : (s.x !== undefined ? s.x : wx), y: s.screenY !== undefined ? s.screenY : (s.y !== undefined ? s.y : wy) };
-      }
-      if (typeof CameraController !== 'undefined' && typeof CameraController.worldToScreen === 'function') {
-        var cs = CameraController.worldToScreen(wx, wy);
-        return { x: cs.screenX !== undefined ? cs.screenX : (cs.x !== undefined ? cs.x : wx - (typeof cameraX !== 'undefined' ? cameraX : 0)), y: cs.screenY !== undefined ? cs.screenY : (cs.y !== undefined ? cs.y : wy - (typeof cameraY !== 'undefined' ? cameraY : 0)) };
-      }
-      // Final fallback: assume globals cameraX/cameraY and no zoom
-      var camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : (typeof cameraX !== 'undefined' ? cameraX : 0);
-      var camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : (typeof cameraY !== 'undefined' ? cameraY : 0);
-      return { x: Math.round(wx - camX), y: Math.round(wy - camY) };
     } catch (e) { return { x: wx, y: wy }; }
   };
-
-  // --- NEW CONFIGURATION & QUERY API ---
 
   /**
    * Draw corner indicators for the selection box

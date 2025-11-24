@@ -16,6 +16,27 @@ class LightningAimBrush extends BrushBase {
     this.isMousePressed = false;
     this.pulse = 0;
     this.pulseSpeed = 0.06;
+    
+    // Darkening effect
+    this.activationTime = 0;
+    this.darkenProgress = 0; // 0.0 to 1.0 over 1 second
+    
+    // Particle emitters for swirling rain effect
+    this.queenEmitter = null;
+    this.cursorEmitter = null;
+    if (typeof ParticleEmitter !== 'undefined') {
+      this.queenEmitter = new ParticleEmitter({
+        preset: 'lightningSwirl',
+        x: 0,
+        y: 0
+      });
+      
+      this.cursorEmitter = new ParticleEmitter({
+        preset: 'lightningCursorSwirl',
+        x: 0,
+        y: 0
+      });
+    }
   }
 
   toggle() {
@@ -27,12 +48,33 @@ class LightningAimBrush extends BrushBase {
       this.updateRangeForLevel(level);
     }
     
+    // Start/stop particle emitters and darkening effect
+    if (this.isActive) {
+      this.activationTime = millis();
+      this.darkenProgress = 0;
+      if (this.queenEmitter) this.queenEmitter.start();
+      if (this.cursorEmitter) this.cursorEmitter.start();
+    } else {
+      this.darkenProgress = 0;
+      if (this.queenEmitter) this.queenEmitter.stop();
+      if (this.cursorEmitter) this.cursorEmitter.stop();
+    }
+    
     logNormal(`${this.isActive ? '🔵' : '⚪'} Lightning Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 
-  activate() { this.isActive = true; }
-  deactivate() { this.isActive = false; }
+  activate() { 
+    this.isActive = true;
+    if (this.queenEmitter) this.queenEmitter.start();
+    if (this.cursorEmitter) this.cursorEmitter.start();
+  }
+  
+  deactivate() { 
+    this.isActive = false;
+    if (this.queenEmitter) this.queenEmitter.stop();
+    if (this.cursorEmitter) this.cursorEmitter.stop();
+  }
   
   /**
    * Update range based on lightning power level
@@ -51,11 +93,39 @@ class LightningAimBrush extends BrushBase {
     this.cursor.y = (typeof mouseY !== 'undefined') ? mouseY : this.cursor.y;
     this.pulse += this.pulseSpeed;
     if (this.pulse > Math.PI * 2) this.pulse = 0;
+    
+    // Update darkening progress (fade in over 1 second)
+    const timeSinceActivation = millis() - this.activationTime;
+    this.darkenProgress = Math.min(1.0, timeSinceActivation / 1000);
+    
+    // Update particle emitter positions
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (queen && this.queenEmitter) {
+      let queenScreenX = 0;
+      let queenScreenY = 0;
+      
+      if (typeof queen.getScreenPosition === 'function') {
+        const screenPos = queen.getPosition();
+        queenScreenX = screenPos.x;
+        queenScreenY = screenPos.y;
+      } else {
+        queenScreenX = queen.x || 0;
+        queenScreenY = queen.y || 0;
+      }
+      
+      this.queenEmitter.setPosition(queenScreenX, queenScreenY);
+      this.queenEmitter.update();
+    }
+    
+    if (this.cursorEmitter) {
+      this.cursorEmitter.setPosition(this.cursor.x, this.cursor.y);
+      this.cursorEmitter.update();
+    }
+    
     // If mouse held, attempt repeated strikes (respect cooldown)
     if (this.isMousePressed) {
       this.tryStrikeAt(this.cursor.x, this.cursor.y);
     }
-    
   }
 
   render() {
@@ -79,7 +149,54 @@ class LightningAimBrush extends BrushBase {
       }
     }
 
+    // Render particle emitters FIRST (behind UI elements)
+    if (this.queenEmitter) {
+      this.queenEmitter.render();
+    }
+    if (this.cursorEmitter) {
+      this.cursorEmitter.render();
+    }
+
     push();
+    
+    // Screen darkening effect (subtle blue tint) - fades in over 1 second
+    const darkenAlpha = this.darkenProgress * 150; // 0 to 150 over 1 second (darker than before)
+    fill(0, 10, 30, darkenAlpha); // Dark blue-black with gradual transparency
+    noStroke();
+    rect(0, 0, width, height);
+    
+    // Pulsating blue light around queen
+    if (queen) {
+      const pulseIntensity = 0.5 + Math.sin(this.pulse * 2) * 0.3; // 0.2 to 0.8 pulse
+      const queenGlowRadius = 100 + (pulseIntensity * 60);
+      
+      const queenGradient = drawingContext.createRadialGradient(
+        queenScreenX, queenScreenY, 0,
+        queenScreenX, queenScreenY, queenGlowRadius
+      );
+      queenGradient.addColorStop(0, `rgba(100, 150, 255, ${pulseIntensity * 0.5})`);
+      queenGradient.addColorStop(0.4, `rgba(80, 120, 255, ${pulseIntensity * 0.3})`);
+      queenGradient.addColorStop(1, 'rgba(50, 100, 255, 0)');
+      
+      drawingContext.fillStyle = queenGradient;
+      drawingContext.fillRect(0, 0, width, height);
+    }
+    
+    // Pulsating blue light around cursor
+    const cursorPulseIntensity = 0.4 + Math.sin(this.pulse * 2.5) * 0.3; // Slightly different pulse rate
+    const cursorGlowRadius = 70 + (cursorPulseIntensity * 50);
+    
+    const cursorGradient = drawingContext.createRadialGradient(
+      this.cursor.x, this.cursor.y, 0,
+      this.cursor.x, this.cursor.y, cursorGlowRadius
+    );
+    cursorGradient.addColorStop(0, `rgba(150, 200, 255, ${cursorPulseIntensity * 0.6})`);
+    cursorGradient.addColorStop(0.4, `rgba(100, 150, 255, ${cursorPulseIntensity * 0.3})`);
+    cursorGradient.addColorStop(1, 'rgba(50, 100, 255, 0)');
+    
+    drawingContext.fillStyle = cursorGradient;
+    drawingContext.fillRect(0, 0, width, height);
+    
     // Range circle around queen (in screen coordinates)
     if (queen) {
       noFill();

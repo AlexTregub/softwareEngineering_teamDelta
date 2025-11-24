@@ -676,6 +676,13 @@ it('should avoid water when pathfinding', function() {
   - Emission modes:
     - `continuous`: Constant emission (fire, smoke, rain)
     - `explosion`: Radial burst (fireball impact, explosions)
+- **Particle Presets** (`config/particle-effects.json`):
+  - ✅ **ALWAYS use presets first** - avoid hardcoding particle configs
+  - Available presets: `explosion`, `fireballCharge`, `fireTrail`, `smoke`, `sparks`, `rain`, `heavyRain`
+  - Load presets: `ParticleEmitter.loadPresets()` (called in sketch.js preload)
+  - Use preset: `new ParticleEmitter({ preset: 'explosion', x: 100, y: 100 })`
+  - Override preset values: `new ParticleEmitter({ preset: 'explosion', x: 100, y: 100, maxParticles: 200 })`
+  - Create new presets for reusable effects (avoid duplication)
 - **Particle Types**:
   - `fire`: Orange/yellow, rises upward (negative Y velocity)
   - `smoke`: Gray, expands over lifetime, rises slowly
@@ -712,10 +719,20 @@ this.particleEmitter.update(); // Update existing particles
 **Impact Phase**:
 ```javascript
 // In FireballAimBrush.tryStrikeAt()
+// ✅ CORRECT: Use preset
 const explosionEmitter = new ParticleEmitter({
+  preset: 'explosion',
+  x: screenX,
+  y: screenY
+});
+
+// ❌ WRONG: Hardcoded config (avoid this)
+const explosionEmitter = new ParticleEmitter({
+  x: screenX,
+  y: screenY,
   emissionMode: 'explosion',
   types: ['fire', 'smoke', 'spark'],
-  speedRange: [3, 10] // Radial burst speed
+  speedRange: [3, 10]
 });
 
 explosionEmitter.start();
@@ -1034,7 +1051,7 @@ Classes/
     - CacheManager, PerformanceMonitor, UIDebugManager, caches/
   systems/       - Core systems:
     - CollisionBox2D, Button, SpatialGrid, CoordinateConverter
-    - ResourceNode, Nature, MouseCrosshair, GatherDebugRenderer
+    - Nature, MouseCrosshair, GatherDebugRenderer
     - FramebufferManager, entityUtils, newPathfinding.js, pheromones.js
     - combat/, dialogue/, shapes/, text/, tools/, ui/
   tasks/         - Task system (tasks.js, TaskUI.js)

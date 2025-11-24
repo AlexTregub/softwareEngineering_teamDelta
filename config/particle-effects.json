@@ -1,0 +1,153 @@
+{
+  "explosion": {
+    "emissionRate": 500,
+    "maxParticles": 100,
+    "spawnRadius": 5,
+    "lifetime": 1500,
+    "types": ["fire", "smoke", "spark"],
+    "sizeRange": [3, 12],
+    "speedRange": [3, 10],
+    "gravity": 0.2,
+    "drift": 0.5,
+    "turbulence": 0.1,
+    "emissionMode": "explosion"
+  },
+  "fireballCharge": {
+    "emissionRate": 120,
+    "maxParticles": 240,
+    "spawnRadius": 30,
+    "lifetime": 900,
+    "types": ["fire", "smoke", "spark"],
+    "sizeRange": [2, 14],
+    "speedRange": [0.9, 4.0],
+    "gravity": -0.12,
+    "drift": 0.6,
+    "turbulence": 0.06,
+    "emissionMode": "continuous"
+  },
+  "fireTrail": {
+    "emissionRate": 80,
+    "maxParticles": 100,
+    "spawnRadius": 8,
+    "lifetime": 600,
+    "types": ["fire", "smoke"],
+    "sizeRange": [2, 8],
+    "speedRange": [0.5, 2.0],
+    "gravity": -0.05,
+    "drift": 0.3,
+    "turbulence": 0.05,
+    "emissionMode": "continuous"
+  },
+  "smoke": {
+    "emissionRate": 40,
+    "maxParticles": 80,
+    "spawnRadius": 15,
+    "lifetime": 2000,
+    "types": ["smoke"],
+    "sizeRange": [4, 16],
+    "speedRange": [0.3, 1.5],
+    "gravity": -0.08,
+    "drift": 0.4,
+    "turbulence": 0.08,
+    "emissionMode": "continuous"
+  },
+  "sparks": {
+    "emissionRate": 200,
+    "maxParticles": 150,
+    "spawnRadius": 3,
+    "lifetime": 800,
+    "types": ["spark"],
+    "sizeRange": [1, 4],
+    "speedRange": [4, 12],
+    "gravity": 0.3,
+    "drift": 0.2,
+    "turbulence": 0.15,
+    "emissionMode": "explosion"
+  },
+  "rain": {
+    "emissionRate": 300,
+    "maxParticles": 500,
+    "spawnRadius": 200,
+    "lifetime": 3000,
+    "types": ["rain"],
+    "sizeRange": [1, 3],
+    "speedRange": [5, 8],
+    "gravity": 0.5,
+    "drift": 0.1,
+    "turbulence": 0.02,
+    "emissionMode": "continuous"
+  },
+  "heavyRain": {
+    "emissionRate": 900,
+    "maxParticles": 1600,
+    "spawnRadius": 800,
+    "lifetime": 1200,
+    "types": ["rain"],
+    "sizeRange": [3, 9],
+    "speedRange": [4, 9],
+    "gravity": 0.8,
+    "drift": 0.08,
+    "turbulence": 0.002,
+    "colors": {
+      "rain": [[150, 180, 220], [180, 200, 230], [200, 220, 240]]
+    },
+    "coordinateMode": "world",
+    "emissionMode": "continuous"
+  },
+  "dirtTrail": {
+    "emissionRate": 8,
+    "maxParticles": 15,
+    "spawnRadius": 5,
+    "lifetime": 1500,
+    "types": ["dirt"],
+    "sizeRange": [2, 8],
+    "speedRange": [0.2, 0.5],
+    "gravity": 0.01,
+    "drift": 0.8,
+    "turbulence": 0.03,
+    "colors": {
+      "dirt": [
+        [139, 90, 43],
+        [160, 100, 50],
+        [120, 80, 40],
+        [101, 67, 33]
+      ]
+    },
+    "coordinateMode": "world",
+    "emissionMode": "continuous"
+  },
+  "lightningSwirl": {
+    "emissionRate": 60,
+    "maxParticles": 120,
+    "spawnRadius": 80,
+    "lifetime": 2000,
+    "types": ["rain"],
+    "sizeRange": [2, 5],
+    "speedRange": [2, 4],
+    "gravity": 0.05,
+    "drift": 0.1,
+    "turbulence": 0.05,
+    "colors": {
+      "rain": [[150, 200, 255], [180, 220, 255], [200, 230, 255]]
+    },
+    "coordinateMode": "world",
+    "emissionMode": "orbital"
+  },
+  "lightningCursorSwirl": {
+    "emissionRate": 40,
+    "maxParticles": 80,
+    "spawnRadius": 50,
+    "lifetime": 1500,
+    "types": ["rain"],
+    "sizeRange": [1, 4],
+    "speedRange": [1.5, 3],
+    "gravity": 0.03,
+    "drift": 0.08,
+    "turbulence": 0.04,
+    "colors": {
+      "rain": [[100, 150, 255], [130, 180, 255], [160, 200, 255]]
+    },
+    "coordinateMode": "screen",
+    "emissionMode": "orbital"
+  }
+}
