@@ -69,7 +69,14 @@ class LightningManager {
     this.getKnockbackDurationMs = () => this.knockbackDurationMs;
     this.getActiveKnockbacks = () => (this._activeKnockbacks || []).map(k => ({ startX: k.startX, startY: k.startY, targetX: k.targetX, targetY: k.targetY, progress: Math.min(1, (millis() - k.startTime) / (k.duration || 1)) }));
     // Level management
-    this.setLevel = (v) => { this.level = Math.max(1, Math.min(3, Number(v) || 1)); return this.level; };
+    this.setLevel = (v) => { 
+      this.level = Math.max(1, Math.min(3, Number(v) || 1)); 
+      // Update brush range when level changes
+      if (typeof window.g_lightningAimBrush !== 'undefined' && window.g_lightningAimBrush && typeof window.g_lightningAimBrush.updateRangeForLevel === 'function') {
+        window.g_lightningAimBrush.updateRangeForLevel(this.level);
+      }
+      return this.level; 
+    };
     this.getLevel = () => this.level;
     // Default playback volume (0.0 - 1.0)
     this.volume = 1.0; // lower default so strikes aren't too loud
@@ -235,7 +242,7 @@ class LightningManager {
     // Level 2+: Execute multiple strikes in sequence
     if (this.level >= 2) {
       const strikeCount = 3; // Triple strike at level 2
-      const delayBetweenStrikes = 250; // ms between each strike
+      const delayBetweenStrikes = 150; // ms between each strike
       
       for (let i = 0; i < strikeCount; i++) {
         const strikeDelay = 80 + (i * delayBetweenStrikes);
@@ -299,7 +306,7 @@ class LightningManager {
 
 
   createFlash(x, y) {
-    soundManager.play('lightningStrike');
+    soundManager.play('lightningStrike',0.1);
     window.EffectsRenderer.flash(x, y, { color: [100, 150, 255], intensity: 0.5, radius: 48 });
   }
 

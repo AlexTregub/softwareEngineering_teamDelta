@@ -24,7 +24,7 @@ class SoundManager {
     // Default volume settings
     const defaultVolumes = {
       Music: 0.5,
-      SoundEffects: 0.75,
+      SoundEffects: 0.2,
       SystemSounds: 0.8
     };
 

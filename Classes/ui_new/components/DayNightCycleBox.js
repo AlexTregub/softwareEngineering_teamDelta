@@ -157,6 +157,11 @@ class DayNightCycleBox {
       this.p5.fill(255);
       this.p5.noStroke();
       this.p5.text(icon, centerX, centerY);
+      
+      // Draw tiny clouds for night
+      if (timeOfDay === 'night') {
+        this._drawClouds(centerX, centerY);
+      }
     }
     
     // Draw label (small text below icon)
@@ -210,6 +215,33 @@ class DayNightCycleBox {
     this.p5.stroke(255, 200, 50);
     this.p5.strokeWeight(2);
     this.p5.ellipse(0, 0, sunRadius * 2, sunRadius * 2);
+    
+    this.p5.pop();
+  }
+  
+  /**
+   * Draw tiny clouds (for night time)
+   * @private
+   * @param {number} cx - Center X position
+   * @param {number} cy - Center Y position
+   */
+  _drawClouds(cx, cy) {
+    this.p5.push();
+    this.p5.noStroke();
+    this.p5.fill(255, 255, 255, 150); // Semi-transparent white
+    
+    // Cloud 1 (left side, above icon)
+    const offsetY = -18; // Above the moon
+    const offsetX1 = -12;
+    this.p5.ellipse(cx + offsetX1, cy + offsetY, 8, 6);
+    this.p5.ellipse(cx + offsetX1 - 4, cy + offsetY + 1, 6, 5);
+    this.p5.ellipse(cx + offsetX1 + 4, cy + offsetY + 1, 6, 5);
+    
+    // Cloud 2 (right side, above icon)
+    const offsetX2 = 12;
+    this.p5.ellipse(cx + offsetX2, cy + offsetY, 8, 6);
+    this.p5.ellipse(cx + offsetX2 - 4, cy + offsetY + 1, 6, 5);
+    this.p5.ellipse(cx + offsetX2 + 4, cy + offsetY + 1, 6, 5);
     
     this.p5.pop();
   }
