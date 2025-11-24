@@ -1034,7 +1034,7 @@ Classes/
     - CacheManager, PerformanceMonitor, UIDebugManager, caches/
   systems/       - Core systems:
     - CollisionBox2D, Button, SpatialGrid, CoordinateConverter
-    - ResourceNode, Nature, MouseCrosshair, GatherDebugRenderer
+    - Nature, MouseCrosshair, GatherDebugRenderer
     - FramebufferManager, entityUtils, newPathfinding.js, pheromones.js
     - combat/, dialogue/, shapes/, text/, tools/, ui/
   tasks/         - Task system (tasks.js, TaskUI.js)
