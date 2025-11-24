@@ -191,7 +191,10 @@ class GlobalTime{
           case "lightning":
             this.strikeChance = Math.random();
             if(this.strikeChance > 0.99){
-              window.g_naturePower.addPower(this.weatherName, 10, getQueen().getScreenPosition().x, getQueen().getScreenPosition().y);
+              // Random spawn location on screen
+              const randomX = Math.random() * (typeof g_canvasX !== 'undefined' ? g_canvasX : windowWidth);
+              const randomY = Math.random() * (typeof g_canvasY !== 'undefined' ? g_canvasY : windowHeight);
+              window.g_naturePower.addPower(this.weatherName, 10, randomX, randomY);
             }
             break;
         }

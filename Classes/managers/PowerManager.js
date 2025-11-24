@@ -19,8 +19,15 @@ class Power{
 }
 
 class Lightning extends Power{
-    constructor(damage, x, y, name){
-        super(damage, x, y, "strike", name);
+    constructor(damage, x, y, name, isScreenCoord = true){
+        // Convert screen coords to world coords if needed
+        let worldX = x, worldY = y;
+        if (isScreenCoord && typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+            const tilePos = g_activeMap.renderConversion.convCanvasToPos([x, y]);
+            worldX = (tilePos[0] - 0.5) * TILE_SIZE;
+            worldY = (tilePos[1] - 0.5) * TILE_SIZE;
+        }
+        super(damage, worldX, worldY, "strike", name);
         this.radius = 1 * 3; //One could be swapped with Math.random()
         this.cooldown = 1000; //1 second cooldown
         this.duration = 100;
@@ -427,7 +434,7 @@ class PowerManager{
             let newPower = null;
             switch(name){
                 case "lightning":
-                    newPower = new Lightning(damage, x, y, name);
+                    newPower = new Lightning(damage, x, y, name, true); // true = x,y are screen coords
                     break;
                 case "finalFlash":
                     newPower = new FinalFlash(damage, x, y, name);
