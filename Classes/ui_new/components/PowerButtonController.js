@@ -190,6 +190,9 @@ class PowerButtonController {
   _activatePower() {
     const powerName = this.model.getPowerName();
     
+    // Deactivate all other power brushes first (only one brush active at a time)
+    this._deactivateOtherBrushes(powerName);
+    
     // Lightning power - toggle lightning aim brush
     if (powerName === 'lightning') {
       if (typeof window.g_lightningAimBrush === 'undefined' || !window.g_lightningAimBrush) {
@@ -259,6 +262,33 @@ class PowerButtonController {
     } else {
       console.warn('Cannot activate power - eventBus not available');
     }
+  }
+
+  /**
+   * Deactivate all power brushes except the specified one
+   * @param {string} exceptPowerName - Name of the power to keep active
+   * @private
+   */
+  _deactivateOtherBrushes(exceptPowerName) {
+    // Deactivate lightning brush if not the one being activated
+    if (exceptPowerName !== 'lightning' && 
+        typeof window.g_lightningAimBrush !== 'undefined' && 
+        window.g_lightningAimBrush && 
+        window.g_lightningAimBrush.isActive) {
+      window.g_lightningAimBrush.deactivate();
+      console.log('⚡ Lightning brush deactivated (another power selected)');
+    }
+    
+    // Deactivate fireball brush if not the one being activated
+    if (exceptPowerName !== 'fireball' && 
+        typeof window.g_fireballAimBrush !== 'undefined' && 
+        window.g_fireballAimBrush && 
+        window.g_fireballAimBrush.isActive) {
+      window.g_fireballAimBrush.deactivate();
+      console.log('🔥 Fireball brush deactivated (another power selected)');
+    }
+    
+    // Add more brushes here as needed
   }
 
   /**

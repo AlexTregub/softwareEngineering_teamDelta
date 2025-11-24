@@ -71,7 +71,7 @@ class Lightning extends Power{
         
         // Play strike sound
         if(typeof soundManager !== 'undefined'){
-            soundManager.play('lightningStrike');
+            soundManager.play('lightningStrike', 0.1);
         }
         
         return true;

@@ -81,8 +81,15 @@ class FireballAimBrush extends BrushBase {
     
     // Update charge progress if charging
     if (this.isCharging) {
+        
       const elapsed = millis() - this.chargeStartTime;
       this.chargeProgress = Math.min(1.0, elapsed / this.chargeTime);
+      
+      // Gradually increase charge sound volume (0.2 to 1.0)
+      if (typeof soundManager !== 'undefined' && soundManager.setVolume) {
+        const chargeVolume = 0.2 + (this.chargeProgress * 0.8); // 0.2 to 1.0
+        soundManager.setVolume('fireCharge', chargeVolume);
+      }
       
       // Update particle emitter position and state
       if (this.particleEmitter) {
@@ -237,6 +244,13 @@ class FireballAimBrush extends BrushBase {
     
     text(instructionText, this.cursor.x, this.cursor.y + 50);
     pop();
+    
+    // Render temporary explosion emitters (after main rendering, outside push/pop)
+    if (window.g_tempParticleEmitters) {
+      for (const temp of window.g_tempParticleEmitters) {
+        temp.emitter.render();
+      }
+    }
   }
 
   /**
@@ -249,6 +263,8 @@ class FireballAimBrush extends BrushBase {
       this.isCharging = false;
       this.chargeProgress = 0;
       this.deactivate();
+      soundManager.stop('fireCharge');
+      soundManager.play('fireFail', 1);
       return true;
     }
 
@@ -256,10 +272,11 @@ class FireballAimBrush extends BrushBase {
 
     // Start charging
     if (!this.isCharging) {
-      this.isCharging = true;
-      this.chargeStartTime = millis();
-      this.chargeProgress = 0;
-      logNormal('🔥 Charging fireball...');
+        soundManager.play('fireCharge', 0.2,1.0,true);
+        this.isCharging = true;
+        this.chargeStartTime = millis();
+        this.chargeProgress = 0;
+        logNormal('🔥 Charging fireball...');
     }
     
     return true;
@@ -272,11 +289,42 @@ class FireballAimBrush extends BrushBase {
     if (!this.isActive) return false;
     if (button !== 'LEFT') return false;
 
-    // Only fire if fully charged
-    if (this.isCharging && this.chargeProgress >= 1.0) {
+    // Check if target is in range
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    let inRange = true;
+    
+    if (queen) {
+      let queenScreenX = 0;
+      let queenScreenY = 0;
+      
+      if (typeof queen.getScreenPosition === 'function') {
+        const screenPos = queen.getScreenPosition();
+        queenScreenX = screenPos.x;
+        queenScreenY = screenPos.y;
+      } else {
+        queenScreenX = queen.x || 0;
+        queenScreenY = queen.y || 0;
+      }
+      
+      const dx = mx - queenScreenX;
+      const dy = my - queenScreenY;
+      const dist = Math.hypot(dx, dy);
+      inRange = dist <= this.rangePx;
+    }
+
+    // Only fire if fully charged and in range
+    if (this.isCharging && this.chargeProgress >= 1.0 && inRange) {
+        soundManager.play('fireball', 0.6);
+        soundManager.stop('fireCharge');
       this.tryStrikeAt(mx, my);
     } else if (this.isCharging) {
-      logNormal('🔥 Fireball not fully charged - release failed');
+      if (!inRange) {
+        logNormal('🔥 Fireball target out of range - release failed');
+      } else {
+        logNormal('🔥 Fireball not fully charged - release failed');
+      }
+      soundManager.play('fireFail', 1);
+      soundManager.stop('fireCharge');
     }
     
     // Reset charge state
@@ -396,17 +444,57 @@ class FireballAimBrush extends BrushBase {
       logNormal('🔥 Fireball missed - no entities in blast radius');
     }
     
-    // Visual effects
+    // Visual effects - flash and explosion particles
     if (typeof window.EffectsRenderer !== 'undefined' && window.EffectsRenderer) {
       window.EffectsRenderer.flash(worldX, worldY, { color: [255, 150, 0], intensity: 0.8, radius: 64 });
-      if (typeof window.EffectsRenderer.spawnParticleBurst === 'function') {
-        window.EffectsRenderer.spawnParticleBurst(worldX, worldY, { 
-          count: 20, 
-          color: [255, 100, 0], 
-          size: 8,
-          speed: 3
-        });
+    }
+    
+    // Create explosion particle burst using ParticleEmitter
+    if (typeof ParticleEmitter !== 'undefined') {
+      // Convert world coords to screen coords for particle emitter
+      let screenX = mx;
+      let screenY = my;
+      
+      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+        const tileX = worldX / TILE_SIZE;
+        const tileY = worldY / TILE_SIZE;
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+        screenX = screenPos[0];
+        screenY = screenPos[1];
       }
+      
+      const explosionEmitter = new ParticleEmitter({
+        x: screenX,
+        y: screenY,
+        emissionRate: 500,
+        maxParticles: 100,
+        spawnRadius: 5, // Tight spawn for explosion
+        lifetime: 1500,
+        types: ['fire', 'smoke', 'spark'],
+        sizeRange: [3, 12],
+        speedRange: [3, 10], // Radial explosion speed
+        gravity: 0.2,
+        drift: 0.5,
+        turbulence: 0.1,
+        emissionMode: 'explosion' // Use radial burst mode
+      });
+      
+      // Emit burst of particles
+      explosionEmitter.start();
+      for (let i = 0; i < 80; i++) {
+        explosionEmitter.emitParticle();
+      }
+      explosionEmitter.stop();
+      
+      // Store emitter temporarily for rendering (it will auto-cleanup when particles die)
+      if (!window.g_tempParticleEmitters) {
+        window.g_tempParticleEmitters = [];
+      }
+      window.g_tempParticleEmitters.push({
+        emitter: explosionEmitter,
+        created: millis(),
+        lifetime: 2000 // Clean up after 2 seconds
+      });
     }
     
     // Create multiple overlapping soot stains at impact for darker appearance

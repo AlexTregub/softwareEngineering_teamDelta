@@ -39,6 +39,9 @@ class ParticleEmitter {
     this.gravity = options.gravity || -0.05; // negative = upward
     this.drift = options.drift || 0.3; // horizontal randomness
     this.turbulence = options.turbulence || 0.02; // random movement
+    
+    // Emission mode: 'continuous' (default) or 'explosion' (radial burst)
+    this.emissionMode = options.emissionMode || 'continuous';
   }
 
   setPosition(x, y) {
@@ -60,23 +63,24 @@ class ParticleEmitter {
   }
 
   update() {
-    if (!this.active) return;
-    
     const now = millis();
     
-    // Emit new particles
-    if (this.particles.length < this.maxParticles && (now - this.lastEmitTime) >= this.emitInterval) {
+    // Emit new particles if active
+    if (this.active && this.particles.length < this.maxParticles && (now - this.lastEmitTime) >= this.emitInterval) {
       this.emitParticle();
       this.lastEmitTime = now;
     }
+    
+    // Calculate deltaTime from frame timing
+    const frameTime = (typeof deltaTime !== 'undefined' && deltaTime > 0) ? deltaTime : 16;
+    const dt = frameTime / 16; // Normalize to 60fps (16ms frame)
     
     // Update existing particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       
-      // Update lifetime
-      const dt = (deltaTime || 16) / 16; // Normalize to 60fps (16ms frame)
-      p.age += deltaTime || 16;
+      // Update lifetime using frame time
+      p.age += frameTime;
       const lifeRatio = p.age / p.lifetime;
       
       // Remove dead particles
@@ -127,11 +131,21 @@ class ParticleEmitter {
     // Random size
     const size = this.sizeRange[0] + Math.random() * (this.sizeRange[1] - this.sizeRange[0]);
     
-    // Random velocity
+    // Random velocity based on emission mode
     const speed = this.speedRange[0] + Math.random() * (this.speedRange[1] - this.speedRange[0]);
-    const vx = (Math.random() - 0.5) * this.drift;
-    // Rain falls down (positive Y), fire/smoke rises up (negative Y)
-    const vy = type === 'rain' ? speed : -speed;
+    let vx, vy;
+    
+    if (this.emissionMode === 'explosion') {
+      // Radial explosion - velocity points outward from center
+      const explosionAngle = Math.random() * TWO_PI;
+      vx = Math.cos(explosionAngle) * speed;
+      vy = Math.sin(explosionAngle) * speed;
+    } else {
+      // Continuous emission - velocity based on type
+      vx = (Math.random() - 0.5) * this.drift;
+      // Rain falls down (positive Y), fire/smoke rises up (negative Y)
+      vy = type === 'rain' ? speed : -speed;
+    }
     
     // Random lifetime variation (±20%)
     const lifetime = this.particleLifetime * (0.8 + Math.random() * 0.4);
@@ -172,6 +186,11 @@ class ParticleEmitter {
   isActive() {
     return this.active;
   }
+}
+
+// Export for Node.js testing
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = ParticleEmitter;
 }
 
 // Global initialization function
