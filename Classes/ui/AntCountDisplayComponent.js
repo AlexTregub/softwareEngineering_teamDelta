@@ -23,7 +23,8 @@ class AntCountDisplayComponent {
     
     // Ant counts
     this.currentAnts = 0;
-    this.maxAnts = 50; // Default cap (can be updated externally)
+    // Initialize from window.maxAnts if available, otherwise default to 50
+    this.maxAnts = (typeof window !== 'undefined' && typeof window.maxAnts !== 'undefined') ? window.maxAnts : 50;
     this.isExpanded = false;
     
     // Ant type counts - all job types from JobComponent
@@ -103,6 +104,11 @@ class AntCountDisplayComponent {
    * @private
    */
   updateFromAntsArray() {
+    // Update maxAnts from window global (syncs with BUIManager upgrades)
+    if (typeof window !== 'undefined' && typeof window.maxAnts !== 'undefined') {
+      this.maxAnts = window.maxAnts;
+    }
+    
     // Access global ants array
     if (typeof ants === 'undefined' || !Array.isArray(ants)) {
       this.currentAnts = 0;

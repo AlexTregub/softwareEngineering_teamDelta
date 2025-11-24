@@ -82,7 +82,16 @@ class BUIManager {
 
         // 2 = spawn an ant if under limit
         if (key === '2') {
-            const currentAnts = ants?.length || 0;
+            // Count only player faction ants to match the UI display
+            const playerAnts = ants ? ants.filter(ant => {
+                if (!ant) return false;
+                if (ant._faction === 'player') return true;
+                if (ant.faction === 'player') return true;
+                if (typeof ant.getFaction === 'function' && ant.getFaction() === 'player') return true;
+                if (!ant._faction && !ant.faction) return true; // Default to player
+                return false;
+            }) : [];
+            const currentAnts = playerAnts.length;
             const maxAnts = window.maxAnts || 10;
             console.log(`🐜 Spawn attempt: ${currentAnts}/${maxAnts} ants`);
             

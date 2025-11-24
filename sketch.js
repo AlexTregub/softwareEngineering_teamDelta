@@ -272,6 +272,11 @@ function initializeWorld() {
   g_gridMap = new PathMap(g_map);
   g_globalTime = new GlobalTime();
   
+  // Initialize max ant limit (can be increased via building upgrades)
+  if (typeof window !== 'undefined') {
+    window.maxAnts = window.maxAnts || 10;
+  }
+  
   // Initialize Time of Day Overlay system
   g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
   
@@ -395,6 +400,11 @@ function renderPowers() {
   if (window.g_powerManager) window.g_powerManager.render();
   if (window.g_powerBrushManager) window.g_powerBrushManager.render();
   if (window.g_naturePower) window.g_naturePower.render();
+  
+  // Render rain particles during storms
+  if (g_globalTime && typeof g_globalTime.renderRain === 'function') {
+    g_globalTime.renderRain();
+  }
 }
 
 /**

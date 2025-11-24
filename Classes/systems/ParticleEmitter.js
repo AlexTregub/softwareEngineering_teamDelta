@@ -31,7 +31,8 @@ class ParticleEmitter {
     this.colors = options.colors || {
       fire: [[255, 150, 0], [255, 100, 0], [255, 200, 50]],
       smoke: [[80, 80, 80], [100, 100, 100], [120, 120, 120]],
-      spark: [[255, 220, 100], [255, 255, 200], [255, 200, 0]]
+      spark: [[255, 220, 100], [255, 255, 200], [255, 200, 0]],
+      rain: [[150, 180, 220], [180, 200, 230], [200, 220, 240]] // Light blue/white rain
     };
     
     // Movement properties
@@ -93,7 +94,12 @@ class ParticleEmitter {
       p.vx += (Math.random() - 0.5) * this.turbulence * dt;
       
       // Update visual properties
-      p.alpha = 255 * (1 - lifeRatio); // Fade out over lifetime
+      // Fade in over first 20% of life, then fade out
+      if (lifeRatio < 0.2) {
+        p.alpha = 255 * (lifeRatio / 0.2); // Fade in
+      } else {
+        p.alpha = 255 * (1 - (lifeRatio - 0.2) / 0.8); // Fade out over remaining 80%
+      }
       
       // Size changes based on type (framerate-independent)
       if (p.type === 'smoke') {
@@ -124,7 +130,8 @@ class ParticleEmitter {
     // Random velocity
     const speed = this.speedRange[0] + Math.random() * (this.speedRange[1] - this.speedRange[0]);
     const vx = (Math.random() - 0.5) * this.drift;
-    const vy = -speed; // Negative = upward
+    // Rain falls down (positive Y), fire/smoke rises up (negative Y)
+    const vy = type === 'rain' ? speed : -speed;
     
     // Random lifetime variation (±20%)
     const lifetime = this.particleLifetime * (0.8 + Math.random() * 0.4);

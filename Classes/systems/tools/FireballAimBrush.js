@@ -123,6 +123,32 @@ class FireballAimBrush extends BrushBase {
 
     push();
     
+    // Screen darkening when charging
+    if (this.isCharging && this.chargeProgress > 0.3) {
+      const darkenAmount = (this.chargeProgress - 0.3) / 0.7; // 0.0 to 1.0 over last 70% of charge
+      fill(0, 0, 0, darkenAmount * 120);
+      noStroke();
+      rect(0, 0, width, height);
+    }
+    
+    // Radial light around charging fireball
+    if (this.isCharging && this.chargeProgress > 0.5) {
+      const lightIntensity = (this.chargeProgress - 0.5) / 0.5; // 0.0 to 1.0 over last 50%
+      const glowRadius = 80 + (lightIntensity * 120);
+      
+      // Outer glow
+      const gradient = drawingContext.createRadialGradient(
+        this.cursor.x, this.cursor.y, 0,
+        this.cursor.x, this.cursor.y, glowRadius
+      );
+      gradient.addColorStop(0, `rgba(255, 200, 100, ${lightIntensity * 0.6})`);
+      gradient.addColorStop(0.4, `rgba(255, 150, 50, ${lightIntensity * 0.3})`);
+      gradient.addColorStop(1, 'rgba(255, 100, 0, 0)');
+      
+      drawingContext.fillStyle = gradient;
+      drawingContext.fillRect(0, 0, width, height);
+    }
+    
     // Range circle around queen
     if (queen) {
       noFill();
@@ -381,6 +407,20 @@ class FireballAimBrush extends BrushBase {
           speed: 3
         });
       }
+    }
+    
+    // Create multiple overlapping soot stains at impact for darker appearance
+    if (typeof SootStain !== 'undefined' && typeof g_lightningManager !== 'undefined' && g_lightningManager) {
+      // Create 5-8 overlapping stains for a darker, more opaque effect
+      const numStains = 5 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < numStains; i++) {
+        const offsetX = (Math.random() - 0.5) * 40; // Spread within 40px
+        const offsetY = (Math.random() - 0.5) * 40;
+        const stainRadius = 35 + Math.random() * 25; // 35-60px radius
+        const stain = new SootStain(worldX + offsetX, worldY + offsetY, stainRadius, 8000 + Math.random() * 4000);
+        g_lightningManager.sootStains.push(stain);
+      }
+      logNormal(`🔥 Created ${numStains} overlapping soot stains at impact`);
     }
     
     return true;
