@@ -110,6 +110,62 @@ class ant extends Entity {
     if (img && typeof img !== 'string') {
       this.setImage(img);
     }
+    
+    // Movement particle system (dirt trail)
+    this._movementEmitter = null;
+    this._lastPosition = { x: posX, y: posY };
+    this._initializeMovementParticles();
+  }
+
+  // --- Movement Particle System ---
+  _initializeMovementParticles() {
+    if (typeof ParticleEmitter === 'undefined') return;
+
+    const pos = this.getPosition();
+    this._movementEmitter = new ParticleEmitter({
+      preset: 'dirtTrail',
+      x: pos.x,
+      y: pos.y
+    });
+  }
+  
+  _updateMovementParticles() {
+    if (!this._movementEmitter) return;
+    
+    // Get world position
+    const pos = this.getPosition();
+    const isMoving = this.isMoving;
+    
+    // Calculate movement speed
+    const dx = pos.x - this._lastPosition.x;
+    const dy = pos.y - this._lastPosition.y;
+    const distMoved = Math.sqrt(dx * dx + dy * dy);
+    
+    // Update emitter position in world coordinates
+    this._movementEmitter.setPosition(pos.x, pos.y);
+    
+    // Only emit particles when moving (not idle)
+    if (isMoving && distMoved > 0.5) {
+      if (!this._movementEmitter.isActive()) {
+        this._movementEmitter.start();
+      }
+    } else {
+      if (this._movementEmitter.isActive()) {
+        this._movementEmitter.stop();
+      }
+    }
+    
+    // Update particle positions
+    this._movementEmitter.update();
+    
+    // Store current position for next frame
+    this._lastPosition.x = pos.x;
+    this._lastPosition.y = pos.y;
+  }
+  
+  _renderMovementParticles() {
+    if (!this._movementEmitter) return;
+    this._movementEmitter.render();
   }
 
   // --- Ant-specific Getters/Setters ---
@@ -524,6 +580,7 @@ _getFallbackJobStats(jobName) {
     this._updateResourceManager();
     this._updateEnemyDetection();
     this._updateHealthController();
+    this._updateMovementParticles();
     // If currently dropping off, check arrival each frame
     if (this._stateMachine && typeof this._stateMachine.isDroppingOff === 'function' && this._stateMachine.isDroppingOff()) {
       this._checkDropoffArrival();
@@ -791,6 +848,9 @@ _getFallbackJobStats(jobName) {
   render() {
     if (!this.isActive) return;
 
+    // Render movement particles FIRST (behind ant sprite)
+    this._renderMovementParticles();
+
     // Use Entity rendering (handles sprite and highlights automatically)
     super.render();
 
@@ -929,6 +989,13 @@ _getFallbackJobStats(jobName) {
 
   // --- Cleanup Override ---
   destroy() {
+    // Clean up particle emitter
+    if (this._movementEmitter) {
+      this._movementEmitter.stop();
+      this._movementEmitter.clear();
+      this._movementEmitter = null;
+    }
+    
     this._stateMachine = null;
     this._resourceManager = null;
     this._stats = null;

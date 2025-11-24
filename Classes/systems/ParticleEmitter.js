@@ -3,10 +3,55 @@
  * ==================
  * Continuous particle emission system for fire, smoke, sparks, etc.
  * Spawns particles over time with randomized properties for natural effects.
+ * 
+ * Usage:
+ * - Direct config: new ParticleEmitter({ x: 100, y: 200, emissionRate: 50, ... })
+ * - Preset: new ParticleEmitter({ preset: 'explosion', x: 100, y: 100 })
+ * - Preset with overrides: new ParticleEmitter({ preset: 'explosion', x: 100, y: 100, maxParticles: 200 })
  */
 
 class ParticleEmitter {
+  // Static property to cache loaded presets
+  static presets = null;
+  
+  // Static method to load presets from config file
+  static async loadPresets() {
+    if (ParticleEmitter.presets) return ParticleEmitter.presets;
+    
+    try {
+      const response = await fetch('config/particle-effects.json');
+      ParticleEmitter.presets = await response.json();
+      console.log('✅ Particle effect presets loaded:', Object.keys(ParticleEmitter.presets));
+      return ParticleEmitter.presets;
+    } catch (error) {
+      console.warn('⚠️ Failed to load particle presets:', error);
+      ParticleEmitter.presets = {};
+      return {};
+    }
+  }
+  
+  // Static method to get a preset (synchronous, requires presets to be loaded)
+  static getPreset(presetName) {
+    if (!ParticleEmitter.presets) {
+      console.warn('⚠️ Particle presets not loaded. Call ParticleEmitter.loadPresets() first.');
+      return null;
+    }
+    return ParticleEmitter.presets[presetName] || null;
+  }
+  
   constructor(options = {}) {
+    // Load from preset if specified
+    if (options.preset) {
+      const preset = ParticleEmitter.getPreset(options.preset);
+      if (preset) {
+        // Merge preset with options (options override preset)
+        options = { ...preset, ...options };
+        delete options.preset; // Remove preset key
+      } else {
+        console.warn(`⚠️ Particle preset "${options.preset}" not found`);
+      }
+    }
+    
     this.x = options.x || 0;
     this.y = options.y || 0;
     this.active = false;
@@ -42,6 +87,9 @@ class ParticleEmitter {
     
     // Emission mode: 'continuous' (default) or 'explosion' (radial burst)
     this.emissionMode = options.emissionMode || 'continuous';
+    
+    // Coordinate mode: 'screen' (default, particles in screen space) or 'world' (particles in world space, affected by camera)
+    this.coordinateMode = options.coordinateMode || 'screen';
   }
 
   setPosition(x, y) {
@@ -140,11 +188,33 @@ class ParticleEmitter {
       const explosionAngle = Math.random() * TWO_PI;
       vx = Math.cos(explosionAngle) * speed;
       vy = Math.sin(explosionAngle) * speed;
+    } else if (this.emissionMode === 'orbital') {
+      // Orbital/swirl - particles move in circular pattern around center
+      const angleFromCenter = Math.atan2(spawnY - this.y, spawnX - this.x);
+      const distFromCenter = Math.hypot(spawnX - this.x, spawnY - this.y);
+      
+      // Tangential velocity for orbital motion (perpendicular to radius)
+      // Speed scales with distance - inner particles move slower, outer faster (like a vortex)
+      const distanceScale = Math.max(0.3, distFromCenter / this.spawnRadius);
+      const orbitalAngle = angleFromCenter + HALF_PI; // 90 degrees offset for tangent
+      vx = Math.cos(orbitalAngle) * speed * distanceScale * 1.5; // 1.5x multiplier for faster orbit
+      vy = Math.sin(orbitalAngle) * speed * distanceScale * 1.5;
+      
+      // Strong inward spiral for tighter effect
+      const radialSpeed = (type === 'rain') ? -speed * 0.8 : -speed * 0.5; // Much stronger inward pull
+      vx += Math.cos(angleFromCenter) * radialSpeed;
+      vy += Math.sin(angleFromCenter) * radialSpeed;
     } else {
       // Continuous emission - velocity based on type
       vx = (Math.random() - 0.5) * this.drift;
-      // Rain falls down (positive Y), fire/smoke rises up (negative Y)
-      vy = type === 'rain' ? speed : -speed;
+      // Rain falls down (positive Y), fire/smoke/dirt rises up (negative Y) or settles slowly
+      if (type === 'rain') {
+        vy = speed;
+      } else if (type === 'dirt') {
+        vy = speed * 0.3; // Dirt settles slowly downward
+      } else {
+        vy = -speed; // Fire/smoke rises
+      }
     }
     
     // Random lifetime variation (±20%)
@@ -170,10 +240,34 @@ class ParticleEmitter {
     
     push();
     
+    // Convert particle positions based on coordinate mode
     for (const p of this.particles) {
       noStroke();
       fill(p.color[0], p.color[1], p.color[2], p.alpha);
-      ellipse(p.x, p.y, p.size, p.size);
+      
+      let renderX = p.x;
+      let renderY = p.y;
+      
+      // If in screen mode and CameraManager exists, convert world coords to screen coords
+      if (this.coordinateMode === 'screen' && typeof window !== 'undefined' && window.g_cameraManager) {
+        const screenPos = window.g_cameraManager.worldToScreen(p.x, p.y);
+        renderX = screenPos.screenX;
+        renderY = screenPos.screenY;
+      }
+      // If in world mode, convert world coords to screen coords using terrain system
+      else if (this.coordinateMode === 'world' && typeof g_activeMap !== 'undefined' && g_activeMap && 
+               g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
+        // Convert world pixel coordinates to tile coordinates
+        const tileX = p.x / TILE_SIZE;
+        const tileY = p.y / TILE_SIZE;
+        
+        // Use terrain's converter to get screen position (handles Y inversion and camera)
+        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX+0.5, tileY+1]); // +1 to align with ground level
+        renderX = screenPos[0];
+        renderY = screenPos[1];
+      }
+      
+      ellipse(renderX, renderY, p.size, p.size);
     }
     
     pop();

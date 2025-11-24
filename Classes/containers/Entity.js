@@ -261,6 +261,7 @@ class Entity {
    * @returns {{x: number, y: number}} Screen coordinates
    */
   getScreenPosition() {
+    // Get world position from transform controller
     const worldPos = this.getPosition();
     let screenX = worldPos.x;
     let screenY = worldPos.y;
@@ -272,7 +273,7 @@ class Entity {
       const tileX = worldPos.x / TILE_SIZE;
       const tileY = worldPos.y / TILE_SIZE;
       
-      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      // Use terrain's converter to get screen position (handles Y-axis inversion and camera)
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       screenX = screenPos[0];
       screenY = screenPos[1];

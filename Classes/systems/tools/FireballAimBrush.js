@@ -21,18 +21,9 @@ class FireballAimBrush extends BrushBase {
     this.particleEmitter = null;
     if (typeof ParticleEmitter !== 'undefined') {
       this.particleEmitter = new ParticleEmitter({
+        preset: 'fireballCharge',
         x: 0,
-        y: 0,
-        emissionRate: 120,
-        maxParticles: 240,
-        spawnRadius: 30,
-        lifetime: 900,
-        types: ['fire', 'smoke', 'spark'],
-        sizeRange: [2, 14],
-        speedRange: [0.9, 4.0], // Adjusted for dt normalization
-        gravity: -0.12, // Adjusted for dt normalization
-        drift: 0.6, // Adjusted for dt normalization
-        turbulence: 0.06 // Adjusted for dt normalization
+        y: 0
       });
     }
   }
@@ -44,7 +35,6 @@ class FireballAimBrush extends BrushBase {
       this.isCharging = false;
       this.chargeProgress = 0;
     }
-    logNormal(`${this.isActive ? '🔥' : '⚪'} Fireball Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 
@@ -64,7 +54,6 @@ class FireballAimBrush extends BrushBase {
   updateRangeForLevel(level) {
     this.tileRange = 7 + ((level - 1) * 7);
     this.rangePx = this.tileRange * TILE_SIZE;
-    logNormal(`🔥 Fireball range updated to ${this.tileRange} tiles (Level ${level})`);
   }
 
   update() {
@@ -256,7 +245,6 @@ class FireballAimBrush extends BrushBase {
         this.isCharging = true;
         this.chargeStartTime = millis();
         this.chargeProgress = 0;
-        logNormal('🔥 Charging fireball...');
     }
     
     return true;
@@ -298,11 +286,6 @@ class FireballAimBrush extends BrushBase {
         soundManager.stop('fireCharge');
       this.tryStrikeAt(mx, my);
     } else if (this.isCharging) {
-      if (!inRange) {
-        logNormal('🔥 Fireball target out of range - release failed');
-      } else {
-        logNormal('🔥 Fireball not fully charged - release failed');
-      }
       soundManager.play('fireFail', 1);
       soundManager.stop('fireCharge');
     }
@@ -353,13 +336,12 @@ class FireballAimBrush extends BrushBase {
     let worldX = mx;
     let worldY = my;
     
-    if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-      const tilePos = g_activeMap.renderConversion.convCanvasToPos([mx, my]);
-      worldX = (tilePos[0] - 0.5) * TILE_SIZE;
-      worldY = (tilePos[1] - 0.5) * TILE_SIZE;
+    if (typeof CoordinateConverter !== 'undefined') {
+      const worldPos = CoordinateConverter.screenToWorld(mx, my);
+      worldX = worldPos.x;
+      worldY = worldPos.y;
     }
 
-    logNormal(`🔥 Fireball launched at (${worldX.toFixed(1)}, ${worldY.toFixed(1)})!`);
     console.log('🔥 FIREBALL STRIKE!', { worldX, worldY, screenX: mx, screenY: my });
     
     // Damage nearby entities (area of effect)
@@ -418,12 +400,6 @@ class FireballAimBrush extends BrushBase {
       }
     }
     
-    if (entitiesHit > 0) {
-      logNormal(`🔥 Fireball hit ${entitiesHit} entity(s)!`);
-    } else {
-      logNormal('🔥 Fireball missed - no entities in blast radius');
-    }
-    
     // Visual effects - flash and explosion particles
     if (typeof window.EffectsRenderer !== 'undefined' && window.EffectsRenderer) {
       window.EffectsRenderer.flash(worldX, worldY, { color: [255, 150, 0], intensity: 0.8, radius: 64 });
@@ -435,33 +411,21 @@ class FireballAimBrush extends BrushBase {
       let screenX = mx;
       let screenY = my;
       
-      if (typeof g_activeMap !== 'undefined' && g_activeMap && g_activeMap.renderConversion && typeof TILE_SIZE !== 'undefined') {
-        const tileX = worldX / TILE_SIZE;
-        const tileY = worldY / TILE_SIZE;
-        const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
-        screenX = screenPos[0];
-        screenY = screenPos[1];
+      if (typeof CoordinateConverter !== 'undefined') {
+        const screenPos = CoordinateConverter.worldToScreen(worldX, worldY);
+        screenX = screenPos.x;
+        screenY = screenPos.y;
       }
       
       const explosionEmitter = new ParticleEmitter({
+        preset: 'explosion',
         x: screenX,
-        y: screenY,
-        emissionRate: 500,
-        maxParticles: 100,
-        spawnRadius: 5, // Tight spawn for explosion
-        lifetime: 1500,
-        types: ['fire', 'smoke', 'spark'],
-        sizeRange: [3, 12],
-        speedRange: [3, 10], // Radial explosion speed
-        gravity: 0.2,
-        drift: 0.5,
-        turbulence: 0.1,
-        emissionMode: 'explosion' // Use radial burst mode
+        y: screenY
       });
       
       // Emit burst of particles
       explosionEmitter.start();
-      for (let i = 0; i < 80; i++) {
+      for (let i = 0; i < explosionEmitter.maxParticles; i++) {
         explosionEmitter.emitParticle();
       }
       explosionEmitter.stop();

@@ -640,16 +640,6 @@ class CameraManager {
       worldY: this.cameraY + py / this.cameraZoom
     };
     
-    logVerbose('[CameraManager] screenToWorld DEBUG', {
-      input: { px, py },
-      camera: { x: this.cameraX, y: this.cameraY, zoom: this.cameraZoom },
-      calculation: {
-        worldX: `${this.cameraX} + ${px} / ${this.cameraZoom} = ${result.worldX}`,
-        worldY: `${this.cameraY} + ${py} / ${this.cameraZoom} = ${result.worldY}`
-      },
-      result
-    });
-    
     return result;
   }
 
