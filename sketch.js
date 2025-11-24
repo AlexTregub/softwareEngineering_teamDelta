@@ -188,6 +188,9 @@ function setup() {
   // console.log("SETUPRESULT:",window)
 
   // drop(importTerrain)
+    
+  // Initialize all event listeners and rendering registrations
+  addListeners();
 }
 
 function addListeners() {
