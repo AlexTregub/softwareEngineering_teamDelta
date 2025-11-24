@@ -29,10 +29,10 @@ jobs:
           $LOGGING
 
           echo "Remote files" ;
-          ls -la 
+          ls -la ;
 
           echo "Target files" ;
-          $RUN ls -la
+          $RUN ls -la ;
 
           echo "Prep files for zip... (note dotfiles ignored)" ;
           echo "Nothing done. Drop remote tests in future." ;
@@ -43,7 +43,7 @@ jobs:
           $RUN "rm -rf /home/$USER/web/* || true " ; 
           $RUN "rm -rf /home/$USER/web/.* || true " ; 
 
-          echo "Also providing alternative tar+gz..."
+          echo "Also providing alternative tar+gz..." ; 
           tar -cf deploy.tar ./* ;
           gzip -k deploy.tar ;
 
