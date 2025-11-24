@@ -400,7 +400,6 @@ function updatePlayingState() {
     window.g_powerBrushManager.updateAllBrushes();
     window.g_powerBrushManager.update();
   }
-  if (typeof updateQueenPanelVisibility !== 'undefined') updateQueenPanelVisibility();
   if (window.g_queenControlPanel) window.g_queenControlPanel.update();
   
   // Update managers
