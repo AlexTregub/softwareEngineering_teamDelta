@@ -44,18 +44,18 @@ jobs:
           $RUN "rm -rf /home/$USER/web/.* || true " ; 
 
           echo "Also providing alternative tar+gz..."
-          tar -cf deploy.tar ./*
-          gzip -k deploy.tar
+          tar -cf deploy.tar ./* ;
+          gzip -k deploy.tar ;
 
           echo "Sending zipped...";
-          $COPY deploy.zip $TARGET:/home/$USER/web
-          $COPY deploy.tar.gz $TARGET:/home/$USER/web
+          $COPY deploy.zip $TARGET:/home/$USER/web ; 
+          $COPY deploy.tar.gz $TARGET:/home/$USER/web ;
 
-          echo "First attempt direct 'unzip' (keeping all intact incase of failure...)"
-          $RUN "cd /home/$USER/web && unzip -o deploy.zip && echo "unzip success..." && rm deploy.tar.gz && rm deploy.zip || true"
+          echo "First attempt direct 'unzip' (keeping all intact incase of failure...)";
+          $RUN "cd /home/$USER/web && unzip -o deploy.zip && echo "unzip success..." && rm deploy.tar.gz && rm deploy.zip || true";
 
-          echo "Fallback incase of unzip missing (currently is...)"
-          $RUN "cd /home/$USER/web && gzip -d deploy.tar.gz && tar -xf deploy.tar && echo "tar+gzip success..." && rm deploy.tar && rm deploy.zip || true"
+          echo "Fallback incase of unzip missing (currently is...)";
+          $RUN "cd /home/$USER/web && gzip -d deploy.tar.gz && tar -xf deploy.tar && echo "tar+gzip success..." && rm deploy.tar && rm deploy.zip || true";
 
-          echo "Target state after deploy"
-          $RUN ls -la /home/$USER/web
+          echo "Target state after deploy" ; 
+          $RUN ls -la /home/$USER/web ; 
