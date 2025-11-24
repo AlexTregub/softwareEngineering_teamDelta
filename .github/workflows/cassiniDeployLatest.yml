@@ -28,4 +28,8 @@ jobs:
         run:
           $LOGGING
 
+          echo "Remote"
+          ls -la 
+
+          echo "Target"
           $RUN ls -la
