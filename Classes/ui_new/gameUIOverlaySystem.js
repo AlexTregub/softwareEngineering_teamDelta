@@ -26,6 +26,11 @@ function initializeGameUIOverlay() {
         return null;
     }
     
+    if (typeof PowerButtonPanel === 'undefined') {
+        console.error('❌ PowerButtonPanel class not found');
+        return null;
+    }
+    
     if (typeof RenderManager === 'undefined') {
         console.error('❌ RenderManager not found');
         return null;
@@ -41,10 +46,26 @@ function initializeGameUIOverlay() {
     });
   
     window.resourceCountDisplay = new ResourceCountDisplay(p5Instance, {
-      height: 40 })
+      height: 40 
+    });
     
+    window.powerButtonPanel = new PowerButtonPanel(p5Instance, {
+      y: 60,
+      powers: ['lightning', 'fireball', 'finalFlash']
+    });
+    
+    console.log('✅ PowerButtonPanel created:', window.powerButtonPanel);
 
     UIRegisterWithRenderer(p5Instance);
+    
+    // Mark as initialized
+    window.g_gameUIOverlay = {
+        antCountDropdown: window.antCountDropdown,
+        resourceCountDisplay: window.resourceCountDisplay,
+        powerButtonPanel: window.powerButtonPanel
+    };
+    
+    return window.g_gameUIOverlay;
 }
 
 /**
@@ -52,10 +73,26 @@ function initializeGameUIOverlay() {
  * Should be called after managers are initialized
  */
 function UIRegisterWithRenderer(p5Instance) {   
+    console.log('📋 Registering UI components with RenderManager...');
+    
     RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
         window.antCountDropdown.render();
         window.resourceCountDisplay.render();
+        if (window.powerButtonPanel) {
+            window.powerButtonPanel.update();
+            window.powerButtonPanel.render();
+        }
     });
+    
+    console.log('✅ UI components registered with RenderManager');
+    
+    // Register interactive panel
+    if (window.powerButtonPanel && window.powerButtonPanel.registerInteractive) {
+        window.powerButtonPanel.registerInteractive();
+        console.log('✅ PowerButtonPanel interactive registration complete');
+    } else {
+        console.warn('⚠️ PowerButtonPanel.registerInteractive not available');
+    }
 }
 
 /**
