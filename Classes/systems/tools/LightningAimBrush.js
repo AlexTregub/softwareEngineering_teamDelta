@@ -20,6 +20,13 @@ class LightningAimBrush extends BrushBase {
 
   toggle() {
     this.isActive = !this.isActive;
+    
+    // Sync range with lightning manager level when activating
+    if (this.isActive && typeof window.g_lightningManager !== 'undefined' && window.g_lightningManager) {
+      const level = window.g_lightningManager.getLevel();
+      this.updateRangeForLevel(level);
+    }
+    
     logNormal(`${this.isActive ? '🔵' : '⚪'} Lightning Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }

@@ -68,6 +68,11 @@ class DayNightCycleBox {
     this.sunRotation = 0;
     this.sunRotationSpeed = 0.005; // Radians per frame
     
+    // Cloud drift animation (for night clouds)
+    this.cloudDrift = 0;
+    this.cloudDriftSpeed = 0.02; // Speed of drift oscillation
+    this.cloudDriftAmount = 8; // Max pixels to drift left/right
+    
     // Reference to global time system
     this.globalTime = null;
     
@@ -120,6 +125,12 @@ class DayNightCycleBox {
     this.sunRotation += this.sunRotationSpeed;
     if (this.sunRotation > Math.PI * 2) {
       this.sunRotation -= Math.PI * 2; // Keep angle in range [0, 2π]
+    }
+    
+    // Update cloud drift (for night clouds)
+    this.cloudDrift += this.cloudDriftSpeed;
+    if (this.cloudDrift > Math.PI * 2) {
+      this.cloudDrift -= Math.PI * 2;
     }
   }
   
@@ -228,20 +239,38 @@ class DayNightCycleBox {
   _drawClouds(cx, cy) {
     this.p5.push();
     this.p5.noStroke();
+    
+    // Calculate drift offsets (sinusoidal motion at different speeds)
+    const driftOffset = Math.sin(this.cloudDrift) * this.cloudDriftAmount;
+    const roilOffset = Math.sin(this.cloudDrift * 0.7) * 3; // Slower roiling motion
+    
+    // Big background cloud (behind moon, roiling effect)
+    this.p5.fill(255, 255, 255, 80); // More transparent
+    const bgOffsetY = 2; // Slightly below center
+    const roilX = Math.cos(this.cloudDrift * 0.5) * 4; // X-axis roiling
+    const roilY = Math.sin(this.cloudDrift * 0.6) * 2; // Y-axis roiling
+    
+    // Draw multiple overlapping ellipses for puffy cloud effect
+    this.p5.ellipse(cx + roilX, cy + bgOffsetY + roilY, 18, 14);
+    this.p5.ellipse(cx - 6 + roilX, cy + bgOffsetY + 2 + roilY, 14, 11);
+    this.p5.ellipse(cx + 6 + roilX, cy + bgOffsetY + 2 + roilY, 14, 11);
+    this.p5.ellipse(cx + roilX, cy + bgOffsetY - 4 + roilY, 12, 10);
+    this.p5.ellipse(cx + roilX, cy + bgOffsetY + 5 + roilY, 12, 9);
+    
+    // Cloud 1 (left side, higher position with drift)
     this.p5.fill(255, 255, 255, 150); // Semi-transparent white
+    const offsetY1 = -8; // Higher position
+    const offsetX1 = -12 + driftOffset;
+    this.p5.ellipse(cx + offsetX1, cy + offsetY1, 8, 6);
+    this.p5.ellipse(cx + offsetX1 - 4, cy + offsetY1 + 1, 6, 5);
+    this.p5.ellipse(cx + offsetX1 + 4, cy + offsetY1 + 1, 6, 5);
     
-    // Cloud 1 (left side, above icon)
-    const offsetY = -18; // Above the moon
-    const offsetX1 = -12;
-    this.p5.ellipse(cx + offsetX1, cy + offsetY, 8, 6);
-    this.p5.ellipse(cx + offsetX1 - 4, cy + offsetY + 1, 6, 5);
-    this.p5.ellipse(cx + offsetX1 + 4, cy + offsetY + 1, 6, 5);
-    
-    // Cloud 2 (right side, above icon)
-    const offsetX2 = 12;
-    this.p5.ellipse(cx + offsetX2, cy + offsetY, 8, 6);
-    this.p5.ellipse(cx + offsetX2 - 4, cy + offsetY + 1, 6, 5);
-    this.p5.ellipse(cx + offsetX2 + 4, cy + offsetY + 1, 6, 5);
+    // Cloud 2 (right side, lower position with opposite drift)
+    const offsetY2 = 2; // Lower than left cloud
+    const offsetX2 = 12 - driftOffset; // Drift in opposite direction
+    this.p5.ellipse(cx + offsetX2, cy + offsetY2, 8, 6);
+    this.p5.ellipse(cx + offsetX2 - 4, cy + offsetY2 + 1, 6, 5);
+    this.p5.ellipse(cx + offsetX2 + 4, cy + offsetY2 + 1, 6, 5);
     
     this.p5.pop();
   }
