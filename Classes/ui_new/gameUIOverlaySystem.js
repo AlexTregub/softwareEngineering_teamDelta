@@ -46,6 +46,11 @@ function initializeGameUIOverlay() {
         return null;
     }
     
+    if (typeof AntSelectionBar === 'undefined') {
+        console.error('❌ AntSelectionBar class not found');
+        return null;
+    }
+    
     if (typeof RenderManager === 'undefined') {
         console.error('❌ RenderManager not found');
         return null;
@@ -98,6 +103,14 @@ function initializeGameUIOverlay() {
         width: 100,
         height: 90
     });
+    
+    // Initialize Ant Selection Bar (bottom-left for quick ant group selection)
+    window.g_antSelectionBar = new AntSelectionBar(p5Instance, {
+        normalizedX: -0.6,  // 60% left from center
+        normalizedY: -0.85, // 85% down from center (bottom area)
+        faction: 'player',
+        jobTypes: ['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter', 'Queen']
+    });
 
     UIRegisterWithRenderer(p5Instance);
     
@@ -108,7 +121,8 @@ function initializeGameUIOverlay() {
         g_powerButtonPanel: window.g_powerButtonPanel,
         miniMap: window.g_miniMap,
         dayNightCycleBox: window.g_dayNightCycleBox,
-        weatherBox: window.g_weatherBox
+        weatherBox: window.g_weatherBox,
+        antSelectionBar: window.g_antSelectionBar
     };
     
     return window.g_gameUIOverlay;
@@ -141,12 +155,12 @@ function UIRegisterWithRenderer(p5Instance) {
             window.g_weatherBox.update();
             window.g_weatherBox.render();
         }
+        if (window.g_antSelectionBar) {
+            window.g_antSelectionBar.update();
+            window.g_antSelectionBar.render();
+        }
     });
-    
-    console.log('✅ UI components registered with RenderManager');
-    
-    // Register interactive elements (order matters - last registered = highest priority)
-    
+
     // Register ant count dropdown
     if (window.antCountDropdown && window.antCountDropdown.registerInteractive) {
         window.antCountDropdown.registerInteractive();
@@ -183,6 +197,14 @@ function UIRegisterWithRenderer(p5Instance) {
         console.log('✅ WeatherBox interactive registration complete');
     } else {
         console.warn('⚠️ WeatherBox.registerInteractive not available');
+    }
+    
+    // Register ant selection bar interactive
+    if (window.g_antSelectionBar && window.g_antSelectionBar.registerInteractive) {
+        window.g_antSelectionBar.registerInteractive();
+        console.log('✅ AntSelectionBar interactive registration complete');
+    } else {
+        console.warn('⚠️ AntSelectionBar.registerInteractive not available');
     }
 }
 
