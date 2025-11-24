@@ -74,6 +74,7 @@ class ParticleEmitter {
       const p = this.particles[i];
       
       // Update lifetime
+      const dt = (deltaTime || 16) / 16; // Normalize to 60fps (16ms frame)
       p.age += deltaTime || 16;
       const lifeRatio = p.age / p.lifetime;
       
@@ -83,20 +84,20 @@ class ParticleEmitter {
         continue;
       }
       
-      // Update position
-      p.x += p.vx;
-      p.y += p.vy;
+      // Update position (framerate-independent)
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
       
-      // Apply forces
-      p.vy += this.gravity;
-      p.vx += (Math.random() - 0.5) * this.turbulence;
+      // Apply forces (framerate-independent)
+      p.vy += this.gravity * dt;
+      p.vx += (Math.random() - 0.5) * this.turbulence * dt;
       
       // Update visual properties
       p.alpha = 255 * (1 - lifeRatio); // Fade out over lifetime
       
-      // Size changes based on type
+      // Size changes based on type (framerate-independent)
       if (p.type === 'smoke') {
-        p.size += 0.05; // Smoke grows as it rises
+        p.size += 0.05 * dt; // Smoke grows as it rises
       } else if (p.type === 'fire') {
         p.size = p.baseSize * (1 - lifeRatio * 0.5); // Fire shrinks slightly
       }

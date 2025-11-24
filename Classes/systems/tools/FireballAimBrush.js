@@ -22,17 +22,17 @@ class FireballAimBrush extends BrushBase {
     if (typeof ParticleEmitter !== 'undefined') {
       this.particleEmitter = new ParticleEmitter({
         x: 0,
-        y: -10,
+        y: 0,
         emissionRate: 120,
         maxParticles: 240,
-        spawnRadius: 40,
-        lifetime: 1200,
+        spawnRadius: 30,
+        lifetime: 900,
         types: ['fire', 'smoke', 'spark'],
         sizeRange: [2, 14],
-        speedRange: [0.8, 4.5],
-        gravity: -0.07,
-        drift: 0.5,
-        turbulence: 0.06
+        speedRange: [0.9, 4.0], // Adjusted for dt normalization
+        gravity: -0.12, // Adjusted for dt normalization
+        drift: 0.6, // Adjusted for dt normalization
+        turbulence: 0.06 // Adjusted for dt normalization
       });
     }
   }
@@ -73,7 +73,10 @@ class FireballAimBrush extends BrushBase {
     
     this.cursor.x = (typeof mouseX !== 'undefined') ? mouseX : this.cursor.x;
     this.cursor.y = (typeof mouseY !== 'undefined') ? mouseY : this.cursor.y;
-    this.pulse += this.pulseSpeed;
+    
+    // Framerate-independent pulse animation
+    const dt = (deltaTime || 16) / 16; // Normalize to 60fps
+    this.pulse += this.pulseSpeed * dt;
     if (this.pulse > Math.PI * 2) this.pulse = 0;
     
     // Update charge progress if charging
