@@ -778,28 +778,106 @@ npm run dev  # Python server on :8000
 
 ```
 Classes/
-  ants/          - Ant entities, state machine, job system
-  controllers/   - Reusable behavior controllers
-  managers/      - System managers (AntManager, ResourceManager, MapManager, SpatialGridManager)
-  rendering/     - RenderLayerManager, EntityLayerRenderer, UILayerRenderer
-  systems/       - CollisionBox2D, Button, Sprite2D
-  terrainUtils/  - Terrain generation, MapManager
-  pathfinding.js - A* with terrain costs
-test/
-  unit/          - Isolated tests (write FIRST)
-  integration/   - Component interactions
-  e2e/           - Puppeteer with screenshots (PRIMARY)
-    ui/, camera/, controllers/, screenshots/
-    puppeteer_helper.js, camera_helper.js (CRITICAL!)
-  bdd/           - Behave (headless)
+  ants/          - Ant entities, state machine, job system, AntFactory, Boss, Queen
+  baseMVC/       - Base MVC framework (adapters/, behaviors/ - empty, future use)
+  buildings/     - Building entities (empty - future expansion)
+  containers/    - Entity base, DropoffLocation, StatsContainer
+  controllers/   - Reusable behavior controllers (Movement, Combat, Health, Selection, Input)
+  events/        - Event system (Event.js, EventTrigger.js, DialogueEvent.SKELETON.js)
+  globals/       - Global utilities (entityManager.js, eventBus.js, windowInitializer.js)
+  initTests/     - Test initialization helpers (functionAsserts.js)
+  managers/      - System managers:
+    - AntManager, ResourceManager, MapManager, SpatialGridManager
+    - EventManager, GameStateManager, GameEvents
+    - BuildingManager, EntityManager, NPCManager, QuestManager, ShopManager
+    - PowerManager, PowerBrushManager, TileInteractionManager
+    - BUIManager, DIAManager, animationManager, soundManager, pheromoneControl
+  mvc/           - MVC components (models/, views/, controllers/, factories/)
+  rendering/     - Rendering pipeline:
+    - RenderLayerManager, RenderController, UIController
+    - EntityLayerRenderer, UILayerRenderer, EffectsLayerRenderer
+    - EntityAccessor, EntityDelegationBuilder, Sprite2d
+    - CacheManager, PerformanceMonitor, UIDebugManager, caches/
+  systems/       - Core systems:
+    - CollisionBox2D, Button, SpatialGrid, CoordinateConverter
+    - ResourceNode, Nature, MouseCrosshair, GatherDebugRenderer
+    - FramebufferManager, entityUtils, newPathfinding.js, pheromones.js
+    - combat/, dialogue/, shapes/, text/, tools/, ui/
+  tasks/         - Task system (tasks.js, TaskUI.js)
+  terrainUtils/  - Terrain generation and editing:
+    - MapManager, TerrainEditor, TerrainExporter, TerrainImporter
+    - gridTerrain.js, grid.js, tiles.js, tileSmooth.js, chunk.js
+    - CustomTerrain, SparseTerrain, customLevels.js, terrianGen.js
+  testing/       - Testing utilities (ShareholderDemo.js)
+  ui/            - Level Editor UI:
+    - MaterialPalette, ToolBar, MiniMap, GridOverlay, DynamicMinimap
+    - SaveDialog, LoadDialog, FileMenuBar, ConfirmationDialog
+    - PropertiesPanel, BrushSizeControl, HoverPreviewManager
+    - SelectionManager, FormatConverter, ServerIntegration
+    - LocalStorageManager, NotificationManager, AutoSave
+    - AntCountDisplayComponent, DynamicGridOverlay, menuBar/
+  ui_new/        - New UI components:
+    - components/ (antCountDropDown, arrowComponent, dropdownMenu,
+                   gameUIOverlay, informationLine, resourceCountDisplay,
+                   resourceInventoryBar, playerResourceInventoryBar)
+    - gameUIOverlaySystem.js
+  pathfinding.js - A* pathfinding with terrain costs
+  resource.js    - Resource definitions
+  resources.js   - Resource management
+config/
+  button-system.json         - Button configuration
+  button-groups/             - Button group configs (gameplay, main-menu, settings, legacy-conversions)
+  events/                    - Event configs (dialogue_examples.json)
+debug/
+  UniversalDebugger.js       - Universal entity debugger
+  EntityDebugManager.js      - Entity debug coordination
+  EventDebugManager.js       - Event debug tools
+  coordinateDebug.js         - Coordinate system debugging
+  testing.js, test_*.js      - Debug test scripts
+  terrainSystemTests.js      - Terrain testing
+  tileInspector.js           - Tile inspection tool
+  selectionBoxDebug.js       - Selection debugging
+  debugRenderingHelpers.js   - Debug rendering utilities
+  globalDebugging.js         - Global debug state
+  commandLine.js             - Debug commands
+  verboseLogger.js           - Detailed logging
+  tracing.js                 - Execution tracing
+  typeChecks/                - Type validation
 docs/
-  guides/
-    E2E_TESTING_QUICKSTART.md        - MUST READ
-    TESTING_TYPES_GUIDE.md
-  standards/testing/
-    TESTING_METHODOLOGY_STANDARDS.md - Core philosophy
-    BDD_LANGUAGE_STYLE_GUIDE.md
-  FEATURE_DEVELOPMENT_CHECKLIST.md
+  KEYBINDS_REFERENCE.md      - Keyboard shortcuts
+  checklists/                - Development checklists (bug fixes/)
+scripts/
+  bootstrap-globals.js       - Global initialization
+  node-check.js              - Node version validation
+  replace-console-logs.ps1   - Log replacement utility
+  README.md                  - Scripts documentation
+src/
+  globals.d.ts               - TypeScript global definitions
+  rect.js                    - Rectangle utilities
+  levels/                    - Level data (gregg.json, tutorialCave_Start.json)
+  types/                     - Type definitions
+test/
+  unit/          - Isolated tests (write FIRST):
+    - ants/, controllers/, managers/, mvc/, rendering/, systems/
+    - terrain/, ui/, ui_new/, events/, dialogue/, levelEditor/
+    - containers/, debug/, globals/, helpers/, terrainUtils/
+  integration/   - Component interactions (same structure as unit/)
+  e2e/           - Puppeteer with screenshots (PRIMARY):
+    - ui/, camera/, controllers/, screenshots/
+    - ants/, brain/, combat/, debug/, dialogue/, entity/, events/
+    - levelEditor/, level_editor/, managers/, performance/, queen/
+    - rendering/, resources/, selection/, spatial/, spawn/, state/, systems/, terrain/
+    - puppeteer_helper.js, camera_helper.js (CRITICAL!)
+    - generate_*.js test generators, run-*.js test runners
+  bdd/           - Behave (headless Python tests)
+  baseline/      - Baseline test data
+  helpers/       - Test helper utilities (uiTestHelpers.js)
+  run-all-tests.js - Test suite runner
+types/
+  game-types.js              - Game type definitions
+  global.d.ts                - Global TypeScript definitions
+Images/, sounds/             - Game assets
+libraries/                   - p5.js library files
 ```
 
 ## Global State
