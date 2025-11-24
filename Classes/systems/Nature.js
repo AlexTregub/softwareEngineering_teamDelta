@@ -97,7 +97,7 @@ class GlobalTime{
             }
         }
         else if (this.timeOfDay == "day"){
-            if(this.inGameSeconds >= 40){ //Day/Night last 4 minutes (10 minutes per day (probably shorten by half)
+            if(this.inGameSeconds >= 50){ //Day/Night last 4 minutes (10 minutes per day (probably shorten by half)
                 this.transition(this.timeOfDay);
             }
         }
