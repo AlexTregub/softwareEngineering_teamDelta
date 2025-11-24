@@ -402,7 +402,7 @@ class Building extends Entity {
 
     const nextImage = typeof next.image === "function" ? next.image() : next.image;
 
-    console.log("image", this.image);
+    //console.log("image", this.image);
     this.previousStage = {
       image: this.image,        // current image
       maxHealth: this._maxHealth,
@@ -442,7 +442,7 @@ class Building extends Entity {
     this._updateHealthController();
 
     // Spawn ants if enabled — uses global antsSpawn(num, faction, x, y)
-    if (this._spawnEnabled && typeof antsSpawn === 'function') {
+    if (this._spawnEnabled && typeof antsSpawn === 'function' && GameState.isInGame()) {
       try {
         this._spawnTimer += deltaTime;
         while (this._spawnTimer >= this._spawnInterval) {

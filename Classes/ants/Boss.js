@@ -17,7 +17,7 @@ class Boss extends QueenAnt {
                 tilex = temp[0]
                 tiley = temp[1] // tile positions (grid) 
 
-                console.log("DONE DID IT FOR THE BOSS")
+                //console.log("DONE DID IT FOR THE BOSS")
                 break
             }
         }
@@ -25,14 +25,14 @@ class Boss extends QueenAnt {
         if (tilex > 15 | tilex < -15 | tiley > 15 | tiley < -15) {
             tilex = 0
             tiley = 0
-            console.log("WARNING: DEFAULT SPAWN POS FOR SPIDER")
+           // console.log("WARNING: DEFAULT SPAWN POS FOR SPIDER")
         }
 
         let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
         queenBase.setPosition(convPos[0],convPos[1])
 
-        console.log("TARGETBOSSENTITY",queenBase,convPos,Buildings[0])
+        //console.log("TARGETBOSSENTITY",queenBase,convPos,Buildings[0])
 
         super(queenBase,convPos);
 
@@ -96,7 +96,7 @@ class Boss extends QueenAnt {
     update() {
         super.update();
         if(this._stateMachine && !this._stateMachine.isInCombat()){
-            console.log(this.getCurrentState());
+            //console.log(this.getCurrentState());
         }else{
             this._performCombatAttack();
         }

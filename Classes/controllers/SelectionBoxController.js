@@ -43,6 +43,64 @@
     return SelectionBoxController._instance;
   };
 
+  /**
+   * registerWithRenderManager
+   * --------------------------
+   * Registers the selection box with RenderManager for rendering and interaction
+   * Handles both drawable and interactive registration in one call
+   */
+  SelectionBoxController.prototype.registerWithRenderManager = function() {
+    if (typeof RenderManager === 'undefined') {
+      console.warn('⚠️ RenderManager not available for SelectionBoxController registration');
+      return false;
+    }
+
+    // Prevent duplicate registration
+    if (!RenderManager._registeredDrawables) RenderManager._registeredDrawables = {};
+    
+    // Register interactive drawable (pointer handling)
+    if (!RenderManager._registeredDrawables.selectionBoxInteractive) {
+      const selectionAdapter = {
+        id: 'selection-box-controller',
+        hitTest: function(pointer) { return false; }, // Don't consume all clicks, let UI elements handle first
+        onPointerDown: function(pointer) { 
+          try { 
+            this.handleClick(pointer.screen.x, pointer.screen.y, 'left'); 
+            return true; 
+          } catch(e) { 
+            return false; 
+          } 
+        }.bind(this),
+        onPointerMove: function(pointer) { 
+          try { 
+            this.handleDrag(pointer.screen.x, pointer.screen.y); 
+            return true; 
+          } catch(e) { 
+            return false; 
+          } 
+        }.bind(this),
+        onPointerUp: function(pointer) { 
+          try { 
+            this.handleRelease(pointer.screen.x, pointer.screen.y, 'left'); 
+            return true; 
+          } catch(e) { 
+            return false; 
+          } 
+        }.bind(this)
+      };
+      RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, selectionAdapter);
+      RenderManager._registeredDrawables.selectionBoxInteractive = true;
+    }
+
+    // Register render drawable (visual drawing)
+    if (!RenderManager._registeredDrawables.selectionBox) {
+      RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, this.draw.bind(this));
+      RenderManager._registeredDrawables.selectionBox = true;
+    }
+
+    return true;
+  };
+
   SelectionBoxController.prototype.handleClick = function (x, y, button) {
     // Check if selection is enabled
     if (!this._config.enabled) return;
@@ -300,20 +358,6 @@
         
         return { x: worldX, y: worldY };
       }
-      
-      // Fallback: use camera manager if terrain not available
-      if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.screenToWorld === 'function') {
-        var w = window.g_cameraManager.screenToWorld(sx, sy);
-        return { x: w.worldX !== undefined ? w.worldX : (w.x !== undefined ? w.x : sx), y: w.worldY !== undefined ? w.worldY : (w.y !== undefined ? w.y : sy) };
-      }
-      if (typeof CameraController !== 'undefined' && typeof CameraController.screenToWorld === 'function') {
-        var cw = CameraController.screenToWorld(sx, sy);
-        return { x: cw.worldX !== undefined ? cw.worldX : (cw.x !== undefined ? cw.x : sx + (typeof cameraX !== 'undefined' ? cameraX : 0)), y: cw.worldY !== undefined ? cw.worldY : (cw.y !== undefined ? cw.y : sy + (typeof cameraY !== 'undefined' ? cameraY : 0)) };
-      }
-      // Final fallback: assume globals cameraX/cameraY and no zoom
-      var camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : (typeof cameraX !== 'undefined' ? cameraX : 0);
-      var camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : (typeof cameraY !== 'undefined' ? cameraY : 0);
-      return { x: sx + camX, y: sy + camY };
     } catch (e) { return { x: sx, y: sy }; }
   };
 
@@ -330,24 +374,8 @@
         var screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
         return { x: Math.round(screenPos[0]), y: Math.round(screenPos[1]) };
       }
-      
-      // Fallback: use camera manager if terrain not available
-      if (typeof window !== 'undefined' && window.g_cameraManager && typeof window.g_cameraManager.worldToScreen === 'function') {
-        var s = window.g_cameraManager.worldToScreen(wx, wy);
-        return { x: s.screenX !== undefined ? s.screenX : (s.x !== undefined ? s.x : wx), y: s.screenY !== undefined ? s.screenY : (s.y !== undefined ? s.y : wy) };
-      }
-      if (typeof CameraController !== 'undefined' && typeof CameraController.worldToScreen === 'function') {
-        var cs = CameraController.worldToScreen(wx, wy);
-        return { x: cs.screenX !== undefined ? cs.screenX : (cs.x !== undefined ? cs.x : wx - (typeof cameraX !== 'undefined' ? cameraX : 0)), y: cs.screenY !== undefined ? cs.screenY : (cs.y !== undefined ? cs.y : wy - (typeof cameraY !== 'undefined' ? cameraY : 0)) };
-      }
-      // Final fallback: assume globals cameraX/cameraY and no zoom
-      var camX = (typeof window !== 'undefined' && typeof window.cameraX !== 'undefined') ? window.cameraX : (typeof cameraX !== 'undefined' ? cameraX : 0);
-      var camY = (typeof window !== 'undefined' && typeof window.cameraY !== 'undefined') ? window.cameraY : (typeof cameraY !== 'undefined' ? cameraY : 0);
-      return { x: Math.round(wx - camX), y: Math.round(wy - camY) };
     } catch (e) { return { x: wx, y: wy }; }
   };
-
-  // --- NEW CONFIGURATION & QUERY API ---
 
   /**
    * Draw corner indicators for the selection box

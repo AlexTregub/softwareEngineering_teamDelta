@@ -443,6 +443,11 @@ function addGlobalResource(type, amount = 1) {
     logNormal('added resource')
   } catch (e) { /* ignore logging errors */ }
 
+  // Emit EventBus event for UI updates
+  if (typeof window !== 'undefined' && window.eventBus) {
+    window.eventBus.emit('RESOURCE_COUNTS_UPDATED', getResourceTotals());
+  }
+
   return _resourceTotals[type];
 }
 
@@ -467,6 +472,11 @@ function removeGlobalResource(type, amount = 1) {
     logNormal(`[ResourceManager] removeGlobalResource: ${type} -${amt} -> ${_resourceTotals[type] || 0}`);
     logNormal('[ResourceManager] totals:', getResourceTotals());
   } catch (e) { /* ignore logging errors */ }
+
+  // Emit EventBus event for UI updates
+  if (typeof window !== 'undefined' && window.eventBus) {
+    window.eventBus.emit('RESOURCE_COUNTS_UPDATED', getResourceTotals());
+  }
 
   return true;
 }

@@ -1108,7 +1108,6 @@ class camRenderConverter {
      * - RenderController.worldToScreenPosition() - Highlighting and UI elements
      * - SelectionBoxController._worldToScreen() - Selection box rendering
      * - EffectsLayerRenderer - Particle effects
-     * - FireballSystem - Fireball projectile and trail rendering  
      * - LightningSystem - Lightning strike visual effects
      * - CoordinateConverter.worldToScreen() - Global coordinate utility
      * - Ant resource count text rendering

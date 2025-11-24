@@ -11,6 +11,18 @@ class GlobalTime{
         this.lastFrameTime = performance.now();
         this._accumulator = 0;
         this.timeSpeed = 1.0; // Time multiplier (1.0 = normal speed, 2.0 = 2x speed, etc.)
+        
+        // Rain particle emitter for storms
+        this.rainEmitter = null;
+        if (typeof ParticleEmitter !== 'undefined') {
+            this.rainEmitter = new ParticleEmitter({
+                preset: 'heavyRain',
+                x: 0,
+                y: 0,
+                spawnRadius: windowWidth // Override with current window width
+            });
+        }
+        
         console.log(`Global Time System Initialized`);
     }
 
@@ -35,6 +47,21 @@ class GlobalTime{
         }
         if(this.weather){
           this.runWeather();
+          
+          // Update rain emitter during storms
+          if (this.rainEmitter && this.weatherName === 'lightning') {
+              // Position rain emitter at top-center of screen
+              this.rainEmitter.setPosition(windowWidth / 2, -50);
+              if (!this.rainEmitter.isActive()) {
+                  this.rainEmitter.start();
+              }
+              this.rainEmitter.update();
+          }
+        } else {
+            // Stop rain when weather ends
+            if (this.rainEmitter && this.rainEmitter.isActive()) {
+                this.rainEmitter.stop();
+            }
         }
     }
 
@@ -127,6 +154,17 @@ class GlobalTime{
         this.inGameDays += 1; //Increments day counter
         this.inGameSeconds = 0;
     }
+    
+    /**
+     * Render rain particles
+     * Called from sketch draw loop during storms
+     */
+    renderRain() {
+        if (this.weather && this.weatherName === 'lightning' && this.rainEmitter) {
+            this.rainEmitter.render();
+        }
+    }
+    
     runWeather(){
       if(this.weatherName == null){
         this.chance = Math.random();

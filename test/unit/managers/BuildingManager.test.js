@@ -38,9 +38,11 @@ describe('BuildingManager', function() {
     // Mock globals
     global.Buildings = [];
     global.selectables = [];
+    global.ants = []; // Mock ants array for population tracking
     global.antsSpawn = function(count, faction, x, y) {
       global.lastSpawn = { count, faction, x, y };
     };
+    global.MAX_NON_PLAYER_ANTS = 200; // Population limit constant
     global.performance = { now: () => Date.now() };
     global.rand = function(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); };
     global.g_selectionBoxController = { entities: [] };
@@ -49,8 +51,10 @@ describe('BuildingManager', function() {
   afterEach(function() {
     delete global.Buildings;
     delete global.selectables;
+    delete global.ants;
     delete global.antsSpawn;
     delete global.lastSpawn;
+    delete global.MAX_NON_PLAYER_ANTS;
     delete global.rand;
     delete global.g_selectionBoxController;
   });

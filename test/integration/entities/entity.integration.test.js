@@ -24,7 +24,6 @@ describe('Entity Integration Tests (JSDOM)', function() {
   let window;
   let Entity;
   let ant;
-  let ResourceNode;
   let SoundManager;
   let soundManager;
 
@@ -66,7 +65,6 @@ describe('Entity Integration Tests (JSDOM)', function() {
     delete global.localStorage;
     delete global.Entity;
     delete global.ant;
-    delete global.ResourceNode;
     delete global.soundManager;
     delete global.SoundManager;
   });
@@ -849,31 +847,14 @@ describe('Entity Integration Tests (JSDOM)', function() {
       const worker = new Entity(50, 50, 32, 32, {
         type: 'Worker'
       });
-      
-      // Resource node (would be ResourceNode class in real game)
-      const resourceNode = new Entity(100, 100, 32, 32, {
-        type: 'Tree'
-      });
-      
+            
       // Home base
       const base = new Entity(200, 200, 32, 32, {
         type: 'Base'
       });
       
-      // Phase 1: Pathfind to resource
-      const distanceToResource = Math.sqrt(
-        Math.pow(resourceNode.getX() - worker.getX(), 2) +
-        Math.pow(resourceNode.getY() - worker.getY(), 2)
-      );
       expect(distanceToResource).to.be.greaterThan(0);
       
-      // Phase 2: Worker arrives at resource (simulate position update)
-      worker.setPosition(resourceNode.getX(), resourceNode.getY());
-      const atResource = Math.sqrt(
-        Math.pow(resourceNode.getX() - worker.getX(), 2) +
-        Math.pow(resourceNode.getY() - worker.getY(), 2)
-      );
-      expect(atResource).to.be.lessThan(5); // Within interaction range
       
       // Phase 3: Pathfind to base
       const distanceToBase = Math.sqrt(

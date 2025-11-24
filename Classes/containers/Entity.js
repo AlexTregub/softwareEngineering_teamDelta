@@ -12,6 +12,19 @@
  *  - Provide update/render entry points used by the game loop.
  */
 
+// Import EventBus for entity registration
+let eventBus;
+if (typeof window !== 'undefined' && window.eventBus) {
+  eventBus = window.eventBus;
+} else if (typeof require !== 'undefined') {
+  try {
+    const eventBusModule = require('../globals/eventBus');
+    eventBus = eventBusModule.default || eventBusModule;
+  } catch (e) {
+    // EventBus not available
+  }
+}
+
 //Faction setup
 const factionList = {};
 class Entity {
@@ -70,6 +83,27 @@ class Entity {
     // Register with spatial grid manager (if available and not disabled)
     if (options.useSpatialGrid !== false && typeof spatialGridManager !== 'undefined') {
       spatialGridManager.addEntity(this);
+    }
+    
+    // Emit entity registration signal
+    if (eventBus) {
+      const metadata = {};
+      
+      // Add type-specific metadata
+      if (this._type === 'ant' || this._type === 'Ant' || this._type === 'Queen') {
+        metadata.jobName = options.JobName || this._JobName || 'Scout';
+      } else if (this._type === 'Resource') {
+        metadata.resourceType = this._resourceType || options.resourceType || 'unknown';
+      } else if (this._type === 'Building') {
+        metadata.buildingType = this.buildingType || options.buildingType || 'unknown';
+      }
+      
+      eventBus.emit('ENTITY_REGISTERED', {
+        type: this._type.toLowerCase(),
+        id: this._id,
+        faction: this._faction || options.faction || 'neutral',
+        metadata: metadata
+      });
     }
   }
 
@@ -227,6 +261,7 @@ class Entity {
    * @returns {{x: number, y: number}} Screen coordinates
    */
   getScreenPosition() {
+    // Get world position from transform controller
     const worldPos = this.getPosition();
     let screenX = worldPos.x;
     let screenY = worldPos.y;
@@ -238,7 +273,7 @@ class Entity {
       const tileX = worldPos.x / TILE_SIZE;
       const tileY = worldPos.y / TILE_SIZE;
       
-      // Use terrain's converter to get screen position (handles Y-axis inversion)
+      // Use terrain's converter to get screen position (handles Y-axis inversion and camera)
       const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
       screenX = screenPos[0];
       screenY = screenPos[1];
@@ -844,6 +879,27 @@ class Entity {
   // --- Cleanup ---
   /** Mark entity inactive; controllers will be released for GC. */
   destroy() { 
+    // Emit entity unregistration signal BEFORE marking inactive
+    if (eventBus && this._isActive) {
+      const metadata = {};
+      
+      // Add type-specific metadata
+      if (this._type === 'ant' || this._type === 'Ant' || this._type === 'Queen') {
+        metadata.jobName = this._JobName || 'Scout';
+      } else if (this._type === 'Resource') {
+        metadata.resourceType = this._resourceType || 'unknown';
+      } else if (this._type === 'Building') {
+        metadata.buildingType = this.buildingType || 'unknown';
+      }
+      
+      eventBus.emit('ENTITY_UNREGISTERED', {
+        type: this._type.toLowerCase(),
+        id: this._id,
+        faction: this._faction || 'neutral',
+        metadata: metadata
+      });
+    }
+    
     this._isActive = false;
     
     // Remove from spatial grid

@@ -53,7 +53,6 @@
     <!-- Core Systems -->
     <script src="Classes/systems/CoordinateConverter.js"></script>
     <script src="Classes/systems/MouseCrosshair.js"></script>
-    <script src="Classes/systems/ResourceNode.js"></script>
     <script src="Classes/managers/ResourceSystemManager.js"></script>
     <script src="Classes/managers/BuildingManager.js"></script>
     <script src="Classes/managers/QuestManager.js"></script>
@@ -66,7 +65,6 @@
     <script src="Classes/managers/ResourceManager.js"></script>
     <script src="Classes/systems/CollisionBox2D.js"></script>
     <script src="Classes/systems/Button.js"></script>
-    <script src="Classes/systems/combat/FireballSystem.js"></script>
     <script src="Classes/managers/GameEvents.js"></script>
 
     <!-- Universal Button Group System -->
@@ -83,17 +81,18 @@
     
     
     <!-- Combat Systems -->
-    <!--<script src="Classes/systems/combat/FireballSystem.js"></script>-->
     <script src="Classes/systems/combat/LightningSystem.js"></script>
     <!--<script src="Classes/systems/combat/FlashSystem.js"></script>-->
     <!-- <script src="Classes/managers/powerManager.js"></script> -->
     
     <!-- Brush Tools -->
+  <script src="Classes/systems/ParticleEmitter.js"></script>
   <script src="Classes/systems/tools/BrushBase.js"></script>
     <script src="Classes/systems/tools/EnemyAntBrush.js"></script>
     <script src="Classes/systems/tools/ResourceBrush.js"></script>
     <script src="Classes/systems/tools/BuildingBrush.js"></script>
     <script src="Classes/systems/tools/LightningAimBrush.js"></script>
+    <script src="Classes/systems/tools/FireballAimBrush.js"></script>
     <script src="Classes/managers/PowerBrushManager.js"></script>
     <!--<script src="Classes/systems/tools/FlashAimBrush.js"></script>-->
     
@@ -114,13 +113,17 @@
     <script src="Classes/controllers/SelectionController.js"></script>
     <script src="Classes/controllers/TerrainController.js"></script>
     <script src="Classes/controllers/MouseInputController.js"></script>
+    <script src="Classes/controllers/mouseEventHandlers.js"></script>
     <script src="Classes/controllers/KeyboardInputController.js"> </script>
+    <script src="Classes/controllers/keyboardEventHandlers.js"></script>
+    <script src="Classes/controllers/p5EventHandlers.js"></script>
     <script src="Classes/controllers/SelectionBoxController.js"></script>
     <script src="Classes/controllers/UISelectionController.js"></script>
     <script src="Classes/controllers/InventoryController.js"></script>
     <!-- HealthController.js manages the health state and logic for entities; added to support entity health tracking and updates. -->
     <script src="Classes/controllers/HealthController.js"></script>
     <script src="Classes/controllers/AntUtilities.js"></script>
+    <script src="Classes/systems/entityUtils.js"></script>
 
     <!-- <script src="Classes/coordinateSystem.js"></script> -->
     <script src="Classes/containers/DropoffLocation.js"></script>
@@ -128,6 +131,7 @@
     <script src="Classes/systems/ui/verticalButtonList.js"></script>
     <script src="Classes/systems/ui/pauseMenu.js"></script>
     <script src="debug/menu_debug.js"></script>
+    <script src="debug/debugRenderingHelpers.js"></script>
    
     
     <!-- Universal Button System Integration -->
@@ -153,6 +157,7 @@
     <script src="Classes/ants/GatherState.js"></script>
     <script src="Classes/systems/GatherDebugRenderer.js"></script>
     <script src="Classes/ants/ants.js"></script>
+    <script src="Classes/ants/AntFactory.js"></script>
     <script src="Classes/ants/antBrain.js"></script>
     <script src="Classes/ants/antStateMachine.js"></script>
     <script src="Classes/ants/Queen.js"></script>
@@ -207,6 +212,7 @@
     <script src="Classes/ui/menuBar/BrushSizeMenuModule.js"></script>
     <script src="Classes/ui/SelectionManager.js"></script>
     <script src="Classes/ui/HoverPreviewManager.js"></script>
+    <script src="Classes/ui/AntCountDisplayComponent.js"></script>
     <script src="Classes/systems/ui/EventEditorPanel.js"></script>
     <script src="Classes/systems/ui/LevelEditor.js"></script>
     <script src="Classes/systems/ui/LevelEditorPanels.js"></script>
@@ -222,6 +228,37 @@
     <!-- <script src="debug/coordinateSystemTest.js"></script> -->
     <script src="debug/terrainGridDebug.js"></script>
     <script src="debug/test_getOrCreatePanel.js"></script>
+    
+    <!-- EventBus and EntityManager -->
+    <script src="Classes/globals/eventBus.js"></script>
+    <script src="Classes/globals/entityManager.js"></script>
+    <script src="Classes/globals/windowInitializer.js"></script>
+    
+    <!-- New UI Components -->
+    <script src="Classes/ui_new/components/informationLine.js"></script>
+    <script src="Classes/ui_new/components/arrowComponent.js"></script>
+    <script src="Classes/ui_new/components/dropdownMenu.js"></script>
+    <script src="Classes/ui_new/components/gameUIOverlay.js"></script>
+    <script src="Classes/ui_new/components/antCountDropDown.js"></script>
+    <script src="Classes/ui_new/components/resourceCountDisplay.js"></script>
+    
+    <!-- Power Button Panel (MVC Components) -->
+    <script src="Classes/ui_new/components/UICoordinateConverter.js"></script>
+    <script src="Classes/ui_new/components/PowerButtonModel.js"></script>
+    <script src="Classes/ui_new/components/PowerButtonView.js"></script>
+    <script src="Classes/ui_new/components/PowerButtonController.js"></script>
+    <script src="Classes/ui_new/components/PowerButtonPanel.js"></script>
+    
+    <!-- Day/Night Cycle Box -->
+    <script src="Classes/ui_new/components/DayNightCycleBox.js"></script>
+    
+    <!-- Weather Box -->
+    <script src="Classes/ui_new/components/WeatherBox.js"></script>
+    
+    <!-- Ant Selection Bar -->
+    <script src="Classes/ui_new/components/AntSelectionBar.js"></script>
+    
+    <script src="Classes/ui_new/gameUIOverlaySystem.js"></script>
   </head>
 
   <body>

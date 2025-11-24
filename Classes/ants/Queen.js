@@ -42,6 +42,16 @@ class QueenAnt extends ant {
       tidalWave: false,
       finalFlash: true
     };
+    
+    // Power levels (1-3, determines strength/effects)
+    this.powerLevels = {
+      fireball: 1,
+      lightning: 1,
+      blackhole: 1,
+      sludge: 1,
+      tidalWave: 1,
+      finalFlash: 1
+    };
   }
 
   // --- ANT MANAGEMENT ---
@@ -144,6 +154,31 @@ class QueenAnt extends ant {
     return { ...this.unlockedPowers };
   }
 
+  // --- POWER LEVEL MANAGEMENT ---
+  
+  setPowerLevel(powerName, level) {
+    if (this.powerLevels.hasOwnProperty(powerName)) {
+      this.powerLevels[powerName] = Math.max(1, Math.min(3, level));
+      logNormal(`👑 Queen set ${powerName} to level ${this.powerLevels[powerName]}`);
+      
+      // Update the corresponding manager's level if it exists
+      if (powerName === 'lightning' && typeof window.g_lightningManager !== 'undefined' && window.g_lightningManager) {
+        window.g_lightningManager.setLevel(this.powerLevels[powerName]);
+      }
+      
+      return true;
+    }
+    return false;
+  }
+  
+  getPowerLevel(powerName) {
+    return this.powerLevels[powerName] || 1;
+  }
+  
+  getAllPowerLevels() {
+    return { ...this.powerLevels };
+  }
+
   // --- MOVEMENT OVERRIDE ---
 
   move(direction) {
@@ -212,4 +247,57 @@ class QueenAnt extends ant {
       pop();
     }
   }
+}
+
+// Window helper command for upgrading powers
+if (typeof window !== 'undefined') {
+  window.upgradePower = function(powerName, level) {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.error('❌ Queen not found! Make sure the game is running.');
+      return false;
+    }
+    
+    if (!level) {
+      console.log('📊 Current power levels:', queen.getAllPowerLevels());
+      console.log('💡 Usage: window.upgradePower("lightning", 2)');
+      return queen.getAllPowerLevels();
+    }
+    
+    const success = queen.setPowerLevel(powerName, level);
+    if (success) {
+      console.log(`✅ ${powerName} upgraded to level ${queen.getPowerLevel(powerName)}`);
+      
+      // Visual feedback
+      if (powerName === 'lightning') {
+        const rangeInTiles = 7 + ((level - 1) * 7);
+        if (level === 2) {
+          console.log('⚡⚡⚡ Lightning now fires THREE bolts in sequence!');
+          console.log(`📏 Range increased to ${rangeInTiles} tiles (${rangeInTiles * 32}px)`);
+        } else if (level === 3) {
+          console.log('⚡⚡⚡ Lightning Level 3!');
+          console.log(`📏 Range increased to ${rangeInTiles} tiles (${rangeInTiles * 32}px)`);
+        }
+      }
+    } else {
+      console.error(`❌ Failed to upgrade ${powerName}. Available powers:`, Object.keys(queen.powerLevels));
+    }
+    return success;
+  };
+  
+  // Also add a shortcut for checking levels
+  window.showPowerLevels = function() {
+    const queen = typeof getQueen === 'function' ? getQueen() : null;
+    if (!queen) {
+      console.error('❌ Queen not found!');
+      return;
+    }
+    const levels = queen.getAllPowerLevels();
+    console.log('📊 Power Levels:');
+    for (const [power, level] of Object.entries(levels)) {
+      const unlocked = queen.isPowerUnlocked(power) ? '✅' : '🔒';
+      console.log(`  ${unlocked} ${power}: Level ${level}`);
+    }
+    return levels;
+  };
 }
