@@ -339,7 +339,11 @@ _getFallbackJobStats(jobName) {
   _onStateChange(oldState, newState) {
     // When entering DROPPING_OFF, find nearest dropoff and move there
     if (typeof newState === 'string' && newState.includes("DROPPING_OFF")) {
-      this._goToNearestDropoff();
+      const list = (window && window.dropoffs) ? window.dropoffs :
+                   (typeof dropoffs !== 'undefined' ? dropoffs : []);
+      if (Array.isArray(list) && list.length > 0) {
+        this._goToNearestDropoff();
+      }
     }
     // leaving dropoff clears target
     if (typeof oldState === 'string' && oldState.includes("DROPPING_OFF") && !(typeof newState === 'string' && newState.includes("DROPPING_OFF"))) {
