@@ -75,6 +75,11 @@ class PowerButtonView {
     
     this.p5.push();
     
+    // Render hover highlight (behind button)
+    if (this.renderHoverHighlight) {
+      this._renderHoverHighlight();
+    }
+    
     // Apply tint if locked or on cooldown
     if (isLocked || isCooldown) {
       this.p5.tint(
@@ -232,6 +237,20 @@ class PowerButtonView {
    */
   getSize() {
     return this.size;
+  }
+
+  /**
+   * Render hover highlight (glowing border)
+   * @private
+   */
+  _renderHoverHighlight() {
+    this.p5.push();
+    this.p5.noFill();
+    this.p5.stroke(255, 255, 100, 200); // Yellow glow
+    this.p5.strokeWeight(3);
+    this.p5.rectMode(this.p5.CENTER);
+    this.p5.rect(this.x, this.y, this.size + 8, this.size + 8, 8);
+    this.p5.pop();
   }
 
   /**

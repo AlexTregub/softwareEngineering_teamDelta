@@ -47,6 +47,90 @@ function preload(){
   terrariaFont = loadFont('Images/Assets/Terraria.TTF');
 }
 
+/**
+ * Initialize power activation event handlers
+ * Connects PowerButtonPanel clicks to actual power systems
+ */
+function initializePowerActivationHandlers() {
+  if (typeof window.eventBus === 'undefined') {
+    console.warn('⚠️ EventBus not available - power activation handlers not initialized');
+    return;
+  }
+  
+  // Ensure lightning system is initialized
+  if (typeof initializeLightningSystem === 'function' && !window.g_lightningManager) {
+    initializeLightningSystem();
+  }
+  
+  // Ensure final flash system is initialized
+  if (typeof initializeFlashSystem === 'function' && !window.g_flashManager) {
+    initializeFlashSystem();
+  }
+  
+  // Listen for power activation events from PowerButtonPanel
+  window.eventBus.on('power:activated', (data) => {
+    const { powerName, timestamp } = data;
+    console.log(`⚡ Power activated: ${powerName}`);
+    
+    switch(powerName) {
+      case 'lightning':
+        if (window.g_lightningManager && typeof window.g_lightningManager.requestStrike === 'function') {
+          // Get target: selected ant or mouse position
+          let targetX = mouseX;
+          let targetY = mouseY;
+          
+          // Try to get selected ant as target
+          if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+            const selected = g_selectionBoxController.getSelectedEntities();
+            if (selected && selected.length > 0) {
+              const firstAnt = selected.find(e => e && e.isAnt);
+              if (firstAnt) {
+                const pos = firstAnt.getPosition ? firstAnt.getPosition() : { x: firstAnt.x, y: firstAnt.y };
+                targetX = pos.x;
+                targetY = pos.y;
+              }
+            }
+          }
+          
+          window.g_lightningManager.requestStrike({ x: targetX, y: targetY });
+        }
+        break;
+        
+      case 'fireball':
+        // TODO: Implement fireball power system
+        console.log('🔥 Fireball power not yet implemented');
+        break;
+        
+      case 'finalFlash':
+        if (window.g_flashManager && typeof window.g_flashManager.requestStrike === 'function') {
+          // Get target: selected ant or mouse position
+          let targetX = mouseX;
+          let targetY = mouseY;
+          
+          // Try to get selected ant as target
+          if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+            const selected = g_selectionBoxController.getSelectedEntities();
+            if (selected && selected.length > 0) {
+              const firstAnt = selected.find(e => e && e.isAnt);
+              if (firstAnt) {
+                const pos = firstAnt.getPosition ? firstAnt.getPosition() : { x: firstAnt.x, y: firstAnt.y };
+                targetX = pos.x;
+                targetY = pos.y;
+              }
+            }
+          }
+          
+          window.g_flashManager.requestStrike({ x: targetX, y: targetY });
+        }
+        break;
+        
+      default:
+        console.warn(`⚠️ Unknown power: ${powerName}`);
+    }
+  });
+  
+  console.log('✅ Power activation handlers initialized');
+}
 
 function setup() {
   createCanvas(windowWidth,windowHeight) 
@@ -88,6 +172,9 @@ function setup() {
   
   // Register global references for testing/debugging access
   registerGlobalReferences();
+  
+  // Initialize power activation handlers (EventBus integration)
+  initializePowerActivationHandlers();
   
   // Register all components with RenderManager (must be last for proper priority)
   registerWithRenderManager();
@@ -195,7 +282,7 @@ function initializeWorld() {
     sprites: {} // Auto-loads from JobImages global
   });
   registerWithRenderManager();
-  initializeGameUISystem(window); 
+  initializeGameUISystem(window);
 
   // Main hive, initial, anthill
   Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive

@@ -31,6 +31,11 @@ function initializeGameUIOverlay() {
         return null;
     }
     
+    if (typeof MiniMap === 'undefined') {
+        console.error('❌ MiniMap class not found');
+        return null;
+    }
+    
     if (typeof RenderManager === 'undefined') {
         console.error('❌ RenderManager not found');
         return null;
@@ -40,21 +45,33 @@ function initializeGameUIOverlay() {
     const p5Instance = window;
 
     window.antCountDropdown = new AntCountDropDown(p5Instance, {
-      x: 20,
-      y: 80,
+      normalizedX: -0.8,  // 80% left from center
+      normalizedY: 0.85,  // 85% up from center
       faction: 'player'
     });
   
     window.resourceCountDisplay = new ResourceCountDisplay(p5Instance, {
+      normalizedX: 0,     // Centered horizontally
+      normalizedY: 0.95,  // 95% up from center (near top)
       height: 40 
     });
     
     window.powerButtonPanel = new PowerButtonPanel(p5Instance, {
-      y: 60,
-      powers: ['lightning', 'fireball', 'finalFlash']
+      normalizedX: 0,  // 70% right from center (right side)
+      normalizedY: -.9,  // 80% up from center (near top)
+      powers: ['lightning', 'fireball']
     });
     
-    console.log('✅ PowerButtonPanel created:', window.powerButtonPanel);
+    // Initialize MiniMap with active terrain
+    if (window.g_activeMap) {
+        const terrain = window.g_activeMap;
+        window.g_miniMap = new MiniMap(terrain, 200, 200, {
+            normalizedX: 0.9,   // 90% right from center
+            normalizedY: -0.8   // 80% down from center (bottom-right)
+        });
+    } else {
+        console.warn('⚠️ No terrain map available for MiniMap');
+    }
 
     UIRegisterWithRenderer(p5Instance);
     
@@ -62,7 +79,8 @@ function initializeGameUIOverlay() {
     window.g_gameUIOverlay = {
         antCountDropdown: window.antCountDropdown,
         resourceCountDisplay: window.resourceCountDisplay,
-        powerButtonPanel: window.powerButtonPanel
+        powerButtonPanel: window.powerButtonPanel,
+        miniMap: window.g_miniMap
     };
     
     return window.g_gameUIOverlay;
@@ -82,9 +100,22 @@ function UIRegisterWithRenderer(p5Instance) {
             window.powerButtonPanel.update();
             window.powerButtonPanel.render();
         }
+        if (window.g_miniMap) {
+            window.g_miniMap.update();
+            // Render using normalized position stored in minimap
+            window.g_miniMap.render(window.g_miniMap.x, window.g_miniMap.y);
+        }
     });
     
     console.log('✅ UI components registered with RenderManager');
+    
+    // Register interactive elements (order matters - last registered = highest priority)
+    
+    // Register ant count dropdown
+    if (window.antCountDropdown && window.antCountDropdown.registerInteractive) {
+        window.antCountDropdown.registerInteractive();
+        console.log('✅ AntCountDropDown interactive registration complete');
+    }
     
     // Register interactive panel
     if (window.powerButtonPanel && window.powerButtonPanel.registerInteractive) {
@@ -92,6 +123,14 @@ function UIRegisterWithRenderer(p5Instance) {
         console.log('✅ PowerButtonPanel interactive registration complete');
     } else {
         console.warn('⚠️ PowerButtonPanel.registerInteractive not available');
+    }
+    
+    // Register minimap interactive
+    if (window.g_miniMap && window.g_miniMap.registerInteractive) {
+        window.g_miniMap.registerInteractive();
+        console.log('✅ MiniMap interactive registration complete');
+    } else {
+        console.warn('⚠️ MiniMap.registerInteractive not available');
     }
 }
 

@@ -23,6 +23,9 @@ class ResourceCountDisplay {
     constructor(p5Instance, options = {}) {
         this.p5 = p5Instance;
         
+        // Coordinate converter for normalized UI positioning
+        this.coordConverter = new UICoordinateConverter(p5Instance);
+        
         // Position and sizing
         this.height = options.height ?? 40;
         this.iconSize = options.iconSize ?? 24;
@@ -32,9 +35,14 @@ class ResourceCountDisplay {
         // Calculate width first
         this._calculateWidth();
         
-        // Center horizontally at top of screen if no x provided
-        this.x = options.x ?? (this.p5.width / 2 - this.width / 2);
-        this.y = options.y ?? 10;
+        // Position in normalized coordinates (default: top-center)
+        const normalizedX = options.normalizedX !== undefined ? options.normalizedX : 0;
+        const normalizedY = options.normalizedY !== undefined ? options.normalizedY : 0.95;
+        const screenPos = this.coordConverter.normalizedToScreen(normalizedX, normalizedY);
+        
+        // Center panel on position
+        this.x = screenPos.x - this.width / 2;
+        this.y = screenPos.y - this.height / 2;
         
         // Styling
         this.bgColor = options.bgColor ?? 'rgba(0, 0, 0, 0.7)';

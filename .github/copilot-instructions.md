@@ -406,6 +406,62 @@ When refactoring UI components to use RenderManager, **ALWAYS**:
 3. **Use `pointer.screen.x/y`** for UI_GAME/UI_MENU layers (screen coords)
 4. **Check GameState** in hitTest/onPointerDown (e.g., `PLAYING` for game UI)
 
+**⚠️ CRITICAL: Normalized UI Coordinate System**
+
+**ALL UI components MUST use normalized coordinates** for resolution independence:
+
+**Coordinate System**:
+- `(0, 0)` = **center of screen**
+- `(-1, -1)` = **bottom-left corner**
+- `(1, 1)` = **top-right corner**
+- X-axis: `-1` (left) to `1` (right)
+- Y-axis: `-1` (bottom) to `1` (top) - **inverted from screen pixels!**
+
+**Implementation Pattern**:
+```javascript
+// In component constructor
+class MyUIComponent {
+  constructor(p5Instance, options = {}) {
+    this.p5 = p5Instance;
+    
+    // ALWAYS add coordinate converter
+    this.coordConverter = new UICoordinateConverter(p5Instance);
+    
+    // Calculate dimensions first
+    this.width = calculateWidth();
+    this.height = calculateHeight();
+    
+    // Use normalized coordinates (default values)
+    const normalizedX = options.normalizedX !== undefined ? options.normalizedX : 0;
+    const normalizedY = options.normalizedY !== undefined ? options.normalizedY : 0.9;
+    
+    // Convert to screen coordinates
+    const screenPos = this.coordConverter.normalizedToScreen(normalizedX, normalizedY);
+    
+    // Center component on position
+    this.x = screenPos.x - this.width / 2;
+    this.y = screenPos.y - this.height / 2;
+  }
+}
+
+// In initialization (gameUIOverlaySystem.js or sketch.js)
+const myComponent = new MyUIComponent(p5Instance, {
+  normalizedX: 0.7,   // 70% right from center
+  normalizedY: 0.8,   // 80% up from center
+  // ... other options
+});
+```
+
+**Common Normalized Positions**:
+- Top-left: `normalizedX: -0.8, normalizedY: 0.85`
+- Top-center: `normalizedX: 0, normalizedY: 0.95`
+- Top-right: `normalizedX: 0.7, normalizedY: 0.8`
+- Bottom-left: `normalizedX: -0.8, normalizedY: -0.85`
+- Bottom-right: `normalizedX: 0.8, normalizedY: -0.85`
+- Center: `normalizedX: 0, normalizedY: 0`
+
+**DO NOT use pixel coordinates** (`x`, `y`) in new UI components. Always use `normalizedX` and `normalizedY`.
+
 **Common mistake**: Refactoring registration pattern to new components but forgetting to update old components still in use. If interactive elements stop working after refactoring, check if the component has `registerInteractive()` method and if it's being called.
 
 **Example pattern**:

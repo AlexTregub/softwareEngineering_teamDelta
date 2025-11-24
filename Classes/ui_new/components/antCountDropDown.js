@@ -45,8 +45,8 @@ class AntCountDropDown {
         this.menu = new DropDownMenu(p5Instance, {
             titleLine: titleLine,
             position: {
-                x: options.position?.x ?? -350,
-                y: options.position?.y ?? -250
+                x: 1920,
+                y: 1080
             },
             size: {
                 width: options.size?.width ?? 200,

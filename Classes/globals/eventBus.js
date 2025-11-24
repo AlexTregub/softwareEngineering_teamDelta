@@ -61,8 +61,10 @@ class EventBus {
 // Only create eventBus if it doesn't already exist
 if (typeof window !== 'undefined' && !window.eventBus) {
     window.eventBus = new EventBus();
+    console.log('✅ EventBus initialized on window.eventBus');
 } else if (typeof global !== 'undefined' && !global.eventBus) {
     global.eventBus = new EventBus();
+    console.log('✅ EventBus initialized on global.eventBus');
 }
 
 // Export for Node.js test environments only

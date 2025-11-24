@@ -125,7 +125,7 @@ class PowerButtonModel {
    */
   _generateDefaultSpritePath(powerName) {
     const sanitizedName = powerName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return `Images/Assets/${sanitizedName}_button.png`;
+    return `Images/powers/${sanitizedName}_power_button.png`;
   }
 }
 

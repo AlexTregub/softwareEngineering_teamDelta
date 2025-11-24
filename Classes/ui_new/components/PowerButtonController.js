@@ -27,6 +27,7 @@ class PowerButtonController {
     
     // Controller state
     this.enabled = true;
+    this.isHovered = false;
     
     // Cooldown tracking
     this.cooldownStartTime = 0;
@@ -41,20 +42,20 @@ class PowerButtonController {
    * @private
    */
   _registerEventListeners() {
-    if (typeof eventBus === 'undefined') {
+    if (typeof window.eventBus === 'undefined') {
       console.warn('eventBus not available - PowerButtonController running without event integration');
       return;
     }
 
     // Listen for cooldown start events
-    eventBus.on('power:cooldown:start', (data) => {
+    window.eventBus.on('power:cooldown:start', (data) => {
       if (data.powerName === this.model.getPowerName()) {
         this.startCooldown(data.duration);
       }
     });
 
     // Listen for cooldown end events
-    eventBus.on('power:cooldown:end', (data) => {
+    window.eventBus.on('power:cooldown:end', (data) => {
       if (data.powerName === this.model.getPowerName()) {
         this.endCooldown();
       }
@@ -139,8 +140,8 @@ class PowerButtonController {
       this.endCooldown();
       
       // Emit cooldown end event
-      if (typeof eventBus !== 'undefined') {
-        eventBus.emit('power:cooldown:end', {
+      if (typeof window.eventBus !== 'undefined') {
+        window.eventBus.emit('power:cooldown:end', {
           powerName: this.model.getPowerName(),
           timestamp: currentTime
         });
@@ -163,16 +164,21 @@ class PowerButtonController {
       return false;
     }
 
+    console.log(`🔘 Button hit: ${this.model.getPowerName()}, locked: ${this.model.getIsLocked()}, cooldown: ${this.model.getCooldownProgress()}`);
+
     // Check if power can be activated
     if (this.model.getIsLocked()) {
+      console.log(`🔒 Power ${this.model.getPowerName()} is locked`);
       return false; // Locked
     }
 
     if (this.model.getCooldownProgress() > 0) {
+      console.log(`⏳ Power ${this.model.getPowerName()} on cooldown: ${this.model.getCooldownProgress()}`);
       return false; // On cooldown
     }
 
     // Activate power
+    console.log(`⚡ Activating power: ${this.model.getPowerName()}`);
     this._activatePower();
     return true;
   }
@@ -182,15 +188,31 @@ class PowerButtonController {
    * @private
    */
   _activatePower() {
-    if (typeof eventBus === 'undefined') {
+    if (typeof window.eventBus === 'undefined') {
       console.warn('Cannot activate power - eventBus not available');
       return;
     }
 
-    eventBus.emit('power:activated', {
+    window.eventBus.emit('power:activated', {
       powerName: this.model.getPowerName(),
       timestamp: typeof millis === 'function' ? millis() : Date.now()
     });
+  }
+
+  /**
+   * Set hover state
+   * @param {boolean} hovered - True if mouse is over button
+   */
+  setHovered(hovered) {
+    this.isHovered = Boolean(hovered);
+  }
+
+  /**
+   * Get hover state
+   * @returns {boolean} True if mouse is over button
+   */
+  getIsHovered() {
+    return this.isHovered;
   }
 
   /**
@@ -205,10 +227,10 @@ class PowerButtonController {
    * Cleanup resources (unregister event listeners)
    */
   cleanup() {
-    if (typeof eventBus === 'undefined') return;
+    if (typeof window.eventBus === 'undefined') return;
 
-    eventBus.off('power:cooldown:start');
-    eventBus.off('power:cooldown:end');
+    window.eventBus.off('power:cooldown:start');
+    window.eventBus.off('power:cooldown:end');
   }
 
   /**

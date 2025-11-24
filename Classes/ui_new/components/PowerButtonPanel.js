@@ -27,6 +27,9 @@ class PowerButtonPanel {
   constructor(p5Instance, options = {}) {
     this.p5 = p5Instance;
     
+    // Coordinate converter for normalized UI positioning
+    this.coordConverter = new UICoordinateConverter(p5Instance);
+    
     // Configuration
     this.buttonSize = options.buttonSize || 64;
     this.buttonSpacing = options.buttonSpacing || 20;
@@ -40,9 +43,15 @@ class PowerButtonPanel {
     this.width = this._calculateWidth();
     this.height = this.buttonSize + (this.padding * 2);
     
-    // Position (center horizontally if not provided)
-    this.x = options.x !== undefined ? options.x : (this.p5.width / 2 - this.width / 2);
-    this.y = options.y !== undefined ? options.y : 60;
+    // Position in normalized coordinates (default: top-right, slightly inset)
+    // Normalized coords: (-1,-1) = BL, (0,0) = center, (1,1) = TR
+    const normalizedX = options.normalizedX !== undefined ? options.normalizedX : 0.7;
+    const normalizedY = options.normalizedY !== undefined ? options.normalizedY : 0.8;
+    
+    // Convert normalized to screen coordinates
+    const screenPos = this.coordConverter.normalizedToScreen(normalizedX, normalizedY);
+    this.x = screenPos.x - this.width / 2; // Center panel on position
+    this.y = screenPos.y - this.height / 2;
     
     // Create button MVC triads
     this.buttons = [];
@@ -50,6 +59,16 @@ class PowerButtonPanel {
     
     // Update state
     this.enabled = true;
+    
+    // DEBUG: Log panel creation details
+    console.log('🎨 PowerButtonPanel created:');
+    console.log(`   Position: (${this.x.toFixed(1)}, ${this.y.toFixed(1)})`);
+    console.log(`   Size: ${this.width}x${this.height}`);
+    console.log(`   Normalized coords: (${normalizedX}, ${normalizedY})`);
+    console.log(`   Buttons: ${this.buttons.length}`);
+    this.buttons.forEach((btn, idx) => {
+      console.log(`     ${idx}. ${btn.powerName}: (${btn.view.x.toFixed(1)}, ${btn.view.y.toFixed(1)}) size=${btn.view.size}`);
+    });
   }
 
   /**
@@ -168,20 +187,37 @@ class PowerButtonPanel {
    * @returns {boolean} True if click was handled
    */
   handleClick(x, y) {
-    if (!this.enabled) return false;
-
-    // Check if click is inside panel bounds
-    if (!this._isPointInPanel(x, y)) {
+    console.log(`🖱️ PowerButtonPanel.handleClick at (${x}, ${y})`);
+    
+    if (!this.enabled) {
+      console.log('   ❌ Panel disabled');
       return false;
     }
 
+    // Check if click is inside panel bounds
+    if (!this._isPointInPanel(x, y)) {
+      console.log(`   ❌ Outside panel bounds (${this.x}-${this.x + this.width}, ${this.y}-${this.y + this.height})`);
+      return false;
+    }
+
+    console.log(`   ✅ Inside panel bounds`);
+
     // Check each button
     for (const button of this.buttons) {
+      const btnX = button.view.x;
+      const btnY = button.view.y;
+      const btnSize = button.view.size;
+      const inButton = button.view.isPointInside(x, y);
+      
+      console.log(`   Testing ${button.powerName}: (${btnX.toFixed(1)}, ${btnY.toFixed(1)}) size=${btnSize}, hit=${inButton}`);
+      
       if (button.controller.handleClick(x, y)) {
+        console.log(`   ✅ Button ${button.powerName} handled click!`);
         return true; // Button handled click
       }
     }
 
+    console.log('   ⚠️ Click inside panel but no button responded');
     return false;
   }
 
@@ -234,6 +270,8 @@ class PowerButtonPanel {
       return;
     }
 
+    console.log('📝 Registering PowerButtonPanel as interactive drawable...');
+
     RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
       id: 'power-button-panel',
       hitTest: (pointer) => {
@@ -242,7 +280,23 @@ class PowerButtonPanel {
         }
         const x = pointer.screen ? pointer.screen.x : pointer.x;
         const y = pointer.screen ? pointer.screen.y : pointer.y;
-        return this._isPointInPanel(x, y);
+        
+        // Check if mouse is over any button and update hover states
+        let anyButtonHovered = false;
+        this.buttons.forEach(button => {
+          const isOver = button.view.isPointInside(x, y);
+          button.controller.setHovered(isOver);
+          if (isOver) {
+            anyButtonHovered = true;
+            button.view.renderHoverHighlight = true;
+          } else {
+            button.view.renderHoverHighlight = false;
+          }
+        });
+        
+        // Return true if hovering over panel or any button
+        const hit = this._isPointInPanel(x, y) || anyButtonHovered;
+        return hit;
       },
       onPointerDown: (pointer) => {
         if (typeof GameState !== 'undefined' && GameState.getState && GameState.getState() !== 'PLAYING') {
@@ -250,9 +304,12 @@ class PowerButtonPanel {
         }
         const x = pointer.screen ? pointer.screen.x : pointer.x;
         const y = pointer.screen ? pointer.screen.y : pointer.y;
+        console.log(`👆 PowerButtonPanel.onPointerDown at (${x}, ${y})`);
         return this.handleClick(x, y);
       }
     });
+
+    console.log('✅ PowerButtonPanel registered as interactive drawable');
   }
 }
 

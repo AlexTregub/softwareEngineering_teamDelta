@@ -170,10 +170,14 @@ function mousePressed() {
   // Forward to RenderManager interactive dispatch (gives adapters priority)
   console.log('📡 About to call RenderManager.dispatchPointerEvent with', { x: mouseX, y: mouseY });
   try {
-    const consumed = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
-    console.log('📡 RenderManager.dispatchPointerEvent returned:', consumed);
-    if (consumed) {
-      console.log('✅ Mouse click consumed by RenderManager');
+    const result = RenderManager.dispatchPointerEvent('pointerdown', { x: mouseX, y: mouseY, isPressed: true });
+    console.log('📡 RenderManager.dispatchPointerEvent returned:', result);
+    if (result && typeof result === 'object' && result.consumed) {
+      console.log(`✅ Mouse click consumed by: ${result.consumedBy} on layer ${result.layer}`);
+      logVerbose(`🖱️ Mouse click consumed by ${result.consumedBy}`);
+      return; // consumed by an interactive (buttons/panels/etc.)
+    } else if (result === true) {
+      console.log('✅ Mouse click consumed by RenderManager (unknown interactive)');
       logVerbose('🖱️ Mouse click consumed by RenderManager');
       return; // consumed by an interactive (buttons/panels/etc.)
     }
