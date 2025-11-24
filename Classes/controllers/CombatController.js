@@ -138,12 +138,13 @@ class CombatController {
     for (let i = 0; i < Buildings.length; i++) {
       const building = Buildings[i];
       if (!building) continue;
-      if (building.faction === entityFaction || entityFaction === "neutral" || building.faction === "neutral" || building._isDead) {
+      if (building._faction === entityFaction || entityFaction === "neutral" || building._faction === "neutral" || building._isDead) {
         continue;
       }
 
       const distance = this.calculateDistance(this._entity, building);
       if (distance <= this._detectionRadius) {
+        console.log("Checking building:", building._faction);
         this._nearbyEnemies.push(building);
       }
     }

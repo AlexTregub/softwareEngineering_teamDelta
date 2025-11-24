@@ -173,7 +173,24 @@ function setup() {
 
   // Game Event
   gameEventManager = new GameEventManager();
-  gameEventManager.startEvent('Wave'); // Waves / Additional hives...
+  gameEventManager.startEvent('AntHive'); // Waves / Additional hives...
+  gameEventManager.startEvent('Boss'); 
+
+
+
+  console.log("SAMPLING EXAMPLE")
+  // console.log("Grass @",g_activeMap.sampleTiles("grass",10))
+  // console.log("Stone peaks @",g_activeMap.sampleTiles("stone_1",10))
+  // console.log("Beaches @",g_activeMap.sampleTiles("sand",10))
+  // console.log("Deep water @",g_activeMap.sampleTiles("waterCave",10))
+  // console.log("Grass OR Sand",g_activeMap.sampleTiles(["grass","sand"],100))
+  // console.log("Grass OR Sand OR Stone peaks @",g_activeMap.sampleTiles(["grass","sand","stone_1"],1000))
+  // console.log("SETUPRESULT:",window)
+
+  // drop(importTerrain)
+}
+
+function addListeners() {
   
   // Register global references for testing/debugging access
   registerGlobalReferences();

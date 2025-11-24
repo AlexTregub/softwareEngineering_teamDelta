@@ -31,7 +31,10 @@ function antsPreloader() {
     Spitter: loadImage('Images/Ants/gray_ant_spitter.png'),
     // DeLozier: loadImage('Images/Ants/greg.jpg'),
     Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
-    Spider: loadImage('Images/Ants/spider.png')
+    Spider: loadImage('Images/Ants/spider.png'),
+    waveEnemy: loadImage("Images/Ants/Enemy.png"),
+    Spider: loadImage('Images/Ants/spider.png'),
+    AntEater: loadImage('Images/Ants/ant_eater.png'),
   };
   initializeAntManager();
 }
@@ -91,6 +94,7 @@ class ant extends Entity {
     // Initialize Gather State behavior
     this._gatherState = new GatherState(this);
     
+
     // Faction and enemy tracking
     this._faction = faction;
     this._enemies = [];
@@ -230,12 +234,12 @@ class ant extends Entity {
     const combat = this.getController('combat');
     switch(this.jobName){
       case "Queen":
-        combat._detectionRadius = 300;
-        this._attackRange = combat._detectionRadius - 50; 
+        // combat._detectionRadius = 300;
+        // this._attackRange = combat._detectionRadius - 50; 
         break;
       case "Spitter":
-        combat._detectionRadius = 250;
-        this._attackRange = 250; 
+        // combat._detectionRadius = 250;
+        // this._attackRange = 250; 
         break;
       case "Spider":
         combat._detectionRadius = 300;
@@ -249,6 +253,7 @@ class ant extends Entity {
       case "Scout" :
         combat._detectionRadius = 500; 
         break;
+      
     }
   }
   
@@ -569,7 +574,12 @@ _getFallbackJobStats(jobName) {
     this.lastFrameTime = now;
 
     if (!this.isActive) return;
-    
+
+    // disable resource gathering for non-player factions
+    let cantCollect = ["Spider","Warrior","DeLozier",'Scout','Spitter'];
+    if(this._gatherState && (this._faction != "player" || cantCollect.includes(this.jobName))){
+      this._gatherState.isActive = false;
+    }
     // Update Entity systems first
     super.update();
     
@@ -666,7 +676,7 @@ _getFallbackJobStats(jobName) {
       if (this._stateMachine && this._stateMachine.isInCombat() && this._enemies.length > 0) {
         this._performCombatAttack();
       }else{
-        if(this._combatTarget != null){
+        if(this._combatTarget != null && this._combatTarget._faction != this._faction){
           this.moveToLocation(this._combatTarget.posX, this._combatTarget.posY);
         }
       }
@@ -760,20 +770,18 @@ _getFallbackJobStats(jobName) {
     this._combatTarget = nearestEnemy;
     if (isOverlapping || shortestDistance <= this._attackRange) {
       if (isRanged) {
-        if (this.jobName === "Spitter") {
-            window.draggablePanelManager.handleShootLightning(this._combatTarget);
-        }
-        // Disabled automatic lightning for Queen - player controls powers manually
-        // else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
+        // if (this.jobName === "Spitter") {
+        //     window.draggablePanelManager.handleShootLightning(this._combatTarget);
+        // } else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
         //   window.draggablePanelManager.handleShootLightning(this._combatTarget);
         // }
       } 
       
-      else if (isMelee || this._faction != "player") {
+      if (isMelee || this._faction != "player" || isRanged) {
         this._attackTarget(this._combatTarget);
       } 
       
-      else if (isWorker) {
+      if (isWorker) {
         if (this.jobName === "Scout") this._soundAlarm(this._combatTarget);
         closestHive ? goToHive() : this._attackTarget(this._combatTarget);
       }
@@ -1151,7 +1159,10 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
   
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
-    let JobName = assignJob();
+    let JobName  = assignJob();
+    if (faction != "player") {
+      JobName = "waveEnemy";
+    }
 
     let px, py;
     if (x !== null && y !== null) {
@@ -1196,7 +1207,9 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     if (g_tileInteractionManager) {
       g_tileInteractionManager.addObject(newAnt, 'ant');
     }
+    list.push(newAnt);
   }
+  return list;
 }
 
 // --- Population Management ---

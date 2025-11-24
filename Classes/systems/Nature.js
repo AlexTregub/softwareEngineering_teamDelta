@@ -141,8 +141,13 @@ class GlobalTime{
     runTimeBasedEvents(time){ //Will run events like boss fights and enemy waves
         switch(time){
             case "night":
-                //Spawn enemy ant wave
-                break;
+              gameEventManager.startEvent('Swarm'); // Waves / Additional hives...
+              console.log(`Night has fallen. Enemies are approaching!`);
+              break;
+            case "day":
+              // gameEventManager.startEvent('BossEvent'); // Waves / Additional hives...
+              // console.log(`The sun rises. A new day begins.`);
+              // break;
         }
     }
     runNewDay(){
