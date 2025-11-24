@@ -108,8 +108,8 @@ function initializeGameUIOverlay() {
     window.g_antSelectionBar = new AntSelectionBar(p5Instance, {
         normalizedX: -0.6,  // 60% left from center
         normalizedY: -0.85, // 85% down from center (bottom area)
-        faction: 'player',
-        jobTypes: ['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter', 'Queen']
+        faction: 'player'
+        // jobTypes uses default (Queen first with proper keybinds)
     });
 
     UIRegisterWithRenderer(p5Instance);

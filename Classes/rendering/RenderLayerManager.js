@@ -545,6 +545,16 @@ class RenderLayerManager {
     push();
     this.applyZoom();
     g_activeMap.render();
+    
+    // Render soot stains after terrain, before entities
+    if (window.g_lightningManager && typeof window.g_lightningManager.renderSootStains === 'function') {
+      try {
+        window.g_lightningManager.renderSootStains();
+      } catch (error) {
+        console.error('❌ Error rendering soot stains on terrain layer:', error);
+      }
+    }
+    
     pop();
     
   }

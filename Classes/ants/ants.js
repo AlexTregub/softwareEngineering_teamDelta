@@ -762,9 +762,11 @@ _getFallbackJobStats(jobName) {
       if (isRanged) {
         if (this.jobName === "Spitter") {
             window.draggablePanelManager.handleShootLightning(this._combatTarget);
-        } else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
-          window.draggablePanelManager.handleShootLightning(this._combatTarget);
         }
+        // Disabled automatic lightning for Queen - player controls powers manually
+        // else if (this.jobName === "Queen" && typeof window.draggablePanelManager?.handleShootLightning === 'function') {
+        //   window.draggablePanelManager.handleShootLightning(this._combatTarget);
+        // }
       } 
       
       else if (isMelee || this._faction != "player") {

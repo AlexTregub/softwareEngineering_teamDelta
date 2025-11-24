@@ -41,8 +41,15 @@ class AntSelectionBar {
     this.padding = 12;
     this.bgColor = options.bgColor || 'rgba(0, 0, 0, 0.7)';
     
-    // Job types to display (default: all main job types + queen)
-    this.jobTypes = options.jobTypes || ['Builder', 'Scout', 'Farmer', 'Warrior', 'Spitter', 'Queen'];
+    // Job types to display (default: Queen first, then main job types)
+    this.jobTypes = options.jobTypes || [
+      { name: 'Queen', value: 'queen', keybind: 'Q', isQueen: true },
+      { name: 'Builder', value: 'builder', keybind: 'W' },
+      { name: 'Scout', value: 'scout', keybind: 'F' },
+      { name: 'Farmer', value: 'farmer', keybind: 'R' },
+      { name: 'Warrior', value: 'warrior', keybind: 'T' },
+      { name: 'Spitter', value: 'spitter', keybind: 'U' }
+    ];
     
     // Sprite paths for each job type
     this.spritePaths = {
@@ -60,7 +67,7 @@ class AntSelectionBar {
     
     // Calculate panel dimensions
     this.width = this._calculateWidth();
-    this.height = this.buttonHeight + (this.padding * 2);
+    this.height = 60 + (this.padding * 2); // Use Queen's height (largest button)
     
     // Position in normalized coordinates (default: bottom-left)
     const normalizedX = options.normalizedX !== undefined ? options.normalizedX : -0.6;
@@ -85,6 +92,9 @@ class AntSelectionBar {
     console.log(`   Size: ${this.width}x${this.height}`);
     console.log(`   Normalized coords: (${normalizedX}, ${normalizedY})`);
     console.log(`   Buttons: ${this.buttons.length}`);
+    this.buttons.forEach((btn, i) => {
+      console.log(`   ${i}. ${btn.jobType}: jobName=${btn.jobName}, keybind=${btn.keybind}, sprite=${!!btn.sprite}`);
+    });
   }
 
   /**
@@ -92,19 +102,19 @@ class AntSelectionBar {
    * @private
    */
   _loadSprites() {
-    this.jobTypes.forEach(jobType => {
-      const path = this.spritePaths[jobType];
+    this.jobTypes.forEach(job => {
+      const path = this.spritePaths[job.name];
       if (path && typeof this.p5.loadImage === 'function') {
         // Check if image already loaded in window cache
-        const cacheKey = `antSprite_${jobType}`;
+        const cacheKey = `antSprite_${job.value}`;
         if (window[cacheKey]) {
-          this.sprites[jobType] = window[cacheKey];
+          this.sprites[job.value] = window[cacheKey];
         } else {
           this.p5.loadImage(path, (img) => {
-            this.sprites[jobType] = img;
+            this.sprites[job.value] = img;
             window[cacheKey] = img; // Cache for reuse
           }, (err) => {
-            console.warn(`⚠️ Failed to load sprite for ${jobType}:`, err);
+            console.warn(`⚠️ Failed to load sprite for ${job.name}:`, err);
           });
         }
       }
@@ -117,10 +127,16 @@ class AntSelectionBar {
    * @returns {number} Panel width
    */
   _calculateWidth() {
-    const buttonCount = this.jobTypes.length;
-    const totalButtonWidth = buttonCount * this.buttonWidth;
-    const totalSpacing = (buttonCount - 1) * this.buttonSpacing;
-    return totalButtonWidth + totalSpacing + (this.padding * 2);
+    // Calculate width based on button sizes (Queen is larger)
+    let totalWidth = 0;
+    this.jobTypes.forEach((job, index) => {
+      const buttonWidth = job.isQueen ? 100 : this.buttonWidth;
+      totalWidth += buttonWidth;
+      if (index < this.jobTypes.length - 1) {
+        totalWidth += this.buttonSpacing;
+      }
+    });
+    return totalWidth + (this.padding * 2);
   }
 
   /**
@@ -130,21 +146,33 @@ class AntSelectionBar {
   _createButtons() {
     const startX = this.x + this.padding;
     const centerY = this.y + this.height / 2;
+    
+    let currentX = startX;
 
-    this.jobTypes.forEach((jobType, index) => {
+    this.jobTypes.forEach((job, index) => {
+      // Queen button is larger
+      const buttonWidth = job.isQueen ? 100 : this.buttonWidth;
+      const buttonHeight = job.isQueen ? 60 : this.buttonHeight;
+      
       // Calculate button position
-      const buttonX = startX + (index * (this.buttonWidth + this.buttonSpacing));
-      const buttonY = centerY - (this.buttonHeight / 2);
+      const buttonX = currentX;
+      const buttonY = centerY - (buttonHeight / 2);
 
       this.buttons.push({
-        jobType: jobType,
+        jobType: job.value,
+        jobName: job.name,
+        keybind: job.keybind,
+        isQueen: job.isQueen || false,
         x: buttonX,
         y: buttonY,
-        width: this.buttonWidth,
-        height: this.buttonHeight,
-        isHovered: false,
-        isQueen: jobType === 'Queen'
+        width: buttonWidth,
+        height: buttonHeight,
+        hover: false
+        // Note: sprite is accessed dynamically from this.sprites during render
       });
+      
+      // Update position for next button
+      currentX += buttonWidth + this.buttonSpacing;
     });
   }
 
@@ -226,6 +254,7 @@ class AntSelectionBar {
     this.p5.rect(button.x, button.y, button.width, button.height, 4);
     
     // Render sprite icon if available (centered horizontally and vertically)
+    // Access sprite dynamically from this.sprites (loaded asynchronously)
     const sprite = this.sprites[button.jobType];
     if (sprite && sprite.width > 0) {
       const spriteSize = 36; // Icon size
@@ -240,12 +269,48 @@ class AntSelectionBar {
       this.p5.pop();
     }
     
-    // Button text (job type) - left aligned at bottom
-    this.p5.fill(255);
+    // Render job name (bottom-left corner, 10px font)
+    if (button.jobName) {
+      this.p5.fill(255, 255, 255);
+      this.p5.textAlign(this.p5.LEFT, this.p5.BOTTOM);
+      this.p5.textSize(10);
+      this.p5.textStyle(this.p5.NORMAL);
+      this.p5.text(button.jobName, button.x + 5, button.y + button.height - 5);
+    }
+    
+    // Render keybind indicator (top-left corner)
+    if (button.keybind) {
+      this._renderKeybindIndicator(button);
+    }
+    
+    this.p5.pop();
+  }
+  
+  /**
+   * Render keybind indicator in top-left corner
+   * @private
+   * @param {Object} button - Button object
+   */
+  _renderKeybindIndicator(button) {
+    this.p5.push();
+    
+    // Position in top-left corner
+    const indicatorSize = 18;
+    const padding = 4;
+    const cornerX = button.x + padding;
+    const cornerY = button.y + padding;
+    
+    // Background circle
+    this.p5.fill(0, 0, 0, 180); // Semi-transparent black
     this.p5.noStroke();
-    this.p5.textAlign(this.p5.LEFT, this.p5.BOTTOM);
-    this.p5.textSize(10);
-    this.p5.text(button.jobType, button.x + 4, button.y + button.height - 4);
+    this.p5.ellipse(cornerX + indicatorSize / 2, cornerY + indicatorSize / 2, indicatorSize);
+    
+    // Keybind text
+    this.p5.fill(255, 255, 255); // White text
+    this.p5.textAlign(this.p5.CENTER, this.p5.CENTER);
+    this.p5.textSize(12);
+    this.p5.textStyle(this.p5.BOLD);
+    this.p5.text(button.keybind, cornerX + indicatorSize / 2, cornerY + indicatorSize / 2);
     
     this.p5.pop();
   }

@@ -268,7 +268,7 @@ function keyPressed() {
     if (window.BUIManager.handleKeyPress(key)) return;
   }
 
-    // Power Button Shortcuts (1, 2 keys)
+  // Power Button Shortcuts (1, 2 keys)
   if (k === '1' || k === '2') {
     console.log(`🔢 Power button shortcut pressed: ${k}`);
     console.log(`   g_powerButtonPanel exists: ${typeof window.g_powerButtonPanel !== 'undefined'}`);
@@ -293,6 +293,22 @@ function keyPressed() {
       }
     } else {
       console.log(`   ❌ g_powerButtonPanel not found on window`);
+    }
+  }
+  
+  // Ant Selection Bar Shortcuts (Q, W, F, R, T, U keys)
+  if (k === 'q' || k === 'w' || k === 'f' || k === 'r' || k === 't' || k === 'u') {
+    if (window.g_antSelectionBar) {
+      // Map keys to button indices (Q=Queen, W=Builder, F=Scout, R=Farmer, T=Warrior, U=Spitter)
+      const keyMap = { 'q': 0, 'w': 1, 'f': 2, 'r': 3, 't': 4, 'u': 5 };
+      const buttonIndex = keyMap[k];
+      
+      const button = window.g_antSelectionBar.buttons[buttonIndex];
+      if (button) {
+        // Simulate click on button
+        window.g_antSelectionBar._onButtonClick(button);
+        return;
+      }
     }
   }
   
