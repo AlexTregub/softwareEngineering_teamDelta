@@ -195,7 +195,7 @@ function initializeWorld() {
     sprites: {} // Auto-loads from JobImages global
   });
   registerWithRenderManager();
-  initializeUIComponents(window); 
+  initializeGameUISystem(window); 
 
   // Main hive, initial, anthill
   Buildings.push(createBuilding('anthill', 400, 400, 'player')); // Initial hive
