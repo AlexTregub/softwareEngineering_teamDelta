@@ -62,6 +62,11 @@ class WeatherBox {
     this.targetColor = { r: 100, g: 180, b: 255 };
     this.transitionSpeed = 0.08; // Faster transitions for weather changes
     
+    // Alpha (opacity) for fade in/out effect
+    this.currentAlpha = 255; // Start fully visible
+    this.targetAlpha = 0;    // Target: fade out when clear
+    this.alphaTransitionSpeed = 3; // Alpha change per frame (0-255 scale)
+    
     // Reference to global time system
     this.globalTime = null;
     
@@ -104,19 +109,33 @@ class WeatherBox {
       currentWeather = weatherName; // 'lightning', etc.
     }
     
-    // Update target color if weather changed
+    // Update target color and alpha if weather changed
     if (currentWeather !== this.lastWeatherState || isWeather !== this.isWeatherActive) {
       this.lastWeatherState = currentWeather;
       this.isWeatherActive = isWeather;
       
       const newColor = this.colors[currentWeather] || this.colors.clear;
       this.targetColor = { r: newColor.r, g: newColor.g, b: newColor.b };
+      
+      // Set target alpha: fade out when clear, fade in when stormy
+      if (isWeather) {
+        this.targetAlpha = 255; // Fade in when weather active
+      } else {
+        this.targetAlpha = 0;   // Fade out when clear
+      }
     }
     
     // Smooth color transition
     this.currentColor.r += (this.targetColor.r - this.currentColor.r) * this.transitionSpeed;
     this.currentColor.g += (this.targetColor.g - this.currentColor.g) * this.transitionSpeed;
     this.currentColor.b += (this.targetColor.b - this.currentColor.b) * this.transitionSpeed;
+    
+    // Smooth alpha transition
+    if (this.currentAlpha < this.targetAlpha) {
+      this.currentAlpha = Math.min(this.targetAlpha, this.currentAlpha + this.alphaTransitionSpeed);
+    } else if (this.currentAlpha > this.targetAlpha) {
+      this.currentAlpha = Math.max(this.targetAlpha, this.currentAlpha - this.alphaTransitionSpeed);
+    }
   }
   
   /**
@@ -125,11 +144,16 @@ class WeatherBox {
   render() {
     if (!this.enabled) return;
     
+    // Skip rendering if fully transparent
+    if (this.currentAlpha <= 0) return;
+    
     this.p5.push();
     
-    // Background box with current weather color
-    this.p5.fill(this.currentColor.r, this.currentColor.g, this.currentColor.b, 200);
-    this.p5.stroke(255, 255, 255, 150);
+    // Background box with current weather color and alpha
+    const bgAlpha = (200 / 255) * this.currentAlpha; // Scale background alpha proportionally
+    this.p5.fill(this.currentColor.r, this.currentColor.g, this.currentColor.b, bgAlpha);
+    const strokeAlpha = (150 / 255) * this.currentAlpha; // Scale stroke alpha proportionally
+    this.p5.stroke(255, 255, 255, strokeAlpha);
     this.p5.strokeWeight(2);
     this.p5.rect(this.x, this.y, this.width, this.height, 8); // Rounded corners
     
@@ -139,19 +163,20 @@ class WeatherBox {
     const icon = this.icons[weatherState] || this.icons.clear;
     const label = weatherConfig.label;
     
-    // Draw icon (large)
+    // Draw icon (large) with alpha
     this.p5.textAlign(this.p5.CENTER, this.p5.CENTER);
     this.p5.textSize(32);
-    this.p5.fill(255);
+    this.p5.fill(255, 255, 255, this.currentAlpha);
     this.p5.noStroke();
     this.p5.text(icon, this.x + this.width / 2, this.y + this.height / 2 - 8);
     
-    // Draw label (small text below icon)
+    // Draw label (small text below icon) with alpha
     this.p5.textSize(12);
-    this.p5.fill(255, 255, 255, 230);
+    const labelAlpha = (230 / 255) * this.currentAlpha;
+    this.p5.fill(255, 255, 255, labelAlpha);
     this.p5.text(label, this.x + this.width / 2, this.y + this.height - this.padding - 6);
     
-    // Draw weather timer if active
+    // Draw weather timer if active (with alpha)
     if (this.globalTime && this.isWeatherActive && typeof this.globalTime.weatherSeconds === 'number') {
       const remaining = Math.max(0, 120 - this.globalTime.weatherSeconds); // 120s max duration
       const minutes = Math.floor(remaining / 60);
@@ -159,7 +184,8 @@ class WeatherBox {
       const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       
       this.p5.textSize(9);
-      this.p5.fill(255, 255, 255, 200);
+      const timerAlpha = (200 / 255) * this.currentAlpha;
+      this.p5.fill(255, 255, 255, timerAlpha);
       this.p5.text(timeStr, this.x + this.width / 2, this.y + this.padding + 4);
     }
     

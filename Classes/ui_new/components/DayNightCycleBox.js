@@ -64,6 +64,10 @@ class DayNightCycleBox {
     this.targetColor = { r: 100, g: 200, b: 255 };
     this.transitionSpeed = 0.05; // Interpolation speed (0-1 per frame)
     
+    // Sun rotation angle (for animated sun during day)
+    this.sunRotation = 0;
+    this.sunRotationSpeed = 0.005; // Radians per frame
+    
     // Reference to global time system
     this.globalTime = null;
     
@@ -111,6 +115,12 @@ class DayNightCycleBox {
     this.currentColor.r += (this.targetColor.r - this.currentColor.r) * this.transitionSpeed;
     this.currentColor.g += (this.targetColor.g - this.currentColor.g) * this.transitionSpeed;
     this.currentColor.b += (this.targetColor.b - this.currentColor.b) * this.transitionSpeed;
+    
+    // Update sun rotation continuously (for animated sun)
+    this.sunRotation += this.sunRotationSpeed;
+    if (this.sunRotation > Math.PI * 2) {
+      this.sunRotation -= Math.PI * 2; // Keep angle in range [0, 2π]
+    }
   }
   
   /**
@@ -133,12 +143,21 @@ class DayNightCycleBox {
     const icon = this.icons[timeOfDay] || '⏰';
     const label = timeConfig ? timeConfig.label : 'Unknown';
     
-    // Draw icon (large)
-    this.p5.textAlign(this.p5.CENTER, this.p5.CENTER);
-    this.p5.textSize(32);
-    this.p5.fill(255);
-    this.p5.noStroke();
-    this.p5.text(icon, this.x + this.width / 2, this.y + this.height / 2 - 8);
+    // Calculate center position for icon
+    const centerX = this.x + this.width / 2;
+    const centerY = this.y + this.height / 2 - 8;
+    
+    // Draw rotating sun only during day
+    if (timeOfDay === 'day') {
+      this._drawRotatingSun(centerX, centerY);
+    } else {
+      // Draw static emoji icon for other times (sunrise, sunset, night)
+      this.p5.textAlign(this.p5.CENTER, this.p5.CENTER);
+      this.p5.textSize(32);
+      this.p5.fill(255);
+      this.p5.noStroke();
+      this.p5.text(icon, centerX, centerY);
+    }
     
     // Draw label (small text below icon)
     this.p5.textSize(14);
@@ -151,6 +170,46 @@ class DayNightCycleBox {
       this.p5.fill(255, 255, 255, 180);
       this.p5.text(`Day ${this.globalTime.inGameDays}`, this.x + this.width / 2, this.y + this.padding + 5);
     }
+    
+    this.p5.pop();
+  }
+  
+  /**
+   * Draw a rotating sun with rays
+   * @private
+   * @param {number} cx - Center X position
+   * @param {number} cy - Center Y position
+   */
+  _drawRotatingSun(cx, cy) {
+    this.p5.push();
+    
+    // Move to center and rotate
+    this.p5.translate(cx, cy);
+    this.p5.rotate(this.sunRotation);
+    
+    // Sun properties
+    const sunRadius = 14;
+    const rayLength = 8;
+    const rayCount = 8;
+    const rayThickness = 2;
+    
+    // Draw sun rays (rotating)
+    this.p5.stroke(255, 220, 100);
+    this.p5.strokeWeight(rayThickness);
+    for (let i = 0; i < rayCount; i++) {
+      const angle = (Math.PI * 2 / rayCount) * i;
+      const x1 = Math.cos(angle) * sunRadius;
+      const y1 = Math.sin(angle) * sunRadius;
+      const x2 = Math.cos(angle) * (sunRadius + rayLength);
+      const y2 = Math.sin(angle) * (sunRadius + rayLength);
+      this.p5.line(x1, y1, x2, y2);
+    }
+    
+    // Draw sun circle (center)
+    this.p5.fill(255, 230, 100);
+    this.p5.stroke(255, 200, 50);
+    this.p5.strokeWeight(2);
+    this.p5.ellipse(0, 0, sunRadius * 2, sunRadius * 2);
     
     this.p5.pop();
   }

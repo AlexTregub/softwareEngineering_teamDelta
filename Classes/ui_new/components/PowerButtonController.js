@@ -196,6 +196,18 @@ class PowerButtonController {
         // Initialize brush if not present
         if (typeof window.initializeLightningAimBrush === 'function') {
           window.g_lightningAimBrush = window.initializeLightningAimBrush();
+          
+          // Register with RenderManager so it actually renders
+          if (typeof RenderManager !== 'undefined' && 
+              typeof window.g_lightningAimBrush.render === 'function' &&
+              !RenderManager._registeredDrawables.lightningAimBrush) {
+            RenderManager.addDrawableToLayer(
+              RenderManager.layers.UI_GAME, 
+              window.g_lightningAimBrush.render.bind(window.g_lightningAimBrush)
+            );
+            RenderManager._registeredDrawables.lightningAimBrush = true;
+            console.log('✅ Lightning aim brush registered with RenderManager');
+          }
         } else {
           console.warn('Cannot activate lightning - g_lightningAimBrush not available');
           return;
@@ -211,6 +223,18 @@ class PowerButtonController {
     // Fireball power - toggle fireball aim brush (if it exists)
     if (powerName === 'fireball') {
       if (typeof window.g_flashAimBrush !== 'undefined' && window.g_flashAimBrush) {
+        // Register with RenderManager if not already registered
+        if (typeof RenderManager !== 'undefined' && 
+            typeof window.g_flashAimBrush.render === 'function' &&
+            !RenderManager._registeredDrawables.flashAimBrush) {
+          RenderManager.addDrawableToLayer(
+            RenderManager.layers.UI_GAME, 
+            window.g_flashAimBrush.render.bind(window.g_flashAimBrush)
+          );
+          RenderManager._registeredDrawables.flashAimBrush = true;
+          console.log('✅ Fireball aim brush registered with RenderManager');
+        }
+        
         window.g_flashAimBrush.toggle();
         console.log(`🔥 Fireball aim brush toggled: ${window.g_flashAimBrush.isActive ? 'ACTIVE' : 'INACTIVE'}`);
         return;

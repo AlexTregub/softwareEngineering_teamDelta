@@ -42,6 +42,16 @@ class QueenAnt extends ant {
       tidalWave: false,
       finalFlash: true
     };
+    
+    // Power levels (1-3, determines strength/effects)
+    this.powerLevels = {
+      fireball: 1,
+      lightning: 1,
+      blackhole: 1,
+      sludge: 1,
+      tidalWave: 1,
+      finalFlash: 1
+    };
   }
 
   // --- ANT MANAGEMENT ---
@@ -142,6 +152,31 @@ class QueenAnt extends ant {
 
   getAllPowers() {
     return { ...this.unlockedPowers };
+  }
+
+  // --- POWER LEVEL MANAGEMENT ---
+  
+  setPowerLevel(powerName, level) {
+    if (this.powerLevels.hasOwnProperty(powerName)) {
+      this.powerLevels[powerName] = Math.max(1, Math.min(3, level));
+      logNormal(`👑 Queen set ${powerName} to level ${this.powerLevels[powerName]}`);
+      
+      // Update the corresponding manager's level if it exists
+      if (powerName === 'lightning' && typeof window.g_lightningManager !== 'undefined' && window.g_lightningManager) {
+        window.g_lightningManager.setLevel(this.powerLevels[powerName]);
+      }
+      
+      return true;
+    }
+    return false;
+  }
+  
+  getPowerLevel(powerName) {
+    return this.powerLevels[powerName] || 1;
+  }
+  
+  getAllPowerLevels() {
+    return { ...this.powerLevels };
   }
 
   // --- MOVEMENT OVERRIDE ---

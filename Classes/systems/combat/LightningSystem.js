@@ -54,6 +54,7 @@ class LightningManager {
     this.bolts = []; // transient bolt animations
     this.cooldown = 300; // milliseconds between strikes
     this.lastStrikeTime = 0;
+    this.level = 1; // Power level (1 = single strike, 2 = triple strike)
     // Knockback in pixels applied to ants hit by lightning
     // Default: push back ~1.5 tiles
     this.knockbackPx = (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32) * 1.5;
@@ -67,6 +68,9 @@ class LightningManager {
     this.setKnockbackDurationMs = (v) => { this.knockbackDurationMs = Number(v) || this.knockbackDurationMs; return this.knockbackDurationMs; };
     this.getKnockbackDurationMs = () => this.knockbackDurationMs;
     this.getActiveKnockbacks = () => (this._activeKnockbacks || []).map(k => ({ startX: k.startX, startY: k.startY, targetX: k.targetX, targetY: k.targetY, progress: Math.min(1, (millis() - k.startTime) / (k.duration || 1)) }));
+    // Level management
+    this.setLevel = (v) => { this.level = Math.max(1, Math.min(3, Number(v) || 1)); return this.level; };
+    this.getLevel = () => this.level;
     // Default playback volume (0.0 - 1.0)
     this.volume = 1.0; // lower default so strikes aren't too loud
     
@@ -225,31 +229,70 @@ class LightningManager {
     }
     this.lastStrikeTime = now;
 
-    // Create a bolt animation (sky -> target) and schedule the actual strike at the impact moment
+    // Get target position
     const pos = (targetAnt && typeof targetAnt.getPosition === 'function') ? targetAnt.getPosition() : (targetAnt || { x: mouseX, y: mouseY });
-    const bolt = {
-      x: pos.x,
-      y: pos.y,
-      created: millis(),
-      duration: 220, // ms to show bolt
-      executed: false
-    };
-    this.bolts.push(bolt);
-
-    // Execute the strike slightly after bolt creation to sync visuals
-    setTimeout(() => {
-      try {
-        if (targetAnt && typeof targetAnt.getPosition === 'function') {
-          this.strikeAtAnt(targetAnt);
-        } else if (targetAnt && typeof targetAnt.x === 'number' && typeof targetAnt.y === 'number') {
-          this.strikeAtPosition(targetAnt.x, targetAnt.y);
-        } else {
-          this.strikeAtPosition(pos.x, pos.y);
-        }
-      } catch (err) {
-        console.error('❌ Error executing delayed strike:', err);
+    
+    // Level 2+: Execute multiple strikes in sequence
+    if (this.level >= 2) {
+      const strikeCount = 3; // Triple strike at level 2
+      const delayBetweenStrikes = 250; // ms between each strike
+      
+      for (let i = 0; i < strikeCount; i++) {
+        const strikeDelay = 80 + (i * delayBetweenStrikes);
+        
+        // Create bolt animation for each strike
+        setTimeout(() => {
+          const bolt = {
+            x: pos.x,
+            y: pos.y,
+            created: millis(),
+            duration: 220,
+            executed: false
+          };
+          this.bolts.push(bolt);
+          
+          // Execute the strike
+          try {
+            if (targetAnt && typeof targetAnt.getPosition === 'function') {
+              this.strikeAtAnt(targetAnt);
+            } else if (targetAnt && typeof targetAnt.x === 'number' && typeof targetAnt.y === 'number') {
+              this.strikeAtPosition(targetAnt.x, targetAnt.y);
+            } else {
+              this.strikeAtPosition(pos.x, pos.y);
+            }
+          } catch (err) {
+            console.error('❌ Error executing delayed strike:', err);
+          }
+        }, strikeDelay);
       }
-    }, 80);
+      
+      logNormal(`⚡⚡⚡ Level ${this.level} lightning: ${strikeCount} strikes!`);
+    } else {
+      // Level 1: Single strike (original behavior)
+      const bolt = {
+        x: pos.x,
+        y: pos.y,
+        created: millis(),
+        duration: 220,
+        executed: false
+      };
+      this.bolts.push(bolt);
+
+      // Execute the strike slightly after bolt creation to sync visuals
+      setTimeout(() => {
+        try {
+          if (targetAnt && typeof targetAnt.getPosition === 'function') {
+            this.strikeAtAnt(targetAnt);
+          } else if (targetAnt && typeof targetAnt.x === 'number' && typeof targetAnt.y === 'number') {
+            this.strikeAtPosition(targetAnt.x, targetAnt.y);
+          } else {
+            this.strikeAtPosition(pos.x, pos.y);
+          }
+        } catch (err) {
+          console.error('❌ Error executing delayed strike:', err);
+        }
+      }, 80);
+    }
 
     return true;
   }
@@ -257,7 +300,7 @@ class LightningManager {
 
   createFlash(x, y) {
     soundManager.play('lightningStrike');
-    window.EffectsRenderer.flash(x, y, { color: [180, 220, 255], intensity: 1.2, radius: 48 });
+    window.EffectsRenderer.flash(x, y, { color: [100, 150, 255], intensity: 0.5, radius: 48 });
   }
 
   createExplosion(x, y) {
