@@ -9,6 +9,7 @@ env:
     TARGET: ants@cassini.cs.kent.edu
     RUN: ssh -o LogLevel=ERROR ants@cassini.cs.kent.edu 
     COPY: scp -o LogLevel=ERROR
+    PORT: 8029
     LOGGING: set -o xtrace
 
 jobs:
@@ -59,3 +60,24 @@ jobs:
 
           echo "Target state after deploy" ; 
           $RUN ls -la /home/$USER/web ; 
+
+      - name: Configure screen session
+        run:
+          $LOGGING
+
+          echo "Kill existing screen session...";
+          $RUN "screen -S $USER -X quit || true" ;
+
+          echo "Sleeping to ensure screen session killed...";
+          sleep 5;
+
+          $RUN "cd /home/$USER/web && screen -dmS $USER python -m http.server $PORT";
+
+      - name: Verify deploy+run
+        run:
+          $LOGGING
+
+          echo "Ensure target sever started...";
+          sleep 60;
+
+          curl -f http://$HOST:$PORT && echo "Remote target server running" || echo "Unable to verify remote target started server...";
