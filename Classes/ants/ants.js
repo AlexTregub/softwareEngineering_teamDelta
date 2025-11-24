@@ -32,8 +32,9 @@ function antsPreloader() {
     // DeLozier: loadImage('Images/Ants/greg.jpg'),
     Queen:  loadImage('Images/Ants/gray_ant_queen.png'),
     Spider: loadImage('Images/Ants/spider.png'),
-    waveEnemy: loadImage("Images/Ants/gray_ant.png"),
-
+    waveEnemy: loadImage("Images/Ants/Enemy.png"),
+    Spider: loadImage('Images/Ants/spider.png'),
+    AntEater: loadImage('Images/Ants/ant_eater.png'),
   };
   initializeAntManager();
 }

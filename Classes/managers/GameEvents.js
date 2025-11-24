@@ -9,7 +9,7 @@ class AbstractEvent{
 class BossEvent extends AbstractEvent {
     constructor(){
         super();
-        this.boss = null;
+        this.boss = [];
         this.finished = false;
     }
 
@@ -18,8 +18,10 @@ class BossEvent extends AbstractEvent {
         if(!player){return;}
         // let posX = Math.floor(random(0,player.posX));
         // let posY = Math.floor(random(0,player.posY));
-        this.boss = new Spider("Spider","waveEnemy");
-        this.boss.moveToLocation(player.posX,player.posY)
+        this.boss.push(new Spider("Spider","waveEnemy"));
+        this.boss.push(new AntEater("AntEater","waveEnemy")); 
+        
+        this.boss.forEach(boss => boss.moveToLocation(player.posX,player.posY));
     }
 
     isFinished(){

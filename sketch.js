@@ -376,7 +376,7 @@ function initializeWorld() {
   // npc test
   Buildings.push(createNPC(350,500));
   // Boss
-  // let spider = new Spider(); 
+  // let spider = new AntEater(); 
 }
 
 /**
@@ -397,7 +397,7 @@ function draw() {
   // }
 
   if (frameCount == 300) {
-    let spider = new Spider()
+    // let spider = new Spider()
   }
 
   if (!(IMPORTED_JSON_TERRAIN === NONE)) { // LOADER... OVERWRITES g_activeMap

@@ -109,3 +109,9 @@ class Spider extends Boss{
         super(type, faction, x, y);
     }
 }
+
+class AntEater extends Boss{
+    constructor(type = "AntEater", faction = "enemy", x = 50, y = 50) {
+        super(type, faction, x, y);
+    }
+}

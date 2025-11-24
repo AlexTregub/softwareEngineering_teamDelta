@@ -9,9 +9,12 @@ function animationPreloader() {
     "Builder": loadImage("Images/Animation/Builder.png"),
     "Farmer": loadImage("Images/Animation/Farmer.png"),
     "Spitter": loadImage("Images/Animation/Spitter.png"),
-    "waveEnemy": loadImage("Images/Animation/Gray.png"),
+    "waveEnemy": loadImage("Images/Animation/Enemy.png"),
+    "AntEater": loadImage("Images/Animation/AntEater.png"),
   };
 }
+
+
 
 animationData = {
     "Walking": { 
@@ -19,13 +22,32 @@ animationData = {
         width: 16,
         height: 16,
         totalFrames: 2,
-        frameDelay: 10,
+        frameDelay: 5,
         currentFrame: 0,
     },
     "Attack": { 
         row: 3,          
         width: 16,
         height: 16,
+        totalFrames: 2,
+        frameDelay: 20,
+        currentFrame: 0,
+    },
+
+    // For bigger ants like Queen and Ant Eater
+    "Walking2": {
+        row: 1,          
+        width: 32,
+        height: 32,
+        totalFrames: 2,
+        frameDelay: 5,
+        currentFrame: 0,
+    },
+
+    "Attack2": { 
+        row: 3,          
+        width: 32,
+        height: 32,
         totalFrames: 2,
         frameDelay: 20,
         currentFrame: 0,
@@ -49,6 +71,11 @@ class AnimationManager {
         let job = antObj.jobName;
         let sheet = spriteSheets[job];
         let anim = animationData[animationName];
+        let biggerAnts = ['Queen','AntEater'];
+        if(biggerAnts.includes(job)){
+            anim = animationData[animationName + '2'];
+        }
+
         if (!sheet || !anim || antObj._health <= 0) return;
 
         // update frame on delay
