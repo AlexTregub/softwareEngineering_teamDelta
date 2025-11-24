@@ -36,7 +36,7 @@ class GlobalTime{
         this.internalTimer(adjustedDeltaTime); //Runs internal timer
 
         if(this.transitioning){
-            const fadeSpeed = 255 / 60; // alpha change per second
+            const fadeSpeed = 255 / 10; // alpha change per second
             if(this.timeOfDay === "sunset" && this.transitionAlpha < 255){
                 this.transitionAlpha += fadeSpeed * adjustedDeltaTime;
             }
@@ -96,10 +96,15 @@ class GlobalTime{
                 this.transition(this.timeOfDay); //Add function to add darkening/lightening effects
             }
         }
-        else{
-            if(this.inGameSeconds >= 20){ //Day/Night last 4 minutes (10 minutes per day (probably shorten by half)
+        else if (this.timeOfDay == "day"){
+            if(this.inGameSeconds >= 40){ //Day/Night last 4 minutes (10 minutes per day (probably shorten by half)
                 this.transition(this.timeOfDay);
             }
+        }
+        else{
+          if(this.inGameSeconds >= 20){ //Day/Night last 4 minutes (10 minutes per day (probably shorten by half)
+            this.transition(this.timeOfDay);
+          }
         }
         if(this.weatherSeconds >= 40){ //Weather automatically ends after 2 minutes
             this.weather = false
