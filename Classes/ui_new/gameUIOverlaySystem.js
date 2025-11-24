@@ -36,6 +36,16 @@ function initializeGameUIOverlay() {
         return null;
     }
     
+    if (typeof DayNightCycleBox === 'undefined') {
+        console.error('❌ DayNightCycleBox class not found');
+        return null;
+    }
+    
+    if (typeof WeatherBox === 'undefined') {
+        console.error('❌ WeatherBox class not found');
+        return null;
+    }
+    
     if (typeof RenderManager === 'undefined') {
         console.error('❌ RenderManager not found');
         return null;
@@ -72,6 +82,22 @@ function initializeGameUIOverlay() {
     } else {
         console.warn('⚠️ No terrain map available for MiniMap');
     }
+    
+    // Initialize Day/Night Cycle Box
+    window.g_dayNightCycleBox = new DayNightCycleBox(p5Instance, {
+        normalizedX: 0.9,  // 90% right from center
+        normalizedY: 0.8, // 80% up from center
+        width: 120,
+        height: 90
+    });
+    
+    // Initialize Weather Box (next to day/night cycle box)
+    window.g_weatherBox = new WeatherBox(p5Instance, {
+        normalizedX: 0.75,  // 75% right from center (left of day/night box)
+        normalizedY: 0.8,   // 80% up from center (same height as day/night box)
+        width: 100,
+        height: 90
+    });
 
     UIRegisterWithRenderer(p5Instance);
     
@@ -80,7 +106,9 @@ function initializeGameUIOverlay() {
         antCountDropdown: window.antCountDropdown,
         resourceCountDisplay: window.resourceCountDisplay,
         powerButtonPanel: window.powerButtonPanel,
-        miniMap: window.g_miniMap
+        miniMap: window.g_miniMap,
+        dayNightCycleBox: window.g_dayNightCycleBox,
+        weatherBox: window.g_weatherBox
     };
     
     return window.g_gameUIOverlay;
@@ -104,6 +132,14 @@ function UIRegisterWithRenderer(p5Instance) {
             window.g_miniMap.update();
             // Render using normalized position stored in minimap
             window.g_miniMap.render(window.g_miniMap.x, window.g_miniMap.y);
+        }
+        if (window.g_dayNightCycleBox) {
+            window.g_dayNightCycleBox.update();
+            window.g_dayNightCycleBox.render();
+        }
+        if (window.g_weatherBox) {
+            window.g_weatherBox.update();
+            window.g_weatherBox.render();
         }
     });
     
@@ -131,6 +167,22 @@ function UIRegisterWithRenderer(p5Instance) {
         console.log('✅ MiniMap interactive registration complete');
     } else {
         console.warn('⚠️ MiniMap.registerInteractive not available');
+    }
+    
+    // Register day/night cycle box interactive
+    if (window.g_dayNightCycleBox && window.g_dayNightCycleBox.registerInteractive) {
+        window.g_dayNightCycleBox.registerInteractive();
+        console.log('✅ DayNightCycleBox interactive registration complete');
+    } else {
+        console.warn('⚠️ DayNightCycleBox.registerInteractive not available');
+    }
+    
+    // Register weather box interactive
+    if (window.g_weatherBox && window.g_weatherBox.registerInteractive) {
+        window.g_weatherBox.registerInteractive();
+        console.log('✅ WeatherBox interactive registration complete');
+    } else {
+        console.warn('⚠️ WeatherBox.registerInteractive not available');
     }
 }
 

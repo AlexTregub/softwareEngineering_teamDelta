@@ -61,7 +61,8 @@
     // Register interactive drawable (pointer handling)
     if (!RenderManager._registeredDrawables.selectionBoxInteractive) {
       const selectionAdapter = {
-        hitTest: function(pointer) { return true; },
+        id: 'selection-box-controller',
+        hitTest: function(pointer) { return false; }, // Don't consume all clicks, let UI elements handle first
         onPointerDown: function(pointer) { 
           try { 
             this.handleClick(pointer.screen.x, pointer.screen.y, 'left'); 

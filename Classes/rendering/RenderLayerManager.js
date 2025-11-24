@@ -131,9 +131,11 @@ class RenderLayerManager {
     try {
       if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
         const selectionAdapter = {
+          id: 'selection-box',
           hitTest: function(pointer) {
-            // Always allow selection adapter to receive events on the UI layer
-            return true;
+            // Only claim hits if selection box is active/dragging
+            // Let other UI elements handle clicks first by returning false when not actively selecting
+            return false;
           },
           _toWorld: function(px, py) {
             try {

@@ -184,19 +184,48 @@ class PowerButtonController {
   }
 
   /**
-   * Activate the power (emit event to PowerManager)
+   * Activate the power (toggle brush or emit event)
    * @private
    */
   _activatePower() {
-    if (typeof window.eventBus === 'undefined') {
-      console.warn('Cannot activate power - eventBus not available');
+    const powerName = this.model.getPowerName();
+    
+    // Lightning power - toggle lightning aim brush
+    if (powerName === 'lightning') {
+      if (typeof window.g_lightningAimBrush === 'undefined' || !window.g_lightningAimBrush) {
+        // Initialize brush if not present
+        if (typeof window.initializeLightningAimBrush === 'function') {
+          window.g_lightningAimBrush = window.initializeLightningAimBrush();
+        } else {
+          console.warn('Cannot activate lightning - g_lightningAimBrush not available');
+          return;
+        }
+      }
+      
+      // Toggle the brush
+      window.g_lightningAimBrush.toggle();
+      console.log(`⚡ Lightning aim brush toggled: ${window.g_lightningAimBrush.isActive ? 'ACTIVE' : 'INACTIVE'}`);
       return;
     }
-
-    window.eventBus.emit('power:activated', {
-      powerName: this.model.getPowerName(),
-      timestamp: typeof millis === 'function' ? millis() : Date.now()
-    });
+    
+    // Fireball power - toggle fireball aim brush (if it exists)
+    if (powerName === 'fireball') {
+      if (typeof window.g_flashAimBrush !== 'undefined' && window.g_flashAimBrush) {
+        window.g_flashAimBrush.toggle();
+        console.log(`🔥 Fireball aim brush toggled: ${window.g_flashAimBrush.isActive ? 'ACTIVE' : 'INACTIVE'}`);
+        return;
+      }
+    }
+    
+    // Fallback: emit event to PowerManager for other powers
+    if (typeof window.eventBus !== 'undefined') {
+      window.eventBus.emit('power:activated', {
+        powerName: powerName,
+        timestamp: typeof millis === 'function' ? millis() : Date.now()
+      });
+    } else {
+      console.warn('Cannot activate power - eventBus not available');
+    }
   }
 
   /**
