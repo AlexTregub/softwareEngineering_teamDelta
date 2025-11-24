@@ -107,7 +107,7 @@ class CombatController {
     // Access global ants array (this could be improved with dependency injection)
     if (typeof ants === 'undefined' || typeof antIndex === 'undefined') return;
 
-    const entityFaction = this._entity.faction || "neutral";
+    const entityFaction = this._entity._faction || this._entity.faction || "neutral";
 
     // Check all other ants for enemies
     for (let i = 0; i < ants.length; i++) {
