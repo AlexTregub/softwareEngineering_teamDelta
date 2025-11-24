@@ -1,0 +1,31 @@
+name: deployToCassiniManual
+
+on:
+    workflow_dispatch:
+
+env: 
+    HOST: cassini.cs.kent.edu
+    USER: ants
+    TARGET: ants@cassini.cs.kent.edu
+    RUN: ssh -o LogLevel=ERROR ants@cassini.cs.kent.edu 
+    COPY: scp -o LogLevel=ERROR
+    LOGGING: set -o xtrace
+
+jobs:
+  cassini_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout files...
+        uses: actions/checkout@v2
+      - name: Get ssh key...
+        uses: shimataro/ssh-key-action@v2 
+        with:
+          key: ${{ secrets.ID_ED25519 }}
+          name: id_ed25519
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      - name: Zip & copy files to cassini
+        run:
+          $LOGGING
+
+          $RUN ls -la
