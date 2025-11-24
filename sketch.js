@@ -176,6 +176,33 @@ function setup() {
   // Initialize power activation handlers (EventBus integration)
   initializePowerActivationHandlers();
   
+  // Auto-select queen and follow camera when game starts
+  if (typeof GameState !== 'undefined' && GameState.onStateChange) {
+    GameState.onStateChange((newState, oldState) => {
+      if (newState === 'PLAYING' && oldState !== 'PLAYING') {
+        // Wait a frame for queen to be fully initialized
+        setTimeout(() => {
+          const queen = getQueen();
+          if (queen) {
+            console.log('🎮 Game started - selecting queen and enabling camera follow');
+            
+            // Select the queen
+            if (typeof g_selectionBoxController !== 'undefined' && g_selectionBoxController) {
+              g_selectionBoxController.deselectAll();
+              g_selectionBoxController.addToSelection(queen);
+            }
+            
+            // Enable camera follow
+            if (typeof cameraManager !== 'undefined' && cameraManager) {
+              cameraManager.setFollowTarget(queen);
+              cameraManager.enableFollow();
+            }
+          }
+        }, 100); // Small delay to ensure queen is spawned
+      }
+    });
+  }
+  
   // Register all components with RenderManager (must be last for proper priority)
   registerWithRenderManager();
 }

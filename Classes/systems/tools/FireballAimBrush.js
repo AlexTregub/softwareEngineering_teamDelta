@@ -223,26 +223,6 @@ class FireballAimBrush extends BrushBase {
       line(this.cursor.x, this.cursor.y - size, this.cursor.x, this.cursor.y + size);
     }
 
-    // Instruction text
-    noStroke();
-    fill(255);
-    textAlign(CENTER, TOP);
-    textSize(11);
-    
-    let instructionText;
-    if (!valid) {
-      instructionText = `Out of range (${this.tileRange} tiles)`;
-    } else if (this.isCharging) {
-      if (this.chargeProgress >= 1.0) {
-        instructionText = 'Release to fire!';
-      } else {
-        instructionText = `Charging... ${Math.floor(this.chargeProgress * 100)}%`;
-      }
-    } else {
-      instructionText = 'Hold to charge fireball';
-    }
-    
-    text(instructionText, this.cursor.x, this.cursor.y + 50);
     pop();
     
     // Render temporary explosion emitters (after main rendering, outside push/pop)
