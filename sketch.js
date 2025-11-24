@@ -321,7 +321,7 @@ function initializeWorld() {
     logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
      
-  g_gridMap = new PathMap(g_map);
+  g_gridMap = new PathMap(g_activeMap);
   g_globalTime = new GlobalTime();
   
   // Initialize max ant limit (can be increased via building upgrades)

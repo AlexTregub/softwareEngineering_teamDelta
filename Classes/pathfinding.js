@@ -9,22 +9,30 @@ let meetingNode = null;
 class PathMap{
   constructor(terrain){
     this._terrain = terrain; //Requires terrain(for weight, objects, etc.)
-    this._grid = new Grid( //Makes Grid for easy tile storage/access
-      // terrain._xCount, //Size of terrain to match
-      // terrain._yCount,
-      // this._terrain._tileSpanRange[0],
-      // this._terrain._tileSpanRange[1], // BAD IDEA TO USE PRIVATE VARS, fuck it we ball 
-      // this._terrain._tileSpan[0], // TL Position, private var access
-      // [0,0]
+    // this._grid = new Grid( //Makes Grid for easy tile storage/access
+    //   // terrain._xCount, //Size of terrain to match
+    //   // terrain._yCount,
+    //   // this._terrain._tileSpanRange[0],
+    //   // this._terrain._tileSpanRange[1], // BAD IDEA TO USE PRIVATE VARS, fuck it we ball 
+    //   // this._terrain._tileSpan[0], // TL Position, private var access
+    //   // [0,0]
 
-      terrain._xCount, //Size of terrain to match
-      terrain._yCount,
-      [0,0]
-    );
+    //   terrain._xCount, //Size of terrain to match
+    //   terrain._yCount,
+    //   [0,0] // Terrain by default had (0,0) index, no chunking, ...
+    // );
 
-    for(let y = 0; y < terrain._yCount; y++){
-      for(let x = 0; x < terrain._xCount; x++){
-        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
+    this._grid = new Grid(this._terrain._tileSpanRange[0],this._terrain._tileSpanRange[1],this._terrain._tileSpan[0]);
+
+    for(let y = 0; y < this._grid._sizeY; y++){
+      for(let x = 0; x < this._grid._sizeX; x++){
+        let node
+        node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
+
+        node = new Node(
+          this._terrain.getArrPos([x,y]),
+          x,y
+        )
         this._grid.setArrPos([x, y], node); //Stores tile in grid
       }
     }
