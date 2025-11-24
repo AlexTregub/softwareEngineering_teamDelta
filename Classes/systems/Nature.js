@@ -92,16 +92,16 @@ class GlobalTime{
             }
         }
         if(this.transitioning){ //Transitions last one minue
-            if(this.inGameSeconds >= 60){
+            if(this.inGameSeconds >= 10){
                 this.transition(this.timeOfDay); //Add function to add darkening/lightening effects
             }
         }
         else{
-            if(this.inGameSeconds >= 240){ //Day/Night last 4 minutes (10 minutes per day (probably shorten by half)
+            if(this.inGameSeconds >= 20){ //Day/Night last 4 minutes (10 minutes per day (probably shorten by half)
                 this.transition(this.timeOfDay);
             }
         }
-        if(this.weatherSeconds >= 120){ //Weather automatically ends after 2 minutes
+        if(this.weatherSeconds >= 40){ //Weather automatically ends after 2 minutes
             this.weather = false
             this.weatherName = null;
             window.g_naturePower = null;
@@ -141,7 +141,15 @@ class GlobalTime{
     runTimeBasedEvents(time){ //Will run events like boss fights and enemy waves
         switch(time){
             case "night":
-              gameEventManager.startEvent('Swarm'); // Waves / Additional hives...
+              if(this.inGameDays % 3 == 0){
+                gameEventManager.startEvent('Boss');
+              }
+              else if(this.inGameDays % 5 == 0){
+                gameEventManager.startEvent('Raid');
+              }
+              else{
+                gameEventManager.startEvent('Swarm'); // Waves / Additional hives...
+              }
               console.log(`Night has fallen. Enemies are approaching!`);
               break;
             case "day":

@@ -174,7 +174,7 @@ function setup() {
   // Game Event
   gameEventManager = new GameEventManager();
   gameEventManager.startEvent('AntHive'); // Waves / Additional hives...
-  gameEventManager.startEvent('Boss'); 
+  //gameEventManager.startEvent('Boss'); 
 
 
 
@@ -328,6 +328,7 @@ function initializeWorld() {
   
   // Initialize Time of Day Overlay system
   g_timeOfDayOverlay = new TimeOfDayOverlay(g_globalTime);
+  if (g_timeOfDayOverlay) window.g_timeOfDayOverlay = g_timeOfDayOverlay;
   
    // Initialize the render layer manager if not already done
   RenderManager.initialize();
@@ -514,7 +515,7 @@ let spiderSpawned;
 function draw() {
   // Spawn boss spider after 300 frames
   if (frameCount >= 300 && GameState.isInGame() && !spiderSpawned) {
-    new Spider();
+    //new Spider();
     spiderSpawned = true;
   }
 

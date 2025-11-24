@@ -1141,6 +1141,7 @@ const MAX_NON_PLAYER_ANTS = 200;
 
 function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
   // Check population limit for non-player factions
+  let list = [];
   if (faction !== "player") {
     const currentNonPlayerAnts = ants.filter(ant => ant && ant._faction !== "player" && ant._isActive).length;
     const remainingSlots = MAX_NON_PLAYER_ANTS - currentNonPlayerAnts;
