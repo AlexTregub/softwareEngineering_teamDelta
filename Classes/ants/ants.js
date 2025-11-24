@@ -1059,7 +1059,27 @@ function spawnAntByType(antObj){
 }
 
 // --- Spawn Ants ---
+// Hard limit for non-player ants
+const MAX_NON_PLAYER_ANTS = 200;
+
 function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
+  // Check population limit for non-player factions
+  if (faction !== "player") {
+    const currentNonPlayerAnts = ants.filter(ant => ant && ant._faction !== "player" && ant._isActive).length;
+    const remainingSlots = MAX_NON_PLAYER_ANTS - currentNonPlayerAnts;
+    
+    if (remainingSlots <= 0) {
+      console.log(`⚠️ Population limit reached (${MAX_NON_PLAYER_ANTS} non-player ants). Cannot spawn more ants for faction: ${faction}`);
+      return;
+    }
+    
+    // Clamp spawn count to remaining slots
+    if (numToSpawn > remainingSlots) {
+      console.log(`⚠️ Reducing spawn from ${numToSpawn} to ${remainingSlots} ants due to population limit`);
+      numToSpawn = remainingSlots;
+    }
+  }
+  
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let JobName = assignJob();
@@ -1108,6 +1128,32 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
       g_tileInteractionManager.addObject(newAnt, 'ant');
     }
   }
+}
+
+// --- Population Management ---
+
+/**
+ * Get current count of non-player ants
+ * @returns {number} Number of active non-player ants
+ */
+function getNonPlayerAntCount() {
+  return ants.filter(ant => ant && ant._faction !== "player" && ant._isActive).length;
+}
+
+/**
+ * Get remaining spawn slots for non-player ants
+ * @returns {number} Number of ants that can still be spawned
+ */
+function getRemainingAntSlots() {
+  return Math.max(0, MAX_NON_PLAYER_ANTS - getNonPlayerAntCount());
+}
+
+/**
+ * Check if population limit has been reached for non-player ants
+ * @returns {boolean} True if at or over limit
+ */
+function isPopulationLimitReached() {
+  return getNonPlayerAntCount() >= MAX_NON_PLAYER_ANTS;
 }
 
 // --- Update All Ants ---
@@ -1214,6 +1260,10 @@ if (typeof window !== 'undefined') {
   window.antsUpdateAndRender = antsUpdateAndRender;
   window.assignJob = assignJob;
   window.handleSpawnCommand = handleSpawnCommand;
+  window.MAX_NON_PLAYER_ANTS = MAX_NON_PLAYER_ANTS;
+  window.getNonPlayerAntCount = getNonPlayerAntCount;
+  window.getRemainingAntSlots = getRemainingAntSlots;
+  window.isPopulationLimitReached = isPopulationLimitReached;
 } else if (typeof global !== 'undefined') {
   global.ant = ant;
   global.antsSpawn = antsSpawn;
@@ -1222,4 +1272,8 @@ if (typeof window !== 'undefined') {
   global.antsUpdateAndRender = antsUpdateAndRender;
   global.assignJob = assignJob;
   global.handleSpawnCommand = handleSpawnCommand;
+  global.MAX_NON_PLAYER_ANTS = MAX_NON_PLAYER_ANTS;
+  global.getNonPlayerAntCount = getNonPlayerAntCount;
+  global.getRemainingAntSlots = getRemainingAntSlots;
+  global.isPopulationLimitReached = isPopulationLimitReached;
 }

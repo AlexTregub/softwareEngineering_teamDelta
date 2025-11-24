@@ -506,6 +506,38 @@ await sleep(500);
 await saveScreenshot(page, 'rendering/my_feature', true);
 ```
 
+### EFFECTS Layer Rendering Order
+
+The EFFECTS layer renders in a specific order to ensure proper visual layering:
+
+1. **EffectsLayerRenderer** - Base particle effects (blood, sparks, dust, trails)
+2. **FireballManager** - Active fireball projectiles (via `renderFireballEffects()`)
+3. **LightningManager** - Lightning effects and soot stains
+4. **ParticleEmitter temporary explosions** - Explosion bursts (rendered last, on top)
+
+**Integration in RenderLayerManager**:
+```javascript
+// In renderEffectsLayer()
+if (effectsRenderer && typeof effectsRenderer.renderEffects === 'function') {
+  effectsRenderer.renderEffects(gameState);
+}
+
+// Render Fireball System (projectile effects)
+this.renderFireballEffects(gameState);
+```
+
+**Main Game Loop** (`sketch.js`):
+```javascript
+// Update fireballs in draw loop (PLAYING state)
+if (window.g_fireballManager) window.g_fireballManager.update();
+```
+
+**Temporary Particle Cleanup**:
+Temporary particle emitters (explosion effects) are **NOT** automatically cleaned up by any manager. They rely on:
+- Manual cleanup check in `FireballAimBrush.render()`
+- 2-second lifetime before removal from `window.g_tempParticleEmitters[]`
+- Each emitter stops emission after initial burst (80 particles)
+
 ## Terrain System
 
 **MapManager** (`Classes/managers/MapManager.js`) - Perlin noise generation, 32px tiles
@@ -600,6 +632,152 @@ it('should avoid water when pathfinding', function() {
   - Full test coverage (unit, integration, E2E)
 - **Current Focus**: Debugging rendering issues, panel visibility
 - **Documentation**: `docs/LEVEL_EDITOR_SETUP.md`
+
+### Fireball System (COMPLETE)
+**Status**: Production-ready, integrated with Effects Layer
+- **Components**:
+  - `Fireball` class: Projectile with physics, collision detection, visual effects
+  - `FireballManager` singleton: Manages multiple fireballs, handles updates/rendering
+  - `FireballAimBrush`: Charge-and-release UI brush for Queen targeting
+- **Integration**:
+  - Renders on EFFECTS layer via `RenderLayerManager.renderFireballEffects()`
+  - Updates in main game loop (`sketch.js`)
+  - Coordinate conversion: world ↔ screen via MapManager
+- **Key Features**:
+  - Physics-based projectile motion with velocity and targeting
+  - Trail system (8-point fade trail)
+  - Multi-layer rendering (glow → trail → fireball core)
+  - Collision detection with configurable radius (15px default)
+  - Damage on impact with `takeDamage()` integration
+  - Explosion effects via `ParticleEmitter`
+  - Area-of-effect damage (3-tile blast radius, 150 damage)
+  - Soot stains using `SootStain` class (5-8 overlapping stains per impact)
+- **Charge System** (FireballAimBrush):
+  - 1-second charge requirement before firing
+  - Visual feedback: charging ring, particle effects, screen darkening
+  - Radial light glow at 50%+ charge
+  - Audio progression (volume 0.2 → 1.0 during charge)
+  - Particle emitter activates at full charge (fire/smoke/sparks)
+  - Range validation (7 tiles base, scales with power level)
+- **Files**:
+  - `Classes/systems/combat/FireballSystem.js`
+  - `Classes/systems/tools/FireballAimBrush.js`
+  - `test/unit/systems/Fireball.test.js`
+
+### Particle System (COMPLETE)
+**Status**: Production-ready, used by Fireball and other effects
+- **ParticleEmitter** (`Classes/systems/ParticleEmitter.js`):
+  - Continuous particle emission system for fire, smoke, sparks, rain
+  - Framerate-independent updates using deltaTime normalization
+  - Configurable emission rate, max particles, spawn radius
+  - Particle lifecycle: spawn → age → fade → death
+  - Visual properties: size range, speed range, colors per type
+  - Physics: gravity, drift (horizontal), turbulence (random)
+  - Emission modes:
+    - `continuous`: Constant emission (fire, smoke, rain)
+    - `explosion`: Radial burst (fireball impact, explosions)
+- **Particle Types**:
+  - `fire`: Orange/yellow, rises upward (negative Y velocity)
+  - `smoke`: Gray, expands over lifetime, rises slowly
+  - `spark`: Bright yellow/white, small, fast movement
+  - `rain`: Light blue/white, falls downward (positive Y velocity)
+- **Lifecycle Management**:
+  - Fade in: First 20% of lifetime
+  - Fade out: Last 80% of lifetime
+  - Alpha: 0 → 255 → 0 (smooth transitions)
+  - Size changes: smoke grows, fire shrinks, sparks constant
+- **Temporary Emitters** (for explosions):
+  - Stored in `window.g_tempParticleEmitters[]` array
+  - Auto-cleanup after 2 seconds (explosion burst pattern)
+  - Rendered in `FireballAimBrush.render()` after main brush rendering
+  - Created on fireball impact with 80 particles per explosion
+- **Integration with Fireball**:
+  - Charge indicator: Continuous emitter at cursor during charge
+  - Explosion burst: Radial emission mode on impact
+  - Screen-space rendering (converted from world coordinates)
+  - Particles rendered after main game elements but before UI
+
+### Fireball-Particle System Interaction Pattern
+
+**Charge Phase**:
+```javascript
+// In FireballAimBrush.update()
+if (this.chargeProgress >= 1.0 && !this.particleEmitter.isActive()) {
+  this.particleEmitter.start(); // Activate continuous emission
+}
+this.particleEmitter.setPosition(this.cursor.x, this.cursor.y);
+this.particleEmitter.update(); // Update existing particles
+```
+
+**Impact Phase**:
+```javascript
+// In FireballAimBrush.tryStrikeAt()
+const explosionEmitter = new ParticleEmitter({
+  emissionMode: 'explosion',
+  types: ['fire', 'smoke', 'spark'],
+  speedRange: [3, 10] // Radial burst speed
+});
+
+explosionEmitter.start();
+for (let i = 0; i < 80; i++) {
+  explosionEmitter.emitParticle(); // Burst emission
+}
+explosionEmitter.stop();
+
+// Store for rendering/cleanup
+window.g_tempParticleEmitters.push({
+  emitter: explosionEmitter,
+  created: millis(),
+  lifetime: 2000
+});
+```
+
+**Rendering Order** (EFFECTS layer):
+1. EffectsRenderer particle effects (blood, sparks, dust)
+2. Fireball projectiles (FireballManager)
+3. Lightning effects and soot stains
+4. ParticleEmitter temporary explosions (last, on top)
+
+**Coordinate Conversion Pattern**:
+```javascript
+// World → Screen (for rendering)
+const tileX = worldX / TILE_SIZE;
+const tileY = worldY / TILE_SIZE;
+const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+
+// Screen → World (for collision/damage)
+const tilePos = g_activeMap.renderConversion.convCanvasToPos([screenX, screenY]);
+const worldX = (tilePos[0] - 0.5) * TILE_SIZE;
+const worldY = (tilePos[1] - 0.5) * TILE_SIZE;
+```
+
+**TDD Pattern for Effects**:
+```javascript
+// Unit test - ParticleEmitter behavior
+it('should emit particles at specified rate', function() {
+  const emitter = new ParticleEmitter({ emissionRate: 10, maxParticles: 50 });
+  emitter.start();
+  emitter.update();
+  expect(emitter.getParticleCount()).to.be.greaterThan(0);
+});
+
+// Integration test - Fireball + Particles
+it('should create explosion particles on impact', function() {
+  const fireball = new Fireball(100, 100, 200, 200, 25);
+  fireball.explode();
+  expect(window.g_tempParticleEmitters.length).to.be.greaterThan(0);
+});
+
+// E2E test - Visual verification
+await page.evaluate(() => {
+  window.g_fireballAimBrush.tryStrikeAt(400, 400);
+  if (typeof window.redraw === 'function') {
+    window.redraw(); window.redraw(); window.redraw();
+  }
+});
+await sleep(500);
+await saveScreenshot(page, 'effects/fireball_impact', true);
+```
 
 ### Upcoming Systems (Design Phase)
 

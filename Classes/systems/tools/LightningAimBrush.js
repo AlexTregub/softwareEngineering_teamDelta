@@ -105,13 +105,6 @@ class LightningAimBrush extends BrushBase {
     line(this.cursor.x - size, this.cursor.y, this.cursor.x + size, this.cursor.y);
     line(this.cursor.x, this.cursor.y - size, this.cursor.x, this.cursor.y + size);
     line(this.cursor.x, this.cursor.y - size, this.cursor.x, this.cursor.y + size);
-
-    // Instruction text
-    noStroke();
-    fill(255);
-    textAlign(CENTER, TOP);
-    textSize(11);
-    text(valid ? 'Left click to strike' : `Out of range (${this.tileRange} tiles)`, this.cursor.x, this.cursor.y + size + 6);
     pop();
   }
 

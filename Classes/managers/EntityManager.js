@@ -336,6 +336,72 @@ class EntityManager {
     }
     
     /**
+     * Get count of non-player ants (for population limit checking)
+     * @returns {number} Total count of ants excluding player faction
+     */
+    getNonPlayerAntCount() {
+        let count = 0;
+        for (const faction in this.factions) {
+            if (faction !== 'player' && this.factions[faction]['ant']) {
+                count += this.factions[faction]['ant'];
+            }
+        }
+        return count;
+    }
+    
+    /**
+     * Get remaining ant spawn slots (200 limit for non-player ants)
+     * @returns {number} Number of ants that can still be spawned
+     */
+    getRemainingAntSlots() {
+        const MAX_NON_PLAYER_ANTS = typeof window !== 'undefined' && window.MAX_NON_PLAYER_ANTS 
+            ? window.MAX_NON_PLAYER_ANTS 
+            : (typeof global !== 'undefined' && global.MAX_NON_PLAYER_ANTS 
+                ? global.MAX_NON_PLAYER_ANTS 
+                : 200);
+        return Math.max(0, MAX_NON_PLAYER_ANTS - this.getNonPlayerAntCount());
+    }
+    
+    /**
+     * Check if non-player ant population limit has been reached
+     * @returns {boolean} True if at or over the 200 ant limit
+     */
+    isAntPopulationLimitReached() {
+        const MAX_NON_PLAYER_ANTS = typeof window !== 'undefined' && window.MAX_NON_PLAYER_ANTS 
+            ? window.MAX_NON_PLAYER_ANTS 
+            : (typeof global !== 'undefined' && global.MAX_NON_PLAYER_ANTS 
+                ? global.MAX_NON_PLAYER_ANTS 
+                : 200);
+        return this.getNonPlayerAntCount() >= MAX_NON_PLAYER_ANTS;
+    }
+    
+    /**
+     * Check if spawning a certain number of ants is allowed
+     * @param {number} count - Number of ants to spawn
+     * @param {string} faction - Faction of the ants
+     * @returns {Object} Object with 'allowed' boolean and 'maxAllowed' number
+     */
+    canSpawnAnts(count, faction = 'neutral') {
+        // Player faction has no limit
+        if (faction === 'player') {
+            return { allowed: true, maxAllowed: count };
+        }
+        
+        const remaining = this.getRemainingAntSlots();
+        
+        if (remaining <= 0) {
+            return { allowed: false, maxAllowed: 0 };
+        }
+        
+        if (count <= remaining) {
+            return { allowed: true, maxAllowed: count };
+        }
+        
+        // Partial spawn allowed
+        return { allowed: true, maxAllowed: remaining };
+    }
+    
+    /**
      * Reset all entity counts
      */
     reset() {

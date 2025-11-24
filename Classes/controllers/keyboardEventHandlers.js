@@ -159,42 +159,6 @@ function keyPressed() {
     }
   }
   
-  // Power Button Shortcuts (1, 2 keys)
-  if (k === '1' || k === '2') {
-    console.log(`🔢 Power button shortcut pressed: ${k}`);
-    console.log(`   g_powerButtonPanel exists: ${typeof window.g_powerButtonPanel !== 'undefined'}`);
-    
-    if (window.g_powerButtonPanel) {
-      const powerIndex = parseInt(k) - 1;
-      console.log(`   Power index: ${powerIndex}`);
-      console.log(`   Total buttons: ${window.g_powerButtonPanel.buttons?.length}`);
-      
-      const button = window.g_powerButtonPanel.buttons[powerIndex];
-      console.log(`   Button found: ${button !== undefined}`);
-      
-      if (button && button.controller) {
-        console.log(`   Button power: ${button.powerName}`);
-        console.log(`   Button position: (${button.view.x}, ${button.view.y})`);
-        // Simulate click at button center
-        const clicked = button.controller.handleClick(button.view.x, button.view.y);
-        console.log(`   Click handled: ${clicked}`);
-        return;
-      } else {
-        console.log(`   ❌ Button or controller not available`);
-      }
-    } else {
-      console.log(`   ❌ g_powerButtonPanel not found on window`);
-    }
-  }
-  
-  // Power Brush Manager (3, 4, 5 keys)
-  if (k === '3' || k === '4' || k === '5') {
-    if (window.g_powerBrushManager?.switchPower) {
-      window.g_powerBrushManager.switchPower(key);
-      return;
-    }
-  }
-  
   // Queen Movement (WASD - continuous polling in draw loop handled separately)
   // Note: Actual movement is handled in sketch.js draw() via keyIsDown() for smooth continuous movement
   // This section is for documentation purposes - WASD uses keyIsDown() not keyPressed events
@@ -302,6 +266,42 @@ function keyPressed() {
   // Building UI Manager
   if (window.BUIManager?.active) {
     if (window.BUIManager.handleKeyPress(key)) return;
+  }
+
+    // Power Button Shortcuts (1, 2 keys)
+  if (k === '1' || k === '2') {
+    console.log(`🔢 Power button shortcut pressed: ${k}`);
+    console.log(`   g_powerButtonPanel exists: ${typeof window.g_powerButtonPanel !== 'undefined'}`);
+    
+    if (window.g_powerButtonPanel) {
+      const powerIndex = parseInt(k) - 1;
+      console.log(`   Power index: ${powerIndex}`);
+      console.log(`   Total buttons: ${window.g_powerButtonPanel.buttons?.length}`);
+      
+      const button = window.g_powerButtonPanel.buttons[powerIndex];
+      console.log(`   Button found: ${button !== undefined}`);
+      
+      if (button && button.controller) {
+        console.log(`   Button power: ${button.powerName}`);
+        console.log(`   Button position: (${button.view.x}, ${button.view.y})`);
+        // Simulate click at button center
+        const clicked = button.controller.handleClick(button.view.x, button.view.y);
+        console.log(`   Click handled: ${clicked}`);
+        return;
+      } else {
+        console.log(`   ❌ Button or controller not available`);
+      }
+    } else {
+      console.log(`   ❌ g_powerButtonPanel not found on window`);
+    }
+  }
+  
+  // Power Brush Manager (3, 4, 5 keys)
+  if (k === '3' || k === '4' || k === '5') {
+    if (window.g_powerBrushManager?.switchPower) {
+      window.g_powerBrushManager.switchPower(key);
+      return;
+    }
   }
   
   // Fallback to keyboard controller
