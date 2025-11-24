@@ -17,7 +17,7 @@ const NPCDialogues = {
     "Yknow, I really hate to be that guy...",
     "But that isn't 4 sticks...",
     "It's okay, I get it, the education system is broken and all that.",
-    "Now go...4 sticks...that's one more than 7 if you were wondering...",
+    "Now go...4 sticks...that's one more than 3 if you were wondering...",
     "You do know what 7 is right?"
   ],
   antony3: [
@@ -29,16 +29,11 @@ const NPCDialogues = {
     "Now gimme one second",
     // ... wait like 1.5 seconds ... he pulls out a bomb
     "Yep, still got it.",
-    "What? No, I didn't make this out of sticks...",
-    "I just wanted to see if you could follow instructions.",
-    "It's 2025, I got this thing off Antsy.",
-    // ... lights fuse ...
-    "Is it a bad time to tell you I had the key",
-    // ... bomb blows up and flashes white, once it clears, enemies are in the room ->
+    "What? No, I didn't need those sticks for anything...",
+    "I just wanted to see if you could follow simple instructions.",
   ],
   antony5: [
-    "Just as I thought! Those dummies left a hive unnatended!",
-    "Quick, go ahead and take over that hive before they come back!",
+    "Go over to that hive right there",
     "To interact with a hive, walk over to it and press 'E'",
   ],
   antony6: [
@@ -135,20 +130,18 @@ class NPC extends Building{
   }
 
   initDialogues() {
-    const nearbyAnts = this.getAnts(this.faction);
+    const playerQueen = getQueen?.();
 
-    // Default: reset each frame
     this.isPlayerNearby = false;
 
-    nearbyAnts.forEach(ant => {
-        if (ant.jobName === 'Queen') {
-            const range = dist(this._x, this._y, ant.posX, ant.posY);
-            if (range < this.dialogueRange) {
-                this.isPlayerNearby = true;
-            }
+    if (playerQueen) {
+        const range = dist(this._x, this._y, playerQueen.posX, playerQueen.posY);
+        if (range < this.dialogueRange) {
+            this.isPlayerNearby = true;
         }
-    });
+    }
 }
+
 
 
   update() {
@@ -314,7 +307,7 @@ class NPC extends Building{
         console.warn("terrariaFont not loaded yet!");
       }
       textFont(terrariaFont);
-      // position slightly below NPC (like a subtitle)
+      // position slightly below NPC (lAike a subtitle)
 
       // const hillPos = this.getPosition()
       // const posDict = {x: this._x, y: this._y}
@@ -323,7 +316,7 @@ class NPC extends Building{
 
       // text(`[E] Talk to ${this.name}`, this._x + 35, this._y + 70);
       // text(`[E] Talk to ${this.name}`, renderPos.x + 35, renderPos.y + 70);
-      text(`[E] Talk to ${this.name}`, renderPos.x, renderPos.y -20);
+      text(`[E] Talk to ${this.name}`, renderPos.x + 30, renderPos.y);
       pop();
     }
   }
