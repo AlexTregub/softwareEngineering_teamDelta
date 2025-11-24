@@ -49,7 +49,7 @@ function preload(){
 
 /**
  * Initialize power activation event handlers
- * Connects PowerButtonPanel clicks to actual power systems
+ * Connects g_powerButtonPanel clicks to actual power systems
  */
 function initializePowerActivationHandlers() {
   if (typeof window.eventBus === 'undefined') {
@@ -67,7 +67,7 @@ function initializePowerActivationHandlers() {
     initializeFlashSystem();
   }
   
-  // Listen for power activation events from PowerButtonPanel
+  // Listen for power activation events from g_powerButtonPanel
   window.eventBus.on('power:activated', (data) => {
     const { powerName, timestamp } = data;
     console.log(`⚡ Power activated: ${powerName}`);

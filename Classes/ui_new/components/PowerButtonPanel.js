@@ -1,6 +1,6 @@
 /**
- * PowerButtonPanel
- * @module ui_new/components/PowerButtonPanel
+ * g_powerButtonPanel
+ * @module ui_new/components/g_powerButtonPanel
  * 
  * Manages a panel of power buttons with background styling
  * Integrates PowerButton MVC triads (Model-View-Controller)
@@ -12,7 +12,7 @@
  * - Queen unlock status synchronization
  */
 
-class PowerButtonPanel {
+class g_powerButtonPanel {
   /**
    * Create a power button panel
    * @param {Object} p5Instance - p5.js instance
@@ -61,7 +61,7 @@ class PowerButtonPanel {
     this.enabled = true;
     
     // DEBUG: Log panel creation details
-    console.log('🎨 PowerButtonPanel created:');
+    console.log('🎨 g_powerButtonPanel created:');
     console.log(`   Position: (${this.x.toFixed(1)}, ${this.y.toFixed(1)})`);
     console.log(`   Size: ${this.width}x${this.height}`);
     console.log(`   Normalized coords: (${normalizedX}, ${normalizedY})`);
@@ -119,7 +119,8 @@ class PowerButtonPanel {
       const view = new PowerButtonViewClass(model, this.p5, {
         x: buttonX,
         y: buttonY,
-        size: this.buttonSize
+        size: this.buttonSize,
+        keybind: String(index + 1) // Add keybind: "1", "2", etc.
       });
 
       const controller = new PowerButtonControllerClass(model, view);
@@ -187,7 +188,7 @@ class PowerButtonPanel {
    * @returns {boolean} True if click was handled
    */
   handleClick(x, y) {
-    console.log(`🖱️ PowerButtonPanel.handleClick at (${x}, ${y})`);
+    console.log(`🖱️ g_powerButtonPanel.handleClick at (${x}, ${y})`);
     
     if (!this.enabled) {
       console.log('   ❌ Panel disabled');
@@ -270,7 +271,7 @@ class PowerButtonPanel {
       return;
     }
 
-    console.log('📝 Registering PowerButtonPanel as interactive drawable...');
+    console.log('📝 Registering g_powerButtonPanel as interactive drawable...');
 
     RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
       id: 'power-button-panel',
@@ -304,21 +305,21 @@ class PowerButtonPanel {
         }
         const x = pointer.screen ? pointer.screen.x : pointer.x;
         const y = pointer.screen ? pointer.screen.y : pointer.y;
-        console.log(`👆 PowerButtonPanel.onPointerDown at (${x}, ${y})`);
+        console.log(`👆 g_powerButtonPanel.onPointerDown at (${x}, ${y})`);
         return this.handleClick(x, y);
       }
     });
 
-    console.log('✅ PowerButtonPanel registered as interactive drawable');
+    console.log('✅ g_powerButtonPanel registered as interactive drawable');
   }
 }
 
 // Export for Node.js (testing) - check module.exports FIRST
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = PowerButtonPanel;
+  module.exports = g_powerButtonPanel;
 }
 
 // Make available globally for browser
 if (typeof window !== 'undefined') {
-  window.PowerButtonPanel = PowerButtonPanel;
+  window.g_powerButtonPanel = g_powerButtonPanel;
 }

@@ -26,6 +26,7 @@ class PowerButtonView {
    * @param {number} [options.x=0] - X position
    * @param {number} [options.y=0] - Y position
    * @param {number} [options.size=64] - Button size (pixels)
+   * @param {string} [options.keybind] - Keyboard shortcut to display (e.g., "1", "2")
    */
   constructor(model, p5Instance, options = {}) {
     this.model = model;
@@ -35,6 +36,7 @@ class PowerButtonView {
     this.x = options.x || 0;
     this.y = options.y || 0;
     this.size = options.size || 64;
+    this.keybind = options.keybind || null; // Keybind label (e.g., "1", "2")
     
     // Visual constants
     this.LOCK_ICON_SIZE = 32;
@@ -106,6 +108,11 @@ class PowerButtonView {
     // Render cooldown radial if on cooldown
     if (isCooldown) {
       this._renderCooldownRadial(cooldownProgress);
+    }
+    
+    // Render keybind indicator (top-left corner)
+    if (this.keybind) {
+      this._renderKeybindIndicator();
     }
     
     this.p5.pop();
@@ -267,6 +274,34 @@ class PowerButtonView {
       py >= this.y - halfSize &&
       py <= this.y + halfSize
     );
+  }
+
+  /**
+   * Render keybind indicator in top-left corner
+   * @private
+   */
+  _renderKeybindIndicator() {
+    this.p5.push();
+    
+    // Position in top-left corner
+    const indicatorSize = 18;
+    const padding = 4;
+    const cornerX = this.x - this.size / 2 + padding;
+    const cornerY = this.y - this.size / 2 + padding;
+    
+    // Background circle
+    this.p5.fill(0, 0, 0, 180); // Semi-transparent black
+    this.p5.noStroke();
+    this.p5.ellipse(cornerX + indicatorSize / 2, cornerY + indicatorSize / 2, indicatorSize);
+    
+    // Keybind text
+    this.p5.fill(255, 255, 255); // White text
+    this.p5.textAlign(this.p5.CENTER, this.p5.CENTER);
+    this.p5.textSize(12);
+    this.p5.textStyle(this.p5.BOLD);
+    this.p5.text(this.keybind, cornerX + indicatorSize / 2, cornerY + indicatorSize / 2);
+    
+    this.p5.pop();
   }
 }
 

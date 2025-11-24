@@ -26,8 +26,8 @@ function initializeGameUIOverlay() {
         return null;
     }
     
-    if (typeof PowerButtonPanel === 'undefined') {
-        console.error('❌ PowerButtonPanel class not found');
+    if (typeof g_powerButtonPanel === 'undefined') {
+        console.error('❌ g_powerButtonPanel class not found');
         return null;
     }
     
@@ -66,7 +66,7 @@ function initializeGameUIOverlay() {
       height: 40 
     });
     
-    window.powerButtonPanel = new PowerButtonPanel(p5Instance, {
+    window.g_powerButtonPanel = new g_powerButtonPanel(p5Instance, {
       normalizedX: 0,  // 70% right from center (right side)
       normalizedY: -.9,  // 80% up from center (near top)
       powers: ['lightning', 'fireball']
@@ -105,7 +105,7 @@ function initializeGameUIOverlay() {
     window.g_gameUIOverlay = {
         antCountDropdown: window.antCountDropdown,
         resourceCountDisplay: window.resourceCountDisplay,
-        powerButtonPanel: window.powerButtonPanel,
+        g_powerButtonPanel: window.g_powerButtonPanel,
         miniMap: window.g_miniMap,
         dayNightCycleBox: window.g_dayNightCycleBox,
         weatherBox: window.g_weatherBox
@@ -124,9 +124,9 @@ function UIRegisterWithRenderer(p5Instance) {
     RenderManager.addDrawableToLayer(RenderManager.layers.UI_GAME, () => {
         window.antCountDropdown.render();
         window.resourceCountDisplay.render();
-        if (window.powerButtonPanel) {
-            window.powerButtonPanel.update();
-            window.powerButtonPanel.render();
+        if (window.g_powerButtonPanel) {
+            window.g_powerButtonPanel.update();
+            window.g_powerButtonPanel.render();
         }
         if (window.g_miniMap) {
             window.g_miniMap.update();
@@ -154,11 +154,11 @@ function UIRegisterWithRenderer(p5Instance) {
     }
     
     // Register interactive panel
-    if (window.powerButtonPanel && window.powerButtonPanel.registerInteractive) {
-        window.powerButtonPanel.registerInteractive();
-        console.log('✅ PowerButtonPanel interactive registration complete');
+    if (window.g_powerButtonPanel && window.g_powerButtonPanel.registerInteractive) {
+        window.g_powerButtonPanel.registerInteractive();
+        console.log('✅ g_powerButtonPanel interactive registration complete');
     } else {
-        console.warn('⚠️ PowerButtonPanel.registerInteractive not available');
+        console.warn('⚠️ g_powerButtonPanel.registerInteractive not available');
     }
     
     // Register minimap interactive
