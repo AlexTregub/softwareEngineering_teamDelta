@@ -398,6 +398,101 @@ RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
 });
 ```
 
+**⚠️ CRITICAL: Interactive Registration Pattern**
+
+When refactoring UI components to use RenderManager, **ALWAYS**:
+1. **Add `registerInteractive()` method** to component class
+2. **Call method in sketch.js `setup()`** after component creation
+3. **Use `pointer.screen.x/y`** for UI_GAME/UI_MENU layers (screen coords)
+4. **Check GameState** in hitTest/onPointerDown (e.g., `PLAYING` for game UI)
+
+**⚠️ CRITICAL: Normalized UI Coordinate System**
+
+**ALL UI components MUST use normalized coordinates** for resolution independence:
+
+**Coordinate System**:
+- `(0, 0)` = **center of screen**
+- `(-1, -1)` = **bottom-left corner**
+- `(1, 1)` = **top-right corner**
+- X-axis: `-1` (left) to `1` (right)
+- Y-axis: `-1` (bottom) to `1` (top) - **inverted from screen pixels!**
+
+**Implementation Pattern**:
+```javascript
+// In component constructor
+class MyUIComponent {
+  constructor(p5Instance, options = {}) {
+    this.p5 = p5Instance;
+    
+    // ALWAYS add coordinate converter
+    this.coordConverter = new UICoordinateConverter(p5Instance);
+    
+    // Calculate dimensions first
+    this.width = calculateWidth();
+    this.height = calculateHeight();
+    
+    // Use normalized coordinates (default values)
+    const normalizedX = options.normalizedX !== undefined ? options.normalizedX : 0;
+    const normalizedY = options.normalizedY !== undefined ? options.normalizedY : 0.9;
+    
+    // Convert to screen coordinates
+    const screenPos = this.coordConverter.normalizedToScreen(normalizedX, normalizedY);
+    
+    // Center component on position
+    this.x = screenPos.x - this.width / 2;
+    this.y = screenPos.y - this.height / 2;
+  }
+}
+
+// In initialization (gameUIOverlaySystem.js or sketch.js)
+const myComponent = new MyUIComponent(p5Instance, {
+  normalizedX: 0.7,   // 70% right from center
+  normalizedY: 0.8,   // 80% up from center
+  // ... other options
+});
+```
+
+**Common Normalized Positions**:
+- Top-left: `normalizedX: -0.8, normalizedY: 0.85`
+- Top-center: `normalizedX: 0, normalizedY: 0.95`
+- Top-right: `normalizedX: 0.7, normalizedY: 0.8`
+- Bottom-left: `normalizedX: -0.8, normalizedY: -0.85`
+- Bottom-right: `normalizedX: 0.8, normalizedY: -0.85`
+- Center: `normalizedX: 0, normalizedY: 0`
+
+**DO NOT use pixel coordinates** (`x`, `y`) in new UI components. Always use `normalizedX` and `normalizedY`.
+
+**Common mistake**: Refactoring registration pattern to new components but forgetting to update old components still in use. If interactive elements stop working after refactoring, check if the component has `registerInteractive()` method and if it's being called.
+
+**Example pattern**:
+```javascript
+// In component class (e.g., AntCountDisplayComponent.js)
+registerInteractive() {
+  if (typeof RenderManager === 'undefined') return;
+  
+  RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
+    id: 'my-component-id',
+    hitTest: (pointer) => {
+      if (GameState.getState() !== 'PLAYING') return false;
+      const x = pointer.screen ? pointer.screen.x : pointer.x;
+      const y = pointer.screen ? pointer.screen.y : pointer.y;
+      return this.isMouseOver(x, y);
+    },
+    onPointerDown: (pointer) => {
+      if (GameState.getState() !== 'PLAYING') return false;
+      const x = pointer.screen ? pointer.screen.x : pointer.x;
+      const y = pointer.screen ? pointer.screen.y : pointer.y;
+      return this.handleClick(x, y);
+    }
+  });
+}
+
+// In sketch.js setup() - AFTER component creation
+if (g_myComponent && g_myComponent.registerInteractive) {
+  g_myComponent.registerInteractive();
+}
+```
+
 **STEP 4: E2E test with screenshots**
 ```javascript
 await page.evaluate(() => {
@@ -739,28 +834,106 @@ npm run dev  # Python server on :8000
 
 ```
 Classes/
-  ants/          - Ant entities, state machine, job system
-  controllers/   - Reusable behavior controllers
-  managers/      - System managers (AntManager, ResourceManager, MapManager, SpatialGridManager)
-  rendering/     - RenderLayerManager, EntityLayerRenderer, UILayerRenderer
-  systems/       - CollisionBox2D, Button, Sprite2D
-  terrainUtils/  - Terrain generation, MapManager
-  pathfinding.js - A* with terrain costs
-test/
-  unit/          - Isolated tests (write FIRST)
-  integration/   - Component interactions
-  e2e/           - Puppeteer with screenshots (PRIMARY)
-    ui/, camera/, controllers/, screenshots/
-    puppeteer_helper.js, camera_helper.js (CRITICAL!)
-  bdd/           - Behave (headless)
+  ants/          - Ant entities, state machine, job system, AntFactory, Boss, Queen
+  baseMVC/       - Base MVC framework (adapters/, behaviors/ - empty, future use)
+  buildings/     - Building entities (empty - future expansion)
+  containers/    - Entity base, DropoffLocation, StatsContainer
+  controllers/   - Reusable behavior controllers (Movement, Combat, Health, Selection, Input)
+  events/        - Event system (Event.js, EventTrigger.js, DialogueEvent.SKELETON.js)
+  globals/       - Global utilities (entityManager.js, eventBus.js, windowInitializer.js)
+  initTests/     - Test initialization helpers (functionAsserts.js)
+  managers/      - System managers:
+    - AntManager, ResourceManager, MapManager, SpatialGridManager
+    - EventManager, GameStateManager, GameEvents
+    - BuildingManager, EntityManager, NPCManager, QuestManager, ShopManager
+    - PowerManager, PowerBrushManager, TileInteractionManager
+    - BUIManager, DIAManager, animationManager, soundManager, pheromoneControl
+  mvc/           - MVC components (models/, views/, controllers/, factories/)
+  rendering/     - Rendering pipeline:
+    - RenderLayerManager, RenderController, UIController
+    - EntityLayerRenderer, UILayerRenderer, EffectsLayerRenderer
+    - EntityAccessor, EntityDelegationBuilder, Sprite2d
+    - CacheManager, PerformanceMonitor, UIDebugManager, caches/
+  systems/       - Core systems:
+    - CollisionBox2D, Button, SpatialGrid, CoordinateConverter
+    - ResourceNode, Nature, MouseCrosshair, GatherDebugRenderer
+    - FramebufferManager, entityUtils, newPathfinding.js, pheromones.js
+    - combat/, dialogue/, shapes/, text/, tools/, ui/
+  tasks/         - Task system (tasks.js, TaskUI.js)
+  terrainUtils/  - Terrain generation and editing:
+    - MapManager, TerrainEditor, TerrainExporter, TerrainImporter
+    - gridTerrain.js, grid.js, tiles.js, tileSmooth.js, chunk.js
+    - CustomTerrain, SparseTerrain, customLevels.js, terrianGen.js
+  testing/       - Testing utilities (ShareholderDemo.js)
+  ui/            - Level Editor UI:
+    - MaterialPalette, ToolBar, MiniMap, GridOverlay, DynamicMinimap
+    - SaveDialog, LoadDialog, FileMenuBar, ConfirmationDialog
+    - PropertiesPanel, BrushSizeControl, HoverPreviewManager
+    - SelectionManager, FormatConverter, ServerIntegration
+    - LocalStorageManager, NotificationManager, AutoSave
+    - AntCountDisplayComponent, DynamicGridOverlay, menuBar/
+  ui_new/        - New UI components:
+    - components/ (antCountDropDown, arrowComponent, dropdownMenu,
+                   gameUIOverlay, informationLine, resourceCountDisplay,
+                   resourceInventoryBar, playerResourceInventoryBar)
+    - gameUIOverlaySystem.js
+  pathfinding.js - A* pathfinding with terrain costs
+  resource.js    - Resource definitions
+  resources.js   - Resource management
+config/
+  button-system.json         - Button configuration
+  button-groups/             - Button group configs (gameplay, main-menu, settings, legacy-conversions)
+  events/                    - Event configs (dialogue_examples.json)
+debug/
+  UniversalDebugger.js       - Universal entity debugger
+  EntityDebugManager.js      - Entity debug coordination
+  EventDebugManager.js       - Event debug tools
+  coordinateDebug.js         - Coordinate system debugging
+  testing.js, test_*.js      - Debug test scripts
+  terrainSystemTests.js      - Terrain testing
+  tileInspector.js           - Tile inspection tool
+  selectionBoxDebug.js       - Selection debugging
+  debugRenderingHelpers.js   - Debug rendering utilities
+  globalDebugging.js         - Global debug state
+  commandLine.js             - Debug commands
+  verboseLogger.js           - Detailed logging
+  tracing.js                 - Execution tracing
+  typeChecks/                - Type validation
 docs/
-  guides/
-    E2E_TESTING_QUICKSTART.md        - MUST READ
-    TESTING_TYPES_GUIDE.md
-  standards/testing/
-    TESTING_METHODOLOGY_STANDARDS.md - Core philosophy
-    BDD_LANGUAGE_STYLE_GUIDE.md
-  FEATURE_DEVELOPMENT_CHECKLIST.md
+  KEYBINDS_REFERENCE.md      - Keyboard shortcuts
+  checklists/                - Development checklists (bug fixes/)
+scripts/
+  bootstrap-globals.js       - Global initialization
+  node-check.js              - Node version validation
+  replace-console-logs.ps1   - Log replacement utility
+  README.md                  - Scripts documentation
+src/
+  globals.d.ts               - TypeScript global definitions
+  rect.js                    - Rectangle utilities
+  levels/                    - Level data (gregg.json, tutorialCave_Start.json)
+  types/                     - Type definitions
+test/
+  unit/          - Isolated tests (write FIRST):
+    - ants/, controllers/, managers/, mvc/, rendering/, systems/
+    - terrain/, ui/, ui_new/, events/, dialogue/, levelEditor/
+    - containers/, debug/, globals/, helpers/, terrainUtils/
+  integration/   - Component interactions (same structure as unit/)
+  e2e/           - Puppeteer with screenshots (PRIMARY):
+    - ui/, camera/, controllers/, screenshots/
+    - ants/, brain/, combat/, debug/, dialogue/, entity/, events/
+    - levelEditor/, level_editor/, managers/, performance/, queen/
+    - rendering/, resources/, selection/, spatial/, spawn/, state/, systems/, terrain/
+    - puppeteer_helper.js, camera_helper.js (CRITICAL!)
+    - generate_*.js test generators, run-*.js test runners
+  bdd/           - Behave (headless Python tests)
+  baseline/      - Baseline test data
+  helpers/       - Test helper utilities (uiTestHelpers.js)
+  run-all-tests.js - Test suite runner
+types/
+  game-types.js              - Game type definitions
+  global.d.ts                - Global TypeScript definitions
+Images/, sounds/             - Game assets
+libraries/                   - p5.js library files
 ```
 
 ## Global State

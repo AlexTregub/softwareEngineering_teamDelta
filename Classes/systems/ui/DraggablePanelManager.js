@@ -60,7 +60,7 @@ class DraggablePanelManager {
     }
 
     // DISABLED FOR PRESENTATION
-    this.createDefaultPanels();
+    //this.createDefaultPanels();
     
     // Register with RenderLayerManager using addDrawableToLayer
     if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addDrawableToLayer === 'function') {
@@ -77,6 +77,7 @@ class DraggablePanelManager {
     try {
       if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
         const adapter = {
+          id: 'draggable-panel-manager',
           hitTest: (pointer) => {
             try {
               const x = pointer.screen.x;

@@ -149,6 +149,7 @@ if (typeof window !== 'undefined') {
 try {
   if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
     const dropoffAdapter = {
+      id: 'dropoff-button',
       hitTest: (pointer) => {
         try {
           // Use screen coords for UI elements

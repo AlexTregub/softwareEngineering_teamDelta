@@ -617,6 +617,17 @@ function setActiveButtons(buttonList) {
 }
 
 function handleButtonsClick() {
+  // Update all buttons with current mouse position first
+  // This ensures hover state is current before checking for clicks
+  if (typeof mouseX !== 'undefined' && typeof mouseY !== 'undefined') {
+    activeButtons.forEach(btn => {
+      if (typeof btn.update === 'function') {
+        btn.update(mouseX, mouseY, true); // true = mouse is pressed
+      }
+    });
+  }
+  
+  // Now check for hovered buttons and trigger their actions
   activeButtons.forEach(btn => {
     if (btn.isHovered && typeof btn.action === 'function') {
       btn.action();

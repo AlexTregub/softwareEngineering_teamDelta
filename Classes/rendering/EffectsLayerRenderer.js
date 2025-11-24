@@ -186,11 +186,14 @@ class EffectsLayerRenderer {
   updateBloodSplatter(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    // Get delta time for framerate independence (p5.js provides in ms)
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     for (let particle of effect.particles) {
-      particle.x += particle.velocityX;
-      particle.y += particle.velocityY;
-      particle.velocityY += 0.2; // Gravity
-      particle.alpha -= 2; // Fade out
+      particle.x += particle.velocityX * dt * 60; // *60 to maintain original speed
+      particle.y += particle.velocityY * dt * 60;
+      particle.velocityY += 0.2 * dt * 60; // Gravity
+      particle.alpha -= 2 * dt * 60; // Fade out
       
       if (particle.alpha <= 0) particle.dead = true;
     }
@@ -202,12 +205,15 @@ class EffectsLayerRenderer {
   updateImpactSparks(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     for (let particle of effect.particles) {
-      particle.x += particle.velocityX;
-      particle.y += particle.velocityY;
-      particle.velocityX *= 0.95; // Friction
-      particle.velocityY *= 0.95;
-      particle.size *= 0.98; // Shrink
+      particle.x += particle.velocityX * dt * 60;
+      particle.y += particle.velocityY * dt * 60;
+      const frictionFactor = Math.pow(0.95, dt * 60); // Framerate independent decay
+      particle.velocityX *= frictionFactor;
+      particle.velocityY *= frictionFactor;
+      particle.size *= Math.pow(0.98, dt * 60); // Shrink
       
       if (particle.size < 1) particle.dead = true;
     }
@@ -219,11 +225,13 @@ class EffectsLayerRenderer {
   updateDustCloud(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     for (let particle of effect.particles) {
-      particle.x += particle.velocityX;
-      particle.y += particle.velocityY;
-      particle.alpha -= 1; // Slow fade
-      particle.size += 0.5; // Expand
+      particle.x += particle.velocityX * dt * 60;
+      particle.y += particle.velocityY * dt * 60;
+      particle.alpha -= 1 * dt * 60; // Slow fade
+      particle.size += 0.5 * dt * 60; // Expand
       
       if (particle.alpha <= 0) particle.dead = true;
     }
@@ -235,11 +243,13 @@ class EffectsLayerRenderer {
   updateFallingLeaves(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     for (let particle of effect.particles) {
-      particle.x += particle.velocityX + Math.sin(particle.time * 0.1) * 0.5; // Swaying
-      particle.y += particle.velocityY;
-      particle.rotation += particle.rotationSpeed;
-      particle.time++;
+      particle.x += (particle.velocityX + Math.sin(particle.time * 0.1) * 0.5) * dt * 60; // Swaying
+      particle.y += particle.velocityY * dt * 60;
+      particle.rotation += particle.rotationSpeed * dt * 60;
+      particle.time += dt * 60;
       
       // Remove when off screen
       if (particle.y > height + 50) particle.dead = true;
@@ -252,12 +262,14 @@ class EffectsLayerRenderer {
   updateSelectionSparkle(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     for (let particle of effect.particles) {
-      particle.angle += 0.1;
+      particle.angle += 0.1 * dt * 60;
       particle.x = effect.centerX + Math.cos(particle.angle) * particle.radius;
       particle.y = effect.centerY + Math.sin(particle.angle) * particle.radius;
-      particle.radius += particle.radiusGrowth;
-      particle.alpha -= 3;
+      particle.radius += particle.radiusGrowth * dt * 60;
+      particle.alpha -= 3 * dt * 60;
       
       if (particle.alpha <= 0) particle.dead = true;
     }
@@ -269,6 +281,8 @@ class EffectsLayerRenderer {
   updateMovementTrail(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     // Follow entity if still exists
     if (effect.entity && effect.entity.x !== undefined) {
       effect.lastX = effect.entity.x;
@@ -276,7 +290,7 @@ class EffectsLayerRenderer {
     }
     
     for (let particle of effect.particles) {
-      particle.alpha -= 5;
+      particle.alpha -= 5 * dt * 60;
       if (particle.alpha <= 0) particle.dead = true;
     }
     
@@ -287,10 +301,12 @@ class EffectsLayerRenderer {
   updateGatheringSparkle(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     for (let particle of effect.particles) {
       // Spiral inward
-      particle.angle += 0.2;
-      particle.radius *= 0.98;
+      particle.angle += 0.2 * dt * 60;
+      particle.radius *= Math.pow(0.98, dt * 60);
       particle.x = effect.centerX + Math.cos(particle.angle) * particle.radius;
       particle.y = effect.centerY + Math.sin(particle.angle) * particle.radius;
       
@@ -304,10 +320,12 @@ class EffectsLayerRenderer {
   updateGenericParticle(effect) {
     if (effect.timeLeft <= 0) return false;
     
+    const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000;
+    
     for (let particle of effect.particles) {
-      particle.x += particle.velocityX || 0;
-      particle.y += particle.velocityY || 0;
-      particle.alpha -= particle.fadeRate || 2;
+      particle.x += (particle.velocityX || 0) * dt * 60;
+      particle.y += (particle.velocityY || 0) * dt * 60;
+      particle.alpha -= (particle.fadeRate || 2) * dt * 60;
       
       if (particle.alpha <= 0) particle.dead = true;
     }

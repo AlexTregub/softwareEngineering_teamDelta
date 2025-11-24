@@ -20,12 +20,29 @@ class LightningAimBrush extends BrushBase {
 
   toggle() {
     this.isActive = !this.isActive;
+    
+    // Sync range with lightning manager level when activating
+    if (this.isActive && typeof window.g_lightningManager !== 'undefined' && window.g_lightningManager) {
+      const level = window.g_lightningManager.getLevel();
+      this.updateRangeForLevel(level);
+    }
+    
     logNormal(`${this.isActive ? '🔵' : '⚪'} Lightning Aim Brush ${this.isActive ? 'activated' : 'deactivated'}`);
     return this.isActive;
   }
 
   activate() { this.isActive = true; }
   deactivate() { this.isActive = false; }
+  
+  /**
+   * Update range based on lightning power level
+   * Base: 7 tiles, +7 tiles per level
+   */
+  updateRangeForLevel(level) {
+    this.tileRange = 7 + ((level - 1) * 7); // Level 1: 7 tiles, Level 2: 14 tiles, Level 3: 21 tiles
+    this.rangePx = this.tileRange * TILE_SIZE;
+    logNormal(`⚡ Lightning range updated to ${this.tileRange} tiles (Level ${level})`);
+  }
 
   update() {
     if (!this.isActive) return;

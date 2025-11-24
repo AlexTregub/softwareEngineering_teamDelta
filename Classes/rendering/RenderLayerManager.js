@@ -131,9 +131,11 @@ class RenderLayerManager {
     try {
       if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
         const selectionAdapter = {
+          id: 'selection-box',
           hitTest: function(pointer) {
-            // Always allow selection adapter to receive events on the UI layer
-            return true;
+            // Only claim hits if selection box is active/dragging
+            // Let other UI elements handle clicks first by returning false when not actively selecting
+            return false;
           },
           _toWorld: function(px, py) {
             try {
@@ -1080,12 +1082,15 @@ class RenderLayerManager {
             if (handlerName && typeof interactive[handlerName] === 'function') {
               const consumed = interactive[handlerName](pointer) === true;
               if (consumed) {
-                logNormal(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
+                const interactiveName = interactive.id || interactive.constructor?.name || 'unknown';
+                console.log(`🎯 Event consumed by: "${interactiveName}" on layer ${layerName}`);
+                logNormal(`🎯 Event consumed by interactive on layer ${layerName}:`, interactiveName);
                 // If interactive wants pointer capture, it should set capture via return value or property
                 if (interactive.capturePointer) {
                   this._pointerCapture = { owner: interactive, pointerId: pointer.pointerId };
                 }
-                return true; // stop propagation
+                // Return object with details for better debugging
+                return { consumed: true, consumedBy: interactiveName, layer: layerName };
               }
             }
           }
@@ -1156,11 +1161,6 @@ function renderPipelineInit() {
   //
   window.g_uiDebugManager = new UIDebugManager();
   g_uiDebugManager = window.g_uiDebugManager; // Make globally available
-  
-  // Initialize dropoff UI if present (creates the Place Dropoff button)
-  if (typeof window.initDropoffUI === 'function') {
-    window.initDropoffUI();
-  }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {
