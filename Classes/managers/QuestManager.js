@@ -23,6 +23,10 @@ class QuestManager {
         this.bgImage = null;
         this.questUnchecked = null;
         this.questChecked = null;
+        
+        this.coordConverter = null;
+      this.normalizedX = 0.85;
+      this.normalizedY = 0.4;
     }
 
     // ASSIGN PRELOADED ASSETS \\
@@ -107,13 +111,28 @@ class QuestManager {
     renderUI() {
         if (!this.uiVisible) return;
 
+        // Initialize converter if needed
+        if (!this.coordConverter && typeof UICoordinateConverter !== 'undefined') {
+          this.coordConverter = new UICoordinateConverter({ width, height });
+        }
+
         push();
 
-        const boxW = 400;                   // width of quest box
-        const boxH = 300;                   // height of quest box
-        const boxX = 1300;                  // X position
-        const boxY = height - boxH - 350;    // Y position
-        const padding = 20;                 // inner padding
+        const boxW = 400;
+        const boxH = 300;
+        const padding = 20;
+        
+        // Use normalized coordinates if converter available
+        let boxX, boxY;
+        if (this.coordConverter) {
+          const screenPos = this.coordConverter.normalizedToScreen(this.normalizedX, this.normalizedY);
+          boxX = screenPos.x - boxW / 2;  // Center the box on the position
+          boxY = screenPos.y - boxH / 2;
+        } else {
+          // Fallback to pixel positioning
+          boxX = 1300;
+          boxY = height - boxH - 350;
+        }
 
         // BACKGROUND IMAGE \\
         if (this.bgImage) image(this.bgImage, boxX, boxY, boxW, boxH);

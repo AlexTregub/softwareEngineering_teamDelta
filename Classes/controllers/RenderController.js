@@ -424,50 +424,7 @@ class RenderController {
    * Render movement indicators (lines to target, etc.)
    */
   renderMovementIndicators() {
-    // Show line to movement target
-    if (this._entity._movementController) {
-      const target = this._entity._movementController.getTarget();
-      const isMoving = this._entity._movementController.getIsMoving();
-      
-      if (isMoving && target) {
-        // Get entity center in world coordinates, convert to screen
-        const pos = this.getEntityCenter();
-        const screenPos = this.worldToScreenPosition(pos);
-        
-        // Get target center in world coordinates, convert to screen
-        const targetCenter = {
-          x: target.x + this.getEntitySize().x / 2,
-          y: target.y + this.getEntitySize().y / 2
-        };
-        const targetScreenPos = this.worldToScreenPosition(targetCenter);
-        
-        this._safeRender(() => {
-          stroke(255, 255, 255, 150);
-          strokeWeight(2);
-          // Both positions are already centered screen coordinates
-          line(screenPos.x, screenPos.y, targetScreenPos.x, targetScreenPos.y);
-          noStroke();
-        });
-      }
-    } else if (this._entity._isMoving && this._entity._stats && this._entity._stats.pendingPos) {
-      // Fallback to old system
-      const pos = this.getEntityCenter();
-      const screenPos = this.worldToScreenPosition(pos);
-      const target = this._entity._stats.pendingPos.statValue;
-      const targetCenter = {
-        x: target.x + this.getEntitySize().x / 2,
-        y: target.y + this.getEntitySize().y / 2
-      };
-      const targetScreenPos = this.worldToScreenPosition(targetCenter);
-      
-      this._safeRender(() => {
-        stroke(255);
-        strokeWeight(2);
-        // Both positions are already centered screen coordinates
-        line(screenPos.x, screenPos.y, targetScreenPos.x, targetScreenPos.y);
-        noStroke();
-      });
-    }
+    // We aren't doing this anymore :)
   }
 
   /**

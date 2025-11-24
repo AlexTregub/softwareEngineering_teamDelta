@@ -355,6 +355,177 @@ class MapManager {
     }
     logNormal("MapManager: All maps cleared");
   }
+
+  // --- Level Creation & Switching ---
+
+  /**
+   * Load the moss & stone column level as the active map.
+   * This level features alternating columns of moss and stone for testing
+   * terrain speed modifiers (moss = IN_MUD, stone = ON_ROUGH).
+   * 
+   * @param {number} chunksX - Number of chunks horizontally
+   * @param {number} chunksY - Number of chunks vertically
+   * @param {number} seed - Random seed for generation
+   * @param {number} chunkSize - Tiles per chunk
+   * @param {number} tileSize - Pixels per tile
+   * @param {number[]} canvasSize - [width, height] of canvas
+   * @returns {boolean} True if successful, false otherwise
+   */
+  loadMossStoneLevel(chunksX, chunksY, seed, chunkSize, tileSize, canvasSize) {    
+    try {
+      // Check if createMossStoneColumnLevel function exists
+      if (typeof window !== 'undefined' && typeof window.createMossStoneColumnLevel !== 'function') {
+        console.error("❌ createMossStoneColumnLevel function not available");
+        return false;
+      }
+
+      // Create the moss/stone column level
+      const mossStoneLevel = window.createMossStoneColumnLevel(
+        chunksX,
+        chunksY,
+        seed,
+        chunkSize,
+        tileSize,
+        canvasSize
+      );
+      
+      // Register with MapManager
+      this.registerMap('mossStone', mossStoneLevel, true);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Switch to a specific level by ID and optionally start the game.
+   * Convenience function for menu buttons.
+   * 
+   * @param {string} levelId - The ID of the level to switch to
+   * @param {boolean} startGame - Whether to start the game after switching (default: true)
+   * @param {Object} levelConfig - Optional config for creating new levels (chunksX, chunksY, seed, etc.)
+   * @returns {boolean} True if successful
+   */
+  switchToLevel(levelId, startGame = true, levelConfig = null) {
+    logNormal(`🔄 Switching to level: ${levelId}`);
+    
+    try {
+      // If the level is 'mossStone' and doesn't exist yet, create it
+      if (levelId === 'mossStone') {
+        const existingMap = this.getMap('mossStone');
+        if (!existingMap) {
+          // Use provided config or fallback to window globals
+          const config = levelConfig || {
+            chunksX: window.CHUNKS_X || 20,
+            chunksY: window.CHUNKS_Y || 20,
+            seed: window.g_seed || Math.random() * 10000,
+            chunkSize: window.CHUNK_SIZE || 8,
+            tileSize: window.TILE_SIZE || 32,
+            canvasSize: [window.windowWidth || 800, window.windowHeight || 600]
+          };
+          
+          this.loadMossStoneLevel(
+            config.chunksX,
+            config.chunksY,
+            config.seed,
+            config.chunkSize,
+            config.tileSize,
+            config.canvasSize
+          );
+        } else {
+          this.setActiveMap('mossStone');
+        }
+      } else {
+        // Switch to existing level
+        if (!this.setActiveMap(levelId)) {
+          return false;
+        }
+      }
+      
+      // CRITICAL: Invalidate terrain cache to force re-render with new terrain
+      if (this._activeMap && typeof this._activeMap.invalidateCache === 'function') {
+        this._activeMap.invalidateCache();
+        logNormal("✅ Terrain cache invalidated - new terrain will render");
+      }
+      
+      // Start the game if requested
+      if (startGame && typeof window !== 'undefined' && typeof window.startGameTransition === 'function') {
+        window.startGameTransition();
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`❌ Error switching to level ${levelId}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the pixel dimensions of the active map.
+   * If the map object is available, it calculates the dimensions
+   * based on the number of tiles and their size. Otherwise, it defaults
+   * to the canvas dimensions.
+   * 
+   * @returns {Object} An object containing the width and height of the map in pixels
+   */
+  getMapPixelDimensions() {
+    if (!this._activeMap) {
+      // Fallback to canvas dimensions
+      if (typeof window !== 'undefined') {
+        return { 
+          width: window.g_canvasX || window.windowWidth || 800, 
+          height: window.g_canvasY || window.windowHeight || 600 
+        };
+      }
+      return { width: 800, height: 600 };
+    }
+
+    const tileSize = window.TILE_SIZE || this._defaultTileSize;
+    const width = this._activeMap._xCount ? this._activeMap._xCount * tileSize : (window.g_canvasX || 800);
+    const height = this._activeMap._yCount ? this._activeMap._yCount * tileSize : (window.g_canvasY || 600);
+    
+    return { width, height };
+  }
+
+  /**
+   * registerGameStateCallbacks
+   * ---------------------------
+   * Registers GameState change callbacks for level editor and ant spawning
+   * Centralizes state-dependent initialization logic
+   */
+  registerGameStateCallbacks() {
+    if (typeof GameState === 'undefined') {
+      console.warn('⚠️ GameState not available for callback registration');
+      return;
+    }
+
+    // Level editor initialization callback
+    if (typeof levelEditor !== 'undefined') {
+      GameState.onStateChange((newState, oldState) => {
+        if (newState === 'LEVEL_EDITOR') {
+          if (!levelEditor.isActive()) {
+            const terrain = new CustomTerrain(50, 50, 32, 'dirt');
+            levelEditor.initialize(terrain);
+          }
+        } else if (oldState === 'LEVEL_EDITOR') {
+          levelEditor.deactivate();
+        }
+      });
+    }
+
+    // Initial ant spawning callback
+    if (typeof LegacyAntFactory !== 'undefined') {
+      GameState.onStateChange((newState, oldState) => {
+        if (newState === 'PLAYING' && oldState !== 'PAUSED') {
+          // Only spawn ants on fresh game start (not when resuming from pause)
+          if (typeof spawnInitialAnts === 'function') {
+            spawnInitialAnts();
+          }
+        }
+      });
+    }
+
+  }
 }
 
 // Create global singleton instance

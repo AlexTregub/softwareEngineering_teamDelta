@@ -17,12 +17,24 @@ class MiniMap {
      * @param {number} width - Mini map width in pixels
      * @param {number} height - Mini map height in pixels
      */
-    constructor(terrain, width, height) {
+    constructor(terrain, width, height, options = {}) {
         this.terrain = terrain;
         this.width = width;
         this.height = height;
         this.updateInterval = 100; // ms between updates
         this.lastUpdate = 0;
+        
+        // Coordinate converter for normalized UI positioning
+        this.coordConverter = new UICoordinateConverter(window);
+        
+        // Position in normalized coordinates (default: bottom-right)
+        const normalizedX = options.normalizedX !== undefined ? options.normalizedX : 0.8;
+        const normalizedY = options.normalizedY !== undefined ? options.normalizedY : -0.8;
+        const screenPos = this.coordConverter.normalizedToScreen(normalizedX, normalizedY);
+        
+        // Store position (top-left corner of minimap)
+        this.x = screenPos.x - this.width / 2;
+        this.y = screenPos.y - this.height / 2;
         
         // Calculate scale based on terrain size
         // Support both CustomTerrain and gridTerrain
@@ -39,6 +51,18 @@ class MiniMap {
         // Debounced invalidation settings
         this._invalidateDebounceDelay = 1000; // 1 second default
         this._invalidateTimer = null;
+        
+        // Entity tracking (Phase 2: Model Layer)
+        this.showQueenDot = true;
+        this.showEnemyDots = true;
+        this.queenDotColor = { r: 255, g: 215, b: 0 }; // Gold
+        this.enemyDotColor = { r: 255, g: 0, b: 0 }; // Red
+        this.dotRadius = 3;
+        this.dotUpdateInterval = 200; // ms between entity updates
+        this.lastDotUpdate = 0;
+        
+        // Phase 4: Performance - Cached enemy positions
+        this._cachedEnemyPositions = [];
         
         // Register cache if CacheManager available
         this._initializeCache();
@@ -181,6 +205,189 @@ class MiniMap {
      */
     setInvalidateDebounceDelay(delay) {
         this._invalidateDebounceDelay = delay;
+    }
+    
+    // ===== PHASE 2: ENTITY TRACKING (MODEL LAYER) =====
+    
+    /**
+     * Get queen position from global queenAnt
+     * @returns {{x: number, y: number}|null} Queen position or null if not found
+     */
+    getQueenPosition() {
+        // Check global.queenAnt first
+        const queen = (typeof queenAnt !== 'undefined' && queenAnt) || 
+                      (typeof window !== 'undefined' && window.queenAnt);
+        
+        if (!queen) return null;
+        
+        // Try getPosition() method first
+        if (typeof queen.getPosition === 'function') {
+            return queen.getPosition();
+        }
+        
+        // Fallback to posX/posY properties
+        if (typeof queen.posX === 'number' && typeof queen.posY === 'number') {
+            return { x: queen.posX, y: queen.posY };
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Get enemy ant positions from spatialGridManager
+     * @returns {Array<{x: number, y: number}>} Array of enemy positions
+     */
+    getEnemyPositions() {
+        // Check if spatialGridManager exists (check multiple locations)
+        const spatialGrid = (typeof spatialGridManager !== 'undefined' && spatialGridManager) ||
+                           (typeof global !== 'undefined' && global.spatialGridManager) ||
+                           (typeof window !== 'undefined' && window.spatialGridManager);
+        
+        if (!spatialGrid || typeof spatialGrid.getEntitiesByType !== 'function') {
+            return [];
+        }
+        
+        // Get all ants
+        const allAnts = spatialGrid.getEntitiesByType('Ant');
+        if (!allAnts || allAnts.length === 0) return [];
+        
+        // Filter for enemies only
+        const enemies = allAnts.filter(ant => {
+            const faction = ant.faction || ant._faction;
+            return faction === 'enemy';
+        });
+        
+        // Extract positions
+        const positions = [];
+        for (const enemy of enemies) {
+            let pos = null;
+            
+            // Try getPosition() method
+            if (typeof enemy.getPosition === 'function') {
+                pos = enemy.getPosition();
+            }
+            // Fallback to posX/posY
+            else if (typeof enemy.posX === 'number' && typeof enemy.posY === 'number') {
+                pos = { x: enemy.posX, y: enemy.posY };
+            }
+            
+            if (pos) {
+                positions.push(pos);
+            }
+        }
+        
+        return positions;
+    }
+    
+    /**
+     * Check if entity dots should be updated (throttle)
+     * @param {number} currentTime - Current time in milliseconds
+     * @returns {boolean} True if should update
+     */
+    shouldUpdateDots(currentTime) {
+        return (currentTime - this.lastDotUpdate) >= this.dotUpdateInterval;
+    }
+    
+    // ===== PHASE 4: PERFORMANCE - ENTITY CACHING =====
+    
+    /**
+     * Update cached enemy positions (called on interval)
+     * @private
+     */
+    _updateCachedEnemyPositions() {
+        this._cachedEnemyPositions = this.getEnemyPositions();
+        this.lastDotUpdate = Date.now();
+    }
+    
+    /**
+     * Get cached enemy positions (avoids querying every frame)
+     * @returns {Array<{x: number, y: number}>} Cached enemy positions
+     */
+    getCachedEnemyPositions() {
+        return this._cachedEnemyPositions;
+    }
+    
+    // ===== PHASE 5: CONFIGURATION API =====
+    
+    /**
+     * Enable/disable queen dot rendering
+     * @param {boolean} show - Show queen dot
+     */
+    setShowQueenDot(show) {
+        this.showQueenDot = show;
+    }
+    
+    /**
+     * Get queen dot visibility
+     * @returns {boolean} True if showing queen dot
+     */
+    getShowQueenDot() {
+        return this.showQueenDot;
+    }
+    
+    /**
+     * Enable/disable enemy dots rendering
+     * @param {boolean} show - Show enemy dots
+     */
+    setShowEnemyDots(show) {
+        this.showEnemyDots = show;
+    }
+    
+    /**
+     * Get enemy dots visibility
+     * @returns {boolean} True if showing enemy dots
+     */
+    getShowEnemyDots() {
+        return this.showEnemyDots;
+    }
+    
+    /**
+     * Set queen dot color
+     * @param {number} r - Red (0-255)
+     * @param {number} g - Green (0-255)
+     * @param {number} b - Blue (0-255)
+     */
+    setQueenDotColor(r, g, b) {
+        this.queenDotColor = { r, g, b };
+    }
+    
+    /**
+     * Set enemy dot color
+     * @param {number} r - Red (0-255)
+     * @param {number} g - Green (0-255)
+     * @param {number} b - Blue (0-255)
+     */
+    setEnemyDotColor(r, g, b) {
+        this.enemyDotColor = { r, g, b };
+    }
+    
+    /**
+     * Set dot radius in pixels
+     * @param {number} radius - Dot radius
+     */
+    setDotRadius(radius) {
+        this.dotRadius = radius;
+    }
+    
+    /**
+     * Set dot update interval (throttle)
+     * @param {number} interval - Interval in milliseconds
+     */
+    setDotUpdateInterval(interval) {
+        this.dotUpdateInterval = interval;
+    }
+    
+    /**
+     * Update minimap state (called each frame)
+     * Updates entity tracking on throttled interval
+     */
+    update() {
+        const currentTime = Date.now();
+        
+        // Update entity positions if throttle expired OR on first update
+        if (this.lastDotUpdate === 0 || this.shouldUpdateDots(currentTime)) {
+            this._updateCachedEnemyPositions();
+        }
     }
     
     /**
@@ -396,6 +603,9 @@ class MiniMap {
             this._renderTerrainDirect();
         }
         
+        // Draw entity dots (Phase 3: View Layer)
+        this._renderEntityDots();
+        
         // Draw viewport indicator (NOT cached - updates every frame)
         if (typeof cameraManager !== 'undefined' && cameraManager && cameraManager.camera) {
             const viewport = this.getViewportRect({
@@ -467,6 +677,119 @@ class MiniMap {
                 }
             }
         }
+    }
+    
+    // ===== PHASE 3: ENTITY RENDERING (VIEW LAYER) =====
+    
+    /**
+     * Render entity dots (queen and enemies)
+     * Called during draw() after terrain
+     * @private
+     */
+    _renderEntityDots() {
+        push();
+        
+        const currentTime = Date.now();
+        
+        // Update cached positions on interval (throttle)
+        if (this.shouldUpdateDots(currentTime)) {
+            this._updateCachedEnemyPositions();
+        }
+        
+        // Draw queen dot (gold)
+        if (this.showQueenDot) {
+            const queenPos = this.getQueenPosition();
+            if (queenPos) {
+                const miniMapPos = this.worldToMiniMap(queenPos.x, queenPos.y);
+                
+                // Check if within minimap bounds
+                if (miniMapPos.x >= 0 && miniMapPos.x <= this.width &&
+                    miniMapPos.y >= 0 && miniMapPos.y <= this.height) {
+                    
+                    fill(this.queenDotColor.r, this.queenDotColor.g, this.queenDotColor.b);
+                    noStroke();
+                    ellipse(miniMapPos.x, miniMapPos.y, this.dotRadius * 2, this.dotRadius * 2);
+                }
+            }
+        }
+        
+        // Draw enemy dots (red) - use cached positions
+        if (this.showEnemyDots) {
+            const enemyPositions = this.getCachedEnemyPositions();
+            
+            fill(this.enemyDotColor.r, this.enemyDotColor.g, this.enemyDotColor.b);
+            noStroke();
+            
+            for (const enemyPos of enemyPositions) {
+                const miniMapPos = this.worldToMiniMap(enemyPos.x, enemyPos.y);
+                
+                // Check if within minimap bounds
+                if (miniMapPos.x >= 0 && miniMapPos.x <= this.width &&
+                    miniMapPos.y >= 0 && miniMapPos.y <= this.height) {
+                    
+                    ellipse(miniMapPos.x, miniMapPos.y, this.dotRadius * 2, this.dotRadius * 2);
+                }
+            }
+        }
+        
+        pop();
+    }
+    
+    /**
+     * Register interactive handlers with RenderManager
+     * Enables click-to-navigate functionality
+     */
+    registerInteractive() {
+        if (typeof RenderManager === 'undefined') return;
+        
+        RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
+            id: 'minimap',
+            hitTest: (pointer) => {
+                if (typeof GameState === 'undefined') return false;
+                if (GameState.getState() !== 'PLAYING') return false;
+                
+                // RenderManager passes pointer.screen.x/y for UI layers
+                const x = pointer.screen ? pointer.screen.x : pointer.x;
+                const y = pointer.screen ? pointer.screen.y : pointer.y;
+                
+                // Check if click is within minimap bounds
+                const minimapX = window.g_canvasX - 220;
+                const minimapY = window.g_canvasY - 220;
+                
+                return x >= minimapX && x <= minimapX + this.width &&
+                       y >= minimapY && y <= minimapY + this.height;
+            },
+            onPointerDown: (pointer) => {
+                if (typeof GameState === 'undefined') return false;
+                if (GameState.getState() !== 'PLAYING') return false;
+                
+                // RenderManager passes pointer.screen.x/y for UI layers
+                const x = pointer.screen ? pointer.screen.x : pointer.x;
+                const y = pointer.screen ? pointer.screen.y : pointer.y;
+                
+                // Convert click to minimap local coordinates
+                const minimapX = window.g_canvasX - 220;
+                const minimapY = window.g_canvasY - 220;
+                const localX = x - minimapX;
+                const localY = y - minimapY;
+                
+                // Convert to world coordinates
+                const worldPos = this.clickToWorldPosition(localX, localY);
+                
+                // Move camera to clicked position using CameraManager
+                if (typeof cameraManager !== 'undefined' && cameraManager) {
+                    if (typeof cameraManager.setPosition === 'function') {
+                        cameraManager.setPosition(worldPos.x, worldPos.y);
+                    } else if (cameraManager.camera) {
+                        cameraManager.camera.x = worldPos.x;
+                        cameraManager.camera.y = worldPos.y;
+                    }
+                    return true;
+                }
+                
+                return false;
+            }
+        });
     }
     
     /**

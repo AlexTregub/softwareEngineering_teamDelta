@@ -8,6 +8,9 @@ class ShopManager {
       this.active = false;
       this.bgImage = null;
       this.hill = null; // reference to the anthill being interacted with
+      this.coordConverter = null;
+      this.normalizedX = 0.85;
+      this.normalizedY = 0.4;
     }
   
     preload() {
@@ -41,12 +44,27 @@ class ShopManager {
         if (!this.active) return;
         console.log("Rendering shop UI, active:", this.active); // now only logs when active
       
+        // Initialize converter if needed
+        if (!this.coordConverter && typeof UICoordinateConverter !== 'undefined') {
+          this.coordConverter = new UICoordinateConverter({ width, height });
+        }
+      
         push();
         imageMode(CENTER);
-        const boxW = 400;                   // width of quest box
-        const boxH = 300;                   // height of quest box
-        const boxX = width - boxW / 2 - 50;
-        const boxY = height - boxH / 2 - 50;
+        const boxW = 400;
+        const boxH = 300;
+        
+        // Use normalized coordinates if converter available
+        let boxX, boxY;
+        if (this.coordConverter) {
+          const screenPos = this.coordConverter.normalizedToScreen(this.normalizedX, this.normalizedY);
+          boxX = screenPos.x;
+          boxY = screenPos.y;
+        } else {
+          // Fallback to pixel positioning
+          boxX = width - boxW / 2 - 50;
+          boxY = height - boxH / 2 - 50;
+        }
         //console.log("Canvas height:", height, "Calculated boxY:", boxY);
       
         if (this.bgImage) {

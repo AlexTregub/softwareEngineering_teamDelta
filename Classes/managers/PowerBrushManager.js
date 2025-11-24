@@ -147,4 +147,34 @@ class PowerBrushManager{
             this.currentBrush.update();
         }
     }
+    
+    /**
+     * updateAllBrushes
+     * ----------------
+     * Centralized update for all brush systems
+     * Called from draw() loop to update all active brushes
+     */
+    updateAllBrushes() {
+        if (window.g_enemyAntBrush) window.g_enemyAntBrush.update();
+        if (window.g_lightningAimBrush) window.g_lightningAimBrush.update();
+        if (window.g_resourceBrush) window.g_resourceBrush.update();
+        if (window.g_buildingBrush) window.g_buildingBrush.update();
+        if (window.g_flashAimBrush) window.g_flashAimBrush.update();
+        if (window.g_fireballAimBrush) window.g_fireballAimBrush.update();
+        this.update(); // Update power brushes
+        
+        // Update temporary explosion particle emitters (always update, independent of brush state)
+        if (window.g_tempParticleEmitters) {
+            const now = millis();
+            for (let i = window.g_tempParticleEmitters.length - 1; i >= 0; i--) {
+                const temp = window.g_tempParticleEmitters[i];
+                temp.emitter.update();
+                
+                // Remove if expired or no particles left
+                if (now - temp.created > temp.lifetime || temp.emitter.getParticleCount() === 0) {
+                    window.g_tempParticleEmitters.splice(i, 1);
+                }
+            }
+        }
+    }
 }

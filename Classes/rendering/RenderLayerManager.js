@@ -131,9 +131,11 @@ class RenderLayerManager {
     try {
       if (g_selectionBoxController && !RenderManager._registeredDrawables.selectionBoxInteractive) {
         const selectionAdapter = {
+          id: 'selection-box',
           hitTest: function(pointer) {
-            // Always allow selection adapter to receive events on the UI layer
-            return true;
+            // Only claim hits if selection box is active/dragging
+            // Let other UI elements handle clicks first by returning false when not actively selecting
+            return false;
           },
           _toWorld: function(px, py) {
             try {
@@ -543,6 +545,16 @@ class RenderLayerManager {
     push();
     this.applyZoom();
     g_activeMap.render();
+    
+    // Render soot stains after terrain, before entities
+    if (window.g_lightningManager && typeof window.g_lightningManager.renderSootStains === 'function') {
+      try {
+        window.g_lightningManager.renderSootStains();
+      } catch (error) {
+        console.error('❌ Error rendering soot stains on terrain layer:', error);
+      }
+    }
+    
     pop();
     
   }
@@ -607,7 +619,6 @@ class RenderLayerManager {
     // Render Fireball System (projectile effects)
     this.renderFireballEffects(gameState);
     pop();
-    
     // Render Time of Day Overlay (after zoom pop, so it covers screen in screen-space)
     // This renders AFTER game world effects but BEFORE UI, so it affects the game but not the HUD
     if (window.g_timeOfDayOverlay && typeof window.g_timeOfDayOverlay.render === 'function') {
@@ -1080,12 +1091,15 @@ class RenderLayerManager {
             if (handlerName && typeof interactive[handlerName] === 'function') {
               const consumed = interactive[handlerName](pointer) === true;
               if (consumed) {
-                logNormal(`🎯 Event consumed by interactive on layer ${layerName}:`, interactive.id || interactive.constructor?.name || 'unknown');
+                const interactiveName = interactive.id || interactive.constructor?.name || 'unknown';
+                console.log(`🎯 Event consumed by: "${interactiveName}" on layer ${layerName}`);
+                logNormal(`🎯 Event consumed by interactive on layer ${layerName}:`, interactiveName);
                 // If interactive wants pointer capture, it should set capture via return value or property
                 if (interactive.capturePointer) {
                   this._pointerCapture = { owner: interactive, pointerId: pointer.pointerId };
                 }
-                return true; // stop propagation
+                // Return object with details for better debugging
+                return { consumed: true, consumedBy: interactiveName, layer: layerName };
               }
             }
           }
@@ -1156,11 +1170,6 @@ function renderPipelineInit() {
   //
   window.g_uiDebugManager = new UIDebugManager();
   g_uiDebugManager = window.g_uiDebugManager; // Make globally available
-  
-  // Initialize dropoff UI if present (creates the Place Dropoff button)
-  if (typeof window.initDropoffUI === 'function') {
-    window.initDropoffUI();
-  }
 
   // Seed at least one set of resources so the field isn't empty if interval hasn't fired yet
   try {

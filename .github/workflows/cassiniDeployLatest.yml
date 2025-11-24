@@ -1,0 +1,83 @@
+name: deployToCassiniManual
+
+on:
+    workflow_dispatch:
+
+env: 
+    HOST: cassini.cs.kent.edu
+    USER: ants
+    TARGET: ants@cassini.cs.kent.edu
+    RUN: ssh -o LogLevel=ERROR ants@cassini.cs.kent.edu 
+    COPY: scp -o LogLevel=ERROR
+    PORT: 8029
+    LOGGING: set -o xtrace
+
+jobs:
+  cassini_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout files...
+        uses: actions/checkout@v2
+      - name: Get ssh key...
+        uses: shimataro/ssh-key-action@v2 
+        with:
+          key: ${{ secrets.ID_ED25519 }}
+          name: id_ed25519
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      - name: Zip & copy files to cassini
+        run:
+          $LOGGING
+
+          echo "Remote files" ;
+          ls -la ;
+
+          echo "Target files" ;
+          $RUN ls -la ;
+
+          echo "Prep files for zip... (note dotfiles ignored)" ;
+          echo "Nothing done. Drop remote tests in future." ;
+
+          echo "Zipping + sending... (ignore rmrf fail)" ; 
+          zip -r deploy.zip ./* ; 
+          $RUN mkdir -p /home/$USER/web ;
+          $RUN "rm -rf /home/$USER/web/* || true " ; 
+          $RUN "rm -rf /home/$USER/web/.* || true " ; 
+
+          echo "Also providing alternative tar+gz..." ; 
+          tar -cf deploy.tar ./* ;
+          gzip -k deploy.tar ;
+
+          echo "Sending zipped...";
+          $COPY deploy.zip $TARGET:/home/$USER/web ; 
+          $COPY deploy.tar.gz $TARGET:/home/$USER/web ;
+
+          echo "First attempt direct 'unzip' (keeping all intact incase of failure...)";
+          $RUN "cd /home/$USER/web && unzip -o deploy.zip && echo "unzip success..." && rm deploy.tar.gz && rm deploy.zip || true";
+
+          echo "Fallback incase of unzip missing (currently is...)";
+          $RUN "cd /home/$USER/web && gzip -d deploy.tar.gz && tar -xf deploy.tar && echo "tar+gzip success..." && rm deploy.tar && rm deploy.zip || true";
+
+          echo "Target state after deploy" ; 
+          $RUN ls -la /home/$USER/web ; 
+
+      - name: Configure screen session
+        run:
+          $LOGGING
+
+          echo "Kill existing screen session...";
+          $RUN "screen -S $USER -X quit || true" ;
+
+          echo "Sleeping to ensure screen session killed...";
+          sleep 5;
+
+          $RUN "cd /home/$USER/web && screen -dmS $USER python -m http.server $PORT";
+
+      - name: Verify deploy+run
+        run:
+          $LOGGING
+
+          echo "Ensure target sever started...";
+          sleep 60;
+
+          curl -f http://$HOST:$PORT && echo "Remote target server running" || echo "Unable to verify remote target started server...";

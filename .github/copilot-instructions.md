@@ -398,6 +398,101 @@ RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
 });
 ```
 
+**⚠️ CRITICAL: Interactive Registration Pattern**
+
+When refactoring UI components to use RenderManager, **ALWAYS**:
+1. **Add `registerInteractive()` method** to component class
+2. **Call method in sketch.js `setup()`** after component creation
+3. **Use `pointer.screen.x/y`** for UI_GAME/UI_MENU layers (screen coords)
+4. **Check GameState** in hitTest/onPointerDown (e.g., `PLAYING` for game UI)
+
+**⚠️ CRITICAL: Normalized UI Coordinate System**
+
+**ALL UI components MUST use normalized coordinates** for resolution independence:
+
+**Coordinate System**:
+- `(0, 0)` = **center of screen**
+- `(-1, -1)` = **bottom-left corner**
+- `(1, 1)` = **top-right corner**
+- X-axis: `-1` (left) to `1` (right)
+- Y-axis: `-1` (bottom) to `1` (top) - **inverted from screen pixels!**
+
+**Implementation Pattern**:
+```javascript
+// In component constructor
+class MyUIComponent {
+  constructor(p5Instance, options = {}) {
+    this.p5 = p5Instance;
+    
+    // ALWAYS add coordinate converter
+    this.coordConverter = new UICoordinateConverter(p5Instance);
+    
+    // Calculate dimensions first
+    this.width = calculateWidth();
+    this.height = calculateHeight();
+    
+    // Use normalized coordinates (default values)
+    const normalizedX = options.normalizedX !== undefined ? options.normalizedX : 0;
+    const normalizedY = options.normalizedY !== undefined ? options.normalizedY : 0.9;
+    
+    // Convert to screen coordinates
+    const screenPos = this.coordConverter.normalizedToScreen(normalizedX, normalizedY);
+    
+    // Center component on position
+    this.x = screenPos.x - this.width / 2;
+    this.y = screenPos.y - this.height / 2;
+  }
+}
+
+// In initialization (gameUIOverlaySystem.js or sketch.js)
+const myComponent = new MyUIComponent(p5Instance, {
+  normalizedX: 0.7,   // 70% right from center
+  normalizedY: 0.8,   // 80% up from center
+  // ... other options
+});
+```
+
+**Common Normalized Positions**:
+- Top-left: `normalizedX: -0.8, normalizedY: 0.85`
+- Top-center: `normalizedX: 0, normalizedY: 0.95`
+- Top-right: `normalizedX: 0.7, normalizedY: 0.8`
+- Bottom-left: `normalizedX: -0.8, normalizedY: -0.85`
+- Bottom-right: `normalizedX: 0.8, normalizedY: -0.85`
+- Center: `normalizedX: 0, normalizedY: 0`
+
+**DO NOT use pixel coordinates** (`x`, `y`) in new UI components. Always use `normalizedX` and `normalizedY`.
+
+**Common mistake**: Refactoring registration pattern to new components but forgetting to update old components still in use. If interactive elements stop working after refactoring, check if the component has `registerInteractive()` method and if it's being called.
+
+**Example pattern**:
+```javascript
+// In component class (e.g., AntCountDisplayComponent.js)
+registerInteractive() {
+  if (typeof RenderManager === 'undefined') return;
+  
+  RenderManager.addInteractiveDrawable(RenderManager.layers.UI_GAME, {
+    id: 'my-component-id',
+    hitTest: (pointer) => {
+      if (GameState.getState() !== 'PLAYING') return false;
+      const x = pointer.screen ? pointer.screen.x : pointer.x;
+      const y = pointer.screen ? pointer.screen.y : pointer.y;
+      return this.isMouseOver(x, y);
+    },
+    onPointerDown: (pointer) => {
+      if (GameState.getState() !== 'PLAYING') return false;
+      const x = pointer.screen ? pointer.screen.x : pointer.x;
+      const y = pointer.screen ? pointer.screen.y : pointer.y;
+      return this.handleClick(x, y);
+    }
+  });
+}
+
+// In sketch.js setup() - AFTER component creation
+if (g_myComponent && g_myComponent.registerInteractive) {
+  g_myComponent.registerInteractive();
+}
+```
+
 **STEP 4: E2E test with screenshots**
 ```javascript
 await page.evaluate(() => {
@@ -410,6 +505,38 @@ await page.evaluate(() => {
 await sleep(500);
 await saveScreenshot(page, 'rendering/my_feature', true);
 ```
+
+### EFFECTS Layer Rendering Order
+
+The EFFECTS layer renders in a specific order to ensure proper visual layering:
+
+1. **EffectsLayerRenderer** - Base particle effects (blood, sparks, dust, trails)
+2. **FireballManager** - Active fireball projectiles (via `renderFireballEffects()`)
+3. **LightningManager** - Lightning effects and soot stains
+4. **ParticleEmitter temporary explosions** - Explosion bursts (rendered last, on top)
+
+**Integration in RenderLayerManager**:
+```javascript
+// In renderEffectsLayer()
+if (effectsRenderer && typeof effectsRenderer.renderEffects === 'function') {
+  effectsRenderer.renderEffects(gameState);
+}
+
+// Render Fireball System (projectile effects)
+this.renderFireballEffects(gameState);
+```
+
+**Main Game Loop** (`sketch.js`):
+```javascript
+// Update fireballs in draw loop (PLAYING state)
+if (window.g_fireballManager) window.g_fireballManager.update();
+```
+
+**Temporary Particle Cleanup**:
+Temporary particle emitters (explosion effects) are **NOT** automatically cleaned up by any manager. They rely on:
+- Manual cleanup check in `FireballAimBrush.render()`
+- 2-second lifetime before removal from `window.g_tempParticleEmitters[]`
+- Each emitter stops emission after initial burst (80 particles)
 
 ## Terrain System
 
@@ -505,6 +632,169 @@ it('should avoid water when pathfinding', function() {
   - Full test coverage (unit, integration, E2E)
 - **Current Focus**: Debugging rendering issues, panel visibility
 - **Documentation**: `docs/LEVEL_EDITOR_SETUP.md`
+
+### Fireball System (COMPLETE)
+**Status**: Production-ready, integrated with Effects Layer
+- **Components**:
+  - `Fireball` class: Projectile with physics, collision detection, visual effects
+  - `FireballManager` singleton: Manages multiple fireballs, handles updates/rendering
+  - `FireballAimBrush`: Charge-and-release UI brush for Queen targeting
+- **Integration**:
+  - Renders on EFFECTS layer via `RenderLayerManager.renderFireballEffects()`
+  - Updates in main game loop (`sketch.js`)
+  - Coordinate conversion: world ↔ screen via MapManager
+- **Key Features**:
+  - Physics-based projectile motion with velocity and targeting
+  - Trail system (8-point fade trail)
+  - Multi-layer rendering (glow → trail → fireball core)
+  - Collision detection with configurable radius (15px default)
+  - Damage on impact with `takeDamage()` integration
+  - Explosion effects via `ParticleEmitter`
+  - Area-of-effect damage (3-tile blast radius, 150 damage)
+  - Soot stains using `SootStain` class (5-8 overlapping stains per impact)
+- **Charge System** (FireballAimBrush):
+  - 1-second charge requirement before firing
+  - Visual feedback: charging ring, particle effects, screen darkening
+  - Radial light glow at 50%+ charge
+  - Audio progression (volume 0.2 → 1.0 during charge)
+  - Particle emitter activates at full charge (fire/smoke/sparks)
+  - Range validation (7 tiles base, scales with power level)
+- **Files**:
+  - `Classes/systems/combat/FireballSystem.js`
+  - `Classes/systems/tools/FireballAimBrush.js`
+  - `test/unit/systems/Fireball.test.js`
+
+### Particle System (COMPLETE)
+**Status**: Production-ready, used by Fireball and other effects
+- **ParticleEmitter** (`Classes/systems/ParticleEmitter.js`):
+  - Continuous particle emission system for fire, smoke, sparks, rain
+  - Framerate-independent updates using deltaTime normalization
+  - Configurable emission rate, max particles, spawn radius
+  - Particle lifecycle: spawn → age → fade → death
+  - Visual properties: size range, speed range, colors per type
+  - Physics: gravity, drift (horizontal), turbulence (random)
+  - Emission modes:
+    - `continuous`: Constant emission (fire, smoke, rain)
+    - `explosion`: Radial burst (fireball impact, explosions)
+- **Particle Presets** (`config/particle-effects.json`):
+  - ✅ **ALWAYS use presets first** - avoid hardcoding particle configs
+  - Available presets: `explosion`, `fireballCharge`, `fireTrail`, `smoke`, `sparks`, `rain`, `heavyRain`
+  - Load presets: `ParticleEmitter.loadPresets()` (called in sketch.js preload)
+  - Use preset: `new ParticleEmitter({ preset: 'explosion', x: 100, y: 100 })`
+  - Override preset values: `new ParticleEmitter({ preset: 'explosion', x: 100, y: 100, maxParticles: 200 })`
+  - Create new presets for reusable effects (avoid duplication)
+- **Particle Types**:
+  - `fire`: Orange/yellow, rises upward (negative Y velocity)
+  - `smoke`: Gray, expands over lifetime, rises slowly
+  - `spark`: Bright yellow/white, small, fast movement
+  - `rain`: Light blue/white, falls downward (positive Y velocity)
+- **Lifecycle Management**:
+  - Fade in: First 20% of lifetime
+  - Fade out: Last 80% of lifetime
+  - Alpha: 0 → 255 → 0 (smooth transitions)
+  - Size changes: smoke grows, fire shrinks, sparks constant
+- **Temporary Emitters** (for explosions):
+  - Stored in `window.g_tempParticleEmitters[]` array
+  - Auto-cleanup after 2 seconds (explosion burst pattern)
+  - Rendered in `FireballAimBrush.render()` after main brush rendering
+  - Created on fireball impact with 80 particles per explosion
+- **Integration with Fireball**:
+  - Charge indicator: Continuous emitter at cursor during charge
+  - Explosion burst: Radial emission mode on impact
+  - Screen-space rendering (converted from world coordinates)
+  - Particles rendered after main game elements but before UI
+
+### Fireball-Particle System Interaction Pattern
+
+**Charge Phase**:
+```javascript
+// In FireballAimBrush.update()
+if (this.chargeProgress >= 1.0 && !this.particleEmitter.isActive()) {
+  this.particleEmitter.start(); // Activate continuous emission
+}
+this.particleEmitter.setPosition(this.cursor.x, this.cursor.y);
+this.particleEmitter.update(); // Update existing particles
+```
+
+**Impact Phase**:
+```javascript
+// In FireballAimBrush.tryStrikeAt()
+// ✅ CORRECT: Use preset
+const explosionEmitter = new ParticleEmitter({
+  preset: 'explosion',
+  x: screenX,
+  y: screenY
+});
+
+// ❌ WRONG: Hardcoded config (avoid this)
+const explosionEmitter = new ParticleEmitter({
+  x: screenX,
+  y: screenY,
+  emissionMode: 'explosion',
+  types: ['fire', 'smoke', 'spark'],
+  speedRange: [3, 10]
+});
+
+explosionEmitter.start();
+for (let i = 0; i < 80; i++) {
+  explosionEmitter.emitParticle(); // Burst emission
+}
+explosionEmitter.stop();
+
+// Store for rendering/cleanup
+window.g_tempParticleEmitters.push({
+  emitter: explosionEmitter,
+  created: millis(),
+  lifetime: 2000
+});
+```
+
+**Rendering Order** (EFFECTS layer):
+1. EffectsRenderer particle effects (blood, sparks, dust)
+2. Fireball projectiles (FireballManager)
+3. Lightning effects and soot stains
+4. ParticleEmitter temporary explosions (last, on top)
+
+**Coordinate Conversion Pattern**:
+```javascript
+// World → Screen (for rendering)
+const tileX = worldX / TILE_SIZE;
+const tileY = worldY / TILE_SIZE;
+const screenPos = g_activeMap.renderConversion.convPosToCanvas([tileX, tileY]);
+
+// Screen → World (for collision/damage)
+const tilePos = g_activeMap.renderConversion.convCanvasToPos([screenX, screenY]);
+const worldX = (tilePos[0] - 0.5) * TILE_SIZE;
+const worldY = (tilePos[1] - 0.5) * TILE_SIZE;
+```
+
+**TDD Pattern for Effects**:
+```javascript
+// Unit test - ParticleEmitter behavior
+it('should emit particles at specified rate', function() {
+  const emitter = new ParticleEmitter({ emissionRate: 10, maxParticles: 50 });
+  emitter.start();
+  emitter.update();
+  expect(emitter.getParticleCount()).to.be.greaterThan(0);
+});
+
+// Integration test - Fireball + Particles
+it('should create explosion particles on impact', function() {
+  const fireball = new Fireball(100, 100, 200, 200, 25);
+  fireball.explode();
+  expect(window.g_tempParticleEmitters.length).to.be.greaterThan(0);
+});
+
+// E2E test - Visual verification
+await page.evaluate(() => {
+  window.g_fireballAimBrush.tryStrikeAt(400, 400);
+  if (typeof window.redraw === 'function') {
+    window.redraw(); window.redraw(); window.redraw();
+  }
+});
+await sleep(500);
+await saveScreenshot(page, 'effects/fireball_impact', true);
+```
 
 ### Upcoming Systems (Design Phase)
 
@@ -739,28 +1029,106 @@ npm run dev  # Python server on :8000
 
 ```
 Classes/
-  ants/          - Ant entities, state machine, job system
-  controllers/   - Reusable behavior controllers
-  managers/      - System managers (AntManager, ResourceManager, MapManager, SpatialGridManager)
-  rendering/     - RenderLayerManager, EntityLayerRenderer, UILayerRenderer
-  systems/       - CollisionBox2D, Button, Sprite2D
-  terrainUtils/  - Terrain generation, MapManager
-  pathfinding.js - A* with terrain costs
-test/
-  unit/          - Isolated tests (write FIRST)
-  integration/   - Component interactions
-  e2e/           - Puppeteer with screenshots (PRIMARY)
-    ui/, camera/, controllers/, screenshots/
-    puppeteer_helper.js, camera_helper.js (CRITICAL!)
-  bdd/           - Behave (headless)
+  ants/          - Ant entities, state machine, job system, AntFactory, Boss, Queen
+  baseMVC/       - Base MVC framework (adapters/, behaviors/ - empty, future use)
+  buildings/     - Building entities (empty - future expansion)
+  containers/    - Entity base, DropoffLocation, StatsContainer
+  controllers/   - Reusable behavior controllers (Movement, Combat, Health, Selection, Input)
+  events/        - Event system (Event.js, EventTrigger.js, DialogueEvent.SKELETON.js)
+  globals/       - Global utilities (entityManager.js, eventBus.js, windowInitializer.js)
+  initTests/     - Test initialization helpers (functionAsserts.js)
+  managers/      - System managers:
+    - AntManager, ResourceManager, MapManager, SpatialGridManager
+    - EventManager, GameStateManager, GameEvents
+    - BuildingManager, EntityManager, NPCManager, QuestManager, ShopManager
+    - PowerManager, PowerBrushManager, TileInteractionManager
+    - BUIManager, DIAManager, animationManager, soundManager, pheromoneControl
+  mvc/           - MVC components (models/, views/, controllers/, factories/)
+  rendering/     - Rendering pipeline:
+    - RenderLayerManager, RenderController, UIController
+    - EntityLayerRenderer, UILayerRenderer, EffectsLayerRenderer
+    - EntityAccessor, EntityDelegationBuilder, Sprite2d
+    - CacheManager, PerformanceMonitor, UIDebugManager, caches/
+  systems/       - Core systems:
+    - CollisionBox2D, Button, SpatialGrid, CoordinateConverter
+    - Nature, MouseCrosshair, GatherDebugRenderer
+    - FramebufferManager, entityUtils, newPathfinding.js, pheromones.js
+    - combat/, dialogue/, shapes/, text/, tools/, ui/
+  tasks/         - Task system (tasks.js, TaskUI.js)
+  terrainUtils/  - Terrain generation and editing:
+    - MapManager, TerrainEditor, TerrainExporter, TerrainImporter
+    - gridTerrain.js, grid.js, tiles.js, tileSmooth.js, chunk.js
+    - CustomTerrain, SparseTerrain, customLevels.js, terrianGen.js
+  testing/       - Testing utilities (ShareholderDemo.js)
+  ui/            - Level Editor UI:
+    - MaterialPalette, ToolBar, MiniMap, GridOverlay, DynamicMinimap
+    - SaveDialog, LoadDialog, FileMenuBar, ConfirmationDialog
+    - PropertiesPanel, BrushSizeControl, HoverPreviewManager
+    - SelectionManager, FormatConverter, ServerIntegration
+    - LocalStorageManager, NotificationManager, AutoSave
+    - AntCountDisplayComponent, DynamicGridOverlay, menuBar/
+  ui_new/        - New UI components:
+    - components/ (antCountDropDown, arrowComponent, dropdownMenu,
+                   gameUIOverlay, informationLine, resourceCountDisplay,
+                   resourceInventoryBar, playerResourceInventoryBar)
+    - gameUIOverlaySystem.js
+  pathfinding.js - A* pathfinding with terrain costs
+  resource.js    - Resource definitions
+  resources.js   - Resource management
+config/
+  button-system.json         - Button configuration
+  button-groups/             - Button group configs (gameplay, main-menu, settings, legacy-conversions)
+  events/                    - Event configs (dialogue_examples.json)
+debug/
+  UniversalDebugger.js       - Universal entity debugger
+  EntityDebugManager.js      - Entity debug coordination
+  EventDebugManager.js       - Event debug tools
+  coordinateDebug.js         - Coordinate system debugging
+  testing.js, test_*.js      - Debug test scripts
+  terrainSystemTests.js      - Terrain testing
+  tileInspector.js           - Tile inspection tool
+  selectionBoxDebug.js       - Selection debugging
+  debugRenderingHelpers.js   - Debug rendering utilities
+  globalDebugging.js         - Global debug state
+  commandLine.js             - Debug commands
+  verboseLogger.js           - Detailed logging
+  tracing.js                 - Execution tracing
+  typeChecks/                - Type validation
 docs/
-  guides/
-    E2E_TESTING_QUICKSTART.md        - MUST READ
-    TESTING_TYPES_GUIDE.md
-  standards/testing/
-    TESTING_METHODOLOGY_STANDARDS.md - Core philosophy
-    BDD_LANGUAGE_STYLE_GUIDE.md
-  FEATURE_DEVELOPMENT_CHECKLIST.md
+  KEYBINDS_REFERENCE.md      - Keyboard shortcuts
+  checklists/                - Development checklists (bug fixes/)
+scripts/
+  bootstrap-globals.js       - Global initialization
+  node-check.js              - Node version validation
+  replace-console-logs.ps1   - Log replacement utility
+  README.md                  - Scripts documentation
+src/
+  globals.d.ts               - TypeScript global definitions
+  rect.js                    - Rectangle utilities
+  levels/                    - Level data (gregg.json, tutorialCave_Start.json)
+  types/                     - Type definitions
+test/
+  unit/          - Isolated tests (write FIRST):
+    - ants/, controllers/, managers/, mvc/, rendering/, systems/
+    - terrain/, ui/, ui_new/, events/, dialogue/, levelEditor/
+    - containers/, debug/, globals/, helpers/, terrainUtils/
+  integration/   - Component interactions (same structure as unit/)
+  e2e/           - Puppeteer with screenshots (PRIMARY):
+    - ui/, camera/, controllers/, screenshots/
+    - ants/, brain/, combat/, debug/, dialogue/, entity/, events/
+    - levelEditor/, level_editor/, managers/, performance/, queen/
+    - rendering/, resources/, selection/, spatial/, spawn/, state/, systems/, terrain/
+    - puppeteer_helper.js, camera_helper.js (CRITICAL!)
+    - generate_*.js test generators, run-*.js test runners
+  bdd/           - Behave (headless Python tests)
+  baseline/      - Baseline test data
+  helpers/       - Test helper utilities (uiTestHelpers.js)
+  run-all-tests.js - Test suite runner
+types/
+  game-types.js              - Game type definitions
+  global.d.ts                - Global TypeScript definitions
+Images/, sounds/             - Game assets
+libraries/                   - p5.js library files
 ```
 
 ## Global State

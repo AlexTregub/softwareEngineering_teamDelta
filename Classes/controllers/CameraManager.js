@@ -25,7 +25,7 @@ class CameraManager {
     this.canvasWidth = (typeof g_canvasX !== 'undefined') ? g_canvasX : 800;
     this.canvasHeight = (typeof g_canvasY !== 'undefined') ? g_canvasY : 600;
     this.cameraZoom = 1;
-    this.cameraPanSpeed = 10;
+    this.cameraPanSpeed = 600; // Increased from 10 to 600 for framerate-independent movement
     
     // Camera constraints (state-aware: PLAYING uses 1.0, LEVEL_EDITOR uses 0.5)
     this.MIN_CAMERA_ZOOM_PLAYING = 1.0;  // PLAYING state minimum zoom
@@ -133,9 +133,9 @@ class CameraManager {
       }
 
       // Use deltaTime for framerate-independent panning
-      // deltaTime is in milliseconds, convert to seconds and multiply by speed
-      const dt = (typeof deltaTime !== 'undefined' ? deltaTime : 16.67) / 1000.0; // Default to ~60fps
-      const panStep = (this.cameraPanSpeed * dt * 60) / this.cameraZoom; // *60 to maintain similar speed to old system
+      // p5.js deltaTime is in milliseconds, convert to seconds
+      const dt = (typeof window.deltaTime !== 'undefined' && window.deltaTime > 0 ? window.deltaTime : 16.67) / 1000.0;
+      const panStep = this.cameraPanSpeed * dt / this.cameraZoom; // Direct multiplication, no need for *60
       
       // Move camera with arrow keys using CameraController
       if (left && typeof CameraController !== 'undefined') CameraController.moveCameraBy(-panStep, 0);
@@ -639,16 +639,6 @@ class CameraManager {
       worldX: this.cameraX + px / this.cameraZoom,
       worldY: this.cameraY + py / this.cameraZoom
     };
-    
-    logVerbose('[CameraManager] screenToWorld DEBUG', {
-      input: { px, py },
-      camera: { x: this.cameraX, y: this.cameraY, zoom: this.cameraZoom },
-      calculation: {
-        worldX: `${this.cameraX} + ${px} / ${this.cameraZoom} = ${result.worldX}`,
-        worldY: `${this.cameraY} + ${py} / ${this.cameraZoom} = ${result.worldY}`
-      },
-      result
-    });
     
     return result;
   }

@@ -24,7 +24,7 @@ class SoundManager {
     // Default volume settings
     const defaultVolumes = {
       Music: 0.5,
-      SoundEffects: 0.75,
+      SoundEffects: 0.2,
       SystemSounds: 0.8
     };
 
@@ -61,6 +61,9 @@ class SoundManager {
       finalFlashCharge: "sounds/finalFlashCharge.mp3",
       prisonMusic: "sounds/prison.mp3",
       tonyMusic: "sounds/TonyTheme.mp3",
+      fireball: "sounds/fireball.wav",
+      fireCharge: "sounds/fireCharge.wav",
+      fireFail: "sounds/fireFail.wav"
     };
 
     // Map game states to their background music
@@ -86,6 +89,10 @@ class SoundManager {
     this.registerSound('click', this.soundList.click, 'SystemSounds');
     this.registerSound('finalFlash', this.soundList.finalFlash, 'SoundEffects');
     this.registerSound('finalFlashCharge', this.soundList.finalFlashCharge, 'SoundEffects');
+    this.registerSound('prisonMusic', this.soundList.prisonMusic, 'Music');
+    this.registerSound('fireball', this.soundList.fireball, 'SoundEffects');
+    this.registerSound('fireCharge', this.soundList.fireCharge, 'SoundEffects');
+    this.registerSound('fireFail', this.soundList.fireFail, 'SoundEffects');
     this.loaded = true;
   }
 
@@ -452,6 +459,33 @@ class SoundManager {
     // Clear current BGM tracking if stopping the current BGM
     if (name === this.currentBGM) {
       this.currentBGM = null;
+    }
+  }
+
+  /**
+   * Set the volume for a specific sound
+   * @param {string} name - Name of the sound
+   * @param {number} volume - Volume level (0.0 to 1.0)
+   */
+  setVolume(name, volume) {
+    const s = this.sounds[name];
+    if (!s) {
+      console.warn(`⚠️ Sound "${name}" not found`);
+      return;
+    }
+    
+    // Clamp volume to valid range [0, 1]
+    volume = Math.max(0, Math.min(1, volume));
+    
+    // Apply category volume multiplier if the sound is in a category
+    const category = this.getSoundCategory(name);
+    if (category) {
+      const categoryVolume = this.categories[category].volume;
+      const finalVolume = volume * categoryVolume;
+      s.setVolume(finalVolume);
+    } else {
+      // Legacy sound, apply volume directly
+      s.setVolume(volume);
     }
   }
 

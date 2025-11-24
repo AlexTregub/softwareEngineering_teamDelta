@@ -41,6 +41,15 @@ class Lightning extends Power{
         this.created = now;
         this.isActive = true;
         
+        // Emit EventBus cooldown start event
+        if (typeof eventBus !== 'undefined') {
+            eventBus.emit('power:cooldown:start', {
+                powerName: this.name_ || 'lightning',
+                duration: this.cooldown,
+                timestamp: now
+            });
+        }
+        
         // Apply damage to nearby ants
         if(typeof ants !== 'undefined' && Array.isArray(ants)){
             const aoeRadius = TILE_SIZE * this.radius;
@@ -62,7 +71,7 @@ class Lightning extends Power{
         
         // Play strike sound
         if(typeof soundManager !== 'undefined'){
-            soundManager.play('lightningStrike');
+            soundManager.play('lightningStrike', 0.1);
         }
         
         return true;
@@ -154,6 +163,15 @@ class FinalFlash extends Power{
             this.isDelaying = true; //Starts delay
             soundManager.stop("finalFlashCharge");
             soundManager.play("finalFlash"); //Absolute Cinema
+            
+            // Emit EventBus cooldown start event
+            if (typeof eventBus !== 'undefined') {
+                eventBus.emit('power:cooldown:start', {
+                    powerName: this.name_ || 'finalFlash',
+                    duration: this.cooldown,
+                    timestamp: millis()
+                });
+            }
             
             setTimeout(()=>{
                 //Sets settings for beam firing
@@ -355,7 +373,7 @@ class FinalFlash extends Power{
     }
 }
 
-class Fireball extends Power{
+class FireballPower extends Power{
     constructor(damage, x, y, name){
         super(damage, x, y, "strike", name);
     }

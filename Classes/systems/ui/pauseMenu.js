@@ -129,6 +129,7 @@
 try {
     if (typeof RenderManager !== 'undefined' && RenderManager && typeof RenderManager.addInteractiveDrawable === 'function') {
         const pauseAdapter = {
+            id: 'pause-menu',
             hitTest: (pointer) => {
                 try {
                     const x = pointer.screen.x;

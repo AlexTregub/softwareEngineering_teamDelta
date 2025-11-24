@@ -54,6 +54,7 @@ class LightningManager {
     this.bolts = []; // transient bolt animations
     this.cooldown = 300; // milliseconds between strikes
     this.lastStrikeTime = 0;
+    this.level = 1; // Power level (1 = single strike, 2 = triple strike)
     // Knockback in pixels applied to ants hit by lightning
     // Default: push back ~1.5 tiles
     this.knockbackPx = (typeof TILE_SIZE !== 'undefined' ? TILE_SIZE : 32) * 1.5;
@@ -67,15 +68,25 @@ class LightningManager {
     this.setKnockbackDurationMs = (v) => { this.knockbackDurationMs = Number(v) || this.knockbackDurationMs; return this.knockbackDurationMs; };
     this.getKnockbackDurationMs = () => this.knockbackDurationMs;
     this.getActiveKnockbacks = () => (this._activeKnockbacks || []).map(k => ({ startX: k.startX, startY: k.startY, targetX: k.targetX, targetY: k.targetY, progress: Math.min(1, (millis() - k.startTime) / (k.duration || 1)) }));
+    // Level management
+    this.setLevel = (v) => { 
+      this.level = Math.max(1, Math.min(3, Number(v) || 1)); 
+      // Update brush range when level changes
+      if (typeof window.g_lightningAimBrush !== 'undefined' && window.g_lightningAimBrush && typeof window.g_lightningAimBrush.updateRangeForLevel === 'function') {
+        window.g_lightningAimBrush.updateRangeForLevel(this.level);
+      }
+      return this.level; 
+    };
+    this.getLevel = () => this.level;
     // Default playback volume (0.0 - 1.0)
-    this.volume = 1.0; // lower default so strikes aren't too loud
+    this.volume = 0.1; // lower default so strikes aren't too loud
     
     this.lastUpdate = null;
       
     logNormal('⚡ Lightning system initialized');
   }
 
-  strikeAtAnt(ant, damage = 50, radius = 3) {
+  strikeAtAnt(ant, damage = 50, radius = 3, strikeIndex = 0) {
     try {
       if (!ant) {  return;  }
 
@@ -87,7 +98,7 @@ class LightningManager {
       const isPlayerQueen = (ant === playerQueen || ant.jobName === 'Queen' || ant.job === 'Queen');
 
       // Visual flash / instantaneous strike effect - can be expanded
-      this.createFlash(pos.x, pos.y);
+      this.createFlash(pos.x, pos.y, strikeIndex);
 
       // Deal damage to ant (skip if it's the player queen)
       if (!isPlayerQueen && typeof ant.takeDamage === 'function') {
@@ -225,39 +236,81 @@ class LightningManager {
     }
     this.lastStrikeTime = now;
 
-    // Create a bolt animation (sky -> target) and schedule the actual strike at the impact moment
+    // Get target position
     const pos = (targetAnt && typeof targetAnt.getPosition === 'function') ? targetAnt.getPosition() : (targetAnt || { x: mouseX, y: mouseY });
-    const bolt = {
-      x: pos.x,
-      y: pos.y,
-      created: millis(),
-      duration: 220, // ms to show bolt
-      executed: false
-    };
-    this.bolts.push(bolt);
-
-    // Execute the strike slightly after bolt creation to sync visuals
-    setTimeout(() => {
-      try {
-        if (targetAnt && typeof targetAnt.getPosition === 'function') {
-          this.strikeAtAnt(targetAnt);
-        } else if (targetAnt && typeof targetAnt.x === 'number' && typeof targetAnt.y === 'number') {
-          this.strikeAtPosition(targetAnt.x, targetAnt.y);
-        } else {
-          this.strikeAtPosition(pos.x, pos.y);
-        }
-      } catch (err) {
-        console.error('❌ Error executing delayed strike:', err);
+    
+    // Level 2+: Execute multiple strikes in sequence
+    if (this.level >= 2) {
+      const strikeCount = 3; // Triple strike at level 2
+      const delayBetweenStrikes = 100; // ms between each strike
+      
+      for (let i = 0; i < strikeCount; i++) {
+        const strikeDelay = 80 + (i * delayBetweenStrikes);
+        const strikeIndex = i; // Capture index for closure
+        
+        // Create bolt animation for each strike
+        setTimeout(() => {
+          const bolt = {
+            x: pos.x,
+            y: pos.y,
+            created: millis(),
+            duration: 220,
+            executed: false,
+            strikeIndex: strikeIndex // Track which strike this is for rendering
+          };
+          this.bolts.push(bolt);
+          
+          // Execute the strike at the target position
+          try {
+            if (targetAnt && typeof targetAnt.getPosition === 'function') {
+              this.strikeAtAnt(targetAnt, 50, 3, strikeIndex);
+            } else if (targetAnt && typeof targetAnt.x === 'number' && typeof targetAnt.y === 'number') {
+              this.strikeAtPosition(targetAnt.x, targetAnt.y, 50, 3, strikeIndex);
+            } else {
+              this.strikeAtPosition(pos.x, pos.y, 50, 3, strikeIndex);
+            }
+          } catch (err) {
+            console.error('❌ Error executing delayed strike:', err);
+          }
+        }, strikeDelay);
       }
-    }, 80);
+      
+      logNormal(`⚡⚡⚡ Level ${this.level} lightning: ${strikeCount} strikes!`);
+    } else {
+      // Level 1: Single strike (original behavior)
+      const bolt = {
+        x: pos.x,
+        y: pos.y,
+        created: millis(),
+        duration: 220,
+        executed: false
+      };
+      this.bolts.push(bolt);
+
+      // Execute the strike slightly after bolt creation to sync visuals
+      setTimeout(() => {
+        try {
+          if (targetAnt && typeof targetAnt.getPosition === 'function') {
+            this.strikeAtAnt(targetAnt);
+          } else if (targetAnt && typeof targetAnt.x === 'number' && typeof targetAnt.y === 'number') {
+            this.strikeAtPosition(targetAnt.x, targetAnt.y);
+          } else {
+            this.strikeAtPosition(pos.x, pos.y);
+          }
+        } catch (err) {
+          console.error('❌ Error executing delayed strike:', err);
+        }
+      }, 80);
+    }
 
     return true;
   }
 
 
-  createFlash(x, y) {
-    soundManager.play('lightningStrike');
-    window.EffectsRenderer.flash(x, y, { color: [180, 220, 255], intensity: 1.2, radius: 48 });
+  createFlash(x, y, strikeIndex = 0) {
+    soundManager.play('lightningStrike',0.1);
+    // Keep flash blue for all strikes
+    window.EffectsRenderer.flash(x, y, { color: [100, 150, 255], intensity: 0.5, radius: 48 });
   }
 
   createExplosion(x, y) {
@@ -270,10 +323,10 @@ class LightningManager {
   /**
    * Strike at an arbitrary position and apply area damage to nearby ants
    */
-  strikeAtPosition(x, y, damage = 50, radius = 3) {
+  strikeAtPosition(x, y, damage = 50, radius = 3, strikeIndex = 0) {
     try {
       logNormal(`⚡ strikeAtPosition called at (${x.toFixed(1)}, ${y.toFixed(1)}) with radius ${radius} tiles, damage ${damage}`);
-      this.createFlash(x, y);
+      this.createFlash(x, y, strikeIndex);
       this.createExplosion(x, y);
       // Damage nearby ants (area effect)
       try {
@@ -349,7 +402,7 @@ class LightningManager {
   }
 
   render() {
-    // Render bolt visuals first (soot stains render beneath if needed)
+    // Render bolt visuals (lightning strikes)
     for (const b of this.bolts) {
       const t = (millis() - b.created) / b.duration;
       
@@ -366,17 +419,53 @@ class LightningManager {
       }
       
       push();
-      stroke(200, 230, 255, 255 * (1 - t));
+      
+      // First bolt: blue, straight down
+      // Additional bolts: red, angled from random direction
+      const isFirstBolt = !b.strikeIndex || b.strikeIndex === 0;
+      const boltColor = isFirstBolt ? [200, 230, 255] : [255, 100, 120]; // Blue or Red
+      
+      stroke(boltColor[0], boltColor[1], boltColor[2], 255 * (1 - t));
       strokeWeight(3);
-      // Simple top-to-target lightning line (jittered)
-      const startX = screenX + (Math.random() - 0.5) * 8;
-      const startY = -10; // from above the canvas
-      const midX = screenX + (Math.random() - 0.5) * 20;
-      const midY = screenY - (50 * (1 - t));
-      line(startX, startY, midX, midY);
-      line(midX, midY, screenX, screenY);
+      
+      if (isFirstBolt) {
+        // First bolt: straight down from above
+        const startX = screenX + (Math.random() - 0.5) * 8;
+        const startY = -10; // from above the canvas
+        const midX = screenX + (Math.random() - 0.5) * 20;
+        const midY = screenY - (50 * (1 - t));
+        line(startX, startY, midX, midY);
+        line(midX, midY, screenX, screenY);
+      } else {
+        // Additional bolts: angled from random direction
+        // Generate consistent random angle for this bolt (use strikeIndex as seed)
+        const angleOffset = (b.strikeIndex * 137.5) % 360; // Golden angle distribution
+        const angle = (angleOffset * Math.PI / 180) + (Math.random() - 0.5) * 0.3;
+        const distance = 150 + Math.random() * 100; // Distance from target
+        
+        // Start position: offset from target at angle
+        const startX = screenX + Math.cos(angle) * distance;
+        const startY = screenY + Math.sin(angle) * distance;
+        
+        // Mid point for jagged effect
+        const midDist = distance * 0.6;
+        const midX = screenX + Math.cos(angle) * midDist + (Math.random() - 0.5) * 30;
+        const midY = screenY + Math.sin(angle) * midDist + (Math.random() - 0.5) * 30;
+        
+        // Draw angled bolt
+        line(startX, startY, midX, midY);
+        line(midX, midY, screenX, screenY);
+      }
+      
       pop();
     }
+    // Note: Soot stains now render separately via renderSootStains() on TERRAIN layer
+  }
+
+  /**
+   * Render soot stains only (called from TERRAIN layer, before entities)
+   */
+  renderSootStains() {
     for (const s of this.sootStains) {
       if (s && s.isActive) s.render();
     }
