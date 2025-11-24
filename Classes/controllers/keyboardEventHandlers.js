@@ -243,10 +243,11 @@ function keyPressed() {
     }
     
     const nearbyHill = Buildings.find(b => 
-      b.isPlayerNearby && b.buildingType === "anthill" && b._faction === "player"
+      b.isPlayerNearby && b.buildingType === "anthill" && b._faction === "player" && !b._isDead
     );
     if (nearbyHill) {
       if (!window.BUIManager.active) {
+        console.log("Opening Building UI for nearby anthill");
         window.BUIManager.open(nearbyHill);
       } else {
         window.BUIManager.close();
@@ -255,11 +256,15 @@ function keyPressed() {
     }
     
     const deadBuilding = Buildings.find(b => 
-      b.isPlayerNearby && b._faction !== "player" && b._isDead
+      b._isDead && b.isPlayerNearby
     );
+
     if (deadBuilding) {
+      console.log("Rebuilding dead building via BUIManager");
       window.BUIManager.rebuild(deadBuilding);
       return;
+    }else{
+      console.log("No interactable NPC or building nearby.");
     }
   }
   

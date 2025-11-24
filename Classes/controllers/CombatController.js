@@ -118,7 +118,7 @@ class CombatController {
       // Skip if same faction or either is neutral
       if (otherAnt.faction === entityFaction || 
           entityFaction === "neutral" || 
-          otherAnt.faction === "neutral") {
+          otherAnt.faction === "neutral" || otherAnt.faction === "neutral") {
         continue;
       }
 

@@ -167,8 +167,8 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
       const queen = getQueen?.();
       if (!queen) return;
 
-      const range = dist(this._x + 50, this._y, queen.posX, queen.posY);
-      this.isPlayerNearby = range < this.promptRange;
+      this.range = dist(this._x + 50, this._y, queen.posX, queen.posY);
+      this.isPlayerNearby = this.range < this.promptRange;
     };
 
     hill.render = function() {
@@ -388,6 +388,7 @@ class Building extends Entity {
     // clear the saved stage so you don't double-downgrade
     this.previousStage = null;
     this._spawnEnabled = false;
+    this._isDead = true;
 
     return true;
   }
@@ -418,6 +419,7 @@ class Building extends Entity {
     this._spawnCount += 1;
     this._maxHealth = Math.round(this._maxHealth * 1.25);
     this._health = this._maxHealth;
+    this._isDead = false;
 
     this.info = next;
     return true;
@@ -442,7 +444,7 @@ class Building extends Entity {
     this._updateHealthController();
 
     // Spawn ants if enabled — uses global antsSpawn(num, faction, x, y)
-    if (this._spawnEnabled && typeof antsSpawn === 'function' && GameState.isInGame()) {
+    if (this._spawnEnabled && typeof antsSpawn === 'function' && GameState.isInGame() && !this._isDead) {
       try {
         this._spawnTimer += deltaTime;
         while (this._spawnTimer >= this._spawnInterval) {
