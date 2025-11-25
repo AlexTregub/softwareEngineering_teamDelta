@@ -114,62 +114,6 @@ class ant extends Entity {
     if (img && typeof img !== 'string') {
       this.setImage(img);
     }
-    
-    // Movement particle system (dirt trail)
-    this._movementEmitter = null;
-    this._lastPosition = { x: posX, y: posY };
-    this._initializeMovementParticles();
-  }
-
-  // --- Movement Particle System ---
-  _initializeMovementParticles() {
-    if (typeof ParticleEmitter === 'undefined') return;
-
-    const pos = this.getPosition();
-    this._movementEmitter = new ParticleEmitter({
-      preset: 'dirtTrail',
-      x: pos.x,
-      y: pos.y
-    });
-  }
-  
-  _updateMovementParticles() {
-    if (!this._movementEmitter) return;
-    
-    // Get world position
-    const pos = this.getPosition();
-    const isMoving = this.isMoving;
-    
-    // Calculate movement speed
-    const dx = pos.x - this._lastPosition.x;
-    const dy = pos.y - this._lastPosition.y;
-    const distMoved = Math.sqrt(dx * dx + dy * dy);
-    
-    // Update emitter position in world coordinates
-    this._movementEmitter.setPosition(pos.x, pos.y);
-    
-    // Only emit particles when moving (not idle)
-    if (isMoving && distMoved > 0.5) {
-      if (!this._movementEmitter.isActive()) {
-        this._movementEmitter.start();
-      }
-    } else {
-      if (this._movementEmitter.isActive()) {
-        this._movementEmitter.stop();
-      }
-    }
-    
-    // Update particle positions
-    this._movementEmitter.update();
-    
-    // Store current position for next frame
-    this._lastPosition.x = pos.x;
-    this._lastPosition.y = pos.y;
-  }
-  
-  _renderMovementParticles() {
-    if (!this._movementEmitter) return;
-    this._movementEmitter.render();
   }
 
   // --- Ant-specific Getters/Setters ---
@@ -339,11 +283,7 @@ _getFallbackJobStats(jobName) {
   _onStateChange(oldState, newState) {
     // When entering DROPPING_OFF, find nearest dropoff and move there
     if (typeof newState === 'string' && newState.includes("DROPPING_OFF")) {
-      const list = (window && window.dropoffs) ? window.dropoffs :
-                   (typeof dropoffs !== 'undefined' ? dropoffs : []);
-      if (Array.isArray(list) && list.length > 0) {
-        this._goToNearestDropoff();
-      }
+      this._goToNearestDropoff();
     }
     // leaving dropoff clears target
     if (typeof oldState === 'string' && oldState.includes("DROPPING_OFF") && !(typeof newState === 'string' && newState.includes("DROPPING_OFF"))) {
@@ -594,7 +534,6 @@ _getFallbackJobStats(jobName) {
     this._updateResourceManager();
     this._updateEnemyDetection();
     this._updateHealthController();
-    this._updateMovementParticles();
     // If currently dropping off, check arrival each frame
     if (this._stateMachine && typeof this._stateMachine.isDroppingOff === 'function' && this._stateMachine.isDroppingOff()) {
       this._checkDropoffArrival();
@@ -862,9 +801,6 @@ _getFallbackJobStats(jobName) {
   render() {
     if (!this.isActive) return;
 
-    // Render movement particles FIRST (behind ant sprite)
-    this._renderMovementParticles();
-
     // Use Entity rendering (handles sprite and highlights automatically)
     super.render();
 
@@ -1003,13 +939,6 @@ _getFallbackJobStats(jobName) {
 
   // --- Cleanup Override ---
   destroy() {
-    // Clean up particle emitter
-    if (this._movementEmitter) {
-      this._movementEmitter.stop();
-      this._movementEmitter.clear();
-      this._movementEmitter = null;
-    }
-    
     this._stateMachine = null;
     this._resourceManager = null;
     this._stats = null;
@@ -1140,28 +1069,8 @@ function spawnAntByType(antObj){
 }
 
 // --- Spawn Ants ---
-// Hard limit for non-player ants
-const MAX_NON_PLAYER_ANTS = 200;
-
 function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
-  // Check population limit for non-player factions
   let list = [];
-  if (faction !== "player") {
-    const currentNonPlayerAnts = ants.filter(ant => ant && ant._faction !== "player" && ant._isActive).length;
-    const remainingSlots = MAX_NON_PLAYER_ANTS - currentNonPlayerAnts;
-    
-    if (remainingSlots <= 0) {
-      console.log(`⚠️ Population limit reached (${MAX_NON_PLAYER_ANTS} non-player ants). Cannot spawn more ants for faction: ${faction}`);
-      return;
-    }
-    
-    // Clamp spawn count to remaining slots
-    if (numToSpawn > remainingSlots) {
-      console.log(`⚠️ Reducing spawn from ${numToSpawn} to ${remainingSlots} ants due to population limit`);
-      numToSpawn = remainingSlots;
-    }
-  }
-  
   for (let i = 0; i < numToSpawn; i++) {
     let sizeR = random(0, 15);
     let JobName  = assignJob();
@@ -1215,32 +1124,6 @@ function antsSpawn(numToSpawn, faction = "neutral", x = null, y = null) {
     list.push(newAnt);
   }
   return list;
-}
-
-// --- Population Management ---
-
-/**
- * Get current count of non-player ants
- * @returns {number} Number of active non-player ants
- */
-function getNonPlayerAntCount() {
-  return ants.filter(ant => ant && ant._faction !== "player" && ant._isActive).length;
-}
-
-/**
- * Get remaining spawn slots for non-player ants
- * @returns {number} Number of ants that can still be spawned
- */
-function getRemainingAntSlots() {
-  return Math.max(0, MAX_NON_PLAYER_ANTS - getNonPlayerAntCount());
-}
-
-/**
- * Check if population limit has been reached for non-player ants
- * @returns {boolean} True if at or over limit
- */
-function isPopulationLimitReached() {
-  return getNonPlayerAntCount() >= MAX_NON_PLAYER_ANTS;
 }
 
 // --- Update All Ants ---
@@ -1347,10 +1230,6 @@ if (typeof window !== 'undefined') {
   window.antsUpdateAndRender = antsUpdateAndRender;
   window.assignJob = assignJob;
   window.handleSpawnCommand = handleSpawnCommand;
-  window.MAX_NON_PLAYER_ANTS = MAX_NON_PLAYER_ANTS;
-  window.getNonPlayerAntCount = getNonPlayerAntCount;
-  window.getRemainingAntSlots = getRemainingAntSlots;
-  window.isPopulationLimitReached = isPopulationLimitReached;
 } else if (typeof global !== 'undefined') {
   global.ant = ant;
   global.antsSpawn = antsSpawn;
@@ -1359,8 +1238,4 @@ if (typeof window !== 'undefined') {
   global.antsUpdateAndRender = antsUpdateAndRender;
   global.assignJob = assignJob;
   global.handleSpawnCommand = handleSpawnCommand;
-  global.MAX_NON_PLAYER_ANTS = MAX_NON_PLAYER_ANTS;
-  global.getNonPlayerAntCount = getNonPlayerAntCount;
-  global.getRemainingAntSlots = getRemainingAntSlots;
-  global.isPopulationLimitReached = isPopulationLimitReached;
 }

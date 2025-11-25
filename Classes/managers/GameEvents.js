@@ -43,23 +43,22 @@ class Swarm extends AbstractEvent {
         this.finished = false;
     }
 
-    _init(){
-        let player = getQueen();        
-        if(!player){return;}
+    _init() {
+        let player = getQueen();
+        if (!player) return;
 
-        for(let i = 0; i < this.amountOfAnts; i++){
-            let degree = (i / this.amountOfAnts) * 2 * Math.PI;
-            let px = player.posX + this.radius * cos(degree);
-            let py = player.posY + this.radius * sin(degree);
+        for (let i = 0; i < this.amountOfAnts; i++) {
+            let angle = (i / this.amountOfAnts) * Math.PI * 2;
 
-            let list = antsSpawn(1,'waveEnemy',px,py);
-            list.forEach(ant=>{
-                if(ant.faction != 'waveEnemy'){return;}
-                ant.moveToLocation(player.posX,player.posY)
-                ant.getController('combat')._detectionRadius = this.radius + 100;
-            });
+            let x = player.posX + this.radius * Math.cos(angle);
+            let y = player.posY + this.radius * Math.sin(angle);
+
+            let spawned = antsSpawn(1, 'waveEnemy', x, y);
+            if (!spawned || !spawned.length) continue;
+
+            let ant = spawned[0];
+            ant.moveToLocation(player.posX, player.posY);
         }
-
     }
 
 
@@ -100,6 +99,7 @@ class AntHive extends AbstractEvent {
             let building = createBuilding('AntCone', pos[0], pos[1], 'waveEnemy');
             building.upgradeBuilding();
             building._spawnEnabled = true;
+            building._isDead = false;
             Buildings.push(building);
         }
     }
