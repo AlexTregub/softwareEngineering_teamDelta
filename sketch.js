@@ -344,7 +344,9 @@ function initializeWorld() {
 
   // Main hive, initial, anthill
   let main = createBuilding('AntHill', 400, 400, 'player');
-  main._isDead = true;
+  // main._isDead = true;
+  // main.die()
+  
   Buildings.push(main); // Initial hive
   queenAnt = spawnQueen(); // Queen spawn post anthill
   Buildings.push(createNPC(350,500));
