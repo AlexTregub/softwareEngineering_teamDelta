@@ -116,7 +116,14 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
           image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
           canUpgrade: false,    
           upgradeCost: null,
-          progressions: {}
+          progressions: {
+            1: {
+              image: () => loadImage('Images/Buildings/Hill/Hill3.png'),
+              canUpgrade: false,
+              upgradeCost: null,
+              progressions: {}
+            }
+          }
         }
       }
     };
