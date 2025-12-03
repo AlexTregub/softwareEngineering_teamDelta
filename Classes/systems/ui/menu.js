@@ -23,14 +23,17 @@ const DEFAULT_MENU_YOFFSET = -80;
 const MENU_CONFIGS = {
   MENU: [
     { x: -10, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: -10, y: -50, w: 220, h: 100, text: "Tutorial", style: 'success', action: () => {
+    { x: -10, y: -50, w: 180, h: 80, text: "Tutorial", style: 'success', action: () => {
       importTerrainLP(
         "src/levels/gregg.json"
       )
       startGameTransition()
     } },
-    { x: -10, y: -10,  w: 220, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
-    { x: -10, y: -10,  w: 220, h: 80, text: "Import level",    style: 'info', action: () => importTerrain() },
+    { x: -10, y: -10,  w: 180, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
+    { x: -10, y: 30,  w: 180, h: 80, text: "Import level",    style: 'info', action: () => importTerrain() },
+    { x: -10, y: 70,  w: 180, h: 80, text: "Credits ",    style: 'info', action: () => GameState.goToMenu() }, // Cannot be "Credits", becomes info
+    // { x: -10, y: 70,  w: 180, h: 80, text: "Credots",    style: 'info', action: () => importTerrain() },
+    // { x:-10,y:70, w:180, h:40, text: "Credits", style:'info', action:() => GameState.goToMenu() }
   ],
   OPTIONS: [
     { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => showAudioSettings() },
