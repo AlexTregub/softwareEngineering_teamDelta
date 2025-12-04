@@ -79,11 +79,7 @@ function initializeGameUIOverlay() {
     
     // Initialize MiniMap with active terrain
     if (window.g_activeMap) {
-        const terrain = window.g_activeMap;
-        window.g_miniMap = new MiniMap(terrain, 200, 200, {
-            normalizedX: 0.9,   // 90% right from center
-            normalizedY: -0.8   // 80% down from center (bottom-right)
-        });
+
     } else {
         console.warn('⚠️ No terrain map available for MiniMap');
     }
