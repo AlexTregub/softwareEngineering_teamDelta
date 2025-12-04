@@ -159,12 +159,18 @@ class VerticalButtonList {
       case "Start Game": return playButton;
       case "Options": return optionButton;
       case "Exit Game": return exitButton;
-      case "Credits": return infoButton;
+      // case "Credits": return infoButton;
       case "Audio Settings": return audioButton;
       case "Video Settings": return videoButton;
       case "Controls": return controlButton;
       case "Back to Menu": return backButton;
       case "Debug": return debugButton;
+
+      case "Credits": return creditsBut;
+      case "Tutorial": return tutorialBut;
+      case "Level Editor": return levelEditBut;
+      case "Import Level" : return loadLBut;
+
       default: return null;
     }
   }

@@ -18,7 +18,8 @@ class GameStateManager {
       PAUSED: "PAUSED",
       GAME_OVER: "GAME_OVER",
       KAN_BAN: "KANBAN",
-      LEVEL_EDITOR: "LEVEL_EDITOR"
+      LEVEL_EDITOR: "LEVEL_EDITOR",
+      CREDITS: "CREDITS"
     };
   }
 
@@ -29,6 +30,7 @@ class GameStateManager {
 
   // Set state with optional callback execution
   setState(newState, skipCallbacks = false) {
+    // console.log("SETTING STATE "+String(newState))
     if (!this.isValidState(newState)) {
       console.warn(`Invalid game state: ${newState}`);
       return false;
@@ -36,6 +38,8 @@ class GameStateManager {
 
     this.previousState = this.currentState;
     this.currentState = newState;
+
+    // console.log(this.currentState)
 
     if (!skipCallbacks) {
       this.executeCallbacks(newState, this.previousState);

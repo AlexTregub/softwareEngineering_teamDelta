@@ -11,6 +11,11 @@ let menuImage;
 let menuHeader = null;
 let g_mapRendered
 
+let creditsBut
+let loadLBut
+let levelEditBut
+let tutorialBut
+
 // layout debug data is produced by VerticalButtonList and exposed via
 // window.menuLayoutData so debug rendering code can access it without
 // polluting this module's globals.
@@ -23,14 +28,21 @@ const DEFAULT_MENU_YOFFSET = -80;
 const MENU_CONFIGS = {
   MENU: [
     { x: -10, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: -10, y: -50, w: 220, h: 100, text: "Tutorial", style: 'success', action: () => {
+    { x: -10, y: -50, w: 220, h: 80, text: "Tutorial", style: 'success', action: () => {
       importTerrainLP(
         "src/levels/gregg.json"
       )
       startGameTransition()
     } },
     { x: -10, y: -10,  w: 220, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
-    { x: -10, y: -10,  w: 220, h: 80, text: "Import level",    style: 'info', action: () => importTerrain() },
+    { x: -10, y: 30,  w: 220, h: 80, text: "Import Level",    style: 'info', action: () => importTerrain() },
+    { x: -10, y: 70,  w: 220, h: 80, text: "Credits",    style: 'info', action: () => {
+      console.log("Credits clicked...");
+      GameState.setState("CREDITS");
+      window.GameState.setState("CREDITS");
+    }}, // Cannot be "Credits", becomes info
+    // { x: -10, y: 70,  w: 180, h: 80, text: "Credots",    style: 'info', action: () => importTerrain() },
+    // { x:-10,y:70, w:180, h:40, text: "Credits", style:'info', action:() => GameState.goToMenu() }
   ],
   OPTIONS: [
     { x: -10, y: -100, w: 220, h: 80, text: "Audio Settings", style: 'default', action: () => showAudioSettings() },
@@ -56,6 +68,11 @@ function menuPreload(){
   controlButton = loadImage("Images/Assets/Menu/controls_button.png");
   backButton = loadImage("Images/Assets/Menu/back_button.png");
   backButtonImg = backButton; // Make available globally for LevelEditor
+
+  creditsBut = loadImage("Classes/ui_new/additionalMenu/AntsCreditsButton.png")
+  loadLBut = loadImage("Classes/ui_new/additionalMenu/AntsILButton.png")
+  levelEditBut = loadImage("Classes/ui_new/additionalMenu/AntsLEButton.png")
+  tutorialBut = loadImage("Classes/ui_new/additionalMenu/AntsTutorialButton.png")
 }
 
 // Initialize menu system
@@ -69,7 +86,7 @@ function initializeMenu() {
     if (newState === "PLAYING") {
       soundManager.stop("bgMusic", true); // Use fade-out when transitioning to gameplay
     }
-    if (newState === "MENU" || newState === "OPTIONS") {
+    if (newState === "MENU" || newState === "OPTIONS" || newState === "CREDITS") {
       loadButtons();
     }
   });
@@ -158,10 +175,21 @@ function updateMenu() {
 
 
 // Render complete menu system
-function renderMenu() {
+function renderMenu() { 
+  if (window.GameState.currentState == "CREDITS" || GameState.isAnyState("CREDITS")) {
+    // console.log("CREDITS FOUND") // Not called?
+    drawCreditsMenu()
+  }
+
+  // console.log("RENDER MENU CALLED") // Is called...
   if (GameState.isAnyState("MENU", "OPTIONS", "DEBUG_MENU")) {
     drawMenu();
-    
+    // console.log("Passed checks...")
+    // console.
+    // if (GameState.isState("CREDITS") | GameState.isAnyState("CREDITS")) { // Never called...
+      
+    // }
+
     // Draw audio settings overlay if active
     if (audioSettingsActive) {
       drawAudioSettings();
@@ -305,4 +333,85 @@ function drawAudioSettings() {
   }
 }
 
+function drawCreditsMenu() {
+  push()
+  let creditsScroll = 0;
+  // background(15, 15, 20);
 
+  // Scroll controls (mouse wheel or keys)
+  if (keyIsDown(38)) creditsScroll += 5;   // up arrow
+  if (keyIsDown(40)) creditsScroll -= 5;   // down arrow
+  creditsScroll = constrain(creditsScroll, -500, 300);
+
+  // Title
+  fill(255);
+  textAlign(CENTER, TOP);
+  textSize(48);
+  text("Credits", g_canvasX / 2, 40 + creditsScroll);
+
+  // Placeholder text
+  textAlign(CENTER, TOP);
+  textSize(22);
+  fill(220);
+  // pop()
+
+  // Clickable link example
+  // push()
+  // let linkY = 130 + creditsScroll + 260; // adjust based on text position
+  // if (mouseX > g_canvasX/2 - 150 && mouseX < g_canvasX/2 + 150 &&
+  //     mouseY > linkY - 10 && mouseY < linkY + 20) {
+
+  //     fill(120, 200, 255);
+  //     if (mouseIsPressed) window.open("https://example.com", "_blank");
+  // } else {
+  //     fill(180, 220, 255);
+  // }
+
+  // text("[ GitHub Repository ]", g_canvasX/2, linkY);
+  // pop()
+
+  // push()
+  const body = `
+This game was created by:
+
+David Willman, 
+Alex Tregub, 
+Colin Grant, 
+Anthony Cruz, 
+Alex Fabiku, 
+Alex Zepp, 
+Emmanuel Uka, 
+Jack Miller, 
+Alex B
+
+Special Thanks:
+... (TBD)
+
+For:
+  `;
+
+  text(body, g_canvasX / 2, 130 + creditsScroll);
+
+  // Back button
+  const bw = 200, bh = 60;
+  const bx = g_canvasX / 2 - bw / 2;
+  const by = g_canvasY - 120;
+
+  const hover = mouseX > bx && mouseX < bx + bw &&
+                mouseY > by && mouseY < by + bh;
+
+  fill(hover ? color(80,180,80) : color(50,150,50));
+  stroke(255);
+  strokeWeight(1);
+  rect(bx, by, bw, bh, 8);
+
+  fill(255);
+  textSize(26);
+  textAlign(CENTER, CENTER);
+  text("Back", g_canvasX / 2, by + bh / 2);
+
+  if (hover && mouseIsPressed) {
+    GameState.goToMenu();
+  }
+  pop()
+}

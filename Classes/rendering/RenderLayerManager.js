@@ -497,6 +497,7 @@ class RenderLayerManager {
    */
   getLayersForState(gameState) {
     switch (gameState) {
+      case 'CREDITS':
       case 'MENU':
       case 'OPTIONS':
         return [this.layers.TERRAIN, this.layers.UI_MENU];
@@ -536,7 +537,7 @@ class RenderLayerManager {
     }
     
     // Only render terrain for game states that need it
-    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS'].includes(gameState)) {
+    if (!['PLAYING', 'PAUSED', 'GAME_OVER', 'DEBUG_MENU', 'MENU', 'OPTIONS','CREDITS'].includes(gameState)) {
       background(0);
       return;
     }
@@ -767,7 +768,7 @@ class RenderLayerManager {
     }
     
     // Render menu if in menu states
-    if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER'].includes(gameState)) {
+    if (['MENU', 'OPTIONS', 'DEBUG_MENU', 'GAME_OVER','CREDITS'].includes(gameState)) {
       if (renderMenu) {
         renderMenu();
       }
