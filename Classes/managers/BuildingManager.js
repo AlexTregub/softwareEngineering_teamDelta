@@ -130,7 +130,7 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
 
   createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2']) {
     // 160 x 100 size... ie. 160/32 x 100/32 tile size
-    let a = g_activeMap.sampleTiles(tileType,10000);  
+    let a = g_activeMap.sampleTiles(tileType,30000);  
 
     let tilex = a[0][0]; // Picks initial random position
     let tiley = a[0][1]; // ...
