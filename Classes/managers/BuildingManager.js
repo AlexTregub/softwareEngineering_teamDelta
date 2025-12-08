@@ -4,6 +4,7 @@
 let Cone;
 let Hill;
 let Hive;
+let CENTERING_RADIUS = 30
 
 function BuildingPreloader() {
   Cone = loadImage('Images/Buildings/Cone/Cone1.png');
@@ -42,25 +43,27 @@ class AntCone extends AbstractBuildingFactory {
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction,tileType=['grass']) {
-    let a = g_activeMap.sampleTiles(tileType,1); // 
+  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2']) {
+    let a = g_activeMap.sampleTiles(tileType,1000); // 
 
     let tilex = a[0][0]; // Picks initial random position
     let tiley = a[0][1]; // ...
 
-    // for (let pos in a) { // pos is an index in a
-    //   // let pos = a[pos]
+    for (let pos in a) { // pos is an index in a
+      // let pos = a[pos]
 
-    //   let temp = a[pos]
-    //   // console.log(temp)
-    //   // if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
-    //   //   tilex = temp[0]
-    //   //   tiley = temp[1] // tile positions (grid) 
+      let temp = a[pos]
+      // console.log(temp)
+      if ((tileType.includes(
+        g_activeMap.getMat([temp[0]+round(160/TILE_SIZE),temp[1]+round(100/TILE_SIZE)])
+      ))) { // Bounds close to center
+        tilex = temp[0]
+        tiley = temp[1] // tile positions (grid) 
 
-    //   //   // console.log("DONE DID IT ")
-    //   //   break
-    //   // }
-    // }
+        // console.log("DONE DID IT ")
+        break
+      }
+    }
 
     let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
@@ -125,8 +128,9 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction,tileType=['grass']) {
-    let a = g_activeMap.sampleTiles(tileType,10000); // 
+  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2']) {
+    // 160 x 100 size... ie. 160/32 x 100/32 tile size
+    let a = g_activeMap.sampleTiles(tileType,10000);  
 
     let tilex = a[0][0]; // Picks initial random position
     let tiley = a[0][1]; // ...
@@ -136,20 +140,24 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
 
       let temp = a[pos]
       // console.log(temp)
-      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+      if (temp[0] < CENTERING_RADIUS & temp[0] > -CENTERING_RADIUS & temp[1] < CENTERING_RADIUS & temp[1] > -CENTERING_RADIUS
+        & (tileType.includes(
+          g_activeMap.getMat([temp[0]+round(160/TILE_SIZE),temp[1]+round(100/TILE_SIZE)])
+        ))
+      ) { // Bounds close to center
         tilex = temp[0]
         tiley = temp[1] // tile positions (grid) 
 
-        // console.log("DONE DID IT ")
+        console.log("INFO: Proper placement done...")
         break
       }
     }
 
-    if (tilex > 30 | tilex < -30 | tiley > 30 | tiley < -30) {
-      tilex = 0
-      tiley = 0
-      console.log("WARNING: DEFAULT SPAWN POS FOR ANTHILL")
-    } 
+    // if (tilex > CENTERING_RADIUS | tilex < -CENTERING_RADIUS | tiley > CENTERING_RADIUS | tiley < -CENTERING_RADIUS) {
+    //   tilex = 0
+    //   tiley = 0
+    //   console.log("WARNING: DEFAULT SPAWN POS FOR ANTHILL")
+    // } 
 
     let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
