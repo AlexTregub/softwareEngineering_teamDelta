@@ -189,7 +189,7 @@ class gridTerrain {
                 // console.log(this.getMat(pos))
                 
                 if (targetMat.includes(this.getMat(pos))) {
-                    console.log(targetMat,this.getMat(pos))
+                    // console.log(targetMat,this.getMat(pos))
                     posArray.push(pos)
 
                     if (posArray.length == requested) {
