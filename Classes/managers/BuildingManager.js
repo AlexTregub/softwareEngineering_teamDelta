@@ -34,7 +34,12 @@ class AntCone extends AbstractBuildingFactory {
           image: () => loadImage('Images/Buildings/Cone/Cone2.png'),
           canUpgrade: false,    
           upgradeCost: null,
-          progressions: {}
+          progressions: {1: {
+            image: () => loadImage('Images/Buildings/Cone/Cone2.png'),
+            canUpgrade: false,    
+            upgradeCost: null,
+            progressions: {}
+          }}
         }
       }
     };
@@ -119,7 +124,37 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
           image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
           canUpgrade: false,    
           upgradeCost: null,
-          progressions: {}
+          progressions: {1: {
+            image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+            canUpgrade: false,    
+            upgradeCost: null,
+            progressions: {1: {
+              image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+              canUpgrade: false,    
+              upgradeCost: null,
+              progressions: {1: {
+                image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+                canUpgrade: false,    
+                upgradeCost: null,
+                progressions: {1: {
+                  image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+                  canUpgrade: false,    
+                  upgradeCost: null,
+                  progressions: {1: {
+                    image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+                    canUpgrade: false,    
+                    upgradeCost: null,
+                    progressions: {1: {
+                      image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+                      canUpgrade: false,    
+                      upgradeCost: null,
+                      progressions: {}
+                    }}
+                  }}
+                }}
+              }}
+            }}
+          }}
         }
       }
     };
@@ -424,8 +459,8 @@ class Building extends Entity {
     // --- APPLY UPGRADE ---
     this.setImage(nextImage);
     this._spawnInterval = Math.max(1, this._spawnInterval - 1);
-    this._spawnCount += 1;
-    this._maxHealth = Math.round(this._maxHealth * 1.25);
+    this._spawnCount += 10;
+    this._maxHealth = Math.round(this._maxHealth * 1.5);
     this._health = this._maxHealth;
     this._isDead = false;
 
