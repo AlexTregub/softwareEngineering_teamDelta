@@ -155,35 +155,10 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
             image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
             canUpgrade: false,    
             upgradeCost: null,
-            progressions: {1: {
-              image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
-              canUpgrade: false,    
-              upgradeCost: null,
-              progressions: {1: {
-                image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
-                canUpgrade: false,    
-                upgradeCost: null,
-                progressions: {1: {
-                  image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
-                  canUpgrade: false,    
-                  upgradeCost: null,
-                  progressions: {1: {
-                    image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
-                    canUpgrade: false,    
-                    upgradeCost: null,
-                    progressions: {1: {
-                      image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
-                      canUpgrade: false,    
-                      upgradeCost: null,
-                      progressions: {}
-                    }}
-                  }}
-                }}
-              }}
+            progressions: {}
             }}
-          }}
+          }
         }
-      }
     };
     this.isPlayerNearby = false;
     this.menuActive = false;
