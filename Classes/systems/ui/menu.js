@@ -35,7 +35,10 @@ const MENU_CONFIGS = {
     //   startGameTransition()
     // } },
     { x: -10, y: -10,  w: 220, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
-    { x: -10, y: 30,  w: 220, h: 80, text: "Import Level",    style: 'info', action: () => importTerrain() },
+    { x: -10, y: 30,  w: 220, h: 80, text: "Import Level",    style: 'info', action: () => {
+      window.g_renderLayerManager.disableLayer('entities');
+      importTerrain();
+    } },
     { x: -10, y: 70,  w: 220, h: 80, text: "Credits",    style: 'info', action: () => {
       console.log("Credits clicked...");
       GameState.setState("CREDITS");
