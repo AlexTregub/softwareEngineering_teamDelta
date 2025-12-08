@@ -7,25 +7,30 @@ let openMapStart, openMapEnd;
 let meetingNode = null;
 
 class PathMap{
-  constructor(terrain){
+  constructor(terrain){ // Moved to new grid system for loading...
     this._terrain = terrain; //Requires terrain(for weight, objects, etc.)
     this._grid = new Grid( //Makes Grid for easy tile storage/access
+      this._terrain._tileSpanRange[0],
+      this._terrain._tileSpanRange[1],
+      this._terrain._tileSpan[0]
+      // Legacy terrain
       // terrain._xCount, //Size of terrain to match
       // terrain._yCount,
-      // this._terrain._tileSpanRange[0],
-      // this._terrain._tileSpanRange[1], // BAD IDEA TO USE PRIVATE VARS, fuck it we ball 
-      // this._terrain._tileSpan[0], // TL Position, private var access
       // [0,0]
-
-      terrain._xCount, //Size of terrain to match
-      terrain._yCount,
-      [0,0]
     );
 
-    for(let y = 0; y < terrain._yCount; y++){
-      for(let x = 0; x < terrain._xCount; x++){
-        let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
-        this._grid.setArrPos([x, y], node); //Stores tile in grid
+    // Legacy node initialization
+    // for(let y = 0; y < terrain._yCount; y++){
+    //   for(let x = 0; x < terrain._xCount; x++){
+    //     let node = new Node(terrain._tileStore[terrain.conv2dpos(x, y)], x, y); //Makes tile out of Tile object
+    //     this._grid.setArrPos([x, y], node); //Stores tile in grid
+    //   }
+    // }
+
+    for (let y = this._terrain._tileSpan[0][1]; y < this._terrain._tileSpan[1][1]; ++y) {
+      for (let x = this._terrain._tileSpan[0][0]; x < this._terrain._tileSpan[1][0]; ++x) {
+        let node = new Node(this._terrain.get([x,y]),x,y);
+        this._grid.set([x,y],node);
       }
     }
 
@@ -33,6 +38,7 @@ class PathMap{
     logNormal("Pathfinding using "+this._grid.infoStr());
 
     this._gridSize = this._grid.getSize();
+    console.log("PATHFINDING SIZE: ",this._gridSize)
     // for(let y = 0; y < this._gridSize[1]; y++){ 
       // for(let x = 0; x < this._gridSize[0]; x++){
     //     let node = new Node(this._terrain.getArrPos([x,y]), x, y); //Makes tile out of Tile object
@@ -50,9 +56,10 @@ class PathMap{
     //   }
     // }
 
-    for(let y = 0; y < terrain._yCount; y++){
-      for(let x = 0; x < terrain._xCount; x++){
-        let node = this._grid.getArrPos([x,y]); //Makes tile out of Tile object
+    for(let y = 0; y < this._gridSize[1]; y++){
+      for(let x = 0; x < this._gridSize[0]; x++){
+        let node = this._grid.getArrPos([x,y]); //Makes tile out of Tile object - xy should not affect setNeighbors
+        // console.log(node)
         node.setNeighbors(this._grid); //Stores tile in grid
       }
     }
@@ -69,7 +76,7 @@ class Node{
     this._x = x;
     this._y = y;
 
-    this.id = `${x}-${y}`; //Used for easier access. Faster than searching 2D array
+    this.id = `${x}_${y}`; //Used for easier access. Faster than searching 2D array
     this.neighbors = []; //Traversible neighbors (not walls)
     this.assignWall();
     this.weight = this._terrainTile.getWeight();
@@ -98,8 +105,10 @@ class Node{
         if (x == 0 && y == 0) continue; //Skips current node
         let nx = this._x + x;
         let ny = this._y + y; //Makes sure the sum is within bounds
-        if (nx >= 0 && nx < grid._sizeX && ny >= 0 && ny < grid._sizeY){
-          let neighbor = grid.getArrPos([nx,ny]);
+        if ((nx >= grid._spanTopLeft[0] && nx < grid._spanBotRight[0] && ny >= grid._spanTopLeft[1] && ny < grid._spanBotRight[1])){
+          
+          let neighbor = grid.get([nx,ny]); // Disabled OOB checks...
+
           this.neighbors.push(neighbor);
         }
       }
