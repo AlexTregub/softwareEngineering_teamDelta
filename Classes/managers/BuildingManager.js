@@ -91,6 +91,33 @@ class AntCone extends AbstractBuildingFactory {
       Building.prototype.render.call(this);
       const queen = getQueen?.();
 
+      if(this.isPlayerNearby && !this._isDead && this._faction == "player"){
+        push();
+        textAlign(CENTER);
+        textSize(16);
+        fill(255);
+        textFont(terrariaFont);
+
+        // console.log(queen.getPosition())
+        // const queenPos = queen.getPosition()
+        // console.log(queenPos)
+
+        // console.log(Building.prototype.getPosition())
+        // console.log(this.getPosition())
+        const hillPos = this.getPosition()
+
+        // console.log(this.getCurrentPosition())
+
+        // console.log(this._controllers.get("movement"))
+        // console.log(this._controllers.get("render").worldToScreenPosition(hillPos))
+
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+
+        // text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
+        text("[E] Open Hill Menu", renderPos.x , renderPos.y - 10);
+        pop();
+      }
+
       // draw prompt if player close
       if(this.isPlayerNearby && this._isDead){
         push();
