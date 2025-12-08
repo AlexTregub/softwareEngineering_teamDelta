@@ -27,7 +27,10 @@ const DEFAULT_MENU_YOFFSET = -80;
 // Button configurations for each menu state
 const MENU_CONFIGS = {
   MENU: [
-    { x: -10, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
+    { x: -10, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => {
+      // window.g_renderLayerManager.enableLayer('entities');
+      startGameTransition()
+    } },
     // { x: -10, y: -50, w: 220, h: 80, text: "Tutorial", style: 'success', action: () => {
     //   importTerrainLP(
     //     "src/levels/gregg.json"

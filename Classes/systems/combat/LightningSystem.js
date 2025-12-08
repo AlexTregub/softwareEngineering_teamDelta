@@ -52,7 +52,7 @@ class LightningManager {
   constructor() {
     this.sootStains = [];
     this.bolts = []; // transient bolt animations
-    this.cooldown = 300; // milliseconds between strikes
+    this.cooldown = 2000; // milliseconds between strikes
     this.lastStrikeTime = 0;
     this.level = 1; // Power level (1 = single strike, 2 = triple strike)
     // Knockback in pixels applied to ants hit by lightning
