@@ -107,80 +107,86 @@ class QuestManager {
     }
 
     // RENDER UI \\
-    // UI rendering logic
-    renderUI() {
-        if (!this.uiVisible) return;
+renderUI() {
+    if (!this.uiVisible) return;
 
-        // Initialize converter if needed
-        if (!this.coordConverter && typeof UICoordinateConverter !== 'undefined') {
-          this.coordConverter = new UICoordinateConverter({ width, height });
-        }
-
-        push();
-
-        const boxW = 400;
-        const boxH = 300;
-        const padding = 20;
-        
-        // Use normalized coordinates if converter available
-        let boxX, boxY;
-        if (this.coordConverter) {
-          const screenPos = this.coordConverter.normalizedToScreen(this.normalizedX, this.normalizedY);
-          boxX = screenPos.x - boxW / 2;  // Center the box on the position
-          boxY = screenPos.y - boxH / 2;
-        } else {
-          // Fallback to pixel positioning
-          boxX = 1300;
-          boxY = height - boxH - 350;
-        }
-
-        // BACKGROUND IMAGE \\
-        if (this.bgImage) image(this.bgImage, boxX, boxY, boxW, boxH);
-        else {
-            fill(0, 180);
-            rect(boxX, boxY, boxW, boxH, 10);
-        }
-
-        // HEADER \\
-        textAlign(LEFT, TOP);
-        textFont(terrariaFont || 'sans-serif');
-        textSize(28);
-        textStyle(BOLD);
-        fill(255);
-        stroke(0);
-        strokeWeight(3);
-        text("Quests", boxX + padding - 58, boxY + padding - 100);
-
-        // QUEST ENTRIES \\
-        textStyle(NORMAL);
-        textSize(22);
-        strokeWeight(2);
-        let y = boxY + padding + 50;
-
-        this.activeQuests.forEach((q) => {
-            const icon = q.completed ? this.questChecked : this.questUnchecked;
-
-            // quest icon
-            if (icon) image(icon, boxX + padding - 110, y - 90, 60, 60);
-            const collected = getResourceCount("stick");
-            // quest text
-            fill(255);
-            text(q.name, boxX + padding - 95 , y - 100);
-            fill(200);
-            text(`Progress: ${collected}/${q.objective.amount}`, boxX + padding -60, y - 80);
-
-            y += 60;
-        });
-
-        // NO ACTIVE QUESTS \\
-        if (this.activeQuests.length === 0) {
-            fill(220);
-            textSize(24);
-            text("No active quests!", boxX + padding, boxY + boxH / 2);
-        }
-
-        pop();
+    // Initialize converter if needed
+    if (!this.coordConverter && typeof UICoordinateConverter !== 'undefined') {
+        this.coordConverter = new UICoordinateConverter({ width, height });
     }
+
+    push();
+
+    const boxW = 400;
+    const boxH = 300;
+    const padding = 20;
+    
+    // Use normalized coordinates if converter available
+    let boxX, boxY;
+    if (this.coordConverter) {
+        const screenPos = this.coordConverter.normalizedToScreen(this.normalizedX, this.normalizedY);
+        boxX = screenPos.x - boxW / 2;  // Center the box on the position
+        boxY = screenPos.y - boxH / 2;
+    } else {
+        // Fallback to pixel positioning
+        boxX = 1300;
+        boxY = height - boxH - 350;
+    }
+
+    // BACKGROUND IMAGE \\
+    if (this.bgImage) image(this.bgImage, boxX, boxY, boxW, boxH);
+    else {
+        fill(0, 180);
+        rect(boxX, boxY, boxW, boxH, 10);
+    }
+
+    // HEADER \\
+    textAlign(LEFT, TOP);
+    textFont(terrariaFont || 'sans-serif');
+    textSize(28);
+    textStyle(BOLD);
+    fill(255);
+    stroke(0);
+    strokeWeight(3);
+    text("Quests", boxX + padding - 58, boxY + padding - 100);
+
+    // QUEST ENTRIES \\
+    textStyle(NORMAL);
+    textSize(22);
+    strokeWeight(2);
+    let y = boxY + padding + 50;
+
+    this.activeQuests.forEach((q) => {
+        const icon = q.completed ? this.questChecked : this.questUnchecked;
+
+        // quest icon
+        if (icon) image(icon, boxX + padding - 110, y - 90, 60, 60);
+
+        // quest text
+        fill(255);
+        text(q.name, boxX + padding - 95 , y - 100);
+        fill(200);
+
+        // If the quest is a collection quest, show the progress
+        if (q.objective && q.objective.type === "collect") {
+            text(`Know How To Count To 4?`, boxX + padding - 60, y - 80);
+        } else {
+            // For other types of quests, you can simply show the objective description or anything else you want
+            text(`Get Over There!`, boxX + padding - 60, y - 80);
+        }
+
+        y += 60;
+    });
+
+    // NO ACTIVE QUESTS \\
+    if (this.activeQuests.length === 0) {
+        fill(220);
+        textSize(24);
+        text("No active quests!", boxX + padding, boxY + boxH / 2);
+    }
+
+    pop();
+}
 }
 
 // GLOBAL INSTANCE \\
