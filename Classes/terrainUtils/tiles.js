@@ -336,6 +336,14 @@ class Tile { // Similar to former 'Grid'. Now internally stores material state.
           this._weight = 3;
           break;
         case 'stone':
+          this._weight = 2;
+          break;
+        case 'sand':
+        case 'sandDark':
+          this._weight = 50;
+          break;
+        case 'waterCave':
+        case 'water':
           this._weight = 100;
           break;
         default:
