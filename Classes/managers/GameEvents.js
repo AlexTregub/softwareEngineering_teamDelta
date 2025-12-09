@@ -1,4 +1,4 @@
-let amountOfAnts = 0;
+let amountOfAnts = 1;
 
 class AbstractEvent{
     _init(){throw new Error();}
@@ -38,7 +38,7 @@ class BossEvent extends AbstractEvent {
 }
 
 class Swarm extends AbstractEvent {
-    constructor(radius = 1000){
+    constructor(radius = 2000){
         super();
         this.raidus = radius;
         this.finished = false;
