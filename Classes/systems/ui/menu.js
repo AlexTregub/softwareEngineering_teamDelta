@@ -393,13 +393,15 @@ Alex B
 Special Thanks:
 Joe Demore 
 - Random Walk Lightning Generation (Not 100% Implemented)
-'The Flashlight Guys' - (*).webtoys.dev
+'The Flashlight Guys' 
+- shapingbad.webtoys.dev
 
 For:
 Dr. Gregory DeLozier's 
 Fall 2025 Software Engineering Course
 
 (Ants can Fireball)
+ants.webtoys.dev
   `;
 
   text(body, g_canvasX / 2, 130 + creditsScroll);
