@@ -380,15 +380,20 @@ function drawCreditsMenu() {
   const body = `
 This game was created by:
 
-David Willman, 
-Alex Tregub (github.com/AlexTregub), 
-Colin Grant, 
-Anthony Cruz, 
-Alex Fabiku, 
-Alex Zepp, 
-Emmanuel Uka, 
-Jack Miller, 
-Alex B
+David Willman
+- Ants, Testing, MVC, UI, Level Editor, 
+Alex Tregub (github.com/AlexTregub) 
+- Grid, Architecture, Terrain, Rendering, Optimization, Camera 
+Colin Grant 
+- Pathfinding, Queen Powers, Nature, Bug fixes, 
+Anthony Cruz 
+- Quests, NPC Dialogue, Menus, Tutorial Design, 
+Alex Fabiku 
+- Bosses, Buildings, Resources, Combat, Events, Animations,
+Alex Zepp - Artist, Animations, 
+Emmanuel Uka - Enemies, Quest Resources, 
+Jack Miller - Early Resources, Buildings, 
+Alex B - Camera Work
 
 Special Thanks:
 Joe Demore 
