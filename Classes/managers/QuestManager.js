@@ -169,7 +169,7 @@ renderUI() {
 
         // If the quest is a collection quest, show the progress
         if (q.objective && q.objective.type === "collect") {
-            text(`Know How To Count To 4?`, boxX + padding - 60, y - 80);
+            text(`4!?!`, boxX + padding - 60, y - 80);
         } else {
             // For other types of quests, you can simply show the objective description or anything else you want
             text(`Get Over There!`, boxX + padding - 60, y - 80);
