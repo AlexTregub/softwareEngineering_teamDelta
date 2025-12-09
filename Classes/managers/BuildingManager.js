@@ -48,7 +48,7 @@ class AntCone extends AbstractBuildingFactory {
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2']) {
+  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2','moss_2','moss_3','moss_4','dirt','stone','moss','stone_1']) {
     let a = g_activeMap.sampleTiles(tileType,1000); // 
 
     let tilex = a[0][0]; // Picks initial random position
@@ -165,7 +165,7 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2']) {
+  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2','moss_2','moss_3','moss_4','dirt','stone','moss','stone_1']) {
     // 160 x 100 size... ie. 160/32 x 100/32 tile size
     let a = g_activeMap.sampleTiles(tileType,30000);  
 
