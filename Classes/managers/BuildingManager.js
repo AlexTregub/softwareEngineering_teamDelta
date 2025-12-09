@@ -8,7 +8,7 @@ let CENTERING_RADIUS = 30
 
 function BuildingPreloader() {
   Cone = loadImage('Images/Buildings/Cone/Cone1.png');
-  Hill = loadImage('Images/Buildings/Hill/Hill1.png');
+  Hill = loadImage('Images/Buildings/Hill/Hill0.png');
   Hive = loadImage('Images/Buildings/Hive/Hive1.png');
   UI   = loadImage('Images/Buildings/UI/building_box.png');
 }
@@ -148,7 +148,7 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
       upgradeCost: 0,
       progressions: {
         1: {
-          image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+          image: () => loadImage('Images/Buildings/Hill/Hill1.png'),
           canUpgrade: false,    
           upgradeCost: null,
           progressions: {1: {
