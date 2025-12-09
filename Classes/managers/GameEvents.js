@@ -1,3 +1,5 @@
+let amountOfAnts = 1;
+
 class AbstractEvent{
     _init(){throw new Error();}
 
@@ -36,10 +38,9 @@ class BossEvent extends AbstractEvent {
 }
 
 class Swarm extends AbstractEvent {
-    constructor(radius = 1000,amountOfAnts = 10){
+    constructor(radius = 2000){
         super();
         this.raidus = radius;
-        this.amountOfAnts = amountOfAnts;
         this.finished = false;
     }
 
@@ -47,17 +48,20 @@ class Swarm extends AbstractEvent {
         let player = getQueen();
         if (!player) return;
 
-        for (let i = 0; i < this.amountOfAnts; i++) {
-            let angle = (i / this.amountOfAnts) * Math.PI * 2;
+        for (let i = 0; i < amountOfAnts; i++) {
+            let angle = (i / amountOfAnts) * Math.PI * 2;
 
-            let x = player.posX + this.radius * Math.cos(angle);
-            let y = player.posY + this.radius * Math.sin(angle);
+            let x = player.posX + this.raidus * Math.cos(angle);
+            let y = player.posY + this.raidus * Math.sin(angle);
 
             let spawned = antsSpawn(1, 'waveEnemy', x, y);
             if (!spawned || !spawned.length) continue;
 
             let ant = spawned[0];
             ant.moveToLocation(player.posX, player.posY);
+        }  
+        if(g_globalTime.inGameDays % 2 == 1){
+            amountOfAnts++;
         }
     }
 
@@ -88,8 +92,8 @@ class AntHive extends AbstractEvent {
             player  = getQueen();
             if(!player){return;}
             let degree = (x/this.amountOfBuilding) * 2 * 3.14
-            let px = player.posX + this.raidus * cos(degree);
-            let py = player.posY + this.raidus * sin(degree);
+            let px = player.posX + this.raidus * Math.cos(degree);
+            let py = player.posY + this.raidus * Math.sin(degree);
 
             let pos = g_activeMap.sampleTiles("stone_1",1)[0]
 
@@ -116,16 +120,15 @@ class AntHive extends AbstractEvent {
 }
 
 class Raid extends AbstractEvent {
-    constructor(radius = 1000,amountOfAnts = 10){
+    constructor(radius = 1000){
         super();
         this.raidus = radius;
-        this.amountOfAnts = amountOfAnts;
         this.finished = false;
         this.children = [];
     }
 
     _init(){
-        let wave = new AntHive(this.raidus,this.amountOfAnts);
+        let wave = new AntHive(this.raidus,amountOfAnts);
         let boss = new BossEvent();
         wave._init();
         boss._init();
@@ -180,6 +183,7 @@ class GameEventManager{
         let event = type? this.factory.create(type): this.factory.chosenRandom();
         this.activeEvent.push(event);
         console.log('startEvent:', event); 
+        console.log('Number of ants:', amountOfAnts);
         event._init(); 
     }    
 

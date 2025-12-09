@@ -381,7 +381,7 @@ function drawCreditsMenu() {
 This game was created by:
 
 David Willman, 
-Alex Tregub, 
+Alex Tregub (github.com/AlexTregub), 
 Colin Grant, 
 Anthony Cruz, 
 Alex Fabiku, 
@@ -391,9 +391,15 @@ Jack Miller,
 Alex B
 
 Special Thanks:
-... (TBD)
+Joe Demore 
+- Random Walk Lightning Generation (Not 100% Implemented)
+'The Flashlight Guys' - (*).webtoys.dev
 
 For:
+Dr. Gregory DeLozier's 
+Fall 2025 Software Engineering Course
+
+(Ants can Fireball)
   `;
 
   text(body, g_canvasX / 2, 130 + creditsScroll);
