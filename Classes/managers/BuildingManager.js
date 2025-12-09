@@ -499,7 +499,7 @@ class Building extends Entity {
           const s = this.getSize ? this.getSize() : (this._size || { x: width || 32, y: height || 32 });
           const centerX = p.x + (s.x / 2);
           const centerY = p.y + (s.y / 2);
-          antsSpawn(this._spawnCount, this._faction, centerX , centerY);
+          antsSpawn(1, this._faction, centerX , centerY);
         }
       } catch (e) { console.warn('Building spawn error', e); }
     }
