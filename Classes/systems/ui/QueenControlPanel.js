@@ -28,7 +28,7 @@ class QueenControlPanel {
     
     // Fireball properties
     this.fireballDamage = 30;
-    this.fireballCooldown = 1000; // milliseconds
+    this.fireballCooldown = 5000; // milliseconds
     this.lastFireballTime = 0;
     
     // Visual feedback

@@ -243,7 +243,8 @@ function keyPressed() {
     }
     
     const nearbyHill = Buildings.find(b => 
-      b.isPlayerNearby && b.buildingType === "anthill" && b._faction === "player" && !b._isDead
+      // b.isPlayerNearby && (b.buildingType === "anthill") && b._faction === "player" && !b._isDead
+      b.isPlayerNearby &&  b._faction === "player" && !b._isDead
     );
     if (nearbyHill) {
       if (!window.BUIManager.active) {

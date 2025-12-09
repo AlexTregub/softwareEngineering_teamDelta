@@ -4,6 +4,7 @@
 let Cone;
 let Hill;
 let Hive;
+let CENTERING_RADIUS = 30
 
 function BuildingPreloader() {
   Cone = loadImage('Images/Buildings/Cone/Cone1.png');
@@ -33,7 +34,12 @@ class AntCone extends AbstractBuildingFactory {
           image: () => loadImage('Images/Buildings/Cone/Cone2.png'),
           canUpgrade: false,    
           upgradeCost: null,
-          progressions: {}
+          progressions: {1: {
+            image: () => loadImage('Images/Buildings/Cone/Cone2.png'),
+            canUpgrade: false,    
+            upgradeCost: null,
+            progressions: {}
+          }}
         }
       }
     };
@@ -42,25 +48,27 @@ class AntCone extends AbstractBuildingFactory {
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction,tileType=['grass']) {
-    let a = g_activeMap.sampleTiles(tileType,1); // 
+  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2']) {
+    let a = g_activeMap.sampleTiles(tileType,1000); // 
 
     let tilex = a[0][0]; // Picks initial random position
     let tiley = a[0][1]; // ...
 
-    // for (let pos in a) { // pos is an index in a
-    //   // let pos = a[pos]
+    for (let pos in a) { // pos is an index in a
+      // let pos = a[pos]
 
-    //   let temp = a[pos]
-    //   // console.log(temp)
-    //   // if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
-    //   //   tilex = temp[0]
-    //   //   tiley = temp[1] // tile positions (grid) 
+      let temp = a[pos]
+      // console.log(temp)
+      if ((tileType.includes(
+        g_activeMap.getMat([temp[0]+round(160/TILE_SIZE),temp[1]+round(100/TILE_SIZE)])
+      ))) { // Bounds close to center
+        tilex = temp[0]
+        tiley = temp[1] // tile positions (grid) 
 
-    //   //   // console.log("DONE DID IT ")
-    //   //   break
-    //   // }
-    // }
+        // console.log("DONE DID IT ")
+        break
+      }
+    }
 
     let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
@@ -82,6 +90,33 @@ class AntCone extends AbstractBuildingFactory {
     cone.render = function() {
       Building.prototype.render.call(this);
       const queen = getQueen?.();
+
+      if(this.isPlayerNearby && !this._isDead && this._faction == "player"){
+        push();
+        textAlign(CENTER);
+        textSize(16);
+        fill(255);
+        textFont(terrariaFont);
+
+        // console.log(queen.getPosition())
+        // const queenPos = queen.getPosition()
+        // console.log(queenPos)
+
+        // console.log(Building.prototype.getPosition())
+        // console.log(this.getPosition())
+        const hillPos = this.getPosition()
+
+        // console.log(this.getCurrentPosition())
+
+        // console.log(this._controllers.get("movement"))
+        // console.log(this._controllers.get("render").worldToScreenPosition(hillPos))
+
+        const renderPos = this._controllers.get("render").worldToScreenPosition(hillPos)
+
+        // text("[E] Open Hill Menu", queen.posX , queen.posY - 10);
+        text("[E] Open Hill Menu", renderPos.x , renderPos.y - 10);
+        pop();
+      }
 
       // draw prompt if player close
       if(this.isPlayerNearby && this._isDead){
@@ -116,24 +151,23 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
           image: () => loadImage('Images/Buildings/Hill/Hill1.png'),
           canUpgrade: false,    
           upgradeCost: null,
-          progressions: {
-            1: {
-              image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
-              canUpgrade: false,
-              upgradeCost: null,
-              progressions: {}
-            }
+          progressions: {1: {
+            image: () => loadImage('Images/Buildings/Hill/Hill2.png'),
+            canUpgrade: false,    
+            upgradeCost: null,
+            progressions: {}
+            }}
           }
         }
-      }
     };
     this.isPlayerNearby = false;
     this.menuActive = false;
     this.promptRange = 100; 
   }
 
-  createBuilding(x, y, faction,tileType=['grass']) {
-    let a = g_activeMap.sampleTiles(tileType,10000); // 
+  createBuilding(x, y, faction,tileType=['grass','dirt_1','moss_1','stone_2']) {
+    // 160 x 100 size... ie. 160/32 x 100/32 tile size
+    let a = g_activeMap.sampleTiles(tileType,30000);  
 
     let tilex = a[0][0]; // Picks initial random position
     let tiley = a[0][1]; // ...
@@ -143,20 +177,24 @@ class AntHill extends AbstractBuildingFactory { // Main anthill
 
       let temp = a[pos]
       // console.log(temp)
-      if (temp[0] < 30 & temp[0] > -30 & temp[1] < 30 & temp[1] > -30) { // Bounds close to center
+      if (temp[0] < CENTERING_RADIUS & temp[0] > -CENTERING_RADIUS & temp[1] < CENTERING_RADIUS & temp[1] > -CENTERING_RADIUS
+        & (tileType.includes(
+          g_activeMap.getMat([temp[0]+round(160/TILE_SIZE),temp[1]+round(100/TILE_SIZE)])
+        ))
+      ) { // Bounds close to center
         tilex = temp[0]
         tiley = temp[1] // tile positions (grid) 
 
-        // console.log("DONE DID IT ")
+        console.log("INFO: Proper placement done...")
         break
       }
     }
 
-    if (tilex > 30 | tilex < -30 | tiley > 30 | tiley < -30) {
-      tilex = 0
-      tiley = 0
-      console.log("WARNING: DEFAULT SPAWN POS FOR ANTHILL")
-    } 
+    // if (tilex > CENTERING_RADIUS | tilex < -CENTERING_RADIUS | tiley > CENTERING_RADIUS | tiley < -CENTERING_RADIUS) {
+    //   tilex = 0
+    //   tiley = 0
+    //   console.log("WARNING: DEFAULT SPAWN POS FOR ANTHILL")
+    // } 
 
     let convPos = g_activeMap.renderConversion.convPosToCanvas([tilex,tiley])
 
@@ -423,8 +461,8 @@ class Building extends Entity {
     // --- APPLY UPGRADE ---
     this.setImage(nextImage);
     this._spawnInterval = Math.max(1, this._spawnInterval - 1);
-    this._spawnCount += 1;
-    this._maxHealth = Math.round(this._maxHealth * 1.25);
+    this._spawnCount += 10;
+    this._maxHealth = Math.round(this._maxHealth * 1.5);
     this._health = this._maxHealth;
     this._isDead = false;
 

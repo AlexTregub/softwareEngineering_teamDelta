@@ -246,8 +246,6 @@ class NPC extends Building{
             break;
     }
 
-    // Force dialogue for stages >= 4 even if player is far
-    if (this.dialogueStage >= 4) this.isPlayerNearby = true;
 
     this.dialogueIndex = 0;
     this.dialogueActive = true;

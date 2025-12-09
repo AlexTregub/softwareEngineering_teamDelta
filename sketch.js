@@ -313,7 +313,7 @@ function initializeWorld() {
 
   // g_map2.setMat([0,0],'farmland')
   g_activeMap = g_map2;
-  g_activeMap.setMat([0,0],'farmland')
+  // g_activeMap.setMat([0,0],'farmland')
   
   // Register with MapManager (which will also update g_activeMap)
   if (typeof mapManager !== 'undefined') {
@@ -321,7 +321,7 @@ function initializeWorld() {
     logVerbose("Main map registered with MapManager as 'level1' and set as active");
   }
      
-  g_gridMap = new PathMap(g_map);
+  g_gridMap = new PathMap(g_activeMap);
   g_globalTime = new GlobalTime();
   
   // Initialize max ant limit (can be increased via building upgrades)

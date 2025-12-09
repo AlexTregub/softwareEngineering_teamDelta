@@ -14,7 +14,7 @@ class FireballAimBrush extends BrushBase {
     // Charging mechanics
     this.isCharging = false;
     this.chargeStartTime = 0;
-    this.chargeTime = 1000; // 1 second to fully charge
+    this.chargeTime = 5000; // 1 second to fully charge
     this.chargeProgress = 0; // 0.0 to 1.0
     
     // Particle emitter for fire/smoke effects

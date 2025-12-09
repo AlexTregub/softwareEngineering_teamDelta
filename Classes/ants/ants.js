@@ -178,7 +178,7 @@ class ant extends Entity {
     const combat = this.getController('combat');
     switch(this.jobName){
       case "Queen":
-        // combat._detectionRadius = 300;
+        combat._detectionRadius = 40;
         // this._attackRange = combat._detectionRadius - 50; 
         break;
       case "Spitter":

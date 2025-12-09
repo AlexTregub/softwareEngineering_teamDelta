@@ -3,7 +3,7 @@
 ///// NONE constant is now defined outside. 
 ///// Treat _ as private, else as public.
 let GRID_ID = 0;
-let DISABLE_GRID_ACCESS_CHECKS = false; // Will control access checks. Improves performance if disabled, losing debuging capabilities...
+let DISABLE_GRID_ACCESS_CHECKS = true; // Will control access checks. Improves performance if disabled, losing debuging capabilities...
 
 //// GRID UTILS:
 function convertToGrid(data,sizeX,sizeY) { // Convert raw array into grid format.

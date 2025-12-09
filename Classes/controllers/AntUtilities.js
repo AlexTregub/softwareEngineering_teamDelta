@@ -316,8 +316,10 @@ class AntUtilities {
           const antTileY = Math.floor(antPos.y / tileSize);
           
           const grid = pathMap.getGrid();
-          const startTile = grid?.getArrPos([antTileX, antTileY]);
-          const endTile = grid?.getArrPos([offsetTileX, offsetTileY]);
+          // console.log("Pre")
+          const startTile = grid?.get([antTileX, antTileY]); // Should also work...
+          const endTile = grid?.get([offsetTileX, offsetTileY]);
+          // console.log("Post")
           
           if (startTile && endTile) {
             const path = findPath(startTile, endTile, pathMap);
@@ -826,8 +828,12 @@ function moveSelectedEntitiesToTile(mx, my, tileSize) {
     const entityX = Math.floor(entityCenterX / tileSize);
     const entityY = Math.floor(entityCenterY / tileSize);
 
-    const startTile = grid.getArrPos([entityX, entityY]);
-    const endTile = grid.getArrPos([offsetTileX, offsetTileY]);
+    // PRIMARY OFFENDER: PATHFINDING CALLS FIXED...
+    // console.log("Pre")
+    console.log(entityX,entityY,offsetTileX,offsetTileY)
+    const startTile = grid.get([entityX, entityY]);
+    const endTile = grid.get([offsetTileX, offsetTileY]);
+    // console.log("Post")
 
     if (startTile && endTile) {
       const newPath = findPath(startTile, endTile, g_gridMap);

@@ -75,7 +75,7 @@ class Swarm extends AbstractEvent {
         
 
 class AntHive extends AbstractEvent {
-    constructor(radius = 1000,amountOfBuilding = 20){
+    constructor(radius = 1000,amountOfBuilding = 40){
         super();
         this.raidus = radius;
         this.amountOfBuilding = amountOfBuilding;

@@ -44,11 +44,11 @@ class AntSelectionBar {
     // Job types to display (default: Queen first, then main job types)
     this.jobTypes = options.jobTypes || [
       { name: 'Queen', value: 'queen', keybind: 'Q', isQueen: true },
-      { name: 'Builder', value: 'builder', keybind: 'W' },
-      { name: 'Scout', value: 'scout', keybind: 'F' },
-      { name: 'Farmer', value: 'farmer', keybind: 'R' },
-      { name: 'Warrior', value: 'warrior', keybind: 'T' },
-      { name: 'Spitter', value: 'spitter', keybind: 'U' }
+      //{ name: 'Builder', value: 'builder', keybind: 'W' },
+      //{ name: 'Scout', value: 'scout', keybind: 'F' },
+      //{ name: 'Farmer', value: 'farmer', keybind: 'R' },
+      //{ name: 'Warrior', value: 'warrior', keybind: 'T' },
+      //{ name: 'Spitter', value: 'spitter', keybind: 'U' }
     ];
     
     // Sprite paths for each job type

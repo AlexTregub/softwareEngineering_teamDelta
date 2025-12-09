@@ -27,15 +27,21 @@ const DEFAULT_MENU_YOFFSET = -80;
 // Button configurations for each menu state
 const MENU_CONFIGS = {
   MENU: [
-    { x: -10, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => startGameTransition() },
-    { x: -10, y: -50, w: 220, h: 80, text: "Tutorial", style: 'success', action: () => {
-      importTerrainLP(
-        "src/levels/gregg.json"
-      )
+    { x: -10, y: -100, w: 220, h: 100, text: "Start Game", style: 'success', action: () => {
+      // window.g_renderLayerManager.enableLayer('entities');
       startGameTransition()
     } },
+    // { x: -10, y: -50, w: 220, h: 80, text: "Tutorial", style: 'success', action: () => {
+    //   importTerrainLP(
+    //     "src/levels/gregg.json"
+    //   )
+    //   startGameTransition()
+    // } },
     { x: -10, y: -10,  w: 220, h: 80, text: "Level Editor",    style: 'warning', action: () => GameState.goToLevelEditor() },
-    { x: -10, y: 30,  w: 220, h: 80, text: "Import Level",    style: 'info', action: () => importTerrain() },
+    { x: -10, y: 30,  w: 220, h: 80, text: "Import Level",    style: 'info', action: () => {
+      window.g_renderLayerManager.disableLayer('entities');
+      importTerrain();
+    } },
     { x: -10, y: 70,  w: 220, h: 80, text: "Credits",    style: 'info', action: () => {
       console.log("Credits clicked...");
       GameState.setState("CREDITS");
